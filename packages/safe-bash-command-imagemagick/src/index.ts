@@ -10200,6 +10200,15 @@ function* prepareGifFrames(stack: readonly MagickImage[], dither: MagickState["d
     let cooperativeWork = 0;
     let fw = 0, fh = 0;
     for (const frame of stack) { fw = Math.max(fw, frame.width); fh = Math.max(fh, frame.height); }
+    const first = stack[0]!;
+    if (format === "webp") {
+        fw = first.virtualCanvas?.width || first.width;
+        fh = first.virtualCanvas?.height || first.height;
+    }
+    // WebP encodes displayed canvases, so apply frame placement and disposal before packing.
+    let canvas = format === "webp" ? { ...yield* createSolidRgbaImageSteps(fw, fh,
+        { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: first.hasAlpha ? 0 : 255 }), hasAlpha: first.hasAlpha } : undefined;
+    let hasAlpha = first.hasAlpha;
     const size = fw * fh * 4;
     const combined = new Uint8Array(size * stack.length);
     let pages = 0;
@@ -10207,7 +10216,20 @@ function* prepareGifFrames(stack: readonly MagickImage[], dither: MagickState["d
     const disposals: number[] = [];
     for (let idx = 0; idx < stack.length; idx++) {
         if (++cooperativeWork % 64 === 0) yield;
-        const outputFrame = yield* prepareMagickOutput(stack[idx]!, "gif", dither, diffusionAmount);
+        let outputFrame = yield* prepareMagickOutput(stack[idx]!, "gif", dither, diffusionAmount);
+        if (canvas) {
+            const previous = canvas, x = outputFrame.virtualCanvas?.x ?? 0, y = outputFrame.virtualCanvas?.y ?? 0;
+            canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, outputFrame, x, y, idx === 0 ? "copy" : "over", undefined, false, 0, true), undefined, canvas, [canvas, outputFrame]);
+            const displayed = canvas;
+            if (outputFrame.disposal === 3) canvas = previous;
+            else if (outputFrame.disposal === 2) {
+                const clear = yield* createSolidRgbaImageSteps(outputFrame.width, outputFrame.height, { r: 0, g: 0, b: 0, a: 0 });
+                canvas = { ...canvas, hasAlpha: true };
+                canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, clear, x, y, "source", undefined, false, 0, true), undefined, canvas, [canvas, clear]);
+            }
+            outputFrame = { ...outputFrame, width: fw, height: fh, data: displayed.data, hasAlpha: displayed.hasAlpha };
+            hasAlpha ||= displayed.hasAlpha;
+        }
         disposals.push(typeof outputFrame.disposal === "number" ? outputFrame.disposal : 0);
         const delay = outputFrame.delay?.[(stack[idx] as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0;
         const duration = format === "webp" && delay >= 0 && delay < 10 ? 100 : delay;
@@ -10231,6 +10253,7 @@ function* prepareGifFrames(stack: readonly MagickImage[], dither: MagickState["d
         height: fh * pages,
         pages,
         pageHeight: fh,
+        ...(format === "webp" ? { hasAlpha } : {}),
         delay: delays,
         disposal: disposals,
         gifFrames: stack.map(frame => ({ icc: frame.icc, gifApplications: frame.gifApplications, comment: frame.properties?.comment, gifCommentBytes: frame.gifCommentBytes, width: frame.width, height: frame.height, x: frame.virtualCanvas?.x ?? 0, y: frame.virtualCanvas?.y ?? 0 })),
@@ -10247,17 +10270,36 @@ async function prepareStoredGifFrames(stack: StoredImageStack, backend: CompareF
         width = Math.max(width, frame.width); height = Math.max(height, frame.height);
         hasAlpha ||= frame.hasAlpha;
     }
+    if (format === "webp") {
+        width = first.virtualCanvas?.width || first.width;
+        height = first.virtualCanvas?.height || first.height;
+    }
+    let canvas = format === "webp" ? { ...await createStoredCanvas(width, height,
+        { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: first.hasAlpha ? 0 : 255 }, backend, signal), hasAlpha: first.hasAlpha } : undefined;
     const size = width * height * 4, position = backend.storage.allocate(size * stack.length);
     const delaysPosition = format === "webp" ? backend.storage.allocate(stack.length * 8) : undefined;
     let pages = 0, previousDelay = 0;
     for (let index = 0; index < stack.length; index++) {
         const source = (await stack.get(index))!;
-        const frame = await prepareStoredMagickOutput(source, "gif", backend, signal, dither, diffusionAmount);
+        let frame = await prepareStoredMagickOutput(source, "gif", backend, signal, dither, diffusionAmount);
         const scene = source[magickInput]?.sceneIdx ?? 0;
         const delay = format === "webp" ? await source.storedDelay?.at(scene, { signal }) ?? source.delay?.[scene] ?? 0 : 0;
         const duration = delay >= 0 && delay < 10 ? 100 : delay;
         if (format === "webp" && (!Number.isInteger(duration) || duration < 0 || duration > 0xffffff)) throw new RangeError("Invalid WebP frame duration");
         let duplicate = format === "webp" && pages > 0 && previousDelay + duration <= 0xffffff;
+        if (canvas) {
+            const previous = canvas, x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
+            canvas = await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, frame, x, y, index === 0 ? "copy" : "over", undefined, false, 0, true), signal, canvas, [canvas, frame]);
+            const displayed = canvas;
+            if (frame.disposal === 3) canvas = previous;
+            else if (frame.disposal === 2) {
+                const clear = await createStoredCanvas(frame.width, frame.height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
+                canvas = { ...canvas, hasAlpha: true };
+                canvas = await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, clear, x, y, "source", undefined, false, 0, true), signal, canvas, [canvas, clear]);
+            }
+            frame = { ...frame, width, height, position: displayed.position, hasAlpha: displayed.hasAlpha };
+            hasAlpha ||= displayed.hasAlpha;
+        }
         for (let y = 0; y < height; y++) for (let x = 0; x < width; x += 4096) {
             await yieldTurn(signal);
             const count = Math.min(4096, width - x), bytes = new Uint8Array(count * 4);

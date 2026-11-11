@@ -11675,7 +11675,12 @@ if (t === "-intent" || t === "+intent") {
             if (defStr.toLowerCase().startsWith("magnify:method=")) state.magnifyMethod = parseMagnifyMethod(defStr.slice("magnify:method=".length));
             const [filterKey, filterValue] = defStr.toLowerCase().split("=");
             if (filterKey === "distort:scale") state.distortScale = filterValue ?? "";
-            if (filterKey === "gradient:bounding-box") state.gradientBoundingBox = parseMagickGeometry(filterValue ?? "");
+            if (filterKey === "gradient:bounding-box") {
+              const box = parseMagickGeometry(filterValue ?? "");
+              // A trailing dimension separator supplies zero height unless offsets follow it.
+              state.gradientBoundingBox = box.height === undefined && !box.hasOffset && filterValue?.includes("x")
+                ? { ...box, height: 0 } : box;
+            }
             if (filterKey === "gradient:radii") state.gradientRadii = filterValue ?? "";
             if (filterKey === "gradient:extent") state.gradientExtent = filterValue ?? "";
             if (filterKey === "gradient:vector") state.gradientVector = filterValue ?? "";

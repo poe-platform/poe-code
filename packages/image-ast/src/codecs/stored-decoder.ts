@@ -9,7 +9,7 @@ import { isQoiBytes, decodeQoiToStorage } from "./qoi-input.js";
 import { isMiffBytes } from "./miff-input.js";
 import { decodeMiffToStorage } from "./miff-input-storage.js";
 import { isXpmBytes, readXpmFromSource } from "./xpm.js";
-import { isXbmBytes, readXbmFromSource } from "./xbm.js";
+import { isXbmSource, readXbmFromSource } from "./xbm.js";
 import { isRadianceBytes } from "./radiance.js";
 import { decodeRadianceToStorage } from "./radiance-storage.js";
 import { isExrBytes } from "./exr.js";
@@ -59,7 +59,7 @@ export async function storedImageDecoder(source:ImageByteSource,signal:AbortSign
  if(isPfmBytes(prefix))return decodePfmToStorage;
  if(isFarbfeldBytes(prefix))return decodeFarbfeldToStorage;
  if(isPhmBytes(prefix))return decodePhmToStorage;
- if(isXbmBytes(prefix))return readXbmFromSource;
+ if(await isXbmSource(source,signal))return readXbmFromSource;
  if(isXpmBytes(prefix))return readXpmFromSource;
  if(isTxtBytes(prefix))return readTxtFromSource;
  if(isTgaBytes(prefix))return decodeTgaToStorage;

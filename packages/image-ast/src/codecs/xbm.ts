@@ -3,17 +3,49 @@ import { checkLimitInputPixels } from "../limits.js";
 import type { ImageByteSource, ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
 import { SourceBytes } from "./storage-source.js";
 
-export function isXbmBytes(bytes: Uint8Array): boolean {
-  let header = new TextDecoder().decode(bytes.subarray(0, 54)).trimStart();
-  while (header.startsWith("/*")) {
-    const end = header.indexOf("*/", 2);
-    if (end < 0) return false;
-    header = header.slice(end + 2).trimStart();
+function* xbmSignature(): Generator<number, boolean, number | undefined> {
+  let position = 0;
+  let byte = yield position++;
+  for (;;) {
+    while (byte !== undefined && String.fromCharCode(byte).trim() === "") byte = yield position++;
+    if (byte !== 47) break;
+    byte = yield position++;
+    if (byte === 42) {
+      let previous = 0;
+      for (;;) {
+        byte = yield position++;
+        if (byte === undefined) return false;
+        if (previous === 42 && byte === 47) break;
+        previous = byte;
+      }
+    } else if (byte === 47) {
+      while (byte !== undefined && byte !== 10 && byte !== 13) byte = yield position++;
+    } else return false;
+    byte = yield position++;
   }
-  if (!header.startsWith("#")) return false;
-  header = header.slice(1).trimStart();
-  return ["define", "include", "ifndef"].some(directive =>
-    header.startsWith(directive) && header.length > directive.length && header.charAt(directive.length).trim() === "");
+  if (byte !== 35) return false;
+  do { byte = yield position++; } while (byte !== undefined && String.fromCharCode(byte).trim() === "");
+  let directive = "";
+  while (byte !== undefined && String.fromCharCode(byte).trim() !== "") {
+    directive += String.fromCharCode(byte);
+    if (directive.length > 7) return false;
+    byte = yield position++;
+  }
+  return byte !== undefined && ["define", "include", "ifndef"].includes(directive);
+}
+
+export function isXbmBytes(bytes: Uint8Array): boolean {
+  const steps = xbmSignature();
+  let next = steps.next();
+  while (!next.done) next = steps.next(bytes[next.value]);
+  return next.value;
+}
+
+export async function isXbmSource(source: ImageByteSource, signal: AbortSignal): Promise<boolean> {
+  const reader = new SourceBytes(source, signal, "XBM"), steps = xbmSignature();
+  let next = steps.next();
+  while (!next.done) next = steps.next(await reader.at(next.value));
+  return next.value;
 }
 
 type Step = { kind: "read"; position: number } | { kind: "header"; metadata: ImageMetadata } | { kind: "pixel"; value: number };
@@ -33,6 +65,13 @@ function* xbmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
         if (inBitmap) throw new Error("improper image header: XBM comment inside bitmap initializer");
         if (value) { pending = char; return value; }
         const next = position < size ? yield { kind: "read" as const, position: position++ } : undefined;
+        if (next === 47) {
+          while (position < size) {
+            const byte = yield { kind: "read" as const, position: position++ };
+            if (byte === 10 || byte === 13) break;
+          }
+          continue;
+        }
         if (next !== 42) throw new Error("Invalid XBM comment");
         let previous = 0, closed = false;
         while (position < size) {

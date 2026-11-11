@@ -10,7 +10,7 @@ import { isQoiBytes, readQoiMetadata } from "./qoi-input.js";
 import { isMiffBytes } from "./miff-input.js";
 import { readMiffFromSource } from "./miff-input-storage.js";
 import { isXpmBytes, readXpmFromSource } from "./xpm.js";
-import { isXbmBytes, readXbmFromSource } from "./xbm.js";
+import { isXbmSource, readXbmFromSource } from "./xbm.js";
 import { isRadianceBytes } from "./radiance.js";
 import { readRadianceFromSource } from "./radiance-storage.js";
 import { isExrBytes } from "./exr.js";
@@ -58,7 +58,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  if(!(borrowed instanceof Uint8Array)||borrowed.length!==length)throw new Error("Truncated image metadata source");
  const prefix=new Uint8Array(borrowed);let metadata:RetainedImageMetadata;
  if(await detectHeifFormatFromSource(source,signal))metadata=await readHeifMetadataFromSource(source,signal);
- else if(isXbmBytes(prefix))metadata=await readXbmFromSource(source,undefined,signal,options);
+ else if(await isXbmSource(source,signal))metadata=await readXbmFromSource(source,undefined,signal,options);
  else if(isSixelBytes(prefix))metadata=(await readSixelFromSource(source,signal,options)).metadata;
  else if(isPcxBytes(prefix))metadata=readPcxHeader(prefix,source.size).metadata;
  else if(isFitsBytes(prefix))metadata=(await readFitsFromSource(source,signal)).metadata;

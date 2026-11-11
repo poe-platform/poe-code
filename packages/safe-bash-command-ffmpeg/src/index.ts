@@ -1363,7 +1363,8 @@ function parseChannelSplit(spec: string): { input: string[]; selected: string[] 
     else throw new Error(`channelsplit: unsupported option ${key}`);
   }
   const input = parseAudioChannelLayout(layout);
-  if (!["FC", "FL+FR", "FL+FR+BL+BR", "FL+FR+FC+LFE+BL+BR", "FL+FR+FC+LFE+SL+SR"].includes(input.join("+"))) {
+  if (!["FC", "FL+FR", "FL+FR+LFE", "FL+FR+FC", "FL+FR+BL+BR", "FL+FR+FC+LFE+BL+BR",
+    "FL+FR+FC+LFE+SL+SR", "FL+FR+FC+LFE+BL+BR+SL+SR"].includes(input.join("+"))) {
     throw new Error(`channelsplit: unsupported channel layout ${layout}`);
   }
   const selected = channels === "all" ? input : parseAudioChannelLayout(channels);
@@ -8542,7 +8543,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const beforeInput = args.slice(i + 1).includes("-i");
             const channels = parseAudioChannelLayout(layout ?? "");
             const names = channels.join("+");
-            if (beforeInput ? !["FC", "FL+FR", "FC+LFE", "FL+FR+LFE", "FL+FR+FC", "FL+FR+BL+BR", "FL+FR+FC+LFE+BL+BR", "FL+FR+FC+LFE+SL+SR", "FL+FR+FC+LFE+BL+BR+SL+SR"].includes(names) : layout !== "mono") {
+            if (beforeInput ? !["FC", "FL+FR", "FC+LFE", "FL+FR+LFE", "FL+FR+FC", "FL+FR+FC+BC", "FL+FR+BL+BR", "FL+FR+FC+BL+BR", "FL+FR+FC+LFE+BL+BR", "FL+FR+FC+LFE+SL+SR", "FL+FR+FC+LFE+BL+BR+SL+SR"].includes(names) : layout !== "mono") {
               await writeBytes(context.stderr, encodeUtf8(beforeInput
                 ? `ffmpeg: unsupported input channel layout '${layout ?? ""}'\n`
                 : "ffmpeg: only mono output channel layout is supported\n"), context.signal);

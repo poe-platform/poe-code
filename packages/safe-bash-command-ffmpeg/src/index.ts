@@ -5364,8 +5364,24 @@ async function applyVideoFilterChain(
         if (!["threads", "thread_type", "extra_hw_frames"].includes(key)) {
           throw new Error(`reverse: unsupported option ${key}`);
         }
+        if (key === "thread_type") {
+          // Scheduling flags do not affect pictures, but each set/clear term must be valid.
+          const flags = option.slice(separator + 1).trim();
+          let position = 0;
+          do {
+            if (flags[position] === "+" || flags[position] === "-") position++;
+            const start = position;
+            if (flags[position] === "+" || flags[position] === "-") position++;
+            while (position < flags.length && flags[position] !== "+" && flags[position] !== "-") position++;
+            const bits = parseFilterExpression(flags.slice(start, position), "reverse", { slice: 1, none: 0, all: -1 });
+            if (!Number.isInteger(bits) || bits < -2147483648 || bits > 4294967295) {
+              throw new RangeError("reverse: invalid thread_type");
+            }
+          } while (position < flags.length);
+          continue;
+        }
         const value = parseFilterExpression(option.slice(separator + 1), "reverse",
-          key === "thread_type" ? { slice: 1 } : {
+          {
             default: key === "extra_hw_frames" ? -1 : 0,
             min: key === "extra_hw_frames" ? -1 : 0, max: 2147483647,
             PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2

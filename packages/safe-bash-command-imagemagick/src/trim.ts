@@ -1,6 +1,6 @@
 import { discardDisassociatedAlpha } from "./alpha-state.js";
 import { cropReadMaskSteps, cropStoredReadMask } from "./crop-read-mask.js";
-import { extractImageSteps, transformStoredImage, type ImageByteStorage, type RgbaColor, type RgbaImage as BaseRgbaImage, type StoredRgbaImage as BaseStoredRgbaImage } from "@poe-code/image-ast/portable";
+import { extractImageSteps, transformStoredImage, type ImageByteStorage, type GravityPosition, type RgbaColor, type RgbaImage as BaseRgbaImage, type StoredRgbaImage as BaseStoredRgbaImage } from "@poe-code/image-ast/portable";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
 import type { HueMetadata } from "./colorspace-hue.js";
@@ -134,11 +134,16 @@ function* trimBounds(width: number, height: number, hasAlpha: boolean, fuzz: num
     return { left, top, width: right - left + 1, height: bottom - top + 1 };
 }
 
-function cropTrimBounds(area: Area, width: number, height: number, minSize?: { width?: number; height?: number }): Area {
-    const { left, top } = area;
+function cropTrimBounds(area: Area, width: number, height: number, minSize?: { width?: number; height?: number }, gravity?: GravityPosition): Area {
+    let { left, top } = area;
     const retainedWidth = Math.min(width, Math.max(Math.min(area.width, width - left), Math.round(minSize?.width ?? 0)));
     const retainedHeight = Math.min(height, Math.max(Math.min(area.height, height - top), Math.round(minSize?.height ?? 0)));
-    return { left: Math.min(left, width - retainedWidth), top: Math.min(top, height - retainedHeight), width: retainedWidth, height: retainedHeight };
+    const extraWidth = Math.max(0, retainedWidth - area.width), extraHeight = Math.max(0, retainedHeight - area.height);
+    if (gravity === "northwest" || gravity === "west" || gravity === "southwest") left -= extraWidth;
+    else if (gravity === "north" || gravity === "center" || gravity === "south") left -= Math.floor(extraWidth / 2);
+    if (gravity === "northwest" || gravity === "north" || gravity === "northeast") top -= extraHeight;
+    else if (gravity === "west" || gravity === "center" || gravity === "east") top -= Math.floor(extraHeight / 2);
+    return { left: Math.max(0, Math.min(left, width - retainedWidth)), top: Math.max(0, Math.min(top, height - retainedHeight)), width: retainedWidth, height: retainedHeight };
 }
 
 export function* formatTrimBoundsSteps<Step = never>(
@@ -180,7 +185,7 @@ function emptyTrimPixel(image: RgbaImage | StoredRgbaImage, background?: RgbaCol
     return new Uint8Array([value, value, value, 0]);
 }
 
-export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor, emptyBackground?: RgbaColor): Generator<void, RgbaImage, void> {
+export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor, emptyBackground?: RgbaColor, gravity?: GravityPosition): Generator<void, RgbaImage, void> {
     if (image.width === 1 && image.height === 1 && edges === undefined) {
         if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
         return image;
@@ -194,7 +199,7 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
     }
     if (next.value.warning && analysis) analysis.warnings += "magick: geometry does not contain image\n";
     if (next.value.width > 0 && next.value.height > 0 && next.value.left < image.width && next.value.top < image.height) {
-        const area = cropTrimBounds(next.value, image.width, image.height, minSize);
+        const area = cropTrimBounds(next.value, image.width, image.height, minSize, gravity);
         image = discardDisassociatedAlpha(image);
         let cropped: RgbaImage = yield* extractImageSteps(image, area);
         if (image.hueSamples) {
@@ -238,7 +243,7 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
         virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };
 }
 
-export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByteStorage, fuzz: number, signal: AbortSignal, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor, emptyBackground?: RgbaColor): Promise<StoredRgbaImage> {
+export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByteStorage, fuzz: number, signal: AbortSignal, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor, emptyBackground?: RgbaColor, gravity?: GravityPosition): Promise<StoredRgbaImage> {
     if (image.width === 1 && image.height === 1 && edges === undefined) {
         if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
         return image;
@@ -262,7 +267,7 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
     }
     if (next.value.warning && analysis) analysis.warnings += "magick: geometry does not contain image\n";
     if (next.value.width > 0 && next.value.height > 0 && next.value.left < image.width && next.value.top < image.height) {
-        const area = cropTrimBounds(next.value, image.width, image.height, minSize);
+        const area = cropTrimBounds(next.value, image.width, image.height, minSize, gravity);
         image = discardDisassociatedAlpha(image);
         const cropped: StoredRgbaImage = await transformStoredImage(image, storage, { kind: "extract", ...area }, signal);
         if (image.storedMetaChannels) {

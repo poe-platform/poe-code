@@ -13701,7 +13701,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 const settings = magickTrimSettings(state, im.properties);
-                return (yield* trimMagickSteps(im, settings.alphaFuzz, settings.trimEdges, settings.trimMinSize, settings.trimPercentBackground, analysis, settings.trimBackgroundColor, state.backgroundExplicit ? state.background : undefined));
+                return (yield* trimMagickSteps(im, settings.alphaFuzz, settings.trimEdges, settings.trimMinSize, settings.trimPercentBackground, analysis, settings.trimBackgroundColor, state.backgroundExplicit ? state.background : undefined, state.gravity));
             }));
         }
         else if (t === "-rotate") {
@@ -18118,7 +18118,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const settings = magickTrimSettings(captured, image.properties);
-                return trimStoredMagick(image, backend.storage, settings.alphaFuzz, signal, settings.trimEdges, settings.trimMinSize, settings.trimPercentBackground, analysis, settings.trimBackgroundColor, emptyBackground);
+                return trimStoredMagick(image, backend.storage, settings.alphaFuzz, signal, settings.trimEdges, settings.trimMinSize, settings.trimPercentBackground, analysis, settings.trimBackgroundColor, emptyBackground, captured.gravity);
             });
         } else if (!operandsOnly && token === "-despeckle") {
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;

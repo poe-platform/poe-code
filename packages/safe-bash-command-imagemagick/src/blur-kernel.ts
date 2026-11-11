@@ -8,7 +8,8 @@ export function parseUnsharpGeometry(raw: string): { width: number; height: numb
     const parts: string[] = [];
     let start = 0;
     for (let i = 0; i < raw.length; i++) {
-        if (raw[i] === "x" || raw[i] === "X" || i > start && (raw[i] === "+" || raw[i] === "-")) {
+        if (raw[i] === "x" || raw[i] === "X" ||
+            i > start && (raw[i] === "+" || raw[i] === "-") && raw[i - 1] !== "e" && raw[i - 1] !== "E") {
             parts.push(raw.slice(start, i));
             start = raw[i] === "x" || raw[i] === "X" ? i + 1 : i;
         }

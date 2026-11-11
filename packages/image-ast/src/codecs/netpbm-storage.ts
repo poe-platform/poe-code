@@ -19,9 +19,11 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
  if(magic==="P6"&&source.size-dataOffset<width*height*3*(maxval>255?2:1)) throw new Error("Truncated PPM raster");
  if(magic==="P7"&&source.size-dataOffset<width*height*channels*(maxval>255?2:1)) throw new Error("Truncated PAM raster");
  const metadata:StoredRgbaImage={...(properties?{properties}:{}),width,height,position:0,format,space:cmyk?"cmyk":channels>=3?"srgb":"b-w",channels,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",density:72,hasAlpha};
+ // Native byte-depth binary rasters use the stored byte, even below maxval 255.
+ const sampleMax=(magic==="P5"||magic==="P6"||magic==="P7")&&maxval>=128&&maxval<=255?255:maxval;
  const output=new Output(metadata,width,height,storage,signal);let position=dataOffset;
  // Retain precision whenever the input scale cannot be represented in 8 bits.
- const storedData16=255%maxval!==0?{position:storage.allocate(width*height*8),length:width*height*4}:undefined;
+ const storedData16=255%sampleMax!==0?{position:storage.allocate(width*height*8),length:width*height*4}:undefined;
  const storedHueSamples=cmyk?storage.allocate(width*height*32):undefined;
  const storedEvaluateSamples=cmyk?storage.allocate(width*height*32):undefined;
  const evaluated=cmyk?new Float64Array(2048):undefined;
@@ -66,13 +68,13 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
    await output.pixel(g,g,g,255);
   } else if(magic==="P1") {const g=await ascii()===0?255:0;await output.pixel(g,g,g,255);}
   else {
-   const r=format==="pgm"?Math.min(await sample(),maxval):await sample(),g=channels>=3?await sample():r,b=channels>=3?await sample():r,k=cmyk?await sample():0,a=hasAlpha?await sample():maxval;
-   const values=cmyk?[(maxval-r)*(maxval-k)/maxval,(maxval-g)*(maxval-k)/maxval,(maxval-b)*(maxval-k)/maxval,a]:[r,g,b,a];
-   if(evaluated)for(let channel=0;channel<4;channel++)evaluated[usedInks+channel]=values[channel]!*255/maxval;
-   if(cmyk){for(const value of [r,g,b,k])inks[usedInks++]=value/maxval;if(usedInks===inks.length)await flushInks();}
-   await output.pixel(Math.round(values[0]!*255/maxval),Math.round(values[1]!*255/maxval),Math.round(values[2]!*255/maxval),hasAlpha?Math.round(a*255/maxval):255);
+   const r=format==="pgm"?Math.min(await sample(),sampleMax):await sample(),g=channels>=3?await sample():r,b=channels>=3?await sample():r,k=cmyk?await sample():0,a=hasAlpha?await sample():sampleMax;
+   const values=cmyk?[(sampleMax-r)*(sampleMax-k)/sampleMax,(sampleMax-g)*(sampleMax-k)/sampleMax,(sampleMax-b)*(sampleMax-k)/sampleMax,a]:[r,g,b,a];
+   if(evaluated)for(let channel=0;channel<4;channel++)evaluated[usedInks+channel]=values[channel]!*255/sampleMax;
+   if(cmyk){for(const value of [r,g,b,k])inks[usedInks++]=value/sampleMax;if(usedInks===inks.length)await flushInks();}
+   await output.pixel(Math.round(values[0]!*255/sampleMax),Math.round(values[1]!*255/sampleMax),Math.round(values[2]!*255/sampleMax),hasAlpha?Math.round(a*255/sampleMax):255);
    if(samples16) {
-    for(const value of values) samples16[used16++]=Math.round(value*65535/maxval);
+    for(const value of values) samples16[used16++]=Math.round(value*65535/sampleMax);
     if(used16===samples16.length) await flush16();
    }
   }

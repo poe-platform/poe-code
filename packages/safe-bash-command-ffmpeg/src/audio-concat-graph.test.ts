@@ -46,6 +46,27 @@ for (const [name, graph, inputs, expected] of [
   });
 }
 
+for (const positional of [false, true]) {
+  for (const value of ["yes", "on", "true", "false", "no", "off", "0", "1"]) {
+    it(`accepts concat unsafe=${value}, positional=${positional}`, async () => {
+      const options = positional ? `2:0:1:${value}` : `v=0:a=1:unsafe=${value}`;
+      const result = await run(`[0:a][0:a]concat=${options}[out]`, [first]);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(Array.from({ length: result.output.length / 2 }, (_, i) => result.output.readInt16LE(i * 2)),
+        [...first, ...first]);
+    });
+  }
+  for (const value of ["2", "-1", "maybe"]) {
+    it(`rejects concat unsafe=${value}, positional=${positional}`, async () => {
+      const options = positional ? `2:0:1:${value}` : `v=0:a=1:unsafe=${value}`;
+      const result = await run(`[0:a][0:a]concat=${options}[out]`, [first]);
+      assert.notEqual(result.exitCode, 0);
+      assert.match(result.stderr, /concat: invalid/);
+      assert.equal(result.output.toString(), "keep");
+    });
+  }
+}
+
 for (const [graph, output] of [
   ["[0:a][1:a]concat=n=3:v=0:a=1[out]", "[out]"],
   ["[0:a][1:a]concat=n=1:v=0:a=1[out]", "[out]"],

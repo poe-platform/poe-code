@@ -1887,11 +1887,15 @@ function parseAstreamselectOptions(filter: string): { count: number; selected: n
 function audioConcatInputs(filter: string): number | undefined {
   const [name, ...arguments_] = filter.split("=");
   if (name?.split("@", 1)[0] !== "concat") return undefined;
-  const values: Record<string, number> = { n: 2, v: 1, a: 0, unsafe: 0 };
+  const values: Record<string, number> = { n: 2, v: 1, a: 0 };
   for (const [index, option] of arguments_.join("=").split(":").entries()) {
     if (!option) continue;
     const equal = option.indexOf("=");
     const key = equal < 0 ? ["n", "v", "a", "unsafe"][index] : option.slice(0, equal);
+    if (key === "unsafe") {
+      parseFilterBoolean(equal < 0 ? option : option.slice(equal + 1), "concat: invalid unsafe boolean");
+      continue;
+    }
     const value = Number(equal < 0 ? option : option.slice(equal + 1));
     if (!key || !(key in values) || !Number.isSafeInteger(value) || value < 0) {
       throw new Error("concat: invalid option");

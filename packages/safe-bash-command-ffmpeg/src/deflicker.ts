@@ -27,7 +27,7 @@ export async function deflicker(
     const value = parseFilterExpression(expression, "deflicker", {
       min, max, default: isSize ? 5 : 0, am: 0, gm: 1, hm: 2, qm: 3, cm: 4, pm: 5, median: 6
     });
-    if (!Number.isFinite(value) || value < min || value > max) throw new Error(`deflicker: ${key} must be between ${min} and ${max}`);
+    if (!Number.isFinite(value) || value < min || value > max) throw new RangeError(`deflicker: ${key} must be between ${min} and ${max}`);
     const rounded = value % 1 === 0.5 ? 2 * Math.round(value / 2) : Math.round(value);
     if (isSize) size = rounded;
     else mode = rounded;

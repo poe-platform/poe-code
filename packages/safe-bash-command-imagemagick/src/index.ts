@@ -3443,13 +3443,13 @@ function sampleFxImage(
   return sampleFxPixel(img.evaluateSamples ?? img.data16 ?? img.data!, idx, ch, img.evaluateSamples ? 255 : img.data16 ? 65535 : 255);
 }
 function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefined, x: number, y: number, ch: number, interpolation?: LookupInterpolation): number {
-  if (interpolation === "average16" || interpolation === "blend" || interpolation === "catrom") throw new Error(`Unsupported FX interpolation: ${interpolation}`);
+  if (interpolation === "blend" || interpolation === "catrom") throw new Error(`Unsupported FX interpolation: ${interpolation}`);
   if (!img) return 0;
   if (!Number.isFinite(x) || !Number.isFinite(y)) return NaN;
-  const averageSize = interpolation === "average9" ? 3 : interpolation === "average" ? 2 : 0;
-  // The 3x3 neighborhood centers on the nearest pixel, including at integer coordinates.
-  const left = averageSize === 3 ? Math.floor(x + 0.5) - 1 : Math.floor(x);
-  const top = averageSize === 3 ? Math.floor(y + 0.5) - 1 : Math.floor(y), dx = x - left, dy = y - top;
+  const averageSize = interpolation === "average16" ? 4 : interpolation === "average9" ? 3 : interpolation === "average" ? 2 : 0;
+  // Odd neighborhoods center on the nearest pixel; even ones straddle floor(x/y).
+  const left = averageSize === 3 ? Math.floor(x + 0.5) - 1 : Math.floor(x) - (averageSize === 4 ? 1 : 0);
+  const top = averageSize === 3 ? Math.floor(y + 0.5) - 1 : Math.floor(y) - (averageSize === 4 ? 1 : 0), dx = x - left, dy = y - top;
   if (interpolation === "integer") return sample(img, left, top, ch);
   if (interpolation === "nearest") return sample(img, Math.floor(x + 0.5), Math.floor(y + 0.5), ch);
   if (!averageSize && interpolation !== "spline" && dx === 0 && dy === 0) {
@@ -3487,8 +3487,8 @@ function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefin
       if (weight === 0) continue;
       const opacity = img.hasAlpha && ch !== 3 ? sample(img, left + column, top + row, 3) : 1;
       // Average counts every neighbor equally, but excludes fully transparent colors.
-      value += weight * (interpolation === "average" ? Number(opacity > 0) : opacity) * sample(img, left + column, top + row, ch);
-      alpha += weight * (interpolation === "average" ? 1 : opacity);
+      value += weight * ((interpolation === "average" || interpolation === "average16") ? Number(opacity > 0) : opacity) * sample(img, left + column, top + row, ch);
+      alpha += weight * ((interpolation === "average" || interpolation === "average16") ? 1 : opacity);
     }
   }
   return alpha === 0 ? 0 : value / alpha;

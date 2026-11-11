@@ -13,18 +13,19 @@ export function parseLocalContrastGeometry(raw: string): { radius: number; stren
 }
 
 /** Native luminance mask: separable weighted passes, float intermediates, channel gain. */
-export function* localContrastPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedHueSamples">>, geometry: ReturnType<typeof parseLocalContrastGeometry>, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* localContrastPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedHueSamples" | "storedEvaluateSamples">>, geometry: ReturnType<typeof parseLocalContrastGeometry>, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, size = width * height;
     const hue = !!image.hueSamples || image.storedHueSamples !== undefined, cmyk = image.space === "cmyk";
+    const evaluate = !hue && (!!image.evaluateSamples || image.storedEvaluateSamples !== undefined);
     const radius = Math.trunc(Math.max(width, height) * 0.002 * Math.abs(geometry.radius));
     if (radius > 5000) throw new Error("Local contrast radius exceeds 5000");
     const luma = new Float32Array(size), vertical = new Float32Array(size);
     for (let start = 0; start < size; start += 512) {
         yield;
         const count = Math.min(512, size - start);
-        const bytes = yield { kind: "read", hue, highDepth: true, position: start * 4, length: count * 4 };
-        if (!bytes || bytes.length !== count * 4 * (hue ? 8 : 2)) throw new Error("Truncated local contrast pixels");
-        const samples = hue ? new Float64Array(bytes.slice().buffer).map(value => value * 65535) : new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2);
+        const bytes = yield { kind: "read", hue, evaluate, highDepth: true, position: start * 4, length: count * 4 };
+        if (!bytes || bytes.length !== count * 4 * (hue || evaluate ? 8 : 2)) throw new Error("Truncated local contrast pixels");
+        const samples = hue ? new Float64Array(bytes.slice().buffer).map(value => value * 65535) : evaluate ? new Float64Array(bytes.slice().buffer).map(value => value * 257) : new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2);
         for (let i = 0; i < count; i++) luma[start + i] = samples[i * 4]! * 0.212656 + samples[i * 4 + 1]! * 0.715158 + samples[i * 4 + 2]! * 0.072186;
     }
     const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
@@ -49,9 +50,12 @@ export function* localContrastPixelSteps(image: Pick<RgbaImage, "width" | "heigh
         const bytes = yield { kind: "read", highDepth: true, position: start * 4, length: count * 4 };
         if (!bytes || bytes.length !== count * 8) throw new Error("Truncated local contrast pixels");
         const output = new Uint16Array(bytes.slice().buffer);
-        const output8 = Uint8Array.from(output, value => Math.round(value / 257));
+        const output8 = new Uint8Array(output.length);
         const workingBytes = hue ? yield { kind: "read", hue: true, position: start * 4, length: count * 4 } : undefined;
         const working = workingBytes ? new Float64Array(workingBytes.slice().buffer) : undefined;
+        const evaluateBytes = evaluate ? yield { kind: "read", evaluate: true, position: start * 4, length: count * 4 } : undefined;
+        if (evaluate && evaluateBytes?.length !== count * 32) throw new Error("Truncated local contrast samples");
+        const samples = evaluateBytes ? new Float64Array(evaluateBytes.slice().buffer) : Float64Array.from(output, value => value / 257);
         if (geometry.strength !== 0) for (let i = 0; i < count; i++) {
             const position = start + i, x = position % width, y = Math.floor(position / width);
             let sum = 0;
@@ -66,28 +70,26 @@ export function* localContrastPixelSteps(image: Pick<RgbaImage, "width" | "heigh
             const source = luma[position]!;
             const gain = source === 0 ? 0 : (source + (source - sum / totalWeight) * geometry.strength / 100) / source;
             for (let c = 0; c < 3; c++) if (selected[c]) {
-                const value = Math.fround((working ? working[i * 4 + c]! * 65535 : output[i * 4 + c]!) * gain);
+                const value = Math.fround((working ? working[i * 4 + c]! * 65535 : samples[i * 4 + c]! * 257) * gain);
                 if (working) working[i * 4 + c] = value / 65535;
-                else {
-                    output[i * 4 + c] = Math.max(0, Math.min(65535, Math.round(value)));
-                    output8[i * 4 + c] = Math.max(0, Math.min(255, Math.round(value / 257)));
-                }
+                else samples[i * 4 + c] = value / 257;
             }
         }
         if (working) {
             // Working-space channels drive later conversions. CMYK black and alpha
             // are untouched; keep the RGB raster in sync with the adjusted inks.
-            const samples = working.map(value => value * 255);
+            for (let i = 0; i < samples.length; i++) samples[i] = working[i]! * 255;
             if (cmyk) for (let i = 0; i < count; i++) {
                 for (let c = 0; c < 3; c++) samples[i * 4 + c] = (1 - working[i * 4 + c]!) * (1 - working[i * 4 + 3]!) * 255;
                 samples[i * 4 + 3] = output[i * 4 + 3]! / 257;
             }
-            for (let i = 0; i < output.length; i++) {
-                output[i] = Math.max(0, Math.min(65535, Math.round(samples[i]! * 257)));
-                output8[i] = Math.max(0, Math.min(255, Math.round(samples[i]!)));
-            }
             yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(working.buffer) };
-            yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(samples.buffer) };
+        }
+        // Keep HDRI samples for later operators; only the integer rasters are bounded.
+        yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(samples.buffer) };
+        for (let i = 0; i < output.length; i++) {
+            output[i] = Math.max(0, Math.min(65535, Math.round(samples[i]! * 257)));
+            output8[i] = Math.max(0, Math.min(255, Math.round(samples[i]!)));
         }
         yield { kind: "write", highDepth: true, position: start * 4, data: new Uint8Array(output.buffer, output.byteOffset, output.byteLength) };
         // Round each output depth directly from the calculation, avoiding double rounding.

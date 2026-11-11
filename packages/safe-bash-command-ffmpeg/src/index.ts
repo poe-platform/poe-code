@@ -16535,6 +16535,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           // negative timestamps that downstream filters must not synthesize.
                           audioTimestamps.push({ start, end, pts: paddingPts,
                             exactPts: samplesPerTick === 1 ? paddingExactPts : undefined });
+                          if (audioMetadata.length > 0) {
+                            // Generated silence has no tags, but still occupies a frame on reversal.
+                            budget.allocateMemory(64);
+                            audioMetadata.push({ pts: paddingPts, tags: new Map<string, string>() });
+                          }
                           const ticks = Math.round((end - start) / samplesPerTick);
                           if (paddingExactPts !== undefined) {
                             paddingExactPts += BigInt(ticks);

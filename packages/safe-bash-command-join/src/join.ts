@@ -171,6 +171,7 @@ function parse(context: CommandContext, budget: Budget): Options {
 }
 
 function split(bytes: Uint8Array, options: Options, budget: Budget): readonly Uint8Array[] {
+  if (bytes.length === 0) return [];
   if (options.whole) return [bytes];
   const fields: Uint8Array[] = [];
   const add = (start: number, end: number): void => {

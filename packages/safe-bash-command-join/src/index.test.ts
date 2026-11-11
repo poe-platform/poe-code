@@ -33,6 +33,24 @@ async function run(args: ShellValue[], files: Record<string, string | Uint8Array
  return { ...result, stdout, stdoutBytes, stderr, combined };
 }
 
+for (const delimiter of ["|", ":"]) {
+ for (const automatic of [false, true]) {
+  for (const record of ["", delimiter, `${delimiter}x${delimiter}`]) {
+   test(`join counts empty records and preserves empty fields: ${JSON.stringify({ delimiter, automatic, record })}`, async () => {
+    const result = await run(["-t", delimiter, "-j", "2", ...(automatic ? ["-o", "auto", "-e", "?"] : []), "left", "right"],
+     { "/left": `${record}\n`, "/right": `${record}\n` }, { LC_ALL: "C" });
+    const empty = automatic ? "?" : "";
+    const expected = record === "" ? empty : record === delimiter
+     ? [empty, empty, empty].join(delimiter)
+     : ["x", empty, empty, empty, empty].join(delimiter);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, `${expected}\n`);
+   });
+  }
+ }
+}
+
 for (const { args, expected } of [
  { args: ["-o", "auto", "-o", "0"], expected: "a\na\na\na\n" },
  { args: ["-o", "0", "-o", "auto"], expected: "a\na\na\na\n" },

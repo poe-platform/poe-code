@@ -12764,8 +12764,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             state.loop = { value: 0 };
         }
         else if (t === "-loop") {
-            const value = tokens[++i] ?? "", image = stack[0];
-            const expanded = image ? yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: 0, optionProperties: state.optionProperties }) : value;
+            const value = tokens[++i] ?? "", image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
+            const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: 0, optionProperties: state.optionProperties });
             validateMagickTransformGeometry(expanded, "-loop");
             // Native validates geometry, then reads only the leading decimal integer.
             state.loop = { value: Number.parseInt(expanded, 10) || 0 };
@@ -16503,10 +16503,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "-transparent-color") { state.transparentColor = parseColor(tokens[++i] ?? ""); continue; }
         if (!operandsOnly && token === "+loop") { state.loop = { value: 0 }; continue; }
         if (!operandsOnly && token === "-loop") {
-            const value = tokens[++i] ?? "", loop = state.loop = { value: 0 }, optionProperties = state.optionProperties;
+            const value = tokens[++i] ?? "", loop = state.loop = { value: 0 }, optionProperties = state.optionProperties, background = state.background;
             stackStep(async (stack, backend) => {
-                const image = await stack.get(0);
-                const expanded = image ? await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, sceneIdx: 0, optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack) : value;
+                const image = await stack.get(0) ?? await createStoredCanvas(1, 1, background, backend, signal);
+                const expanded = await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, sceneIdx: 0, optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack);
                 validateMagickTransformGeometry(expanded, "-loop");
                 loop.value = Number.parseInt(expanded, 10) || 0;
                 return stack;

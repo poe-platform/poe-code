@@ -6,6 +6,9 @@ import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js"
 
 for (const mode of ["command", "retained", "buffered", "sync"] as const) {
   it.each([
+    { args: ["-set", "option:t", "12", "-loop", "%[option:t]", "xc:red", "xc:blue"], repeat: 11, delay: [0, 0] },
+    { args: ["-set", "option:t", "12", "-loop", "12", "xc:red", "xc:blue"], repeat: 11, delay: [0, 0] },
+    { args: ["xc:red", "xc:blue", "-set", "option:t", "12", "-loop", "%[option:t]"], repeat: 11, delay: [0, 0] },
     { args: ["-loop", "3", "xc:red", "+loop", "xc:blue"], repeat: 0, delay: [0, 0] },
     { args: ["-loop", "3", "xc:red", "xc:blue"], repeat: 2, delay: [0, 0] },
     { args: ["xc:red", "xc:blue"], repeat: 0, delay: [0, 0] },

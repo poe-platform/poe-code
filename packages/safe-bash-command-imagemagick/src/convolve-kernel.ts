@@ -12,8 +12,9 @@ export interface ConvolveKernel {
 export type ConvolveRequest = { readonly kind: "read"; readonly pngIndices?: boolean; readonly evaluate?: boolean; readonly hue?: boolean; readonly highDepth?: boolean; readonly image?: number; readonly position: number; readonly length: number }
     | { readonly kind: "write"; readonly pngIndices?: boolean; readonly hue?: boolean; readonly highDepth?: boolean; readonly evaluate?: boolean; readonly position: number; readonly data: Uint8Array };
 /** Alpha-aware convolution, bounded row spans, and owned output chunks. */
-export function* convolvePixelSteps(image: { width: number; height: number; hasAlpha: boolean }, kernel: ConvolveKernel, bias: number, region?: Region): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* convolvePixelSteps(image: { width: number; height: number; hasAlpha: boolean }, kernel: ConvolveKernel, bias: number, region?: Region, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image;
+    const mask = channels ? [channels.r, channels.g, channels.b, channels.a] : undefined;
     for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 1024) {
         yield;
         const count = Math.min(1024, width - left), position = (y * width + left) * 4;
@@ -43,6 +44,7 @@ export function* convolvePixelSteps(image: { width: number; height: number; hasA
             }
         }
         for (let x = 0; x < count; x++) for (let channel = 0; channel < (image.hasAlpha ? 4 : 3); channel++) {
+            if (mask && !mask[channel]) continue;
             const alpha = sums[x * 4 + 3]!;
             let value = channel === 3 ? alpha * 255 : sums[x * 4 + channel]! / (image.hasAlpha ? (Math.abs(alpha) < 1e-12 ? 1e-12 : alpha) : 1);
             if (region && !regionContains(region, left + x, y)) {

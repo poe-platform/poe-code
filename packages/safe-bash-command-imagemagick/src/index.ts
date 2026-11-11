@@ -14670,7 +14670,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, "-sharpen");
                 const geometry = parseMagickGeometry(expanded.replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x"));
-                return yield* applyMagickRasterSteps(im, sharpenPixelSteps(im, geometry), signal);
+                return yield* applyMagickRasterSteps(im, sharpenPixelSteps(im, geometry, state.channelExplicit ? state.channels : undefined), signal);
             }, undefined, true);
         }
         else if (t === "-unsharp") {
@@ -18784,13 +18784,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const raw = tokens[++i] ?? "0x1", optionProperties = state.optionProperties;
+            const raw = tokens[++i] ?? "0x1", channels = state.channelExplicit ? state.channels : undefined, optionProperties = state.optionProperties;
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 validateMagickTransformGeometry(expanded, "-sharpen");
                 const geometry = parseMagickGeometry(expanded.replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x"));
-                return transformStoredMagickRaster(image, backend, sharpenPixelSteps(image, geometry), signal);
+                return transformStoredMagickRaster(image, backend, sharpenPixelSteps(image, geometry, channels), signal);
             }, { handlesRegion: true }));
         } else if (!operandsOnly && token === "-unsharp") {
             const raw = tokens[++i] ?? "0x1", channels = state.channelExplicit ? state.channels : undefined, optionProperties = state.optionProperties, background = state.background;

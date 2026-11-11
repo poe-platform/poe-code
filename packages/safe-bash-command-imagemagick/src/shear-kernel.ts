@@ -25,10 +25,11 @@ export function shearPlan(image: Pick<RgbaImage, "width" | "height" | "hasAlpha"
         columnOffset: Math.floor((fullWidth - width) / 2) };
 }
 
-export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "space" | "storedData16" | "storedHueSamples">> & { alphaSeparate?: boolean | undefined; alphaBlend?: boolean | undefined }, plan: ReturnType<typeof shearPlan>, background: RgbaColor, compose: string, composeArgs?: string, fuzz = 0, selected?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "space" | "storedData16" | "storedHueSamples" | "storedEvaluateSamples">> & { alphaSeparate?: boolean | undefined; alphaBlend?: boolean | undefined }, plan: ReturnType<typeof shearPlan>, background: RgbaColor, compose: string, composeArgs?: string, fuzz = 0, selected?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const hasAlpha = plan.hasAlpha || source.alphaSeparate === true && source.alphaBlend !== false;
     const cmyk = source.space === "cmyk";
     const hue = source.space !== "cmyk" && (!!source.hueSamples || source.storedHueSamples !== undefined);
+    const evaluate = !hue && (!!source.evaluateSamples || source.storedEvaluateSamples !== undefined);
     const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
     const bg = [background.r, background.g, background.b, background.a, 0].map(value => value * scale);
     const canvas = { width: 1, height: 1, hasAlpha, data: Float64Array.from(bg.slice(0, 4), value => value / scale) };
@@ -37,10 +38,10 @@ export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "d
     const over = composeMode === "over" || composeMode === "srcover";
     function* readPixel(px: number, y: number): Generator<ConvolveRequest | undefined, ArrayLike<number>, Uint8Array | undefined> {
         if (px >= 0 && px < source.width && y >= 0 && y < source.height) {
-            const bytes = yield { kind: "read", highDepth, hue, position: (y * source.width + px) * 4, length: 4 };
-            if (!bytes || bytes.length !== (hue ? 32 : highDepth ? 8 : 4)) throw new Error("Truncated shear pixels");
+            const bytes = yield { kind: "read", highDepth, hue, evaluate, position: (y * source.width + px) * 4, length: 4 };
+            if (!bytes || bytes.length !== (hue || evaluate ? 32 : highDepth ? 8 : 4)) throw new Error("Truncated shear pixels");
             // Native BorderImage applies the selected compose operator before resampling.
-            let samples: ArrayLike<number> = hue ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => value * maximum) : highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
+            let samples: ArrayLike<number> = hue || evaluate ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => value * (hue ? maximum : scale)) : highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, 4) : bytes;
             if (cmyk) {
                 const inks = yield { kind: "read", hue: true, position: (y * source.width + px) * 4, length: 4 };
                 if (!inks || inks.length !== 32) throw new Error("Truncated shear inks");

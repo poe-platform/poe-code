@@ -17343,6 +17343,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("pan: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("pan:")) return { exitCode: 222 };
             if (msg.startsWith("pan:") && !msg.startsWith("pan: unsupported output layout ")) return { exitCode: 234 };
+            for (const filter of ["weave", "doubleweave"]) {
+              if (msg === `${filter}: unsupported option enable`) return { exitCode: 176 };
+              if (msg.startsWith(`${filter}: unsupported option `)) return { exitCode: 8 };
+              if (msg === `${filter}: unexpected positional argument` ||
+                  msg === `${filter}: invalid expression` || msg === `${filter}: invalid or unsupported expression`) {
+                return { exitCode: 234 };
+              }
+              if (msg === `${filter}: first_field must be top or bottom`) {
+                return { exitCode: err instanceof RangeError ? 222 : 234 };
+              }
+            }
             if (msg === "field: unsupported option enable") return { exitCode: 176 };
             if (msg.startsWith("field: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("field:")) return { exitCode: 222 };

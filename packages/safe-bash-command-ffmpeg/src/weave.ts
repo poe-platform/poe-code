@@ -16,15 +16,16 @@ export async function weave(
       validateWeaveGenericOption(key, option.slice(separator + 1).trim(), "weave");
       continue;
     }
-    if (separator < 0 ? index !== 0 : option.slice(0, separator).trim() !== "first_field") {
-      throw new Error("weave: unsupported option");
+    if (separator < 0 && index !== 0) throw new Error("weave: unexpected positional argument");
+    if (separator >= 0 && key !== "first_field") {
+      throw new Error(`weave: unsupported option ${key}`);
     }
     field = parseFilterExpression((separator < 0 ? option : option.slice(separator + 1)).trim(), "weave", {
       top: 0, t: 0, bottom: 1, b: 1, default: 0, min: 0, max: 1,
       PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
     });
     if (!Number.isFinite(field) || field < 0 || field > 1) {
-      throw new Error("weave: first_field must be top or bottom");
+      throw new RangeError("weave: first_field must be top or bottom");
     }
   }
   // Integer AVOptions round ties to even: 0.5 selects the top field.

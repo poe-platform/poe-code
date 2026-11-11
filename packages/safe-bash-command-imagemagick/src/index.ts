@@ -10004,6 +10004,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const inks = image.space === "cmyk" ? image.hueSamples : undefined;
             // Native sets sRGB without converting the CMY samples to display colors.
             if (image.space === "cmyk") image = yield* copyCmykChannelsToRgb(image);
+            // Threshold relabels linear RGB as sRGB before measuring intensity, without converting samples.
+            if (image.magickColorspace === "RGB" || image.magickColorspace === "scRGB") image = { ...image, magickColorspace: undefined };
             const hueSamples = image.hueSamples?.slice();
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;

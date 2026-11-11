@@ -19,6 +19,8 @@ function readLyric(line: string): { pts: number; text: string } | undefined {
 
 function parseLrc(bytes: Uint8Array): MediaDocument {
   const samples: MediaSample[] = [];
+  const metadata: Record<string, string> = {};
+  const custom: Record<string, string> = {};
   let offset = 0;
   for (const raw of decodeUtf8(bytes).split("\n")) {
     const line = raw.endsWith("\r") ? raw.slice(0, -1) : raw;
@@ -36,7 +38,21 @@ function parseLrc(bytes: Uint8Array): MediaDocument {
       timestamps.push(cue.pts - offset);
       text = cue.text;
     }
-    if (timestamps.length === 0) continue;
+    if (timestamps.length === 0) {
+      const colon = line.indexOf(":");
+      const end = line.indexOf("]");
+      if (line.startsWith("[") && colon > 1 && end > colon) {
+        const value = line.slice(colon + 1, end);
+        switch (line.slice(1, colon).toLowerCase()) {
+          case "ti": metadata.title = value; break;
+          case "ar": metadata.artist = value; break;
+          case "al": metadata.album = value; break;
+          case "au": custom.author = value; break;
+          case "length": custom.length = value; break;
+        }
+      }
+      continue;
+    }
     // FFmpeg scans the displayed-text prefix separately from cue timestamps.
     let start = 0;
     let brackets = 0;
@@ -62,7 +78,7 @@ function parseLrc(bytes: Uint8Array): MediaDocument {
   return { containerFormat: "lrc", timescale: 1000, duration, durationSeconds: duration / 1000,
     tracks: [{ id: 1, type: "subtitle", handlerType: "sbtl", timescale: 1000, duration,
       language: "und", enabled: true, codecDescriptions: [{ formatFourCC: "text", codecName: "text" }], samples: timed }],
-    metadata: {}, byteLength: bytes.length };
+    metadata: { ...metadata, ...(Object.keys(custom).length > 0 ? { custom } : {}) }, byteLength: bytes.length };
 }
 
 export function lrcAst(): MediaAstPlugin {

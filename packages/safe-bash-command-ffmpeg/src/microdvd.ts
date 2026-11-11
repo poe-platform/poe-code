@@ -34,6 +34,10 @@ export function decodeMicrodvd(text: string): string {
       const name = line[position + 1]!;
       const key = name.toLowerCase();
       let value = line.slice(position + 3, end);
+      if (name === "H") {
+        position = end + 1;
+        continue;
+      }
       if (name === "P" || name === "o") {
         const values = value.split(",");
         if (values.length !== (name === "P" ? 1 : 2)

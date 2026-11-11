@@ -5,6 +5,13 @@ import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 // Dialogue verified against native FFmpeg; compare complete cues as well as text.
 const cues = [
+  ["{H:1250}Hello", "Hello"],
+  ["{H:bad}Hello", "Hello"],
+  ["{H:}Hello", "Hello"],
+  ["{h:1250}Hello", "{h:1250}Hello"],
+  ["Hello{H:1250}world", "Hello{H:1250}world"],
+  ["Hello|{H:1250}world", "Hello\nworld"],
+  ["{H:1250}{y:i}Hello", "<i>Hello</i>"],
   ["{y:i}First|second", "<i>First</i>\nsecond"],
   ["{Y:i}First|second", "<i>First\nsecond</i>"],
   ['{f:Arial}{s:20}{c:$0000ff}Red|second', '<font color="#ff0000"><font face="Arial"><font size="20">Red</font></font></font>\nsecond'],
@@ -16,14 +23,15 @@ const cues = [
   ['{F:Arial}{S:20}{C:$0000ff}Red|second', '<font color="#ff0000"><font face="Arial"><font size="20">Red\nsecond</font></font></font>']
 ];
 
-for (const sync of [false, true]) for (const copy of [false, true]) {
+for (const sync of [false, true]) for (const format of ["microdvd", "srt", "webvtt"]) {
+  const copy = format === "microdvd";
   for (const [text, expected] of cues) {
-    it(`${sync ? "sync" : "async"} ${copy ? "copies" : "decodes"} MicroDVD ${text}`, async () => {
+    it(`${sync ? "sync" : "async"} ${format} MicroDVD ${text}`, async () => {
       const input = `{1}{1}25\n{25}{50}${text}\n`;
-      const output = copy ? "/out.sub" : "/out.srt";
+      const output = copy ? "/out.sub" : format === "srt" ? "/out.srt" : "/out.vtt";
       const volume = Volume.fromJSON({ "/input": input, [output]: "KEEP" });
       const args = ["-v", "error", "-y", "-f", "microdvd", "-i", "/input", "-c:s",
-        copy ? "copy" : "srt", ...(copy ? ["-f", "microdvd"] : []), output];
+        copy ? "copy" : format, "-f", format, output];
       if (sync) {
         assert.equal(evalSyncFfmpeg(args, undefined,
           path => volume.existsSync(path) ? volume.readFileSync(path) as Buffer : undefined,
@@ -43,6 +51,7 @@ for (const sync of [false, true]) for (const copy of [false, true]) {
         assert.equal(result.exitCode, 0, stderr);
       }
       assert.equal(volume.readFileSync(output, "utf8"), copy ? `{25}{50}${text}\n`
+        : format === "webvtt" ? `WEBVTT\n\n00:01.000 --> 00:02.000\n${expected}\n`
         : `1\n00:00:01,000 --> 00:00:02,000\n${expected}\n\n`);
       assert.equal(volume.readFileSync("/input", "utf8"), input);
     });

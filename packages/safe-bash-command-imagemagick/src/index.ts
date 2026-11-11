@@ -2572,6 +2572,8 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
         }
     }
     if (option === "-swirl" || option === "-implode" || option === "-wave" || option === "-spread") {
+        // Native warp amplitudes retain their magnitude when a ratio has no denominator.
+        if (option !== "-spread" && value.endsWith(":")) value = value.slice(0, -1);
         const geometry = parseMagickGeometry(value.replaceAll("#", ""));
         // A single signed magnitude parses as an offset; two offsets supply no magnitude.
         const magnitude = geometry.aspectRatio ?? geometry.width ?? (geometry.areaLimit !== undefined || geometry.hasOffset && !geometry.hasYOffset ? Number.parseFloat(value) : undefined);

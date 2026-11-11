@@ -12268,6 +12268,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (words[0] === "[enter]") words.shift();
                           const [target, action, expression] = words;
                           const supported = action === "enable" && ["tremolo", "vibrato"].some(name => target === name || target?.startsWith(`${name}@`))
+                            || action === "stop_threshold" && (target === "silenceremove" || target?.startsWith("silenceremove@"))
                             || action === "tempo" && (target === "atempo" || target?.startsWith("atempo@"))
                             || action === "volume" && (target === "volume" || target?.startsWith("volume@"))
                             || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))
@@ -12286,7 +12287,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || ["unity", "silence", "curve", "c", "nb_samples", "ns", "duration", "d", "type", "t", "start_sample", "ss", "start_time", "st", "enable"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
                             || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                            throw new Error("asendcmd: expected TIME tremolo[@NAME] enable EXPR or TIME vibrato[@NAME] enable EXPR or TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback|crossfeed|drymix|enable EXPR or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] mm|cm|m|dry|wet|temp|enable VALUE or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays|enable VALUE or TIME alimiter[@NAME] limit LIMIT or TIME agate[@NAME] makeup GAIN or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN or TIME aphaser[@NAME] COMMAND ARG or TIME atilt[@NAME] freq|slope|width|order|level VALUE or TIME amix[@NAME] weights|normalize VALUE");
+                            throw new Error("asendcmd: expected TIME silenceremove[@NAME] stop_threshold VALUE or TIME tremolo[@NAME] enable EXPR or TIME vibrato[@NAME] enable EXPR or TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback|crossfeed|drymix|enable EXPR or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] mm|cm|m|dry|wet|temp|enable VALUE or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays|enable VALUE or TIME alimiter[@NAME] limit LIMIT or TIME agate[@NAME] makeup GAIN or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN or TIME aphaser[@NAME] COMMAND ARG or TIME atilt[@NAME] freq|slope|width|order|level VALUE or TIME amix[@NAME] weights|normalize VALUE");
                           }
                           return { time, target, action: action!, expression };
                         });
@@ -12628,7 +12629,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, format, budget, context.signal);
                           filteredSampleFormat = format;
                           statsScale = 1;
-                          const removed = await removeSilence(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
+                          const commands = audioCommands.filter(command => command.target === "silenceremove" || command.target === filterTarget)
+                            .sort((a, b) => a.sample - b.sample);
+                          audioCommands = audioCommands.filter(command => command.target !== "silenceremove" && command.target !== filterTarget);
+                          const removed = await removeSilence(stretched, origRate, trimmed, audioTimestamps, budget, context.signal, commands);
                           stretched = removed.channels;
                           audioTimestamps = removed.frames;
                         } else if (filterName === "asubboost") {

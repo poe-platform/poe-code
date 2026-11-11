@@ -6,7 +6,8 @@ import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
 export async function removeSilence(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: { start: number; end: number; pts: number; pos?: number | undefined }[],
-  budget: MediaBudgetTracker, signal?: AbortSignal
+  budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { sample: number; expression: string }[] = []
 ): Promise<{ channels: (Float32Array | Float64Array)[]; frames: typeof frames }> {
   let enable: string | undefined;
   const options = {
@@ -81,10 +82,21 @@ export async function removeSilence(
   }
 
   let output = [...channels];
-  budget.allocateMemory(frames.length);
+  budget.allocateMemory(frames.length * 9);
+  let stopThresholds = new Float64Array(frames.length);
+  let stopThreshold = options.stop_threshold;
+  let nextCommand = 0;
   let enabledFrames = new Uint8Array(frames.length);
   for (const [n, frame] of frames.entries()) {
     if (n % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+    while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame.start) {
+      const command = commands[nextCommand++]!;
+      try {
+        const value = parseFilterExpression(command.expression, "silenceremove", { min: 0, max: Number.MAX_VALUE, default: 0 });
+        if (Number.isFinite(value) && value >= 0) stopThreshold = value;
+      } catch { /* Native keeps the previous threshold when a runtime command is rejected. */ }
+    }
+    stopThresholds[n] = stopThreshold;
     enabledFrames[n] = Number(enable === undefined || Math.abs(parseFilterExpression(enable, "silenceremove enable", {
       n, t: frame.pts / sampleRate,
       pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0, h: 0
@@ -99,7 +111,6 @@ export async function removeSilence(
     if (!periods) continue;
     const length = output[0]?.length ?? 0;
     const duration = Math.round(options[`${phase}_duration`] * sampleRate);
-    const threshold = options[`${phase}_threshold`];
     const mode = options[`${phase}_mode`];
     budget.allocateMemory(output.length * (8 + (options.detection === "dev" ? 8 : 0) + (trackPeaks ? length * 4 : 0)));
     const sums = new Float64Array(output.length);
@@ -128,6 +139,7 @@ export async function removeSilence(
         budget.checkCpu();
       }
       while (frameIndex + 1 < frames.length && i >= frames[frameIndex]!.end) frameIndex++;
+      const threshold = phase === "start" ? options.start_threshold : stopThresholds[frameIndex]!;
       const enabled = enabledFrames[frameIndex] !== 0;
       let keep = !enabled;
       let matches = mode === "all";
@@ -237,7 +249,8 @@ export async function removeSilence(
     }
     output = trimmed.map(c => c.subarray(0, written));
     const outputFrames: typeof frames = [];
-    budget.allocateMemory(frames.length);
+    budget.allocateMemory(frames.length * 9);
+    const retainedThresholds = new Float64Array(frames.length);
     const retainedEnabled = new Uint8Array(frames.length);
     let offset = 0;
     for (let n = 0; n < frames.length; n++) {
@@ -247,12 +260,14 @@ export async function removeSilence(
       if (!count) continue;
       // Each surviving input frame keeps its PTS, even when its leading samples were removed.
       budget.allocateMemory(24);
+      retainedThresholds[outputFrames.length] = stopThresholds[n]!;
       retainedEnabled[outputFrames.length] = enabledFrames[n]!;
       outputFrames.push({ start: offset, end: offset + count, pts: frame.pts });
       offset += count;
     }
     frames = outputFrames;
     enabledFrames = retainedEnabled;
+    stopThresholds = retainedThresholds;
   }
   if (options.timestamp === "write" && (options.start_periods || options.stop_periods)) {
     for (const [index, frame] of frames.entries()) {

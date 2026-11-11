@@ -12763,6 +12763,7 @@ if (t === "-intent" || t === "+intent") {
             }
             if (k === "option:loop") state.loop = { value: Number.parseInt(v, 10) || 0 };
             if (k === "option:dispose") state.disposal = parseMagickDisposalSetting(v);
+            if (k === "option:depth") state.inputDepth = parseInt(v, 10) || 0;
             if (k === "option:scene") {
                 state.scene = Number(v);
                 if (!Number.isSafeInteger(state.scene)) throw new Error("invalid scene number");
@@ -13020,7 +13021,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     return disposal === undefined ? image : { ...image, disposal };
                 }
                 if (expandedKey.toLowerCase() === "gravity") return { ...image, placementGravity: parseGravity(expanded) };
-                if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: parseInt(expanded, 10) || 0 };
+                if (expandedKey.toLowerCase() === "depth") {
+                    const bitsPerSample = parseInt(expanded, 10) || 0;
+                    return { ...image, bitsPerSample, depth: bitsPerSample > 8 ? "ushort" : "uchar" };
+                }
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
                 if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickPageSetting(expanded, "set"), forceExact: false }, "set") };
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };
@@ -16593,7 +16597,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const interpolation = parseMagickInterpolation(expanded);
                     return interpolation === undefined ? image : { ...image, [magickInput]: { ...image[magickInput], interpolation } };
                 }
-                if (expandedKey.toLowerCase() === "depth") return { ...image, bitsPerSample: parseInt(expanded, 10) || 0 };
+                if (expandedKey.toLowerCase() === "depth") {
+                    const bitsPerSample = parseInt(expanded, 10) || 0;
+                    return { ...image, bitsPerSample, depth: bitsPerSample > 8 ? "ushort" : "uchar" };
+                }
                 if (expandedKey.toLowerCase() === "gamma") return { ...image, gamma: parseFloat(expanded) };
                 if (expandedKey.toLowerCase() === "page") return { ...image, virtualCanvas: magickRepageCanvas(image, { ...parseMagickPageSetting(expanded, "set"), forceExact: false }, "set") };
                 return expandedKey.toLowerCase() === "density" ? applyMagickDensity(image, expanded) : { ...image, properties: updateMagickProperty(image.properties, expandedKey, expanded) };

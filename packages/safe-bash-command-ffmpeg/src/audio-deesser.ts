@@ -43,7 +43,10 @@ export async function deessAudio(
       continue;
     }
     if (key !== "i" && key !== "m" && key !== "f" && key !== "s") throw new Error(`deesser: unsupported option ${key}`);
-    const number = key === "s" && ["i", "o", "e"].includes(value) ? ["i", "o", "e"].indexOf(value) : Number(value);
+    const number = parseFilterExpression(value, "deesser", {
+      min: 0, max: key === "s" ? 2 : 1, default: key === "i" ? 0 : key === "s" ? 1 : 0.5,
+      ...(key === "s" ? { i: 0, o: 1, e: 2 } : {})
+    });
     if (!value || !Number.isFinite(number) || number < 0 || number > (key === "s" ? 2 : 1)) throw new Error(`deesser: invalid ${key}`);
     options[key] = number;
     // AVOption integers validate the range before rounding, with ties to even.

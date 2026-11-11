@@ -122,6 +122,44 @@ for (const graph of [false, true]) {
   });
 }
 
+// Native option expressions resolve to these literal values before processing.
+for (const graph of [false, true]) {
+  for (const [expression, literal] of [
+    ["i=1/2:s=e", "i=0.5:s=e"],
+    ["i=1:s=1+1", "i=1:s=e"],
+    ["i=1:s=e-o", "i=1:s=o"],
+    ["i=max:s=e", "i=1:s=e"],
+    ["max/2:default:default:e-o", "0.5:0.5:0.5:1"],
+    ["i=sqrt(0.25):s=e", "i=0.5:s=e"]
+  ]) it(`deesser ${expression} matches literals (graph=${graph})`, async () => {
+    const actual = await run(`deesser=${expression}`, graph, [mono.slice(768, 1152)]);
+    const expected = await run(`deesser=${literal}`, graph, [mono.slice(768, 1152)]);
+    assert.equal(actual.result.exitCode, 0, actual.stderr);
+    assert.equal(expected.result.exitCode, 0, expected.stderr);
+    assert.deepEqual(actual.fs.readFileSync("/out.wav"), expected.fs.readFileSync("/out.wav"));
+  });
+
+  for (const [key, maximum, defaultValue] of [["i", 1, 0], ["m", 1, 0.5], ["f", 1, 0.5], ["s", 2, 1]] as const) {
+    it(`deesser ${key} resolves bounds and its original default (graph=${graph})`, async () => {
+      for (const [constant, literal] of [["min", 0], ["max", maximum], ["default", defaultValue]] as const) {
+        const actual = await run(`deesser=i=1:s=e:${key}=max:${key}=${constant}`, graph, [mono.slice(768, 1152)]);
+        const expected = await run(`deesser=i=1:s=e:${key}=${literal}`, graph, [mono.slice(768, 1152)]);
+        assert.equal(actual.result.exitCode, 0, actual.stderr);
+        assert.equal(expected.result.exitCode, 0, expected.stderr);
+        assert.deepEqual(actual.fs.readFileSync("/out.wav"), expected.fs.readFileSync("/out.wav"));
+      }
+    });
+  }
+
+  for (const option of ["i=max+1", "m=min-1", "f=default/0", "s=e+o", "s=unknown", "i=e", "i=1+"]) {
+    it(`rejects deesser ${option} without overwriting output (graph=${graph})`, async () => {
+      const { fs, result } = await run(`deesser=${option}`, graph, [mono.slice(768, 1152)]);
+      assert.notEqual(result.exitCode, 0);
+      assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
+    });
+  }
+}
+
 async function run(filter: string, graph = false, channels = [mono]) {
   const fs = Volume.fromJSON({ "/out.wav": "keep" });
   fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 48000, channels }));

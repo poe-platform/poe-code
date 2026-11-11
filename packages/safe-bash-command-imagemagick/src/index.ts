@@ -7260,7 +7260,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         if (fillOpacity !== undefined && fill.a !== 0) fillColor.a = fillOpacity * 255;
         if (strokeOpacity !== undefined && stroke.a !== 0) strokeColor.a = strokeOpacity * 255;
         const paintFill = rgbaToCss(fillColor), paintStroke = rgbaToCss(strokeColor);
-        if (svgElements.length > 0 && (["line", "circle"].includes(cmd) ||
+        if (svgElements.length > 0 && (["line", "polyline", "circle"].includes(cmd) ||
             ((fillOpacity !== undefined || strokeOpacity !== undefined) && ["point", "rectangle"].includes(cmd)))) {
             yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${svgElements.join("")}</svg>` };
             svgElements.length = 0;
@@ -7408,21 +7408,32 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             svgElements.push(`<text x="${x}" y="${y}" font-size="${state.pointsize}" fill="${paintFill}">${escapeXml(txt)}</text>`);
         }
         else if (cmd === "polygon" || cmd === "polyline") {
-            const pts: string[] = [];
+            const pts: Array<{ x: number; y: number }> = [];
             while (i < tokens.length && !Number.isNaN(Number(tokens[i]))) {
                 if (++cooperativeWork % 65536 === 0)
                     yield;
-                const px = num();
-                const py = num();
-                pts.push(`${px},${py}`);
+                pts.push({ x: num(), y: num() });
             }
             if (pts.length < (cmd === "polygon" ? 3 : 1)) throw new Error(`${cmd} drawing has too few points`);
-            if (cmd === "polygon") {
-                svgElements.push(`<polygon data-magick-fill="1" points="${pts.join(" ")}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
+            const first = pts[0]!, last = pts[pts.length - 1]!;
+            let straight = cmd === "polyline" && pts.length >= 2 && !transformed;
+            // Interior collinear vertices must not apply the stroke more than once.
+            for (const point of pts) {
+                if (++cooperativeWork % 65536 === 0) yield;
+                straight &&= (point.x - first.x) * (last.y - first.y) === (point.y - first.y) * (last.x - first.x) &&
+                    point.x >= Math.min(first.x, last.x) && point.x <= Math.max(first.x, last.x) &&
+                    point.y >= Math.min(first.y, last.y) && point.y <= Math.max(first.y, last.y);
             }
-            else {
-                const lineStroke = stroke === "none" ? paintFill : paintStroke;
-                svgElements.push(`<polyline points="${pts.join(" ")}" fill="none" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
+            if (straight) {
+                yield { kind: "shape", shape: "line", tile: false, color: strokeColor, fill: fillColor, x: first.x, y: first.y, x1: last.x, y1: last.y, width: Math.max(1, strokeWidth), antialias: state.antialias !== false };
+            } else {
+                const points = pts.map(point => `${point.x},${point.y}`).join(" ");
+                if (cmd === "polygon") {
+                    svgElements.push(`<polygon data-magick-fill="1" points="${points}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
+                } else {
+                    const lineStroke = stroke === "none" ? paintFill : paintStroke;
+                    svgElements.push(`<polyline points="${points}" fill="none" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
+                }
             }
         }
         else if (cmd === "bezier") {

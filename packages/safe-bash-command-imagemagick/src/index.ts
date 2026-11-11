@@ -18086,7 +18086,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const defaultChannels = !state.channelExplicit || state.channelDefault;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image: image!, storage: backend.storage }), signal);
                 const g = parseMagickRaiseGeometry(expanded, token);
                 const bw = Math.max(0, Math.round(g.isPercent ? image.width * (g.percentX ?? 100) / 100 : g.width ?? 4));
                 const bh = Math.max(0, Math.round(g.isPercent ? image.height * (g.percentY ?? 100) / 100 : g.height ?? bw));

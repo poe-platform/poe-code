@@ -35,7 +35,7 @@ export function* borderPixels(image: Pick<RgbaImage, "width" | "height" | "hasAl
                     if (channels?.[channel] === false) continue;
                     // Native Over clamps each composited channel, including retained HDRI samples.
                     const value = Math.max(0, Math.min(maximum, channel === 3 ? combined * maximum : combined
-                        ? (source[src + channel]! * alpha + background[channel]! * behind) / combined : background[channel]!));
+                        ? (source[src + channel]! * alpha + background[channel]! * behind) / combined : 0));
                     data[dst + channel] = Math.round(value);
                     if (inks && sourceInks) inks[dst + channel] = combined
                         ? (sourceInks[src + channel]! * alpha + backgroundInks[channel]! * behind) / combined : backgroundInks[channel]!;

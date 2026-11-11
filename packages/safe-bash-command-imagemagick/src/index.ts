@@ -5468,7 +5468,7 @@ function* compositeMaskPixelSteps(image: Pick<RgbaImage, "width" | "height">, ma
 function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal, fuzz = 0, clipToOverlay = false, channels?: readonly boolean[]): Generator<void, RgbaImage, void> {
     const { name, delegated, preservesAlpha } = magickCompositeMode(modeRaw);
     if (name === "dst" || name === "dest") return dst;
-    if (channels || !delegated || dst.data16 || src.data16 || dst.evaluateSamples || src.evaluateSamples) {
+    if (clipToOverlay || channels || !delegated || dst.data16 || src.data16 || dst.evaluateSamples || src.evaluateSamples) {
         const hasAlpha = dst.hasAlpha || (!delegated && !preservesAlpha);
         return yield* applyMagickRasterSteps(dst, composite16PixelSteps(dst, src, left, top, modeRaw, composeArgs, false, fuzz, clipToOverlay, undefined, false, channels), signal,
             { ...dst, hasAlpha }, [dst, src]);

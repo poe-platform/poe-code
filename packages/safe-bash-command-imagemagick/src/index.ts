@@ -4363,7 +4363,7 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "
             }
         };
     }
-    return;
+    throw new Error(`unrecognized distortion method '${token}' '${spec}'`);
 }
 function parseMagickRotation(spec: string) {
     // Rotation reads the leading angle; geometry dimensions and ratios do not change it.

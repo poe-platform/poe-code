@@ -4504,7 +4504,8 @@ async function applyVideoFilterChain(
         prev_pts: NaN, prev_t: NaN,
         start_t: NaN
       };
-      if (!pending && current.length === 0) parseFilterExpression(expr, "select", variables);
+      const registers = new Float64Array(10);
+      if (!pending && current.length === 0) parseFilterExpression(expr, "select", variables, undefined, registers);
       const detectScene = expr.includes("scene");
       let previousDifference = 0;
       const input = pending ?? current;
@@ -4529,7 +4530,7 @@ async function applyVideoFilterChain(
           variables.key = Number(f.keyframe);
           variables.pict_type = f.pictureType ?? 0;
           variables.interlace_type = f.interlaced ? (f.topFieldFirst ? 1 : 2) : 0;
-          const selected = parseFilterExpression(expr, "select", variables) !== 0;
+          const selected = parseFilterExpression(expr, "select", variables, undefined, registers) !== 0;
           variables.prev_pts = variables.pts;
           variables.prev_t = f.ptsSeconds;
           if (selected) {

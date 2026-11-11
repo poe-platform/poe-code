@@ -16373,6 +16373,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             // Count processed media, not container headers or checksum text.
             workingDoc = applyDisplayAspects(workingDoc, displayAspects);
             workingDoc = applyOutputColors(workingDoc, outputColors);
+            const progressTracks = workingDoc.tracks;
             workingDoc = shiftTimestamps(workingDoc, outputTimestampOffset, budget);
             workingDoc = avoidNegativeTimestamps(workingDoc, avoidNegativeTs === "auto" && outPlugin?.id === "srt" ? "make_non_negative" : avoidNegativeTs, budget);
             let outputHasFrames = false;
@@ -16387,7 +16388,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             hasEmptyOutput ||= !outputHasFrames;
 
             if (progressTarget !== undefined) {
-              for (const [streamIndex, track] of workingDoc.tracks.entries()) {
+              // Rawvideo progress uses packet timing before muxer timestamp adjustments.
+              for (const [streamIndex, track] of (outputFormat === "rawvideo" ? progressTracks : workingDoc.tracks).entries()) {
                 if (track.type === "video") {
                   progressFrames ??= track.decodedVideoFrames?.length ?? track.samples.length;
                   progressQuality.push(`stream_${progressOutputIndex}_${streamIndex}_q=${videoCodec === "copy" ? "-1.0" : "-0.0"}`);

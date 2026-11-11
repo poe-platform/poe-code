@@ -29,7 +29,7 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
     return { exitCode, stdout, stderr, files, filesystem, original };
   }
 
-  it.each(["Static", "Typo", "", "Centre", "North-West", "north_west", " Center "])(
+  it.each(["Static", "Typo", "", "Centre", "-South"])(
     `${mode}: rejects invalid gravity %j before emitting or overwriting output`, async gravity => {
       for (const output of [
         ["-format", "%wx%h", "info:"],
@@ -54,6 +54,7 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
   it.each([
     "Undefined", "None", "Forget", "NorthWest", "North", "NorthEast", "West",
     "Center", "East", "SouthWest", "South", "SouthEast", "sOuThEaSt", "fOrGeT",
+    "North-West", "north_west", " Center ",
   ])(`${mode}: accepts gravity %s without a placement operator`, async gravity => {
     const result = await run(["-gravity", gravity], ["-format", "%wx%h", "info:"]);
     expect({ exitCode: result.exitCode, stderr: result.stderr, stdout: result.stdout })

@@ -9,7 +9,7 @@ it.each([
   { gravity: "sideways", top: undefined },
   { gravity: "", top: undefined },
   { gravity: "Centre", top: undefined },
-  { gravity: "North-West", top: undefined },
+  { gravity: "North-West", top: 0 },
   { gravity: "Undefined", top: 0 },
   { gravity: "None", top: 0 },
   { gravity: "Forget", top: 0 },

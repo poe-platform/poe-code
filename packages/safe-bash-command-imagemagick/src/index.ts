@@ -5750,8 +5750,19 @@ function gravityAdjustBox(
   return { x, y };
 }
 
+function normalizeGravity(raw: string): string {
+  let name = "";
+  for (const char of raw.trim().toLowerCase()) {
+    // Spaces and commas end the first name; internal hyphens and underscores do not.
+    if (char === "," || char.trim() === "") break;
+    if (name.length > 0 && (char === "-" || char === "_")) continue;
+    name += char;
+  }
+  return name;
+}
+
 function parseGravity(raw: string): GravityPosition | undefined {
-  const norm = raw.toLowerCase().replace(/[-_\s]/g, "");
+  const norm = normalizeGravity(raw);
   switch (norm) {
     case "none":
     case "forget":
@@ -12776,9 +12787,9 @@ if (t === "-intent" || t === "+intent") {
         else if (t === "-gravity") {
             const value = tokens[++i];
             if (value === undefined) throw new Error("missing argument for -gravity");
-            if (!["undefined", "none", "forget", "northwest", "north", "northeast", "west", "center", "east", "southwest", "south", "southeast"].includes(value.toLowerCase()))
+            if (!["undefined", "none", "forget", "northwest", "north", "northeast", "west", "center", "east", "southwest", "south", "southeast"].includes(normalizeGravity(value)))
                 throw new Error(`unrecognized gravity type '-gravity' '${value}'`);
-            state.gravity = value.toLowerCase() === "forget" ? undefined : parseGravity(value);
+            state.gravity = parseGravity(value);
         }
         else if (t === "+gravity") {
             state.gravity = undefined;
@@ -21643,7 +21654,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         else if (t === "-gravity") {
             const value = argv[++i];
             if (value === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-gravity'\n" };
-            if (!["undefined", "none", "northwest", "north", "northeast", "west", "center", "east", "southwest", "south", "southeast"].includes(value.toLowerCase()))
+            if (!["undefined", "none", "northwest", "north", "northeast", "west", "center", "east", "southwest", "south", "southeast"].includes(normalizeGravity(value)))
                 return { exitCode: 2, stdout: "", stderr: `compare: unrecognized gravity type '${value}'\n` };
             state.gravity = parseGravity(value);
         }
@@ -22497,9 +22508,9 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         else if (t === "-gravity") {
             const value = argv[++i];
             if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -gravity\n" };
-            if (!["undefined", "none", "forget", "northwest", "north", "northeast", "west", "center", "east", "southwest", "south", "southeast"].includes(value.toLowerCase()))
+            if (!["undefined", "none", "forget", "northwest", "north", "northeast", "west", "center", "east", "southwest", "south", "southeast"].includes(normalizeGravity(value)))
                 return { exitCode: 1, stdout: "", stderr: `montage: unrecognized gravity type '${value}'\n` };
-            inputGravity = state.gravity = value.toLowerCase() === "forget" ? undefined : parseGravity(value);
+            inputGravity = state.gravity = parseGravity(value);
         }
         else if (t === "+gravity") {
             inputGravity = state.gravity = undefined;

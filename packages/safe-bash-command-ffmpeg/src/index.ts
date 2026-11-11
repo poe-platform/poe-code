@@ -16998,10 +16998,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         for (let i = 0; i < left.length; i++) {
                           while (commandIndex < commands.length && commands[commandIndex]!.sample <= i) {
                             const command = commands[commandIndex++]!;
-                            try { applyMixOption(command.action, command.expression); }
-                            catch { /* Rejected runtime updates leave the previous option unchanged. */ }
+                            try {
+                              if (command.action === "enable") {
+                                parseFilterExpression(command.expression, "stereotools enable", { n: 0, t: 0 }, undefined, new Float64Array(10));
+                                enable = command.expression;
+                                enableRegisters.fill(0);
+                              } else applyMixOption(command.action, command.expression);
+                            } catch { /* Rejected runtime updates leave the previous option unchanged. */ }
                           }
-                          if (enable !== undefined && i >= frameEnd) {
+                          if (i >= frameEnd) {
                             const packet = t.samples[frameIndex];
                             const timestamp = audioTimestamps?.[frameIndex];
                             const frameLength = timestamp ? timestamp.end - timestamp.start
@@ -17009,7 +17014,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + i);
                             // FFmpeg evaluates the timeline twice per input frame, using the second result.
                             for (let evaluation = 0; evaluation < 2; evaluation++) {
-                              enabled = Math.abs(parseFilterExpression(enable, "stereotools enable", {
+                              enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "stereotools enable", {
                                 n: frameIndex, t: pts / origRate
                               }, undefined, enableRegisters)) >= 0.5;
                             }

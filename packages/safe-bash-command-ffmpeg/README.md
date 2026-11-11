@@ -955,7 +955,10 @@ Split stereo PCM into distinct mono files with
 Partial labels are supported: `-filter_complex 'channelsplit[L]' right.wav -map '[L]' left.wav`
 routes the unlabeled right channel to the first output. Mapping both channels to
 one WAV fails with status 234 and leaves an empty output file.
-Mono and 5.1 input are remixed to stereo before selecting a stereo output channel.
+Mono, 2.1, 3.0, 3.0(back), quad, 4.0, 5.0, 5.1, 6.1, 7.1, hexagonal,
+octagonal, and 7.1(wide) input are remixed to stereo before selecting FL or FR.
+Integer downmixes normalize the contributing speaker weights and exclude LFE;
+these conversions require automatic conversion filters.
 Stereo, 2.1, 3.0, 3.0(back), quad, 4.0, 5.0, 5.1, 6.1, 7.1,
 7.1(wide), hexagonal, and octagonal input are remixed to mono for
 `channelsplit=mono:FC`; the mono mix

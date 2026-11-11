@@ -18866,7 +18866,31 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           filteredChannelNames = undefined;
                         }
                         const quad = stretched.length === 4 && filteredChannelMask === 0x33;
+                        if (mask === 3 && filteredChannelMask !== undefined &&
+                            [0x7, 0xb, 0x103, 0x107, 0x37, 0x63f, 0x70f, 0x137, 0x737, 0xff].includes(filteredChannelMask)) {
+                          if (!autoConversionFilters) throw new Error(audioConversionDisabled);
+                          const floating = ["flt", "fltp", "dbl", "dblp"].includes(panSampleFormat);
+                          const gain = Math.fround(Math.SQRT1_2);
+                          const pcm16 = panSampleFormat === "s16" || panSampleFormat === "s16p";
+                          const equations = ["L", "R"].map(side => {
+                            const weights = Object.entries({ [`F${side}`]: 1, FC: gain, BC: gain * Math.SQRT1_2,
+                              [`B${side}`]: gain, [`S${side}`]: gain, [`F${side}C`]: 1 })
+                              .filter(([speaker]) => Math.floor(filteredChannelMask! / audioSpeakerMasks[speaker]!) % 2 === 1);
+                            // SWR's general mixer quantizes each coefficient independently when more than
+                            // two speakers contribute; its optimized 7.1 mixer uses pan's carried rounding.
+                            const quantize = pcm16 && filteredChannelMask !== 0x63f && weights.length > 2;
+                            const total = weights.reduce((sum, [, weight]) => sum + weight, 0);
+                            return `F${side}${floating || quantize ? "=" : "<"}` + weights.map(([speaker, weight]) =>
+                              `${quantize ? roundToEven(Math.fround(weight / total * 32768)) / 32768 : weight}*${speaker}`).join("+");
+                          });
+                          const stereo = await panAudio(`stereo|${equations.join("|")}`,
+                            stretched, filteredChannelMask, panSampleFormat, budget, context.signal);
+                          stretched = stereo.channels;
+                          filteredChannelMask = stereo.channelMask;
+                          filteredChannelNames = undefined;
+                        }
                         if (mask === 3 && (stretched.length === 1 || quad || stretched.length === 6)) {
+                          if (!autoConversionFilters) throw new Error(audioConversionDisabled);
                           const mono = stretched.length === 1;
                           if (!mono && !quad && filteredChannelMask && filteredChannelMask !== 0x3f && filteredChannelMask !== 0x60f) {
                             throw new Error(`channelsplit: unsupported input channel layout (mask ${filteredChannelMask})`);

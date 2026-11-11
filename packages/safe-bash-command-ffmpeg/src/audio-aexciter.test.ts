@@ -30,6 +30,19 @@ for (const [filter, hash] of [
   }
 }
 
+for (const filter of ["aexciter=amount=2", "aexciter=1:0.8:2:9:4:6000:15000:0"]) {
+  for (const graph of [false, true]) {
+    it(`${filter}: accepts a trailing separator (${graph ? "graph" : "simple"})`, async () => {
+      const baseline = await run(filter, graph);
+      const trailing = await run(`${filter}:`, graph);
+      assert.equal(baseline.result.exitCode, 0, baseline.stderr);
+      assert.equal(trailing.result.exitCode, 0, trailing.stderr);
+      assert.equal(trailing.stderr, "");
+      assert.deepEqual(trailing.volume.readFileSync("/out.wav"), baseline.volume.readFileSync("/out.wav"));
+    });
+  }
+}
+
 it("matches the reported mono fixture at every sample", async () => {
   const { volume, result, stderr } = await run("aexciter=amount=3", false, true);
   assert.equal(result.exitCode, 0, stderr);
@@ -81,7 +94,7 @@ for (const graph of [false, true]) {
   }
 }
 
-for (const filter of ["aexciter=amount=1+", "aexciter=amount=1/0", "aexciter=amount=32+33", "aexciter=freq=2000-1", "aexciter=listen=1+0", "aexciter=amount=-1", "aexciter=drive=0", "aexciter=blend=11", "aexciter=freq=1999", "aexciter=ceil=20001", "aexciter=listen=2", "aexciter=listen=TrUeish", "aexciter=level_in=NaN", "aexciter=unknown=1"]) {
+for (const filter of ["aexciter=amount=1+", "aexciter=amount=1/0", "aexciter=amount=32+33", "aexciter=freq=2000-1", "aexciter=listen=1+0", "aexciter=amount=-1", "aexciter=drive=0", "aexciter=blend=11", "aexciter=freq=1999", "aexciter=ceil=20001", "aexciter=listen=2", "aexciter=listen=TrUeish", "aexciter=level_in=NaN", "aexciter=unknown=1", "aexciter=amount=:", "aexciter=amount=2::", "aexciter=amount=2::drive=4", "aexciter=:amount=2"]) {
   it(`${filter} rejects invalid options without replacing output`, async () => {
     const { volume, result } = await run(filter);
     assert.notEqual(result.exitCode, 0);

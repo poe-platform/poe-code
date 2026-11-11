@@ -15533,7 +15533,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       budget.allocateMemory(16);
                       segmentAudioPackets?.push({ pts: start, isKeyframe: true });
                       if (frameChecksumOutput || outPlugin?.id === "s16le") {
-                        const pts = Math.round((frame.pts - frame.start) * ratio) + start;
+                        // Encoder time-base conversion rounds near-INT64_MIN filter
+                        // timestamps back to NOPTS; preserve missing-PTS synthesis.
+                        const pts = frame.exactPts !== undefined && frame.pts === -(2 ** 63) ? NaN
+                          : Math.round((frame.pts - frame.start) * ratio) + start;
                         budget.allocateMemory(48);
                         samples.push({ dts: pts, pts, cts: 0,
                           duration: end - start, isKeyframe: true, size: 0, sampleDescriptionIndex: 1, data: new Uint8Array(0) });

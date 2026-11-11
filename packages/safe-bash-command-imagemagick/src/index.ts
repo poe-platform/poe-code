@@ -14266,7 +14266,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const g = parseMagickRaiseGeometry(expanded, t);
                 const bw = Math.max(0, Math.round(g.isPercent ? image.width * (g.percentX ?? 100) / 100 : g.width ?? 4));
                 const bh = Math.max(0, Math.round(g.isPercent ? image.height * (g.percentY ?? 100) / 100 : g.height ?? bw));
-                return yield* applyMagickRasterSteps(image, raisePixelSteps(image, bw, bh, raised, [state.channels.r, state.channels.g, state.channels.b, image.hasAlpha && (state.channels.a || !state.channelExplicit), state.channels.k === true]), signal);
+                return yield* applyMagickRasterSteps(image, raisePixelSteps(image, bw, bh, raised, [state.channels.r, state.channels.g, state.channels.b, image.hasAlpha && (state.channels.a || !state.channelExplicit), state.channels.k === true || !state.channelExplicit]), signal);
             });
         }
         else if (t === "-frame") {
@@ -17778,7 +17778,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const geometry = tokens[++i] ?? "", raised = token === "-raise", channels = { ...state.channels, a: state.channels.a || !state.channelExplicit }, optionProperties = state.optionProperties;
+            const geometry = tokens[++i] ?? "", raised = token === "-raise", channels = { ...state.channels, a: state.channels.a || !state.channelExplicit, k: state.channels.k === true || !state.channelExplicit }, optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);

@@ -4701,7 +4701,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
         let plan = magickWarpPlan(image, token, distort ? spec : geometry, distort ? geometry : args);
         if (plan && (token === "-swirl" || token === "-implode")) {
             plan = { ...plan, interpolation, channels,
-                hasAlpha: plan.hasAlpha || virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255 };
+                hasAlpha: plan.hasAlpha || virtualPixel === "transparent" || background.a < 255 };
         }
         const depolar = distort && spec.toLowerCase().replaceAll("-", "").replaceAll("_", "") === "depolar" ? plan : undefined;
         const samplingOrigin = plan?.virtualCanvas;

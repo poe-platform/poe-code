@@ -15385,8 +15385,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const channels = state.channelDefault ? undefined : state.channels;
             const spec = tokens[++i] ?? "";
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(spec, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(spec, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
                 const geometry = parseMagickGeometry(expanded.replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x"));
                 if (Math.abs(geometry.height ?? 1) < 1e-12) return im;
@@ -19813,15 +19814,17 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return result;
             }, { handlesRegion: true }));
         } else if (!operandsOnly && (token === "-adaptive-sharpen" || token === "-adaptive-blur")) {
+            let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                images = stack;
                 return stack;
             });
             const channels = state.channelDefault ? undefined : state.channels;
             const spec = tokens[++i] ?? "", optionProperties = state.optionProperties, virtualPixel = state.virtualPixel, background = state.background;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 validateMagickTransformGeometry(expanded, token);
                 const geometry = parseMagickGeometry(expanded.replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x"));
                 if (Math.abs(geometry.height ?? 1) < 1e-12) return image;

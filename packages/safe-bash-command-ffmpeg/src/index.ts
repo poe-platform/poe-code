@@ -13137,7 +13137,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               window, undefined, stageFilterSize, cutoff, undefined, undefined, undefined, { ends, outputEnds }, internalFormat);
                             // Resampling produces floats; later filters and encoders must round
                             // these samples rather than narrow the original integer PCM.
-                            if (!autoConversionFilters) format ??= filteredSampleFormat;
+                            const nextFilter = audioFilters[filterIndex + 1]?.trim().split("=", 1)[0]!.split("@", 1)[0];
+                            // Separate resamplers negotiate their connecting format from the input.
+                            // Materialize it before the next stage consumes fractional samples.
+                            if (!autoConversionFilters || nextFilter === "aresample" ||
+                                !nextFilter && audioRate !== undefined && audioRate !== targetRate) {
+                              format ??= filteredSampleFormat;
+                            }
                             filteredSampleFormat = panSampleFormat = internalFormat === "dblp" ? "dbl" : "flt";
                             audioStartSample = Math.round(audioStartSample * targetRate / origRate);
                             // Resampler startup buffers input frames; flush emits a separate tail frame.
@@ -14221,6 +14227,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               budget.checkDuration(length / targetRate);
                               budget.allocateMemory(length * stretched.length * Float32Array.BYTES_PER_ELEMENT);
                               stretched = await resampleAudio(stretched, length, origRate, targetRate, budget, context.signal);
+                              // aformat constrains the resampler output as well as its input.
+                              stretched = await convertAudioSampleFormat(stretched, "flt", filteredSampleFormat, budget, context.signal);
                               audioStartSample = Math.round(audioStartSample * targetRate / origRate);
                               for (const frame of audioTimestamps ?? []) {
                                 if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }

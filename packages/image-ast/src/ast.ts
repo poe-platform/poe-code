@@ -14,6 +14,7 @@ export type ImageFormat =
   | "farbfeld"
   | "uil"
   | "xpm"
+  | "sun"
   | "xwd"
   | "tga"
   | "wbmp"

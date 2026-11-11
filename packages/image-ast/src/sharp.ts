@@ -278,6 +278,8 @@ function inferFormatFromPath(fileOut: string): ImageFormat | undefined {
       return "otb";
     case "wbmp":
       return "wbmp";
+    case "sun":
+      return "sun";
     case "xwd":
       return "xwd";
     case "pcx":
@@ -2402,6 +2404,7 @@ export class SharpInstance extends Duplex {
       "uil",
       "otb",
       "wbmp",
+      "sun",
       "xwd",
       "pcx",
       "jpeg",

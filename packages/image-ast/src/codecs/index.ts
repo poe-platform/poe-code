@@ -1,3 +1,4 @@
+import { encodeSunImage } from "./sun-output.js";
 import { isWbmpBytes, readWbmpHeader, decodeWbmpImage } from "./wbmp-input.js";
 import { isOtbBytes, readOtbHeader, decodeOtbImage } from "./otb-input.js";
 import { encodeFitsImage } from "./fits-output.js";
@@ -521,7 +522,7 @@ export function encodeImage(
   options: OutputEncodeOptions
 ): { readonly data: Uint8Array; readonly format: ImageFormat; readonly channels: number } {
   const requested = imageOutputFormat(img.format,options.format);
-  if (img.netpbmPages?.length && ["pnm", "ppm", "pgm", "pbm", "pam", "pfm", "phm"].includes(requested)) {
+  if (img.netpbmPages?.length && ["pnm", "ppm", "pgm", "pbm", "pam", "pfm", "phm", "sun"].includes(requested)) {
     const frames = img.netpbmPages.map(page => encodeImage({ ...page, netpbmPages: undefined }, options));
     const data = new Uint8Array(frames.reduce((size, frame) => size + frame.data.length, 0));
     let offset = 0;
@@ -541,6 +542,7 @@ export function encodeImage(
     case "otb": return { data: encodeOtbImage(img), format: "otb", channels: 1 };
     case "wbmp": return { data: encodeWbmpImage(img), format: "wbmp", channels: 1 };
     case "xbm": return { data: encodeXbmImage(img, options.outputFilename), format: "xbm", channels: 1 };
+    case "sun": return { data: encodeSunImage(img), format: "sun", channels: 3 };
     case "xwd": return { data: encodeXwdImage(img), format: "xwd", channels: 3 };
     case "pcx": return { data: encodePcxImage(img, options), format: "pcx", channels: 3 };
     case "uil": return { data: encodeUilImage(img, options.outputFilename), format: "uil", channels: 3 };

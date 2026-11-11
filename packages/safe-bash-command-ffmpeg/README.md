@@ -1199,7 +1199,10 @@ Native H.264 inputs decode with CAVLC/CABAC and reference-frame support. H.264 `
 
 `dialoguenhance` extracts dialogue from stereo into a third (front center) channel,
 automatically mixing mono input to stereo with a gain of 1/√2 per side,
-retaining the input frame count and sample rate. Center extraction follows native
+retaining the input frame count and sample rate. For `FC+LFE` input, it mixes
+front center to both sides with the same gain and omits LFE. Unsupported
+speaker layouts, including `FR+FL` and `BL+BR`, return status 234 with an empty
+output file. Center extraction follows native
 single-precision FFT rounding, including nearly cancelling left/right samples.
 Double PCM input retains double precision through mixing and center extraction,
 using FFmpeg 7’s double RDFT ordering and analysis constants.

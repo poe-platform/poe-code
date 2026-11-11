@@ -16929,7 +16929,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           values[key] = value;
                         }
-                        if (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4)) {
+                        if (!filteredChannelMask && filteredChannelNames?.some(name => name !== "") ||
+                            stretched.length === 2 && filteredChannelMask &&
+                            ![3, 12, 0x60000000].includes(filteredChannelMask)) {
+                          throw new Error("dialoguenhance: unsupported input channel layout");
+                        }
+                        if (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4) ||
+                            stretched.length === 2 && filteredChannelMask === 12) {
+                          // FC contributes equally to stereo; LFE does not contribute.
                           const stereo = await panAudio(`stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`,
                             stretched, filteredChannelMask, double ? "dbl" : "flt", budget, context.signal);
                           stretched = stereo.channels;
@@ -20067,6 +20074,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 msg === "channelsplit: matching input channel layout required" ||
                 msg === "haas: unsupported input channel layout" ||
                 msg === "crossfeed: unsupported input channel layout" ||
+                msg === "dialoguenhance: unsupported input channel layout" ||
                 msg === "stereowiden: unsupported input channel layout" ||
                 msg === "Padded dimensions cannot be smaller than input dimensions" ||
                 msg === "separatefields: height must be even" ||

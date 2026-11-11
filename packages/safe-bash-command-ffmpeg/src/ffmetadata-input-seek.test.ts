@@ -22,7 +22,20 @@ for (const sync of [false, true]) {
     { name: "no seek preserves chapter boundaries", before: [], after: [], chapters: [first, second] },
     { name: "input and output seek compose", before: ["-ss", "1"], after: ["-ss", "0.5", "-t", "1"],
       chapters: [{ ...first, START: "0", END: "700" }, { ...second, START: "700", END: "1000" }] },
-    { name: "input seek past all chapters removes them", before: ["-ss", "4"], after: [], chapters: [] }
+    { name: "input seek past all chapters removes them", before: ["-ss", "4"], after: [], chapters: [] },
+    { name: "offset retains chapters ending before input seek", before: ["-itsoffset", "2", "-ss", "4"], after: [],
+      chapters: [{ ...first, START: "0", END: "200" }, { ...second, START: "200", END: "1500" }] },
+    { name: "offset clips original chapter starts after input seek", before: ["-ss", "2", "-itsoffset", "1"], after: [],
+      chapters: [{ ...first, START: "0", END: "1200" }, { ...second, START: "1200", END: "2500" }] },
+    { name: "offset can move sought chapters after zero", before: ["-ss", "4", "-itsoffset", "5"], after: [],
+      chapters: [{ ...first, START: "1500", END: "3200" }, { ...second, START: "3200", END: "4500" }] },
+    { name: "negative offset combines with input seek", before: ["-ss", "2", "-itsoffset", "-1"], after: [],
+      chapters: [{ ...second, START: "0", END: "500" }] },
+    { name: "copyts ignores input seek when applying chapter offset", before: ["-ss", "4", "-itsoffset", "2", "-copyts"], after: [],
+      chapters: [{ ...first, START: "2500", END: "4200" }, { ...second, START: "4200", END: "5500" }] },
+    { name: "combined input seek and offset honor output bounds", before: ["-ss", "4", "-itsoffset", "2"], after: ["-ss", "0.1", "-t", "1"],
+      chapters: [{ ...first, START: "0", END: "100" }, { ...second, START: "100", END: "1000" }] },
+    { name: "combined input seek and offset honor disabled chapters", before: ["-ss", "4", "-itsoffset", "2"], after: ["-map_chapters", "-1"], chapters: [] }
   ]) {
     it(`${name} (${sync ? "sync" : "async"})`, async () => {
       const volume = Volume.fromJSON({ "/in.meta": input });

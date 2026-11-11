@@ -9110,7 +9110,12 @@ export function evalSyncFfmpeg(
       const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
         ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
       if (!copyTimestamps && startSeconds !== undefined && doc.chapters) {
-        doc = { ...doc, chapters: outputChapters(doc.chapters, startSeconds) };
+        // Keep intervals intact until the input offset and output bounds are applied.
+        doc = { ...doc, chapters: doc.chapters.map(chapter => ({
+          ...chapter,
+          startTimeSeconds: chapter.startTimeSeconds - startSeconds,
+          endTimeSeconds: chapter.endTimeSeconds - startSeconds
+        })) };
       }
       if (audioCodec !== "copy" && !stripAudio) doc = decodeAacInput(doc);
       if (audioCodec === "copy" && (startSeconds !== undefined || outputSs !== undefined) &&
@@ -12314,7 +12319,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined
                 ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
               if (!copyTimestamps && startSeconds !== undefined && doc.chapters) {
-                doc = { ...doc, chapters: outputChapters(doc.chapters, startSeconds) };
+                // Keep intervals intact until the input offset and output bounds are applied.
+                doc = { ...doc, chapters: doc.chapters.map(chapter => ({
+                  ...chapter,
+                  startTimeSeconds: chapter.startTimeSeconds - startSeconds,
+                  endTimeSeconds: chapter.endTimeSeconds - startSeconds
+                })) };
               }
               if (audioCodec !== "copy" && !stripAudio) doc = decodeAacInput(doc);
               const loopSourceDuration = doc.durationSeconds;

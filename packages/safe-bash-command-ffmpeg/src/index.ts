@@ -3187,6 +3187,8 @@ async function applyVideoFilterChain(
             if (number < 0.00003 || number > 0.5) throw new Error("deband: invalid threshold");
             thresholds[Number(key![0]) - 1] = Math.fround(number);
           }
+        } else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+          validateWeaveGenericOption(key, value, "deband");
         } else throw new Error(`deband: unsupported option ${key ?? option}`);
       }
       if (!["gray", "gray8", "yuv444p"].includes(pixelFormat ?? "")) throw new Error("deband: requires 8-bit grayscale or yuv444p input");

@@ -35,7 +35,10 @@ function matchesTrimColor(pixel: TrimColor, reference: TrimColor, fuzz: number, 
     const squared = (pixel.a - reference.a) ** 2 + (black - referenceBlack) ** 2 * alpha
         + (distance ** 2 + (pixel.g - reference.g) ** 2 + (pixel.b - reference.b) ** 2)
         * alpha * (1 - black / 255) * (1 - referenceBlack / 255) / 3;
-    return squared <= fuzz ** 2 + referenceFuzz ** 2;
+    const tolerance = fuzz ** 2 + referenceFuzz ** 2;
+    // Native significant-error comparison uses epsilon at zero fuzz. Convert
+    // its Q16 summed distance to our 8-bit mean squared distance.
+    return squared <= (tolerance > 0 ? tolerance : 1e-12 / (3 * 257 ** 2)) * (1 + 1e-12);
 }
 
 // Percentage trimming peels the least occupied edge first (west wins ties).

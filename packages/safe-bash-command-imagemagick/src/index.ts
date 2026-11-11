@@ -6624,7 +6624,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
         ? stack.reduce((acc, im) => acc + im.height, 0)
         : Math.max(...stack.map((im) => im.height));
     const background = state.backgroundExplicit ? state.background : stack[0]!.backgroundColor ?? state.background;
-    let canvas = (yield* createSolidRgbaImageSteps(totalW, totalH, background, stack.some(im => !!im.data16)));
+    let canvas = (yield* createSolidRgbaImageSteps(totalW, totalH, background, stack.some(im => !!im.data16) || [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value))));
     if (stack.some(im => !!im.evaluateSamples)) {
         canvas.evaluateSamples = new Float64Array(canvas.data.length);
         const color = [background.r, background.g, background.b, background.a];
@@ -13001,7 +13001,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 next = layout.next((image.data16 ?? image.data).subarray(request.position, request.position + request.length));
             }
             const { width, height, virtualCanvas, offsets } = next.value;
-            let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(width, height, background), hasAlpha: stack.some(frame => frame.hasAlpha) || background.a < 255, ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}), space: image.space };
+            let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(width, height, background, [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value))), hasAlpha: stack.some(frame => frame.hasAlpha) || background.a < 255, ...(image.magickColorspace ? { magickColorspace: image.magickColorspace } : {}), space: image.space };
             if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b)) {
                 canvas = { ...canvas, space: "srgb" };
                 delete canvas.magickColorspace;
@@ -14781,7 +14781,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     } else next = layout.next(await backend.storage.read(image.position + request.position, request.length));
                 }
                 const { width, height, virtualCanvas, offsets } = next.value;
-                let canvas: StoredRgbaImage = { gravity: images[0]!.gravity, ...await createStoredCanvas(width, height, background, backend, signal), hasAlpha: images.some(frame => frame.hasAlpha) || background.a < 255, ...(images[0]!.magickColorspace ? { magickColorspace: images[0]!.magickColorspace } : {}), space: image.space };
+                let canvas: StoredRgbaImage = { gravity: images[0]!.gravity, ...await createStoredCanvas(width, height, background, backend, signal, [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value))), hasAlpha: images.some(frame => frame.hasAlpha) || background.a < 255, ...(images[0]!.magickColorspace ? { magickColorspace: images[0]!.magickColorspace } : {}), space: image.space };
                 if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b)) {
                     canvas = { ...canvas, space: "srgb" };
                     delete canvas.magickColorspace;
@@ -14930,7 +14930,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 const background = settings.backgroundExplicit ? settings.background : (await stack.get(0))!.backgroundColor ?? settings.background;
                 const first = (await stack.get(0))!;
-                result = { ...await createStoredCanvas(width, height, background, backend, signal, highDepth), depth: first.depth, ...(first.bitsPerSample === undefined ? {} : { bitsPerSample: first.bitsPerSample }) };
+                result = { ...await createStoredCanvas(width, height, background, backend, signal, highDepth || append && [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value))), depth: first.depth, ...(first.bitsPerSample === undefined ? {} : { bitsPerSample: first.bitsPerSample }) };
                 if (!append) {
                     const first = (await stack.get(0))! as StoredRgbaImage;
                     result = { ...result, space: first.space, ...(first.magickColorspace === undefined ? {} : { magickColorspace: first.magickColorspace }) };

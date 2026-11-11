@@ -76,3 +76,22 @@ for (const retained of [false, true]) {
     });
   }
 }
+
+// Independent indexed TGA bytes: BGR palette followed by indices, without using our writer.
+for (const retained of [false, true]) {
+  for (const rle of [false, true]) {
+    it(`reads indexed TGA through the public command (retained=${retained}, rle=${rle})`, async () => {
+      const header = Buffer.from("000101000006001800000000030002000820", "hex");
+      header[2] = rle ? 9 : 1;
+      const palette = Buffer.from("0000ff00ff00ff000000eeff771199845324", "hex");
+      const input = Buffer.concat([header, palette, Buffer.from(rle ? [5, 0, 1, 2, 3, 4, 5] : [0, 1, 2, 3, 4, 5])]);
+      const files = new Map([["/in.tga", new Uint8Array(input)]]);
+      const filesystem = new MemoryFileSystem();
+      await filesystem.writeFile("/in.tga", input);
+      const result = await runConvertCli(["/in.tga", "-depth", "8", "rgba:/out.raw"], retained ? { filesystem, cwd: "/" } : files);
+      expect(result).toMatchObject({ exitCode: 0 });
+      const output = retained ? await filesystem.readFile("/out.raw") : files.get("/out.raw")!;
+      expect(Buffer.from(output).toString("hex")).toBe("ff0000ff00ff00ff0000ffffffee00ff991177ff245384ff");
+    });
+  }
+}

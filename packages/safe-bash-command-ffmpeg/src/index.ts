@@ -5365,7 +5365,11 @@ async function applyVideoFilterChain(
           throw new Error(`reverse: unsupported option ${key}`);
         }
         const value = parseFilterExpression(option.slice(separator + 1), "reverse",
-          key === "thread_type" ? { slice: 1 } : {});
+          key === "thread_type" ? { slice: 1 } : {
+            default: key === "extra_hw_frames" ? -1 : 0,
+            min: key === "extra_hw_frames" ? -1 : 0, max: 2147483647,
+            PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+          });
         if (value < (key === "extra_hw_frames" ? -1 : 0) || value > 2147483647) {
           throw new RangeError(`reverse: invalid ${key}`);
         }

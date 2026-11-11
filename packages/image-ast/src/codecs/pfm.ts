@@ -6,10 +6,20 @@ export function isPfmBytes(bytes: Uint8Array): boolean {
 }
 
 export function* pfmHeader(size: number): Generator<number, { metadata: ImageMetadata; offset: number; little: boolean; scale: number }, number | undefined> {
-    let offset = 0;
+    let offset = 0, comment = "";
     function* token(): Generator<number, string, number | undefined> {
         let value = "", byte = yield offset++;
-        while (byte !== undefined && byte <= 32) byte = yield offset++;
+        while (byte !== undefined) {
+            if (byte <= 32) byte = yield offset++;
+            else if (byte === 35) {
+                byte = yield offset++;
+                while (byte !== undefined && byte !== 10 && byte !== 13) {
+                    comment += String.fromCharCode(byte);
+                    byte = yield offset++;
+                }
+                comment += "\n";
+            } else break;
+        }
         while (byte !== undefined && byte > 32) {
             if (value.length === 64) throw new Error("Invalid PFM header");
             value += String.fromCharCode(byte);
@@ -25,7 +35,7 @@ export function* pfmHeader(size: number): Generator<number, { metadata: ImageMet
     if (!Number.isSafeInteger(width) || width <= 0 || !Number.isSafeInteger(height) || height <= 0 || !Number.isSafeInteger(width * height * 16)) throw new Error("Invalid PFM dimensions");
     if (!Number.isFinite(scale) || scale === 0) throw new Error("Invalid PFM scale");
     if (size - offset < width * height * channels * 4) throw new Error("Truncated PFM raster");
-    return { metadata: { format: "pfm", endian: scale < 0 ? "lsb" : "msb", width, height, channels, depth: "float", space: channels === 1 ? "b-w" : "srgb", hasAlpha: false, density: 72, bitsPerSample: 32, size }, offset, little: scale < 0, scale: Math.abs(scale) };
+    return { metadata: { format: "pfm", endian: scale < 0 ? "lsb" : "msb", width, height, channels, depth: "float", space: channels === 1 ? "b-w" : "srgb", hasAlpha: false, density: 72, bitsPerSample: 32, size, ...(comment ? { properties: { comment } } : {}) }, offset, little: scale < 0, scale: Math.abs(scale) };
 }
 
 export function readPfmHeader(bytes: Uint8Array) {

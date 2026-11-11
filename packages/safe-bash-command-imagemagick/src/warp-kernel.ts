@@ -37,7 +37,7 @@ function* catromSamples(sx: number, sy: number): Generator<readonly [number, num
     }
 }
 
-function* ellipseSamples(sx: number, sy: number, [ux, uy, vx, vy]: readonly [number, number, number, number], weights: Float64Array, support: number): Generator<readonly [number, number, number] | undefined> {
+function* ellipseSamples(sx: number, sy: number, [ux, uy, vx, vy]: readonly [number, number, number, number], weights: Float64Array, support: number, source: Pick<RgbaImage, "width" | "height">, virtualPixel: VirtualPixelMethod | undefined): Generator<readonly [number, number, number] | undefined> {
     // Singular values of the inverse mapping, clamped to at least one source pixel.
     const xx = ux * ux + uy * uy, yy = vx * vx + vy * vy, xy = ux * vx + uy * vy;
     const delta = Math.hypot(xx - yy, 2 * xy), major = Math.max(1, (xx + yy + delta) / 2), minor = Math.max(1, (xx + yy - delta) / 2);
@@ -48,6 +48,12 @@ function* ellipseSamples(sx: number, sy: number, [ux, uy, vx, vy]: readonly [num
         || !Number.isSafeInteger(Math.ceil(Math.abs(sx) + uWidth + Math.abs(slope * vLimit)))
         || !Number.isSafeInteger(Math.ceil(Math.abs(sy) + vLimit)))
         throw new Error("Distortion sampling area exceeds limit");
+    // Native EWA limits the footprint relative to the source image area.
+    // Background sampling then falls back to an integer pixel lookup.
+    if (virtualPixel === "background" && uWidth * vLimit > 4 * source.width * source.height) {
+        yield [Math.floor(sx), Math.floor(sy), 1];
+        return;
+    }
     const scale = 1024 / f, A = a * scale, B = b * scale, C = c * scale;
     const firstY = Math.ceil(sy - vLimit), lastY = Math.floor(sy + vLimit), count = Math.floor(2 * uWidth) + 1;
     let left = sx + (firstY - sy) * slope - uWidth, scanned = 0;
@@ -191,7 +197,7 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
                         ? fx <= fy ? [1 - fy, 0, fy - fx, fx] : [1 - fx, fx - fy, 0, fy]
                         : fx <= 1 - fy ? [1 - fx - fy, fx, fy, 0] : [0, 1 - fy, 1 - fx, fx + fy - 1];
                 }
-                const samples: Iterable<readonly [number, number, number] | undefined> = outside ? [[Math.floor(sx), Math.floor(sy), 1]] : filtered ? ellipseSamples(sx, sy, derivatives!, weights, support) : plan.nearest || interpolation === "nearest" ? [[Math.floor(sx + 0.5), Math.floor(sy + 0.5), 1]] : interpolation === "integer" ? [[x0, y0, 1]] : averageSize ? averageSamples(sx, sy, averageSize) : interpolation === "catrom" ? catromSamples(sx, sy) : interpolation === "spline" ? splineSamples(sx, sy) : [
+                const samples: Iterable<readonly [number, number, number] | undefined> = outside ? [[Math.floor(sx), Math.floor(sy), 1]] : filtered ? ellipseSamples(sx, sy, derivatives!, weights, support, source, virtualPixel) : plan.nearest || interpolation === "nearest" ? [[Math.floor(sx + 0.5), Math.floor(sy + 0.5), 1]] : interpolation === "integer" ? [[x0, y0, 1]] : averageSize ? averageSamples(sx, sy, averageSize) : interpolation === "catrom" ? catromSamples(sx, sy) : interpolation === "spline" ? splineSamples(sx, sy) : [
                     [x0, y0, meshWeights?.[0] ?? (1 - fx) * (1 - fy)], [x1, y0, meshWeights?.[1] ?? fx * (1 - fy)],
                     [x0, y1, meshWeights?.[2] ?? (1 - fx) * fy], [x1, y1, meshWeights?.[3] ?? fx * fy]
                 ];

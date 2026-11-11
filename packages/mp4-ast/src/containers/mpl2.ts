@@ -1,4 +1,4 @@
-import { decodeUtf8, encodeUtf8 } from "../binary.js";
+import { bytesEqual, decodeUtf8, encodeUtf8 } from "../binary.js";
 import { buildProbeResultFromDoc } from "../mp4.js";
 import type { MediaAstPlugin, MediaDocument, MediaSample } from "../types.js";
 
@@ -20,7 +20,7 @@ function readLine(line: string): { start: number; end: number; text: string } | 
 function parseMpl2(bytes: Uint8Array): MediaDocument {
   const timescale = 10;
   let duration = 0;
-  const samples: MediaSample[] = [];
+  let samples: MediaSample[] = [];
   for (const line of decodeUtf8(bytes).replaceAll("\r", "\n").split("\n")) {
     const cue = readLine(line);
     if (!cue) continue;
@@ -31,6 +31,11 @@ function parseMpl2(bytes: Uint8Array): MediaDocument {
     duration = Math.max(duration, cue.end);
   }
   samples.sort((a, b) => a.pts - b.pts);
+  samples = samples.filter((sample, index) => {
+    const previous = samples[index - 1];
+    return !previous || sample.pts !== previous.pts || sample.duration !== previous.duration
+      || !bytesEqual(sample.data, previous.data);
+  });
   return { containerFormat: "mpl2", timescale, duration, durationSeconds: duration / timescale,
     tracks: [{ id: 1, type: "subtitle", handlerType: "sbtl", timescale, duration,
       language: "und", enabled: true, codecDescriptions: [{ formatFourCC: "text", codecName: "mpl2" }], samples }],

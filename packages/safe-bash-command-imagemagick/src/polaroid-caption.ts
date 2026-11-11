@@ -24,6 +24,6 @@ export function* polaroidPixels(image: Parameters<typeof borderPixels>[0], borde
         const data = Uint16Array.from(samples, value => Math.round(value * 257));
         const position = ((top + y) * width + border + x) * 4;
         yield { kind: "write", position, data: new Uint8Array(data.buffer), highDepth: true };
-        if (image.evaluateSamples || image.storedEvaluateSamples !== undefined) yield { kind: "write", position, data: new Uint8Array(samples.buffer, samples.byteOffset, samples.byteLength), evaluate: true };
+        yield { kind: "write", position, data: new Uint8Array(samples.buffer, samples.byteOffset, samples.byteLength), evaluate: true };
     }
 }

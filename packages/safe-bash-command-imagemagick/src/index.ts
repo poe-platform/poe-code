@@ -6989,7 +6989,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 }
                 im = { ...image, evaluateSamples };
             }
-            im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: im.width, originalHeight: im.height, ...(im as MagickImage)[magickInput], intensity: state.intensity, virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
+            im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: im.width, originalHeight: im.height, ...(im as MagickImage)[magickInput], interpolation: state.interpolation, intensity: state.intensity, virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
             if (state.qualityExplicit) im = { ...im, quality: state.quality };
             if (state.page !== undefined) im = { ...im, virtualCanvas: state.page };
             if (state.composeExplicit) im = { ...im, properties: { ...im.properties, compose: state.composeRaw } };
@@ -11285,6 +11285,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             if (t === "-mattecolor") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, matteColor: state.matteColor }; });
             if (t === "-background") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, backgroundColor: state.background }; });
+            if (t === "-interpolate" || t === "+interpolate") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...image[magickInput], interpolation: state.interpolation } }; });
             if (t === "-interlace" || t === "+interlace" || state.interlace !== previousInterlace) stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace! } }; });
             if (t === "-compose" || t === "+compose") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, properties: { ...image.properties, compose: state.composeRaw } }; });
             if (t === "-quality") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, quality: state.quality }; });
@@ -12047,7 +12048,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (t === "-hald-clut") delete metadata.hueSamples;
                 const colorspace = t === "-hald-clut" ? lut.magickColorspace : im.magickColorspace;
                 const cmyk = (t === "-hald-clut" ? lut : im).space === "cmyk";
-                let result = yield* applyMagickRasterSteps({ ...metadata, ...(colorspace ? { magickColorspace: colorspace } : {}), space: cmyk ? "cmyk" : "srgb", channels: cmyk ? 4 : hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, t === "-clut" ? (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false) && (state.channels.a || !state.channelExplicit) : state.channels.a || !state.channelExplicit, state.channels.k === true || !state.channelExplicit], !!(im.data16 || lut.data16), state.interpolation, state.backgroundExplicit ? state.background : lut.backgroundColor ?? state.background, lut.virtualPixel, im.space === "cmyk", im.hasAlpha), signal, { ...im, hasAlpha }, [im, lut]);
+                let result = yield* applyMagickRasterSteps({ ...metadata, ...(colorspace ? { magickColorspace: colorspace } : {}), space: cmyk ? "cmyk" : "srgb", channels: cmyk ? 4 : hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, t === "-clut" ? (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false) && (state.channels.a || !state.channelExplicit) : state.channels.a || !state.channelExplicit, state.channels.k === true || !state.channelExplicit], !!(im.data16 || lut.data16), t === "-clut" ? im[magickInput]?.interpolation : state.interpolation, state.backgroundExplicit ? state.background : lut.backgroundColor ?? state.background, lut.virtualPixel, im.space === "cmyk", im.hasAlpha), signal, { ...im, hasAlpha }, [im, lut]);
                 if (im.region) result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, im.region, !!result.data16, state.channels), signal, result, [result, im]);
                 if (im.writeMask) result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, im.writeMask, !!result.data16, false, state.channels), signal, result, [result, im, im.writeMask]);
                 stack = [result];
@@ -13962,7 +13963,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (token === "-hald-clut") delete metadata.storedHueSamples;
                     const colorspace = token === "-hald-clut" ? lut.magickColorspace : image.magickColorspace;
                     const cmyk = (token === "-hald-clut" ? lut : image).space === "cmyk";
-                    let result = await transformStoredMagickRaster({ ...metadata, ...(colorspace ? { magickColorspace: colorspace } : {}), space: cmyk ? "cmyk" : "srgb", channels: cmyk ? 4 : hasAlpha ? 4 : 3 }, backend, (token === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(image.width * image.height * 4, lut, mask, !!(image.storedData16 || lut.storedData16), settings.interpolation, settings.backgroundExplicit ? settings.background : lut.backgroundColor ?? settings.background, lut.virtualPixel, image.space === "cmyk", image.hasAlpha), signal, { ...image, hasAlpha }, [image, lut]);
+                    let result = await transformStoredMagickRaster({ ...metadata, ...(colorspace ? { magickColorspace: colorspace } : {}), space: cmyk ? "cmyk" : "srgb", channels: cmyk ? 4 : hasAlpha ? 4 : 3 }, backend, (token === "-hald-clut" ? haldClutPixelSteps : clutPixelSteps)(image.width * image.height * 4, lut, mask, !!(image.storedData16 || lut.storedData16), token === "-clut" ? image[magickInput]?.interpolation : settings.interpolation, settings.backgroundExplicit ? settings.background : lut.backgroundColor ?? settings.background, lut.virtualPixel, image.space === "cmyk", image.hasAlpha), signal, { ...image, hasAlpha }, [image, lut]);
                     if (image.region) result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, image.region, !!result.storedData16, settings.channels), signal, result, [result, image]);
                     if (image.storedWriteMask) result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!result.storedData16, false, settings.channels), signal, result, [result, image, image.storedWriteMask]);
                     await stack.set(0, result);
@@ -14299,6 +14300,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (token === "-background") {
                 const backgroundColor = state.background;
                 steps.push(async image => image ? { ...image, backgroundColor } : undefined);
+            }
+            if (token === "-interpolate" || token === "+interpolate") {
+                const interpolation = state.interpolation;
+                steps.push(async image => image ? { ...image, [magickInput]: { ...image[magickInput], interpolation } } : undefined);
             }
             if (token === "-interlace" || token === "+interlace" || state.interlace !== previousInterlace) {
                 const interlace = state.interlace!;
@@ -17172,7 +17177,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    }
    image = { ...metadata, storedEvaluateSamples };
   }
-  image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: image.width, originalHeight: image.height, ...(image as StoredMagickImage)[magickInput], intensity: state.intensity, virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
+  image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: image.width, originalHeight: image.height, ...(image as StoredMagickImage)[magickInput], interpolation: state.interpolation, intensity: state.intensity, virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
   if(state.qualityExplicit)image={...image,quality:state.quality};
   if(state.page!==undefined)image={...image,virtualCanvas:state.page};
   if(state.composeExplicit)image={...image,properties:{...image.properties,compose:state.composeRaw}};

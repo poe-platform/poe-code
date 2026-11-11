@@ -78,11 +78,11 @@ function* sampleLookup(lut: Pick<RgbaImage, "width" | "height" | "hasAlpha"> & {
     return values;
 }
 
-export function* clutPixelSteps(size: number, lut: Pick<RgbaImage, "width" | "height" | "hasAlpha"> & { space?: string; inactiveAlpha?: boolean | undefined }, mask: readonly boolean[], highDepth = false, interpolation: LookupInterpolation = "bilinear", background?: RgbaColor, virtualPixel?: VirtualPixelMethod, sourceCmyk = false): Steps {
-    // Integer lookup partitions the full dimensions; other methods sample the diagonal endpoints.
+export function* clutPixelSteps(size: number, lut: Pick<RgbaImage, "width" | "height" | "hasAlpha"> & { space?: string; inactiveAlpha?: boolean | undefined; [magickInput]?: MagickFormatContext }, mask: readonly boolean[], highDepth = false, interpolation?: LookupInterpolation, background?: RgbaColor, virtualPixel?: VirtualPixelMethod, sourceCmyk = false): Steps {
+    // Source Integer partitions the full dimensions; an unset source method uses the table method only for sampling.
     function* sample(value: number): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
         const adjust = interpolation === "integer" ? 0 : 1;
-        return yield* sampleLookup(lut, value * (lut.width - adjust), value * (lut.height - adjust), highDepth, interpolation, background, virtualPixel, lut.space === "cmyk");
+        return yield* sampleLookup(lut, value * (lut.width - adjust), value * (lut.height - adjust), highDepth, interpolation ?? lut[magickInput]?.interpolation ?? "bilinear", background, virtualPixel, lut.space === "cmyk");
     }
     const cmyk = sourceCmyk || lut.space === "cmyk", range = highDepth ? 65535 : 255;
     const table = highDepth || cmyk ? undefined : new Float64Array(1024);

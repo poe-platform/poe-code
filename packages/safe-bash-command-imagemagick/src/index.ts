@@ -2084,7 +2084,15 @@ function* formatHistogramOutputSteps(img: RgbaImage, precision = 6): Generator<v
         counts.set(key, (counts.get(key) ?? 0) + 1);
     }
     const lines: string[] = [];
-    for (const [key, cnt] of [...counts.entries()].sort(([a], [b]) => a < b ? -1 : a > b ? 1 : 0)) {
+    const alphaBits = floating ? 64n : 16n;
+    for (const [key, cnt] of [...counts.entries()].sort(([a, aCount], [b, bCount]) => {
+        if (!source && !hue && aCount !== bCount) {
+            const aColor = typeof a === "bigint" ? a >> alphaBits : a >>> 8;
+            const bColor = typeof b === "bigint" ? b >> alphaBits : b >>> 8;
+            if (aColor === bColor) return bCount - aCount;
+        }
+        return a < b ? -1 : a > b ? 1 : 0;
+    })) {
         if (++work % 16384 === 0) yield;
         lines.push(floating ? floatingHistogramLine(key as bigint, cnt, img.hasAlpha, (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8, colorspace, precision) : hue ? `${String(cnt).padStart(14)}: ${colors.get(key)}` : histogramLine(key, cnt, img.hasAlpha, (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8, precision, colorspace));
     }

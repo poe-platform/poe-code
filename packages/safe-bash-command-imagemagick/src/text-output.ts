@@ -147,15 +147,38 @@ async function* storedFloatingHistogram(image: StoredRgbaImage & HueMetadata, st
             }
         }
     }
-    async function* visit(node: bigint, depth: number, prefix: bigint): AsyncGenerator<string> {
+    async function* visit(table: IntegerTable, length: number, node: bigint, depth: number, prefix: bigint): AsyncGenerator<readonly [bigint, bigint]> {
         await yieldTurn(signal);
-        for await (const [edge, value] of tree.entries(node << 16n, (node + 1n) << 16n)) {
+        for await (const [edge, value] of table.entries(node << 16n, (node + 1n) << 16n)) {
             const key = (prefix << 16n) | (edge & 65535n);
-            if (depth === levels - 1) yield floatingHistogramLine(key, Number(value), image.hasAlpha, highDepth, colorspace, precision) + "\n";
-            else yield* visit(value, depth + 1, key);
+            if (depth === length - 1) yield [key, value];
+            else yield* visit(table, length, value, depth + 1, key);
         }
     }
-    yield* visit(0n, 0, 0n);
+    const byFrequency = !cmyk && !gray && image.hasAlpha;
+    const ordered = byFrequency ? new IntegerTable(storage, 512) : tree;
+    const orderedLevels = levels + (byFrequency ? 4 : 0);
+    if (byFrequency) {
+        // Insert descending count between RGB and alpha without retaining all bins in RAM.
+        nextNode = 1n;
+        for await (const [key, count] of visit(tree, levels, 0n, 0, 0n)) {
+            const orderKey = ((key >> 64n) << 128n) | ((0xffffffffffffffffn - count) << 64n) | BigInt.asUintN(64, key);
+            let node = 0n;
+            for (let shift = BigInt((orderedLevels - 1) * 16); shift >= 0n; shift -= 16n) {
+                const edge = (node << 16n) | ((orderKey >> shift) & 65535n);
+                if (shift === 0n) await ordered.set(edge, count);
+                else {
+                    const value = await ordered.get(edge);
+                    node = value ?? nextNode++;
+                    if (value === undefined) await ordered.set(edge, node);
+                }
+            }
+        }
+    }
+    for await (const [key, count] of visit(ordered, orderedLevels, 0n, 0, 0n)) {
+        const colorKey = byFrequency ? ((key >> 128n) << 64n) | BigInt.asUintN(64, key) : key;
+        yield floatingHistogramLine(colorKey, Number(count), image.hasAlpha, highDepth, colorspace, precision) + "\n";
+    }
     if (!size) yield "\n";
 }
 export function* sparseColorPoints(image: Pick<RgbaImage, "width" | "space" | "hasAlpha" | "gamma" | "evaluateSamples"> & HueMetadata, data: Uint8Array | Uint16Array, start = 0, precision = 6, hueSamples = image.hueSamples?.subarray(start * 4), working = image.evaluateSamples?.subarray(start * 4)): Generator<string> {
@@ -280,8 +303,22 @@ export async function* storedHistogram(image: StoredRgbaImage & HueMetadata, sto
         }
     }
     if (!hue) {
+        const alphaBits = image.storedData16 ? 16n : 8n;
+        // One RGB group has at most 256 or 65536 alpha values, regardless of image size.
+        const group: (readonly [bigint, bigint])[] = [];
+        async function* ordered(): AsyncGenerator<readonly [bigint, bigint]> {
+            for await (const entry of counts.entries()) {
+                if (group.length && (group[0]![0] >> alphaBits) !== (entry[0] >> alphaBits)) {
+                    yield* group.sort((a, b) => Number(b[1] - a[1]));
+                    group.length = 0;
+                }
+                group.push(entry);
+                if (group.length % 128 === 0) await yieldTurn(signal);
+            }
+            yield* group.sort((a, b) => Number(b[1] - a[1]));
+        }
         let index = 0;
-        for await (const [key, count] of counts.entries()) {
+        for await (const [key, count] of ordered()) {
             if (index++ % 128 === 0) await yieldTurn(signal);
             yield histogramLine(image.storedData16 ? key : Number(key), Number(count), image.hasAlpha, (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8, precision, image.magickColorspace === "RGB" ? "rgb" : "srgb") + "\n";
         }

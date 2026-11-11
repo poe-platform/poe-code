@@ -47,7 +47,14 @@ function parseRealtext(bytes: Uint8Array): MediaDocument {
       }
     },
     ontext(value) {
-      if (start !== undefined) text += value;
+      if (start === undefined) return;
+      for (const char of value) {
+        if (" \t\r\n\f\v".includes(char)) {
+          if (text && !text.endsWith(" ") && !text.endsWith("\n")) text += " ";
+        } else {
+          text += char;
+        }
+      }
     },
     onclosetag(name) {
       if (name === "window") {

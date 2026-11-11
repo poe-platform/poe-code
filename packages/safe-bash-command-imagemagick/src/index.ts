@@ -4912,7 +4912,7 @@ function parsePosterizeLevels(value: string): number {
     return levels;
 }
 
-function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">, levelsRaw: number, dither: MagickState["dither"], diffusionAmount: number, channels: MagickState["channels"], signal?: AbortSignal, reducePalette = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space">, levelsRaw: number, dither: MagickState["dither"], diffusionAmount: number, channels: MagickState["channels"], signal?: AbortSignal, reducePalette = true, depthDither = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     let cooperativeWork = 0;
     const levels = Math.max(2, Math.trunc(levelsRaw));
     const step = 255 / (levels - 1);
@@ -4922,6 +4922,15 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
     // Native posterize dithers only palettes with 2–16 levels.
     if (levelsRaw < 2 || levels > 16) dither = false;
     if (!dither && levelsRaw >= 2) {
+        const distortion = new Float64Array(img.space === "cmyk" ? 5 : 4);
+        const quantize = (sample: number, channel: number, position: number): number => {
+            if (position % (img.width * 4) < 4) distortion[channel] = 0;
+            const value = sample + (depthDither ? distortion[channel]! : 0);
+            const output = Math.round(Math.max(0, Math.min(1, value)) * (levels - 1)) / (levels - 1);
+            // Native depth reduction scans left to right and resets each row.
+            distortion[channel] = (value - output) * 7 / 16;
+            return output;
+        };
         // Gray occupies all RGB slots, but only the red channel mask selects it.
         if (img.space === "b-w" || img.space === "grey16") mask[1] = mask[2] = channels.r;
         if (reducePalette && (img.hasAlpha || !channels.r || !channels.g || !channels.b)) {
@@ -4961,11 +4970,11 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
                 const inkMask = [channels.r, channels.g, channels.b, channels.k];
                 const backing = new Float64Array(samples.length);
                 for (let i = 0; i < inks.length; i++) {
-                    if (inkMask[i % 4]) inks[i] = Math.round(inks[i]! * (levels - 1)) / (levels - 1);
+                    if (inkMask[i % 4]) inks[i] = quantize(inks[i]!, i % 4, position + i);
                 }
                 for (let i = 0; i < samples.length; i++) {
                     const channel = i % 4;
-                    const value = channel === 3 ? (channels.a ? Math.round(samples[i]! / 65535 * (levels - 1)) / (levels - 1) : samples[i]! / 65535)
+                    const value = channel === 3 ? (channels.a ? quantize(samples[i]! / 65535, 4, position + i) : samples[i]! / 65535)
                         : (1 - inks[i]!) * (1 - inks[i - channel + 3]!);
                     backing[i] = value * 255;
                     samples[i] = Math.round(value * 65535);
@@ -4975,10 +4984,12 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
             } else {
                 const hueBytes = !reducePalette ? (yield { kind: "read", hue: true, position, length })! : undefined;
                 const hue = hueBytes?.length ? new Float64Array(hueBytes.slice().buffer) : undefined;
+                const evaluateBytes = !hue && !reducePalette ? (yield { kind: "read", evaluate: true, position, length })! : undefined;
+                const evaluate = evaluateBytes?.length ? new Float64Array(evaluateBytes.slice().buffer) : undefined;
                 const backing = !hue ? new Float64Array(samples.length) : undefined;
                 for (let i = 0; i < samples.length; i++) {
-                    const sample = hue ? hue[i]! : samples[i]! / 65535;
-                    const value = mask[i % 4] ? Math.round(Math.max(0, Math.min(1, sample)) * (levels - 1)) / (levels - 1) : sample;
+                    const sample = hue ? hue[i]! : evaluate ? evaluate[i]! / 255 : samples[i]! / 65535;
+                    const value = mask[i % 4] ? quantize(sample, i % 4, position + i) : sample;
                     if (hue) hue[i] = value;
                     if (backing) backing[i] = value * 255;
                     samples[i] = Math.round(Math.max(0, Math.min(1, value)) * 65535);
@@ -5034,7 +5045,7 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
                     : mask[channel] || img.hasAlpha && channels.a ? 0 : input[channel]!;
             }
             out[3] = img.hasAlpha && channels.a ? 0 : input[3]!;
-        } else if (dither && (img.hasAlpha && target[3]! < 255 || dither === "riemersma" && !img.hasAlpha)) {
+        } else if (dither && (img.hasAlpha && target[3]! < 255 || !img.hasAlpha)) {
             // ImageMagick searches the parent of the deepest matching RGBA
             // octree node, using associated alpha for both lookup and distance.
             if (!palette) {
@@ -5121,7 +5132,9 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
             yield { kind: "write", highDepth: true, position: i, data: new Uint8Array(Uint16Array.from(backing, value => Math.round(value * 257)).buffer) };
         } else if (dither && !Number.isInteger(step)) {
             // Retain the palette's Q16 levels instead of expanding rounded bytes.
-            const samples = Uint16Array.from(out, value => Math.round(Math.round(value / step) / (levels - 1) * 65535));
+            const backing = Float64Array.from(out, value => Math.round(value / step) * step);
+            yield { kind: "write", evaluate: true, position: i, data: new Uint8Array(backing.buffer) };
+            const samples = Uint16Array.from(backing, value => Math.round(value * 257));
             yield { kind: "write", highDepth: true, position: i, data: new Uint8Array(samples.buffer) };
         } else yield { kind: "write", position: i, data: out };
     }
@@ -12478,7 +12491,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t === "-depth" || t === "+depth") {
                 const depth = state.inputDepth ?? 16, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
                 stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                    if (depth < 16) image = yield* applyMagickRasterSteps(image, posterizePixelSteps(image, 2 ** depth, false, 1, channels, signal, false), signal);
+                    if (depth < 16) image = yield* applyMagickRasterSteps(image, posterizePixelSteps(image, 2 ** depth, false, 1, channels, signal, false, state.dither === "floydsteinberg"), signal);
                     return { ...image, bitsPerSample: depth };
                 });
             }
@@ -15849,9 +15862,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }
             if (token === "-depth" || token === "+depth") {
                 const depth = state.inputDepth ?? 16, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
+                const depthDither = state.dither === "floydsteinberg";
                 steps.push(async (image, backend) => {
                     if (!image) return;
-                    if (depth < 16) image = await transformStoredMagickRaster(image, backend, posterizePixelSteps(image, 2 ** depth, false, 1, channels, signal, false), signal);
+                    if (depth < 16) image = await transformStoredMagickRaster(image, backend, posterizePixelSteps(image, 2 ** depth, false, 1, channels, signal, false, depthDither), signal);
                     return { ...image, bitsPerSample: depth };
                 });
             }

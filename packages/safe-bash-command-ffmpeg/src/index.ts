@@ -17417,7 +17417,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const constantRate = ["auto", "-1", "cfr", "1"].includes(videoSync);
               let nextPts = (frames[0]?.ptsSeconds ?? 0) / duration;
               let idx = 0;
-              if (planeOutput && rawPixelFormat !== undefined && rawPixelFormat !== "yuv420p") {
+              if (planeOutput && rawPixelFormat !== undefined &&
+                  rawPixelFormat !== "yuv420p" && rawPixelFormat !== "yuv422p" && rawPixelFormat !== "yuv444p") {
                 throw new Error(`Unsupported image2 plane pixel format '${rawPixelFormat}'`);
               }
 
@@ -17449,12 +17450,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const fileName = imageFileName(number);
                   const fullOutPath = resolvePath(context.cwd, fileName);
                   if (planeOutput) {
+                    const format = rawPixelFormat === "yuv422p" || rawPixelFormat === "yuv444p" ? rawPixelFormat : "yuv420p";
                     const ySize = f.width * f.height;
-                    const chromaSize = Math.ceil(f.width / 2) * Math.ceil(f.height / 2);
+                    const chromaSize = format === "yuv444p" ? ySize : Math.ceil(f.width / 2) * (format === "yuv422p" ? f.height : Math.ceil(f.height / 2));
                     imagePacketBytes += ySize + 2 * chromaSize;
                     budget.checkOutputBytes(imagePacketBytes);
                     budget.allocateMemory(ySize * 5 + 2 * chromaSize);
-                    const bytes = (await formatYuv(f, "yuv420p", context.signal)).native!.pixels;
+                    const bytes = (await formatYuv(f, format, context.signal)).native!.pixels;
                     budget.checkCpu();
                     await writeImage(fullOutPath, bytes.subarray(0, ySize));
                     await writeImage(`${fullOutPath.slice(0, -1)}U`, bytes.subarray(ySize, ySize + chromaSize));

@@ -12032,9 +12032,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
             continue;
         }
-        if (t === "-orient") {
+        if (t === "-orient" || (t === "-set" && tokens[i + 1]?.toLowerCase() === "option:orient")) {
+            if (t === "-set") i++;
             const value = tokens[++i] ?? "", image = stack[0];
             const expanded = image ? yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }) : value;
+            if (t === "-set") state.optionProperties = { ...state.optionProperties, orient: expanded };
             const orientation = state.orientation = parseMagickOrientation(expanded);
             stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, orientation }; });
             i++;
@@ -15363,11 +15365,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             delete state.orientation;
             continue;
         }
-        if (!operandsOnly && token === "-orient") {
+        if (!operandsOnly && (token === "-orient" || (token === "-set" && tokens[i + 1]?.toLowerCase() === "option:orient"))) {
+            if (token === "-set") i++;
             // Expansion changes the active setting as well as existing images. Resolve
             // it in the sequential evaluator before subsequent input settings are captured.
             if (tokens[i + 1]?.includes("%")) return;
             const orientation = state.orientation = parseMagickOrientation(tokens[++i] ?? "");
+            if (token === "-set") state.optionProperties = { ...state.optionProperties, orient: tokens[i]! };
             steps.push(async image => image ? { ...image, orientation } : undefined);
             continue;
         }

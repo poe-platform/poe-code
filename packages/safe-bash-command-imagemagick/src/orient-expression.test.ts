@@ -13,6 +13,7 @@ const inputs = [1, 6].map(orientation => encodeImage({ width: 3, height: 2,
 
 for (const mode of ["buffered", "sync", "retained", "command"]) {
   it.each([
+    { options: ["-set", "option:direction", "RightTop", "-set", "option:orient", "%[option:direction]"], orientation: 6 },
     { options: ["-set", "option:direction", "RightTop", "-orient", "%[direction]"], orientation: 6 },
     { options: ["-set", "option:direction", "RightTop", "-orient", "%[option:direction]"], orientation: 6 },
     { options: ["-orient", "%[orientation]"], orientation: 6 },

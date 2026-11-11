@@ -3125,7 +3125,11 @@ function* applyMagickOpaqueSteps(img: RgbaImage, target: RgbaColor, replacement:
     return { ...img, data: out, ...(data16 ? { data16 } : {}), hasAlpha: img.hasAlpha || channels.a && replacement.a < 255 };
 }
 
-function* applyMagickTransparentSteps(img: RgbaImage, target: RgbaColor, fuzz: number, invert: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+function* applyMagickTransparentSteps(img: RgbaImage, target: ReturnType<typeof parseColor>, fuzz: number, invert: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    const cmyk = img.space === "cmyk";
+    if (cmyk) img = yield* convertCmykPixels(img);
+    const inks = cmyk ? img.hueSamples : undefined;
+    const targetChannels = cmyk && target.cmyk ? target.cmyk.map(value => value * 255) : [target.r, target.g, target.b, 0];
     let cooperativeWork = 0;
     const out = new Uint8Array(img.data);
     const data16 = img.data16 ? new Uint16Array(img.data16) : undefined;
@@ -3133,15 +3137,16 @@ function* applyMagickTransparentSteps(img: RgbaImage, target: RgbaColor, fuzz: n
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
-        const dr = samples[i]! - target.r * scale;
-        const dg = samples[i + 1]! - target.g * scale;
-        const db = samples[i + 2]! - target.b * scale;
+        const dr = (inks ? inks[i]! * 255 * scale : samples[i]!) - targetChannels[0]! * scale;
+        const dg = (inks ? inks[i + 1]! * 255 * scale : samples[i + 1]!) - targetChannels[1]! * scale;
+        const db = (inks ? inks[i + 2]! * 255 * scale : samples[i + 2]!) - targetChannels[2]! * scale;
+        const dk = inks ? (inks[i + 3]! * 255 - targetChannels[3]!) * scale : 0;
         const alpha = samples[i + 3]!;
-        // Native transparent painting compares alpha plus opacity-weighted RGB distance.
+        // Native compares ink samples directly against named RGB target channels in CMYK.
         // Subtract in sample units to preserve exact Q16 fuzz boundaries.
         const distance = (alpha - target.a * scale) ** 2
             + (dr ** 2 + dg ** 2 + db ** 2) * (alpha / (255 * scale)) * (target.a / 255) / 3;
-        const matched = distance <= (fuzz * scale) ** 2;
+        const matched = distance <= (fuzz * scale) ** 2 && dk ** 2 <= (fuzz * scale) ** 2;
         if (invert ? !matched : matched) {
             out[i + 3] = 0;
             if (data16) data16[i + 3] = 0;
@@ -9587,7 +9592,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         highDepth = true;
         const opaque = token.endsWith("opaque");
         const value = tokens[++i] ?? (opaque ? "#000000" : "#ffffff");
-        let target: RgbaColor;
+        let target: ReturnType<typeof parseColor>;
         try {
             target = parseColor(value, true);
         } catch {

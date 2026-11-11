@@ -11440,6 +11440,16 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
         image = yield* applyMagickRasterSteps(image, writeMaskPixelSteps(image, working.writeMask, !!image.data16, false, undefined, working.hasAlpha && working.alphaBlend !== false), undefined, image, [image, working, working.writeMask]);
     }
     image = yield* prepareInactiveAlphaOutput(image);
+    if (format === "png" && image.data16 && (!pngCoder || pngCoder === "png00")) {
+        let gray = true, hasAlpha = false, highDepth = false;
+        for (let offset = 0; offset < image.data16.length && (gray || !hasAlpha); offset += 4) {
+            if (offset % 16384 === 0) yield;
+            gray &&= image.data16[offset] === image.data16[offset + 1] && image.data16[offset + 1] === image.data16[offset + 2];
+            hasAlpha ||= image.data16[offset + 3] !== 65535;
+            highDepth ||= image.data16[offset]! % 257 !== 0;
+        }
+        image = { ...image, depth: gray && highDepth ? "ushort" : image.depth, hasAlpha, channels: gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3 };
+    }
     if (format === "map" && (!image.isPalette || !image.indexedColors?.length && !image.pngPalette || (image.indexedColors?.length ?? 0) > 256)) image = yield* applyMagickRasterSteps(image, quantizePixelSteps(image.width * image.height * 4, 256, false, 0, image.hasAlpha, false, undefined, { width: image.width, height: image.height, method: "riemersma", diffusionAmount: 1 }, true));
     if (format === "xpm" && !(image.isPalette && !image.hasAlpha && image.indexedColors?.length && image.pngIndices)) image = yield* applyMagickRasterSteps(image, quantizePixelSteps(image.width * image.height * 4, 256, false, image.hasAlpha || dither ? 5 : 6, image.hasAlpha, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true));
     if (format === "gif" && !image.isPalette && dither) image = { ...(yield* applyMagickRasterSteps(image, gifDitherSteps(image, dither, diffusionAmount))), isPalette: true };
@@ -11480,6 +11490,21 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepareFloatOutput }, signal);
     }
     if (!image.hasAlpha) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: prepareInactiveAlphaOutput }, signal);
+    if (format === "png" && image.storedData16 && (!pngCoder || pngCoder === "png00")) {
+        let gray = true, hasAlpha = false, highDepth = false;
+        for (let offset = 0; offset < image.storedData16.length && (gray || !hasAlpha); offset += 4096) {
+            if (offset % 262144 === 0) await yieldTurn(signal);
+            signal.throwIfAborted();
+            const bytes = await backend.storage.read(image.storedData16.position + offset * 2, Math.min(4096, image.storedData16.length - offset) * 2);
+            const samples = new Uint16Array(bytes.slice().buffer);
+            for (let index = 0; index < samples.length; index += 4) {
+                gray &&= samples[index] === samples[index + 1] && samples[index + 1] === samples[index + 2];
+                hasAlpha ||= samples[index + 3] !== 65535;
+                highDepth ||= samples[index]! % 257 !== 0;
+            }
+        }
+        image = { ...image, depth: gray && highDepth ? "ushort" : image.depth, hasAlpha, channels: gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3 };
+    }
     if (format === "map" && (!image.isPalette || !image.indexedColors?.length && !image.pngPalette || (image.indexedColors?.length ?? 0) > 256)) image = await transformStoredMagickRaster(image, backend, quantizePixelSteps(image.width * image.height * 4, 256, false, 0, image.hasAlpha, false, undefined, { width: image.width, height: image.height, method: "riemersma", diffusionAmount: 1 }, true), signal);
     if (format === "xpm" && !(image.isPalette && !image.hasAlpha && image.indexedColors?.length && image.storedPngIndices)) image = await transformStoredMagickRaster(image, backend, quantizePixelSteps(image.width * image.height * 4, 256, false, image.hasAlpha || dither ? 5 : 6, image.hasAlpha, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true), signal);
     if (format === "gif" && !image.isPalette && dither) image = { ...(await transformStoredMagickRaster(image, backend, gifDitherSteps(image, dither, diffusionAmount), signal)), isPalette: true };

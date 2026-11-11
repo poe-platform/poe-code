@@ -4915,6 +4915,8 @@ async function applyVideoFilterChain(
         }
       }
       current = await separateFields(current, budget, endTimeSeconds, signal);
+      // The final field timestamp is also the EOF forwarded to downstream filters.
+      endTimeSeconds = current.at(-1)?.ptsSeconds;
       timescale *= 2;
       diagnostics.timescale = timescale;
     } else if (name === "tinterlace") {
@@ -5723,7 +5725,7 @@ async function applyVideoFilterChain(
     }
     // Filters that change the final frame's timing establish a new endpoint.
     const lastOutputFrame = current.at(-1);
-    if (name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "trim" && name !== "decimate" && name !== "framestep" &&
+    if (name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "trim" && name !== "decimate" && name !== "framestep" &&
         (lastOutputFrame?.ptsSeconds !== lastInputFrame?.ptsSeconds ||
          lastOutputFrame?.durationSeconds !== lastInputFrame?.durationSeconds)) {
       endTimeSeconds = undefined;

@@ -15,6 +15,7 @@ export async function normalizeAudio(
   let size = 31;
   let peak = 0.95;
   let maxGain = 10;
+  let overlap = 0;
   let coupling = true;
   let targetRms = 0;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
@@ -49,6 +50,10 @@ export async function normalizeAudio(
       const number = parseFilterExpression(value, "dynaudnorm", { min: 1, max: 100, default: 10 });
       if (number < 1 || number > 100) throw new Error("dynaudnorm: invalid maxgain");
       maxGain = number;
+    } else if (key === "o" || key === "overlap") {
+      const number = parseFilterExpression(value, "dynaudnorm", { min: 0, max: 1, default: 0 });
+      if (number < 0 || number > 1) throw new Error("dynaudnorm: invalid overlap");
+      overlap = number;
     } else if (key === "r" || key === "targetrms") {
       const number = parseFilterExpression(value, "dynaudnorm", { min: 0, max: 1, default: 0 });
       if (number < 0 || number > 1) throw new Error("dynaudnorm: invalid targetrms");
@@ -62,7 +67,9 @@ export async function normalizeAudio(
   // FFmpeg uses even-sized frames and a minimum filter followed by a Gaussian.
   const requested = sampleRate * milliseconds / 1000;
   const rounded = requested % 1 === 0.5 ? 2 * Math.round(requested / 2) : Math.round(requested);
-  const frameSize = Math.max(2, rounded + rounded % 2);
+  const windowSize = Math.max(2, rounded + rounded % 2);
+  const advance = windowSize * (1 - overlap);
+  const frameSize = Math.max(1, advance % 1 === 0.5 ? 2 * Math.round(advance / 2) : Math.round(advance));
   const half = Math.floor(size / 2);
   const length = channels[0]?.length ?? 0;
   const gainChannels = coupling ? 1 : channels.length;
@@ -159,10 +166,10 @@ export async function normalizeAudio(
     written = end;
   };
   let commandIndex = 0;
-  for (let start = 0; start < length; start += frameSize) {
+  for (let start = 0; written < length; start += frameSize) {
     // Commands arrive before the packet completes this normalization frame,
     // including any samples buffered from the previous packet.
-    while (commandIndex < commands.length && commands[commandIndex]!.sample < Math.min(length, start + frameSize)) {
+    while (start < length && commandIndex < commands.length && commands[commandIndex]!.sample < Math.min(length, start + frameSize)) {
       const command = commands[commandIndex++]!;
       if (command.action !== "p" && command.action !== "peak") continue;
       try {
@@ -170,13 +177,27 @@ export async function normalizeAudio(
         if (value >= 0 && value <= 1) peak = value;
       } catch { /* Native asendcmd keeps the previous peak after a rejected command. */ }
     }
+    // At EOF extend the pending gain history, then feed peak-level padding
+    // through the same sliding window while draining the remaining audio.
+    const padding = start >= length;
+    if (padding) {
+      await yieldTurn(signal);
+      signal?.throwIfAborted();
+      budget.checkCpu();
+      while (!histories[0]!.smoothed.length) {
+        for (const history of histories) append(history, history.original[0]!);
+      }
+    }
     if (histories[0]!.smoothed.length) await amplify();
-    magnitudes.fill(Number.EPSILON);
-    squares.fill(0);
+    const paddingLevel = targetRms > Number.EPSILON ? Math.min(peak, targetRms) : peak;
+    magnitudes.fill(padding ? Math.max(Number.EPSILON, paddingLevel) : Number.EPSILON);
     const end = Math.min(length, start + frameSize);
+    const windowStart = Math.max(0, start + frameSize - windowSize);
+    const paddingSamples = padding ? Math.min(windowSize, start + frameSize - Math.ceil(length / frameSize) * frameSize) : 0;
+    squares.fill(paddingSamples * paddingLevel * paddingLevel * (coupling ? channels.length : 1));
     for (const [c, channel] of channels.entries()) {
       const h = coupling ? 0 : c;
-      for (let i = start; i < end; i++) {
+      for (let i = windowStart; i < end; i++) {
         if (++work % 4096 === 0) {
           await yieldTurn(signal);
           signal?.throwIfAborted();
@@ -186,24 +207,14 @@ export async function normalizeAudio(
         if (targetRms > Number.EPSILON) squares[h]! += channel[i]! * channel[i]!;
       }
     }
+    // FFmpeg's overlapping analysis buffer includes a second, silent window.
+    const samples = frameSize === windowSize ? (padding ? frameSize : end - start) : 2 * windowSize;
     for (const [h, history] of histories.entries()) {
       const rmsGain = targetRms > Number.EPSILON
-        ? targetRms / Math.max(Number.EPSILON, Math.sqrt(squares[h]! / ((end - start) * (coupling ? channels.length : 1))))
+        ? targetRms / Math.max(Number.EPSILON, Math.sqrt(squares[h]! / (samples * (coupling ? channels.length : 1))))
         : Infinity;
       append(history, bound(Math.min(peak / magnitudes[h]!, rmsGain)));
     }
-  }
-  // At EOF FFmpeg extends the pending gain history, then feeds peak-level
-  // padding frames while draining audio. Padding never appears in the output.
-  while (written < length) {
-    await yieldTurn(signal);
-    signal?.throwIfAborted();
-    budget.checkCpu();
-    while (!histories[0]!.smoothed.length) {
-      for (const history of histories) append(history, history.original[0]!);
-    }
-    await amplify();
-    for (const history of histories) append(history, bound(peak / Math.max(Number.EPSILON, peak)));
   }
   return { channels: output, frameSize };
 }

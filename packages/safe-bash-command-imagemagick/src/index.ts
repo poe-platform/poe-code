@@ -5141,7 +5141,7 @@ function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtual
     return { width: image.width + pad * 2, height: image.height + pad * 2, hasAlpha: true, offsetX: pad, offsetY: pad, opacity, sigma,
         virtualCanvas: { width: (page.width + pad + x) >>> 0, height: (page.height + pad + y) >>> 0, x: page.x + x - pad, y: page.y + y - pad } };
 }
-function* applyMagickShadowSteps(image: RgbaImage, geometry: string, color: RgbaColor, alpha: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+function* applyMagickShadowSteps(image: RgbaImage, geometry: string, color: RgbaColor, alpha: boolean, meta: number[] | undefined, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     const layout = magickShadowLayout(image, geometry);
     if (image.space === "b-w" || image.space === "grey16") image = discardDisassociatedAlpha(image);
     if (image.space === "b-w" || image.space === "grey16")
@@ -5149,9 +5149,12 @@ function* applyMagickShadowSteps(image: RgbaImage, geometry: string, color: Rgba
     const writeMask = image.region || image.writeMask ? yield* createSolidRgbaImageSteps(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
     const readMask = image.readMask ? yield* createSolidRgbaImageSteps(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
     const metaChannels: BaseRgbaImage[] = [];
-    for (const plane of image.metaChannels ?? []) metaChannels.push(yield* applyMagickRasterSteps(plane,
-        borderPixels(plane, layout.offsetX, layout.offsetY, { r: 0, g: 0, b: 0, a: 255 }, !!plane.data16), signal,
-        { width: layout.width, height: layout.height, hasAlpha: false }));
+    // The shadow border starts with zero meta samples and only copies selected planes.
+    for (const [index, plane] of (image.metaChannels ?? []).entries()) metaChannels.push(meta && !meta.includes(index)
+        ? yield* createSolidRgbaImageSteps(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }, !!plane.data16)
+        : yield* applyMagickRasterSteps(plane,
+            borderPixels(plane, layout.offsetX, layout.offsetY, { r: 0, g: 0, b: 0, a: 255 }, !!plane.data16), signal,
+            { width: layout.width, height: layout.height, hasAlpha: false }));
     return { ...yield* applyMagickRasterSteps(image, shadowPixelSteps(image, layout, color, alpha), signal, layout), isPalette: false, alphaBlend: true, alphaSeparate: false, inactiveAlpha: false, region: undefined, writeMask, readMask, metaChannels, virtualCanvas: layout.virtualCanvas };
 }
 
@@ -14281,7 +14284,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
-                return (yield* applyMagickShadowSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, !state.channelExplicit || state.channels.a, signal));
+                return (yield* applyMagickShadowSteps(im, expanded, state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background, !state.channelExplicit || state.channels.a, state.channelExplicit && !state.channelDefault ? state.channels.meta ?? [] : undefined, signal));
             });
         }
         else if (t === "-vignette") {
@@ -18605,6 +18608,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             const geometry = tokens[++i] ?? "80x3+5+5", background = state.background, backgroundExplicit = state.backgroundExplicit, optionProperties = state.optionProperties;
             const alpha = !state.channelExplicit || state.channels.a;
+            const meta = state.channelExplicit && !state.channelDefault ? state.channels.meta ?? [] : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image: image!, storage: backend.storage }), signal, images);
@@ -18615,9 +18619,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const storedWriteMask = image.region || image.storedWriteMask ? await createStoredCanvas(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
                 const readMask = image.readMask ? await createStoredCanvas(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
                 const storedMetaChannels: BaseStoredRgbaImage[] = [];
-                for (const plane of image.storedMetaChannels ?? []) storedMetaChannels.push(await transformStoredMagickRaster(plane, backend,
-                    borderPixels(plane, layout.offsetX, layout.offsetY, { r: 0, g: 0, b: 0, a: 255 }, !!plane.storedData16), signal,
-                    { width: layout.width, height: layout.height, hasAlpha: false }));
+                for (const [index, plane] of (image.storedMetaChannels ?? []).entries()) storedMetaChannels.push(meta && !meta.includes(index)
+                    ? await createStoredCanvas(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal, !!plane.storedData16)
+                    : await transformStoredMagickRaster(plane, backend,
+                        borderPixels(plane, layout.offsetX, layout.offsetY, { r: 0, g: 0, b: 0, a: 255 }, !!plane.storedData16), signal,
+                        { width: layout.width, height: layout.height, hasAlpha: false }));
                 return { ...await transformStoredMagickRaster(image, backend, shadowPixelSteps(image, layout, backgroundExplicit ? background : image.backgroundColor ?? background, alpha), signal, layout), isPalette: false, alphaBlend: true, alphaSeparate: false, inactiveAlpha: false, region: undefined, storedWriteMask, readMask, storedMetaChannels, virtualCanvas: layout.virtualCanvas };
             });
         } else if (!operandsOnly && (token === "-statistic" || token === "-mode" || token === "-noise" || token === "-median")) {

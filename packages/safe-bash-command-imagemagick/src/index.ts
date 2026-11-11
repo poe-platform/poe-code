@@ -9055,6 +9055,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const luminance = space === "lineargray" || space === "rec601luminance" || space === "rec709luminance";
         apply = function* (image) {
             image = { ...image, [magickInput]: { ...image[magickInput],
+                ...(imageType === undefined ? {} : { inputType: imageType }),
                 imageType: imageType === "bilevel" ? "Bilevel" : imageType === "grayscale" ? "Grayscale" : imageType === "grayscalealpha" ? "GrayscaleAlpha" : undefined
             } };
             if (space === "srgb" && (image.space === "b-w" || image.space === "grey16" || image.magickColorspace === "RGB")) image = { ...image, isPalette: false };
@@ -11423,6 +11424,8 @@ function* prepare16BitOutput(image: RgbaImage): Generator<void, RgbaImage, void>
 function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: MagickState["dither"] = false, diffusionAmount = 1, pngCoder?: ReturnType<typeof inferOutputFormat>["pngCoder"]): Generator<void, RgbaImage, void> {
     // Farbfeld stores inactive alpha; MIFF stores it only for separate channels.
     if (image.inactiveAlpha && (format === "farbfeld" || format === "miff" && image.alphaSeparate)) image = { ...image, hasAlpha: true };
+    // PGM measures active color channels before RGB output conversion.
+    if (format === "pgm" && image.hueSamples) image = yield* parseMagickPixelOperation(["-grayscale", "Rec709Luma"], createDefaultState(), 0)!.apply(image);
     // Convert working colorspaces first; keep ordinary sRGB luma at exporter precision.
     if ((format === "gray" || format === "graya") && (image.magickColorspace || (image.space === "b-w" || image.space === "grey16") && image.gamma === 1)) image = yield* parseMagickPixelOperation(["-colorspace", "Gray"], createDefaultState(), 0)!.apply(image);
     if (pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format) || format === "miff") image = yield* prepare16BitOutput(image);
@@ -11459,6 +11462,15 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
         const scene = (image as MagickImage)[magickInput]?.sceneIdx ?? 0;
         return { ...image, depth: image.data16 && image.bitsPerSample === 16 ? "ushort" : image.depth, delay: [image.delay?.[scene] ?? image.delay?.[0] ?? 0], disposal: typeof image.disposal === "number" ? image.disposal : image.disposal?.[scene] ?? 0 };
     }
+    if (format === "tiff" && image.space === "srgb" && ["undefined", "optimize"].includes((image as MagickImage)[magickInput]?.inputType ?? "undefined")) {
+        const samples = image.data16 ?? image.data;
+        let gray = true;
+        for (let offset = 0; offset < samples.length; offset += 4) {
+            if (offset % 16384 === 0) yield;
+            if (samples[offset] !== samples[offset + 1] || samples[offset] !== samples[offset + 2]) { gray = false; break; }
+        }
+        if (gray) image = { ...image, space: "b-w", channels: image.hasAlpha ? 2 : 1 };
+    }
     if (format !== "otb" && format !== "pbm" && format !== "xbm" && format !== "wbmp" && format !== "mono") return image;
     const source = image.data16 ? { ...image, data: new Uint8Array(image.data16.buffer, image.data16.byteOffset, image.data16.byteLength) } : image;
     return yield* applyMagickRasterSteps({ ...image, space: "b-w", channels: 1, hasAlpha: false }, bilevelPixelSteps(image.width * image.height, !!image.data16), undefined, { ...image, hasAlpha: false }, [source]);
@@ -11467,6 +11479,8 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
 async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFormat, backend: CompareFileSession, signal: AbortSignal, dither: MagickState["dither"] = false, diffusionAmount = 1, pngCoder?: ReturnType<typeof inferOutputFormat>["pngCoder"]): Promise<StoredRgbaImage> {
     // Farbfeld stores inactive alpha; MIFF stores it only for separate channels.
     if (image.inactiveAlpha && (format === "farbfeld" || format === "miff" && image.alphaSeparate)) image = { ...image, hasAlpha: true };
+    // PGM measures active color channels before RGB output conversion.
+    if (format === "pgm" && image.storedHueSamples !== undefined) image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-grayscale", "Rec709Luma"], createDefaultState(), 0)!, signal);
     // Convert working colorspaces first; keep ordinary sRGB luma at exporter precision.
     if ((format === "gray" || format === "graya") && (image.magickColorspace || (image.space === "b-w" || image.space === "grey16") && image.gamma === 1)) image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "Gray"], createDefaultState(), 0)!, signal);
     if ((pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format) || format === "miff") && image.storedEvaluateSamples !== undefined) {
@@ -11517,6 +11531,20 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
         const frame = { ...image, depth: image.storedData16 && image.bitsPerSample === 16 ? "ushort" as const : image.depth, delay: [await image.storedDelay?.at(scene, { signal }) ?? image.delay?.[scene] ?? image.delay?.[0] ?? 0], disposal: typeof image.disposal === "number" ? image.disposal : image.disposal?.[scene] ?? 0 };
         delete frame.storedDelay;
         return frame;
+    }
+    if (format === "tiff" && image.space === "srgb" && ["undefined", "optimize"].includes((image as StoredMagickImage)[magickInput]?.inputType ?? "undefined")) {
+        const size = image.storedData16 ? 2 : 1, start = image.storedData16?.position ?? image.position;
+        const length = image.width * image.height * 4;
+        let gray = true;
+        for (let offset = 0; offset < length && gray; offset += 16384) {
+            await yieldTurn(signal);
+            const bytes = await backend.storage.read(start + offset * size, Math.min(16384, length - offset) * size);
+            const samples = size === 2 ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes;
+            for (let i = 0; i < samples.length; i += 4) {
+                if (samples[i] !== samples[i + 1] || samples[i] !== samples[i + 2]) { gray = false; break; }
+            }
+        }
+        if (gray) image = { ...image, space: "b-w", channels: image.hasAlpha ? 2 : 1 };
     }
     if (format !== "otb" && format !== "pbm" && format !== "xbm" && format !== "wbmp" && format !== "mono") return image;
     const source = image.storedData16 ? { ...image, position: image.storedData16.position } : image;
@@ -11623,7 +11651,7 @@ function setMagickType<T extends { [magickInput]?: MagickFormatContext }>(image:
     if (imageType === undefined && !["undefined", "optimize", "palette", "palettealpha", "palettematte",
         "palettebilevelalpha", "palettebilevelmatte", "truecolor", "truecoloralpha", "truecolormatte",
         "colorseparation", "colorseparationalpha", "colorseparationmatte"].includes(type)) return image;
-    return { ...image, [magickInput]: { ...image[magickInput], imageType } };
+    return { ...image, [magickInput]: { ...image[magickInput], imageType, inputType: type } };
 }
 
 function parseMagickDensity(value: string): { width: number; height: number } {

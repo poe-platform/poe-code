@@ -14,6 +14,7 @@ export interface MagickFormatContext {
     exifTextProperties?: Record<string, string>;
     filePath?: string;
     inputFormat?: string;
+    inputType?: string;
     outputFilePath?: string;
     originalInput?: string;
     byteLen?: number;

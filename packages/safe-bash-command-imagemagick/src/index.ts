@@ -1853,7 +1853,8 @@ function* formatMagickPropertyStringSteps<Step=never>(
           img ??= getImage();
           const fn = compileFxExpression(expression.slice(expression.indexOf(":") + 1));
           if (fn.needsStatistics) pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection, context.precision);
-          const ctx: FxEvalContext = { interpolation: context.interpolation, statistics, sceneCount: context.sceneCount, frameIndex: context.listIndex ?? context.sceneIdx, stack: context.fxStack ?? [{ ...img, [magickInput]: { ...img[magickInput], ...context } }], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
+          // Explicit ping leaves expression pixel samples empty; statistics still read pixels.
+          const ctx: FxEvalContext = { ...(context.ping ? { sample: () => 0 } : {}), interpolation: context.interpolation, statistics, sceneCount: context.sceneCount, frameIndex: context.listIndex ?? context.sceneIdx, stack: context.fxStack ?? [{ ...img, [magickInput]: { ...img[magickInput], ...context } }], x: 0, y: 0, w: img.width, h: img.height, ch: 0, vars: new Map() };
           if (key.startsWith("fx:")) {
             parts.push(formatSignificantMetric(fn(ctx), context.precision));
           } else {
@@ -1930,7 +1931,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
  }, indexOf(target) { for (const [index, frame] of frames) if (frame === target) return index; return 0; } };
  const statistics=fn.needsStatistics?yield*getStatistics():undefined;
  const fxContext:FxEvalContext={interpolation:context.interpolation,statistics,sceneCount:context.sceneCount,frameIndex:context.listIndex??context.sceneIdx,stack:source,x:0,y:0,w:image.width,h:image.height,ch:0,vars:new Map(),sample(target,x,y,ch){
-  if(!target)return 0;
+  if(context.ping || !target)return 0;
   if(!Number.isFinite(x) || !Number.isFinite(y))return NaN;
   const pixel=virtualPixelIndex(Math.round(x),Math.round(y),target.width,target.height,target.virtualPixel ?? "edge");
   if(pixel<0)return sampleFxImage(target,x,y,ch);
@@ -7819,6 +7820,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     if (listRes) return listRes;
     let cooperativeWork = 63;
     let verbose = false;
+    let ping = false;
     let regardWarnings = false;
     let quiet = false;
     let moments = false;
@@ -7831,7 +7833,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     let locateLimit = 0;
     let optionError = "";
     const readState = createDefaultState();
-    const targets: { path: string; originalInput: string; sceneCount?: number; inlineGeom?: string | undefined; outputScene?: number; listIndex: number; readState: MagickState; customFormat: string | undefined; density: string | undefined; channelSelection: MagickFormatContext["channelSelection"] }[] = [];
+    const targets: { path: string; originalInput: string; sceneCount?: number; inlineGeom?: string | undefined; outputScene?: number; listIndex: number; ping: boolean; readState: MagickState; customFormat: string | undefined; density: string | undefined; channelSelection: MagickFormatContext["channelSelection"] }[] = [];
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
@@ -7852,6 +7854,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         }
         if (a === "-verbose" || a === "--verbose") {
             verbose = true;
+            ping = false;
         }
         else if (a === "-quiet" || a === "+quiet") {
             // Identify treats both spellings as invocation-wide warning suppression.
@@ -7870,8 +7873,8 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             if (key === "identify:convex-hull") convexHull = a === "-define" && (equals < 0 || ["true", "1", "yes", "on"].includes(value.slice(equals + 1).toLowerCase()));
         }
         else if (a === "-moments" || a === "+moments") { moments = a === "-moments"; }
-        else if (a === "-ping" || a === "--ping") {
-            // Metadata-first reading
+        else if (a === "-ping" || a === "--ping" || a === "+ping") {
+            ping = a !== "+ping";
         }
         else if (a === "-format" || a === "--format") {
             customFormat = argv[++i];
@@ -7948,7 +7951,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                 } else paths = yield* mogrifyTargets(baseToken, files.keys());
                 for (const filename of paths) {
                     const path = filename + name.slice(baseToken.length);
-                    targets.push({ path, originalInput: path, listIndex: 0, readState: { ...readState }, customFormat, channelSelection, density });
+                    targets.push({ path, originalInput: path, listIndex: 0, ping, readState: { ...readState }, customFormat, channelSelection, density });
                 }
             }
         }
@@ -7979,7 +7982,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     const analysis = { warnings: "", errors: "", readError: false, commandName: "identify" };
     for (let targetIndex = 0; targetIndex < targets.length; targetIndex++) {
         const target = targets[targetIndex]!;
-        const { customFormat, channelSelection, density, readState } = target;
+        const { customFormat, channelSelection, density, readState, ping } = target;
         let inPath = target.path;
         yield;
         const bracketMatch = /^(.*)\[(\d+)\]$/.exec(inPath);
@@ -8033,7 +8036,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                             exitCode = 1;
                         }, metadata.format)) {
                             yield;
-                            targets.splice(targetIndex + ++offset, 0, { path: `${parsed.baseToken}[${page}]`, originalInput: target.originalInput, outputScene: page === 0 ? zeroScene++ : page, listIndex: offset - 1, readState, customFormat, channelSelection, density });
+                            targets.splice(targetIndex + ++offset, 0, { path: `${parsed.baseToken}[${page}]`, originalInput: target.originalInput, outputScene: page === 0 ? zeroScene++ : page, listIndex: offset - 1, ping, readState, customFormat, channelSelection, density });
                         }
                         for (let index = 1; index <= offset; index++) targets[targetIndex + index]!.sceneCount = offset;
                     }
@@ -8073,7 +8076,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                 rawCoder === "rgb" ? 3 : rawCoder === "gray" ? 1 : rawCoder === "graya" ? 2 : rawCoder === "cmyk" ? 4 : rawCoder === "cmyka" ? 5 : rawCoder, readState.inputOffset);
         } : undefined;
         let inspected:IdentifyInspection|undefined;
-        if(reader && !inlineImage)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,density === undefined ? metadata : applyMagickDensity(metadata, density),{filePath:baseInPath,originalInput:target.originalInput,byteLen:size,sceneIdx:pageIdx??0,outputScene:target.outputScene??pageIdx??0,listIndex:target.listIndex,sceneCount:sceneCount??metadata.pages??1,precision,analysis,channelSelection,optionProperties:{format:customFormat!}},density === undefined ? pixels : async () => { const raster = await pixels(); return { ...raster, image: applyMagickDensity(raster.image, density) }; },signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision,rawInput,inlineGeom === undefined ? undefined : (image, storage) => applyStoredInlineReadModifier(image, inlineGeom, baseInPath, readState, { storage }, signal ?? new AbortController().signal, false, analysis));}};
+        if(reader && !inlineImage)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,density === undefined ? metadata : applyMagickDensity(metadata, density),{filePath:baseInPath,originalInput:target.originalInput,byteLen:size,sceneIdx:pageIdx??0,outputScene:target.outputScene??pageIdx??0,listIndex:target.listIndex,sceneCount:sceneCount??metadata.pages??1,precision,analysis,channelSelection,ping,optionProperties:{format:customFormat!}},density === undefined ? pixels : async () => { const raster = await pixels(); return { ...raster, image: applyMagickDensity(raster.image, density) }; },signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision,rawInput,inlineGeom === undefined ? undefined : (image, storage) => applyStoredInlineReadModifier(image, inlineGeom, baseInPath, readState, { storage }, signal ?? new AbortController().signal, false, analysis));}};
         let bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
         const byteLength = bytes?.byteLength;
         if (!bytes&&!inspected&&!inlineImage) {
@@ -8109,7 +8112,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             if (pageIdx === undefined && ["tiff", "gif", "pnm", "ppm", "pgm", "pbm", "pam", "txt"].includes(meta.format) && (meta.pages ?? 1) > 1) {
                 for (let page = 1; page < meta.pages!; page++) {
                     yield;
-                    targets.splice(targetIndex + page, 0, { path: `${baseInPath}[${page}]`, originalInput: target.originalInput, sceneCount: meta.pages!, inlineGeom, listIndex: page, readState, customFormat, channelSelection, density });
+                    targets.splice(targetIndex + page, 0, { path: `${baseInPath}[${page}]`, originalInput: target.originalInput, sceneCount: meta.pages!, inlineGeom, listIndex: page, ping, readState, customFormat, channelSelection, density });
                 }
                 inPath = `${baseInPath}[0]`;
             }
@@ -8121,7 +8124,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                     const image = inlineImage ?? decodeImage(encoded!, inputOptions);
                     return density === undefined ? image : applyMagickDensity(image, density);
                 }, {
-                    filePath: baseInPath, originalInput: target.originalInput, byteLen: size, sceneIdx: pageIdx ?? 0, outputScene: target.outputScene ?? pageIdx ?? 0, listIndex: target.listIndex, sceneCount: sceneCount ?? meta.pages ?? 1, precision, analysis, channelSelection, optionProperties: { format: customFormat }
+                    filePath: baseInPath, originalInput: target.originalInput, byteLen: size, sceneIdx: pageIdx ?? 0, outputScene: target.outputScene ?? pageIdx ?? 0, listIndex: target.listIndex, sceneCount: sceneCount ?? meta.pages ?? 1, precision, analysis, channelSelection, ping, optionProperties: { format: customFormat }
                 })));
             }
             else if (locateMaximum) {

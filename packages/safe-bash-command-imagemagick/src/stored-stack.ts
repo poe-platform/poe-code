@@ -9,6 +9,7 @@ import type { MagickResizeKernel } from "./resize-kernel.js";
 
 export const magickInput = Symbol("magickInput");
 export interface MagickFormatContext {
+    ping?: boolean;
     blackPointCompensation?: boolean | undefined;
     exifTextProperties?: Record<string, string>;
     filePath?: string;

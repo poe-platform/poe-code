@@ -13,9 +13,9 @@ for (const route of ["sync", "map", "sdk", "identify", "magick"] as const) {
         { inputs: ["/movie.gif"], options: [], bytes: clip, expected: "0:2x1:0;1:1x1:1;" },
         { inputs: ["/movie.gif[1]"], options: [], bytes: clip, expected: "1:1x1:1;" },
         { inputs: ["/movie.gif"], options: [], expected: "0:3x3:1;1:1x1:0;" },
-        { inputs: ["/movie.gif"], options: ["-ping"], expected: "0:3x3:1;1:1x1:0;" },
+        { inputs: ["/movie.gif"], options: ["-ping"], expected: "0:3x3:0;1:1x1:0;" },
         { inputs: ["/movie.gif[1]", "/movie.gif", "/movie.gif[0]"], options: [], expected: "1:1x1:0;0:3x3:1;1:1x1:0;0:3x3:1;" },
-        { inputs: ["/movie.gif", "/movie.gif"], options: ["-ping"], expected: "0:3x3:1;1:1x1:0;0:3x3:1;1:1x1:0;" }
+        { inputs: ["/movie.gif", "/movie.gif"], options: ["-ping"], expected: "0:3x3:0;1:1x1:0;0:3x3:0;1:1x1:0;" }
     ])(`formats every GIF frame in input order (${route}): $inputs $options`, async ({ inputs, options, expected, bytes = gif }) => {
         const filesystem = new MemoryFileSystem(), files = new Map([["/movie.gif", bytes]]);
         await filesystem.writeFile("/movie.gif", bytes);

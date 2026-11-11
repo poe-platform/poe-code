@@ -22,7 +22,7 @@ for (const route of ["sync", "map", "sdk", "identify", "magick"] as const) {
     ] as const) {
         it.each([
             { options: [], input: "/multi.ppm", expected: full },
-            { options: ["-ping"], input: "/multi.ppm", expected: full },
+            { options: ["-ping"], input: "/multi.ppm", expected: "0/2:0;1/2:0;" },
             { options: [], input: "/multi.ppm[1]", expected: "1/1:0;" }
         ])(`enumerates ${name} frames (${route}): $input $options`, async ({ options, input, expected }) => {
             expect(await identify([...options, "-format", format, input], bytes))

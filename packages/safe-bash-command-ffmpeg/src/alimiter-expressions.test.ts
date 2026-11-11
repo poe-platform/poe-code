@@ -35,6 +35,10 @@ for (const graph of [false, true]) {
     ["level_out=-6dB", "level_out=0.5011872336272722"],
     ["level_in=sqrt(4)", "level_in=2"],
     ["level_out=1/2", "level_out=0.5"],
+    ["level_in=st(0\\,0.5)", "level_in=0.5"],
+    ["level_in='st(0,0.5)'", "level_in=0.5"],
+    ["level_out='st(9,0.5);ld(9)'", "level_out=0.5"],
+    ["level_in='st(0,0.5)':level_out='ld(0)+1'", "level_in=0.5:level_out=1"],
     ["attack=2+3", "attack=5"],
     ["release=1k/2", "release=500"],
     ["asc_level=1/4", "asc_level=0.25"],
@@ -55,7 +59,8 @@ for (const graph of [false, true]) {
     "limit=-30dB", "limit=1dB", "limit=1/32", "limit=2/1",
     "level_in=1/128", "level_in=65/1", "level_out=1/128", "level_out=65/1",
     "attack=1/100", "attack=81/1", "release=1/2", "release=8001/1",
-    "asc_level=-1/2", "asc_level=2/1", "level=1/1", "latency=0dB", "asc=0/1"
+    "asc_level=-1/2", "asc_level=2/1", "level=1/1", "latency=0dB", "asc=0/1",
+    "level_in='st(0,65)'", "level_out='ld(0)'"
   ]) {
     it(`alimiter rejects ${option} without replacing output (${graph ? "graph" : "simple"})`, async () => {
       const { result, stderr, output } = await run(option, graph);

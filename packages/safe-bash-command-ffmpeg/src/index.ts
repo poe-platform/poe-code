@@ -2543,7 +2543,15 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           return { inputs: branch?.asplit ? branch.inputs : undefined, buffered, scheduled };
         });
         const [a, b] = splitInputs;
-        const simultaneousEof = a!.inputs !== undefined && a!.inputs === b!.inputs && !b!.buffered &&
+        // A downstream two-input consumer queues both single-packet sources to
+        // EOF before requesting the transition. FFmpeg 7 then observes the
+        // second EOF and emits only the first input's pre-fade prefix.
+        const consumer = [...nodes.values()].find(candidate => candidate.inputs.includes(label));
+        const consumerFilter = consumer && parseFilterChain(consumer.expression)[0]!.split("=", 1)[0]!.split("@", 1)[0];
+        const queuedEof = consumer?.inputs.length === 2 &&
+          ["acrossfade", "amix", "amerge"].includes(consumerFilter!) &&
+          sources.every(source => source.track.samples.length === 1 && source.track.samples[0]!.size > 0);
+        const simultaneousEof = queuedEof || a!.inputs !== undefined && a!.inputs === b!.inputs && !b!.buffered &&
           (a!.buffered || !a!.scheduled && !b!.scheduled);
         // Upstream filters can change precision without changing the source codec.
         const inputFormats = sources.map(source => {

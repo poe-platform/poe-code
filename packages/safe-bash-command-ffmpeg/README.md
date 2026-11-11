@@ -720,7 +720,9 @@ with each channel receiving the mono samples at √½ gain. They also downmix 2.
 3.0, 3.0(back) (`FL+FR+BC`), 4.0, quad, 5.0, 5.1, 5.1(side), and 7.1 input:
 front channels retain their gain, front center and surround pairs contribute at
 √½ gain, rear center contributes at ½ gain to both sides, and LFE is omitted. Eight-channel PCM WAV
-without a speaker mask is treated as 7.1.
+without a speaker mask is treated as 7.1. `extrastereo`, `stereotools`,
+`stereowiden`, and `crossfeed` also mix `FC+BC` input to stereo: front-center
+contributes at √½ gain and back-center at ½ gain to both output channels.
 `crossfeed=strength=0.5` applies frequency-dependent headphone crossfeed to stereo audio.
 Downstream `ashowinfo` reports packed double (`dbl`) frames before output encoding.
 Mono input is converted to stereo at √½ gain per channel before crossfeed is applied.

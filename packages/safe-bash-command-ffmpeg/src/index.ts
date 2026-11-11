@@ -1740,7 +1740,7 @@ async function panAudio(
       const center = gains[0]!.map(gain => gain * Math.SQRT1_2);
       for (const row of gains) row.set(center);
     }
-    if (inputMask === 0x3 && names.join("+") === "FC+LFE") {
+    if (inputMask === 0x3 && ["FC+LFE", "FC+BC"].includes(names.join("+"))) {
       // Integer formats normalize the stereo sum; floating-point mixes retain headroom.
       const gain = ["flt", "fltp", "dbl", "dblp"].includes(sampleFormat) ? Math.SQRT1_2 : 0.5;
       for (let input = 0; input < channels.length; input++) {
@@ -14267,6 +14267,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (filterName === "stereotools" &&
                         (!filteredChannelMask && filteredChannelNames?.some(name => name !== "") || filteredChannelMask === 0x30)) {
                         throw new Error("stereotools: unsupported input channel layout");
+                      }
+                      if (filteredChannelMask === 0x104 && ["extrastereo", "stereotools", "stereowiden", "crossfeed"].includes(filterName)) {
+                        if (!autoConversionFilters) throw new Error(audioConversionDisabled);
+                        // Both center speakers contribute equally to left and right.
+                        // SWR's default surround level is stored as a float before matrix construction.
+                        const backGain = Math.fround(Math.SQRT1_2) * Math.SQRT1_2;
+                        const mixSampleFormat = ["dbl", "dblp"].includes(filteredSampleFormat) ? "dbl" : "flt";
+                        const stereo = await panAudio(`stereo|FL=${Math.SQRT1_2}*FC+${backGain}*BC|FR=${Math.SQRT1_2}*FC+${backGain}*BC`,
+                          stretched, filteredChannelMask, mixSampleFormat, budget, context.signal);
+                        stretched = mixSampleFormat === "dbl" && (filterName === "extrastereo" || filterName === "stereowiden")
+                          ? await convertAudioSampleFormat(stereo.channels, mixSampleFormat, "flt", budget, context.signal)
+                          : stereo.channels;
+                        filteredChannelMask = stereo.channelMask;
+                        filteredChannelNames = undefined;
                       }
                       if (["extrastereo", "stereotools", "stereowiden"].includes(filterName) &&
                         (filterName === "stereotools" && filteredChannelMask === 0xc ||

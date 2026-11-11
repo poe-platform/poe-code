@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function exciteAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
@@ -14,7 +15,8 @@ export async function exciteAudio(
     const key = separator < 0 ? names[index] : option.slice(0, separator).trim() as keyof typeof options;
     if (!key || !Object.hasOwn(options, key)) throw new Error(`aexciter: unsupported option ${key}`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-    const number = key === "listen" && ["true", "yes", "on"].includes(value) ? 1
+    const number = key !== "listen" ? parseFilterExpression(value, "aexciter", {})
+      : ["true", "yes", "on"].includes(value) ? 1
       : key === "listen" && ["false", "no", "off"].includes(value) ? 0 : Number(value);
     const [min, max] = ranges[key];
     if (!value || !Number.isFinite(number) || number < min! || number > max! || key === "listen" && !Number.isInteger(number)) {

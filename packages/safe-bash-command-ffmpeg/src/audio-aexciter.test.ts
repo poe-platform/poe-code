@@ -42,7 +42,24 @@ it("matches the reported mono fixture at every sample", async () => {
   assert.deepEqual([600, 2200, 3000, 4600].map(i => pcm.readInt16LE(i * 2)), [564, 18060, 32767, 5460]);
 });
 
-for (const filter of ["aexciter=amount=-1", "aexciter=drive=0", "aexciter=blend=11", "aexciter=freq=1999", "aexciter=ceil=20001", "aexciter=listen=2", "aexciter=level_in=NaN", "aexciter=unknown=1"]) {
+for (const [expression, literal] of [
+  ["amount=1+1", "amount=2"],
+  ["level_in=1/2:level_out=2/4:amount=2*2:drive=8/2:blend=1-4:freq=2000*2:ceil=6000*2:listen=yes", "level_in=0.5:level_out=0.5:amount=4:drive=4:blend=-3:freq=4000:ceil=12000:listen=1"],
+  ["1/2:2/4:2*2:8/2:1-4:2000*2:6000*2:off", "0.5:0.5:4:4:-3:4000:12000:0"]
+]) {
+  for (const graph of [false, true]) {
+    it(`evaluates aexciter ${expression} (${graph ? "graph" : "simple"})`, async () => {
+      const actual = await run(`aexciter=${expression}`, graph);
+      const expected = await run(`aexciter=${literal}`, graph);
+      assert.equal(actual.result.exitCode, 0, actual.stderr);
+      assert.equal(expected.result.exitCode, 0, expected.stderr);
+      assert.equal(actual.stderr, "");
+      assert.deepEqual(actual.volume.readFileSync("/out.wav"), expected.volume.readFileSync("/out.wav"));
+    });
+  }
+}
+
+for (const filter of ["aexciter=amount=1+", "aexciter=amount=1/0", "aexciter=amount=32+33", "aexciter=freq=2000-1", "aexciter=listen=1+0", "aexciter=amount=-1", "aexciter=drive=0", "aexciter=blend=11", "aexciter=freq=1999", "aexciter=ceil=20001", "aexciter=listen=2", "aexciter=level_in=NaN", "aexciter=unknown=1"]) {
   it(`${filter} rejects invalid options without replacing output`, async () => {
     const { volume, result } = await run(filter);
     assert.notEqual(result.exitCode, 0);

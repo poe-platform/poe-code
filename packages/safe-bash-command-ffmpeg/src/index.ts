@@ -15902,28 +15902,37 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (!mono && !quad && filteredChannelMask && filteredChannelMask !== 0x3f && filteredChannelMask !== 0x60f) {
                             throw new Error(`channelsplit: unsupported input channel layout (mask ${filteredChannelMask})`);
                           }
-                          const pcm16 = t.codecDescriptions[0]?.codecName === "pcm_s16le";
-                          budget.allocateMemory(stretched[0]!.length * 2 * 8);
-                          const stereo = [new Float64Array(stretched[0]!.length), new Float64Array(stretched[0]!.length)];
-                          for (const [channel, output] of stereo.entries()) {
-                            for (let i = 0; i < output.length; i++) {
-                              if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                              const front = stretched[mono ? 0 : channel]![i]!;
-                              if (quad) {
-                                const back = stretched[channel + 2]![i]!;
+                          if (panSampleFormat === "s32" || panSampleFormat === "s32p") {
+                            // Reuse SWR's float coefficient/sample rounding before converting back to PCM32.
+                            const stereo = await panAudio(mono
+                              ? `stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`
+                              : `stereo|FL<FL+${Math.SQRT1_2}*FC+${Math.SQRT1_2}*BL+${Math.SQRT1_2}*SL|FR<FR+${Math.SQRT1_2}*FC+${Math.SQRT1_2}*BR+${Math.SQRT1_2}*SR`,
+                            stretched, filteredChannelMask, panSampleFormat, budget, context.signal);
+                            stretched = stereo.channels;
+                          } else {
+                            const pcm16 = t.codecDescriptions[0]?.codecName === "pcm_s16le";
+                            budget.allocateMemory(stretched[0]!.length * 2 * 8);
+                            const stereo = [new Float64Array(stretched[0]!.length), new Float64Array(stretched[0]!.length)];
+                            for (const [channel, output] of stereo.entries()) {
+                              for (let i = 0; i < output.length; i++) {
+                                if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                                const front = stretched[mono ? 0 : channel]![i]!;
+                                if (quad) {
+                                  const back = stretched[channel + 2]![i]!;
+                                  output[i] = pcm16
+                                    ? Math.floor(front * 19195 + back * 13573 + 0.5) / 32768
+                                    : (front + back * Math.SQRT1_2) / (1 + Math.SQRT1_2);
+                                  continue;
+                                }
+                                const surround = mono ? 0 : stretched[2]![i]! + stretched[channel + 4]![i]!;
+                                // Negotiate stereo before splitting, including the s16 mixer's Q15 rounding.
                                 output[i] = pcm16
-                                  ? Math.floor(front * 19195 + back * 13573 + 0.5) / 32768
-                                  : (front + back * Math.SQRT1_2) / (1 + Math.SQRT1_2);
-                                continue;
+                                  ? Math.floor(front * (mono ? 23170 : 13573) + (mono ? 0 : stretched[2]![i]! * 9597 + stretched[channel + 4]![i]! * 9598) + 0.5) / 32768
+                                  : mono ? front * Math.SQRT1_2 : (front + surround * Math.SQRT1_2) / (1 + Math.SQRT2);
                               }
-                              const surround = mono ? 0 : stretched[2]![i]! + stretched[channel + 4]![i]!;
-                              // Negotiate stereo before splitting, including the s16 mixer's Q15 rounding.
-                              output[i] = pcm16
-                                ? Math.floor(front * (mono ? 23170 : 13573) + (mono ? 0 : stretched[2]![i]! * 9597 + stretched[channel + 4]![i]! * 9598) + 0.5) / 32768
-                                : mono ? front * Math.SQRT1_2 : (front + surround * Math.SQRT1_2) / (1 + Math.SQRT2);
                             }
+                            stretched = stereo;
                           }
-                          stretched = stereo;
                           filteredChannelMask = 3;
                           filteredChannelNames = undefined;
                         } else if (mask === 0x3f && stretched.length === 2 && (!filteredChannelMask || filteredChannelMask === 3)) {

@@ -8154,6 +8154,7 @@ export function evalSyncFfmpeg(
     let mpegtsServiceId: number | undefined;
     let serialOffset: number | undefined;
     let bitexact = false;
+    let outputBitexact = false;
     let autobsf = true;
     let maxVideoFrames: number | undefined;
     let maxAudioFrames: number | undefined;
@@ -8519,6 +8520,7 @@ export function evalSyncFfmpeg(
         if (!Number.isInteger(serialOffset) || serialOffset < 0 || serialOffset > 2147483647) throw new Error("Invalid serial_offset: expected an integer from 0 to 2147483647");
       } else if (arg === "-bitexact") {
         bitexact = true;
+        if (!args.slice(i + 1).includes("-i")) outputBitexact = true;
       } else if (arg === "-fflags") {
         const value = args[++i];
         if (value === "autobsf" || value === "+autobsf" || value === "-autobsf") {
@@ -8526,6 +8528,7 @@ export function evalSyncFfmpeg(
         } else {
           if (value !== "bitexact" && value !== "+bitexact") throw new Error("Unsupported fflags: expected bitexact or autobsf");
           bitexact = true;
+          if (!args.slice(i + 1).includes("-i")) outputBitexact = true;
           serialOffset ??= 0;
           if (value === "bitexact" && !args.slice(i + 1).includes("-i")) autobsf = false;
         }
@@ -8895,7 +8898,7 @@ export function evalSyncFfmpeg(
       genre: metadata.genre ?? sourceMetadata.genre,
       trackNumber: metadata.track ?? sourceMetadata.trackNumber,
       discNumber: metadata.disc ?? sourceMetadata.discNumber,
-      encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav" || outPlugin?.id === "flac" || outPlugin?.id === "caf") ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
+      encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav" || outPlugin?.id === "flac" || outPlugin?.id === "caf") ? ((outPlugin.id === "ffmetadata" ? outputBitexact : bitexact) ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
     };
     workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamMetadata(mapStreamMetadata(workingDoc.tracks, loadedDocs, streamMetadataMaps), streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id, defaultMode) };
     if (outPlugin?.id === "mp4" || outPlugin?.id === "mov") {
@@ -9480,6 +9483,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let mpegtsServiceId: number | undefined;
         let serialOffset: number | undefined;
         let bitexact = false;
+        let outputBitexact = false;
         let autobsf = true;
         let maxVideoFrames: number | undefined;
         let maxAudioFrames: number | undefined;
@@ -10724,6 +10728,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (!Number.isInteger(serialOffset) || serialOffset < 0 || serialOffset > 2147483647) throw new Error("Invalid serial_offset: expected an integer from 0 to 2147483647");
           } else if (arg === "-bitexact") {
             bitexact = true;
+            if (!args.slice(i + 1).includes("-i")) outputBitexact = true;
           } else if (arg === "-fflags") {
             const value = args[++i];
             if (value === "autobsf" || value === "+autobsf" || value === "-autobsf") {
@@ -10731,6 +10736,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             } else {
               if (value !== "bitexact" && value !== "+bitexact") throw new Error("Unsupported fflags: expected bitexact or autobsf");
               bitexact = true;
+              if (!args.slice(i + 1).includes("-i")) outputBitexact = true;
               serialOffset ??= 0;
               if (value === "bitexact" && !args.slice(i + 1).includes("-i")) autobsf = false;
             }
@@ -18324,7 +18330,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               genre: metadata.genre ?? sourceMetadata.genre,
               trackNumber: metadata.track ?? sourceMetadata.trackNumber,
               discNumber: metadata.disc ?? sourceMetadata.discNumber,
-              encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav" || outPlugin?.id === "flac" || outPlugin?.id === "caf") ? (bitexact ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder
+              encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav" || outPlugin?.id === "flac" || outPlugin?.id === "caf") ? ((outPlugin.id === "ffmetadata" ? outputBitexact : bitexact) ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder
             };
             workingDoc = {
               ...workingDoc,

@@ -38,7 +38,7 @@ for (const titles of [["Intro", "Demo"], [], ["", "ok"]]) {
       it(`imports WAV cues for ${output} output with ${JSON.stringify(titles)} (${sync ? "sync" : "async"})`, async () => {
         const volume = Volume.fromJSON({ "/in.wav": cueWav(titles) });
         const path = output === "wav" ? "/out.wav" : "/out.ffmeta";
-        const args = ["-y", "-bitexact", "-v", "error", "-i", "/in.wav",
+        const args = ["-y", "-v", "error", "-i", "/in.wav", "-bitexact",
           ...(output === "disabled" ? ["-map_chapters", "-1"] : []),
           ...(output === "wav" ? ["-c", "copy"] : ["-f", "ffmetadata"]), path];
         if (sync) {

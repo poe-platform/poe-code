@@ -10,7 +10,7 @@ for (const sync of [false, true]) for (const input of ["/in.wav", "-"]) {
     it(`imports WAV ID3 chapters for ${output} output (${sync ? "sync" : "async"}, ${input})`, async () => {
       const volume = Volume.fromJSON({ "/in.wav": readFileSync(new URL("../../mp4-ast/src/fixtures/chapid3.wav", import.meta.url)) });
       const path = output === "wav" ? "/out.wav" : "/out.ffmeta";
-      const args = ["-y", "-bitexact", "-v", "error", "-i", input,
+      const args = ["-y", "-v", "error", "-i", input, "-bitexact",
         ...(output === "disabled" ? ["-map_chapters", "-1"] : []),
         ...(output === "wav" ? ["-c", "copy"] : ["-f", "ffmetadata"]), path];
       if (sync) {

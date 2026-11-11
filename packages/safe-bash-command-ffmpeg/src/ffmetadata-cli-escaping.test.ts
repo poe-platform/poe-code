@@ -8,7 +8,7 @@ for (const sync of [false, true]) {
   it(`escapes multiline CLI metadata from WAV input (${sync ? "sync" : "async"})`, async () => {
     const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(8000)] });
     const volume = Volume.fromJSON({ "/in.wav": Buffer.from(input) });
-    const args = ["-y", "-bitexact", "-v", "error", "-i", "/in.wav", "-metadata", "comment=Line1\nLine2;#=ok", "-metadata", "title=path\\file\nnext;#=ok", "-f", "ffmetadata", "/out.ffmeta"];
+    const args = ["-y", "-v", "error", "-i", "/in.wav", "-metadata", "comment=Line1\nLine2;#=ok", "-metadata", "title=path\\file\nnext;#=ok", "-bitexact", "-f", "ffmetadata", "/out.ffmeta"];
     if (sync) {
       assert.equal(evalSyncFfmpeg(args, undefined,
         path => volume.readFileSync(path) as Buffer,

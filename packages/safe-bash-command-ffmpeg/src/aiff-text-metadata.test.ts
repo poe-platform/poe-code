@@ -7,7 +7,7 @@ for (const sync of [false, true]) {
   it(`exports all four AIFF text chunks (${sync ? "sync" : "async"})`, async () => {
     const input = Buffer.from("464f524d0000007241494646434f4d4d000000120001000000040010400bfa000000000000004e414d4500000004536f6e6741555448000000064172746973742863292000000009436f7079726967687400414e4e4f00000007436f6d6d656e740053534e440000001000000000000000000064ff38012cfe70", "hex");
     const volume = Volume.fromJSON({ "/in.aiff": Buffer.from(input) });
-    const args = ["-y", "-bitexact", "-v", "error", "-i", "/in.aiff", "-f", "ffmetadata", "/out.ffmeta"];
+    const args = ["-y", "-v", "error", "-i", "/in.aiff", "-bitexact", "-f", "ffmetadata", "/out.ffmeta"];
     if (sync) {
       assert.equal(evalSyncFfmpeg(args, undefined,
         path => volume.readFileSync(path) as Buffer,

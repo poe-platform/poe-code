@@ -7,7 +7,7 @@ for (const sync of [false, true]) {
   it(`preserves custom global FFmetadata tags (${sync ? "sync" : "async"})`, async () => {
     const input = ";FFMETADATA1\ntitle=Demo\ncustom_field=note123\nMixedCase=value\nempty=\n";
     const volume = Volume.fromJSON({ "/in.ffmeta": input });
-    const args = ["-y", "-bitexact", "-v", "error", "-f", "ffmetadata", "-i", "/in.ffmeta", "-f", "ffmetadata", "/out.ffmeta"];
+    const args = ["-y", "-v", "error", "-f", "ffmetadata", "-i", "/in.ffmeta", "-bitexact", "-f", "ffmetadata", "/out.ffmeta"];
     if (sync) {
       assert.equal(evalSyncFfmpeg(args, undefined,
         path => volume.readFileSync(path) as Buffer,

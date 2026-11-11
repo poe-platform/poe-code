@@ -17,8 +17,8 @@ for (const sync of [false, true]) {
         "/in.ffmeta": `;FFMETADATA1\n${chapter}${end}${end ? "title=Intro\n" : ""}${next}`,
         "/out.ffmeta": "keep"
       });
-      const args = ["-y", "-bitexact", "-v", "error", "-i", "/in.wav", "-f", "ffmetadata", "-i", "/in.ffmeta",
-        "-map_metadata", "1", "-map_chapters", "1", "-f", "ffmetadata", "/out.ffmeta"];
+      const args = ["-y", "-v", "error", "-i", "/in.wav", "-f", "ffmetadata", "-i", "/in.ffmeta",
+        "-map_metadata", "1", "-map_chapters", "1", "-bitexact", "-f", "ffmetadata", "/out.ffmeta"];
       if (sync) {
         assert.equal(evalSyncFfmpeg(args, undefined,
           path => volume.readFileSync(path) as Buffer,

@@ -2404,7 +2404,7 @@ async function applyVideoFilterChain(
     // A final pixel conversion preserves frame counts and timestamps, so output limits can stop replay first.
     if (pending && name === "format" && filterIndex === filters.length - 1) {
       await materializePending(output);
-    } else if (pending && !["select", "trim", "null", "metadata"].includes(name)) {
+    } else if (pending && !["select", "trim", "null", "metadata", "freezedetect"].includes(name)) {
       // Keep replay lazy through filters that can discard frames or stop the source.
       if (!pendingBounded) throw new Error("loop: infinite replay requires a downstream trim before buffered filters");
       await materializePending();
@@ -2521,7 +2521,10 @@ async function applyVideoFilterChain(
         }
       }
     } else if (name === "freezedetect") {
-      current = await freezedetect(current, argStr, pixelFormat, budget, diagnostics, signal);
+      // Detection must follow downstream demand, including trim's first excluded frame.
+      if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
+      pendingBounded = pending ? pendingBounded : true;
+      pending = freezedetect(pending ?? current, argStr, pixelFormat, budget, diagnostics, signal);
     } else if (name === "signalstats") {
       const stat = named.stat ?? (positional[0]?.includes("=") ? "" : positional[0]) ?? "";
       const out = named.out ?? (positional[1]?.includes("=") ? undefined : positional[1]) ?? "-1";
@@ -6538,7 +6541,7 @@ async function applyVideoFilterChain(
     }
     // Filters that change the final frame's timing establish a new endpoint.
     const lastOutputFrame = current.at(-1);
-    if (name !== "tpad" && name !== "loop" && name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "thumbnail" && name !== "trim" && name !== "decimate" && name !== "framestep" && name !== "tile" &&
+    if (!pending && name !== "tpad" && name !== "loop" && name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "thumbnail" && name !== "trim" && name !== "decimate" && name !== "framestep" && name !== "tile" &&
         (lastOutputFrame?.ptsSeconds !== lastInputFrame?.ptsSeconds ||
          lastOutputFrame?.durationSeconds !== lastInputFrame?.durationSeconds)) {
       endTimeSeconds = undefined;

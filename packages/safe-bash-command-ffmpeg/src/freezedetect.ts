@@ -3,10 +3,10 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
 import { parseFilterExpression } from "./filter-expression.js";
 
-export async function freezedetect<T extends MediaVideoFrame & { filterMetadata?: Record<string, string> }>(
-  frames: T[], argument: string, pixelFormat: string | undefined, budget: MediaBudgetTracker,
+export async function* freezedetect<T extends MediaVideoFrame & { filterMetadata?: Record<string, string> }>(
+  frames: Iterable<T> | AsyncIterable<T>, argument: string, pixelFormat: string | undefined, budget: MediaBudgetTracker,
   diagnostics: { logLevel: number; write: (text: string) => Promise<void> }, signal?: AbortSignal
-): Promise<T[]> {
+): AsyncGenerator<T> {
   let noise = 0.001;
   let minimumDuration = 2;
   const options: string[] = [];
@@ -54,9 +54,10 @@ export async function freezedetect<T extends MediaVideoFrame & { filterMetadata?
   let referenceIndex = 0;
   let reported = false;
   let work = 0;
-  const output: T[] = [];
-  budget.allocateMemory(frames.length * 8);
-  for (const [index, frame] of frames.entries()) {
+  let index = 0;
+  let frameDuration: number | undefined;
+  for await (const frame of frames) {
+    frameDuration ??= frame.durationSeconds;
     if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
     budget.checkCpu();
     let frozen = false;
@@ -103,7 +104,7 @@ export async function freezedetect<T extends MediaVideoFrame & { filterMetadata?
       }
       frozen = difference / count / 2 ** depth <= noise;
       const elapsed = Number.isFinite(frame.ptsSeconds) && Number.isFinite(reference.ptsSeconds) && frame.ptsSeconds >= reference.ptsSeconds
-        ? frame.ptsSeconds - reference.ptsSeconds : (index - referenceIndex) * frames[0]!.durationSeconds;
+        ? frame.ptsSeconds - reference.ptsSeconds : (index - referenceIndex) * frameDuration;
       const duration = Math.round(elapsed * 1_000_000) / 1_000_000;
       if (duration >= minimumDuration) {
         const tags: Record<string, string> = {};
@@ -123,7 +124,8 @@ export async function freezedetect<T extends MediaVideoFrame & { filterMetadata?
       }
     }
     if (!frozen) { reference = frame; referenceIndex = index; }
-    output.push(annotated);
+    index++;
+    budget.allocateMemory(8);
+    yield annotated;
   }
-  return output;
 }

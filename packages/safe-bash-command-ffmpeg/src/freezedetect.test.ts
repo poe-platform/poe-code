@@ -41,7 +41,7 @@ it("reports freeze intervals on the threshold and first changed frames without c
   for (const line of ["freeze_start: 0.75", "freeze_duration: 0.75", "freeze_end: 1.5"]) {
     assert.ok(error.includes(`lavfi.freezedetect.${line}\n`), error);
   }
-  const records = error.split("frame:").slice(1).map(record => record.trim().split(/\s+/u));
+  const records = error.split("\n").filter(line => !line.startsWith("lavfi.freezedetect.") || line.includes("=")).join("\n").split("frame:").slice(1).map(record => record.trim().split(/\s+/u));
   assert.deepEqual(records, [
     ["5", "pts:5", "pts_time:1.25", "lavfi.freezedetect.freeze_start=0.75"],
     ["6", "pts:6", "pts_time:1.5", "lavfi.freezedetect.freeze_duration=0.75", "lavfi.freezedetect.freeze_end=1.5"]
@@ -135,9 +135,10 @@ for (const [format, depth] of [[68, 10], [49, 16]] as const) {
         native: { rgba: data, pixels, width: 2, height: 2, format, colorspace: 5, fullRange: 0 } };
     });
     let report = "";
-    const output = await freezedetect(frames, "n=0:d=0.5", undefined, new MediaBudgetTracker(), {
+    const output = [];
+    for await (const frame of freezedetect(frames, "n=0:d=0.5", undefined, new MediaBudgetTracker(), {
       logLevel: 32, async write(text) { report += text; }
-    });
+    })) output.push(frame);
     assert.equal(report, "lavfi.freezedetect.freeze_start: 0\nlavfi.freezedetect.freeze_duration: 0.75\nlavfi.freezedetect.freeze_end: 0.75\n");
     for (const [index, frame] of output.entries()) {
       assert.equal(frame.data, frames[index]!.data);

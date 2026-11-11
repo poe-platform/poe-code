@@ -5758,18 +5758,19 @@ async function applyVideoFilterChain(
       const color = parseColorRgba(options.color ?? "black");
       const first = current[0];
       const last = current.at(-1);
-      const duration = frameDuration * frameRateScale;
+      // setpts advertises 1/0 fps: frame-count padding still emits frames, with zero duration.
+      const duration = frameRateKnown ? frameDuration * frameRateScale : 0;
       for (const [index, key] of ["start_duration", "stop_duration"].entries()) {
         const value = options[key] === undefined ? 0 : parseHlsDuration(options[key]!);
         if (!Number.isFinite(value) || value < 0) throw new Error(`tpad: invalid ${key}`);
-        if (value > 0) counts[index] = Math.round(value / duration);
+        if (value > 0) counts[index] = frameRateKnown ? Math.round(value / duration) : 0;
       }
       if (!first) {
         if (modes[0] && counts[0] !== 0) continue;
         if (modes[1]) counts[1] = 0;
       }
       if (!first && counts.every(count => count === 0)) continue;
-      if (!frameRateKnown || !(duration > 0)) throw new Error("tpad: a known frame rate is required");
+      if (frameRateKnown && !(duration > 0)) throw new Error("tpad: a positive frame duration is required");
       const end = endTimeSeconds ?? (last ? last.ptsSeconds + last.durationSeconds : 0);
       const start = counts[0]!;
       const stop = counts[1]!;
@@ -5821,8 +5822,10 @@ async function applyVideoFilterChain(
         }
       }
       current = padded;
-      frameDuration = current[0]?.durationSeconds ?? duration;
-      frameRateScale = duration / frameDuration;
+      if (frameRateKnown) {
+        frameDuration = current[0]?.durationSeconds ?? duration;
+        frameRateScale = duration / frameDuration;
+      }
       endTimeSeconds = end + (start + Math.max(0, stop)) * duration;
     } else if (name === "loop") {
       const values = { loop: 0, size: 0, start: 0, time: Infinity };
@@ -6122,7 +6125,7 @@ async function applyVideoFilterChain(
     }
     // Filters that change the final frame's timing establish a new endpoint.
     const lastOutputFrame = current.at(-1);
-    if (name !== "loop" && name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "thumbnail" && name !== "trim" && name !== "decimate" && name !== "framestep" && name !== "tile" &&
+    if (name !== "tpad" && name !== "loop" && name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "thumbnail" && name !== "trim" && name !== "decimate" && name !== "framestep" && name !== "tile" &&
         (lastOutputFrame?.ptsSeconds !== lastInputFrame?.ptsSeconds ||
          lastOutputFrame?.durationSeconds !== lastInputFrame?.durationSeconds)) {
       endTimeSeconds = undefined;

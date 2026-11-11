@@ -1144,7 +1144,9 @@ function parseAtrim(argument: string, origRate: number) {
         const start = position;
         if (value[position] === "+" || value[position] === "-") position++;
         while (position < value.length && value[position] !== "+" && value[position] !== "-") position++;
-        const number = parseFilterExpression(value.slice(start, position), "atrim", { slice: 1, none: 0, all: -1 });
+        const number = parseFilterExpression(value.slice(start, position), "atrim", {
+          slice: 1, none: 0, all: -1, default: 1, max: 2147483647
+        });
         if (!Number.isInteger(number) || number < -2147483648 || number > 4294967295) {
           throw new RangeError("atrim: invalid thread_type");
         }
@@ -1156,6 +1158,7 @@ function parseAtrim(argument: string, origRate: number) {
         {
           default: key === "threads" ? 0 : -1,
           min: key === "threads" ? 0 : -1,
+          max: 2147483647,
           PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
         });
       if (!value || Number.isNaN(number)) throw new Error(`atrim: invalid ${key}`);

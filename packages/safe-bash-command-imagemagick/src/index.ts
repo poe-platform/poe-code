@@ -16423,7 +16423,7 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
     const compositeMode = magickCompositeMode(mode);
     if (!generic && (compositeMode.name === "dst" || compositeMode.name === "dest")) return base;
     let hasAlpha = base.hasAlpha || (!generic && !compositeMode.delegated && !compositeMode.preservesAlpha);
-    if (!generic && (channels || !compositeMode.delegated || base.storedData16 || overlay.storedData16 || base.storedEvaluateSamples !== undefined || overlay.storedEvaluateSamples !== undefined)) {
+    if (!generic && (channels || (!montageRounding && !compositeMode.delegated) || base.storedData16 || overlay.storedData16 || base.storedEvaluateSamples !== undefined || overlay.storedEvaluateSamples !== undefined)) {
         return transformStoredMagickRaster({ ...base, storedEvaluateSamples: undefined }, backend,
             composite16PixelSteps(base, overlay, left, top, mode, args, tile, fuzz, clipToOverlay, undefined, false, channels), signal,
             { ...base, hasAlpha }, [base, overlay]);
@@ -22999,7 +22999,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                             image = tile;
                             if (!frame && borderW > 0) {
                                 const border = await createStoredCanvas(image.width + borderW * 2, image.height + borderW * 2, state.borderColor, backend, signal);
-                                image = await compositeStoredMagick(border, image, backend, signal, borderW, borderW, "over", undefined, false, true);
+                                image = await compositeStoredMagick(border, image, backend, signal, borderW, borderW, "over", undefined, false, true, true);
                             }
                             if (labels[index]) {
                                 const labeled = image;

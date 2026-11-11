@@ -1,6 +1,7 @@
 import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { RgbaColor } from "@poe-code/image-ast/portable";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
+import { createMagickRandom } from "./random.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import { regionContains, type Region } from "./region.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
@@ -13,7 +14,7 @@ export interface EmbossEqualization {
 }
 
 /** Native emboss diagonal Gaussian convolution followed by channel-aware equalization. */
-export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space" | "gamma"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & HueMetadata & { region?: Region | undefined }, geometry: { width?: number; height?: number }, intensity: string, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, equalization?: EmbossEqualization, writeMask?: Pick<RgbaImage, "width" | "height">, sync = !channels): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space" | "gamma"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & HueMetadata & { region?: Region | undefined }, geometry: { width?: number; height?: number }, intensity: string, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, equalization?: EmbossEqualization, writeMask?: Pick<RgbaImage, "width" | "height">, sync = !channels, seed?: bigint): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
     const hue = !cmyk && !!image.magickColorspace && (image.hueSamples !== undefined || image.storedHueSamples !== undefined);
     const linear = image.magickColorspace === "RGB" || image.magickColorspace === "scRGB"
@@ -68,20 +69,36 @@ export function* embossPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
     const bin = (value: number): number => Math.max(0, Math.min(65535, Math.round(value * 257)));
     // Recompute bounded spans for the second pass, retaining floating point values
     // until equalization instead of rounding the convolution to eight bits.
+    if (virtualPixel === "random" && (seed === undefined || BigInt.asUintN(64, seed) === 0xffffffffffffffffn))
+        seed = crypto.getRandomValues(new BigUint64Array(1))[0]!;
+    const randomPixels = new Map<number, number>();
     for (let pass = equalization?.lookup ? 1 : 0; pass < 2; pass++) {
+        const random = virtualPixel === "random" ? createMagickRandom(seed) : undefined;
         for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 512) {
             yield;
+            if (random && left === 0) {
+                // Native reads the padded kernel rectangle once per output row.
+                // Replay it for equalization and reuse pixels across overlapping spans.
+                randomPixels.clear();
+                for (let sy = y - half; sy <= y + half; sy++) for (let sx = -half; sx < width + half; sx++) {
+                    if (sx >= 0 && sx < width && sy >= 0 && sy < height) continue;
+                    yield;
+                    randomPixels.set((sy - y + half) * (width + 2 * half) + sx + half,
+                        virtualPixelIndex(sx, sy, width, height, virtualPixel, random));
+                }
+            }
             const count = Math.min(512, width - left), sums = new Float64Array(count * stride);
             for (let k = -half; k <= half; k++) {
                 yield;
                 const weight = weights[k + half]!;
                 if (weight === 0) continue;
-                const map = (x: number) => virtualPixelIndex(left + x - k, y + k, width, height, virtualPixel);
+                const map = (x: number) => randomPixels.get((k + half) * (width + 2 * half) + left + x - k + half)
+                    ?? virtualPixelIndex(left + x - k, y + k, width, height, virtualPixel, random);
                 for (let x = 0; x < count;) {
                     yield;
                     const pixel = map(x);
                     let run = 1;
-                    const direction = map(x + 1) - pixel;
+                    const direction = x + 1 < count ? map(x + 1) - pixel : 0;
                     if (direction >= -1 && direction <= 1) {
                         while (x + run < count && (pixel < 0 ? map(x + run) < 0 : map(x + run) === pixel + run * direction && pixel + run * direction >= 0)) run++;
                     }

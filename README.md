@@ -179,6 +179,8 @@ ImageMagick reads MVG drawings with an explicit `mvg:` prefix, using `-size` or 
 
 ImageMagick `UBRL:` and `UBRL6:` write Unicode braille with image dimensions, optional labels and page offsets; use `UBRL:-` for stdout or `.ubrl` and `.ubrl6` filenames. ImageMagick raw floating-point output at `-depth 12` preserves fractional samples when rounding to 16-bit floats in either byte order. ImageMagick `pal:-` writes packed U-Y-V-Y bytes to stdout. `yuv:-` writes planar YUV with default `2x2` sampling; `-sampling-factor 2x1` selects packed U-Y-V-Y. ImageMagick also reads raw `yuv:` input with `-size`, `-depth`, and the same sampling settings; use `-colorspace sRGB` for RGB output. ImageMagick `ycbcr:-` writes raw Y-Cb-Cr triples; `ycbcra:-` adds alpha as the fourth sample. ImageMagick reads native Q16-HDRI DirectClass MPC files with their adjacent pixel caches, including frame selections. ImageMagick MIFF output preserves orientation metadata for `-auto-orient` after reopening the file. `PALM:-` writes an uncompressed Palm bitmap to stdout, including dimensions and word-padded rows.
 
+ImageMagick `.sgi` and `sgi:-` output writes SGI RGB(A) images, adjoining image sequences by default; use `+adjoin` for numbered files.
+
 Use `poe-code` programmatically in your own code:
 
 ```typescript

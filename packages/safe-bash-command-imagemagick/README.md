@@ -236,3 +236,5 @@ Read uncompressed, unsigned 8-bit FITS primary images with two axes and unscaled
 `-fft` and `+fft` match ImageMagick without FFTW: they warn that the delegate is unavailable and continue with the original images, including writing the destination. They do not compute a Fourier transform.
 
 SVG output (`svg:-`, `msvg:-`, or `out.svg`) writes SVG XML with the current image dimensions and pixels as horizontal rectangle runs, including alpha. It does not retain the original vector paths.
+
+SGI output accepts `.sgi` filenames and `sgi:-` for stdout. It writes uncompressed 8-bit RGB(A) data; image sequences share one file by default, while `+adjoin` writes numbered files.

@@ -66,7 +66,7 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                 encoding = { ...encoding, outputFilename: path };
                 if (encoding.format === "pam") encoding = { ...encoding, netpbmDepth: encoding.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8) };
                 try {
-                if ((path !== "-" || snapshot) && encoding.format !== "svg" && encoding.format !== "map" && encoding.format !== "farbfeld" && encoding.format !== "isobrl" && encoding.format !== "isobrl6" && encoding.format !== "brf" && encoding.format !== "mono" && encoding.format !== "pal" && encoding.format !== "yuv" && encoding.format !== "mpc" && encoding.format !== "h") {
+                if ((path !== "-" || snapshot) && encoding.format !== "sgi" && encoding.format !== "svg" && encoding.format !== "map" && encoding.format !== "farbfeld" && encoding.format !== "isobrl" && encoding.format !== "isobrl6" && encoding.format !== "brf" && encoding.format !== "mono" && encoding.format !== "pal" && encoding.format !== "yuv" && encoding.format !== "mpc" && encoding.format !== "h") {
                     const output = resolvePath(cwd, path), info = await tryImageFile({ image, storage, ...(snapshot ? { encoded: snapshot } : {}), async close() { if (retire) { await storage.close(); await read.close(); } } }, output, { filesystem: budgetedFs, workingDirectory: cwd, signal }, { ...encoding, synthesizeExif: false, format: isRawCoder(encoding.format) ? "raw" : encoding.format });
                     if (info)
                         return;

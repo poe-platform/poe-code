@@ -399,7 +399,6 @@ Timeline expressions such as `agate=enable='between(t,0.1,0.3)'` select audio fr
 disabled frames pass through unchanged and pause the gate envelope.
 `asendcmd=c='0.256 agate@v makeup 2',agate@v` changes makeup gain at the first
 audio frame at or after the requested time, preserving the gate envelope.
-Command times truncate to microseconds and frame timestamps round to the nearest microsecond.
 Target `agate` selects the first subsequent gate; a named target selects that
 instance. Invalid runtime gains retain the previous setting.
 Downstream filters receive packed double (`dbl`) audio, including when `ratio=1`.

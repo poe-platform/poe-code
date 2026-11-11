@@ -13724,8 +13724,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-local-contrast") {
-            const geometry = parseLocalContrastGeometry(tokens[++i] ?? "");
+            const raw = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const geometry = parseLocalContrastGeometry(expanded);
                 return yield* applyMagickRasterSteps(im, localContrastPixelSteps(im, geometry, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined), signal);
             });
         }
@@ -17598,8 +17600,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const { background, virtualPixel } = state;
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, enhancePixelSteps(image, background, virtualPixel), signal) : undefined);
         } else if (!operandsOnly && token === "-local-contrast") {
-            const geometry = parseLocalContrastGeometry(tokens[++i] ?? ""), background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, localContrastPixelSteps(image, geometry, background, virtualPixel, channels), signal) : undefined);
+            const raw = tokens[++i] ?? "", { background, virtualPixel, optionProperties } = state, channels = state.channelExplicit ? state.channels : undefined;
+            steps.push(async (image, backend) => {
+                if (!image) return;
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const geometry = parseLocalContrastGeometry(expanded);
+                return transformStoredMagickRaster(image, backend, localContrastPixelSteps(image, geometry, background, virtualPixel, channels), signal);
+            });
         } else if (!operandsOnly && token === "-wavelet-denoise") {
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);

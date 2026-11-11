@@ -56,7 +56,13 @@ export function* identifyHullSteps(image: Pick<RgbaImage, "width" | "height" | "
         const candidate = (maxU - minU) * (maxV - minV);
         if (candidate < area - 1e-10) {
             area = candidate;
-            box = [[maxU, minV], [maxU, maxV], [minU, maxV], [minU, minV]].map(([u, v]) => ({ x: u! * ux - v! * uy, y: u! * uy + v! * ux }));
+            box = [{ x: maxU * ux - minV * uy, y: maxU * uy + minV * ux }];
+            // ImageMagick keeps the first corner fractional, then rounds each
+            // subsequent corner before using it as the next edge's origin.
+            for (const [du, dv] of [[0, maxV - minV], [minU - maxU, 0], [0, minV - maxV]] as const) {
+                const previous = box[box.length - 1]!;
+                box.push({ x: Math.floor(previous.x + du * ux - dv * uy + 0.5), y: Math.floor(previous.y + du * uy + dv * ux + 0.5) });
+            }
         }
     }
     const format = (p: Point) => `${formatSignificantMetric(Math.abs(p.x) < 1e-10 ? 0 : p.x, precision)},${formatSignificantMetric(Math.abs(p.y) < 1e-10 ? 0 : p.y, precision)}`;

@@ -68,7 +68,7 @@ const rbior68Inverse = [
 ];
 export async function denoiseWavelets(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
-  filter: string, frames: readonly { start: number; end: number; pts: number }[],
+  filter: string, frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[],
   budget: MediaBudgetTracker, signal?: AbortSignal,
   commands: readonly { sample: number; expression: string }[] = []
 ): Promise<{ channels: Float64Array[]; frames: { start: number; end: number; pts: number }[] }> {
@@ -78,14 +78,20 @@ export async function denoiseWavelets(
     profile: [0, 1], adaptive: [0, 1], samples: [512, 65536], softness: [0, 10] };
   const names = Object.keys(options) as (keyof typeof options)[];
   const waveletNames = Object.keys(wavelets) as (keyof typeof wavelets)[];
+  let enable: string | undefined;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   let positional = 0;
   for (const part of argument ? argument.split(":") : []) {
     const separator = part.indexOf("=");
-    const key = (separator < 0 ? names[positional++] : part.slice(0, separator).trim()) as keyof typeof options | "threads" | "thread_type" | "extra_hw_frames";
+    const key = (separator < 0 ? names[positional++] : part.slice(0, separator).trim()) as keyof typeof options | "threads" | "thread_type" | "extra_hw_frames" | "enable";
     const raw = (separator < 0 ? part : part.slice(separator + 1)).trim();
     if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
       validateWeaveGenericOption(key, raw, "afwtdn");
+      continue;
+    }
+    if (key === "enable") {
+      enable = part.slice(separator + 1).trim();
+      parseFilterExpression(enable, "afwtdn enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 }, undefined, new Float64Array(10));
       continue;
     }
     if (!names.includes(key)) throw new Error(`afwtdn: unsupported option ${key}`);
@@ -127,8 +133,12 @@ export async function denoiseWavelets(
   const outputLength = length < size && overlapSize >= size ? 0
     : Math.max(length, Math.ceil(length / size) * size - overlapSize);
   const bandSizes = Array.from({ length: levels + 1 }, (_, level) => Math.ceil(size / 2 ** Math.min(level + 1, levels)));
-  const scratchBytes = (capacity * 3 + overlapSize + bandSizes.reduce((sum, n) => sum + n, 0) + (levels + 1) * 4) * 8;
+  const windowCount = Math.ceil((outputLength + overlapSize) / size);
+  const scratchBytes = windowCount + 80 + (capacity * 3 + overlapSize + bandSizes.reduce((sum, n) => sum + n, 0) + (levels + 1) * 4) * 8;
   budget.allocateMemory(outputLength * channels.length * 8 + scratchBytes);
+  const enabled = new Uint8Array(windowCount);
+  const registers = new Float64Array(10);
+  let active = true;
   const output = channels.map(() => new Float64Array(outputLength));
   const outputFrames: { start: number; end: number; pts: number }[] = [];
   let frameIndex = 0;
@@ -153,6 +163,15 @@ export async function denoiseWavelets(
           // Startup drops the transform delay; EOF can emit a shorter flush frame.
           while (frameIndex + 1 < frames.length && frames[frameIndex]!.end <= start) frameIndex++;
           const frame = frames[frameIndex];
+          // Activation evaluates once per consumed input window, shared by all
+          // channels. EOF flushes retain the last decision without reevaluation.
+          if (enable !== undefined && start < length) {
+            active = Math.abs(parseFilterExpression(enable, "afwtdn enable", {
+              n: start / size, t: (frame ? frame.pts + start - frame.start : start) / sampleRate,
+              pos: frame?.pos ?? NaN, w: 0, h: 0
+            }, undefined, registers)) >= 0.5;
+          }
+          enabled[start / size] = Number(active);
           const pts = start < length
             ? (frame ? frame.pts + start - frame.start : start) - Math.min(start, overlapSize)
             : nextPts;
@@ -173,6 +192,7 @@ export async function denoiseWavelets(
             if (Number.isFinite(percent) && percent >= 0 && percent <= 100) mix = percent * 0.01;
           } catch { /* Native retains the previous value after a rejected command. */ }
         }
+        const windowMix = enabled[start / size] ? mix : 0;
         const sn = start + 1;
         const extension = (period - 1) * (taps - 2) + sn % period;
         const counts = bandSizes.map((_, level) => {
@@ -239,7 +259,7 @@ export async function denoiseWavelets(
             const value = band[i]!;
             const filtered = measuredDeviation[level]! <= deviation[level]! || Math.abs(value) <= threshold ? 0
               : value - Math.sign(value) * threshold / Math.exp(3 * options.softness * (Math.abs(value) - threshold) / threshold);
-            band[i] = mix * filtered + value * (1 - mix);
+            band[i] = windowMix * filtered + value * (1 - windowMix);
           }
         }
 

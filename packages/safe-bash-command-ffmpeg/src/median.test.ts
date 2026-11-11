@@ -119,6 +119,22 @@ for (const options of [
   });
 }
 
+for (const options of [
+  "threads=1", "thread_type=slice", "extra_hw_frames=1",
+  "threads=0:thread_type=none:extra_hw_frames=-1",
+  "threads=max:thread_type=+slice:extra_hw_frames=max",
+  "threads=default:thread_type=all-slice:extra_hw_frames=default",
+  "1:15:0:0.5:threads=1:thread_type=slice:extra_hw_frames=1"
+]) {
+  it(`accepts median scheduling options ${options} without changing pixels`, async () => {
+    const result = await run(`median=${options}`, defaultFixture, "gray", "8x6");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.output.length, 48);
+    assert.equal(createHash("sha256").update(result.output).digest("hex"),
+      "7209ba8789b5b7c6a1326c193341e8c77c40e493badf1eba6e41aa38741e3b99");
+  });
+}
+
 it("accepts named instances, expressions and the default vertical radius", async () => {
   const expected = await run("median=2:15:2:0.5");
   for (const filter of ["median@noise=radius=1+1", "median=radius=2:radiusV=0"]) {
@@ -149,6 +165,10 @@ it("clips the window to a single-pixel input", async () => {
 });
 
 for (const option of ["radius=0", "radius=128", "radiusV=-1", "radiusV=128", "percentile=-0.1", "percentile=1.1",
+  "threads=-1", "threads=2147483648", "threads=nan", "threads=no",
+  "thread_type=frame", "thread_type=0.5", "thread_type=4294967296",
+  "extra_hw_frames=-2", "extra_hw_frames=2147483648", "extra_hw_frames=nan",
+  "threads=-1:threads=1", "threads=1:1",
   "percentile=nan", "radius=no", "planes=16", "unknown=1", "1:15:0:0.5:1"]) {
   it(`rejects ${option} before replacing output`, async () => {
     const result = await run(`median=${option}`);

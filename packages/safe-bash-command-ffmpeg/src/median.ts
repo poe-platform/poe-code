@@ -1,6 +1,7 @@
 import { scaleVideoPicture, type MediaBudgetTracker, type MediaVideoFrame } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function median(
   frames: MediaVideoFrame[], options: string, pixelFormat: string | undefined,
@@ -17,6 +18,10 @@ export async function median(
     if (separator < 0 && named) throw new Error("median: positional option after named option");
     named ||= separator >= 0;
     if (key === "enable") { enable = expression; continue; }
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, expression, "median");
+      continue;
+    }
     if (key !== "radius" && key !== "radiusV" && key !== "planes" && key !== "percentile") {
       throw new Error(`median: unsupported option ${key ?? option}`);
     }

@@ -164,7 +164,7 @@ poe-code models --search claude
 
 Safe Bash FFmpeg `scharr=scale=0.25:delta=16` renders gradients on 8-bit grayscale and planar YUV video; `planes=2` filters U while preserving Y and V.
 
-Safe Bash FFmpeg `median=radius=2:percentile=1` selects neighborhood percentiles in 8-bit grayscale and planar YUV video; `planes=2` filters U, and `planes=5` filters Y and V, preserving unselected planes. FFmpeg `deband` accepts mixed named and positional options and a single trailing colon, such as `deband=d=-1:r=-3:0.1:`.
+Safe Bash FFmpeg `median=radius=2:percentile=1` selects neighborhood percentiles in 8-bit grayscale and planar YUV video; `planes=2` filters U, and `planes=5` filters Y and V, preserving unselected planes. Generic `threads`, `thread_type`, and `extra_hw_frames` options are accepted. FFmpeg `deband` accepts mixed named and positional options and a single trailing colon, such as `deband=d=-1:r=-3:0.1:`.
 
 Safe Bash FFmpeg `stereotools` accepts positional values after named options with native option binding. Invalid options preserve native exit statuses: 8 for unknown options, 222 for out-of-range values, and 234 for invalid arguments. Safe Bash FFmpeg `thumbnail` batches only timeline-enabled frames; disabled frames pass through unchanged. Safe Bash FFmpeg `drawbox` accepts `threads`, `thread_type`, and `extra_hw_frames` without changing pixels.
 

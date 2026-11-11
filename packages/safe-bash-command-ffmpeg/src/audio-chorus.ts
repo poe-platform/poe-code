@@ -16,6 +16,7 @@ export async function chorusAudio(
   let position = 0;
   for (const option of argument ? argument.split(":") : []) {
     const separator = option.indexOf("=");
+    if (separator >= 0 && option.slice(0, separator).trim() === "enable") throw new Error("chorus: timeline is unsupported");
     const key = separator < 0 ? names[position] : option.slice(0, separator).trim() as keyof typeof options | "threads" | "thread_type" | "extra_hw_frames";
     if (separator < 0) position++;
     else position = position === 0 ? 1 : 0;

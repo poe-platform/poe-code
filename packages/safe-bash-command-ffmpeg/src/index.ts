@@ -20187,6 +20187,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 msg === "aecho: invalid expression" || msg === "aecho: invalid or unsupported expression") return { exitCode: 234 };
             if (msg.startsWith("crystalizer: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("crystalizer:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (msg === "chorus: timeline is unsupported") return { exitCode: 176 };
             if (msg.startsWith("chorus: unsupported option ")) return { exitCode: 8 };
             if (msg === "chorus: invalid gain") return { exitCode: 222 };
             if (msg === "chorus: delays, decays, speeds and depths must have matching entries") return { exitCode: 234 };

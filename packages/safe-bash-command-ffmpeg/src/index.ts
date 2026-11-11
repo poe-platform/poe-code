@@ -11796,13 +11796,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         const last = audioTimestamps.at(-1);
+                        // Native echo/chorus advance the integer NOPTS sentinel after the
+                        // last input frame, so the drained tail has finite negative PTS.
+                        const tailExactPts = last && Number.isNaN(last.pts)
+                          ? -(2n ** 63n) + BigInt(last.end - last.start) : undefined;
                         const tailPts = last ? last.pts + last.end - last.start
                           : filterName === "aecho" ? NaN : audioStartSample;
                         for (let start = inputLength; start < stretched[0]!.length; start += 2048) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                          budget.allocateMemory(24);
+                          const exactPts = tailExactPts === undefined ? undefined : tailExactPts + BigInt(start - inputLength);
+                          budget.allocateMemory(exactPts === undefined ? 24 : 48);
                           audioTimestamps.push({ start, end: Math.min(stretched[0]!.length, start + 2048),
-                            pts: tailPts + start - inputLength });
+                            pts: exactPts === undefined ? tailPts + start - inputLength : Number(exactPts), exactPts });
                         }
                       } else if (trimmed === "aphaser" || trimmed.startsWith("aphaser=")) {
                         // Preserve supported input precision; otherwise let the output

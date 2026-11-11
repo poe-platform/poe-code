@@ -1,9 +1,11 @@
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import { magickIntensity } from "./intensity.js";
+import { magickInput, type MagickFormatContext } from "./stored-stack.js";
 
 // Stable merge sort uses one scanline of pixels and yields during wide-row work.
-export function* sortPixelSteps(image: { width: number; height: number; space?: string | undefined; magickColorspace?: string | undefined }, method: string, mask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* sortPixelSteps(image: { width: number; height: number; [magickInput]?: MagickFormatContext; space?: string | undefined; magickColorspace?: string | undefined }, method: string, mask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image;
+    method = image[magickInput]?.intensity ?? method;
     const colorspace = image.magickColorspace ?? (image.space === "cmyk" ? "CMYK" : "sRGB");
     // Native luminance decodes gamma only for sRGB/Gray, not other working spaces.
     const linear = method === "rec601luminance" || method === "rec709luminance"

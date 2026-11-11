@@ -6989,7 +6989,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 }
                 im = { ...image, evaluateSamples };
             }
-            im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: im.width, originalHeight: im.height, ...(im as MagickImage)[magickInput], virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
+            im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: im.width, originalHeight: im.height, ...(im as MagickImage)[magickInput], intensity: state.intensity, virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
             if (state.qualityExplicit) im = { ...im, quality: state.quality };
             if (state.page !== undefined) im = { ...im, virtualCanvas: state.page };
             if (state.composeExplicit) im = { ...im, properties: { ...im.properties, compose: state.composeRaw } };
@@ -11266,6 +11266,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     return { ...image, [magickInput]: { ...image[magickInput], fuzz: state.alphaFuzz } };
                 });
             }
+            if (t === "-intensity" || t === "+intensity") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], intensity: state.intensity } }; });
             if (t === "-bordercolor" || t === "+bordercolor") {
                 stack = yield* mapMagickImagesSteps(stack, function* (image) {
                     yield;
@@ -14251,6 +14252,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const fuzz = state.alphaFuzz;
                 steps.push(async image => image ? { ...image, [magickInput]: { ...image[magickInput], fuzz } } : undefined);
             }
+            if (token === "-intensity" || token === "+intensity") {
+                const intensity = state.intensity;
+                steps.push(async image => image ? { ...image, [magickInput]: { ...(image as StoredMagickImage)[magickInput], intensity } } : undefined);
+            }
             if (token === "-bordercolor" || token === "+bordercolor") {
                 const borderColor = state.borderColor;
                 steps.push(async image => {
@@ -17147,7 +17152,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    }
    image = { ...metadata, storedEvaluateSamples };
   }
-  image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: image.width, originalHeight: image.height, ...(image as StoredMagickImage)[magickInput], virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
+  image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: image.width, originalHeight: image.height, ...(image as StoredMagickImage)[magickInput], intensity: state.intensity, virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
   if(state.qualityExplicit)image={...image,quality:state.quality};
   if(state.page!==undefined)image={...image,virtualCanvas:state.page};
   if(state.composeExplicit)image={...image,properties:{...image.properties,compose:state.composeRaw}};

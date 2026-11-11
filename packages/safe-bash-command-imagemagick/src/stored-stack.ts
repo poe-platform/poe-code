@@ -21,6 +21,7 @@ export interface MagickFormatContext {
     listIndex?: number;
     sceneCount?: number;
     quality?: number;
+    intensity?: string;
     resizeKernel?: MagickResizeKernel | undefined;
     borderColor?: RgbaColor;
     fuzz?: number;

@@ -30,6 +30,7 @@ function parseMpl2(bytes: Uint8Array): MediaDocument {
       isKeyframe: true, sampleDescriptionIndex: 1 });
     duration = Math.max(duration, cue.end);
   }
+  samples.sort((a, b) => a.pts - b.pts);
   return { containerFormat: "mpl2", timescale, duration, durationSeconds: duration / timescale,
     tracks: [{ id: 1, type: "subtitle", handlerType: "sbtl", timescale, duration,
       language: "und", enabled: true, codecDescriptions: [{ formatFourCC: "text", codecName: "mpl2" }], samples }],

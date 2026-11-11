@@ -19,3 +19,14 @@ it("does not claim unrelated text or offer MPL2 output", () => {
   assert.equal(plugin.canMux, false);
   assert.throws(() => plugin.serialize(plugin.parse(new Uint8Array())), /output is not supported/);
 });
+
+it("orders MPL2 packets by start time while preserving equal-time input order", () => {
+  const bytes = new TextEncoder().encode("[30][40]Beta\n[10][50]Alpha\n[10][20]Together\n");
+  const doc = mpl2Ast().parse(bytes);
+  const track = doc.tracks[0]!;
+  assert.deepEqual(track.samples.map(sample =>
+    [sample.pts, sample.dts, sample.duration, new TextDecoder().decode(sample.data)]),
+  [[10, 10, 40, "Alpha"], [10, 10, 10, "Together"], [30, 30, 10, "Beta"]]);
+  assert.equal(track.duration, 50);
+  assert.equal(doc.durationSeconds, 5);
+});

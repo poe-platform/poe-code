@@ -5000,7 +5000,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     const scale = distort && state.distortScale !== undefined ? Math.abs(Number.parseFloat(state.distortScale)) : undefined;
     if (scale !== undefined && (!Number.isFinite(scale) || scale < 0.1)) throw new Error("invalid argument for option distort:scale");
     const spec = tokens[++i] ?? (distort ? "SRT" : token === "-wave" ? "5x50" : token === "-shear" ? "0x0" : "0"), args = distort ? tokens[++i] ?? "0" : "0";
-    if (["-wave", "-swirl", "-implode", "-spread"].includes(token) && !spec.includes("%[")) validateMagickTransformGeometry(spec, token);
+    if (["-wave", "-swirl", "-implode", "-spread"].includes(token) && !spec.includes("%")) validateMagickTransformGeometry(spec, token);
     const interpolation = state.interpolation ?? "bilinear";
     const background = state.background, backgroundExplicit = state.backgroundExplicit, virtualPixel = state.virtualPixel ?? (distort || token === "-implode" || token === "-swirl" || token === "-spread" ? "edge" : undefined);
     const kernel = distort ? state.kernel : undefined, filter = distort ? state.resizeFilter : undefined;
@@ -13472,7 +13472,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geometry = ["-shear", "-wave", "-swirl", "-implode", "-spread", "-distort", "+distort"].includes(t) ? tokens[i] : undefined;
             // Evaluate sequence references before mapping releases the source buffers.
             const geometries: string[] = [];
-            if (geometry?.includes("%[")) for (let sceneIdx = 0; sceneIdx < stack.length; sceneIdx++) {
+            if (geometry?.includes("%")) for (let sceneIdx = 0; sceneIdx < stack.length; sceneIdx++) {
                 const image = stack[sceneIdx]!;
                 geometries.push(yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, optionProperties: state.optionProperties }));
             }
@@ -16962,7 +16962,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = ["-shear", "-wave", "-swirl", "-implode", "-spread", "-distort", "+distort"].includes(token) ? tokens[i] : undefined, optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = geometry?.includes("%[") ? await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images) : geometry;
+                const expanded = geometry?.includes("%") ? await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images) : geometry;
                 const plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 let output = await transformStoredMagickRaster(image, backend, plan.steps, signal, plan);

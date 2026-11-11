@@ -1944,7 +1944,7 @@ const audioGraphFilterNames = new Set([
 ]);
 
 // Resolve audio graph inputs and transitions before the PCM filter evaluator runs.
-async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], outputMaps: Set<string>, mappedLabels: Set<string>, filterAudio: (track: MediaTrack, expression: string, index?: number, downstreamFilter?: string) => Promise<MediaTrack>, mixCommands: { target: string; action: string; expression: string }[], budget: MediaBudgetTracker, signal?: AbortSignal, outputSampleFormat?: string, simple = false) {
+async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], outputMaps: Set<string>, mappedLabels: Set<string>, filterAudio: (track: MediaTrack, expression: string, index?: number, downstreamFilter?: string) => Promise<MediaTrack>, graphCommands: { time: number; target: string; action: string; expression: string }[], budget: MediaBudgetTracker, signal?: AbortSignal, outputSampleFormat?: string, simple = false) {
   const nodes = new Map<string, { inputs: string[]; expression: string; asplit?: boolean }>();
   const inputTrack = (label: string): MediaTrack => {
     const [input, selector, ordinal, ...extra] = label.split(":");
@@ -2304,8 +2304,14 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
             source.track = await filterAudio(source.track, source.expression);
           }
         }
-        const first = sources[0]!.track;
-        const a = first.decodedAudio;
+        const target = equals < 0 ? first : first.slice(0, equals);
+        const firstGate = Array.from(nodes.values()).find(candidate =>
+          parseFilterChain(candidate.expression)[0]!.split("=", 1)[0]!.split("@", 1)[0] === "sidechaingate");
+        const commands = graphCommands.filter(command => command.action === "range" &&
+          (command.target === "sidechaingate" ? node === firstGate : command.target === target))
+          .sort((a, b) => a.time - b.time);
+        const program = sources[0]!.track;
+        const a = program.decodedAudio;
         const b = sources[1]!.track.decodedAudio;
         if (!a || !b) throw new Error("sidechaingate requires decoded PCM audio");
         let control = b.channelData;
@@ -2328,7 +2334,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
             undefined, undefined, undefined, undefined, undefined, undefined, undefined,
             { ends, outputEnds: controlEnds });
         }
-        return { track: await gateAudio(first, filters[0]!, budget, control, controlEnds, signal),
+        return { track: await gateAudio(program, filters[0]!, budget, control, controlEnds, signal, commands),
           expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "sidechaincompress" || filters[0]?.startsWith("sidechaincompress=")) {
@@ -2470,9 +2476,9 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           }
         }
         const target = equals < 0 ? first : first.slice(0, equals);
-        const commands = mixCommands.filter(command => command.target === "amix" || command.target === target);
-        for (let index = mixCommands.length - 1; index >= 0; index--) {
-          if (mixCommands[index]!.target === "amix" || mixCommands[index]!.target === target) mixCommands.splice(index, 1);
+        const commands = graphCommands.filter(command => command.target === "amix" || command.target === target);
+        for (let index = graphCommands.length - 1; index >= 0; index--) {
+          if (graphCommands[index]!.target === "amix" || graphCommands[index]!.target === target) graphCommands.splice(index, 1);
         }
         // A compatible floating input fixes amix precision before the output format.
         const format = [...sources.map(source => audioGraphFormats.get(source.track)
@@ -12598,7 +12604,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             let videoEndTimeSeconds: number | undefined;
             let audioOrdinal = 0;
             let audioSinks: { track: MediaTrack; expression: string }[] = [];
-            const mixCommands: { target: string; action: string; expression: string }[] = [];
+            const graphCommands: { time: number; target: string; action: string; expression: string }[] = [];
             let decimateSource: { doc: MediaDocument; track: MediaTrack } | undefined;
             const alphaInputs = filterComplex ? parseAlphamergeGraph(filterComplex, maps) : undefined;
             const decimateGraph = filterComplex ? parseDecimateGraph(filterComplex, maps) : undefined;
@@ -13318,7 +13324,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   loadedDocs.some((_, index) => filterComplex?.includes(`[${index}:a`));
                 if (audioGraph) {
                   if (afFilters.length) throw new Error("Cannot combine simple and complex audio filters");
-                  const { outputs, sinks } = await resolveAudioGraph(filterComplex, loadedDocs, maps, audioOutputMaps, mappedAudioLabels, filterAudio, mixCommands, budget, context.signal, outputAudioFormat);
+                  const { outputs, sinks } = await resolveAudioGraph(filterComplex, loadedDocs, maps, audioOutputMaps, mappedAudioLabels, filterAudio, graphCommands, budget, context.signal, outputAudioFormat);
                   audioSinks = sinks;
                   workingDoc = await muxMp4Cooperatively(
                     [{ ...loadedDocs[0]!, tracks: outputs.map(output => output.track) }],
@@ -13839,7 +13845,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     : { expression };
                   if (filter?.expression.includes(";")) {
                     const graph = await resolveAudioGraph(filter.expression, [{ ...workingDoc, tracks: [t] }],
-                      [], new Set(), new Set(), filterAudio, mixCommands, budget, context.signal, outputAudioFormat, true);
+                      [], new Set(), new Set(), filterAudio, graphCommands, budget, context.signal, outputAudioFormat, true);
                     t = graph.outputs[0]!.track;
                     filter = { ...filter, expression: graph.outputs[0]!.expression };
                   }
@@ -14066,6 +14072,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || action === "makeup" && ["agate", "acompressor"].some(name => target === name || target?.startsWith(`${name}@`))
                             || target === "atilt" || target?.startsWith("atilt@")
                             || target === "aexciter" || target?.startsWith("aexciter@")
+                            || action === "range" && (target === "sidechaingate" || target?.startsWith("sidechaingate@"))
                             || target === "acrusher" || target?.startsWith("acrusher@")
                             || target === "asoftclip" || target?.startsWith("asoftclip@")
                             || ["unity", "silence", "curve", "c", "nb_samples", "ns", "duration", "d", "type", "t", "start_sample", "ss", "start_time", "st", "enable"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
@@ -14271,7 +14278,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                             budget.allocateMemory(64 + expression.length * 2);
                             const dispatched = { target: command.target, action: command.action, expression };
-                            if (command.target === "amix" || command.target.startsWith("amix@")) mixCommands.push(dispatched);
+                            if (command.target === "amix" || command.target.startsWith("amix@") ||
+                                command.target === "sidechaingate" || command.target.startsWith("sidechaingate@")) {
+                              graphCommands.push({ time: pts / origRate, ...dispatched });
+                            }
                             // A downstream sender sees this frame after the receiver has processed it.
                             else audioCommands.push({ sample: sender > filterIndex ? Math.min(length, start + count) : start,
                               ...dispatched });

@@ -5,7 +5,8 @@ import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function gateAudio(
   first: MediaTrack, filter: string, budget: MediaBudgetTracker, sidechain: readonly (Float32Array | Float64Array)[],
-  controlEnds: readonly number[], signal?: AbortSignal
+  controlEnds: readonly number[], signal?: AbortSignal,
+  commands: readonly { time: number; expression: string }[] = []
 ): Promise<MediaTrack> {
   const { channelData: channels, sampleRate } = first.decodedAudio!;
   const defaults: Record<string, number> = {
@@ -54,7 +55,7 @@ export async function gateAudio(
   const level = options.level_in!;
   const upward = options.mode === 1;
   const thresholdValue = options.threshold!;
-  const range = options.range!;
+  let range = options.range!;
   const ratio = options.ratio!;
   const attack = Math.min(1, 1 / (options.attack! * sampleRate / 4000));
   const release = Math.min(1, 1 / (options.release! * sampleRate / 4000));
@@ -83,6 +84,7 @@ export async function gateAudio(
   let programPts = 0;
   let controlFrame = 0;
   let nextFrame = 0;
+  let nextCommand = 0;
   let enabled = true;
   if (enable !== undefined && length === 0) {
     parseFilterExpression(enable, "sidechaingate enable", { t: 0, n: 0, w: 0, h: 0, pos: NaN });
@@ -103,6 +105,13 @@ export async function gateAudio(
         controlFrame++;
       }
       const pts = programPts + i - programStart;
+      while (nextCommand < commands.length && commands[nextCommand]!.time <= pts / sampleRate) {
+        const command = commands[nextCommand++]!;
+        try {
+          const value = parseFilterExpression(command.expression, "sidechaingate", {});
+          if (Number.isFinite(value) && value >= 0 && value <= 1) range = value;
+        } catch { /* Rejected runtime commands leave the previous range in effect. */ }
+      }
       if (enable !== undefined) {
         enabled = Math.abs(parseFilterExpression(enable, "sidechaingate enable", {
           t: pts / sampleRate, n: frame, w: 0, h: 0, pos: first.samples[programFrame - 1]?.offset ?? NaN

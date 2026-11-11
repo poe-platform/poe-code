@@ -527,6 +527,10 @@ audio frame boundaries (`t` is time in seconds; `n` is the frame index; `pos` is
 program packet byte offset, or `NaN` when unavailable). For a WAV with a 44-byte
 header, `enable='eq(pos,44)'` selects the first packet. Disabled
 frames pass through unchanged while the gate continues tracking the control input.
+Upstream `asendcmd` updates `range` at audio frame boundaries without resetting the
+control detector, for example `asendcmd=c='0.0005 sidechaingate@g range 1'`.
+Target `sidechaingate` selects the first gate; `sidechaingate@NAME` selects a named
+instance. Invalid runtime values retain the previous range.
 Numeric options accept expressions such as `level_sc=1/2`, `attack=2+3`, and
 `makeup=sqrt(4)`. The `mode`, `detection`, and `link` options also accept expressions
 with their named choices, such as `mode=1-1`, `detection=0.75`, and

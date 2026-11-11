@@ -1,10 +1,17 @@
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
+// Native DitherX/DitherY use the first eight entries of the ordered dither matrix.
+const ditherOffsets = [0, 48, 12, 60, 3, 51, 15, 63];
+
 /** Return a source pixel index, or -1 for a constant virtual pixel. */
 export function virtualPixelIndex(x: number, y: number, width: number, height: number, method: VirtualPixelMethod | undefined): number {
     if (x >= 0 && y >= 0 && x < width && y < height) return y * width + x;
     const wrap = (value: number, size: number) => ((value % size) + size) % size;
     switch (method) {
+        case "dither":
+            x = Math.max(0, Math.min(width - 1, x + ditherOffsets[x & 7]! - 32));
+            y = Math.max(0, Math.min(height - 1, y + ditherOffsets[y & 7]! - 32));
+            break;
         case "edge":
             x = Math.max(0, Math.min(width - 1, x)); y = Math.max(0, Math.min(height - 1, y));
             break;

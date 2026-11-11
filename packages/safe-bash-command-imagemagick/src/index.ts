@@ -7509,7 +7509,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 while (!next.done) next = steps.next(sources[next.value.channel]!.subarray(next.value.position, next.value.position + next.value.length));
                 bytes.set(next.value, position);
             }
-            frames.push(Object.assign(decodeImage(bytes), { [magickInput]: { filePath: path, byteLen: sources[0]!.length, sceneIdx: page } }));
+            frames.push(Object.assign(decodeImage(bytes), { [magickInput]: { filePath: path, inputFormat: packedCoder.toUpperCase(), byteLen: sources[0]!.length, sceneIdx: page } }));
         }
         return yield* applyMod(frames);
     }
@@ -7553,7 +7553,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 while (!next.done) next = steps.next((partitions?.[next.value.channel] ?? rawBytes).subarray(next.value.position, next.value.position + next.value.length));
                 bytes.set(next.value, position);
             }
-            frames.push(Object.assign(decodeImage(bytes), { [magickInput]: { filePath: cleanToken, byteLen: rawBytes.length, originalWidth: state.sizeWidth, originalHeight: state.sizeHeight, sceneCount: raw.pages, sceneIdx: page } }));
+            frames.push(Object.assign(decodeImage(bytes), { [magickInput]: { filePath: cleanToken, inputFormat: "RGB", byteLen: rawBytes.length, originalWidth: state.sizeWidth, originalHeight: state.sizeHeight, sceneCount: raw.pages, sceneIdx: page } }));
         }
         return yield* applyMod(frames);
     }
@@ -18447,7 +18447,7 @@ async function applyStoredInlineReadModifier(image: StoredRgbaImage, inlineGeom:
     return image;
 }
 
-async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{onInvalidIndex?:((index:number)=>void)|undefined;analysis?:{warnings:string}|undefined;registers?:ReadonlyMap<string, StoredImageStack>|undefined;source?:ImageByteSource|null|undefined;lastPage?:boolean;maxDecodeDimension?:number;extract?:string;visit?:(image:StoredRgbaImage)=>Promise<void>}={}):Promise<StoredRgbaImage|undefined>{
+async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{inputFormat?:string;onInvalidIndex?:((index:number)=>void)|undefined;analysis?:{warnings:string}|undefined;registers?:ReadonlyMap<string, StoredImageStack>|undefined;source?:ImageByteSource|null|undefined;lastPage?:boolean;maxDecodeDimension?:number;extract?:string;visit?:(image:StoredRgbaImage)=>Promise<void>}={}):Promise<StoredRgbaImage|undefined>{
  const {baseToken,pageSpec,inlineGeom:inputGeometry}=parseInputToken(token),lower=baseToken.toLowerCase();let image:StoredRgbaImage|undefined;
  let inlineGeom=inputGeometry ?? readOptions.extract;
  const generatedGeometry = inlineGeom && ["xc:", "canvas:", "gradient:", "radial-gradient:"].some(prefix => lower.startsWith(prefix)) ? parseMagickGeometry(inlineGeom) : undefined;
@@ -18543,7 +18543,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    const rawExtract=packedCoder==="gray"&&geometry?.hasOffset?geometry:undefined;
    const raw=packedCoder==="mono"?monoRasterInput(state.sizeWidth,state.sizeHeight,sources[0]!.size,state.inputOffset,state.inputEndian):packedCoder==="map"?mapRasterInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,sources[0]!.size,state.inputOffset):rawRasterInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",Math.min(...sources.map(source=>source.size))*sources.length,packedCoder==="gray"?1:packedCoder==="graya"?2:packedCoder==="cmyk"?4:packedCoder==="cmyka"?5:packedCoder,state.inputOffset, partition ? "partition" : (packedCoder === "gray" || packedCoder === "graya") && state.rawInterlace === "line" ? "line" : (packedCoder.startsWith("cmyk") || packedCoder.startsWith("rgb") || packedCoder.startsWith("bgr")) && (state.rawInterlace === "line" || state.rawInterlace === "plane") ? state.rawInterlace : packedCoder === "graya" && state.rawInterlace === "plane" ? "plane" : undefined, packedCoder === "gray" && state.tiffFloatingPoint, rawExtract);
    for(const page of selectedInputPages(pageSpec,raw.pages,readOptions.onInvalidIndex)){
-    image=await parseStoredCompareInput(`${packedCoder==="mono"?"pbm":packedCoder==="gray"?"pgm":packedCoder==="graya"?"pam":"miff"}:${path}${inlineGeom && !rawExtract ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,...(rawExtract?{extract:""}:{}),source:{size:raw.size,async read(position,length){
+    image=await parseStoredCompareInput(`${packedCoder==="mono"?"pbm":packedCoder==="gray"?"pgm":packedCoder==="graya"?"pam":"miff"}:${path}${inlineGeom && !rawExtract ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,inputFormat:packedCoder.toUpperCase(),...(rawExtract?{extract:""}:{}),source:{size:raw.size,async read(position,length){
      const steps=raw.read(position,length,page);let next=steps.next();
      while(!next.done)next=steps.next(await sources[next.value.channel]!.read(next.value.position,next.value.length,{signal}));
      return next.value;
@@ -18565,7 +18565,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const consume=async(sources:ImageByteSource[])=>{
    const raw=rawRasterInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",Math.min(...sources.map(source=>source.size))*sources.length,3,state.inputOffset,state.rawInterlace, state.tiffFloatingPoint);
    for(const page of selectedInputPages(pageSpec,raw.pages,readOptions.onInvalidIndex)){
-    image=await parseStoredCompareInput(`ppm:${path}${inlineGeom ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,source:{size:raw.size,async read(position,length){
+    image=await parseStoredCompareInput(`ppm:${path}${inlineGeom ? `[${inlineGeom}]` : ""}`,state,backend,signal,{...readOptions,inputFormat:"RGB",source:{size:raw.size,async read(position,length){
      const steps=raw.read(position,length,page);let next=steps.next();
      while(!next.done)next=steps.next(await sources[next.value.channel]!.read(next.value.position,next.value.length,{signal}));
      return next.value;
@@ -18677,6 +18677,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
 
  }
  async function finish(image:StoredRgbaImage):Promise<StoredRgbaImage>{
+  if (readOptions.inputFormat !== undefined) image = { ...image, [magickInput]: { ...image[magickInput], inputFormat: readOptions.inputFormat } };
   if (image.format === "webp") image = { ...image, [magickInput]: { ...image[magickInput], outputScene: 0 } };
   // Match buffered EXR input: the implicit opaque alpha is an active channel.
   if (image.format === "exr" && !image.hasAlpha) image = { ...image, hasAlpha: true, channels: image.channels === 1 ? 2 : 4 };

@@ -13739,6 +13739,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const [target, action, expression] = words;
                           const supported = action === "enable" && ["tremolo", "vibrato", "dcshift", "deesser"].some(name => target === name || target?.startsWith(`${name}@`))
                             || target === "silenceremove" || target?.startsWith("silenceremove@")
+                            || action === "percent" && (target === "afwtdn" || target?.startsWith("afwtdn@"))
                             || action === "tempo" && (target === "atempo" || target?.startsWith("atempo@"))
                             || action === "volume" && (target === "volume" || target?.startsWith("volume@"))
                             || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))
@@ -14171,8 +14172,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         continue;
                       }
                       if (filterName === "afwtdn") {
+                        const commands = audioCommands.filter(command => command.target === "afwtdn" || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        audioCommands = audioCommands.filter(command => command.target !== "afwtdn" && command.target !== filterTarget);
                         const denoised = await denoiseWavelets(stretched, origRate, trimmed,
-                          audioTimestamps ?? [{ start: 0, end: stretched[0]?.length ?? 0, pts: audioStartSample }], budget, context.signal);
+                          audioTimestamps ?? [{ start: 0, end: stretched[0]?.length ?? 0, pts: audioStartSample }], budget, context.signal, commands);
                         stretched = denoised.channels;
                         audioTimestamps = denoised.frames;
                         continue;

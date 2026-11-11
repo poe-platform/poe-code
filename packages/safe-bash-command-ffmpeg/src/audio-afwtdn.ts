@@ -69,7 +69,8 @@ const rbior68Inverse = [
 export async function denoiseWavelets(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
   filter: string, frames: readonly { start: number; end: number; pts: number }[],
-  budget: MediaBudgetTracker, signal?: AbortSignal
+  budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { sample: number; expression: string }[] = []
 ): Promise<{ channels: Float64Array[]; frames: { start: number; end: number; pts: number }[] }> {
   const defaults = { sigma: 0, levels: 10, wavet: 4, percent: 85, profile: 0, adaptive: 0, samples: 8192, softness: 1 };
   const options = { ...defaults };
@@ -138,9 +139,10 @@ export async function denoiseWavelets(
   const overlap = new Float64Array(overlapSize);
   const deviation = new Float64Array(levels + 1), absmean = new Float64Array(levels + 1);
   const measuredDeviation = new Float64Array(levels + 1), measuredAbsmean = new Float64Array(levels + 1);
-  const mix = options.percent * 0.01;
   try {
     for (const [c, channel] of channels.entries()) {
+      let mix = options.percent * 0.01;
+      let nextCommand = 0;
       overlap.fill(0); deviation.fill(0); absmean.fill(0);
       // Native starts the decimation phase at sample 1, pads with silence and
       // discards the transform delay. Keep the same phase for non-power-of-two windows.
@@ -161,6 +163,15 @@ export async function denoiseWavelets(
             outputFrames.push({ start: from, end, pts });
             nextPts = pts + end - from;
           }
+        }
+        // Commands arrive as input frames fill this window, before its transform.
+        // Keep the last accepted mix through the EOF flush and preserve overlap.
+        while (nextCommand < commands.length && commands[nextCommand]!.sample < Math.min(start + size, length)) {
+          const command = commands[nextCommand++]!;
+          try {
+            const percent = parseFilterExpression(command.expression, "afwtdn", { min: 0, max: 100, default: 85 });
+            if (Number.isFinite(percent) && percent >= 0 && percent <= 100) mix = percent * 0.01;
+          } catch { /* Native retains the previous value after a rejected command. */ }
         }
         const sn = start + 1;
         const extension = (period - 1) * (taps - 2) + sn % period;

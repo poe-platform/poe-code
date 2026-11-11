@@ -123,3 +123,34 @@ for (const graph of [false, true]) for (const option of [
   assert.ok(stderr.includes("afwtdn:"), stderr);
   assert.equal(fs.readFileSync("/out.wav", "utf8"), "KEEP");
 });
+
+// Native FFmpeg 7.0.2, mono PCM16 at 8 kHz; commands retain wavelet overlap.
+const commandSamples = Float64Array.from({ length: 1200 }, (_, i) => ((i * 13129) % 30001 - 15000) / 32768);
+const commandInput = Buffer.from(encodeWav({ sampleRate: 8000, channels: [commandSamples] }));
+const commandFilter = "afwtdn=samples=512:levels=2:wavet=sym2:sigma=0.1";
+for (const [filter, hash, stereo = false] of [
+  [commandFilter, "2f2ba9f7bee86dd971296640edace24e1665063b4b55e640804c503b7b4de795"],
+  [commandFilter + ":percent=0", "3b580af95602a2b1d31c45cc2248683c1147cbc95ff260c92421f251b6bb1366"],
+  ["asendcmd=c='0 afwtdn percent 0'," + commandFilter, "3b580af95602a2b1d31c45cc2248683c1147cbc95ff260c92421f251b6bb1366"],
+  ["asendcmd=c='0.064 afwtdn percent 0'," + commandFilter, "630be1182362e25739f65be6ee21a46b9f19eb1bd9dde4b310da4ac3d6d936b9"],
+  ["asendcmd=c='0 afwtdn percent 0;0.064 afwtdn percent 85'," + commandFilter, "083c26710a9fbef48f515b5074bceb662d7766e4b13392c99efa4ed98d4c5cd0"],
+  ["asetnsamples=n=128:p=0,asendcmd=c='0.016 afwtdn percent 0'," + commandFilter, "3b580af95602a2b1d31c45cc2248683c1147cbc95ff260c92421f251b6bb1366"],
+  [commandFilter + ",asendcmd=c='0 afwtdn percent 0'", "630be1182362e25739f65be6ee21a46b9f19eb1bd9dde4b310da4ac3d6d936b9"],
+  ["asendcmd=c='0.064 afwtdn@clean percent 0'," + commandFilter.replace("afwtdn=", "afwtdn@clean="), "13ea2def994e48b3a2558f279d72120af0d833198cd7cbe4e38297ed83be0e70", true],
+  ["asendcmd=c='0 afwtdn@other percent 0;0.064 afwtdn@clean percent 0;0.128 afwtdn@clean percent 101'," + commandFilter.replace("afwtdn=", "afwtdn@clean="), "13ea2def994e48b3a2558f279d72120af0d833198cd7cbe4e38297ed83be0e70", true],
+  ["asendcmd=c='0 afwtdn@clean percent 0;0.064 afwtdn@clean percent bogus'," + commandFilter.replace("afwtdn=", "afwtdn@clean="), "2d932efa29d4850dc4a9158802c301f079838e4d63fde39f4df350dcf3eb708f", true],
+  ["asendcmd=c='0 afwtdn@clean percent 0;0.064 afwtdn@clean percent max'," + commandFilter.replace("afwtdn=", "afwtdn@clean="), "5e551409e86aff5a2ba095e35de7534962202abe89f45e9921a932aec24abf2d", true],
+] as const) for (const graph of [false, true]) it(`matches native timed percent: ${filter} (graph=${graph}, stereo=${stereo})`, async () => {
+  const bytes = stereo ? Buffer.from(encodeWav({ sampleRate: 8000,
+    channels: [commandSamples, commandSamples.slice().reverse()] })) : commandInput;
+  const { fs, result, stderr } = await run(filter, graph, bytes);
+  assert.equal(result.exitCode, 0, stderr);
+  const channels = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData;
+  assert.equal(channels.length, stereo ? 2 : 1);
+  const pcm = Buffer.alloc(channels[0]!.length * channels.length * 2);
+  for (let i = 0; i < channels[0]!.length; i++) for (let c = 0; c < channels.length; c++) {
+    pcm.writeInt16LE(channels[c]![i]! * 32768, (i * channels.length + c) * 2);
+  }
+  assert.equal(pcm.length, 3054 * channels.length);
+  assert.equal(createHash("sha256").update(pcm).digest("hex"), hash);
+});

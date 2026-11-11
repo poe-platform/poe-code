@@ -646,7 +646,9 @@ function parseDelay(value: string, ticksPerSecond = 100, current?: number): { mi
   if (!geometry.trim() || fields.length > 3 ||
       [...parts, ...fields.slice(1)].some(part => !Number.isFinite(Number(part)))) return { milliseconds: NaN, ticksPerSecond, delayTicks: 0 };
   const [delay, ticks] = parts;
-  let next = Math.round(Number(delay));
+  // A pair of signed offsets has no duration; a single signed number still does.
+  let next = parts.length === 1 && fields.length > 1 && "+-".includes(geometry.trimStart().charAt(0))
+    ? 0 : Math.round(Number(delay));
   if (current !== undefined) {
     const previous = Math.round(current * ticksPerSecond / 1000);
     if (value.includes(">")) next = Math.min(previous, next);
@@ -658,11 +660,11 @@ function parseDelay(value: string, ticksPerSecond = 100, current?: number): { mi
 }
 
 function parseDelayOption(value: string, current: number): ReturnType<typeof parseDelay> {
-  validateMagickTransformGeometry(value, "-delay");
   const delay = parseDelay(value);
   if (!Number.isFinite(delay.milliseconds)) {
     throw new Error(`invalid argument for option '-delay' '${value}'`);
   }
+  validateMagickTransformGeometry(value, "-delay");
   // Incoming delays are stored in milliseconds at the default 100 ticks/second.
   if (value.includes(">")) delay.delayTicks = Math.min(current / 10, delay.delayTicks);
   else if (value.includes("<")) delay.delayTicks = Math.max(current / 10, delay.delayTicks);

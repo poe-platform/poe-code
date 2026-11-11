@@ -4710,7 +4710,7 @@ async function applyVideoFilterChain(
         throw new Error("field: expected type=top or bottom");
       }
       const value = parseFilterExpression(named.type ?? (positional[0]?.includes("=") ? "top" : positional[0] || "top"),
-        "field", { top: 0, bottom: 1, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
+        "field", { top: 0, bottom: 1, default: 0, min: 0, max: 1, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
       if (!Number.isFinite(value) || value < 0 || value > 1) throw new RangeError("field: expected type=top or bottom");
       const parity = roundToEven(value);
       current = await mapWork(current, async (f) => {

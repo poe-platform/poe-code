@@ -9,18 +9,19 @@ export async function exciteAudio(
   commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<Float64Array[]> {
   let enable: string | undefined;
-  const options = { level_in: 1, level_out: 1, amount: 1, drive: 8.5, blend: 0, freq: 7500, ceil: 9999, listen: 0 };
-  const ranges = { level_in: [0, 64], level_out: [0, 64], amount: [0, 64], drive: [0.1, 10], blend: [-10, 10], freq: [2000, 12000], ceil: [9999, 20000], listen: [0, 1] };
+  const defaults = { level_in: 1, level_out: 1, amount: 1, drive: 8.5, blend: 0, freq: 7500, ceil: 9999, listen: 0 };
+  const options = { ...defaults };
+  const ranges = { level_in: [0, 64], level_out: [0, 64], amount: [0, 64], drive: [0.1, 10], blend: [-10, 10], freq: [2000, 12000], ceil: [9999, 20000], listen: [0, 1] } as const;
   const names = Object.keys(options) as (keyof typeof options)[];
   const setOption = (key: keyof typeof options, value: string) => {
-    const number = key !== "listen" ? parseFilterExpression(value, "aexciter", {})
+    const [min, max] = ranges[key];
+    const number = key !== "listen" ? parseFilterExpression(value, "aexciter", { min, max, default: defaults[key] })
       : ["true", "yes", "on"].includes(value.toLowerCase()) ? 1
       : key === "listen" && ["false", "no", "off"].includes(value.toLowerCase()) ? 0 : Number(value);
-    const [min, max] = ranges[key];
     if (!value || !Number.isFinite(number) || key === "listen" && !Number.isInteger(number)) {
       throw new Error(`aexciter: invalid ${key}`);
     }
-    if (number < min! || number > max!) throw new RangeError(`aexciter: invalid ${key}`);
+    if (number < min || number > max) throw new RangeError(`aexciter: invalid ${key}`);
     options[key] = number;
   };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";

@@ -319,8 +319,8 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
             // Achromatic HWB ignores whiteness, including after channel edits.
             r = g = b = 1 - b;
         } else {
-            // HSL arithmetic can move hue outside one turn in either direction.
-            if (image.magickColorspace === "HSL") r -= Math.floor(r);
+            // HSL and HSV/HSB wrap hue after channel edits or interpolation overshoot.
+            if (image.magickColorspace === "HSL" || hsb) r -= Math.floor(r);
             // Edited HWB channels can sum above one; native preserves the negative chroma.
             const hue = (r < 0 || r === 1 ? 0 : r) * 6, chroma = hwb ? 1 - g - b : (hsb ? b : 1 - Math.abs(2 * b - 1)) * g, x = chroma * (1 - Math.abs(hue % 2 - 1)), m = hwb ? g : b - chroma / (hsb ? 1 : 2);
             [r, g, b] = hue < 1 ? [chroma, x, 0] : hue < 2 ? [x, chroma, 0] : hue < 3 ? [0, chroma, x] : hue < 4 ? [0, x, chroma] : hue < 5 ? [x, 0, chroma] : [chroma, 0, x];

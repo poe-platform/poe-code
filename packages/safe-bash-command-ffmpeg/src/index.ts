@@ -13127,7 +13127,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const rawTimeBase = outputFormat === "rawvideo" && diagnostics.frameRateKnown
                     ? encoderTimeBases.get(index) ?? (filtered[0]?.durationSeconds || diagnostics.frameDuration) * diagnostics.frameRateScale
                     : undefined;
-                  if (outputFormat === "rawvideo" && ["auto", "-1", "cfr", "1", "vfr", "2"].includes(videoSync)) {
+                  if ((outputFormat === "rawvideo" || outPlugin?.id === "y4m") && ["auto", "-1", "cfr", "1", "vfr", "2"].includes(videoSync)) {
                     const statistics = { duplicates: 0 };
                     const rate = outputFps ?? (diagnostics.frameRateKnown
                       ? 1 / ((filtered[0]?.durationSeconds || diagnostics.frameDuration) * diagnostics.frameRateScale) : 25);

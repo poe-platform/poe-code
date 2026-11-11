@@ -290,7 +290,8 @@ export async function synchronizeRawVideoFrames(
 ): Promise<MediaVideoFrame[]> {
   const output: MediaVideoFrame[] = [];
   const previousCopies = [0, 0, 0];
-  let nextPts = Math.round((frames[0]?.ptsSeconds ?? 0) * rate);
+  // CFR starts at output time zero, filling a delayed first picture.
+  let nextPts = mode === "cfr" ? 0 : Math.round((frames[0]?.ptsSeconds ?? 0) * rate);
   for (let index = 0; index <= frames.length && output.length < limit; index++) {
     if (index % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
     budget.checkCpu();
@@ -318,7 +319,7 @@ export async function synchronizeRawVideoFrames(
     if (!Number.isSafeInteger(copies)) throw new Error("Invalid output frame timestamp");
     for (let copy = 0; copy < copies && output.length < limit; copy++, nextPts++) {
       if (output.length % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
-      const source = copy < previous ? frames[index - 1]! : frame!;
+      const source = copy < previous && index > 0 ? frames[index - 1]! : frame!;
       budget.checkCpu();
       budget.checkSamples(output.length + 1);
       budget.checkDuration((output.length + 1) / rate);

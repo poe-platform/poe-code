@@ -129,12 +129,12 @@ it("separates modified RGB rows after native planes are invalidated", async () =
     source.output.subarray(row * 16, (row + 1) * 16))));
 });
 
-it("rejects odd source heights without replacing the destination", async () => {
+it("rejects odd source heights after opening the destination", async () => {
   const input = Buffer.concat([Buffer.from("YUV4MPEG2 W4 H3 F6:1 It A1:1 C444\nFRAME\n"), Buffer.alloc(36, 128)]);
   const result = await run(input);
-  assert.notEqual(result.exitCode, 0);
+  assert.equal(result.exitCode, 183, result.stderr);
   assert.ok(result.stderr.includes("separatefields: height must be even"), result.stderr);
-  assert.equal(result.output.toString(), "KEEP");
+  assert.equal(result.output.length, 0);
 });
 
 it("doubles the time base established by an upstream fps filter", async () => {

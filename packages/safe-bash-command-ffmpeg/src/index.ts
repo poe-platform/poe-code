@@ -17304,6 +17304,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 msg === "aphaser: delay is too small" ||
                 msg.startsWith("channelsplit: unsupported input channel order ") ||
                 msg === "Padded dimensions cannot be smaller than input dimensions" ||
+                msg === "separatefields: height must be even" ||
                 msg === "negate: Requested components not available" || msg.startsWith("fps: frame rate:") ||
                 msg === "decimate: The input needs a constant frame rate; current rate of 1/0 is invalid") {
               // Filter configuration can fail after file
@@ -17312,7 +17313,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (!imageOutput && outputFormat !== "null" && !isStdout(outputTarget) && outputTarget !== "/dev/null" && !outputTarget.startsWith("md5:")) {
                 await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
               }
-              return { exitCode: 234 };
+              return { exitCode: msg === "separatefields: height must be even" ? 183 : 234 };
             }
             if (err instanceof AgateError) return { exitCode: err.exitCode };
             if (msg === "channelmap: invalid or duplicate output channel") return { exitCode: 234 };

@@ -66,7 +66,7 @@ export async function passAudio(
   const inputFormat = sampleFormat;
   if (precision !== -1) sampleFormat = ["s16p", "s32p", "fltp", "dblp"][precision]!;
   else if (!sampleFormat.endsWith("p")) sampleFormat += "p";
-  const single = sampleFormat === "fltp" || shelf && sampleFormat === "s16p";
+  const single = sampleFormat === "fltp" || sampleFormat === "s16p";
   const scale = sampleFormat === "s16p" ? 32768 : sampleFormat === "s32p" ? 2147483648 : 1;
   const convert = (value: number) => {
     if (sampleFormat === "fltp") return Math.fround(value);
@@ -151,7 +151,7 @@ export async function passAudio(
     a1 = Math.fround(a1); a2 = Math.fround(a2);
     b0 = Math.fround(b0); b1 = Math.fround(b1); b2 = Math.fround(b2);
   }
-  // Native shelf PCM16 and float modes round every operation to single precision.
+  // Native PCM16 and float modes round every operation to single precision.
   const wet = single ? Math.fround(options.mix) : options.mix;
   const dry = single ? Math.fround(1 - wet) : 1 - wet;
   const filterSample = (input: number, x1: number, x2: number, y1: number, y2: number) => single

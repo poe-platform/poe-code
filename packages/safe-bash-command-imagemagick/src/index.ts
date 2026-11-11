@@ -14174,15 +14174,16 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const expanded = yield* formatMagickPropertyStringSteps(argument, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 const angle = parseMagickPolaroidAngle(expanded);
                 const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
+                const masked = !!image.writeMask;
                 const border = Math.trunc(Math.max(image.width / 25, image.height / 25, 10));
                 const transparent = { r: 0, g: 0, b: 0, a: 0 };
                 const text = image.properties?.caption;
                 const font = state.font === undefined ? defaultCaptionFont : files.get(state.font);
                 if (text !== undefined && state.font !== undefined && !font) throw new Error(`unable to read font '${state.font}'`);
                 const caption = text !== undefined && font ? renderFontCaption(font, text, image.width, state.pointsize, state.density, state.fill, state.borderColor, state.strokeWidth, signal) : undefined;
-                let picture = yield* applyMagickRasterSteps({ ...image, isPalette: false }, polaroidPixels(image, border, state.borderColor, caption, channels), signal,
+                let picture = yield* applyMagickRasterSteps({ ...image, isPalette: false }, polaroidPixels(image, border, state.borderColor, caption, channels, masked), signal,
                     { width: image.width + 2 * border, height: image.height + 2 * border + (caption?.height ?? 0), hasAlpha: true });
-                picture = { ...picture, alphaBlend: true, alphaSeparate: false, inactiveAlpha: false };
+                picture = { ...picture, writeMask: undefined, alphaBlend: true, alphaSeparate: false, inactiveAlpha: false };
                 if (picture.space === "b-w" || picture.space === "grey16") {
                     const { magickColorspace: ignoredSpace, ...rgb } = picture;
                     picture = { ...rgb, space: "srgb", channels: 4, gamma: 1 / 2.2 };
@@ -14197,7 +14198,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     map: (x, y) => [Math.fround(x - Math.fround(amplitude * (1 + Math.sin(Math.PI * (height - 1 - y) / height)))), y] };
                 picture = yield* applyMagickRasterSteps(picture, warpPixelSteps(picture, bend, transparent, "background"), signal, bend);
                 const layout = magickShadowLayout(picture, `80x2+${Math.trunc(border / 3)}+${Math.trunc(border / 3)}`);
-                let result = yield* applyMagickRasterSteps(picture, shadowPixelSteps(picture, layout, state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background, channels?.[3] ?? true), signal, layout);
+                let result = yield* applyMagickRasterSteps(picture, shadowPixelSteps(picture, layout, state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background, !masked && (channels?.[3] ?? true)), signal, layout);
                 // ShadowImage retains a cleared read-mask channel on the new canvas.
                 if (image.readMask) result.readMask = yield* createSolidRgbaImageSteps(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 });
                 result = { ...yield* flopImageSteps(result), virtualCanvas: magickMirrorCanvas({ ...result, virtualCanvas: layout.virtualCanvas }, "flop") };
@@ -14206,6 +14207,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const plan = operation?.plan(result);
                 result = plan ? { ...yield* applyMagickRasterSteps(result, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) }
                     : { ...yield* rotateImageSteps(result, angle, transparent), virtualCanvas: magickRotateCanvas(result, angle) };
+                // Geometry creates a fresh mask channel; the input-sized plane is stale.
+                if (masked) result.writeMask = yield* createSolidRgbaImageSteps(result.width, result.height, { r: 0, g: 0, b: 0, a: 255 });
                 return yield* trimMagickSteps(result, state.alphaFuzz, undefined, undefined, undefined, analysis, undefined, transparent);
             });
         }
@@ -18389,6 +18392,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const expanded = await formatRetainedIdentify(argument, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 const angle = parseMagickPolaroidAngle(expanded);
                 const channels = settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined;
+                const masked = !!image.storedWriteMask;
                 const border = Math.trunc(Math.max(image.width / 25, image.height / 25, 10));
                 const transparent = { r: 0, g: 0, b: 0, a: 0 };
                 const text = image.properties?.caption;
@@ -18398,9 +18402,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }) : defaultCaptionFont;
                 if (text !== undefined && settings.font !== undefined && !font) throw new Error(`unable to read font '${settings.font}'`);
                 const caption = text !== undefined && font ? renderFontCaption(font, text, image.width, settings.pointsize, settings.density, settings.fill, settings.borderColor, settings.strokeWidth, signal) : undefined;
-                let picture = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, polaroidPixels(image, border, settings.borderColor, caption, channels), signal,
+                let picture = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, polaroidPixels(image, border, settings.borderColor, caption, channels, masked), signal,
                     { width: image.width + 2 * border, height: image.height + 2 * border + (caption?.height ?? 0), hasAlpha: true });
-                picture = { ...picture, alphaBlend: true, alphaSeparate: false, inactiveAlpha: false };
+                picture = { ...picture, storedWriteMask: undefined, alphaBlend: true, alphaSeparate: false, inactiveAlpha: false };
                 if (picture.space === "b-w" || picture.space === "grey16") {
                     const { magickColorspace: ignoredSpace, ...rgb } = picture;
                     picture = { ...rgb, space: "srgb", channels: 4, gamma: 1 / 2.2 };
@@ -18414,7 +18418,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     map: (x, y) => [Math.fround(x - Math.fround(amplitude * (1 + Math.sin(Math.PI * (height - 1 - y) / height)))), y] };
                 picture = await transformStoredMagickRaster(picture, backend, warpPixelSteps(picture, bend, transparent, "background"), signal, bend);
                 const layout = magickShadowLayout(picture, `80x2+${Math.trunc(border / 3)}+${Math.trunc(border / 3)}`);
-                let result = await transformStoredMagickRaster(picture, backend, shadowPixelSteps(picture, layout, settings.backgroundExplicit ? settings.background : image.backgroundColor ?? settings.background, channels?.[3] ?? true), signal, layout);
+                let result = await transformStoredMagickRaster(picture, backend, shadowPixelSteps(picture, layout, settings.backgroundExplicit ? settings.background : image.backgroundColor ?? settings.background, !masked && (channels?.[3] ?? true)), signal, layout);
                 // ShadowImage retains a cleared read-mask channel on the new canvas.
                 if (image.readMask) result.readMask = await createStoredCanvas(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                 result = { ...await transformStoredImage(result, backend.storage, { kind: "flop" }, signal), virtualCanvas: magickMirrorCanvas({ ...result, virtualCanvas: layout.virtualCanvas }, "flop") };
@@ -18423,6 +18427,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const plan = operation?.plan(result);
                 result = plan ? { ...await transformStoredMagickRaster(result, backend, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) }
                     : { ...await transformStoredImage(result, backend.storage, { kind: "rotate", angle, background: transparent }, signal), virtualCanvas: magickRotateCanvas(result, angle) };
+                // Geometry creates a fresh mask channel; the input-sized plane is stale.
+                if (masked) result.storedWriteMask = await createStoredCanvas(result.width, result.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                 return trimStoredMagick(result, backend.storage, settings.alphaFuzz, signal, undefined, undefined, undefined, analysis, undefined, transparent);
             });
         } else if (!operandsOnly && token === "-shadow") {

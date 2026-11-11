@@ -1,3 +1,4 @@
+import { distortCompositeSteps } from "./distort-compose.js";
 import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
@@ -15,6 +16,10 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
     left = Math.round(left);
     top = Math.round(top);
     const { name } = magickCompositeMode(mode);
+    if (name === "distort") {
+        yield* distortCompositeSteps(base, overlay, left, top, args, tile);
+        return;
+    }
     const scales = name === "displace" && args !== undefined
         ? args.toLowerCase().replaceAll(",", "x").split("x").map(value => Number.parseFloat(value)) : [];
     const scaleX = scales[0] ?? (overlay.width - 1) / 2;

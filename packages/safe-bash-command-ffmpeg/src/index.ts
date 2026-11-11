@@ -15351,7 +15351,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             registers.fill(0);
                             factor = evaluateGain();
                           }
-                          if (evaluation === "frame") {
+                          if (evaluation === "frame" && enabled) {
                             Object.assign(variables, { n, t: pts / origRate, pts, startpts, startt: startpts / origRate });
                             factor = evaluateGain();
                           }

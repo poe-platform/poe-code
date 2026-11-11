@@ -2323,6 +2323,27 @@ describe("volume timeline enable", () => {
 });
 
 describe("frame-evaluated volume", () => {
+  for (const expression of ["st(0\\,ld(0)+1)", "if(isnan(volume)\\,1\\,volume+1)"]) {
+    for (const [timeline, expected] of [
+      ["", [200, 200, 300, 300, 400, 400, 500, 500]],
+      [":enable=gte(n\\,2)", [100, 100, 100, 100, 200, 200, 300, 300]],
+      [":enable=not(mod(n\\,2))", [200, 200, 100, 100, 300, 300, 100, 100]],
+      [":enable=0", [100, 100, 100, 100, 100, 100, 100, 100]]
+    ] as const) {
+      it(`advances stateful gain only on enabled frames: ${expression}${timeline}`, async () => {
+        const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000,
+          channels: [new Float64Array(8).fill(100 / 32768)] }) });
+        const result = await runCmd(createFfmpegCommand(), [
+          "-i", "/in.wav", "-af", `asetnsamples=n=2:p=0,volume=${expression}:eval=frame${timeline}`,
+          "-c:a", "pcm_s16le", "/out.wav"
+        ], vfs);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const actual = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData[0]!;
+        assert.deepEqual(Array.from(actual, sample => Math.round(sample * 32768)), expected);
+      });
+    }
+  }
+
   // Native FFmpeg 7.0.2 and 9.0.1 restore this 8 kHz signal at sample 4096.
   for (const [expression, transition] of [
     ["if(lt(t\\,0.5)\\,0\\,1)", 4096],

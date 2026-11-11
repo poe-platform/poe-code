@@ -2648,10 +2648,6 @@ async function applyVideoFilterChain(
           (index > 1 || index === 1 && positional[0]!.includes("=")))) {
         throw new Error("metadata: unsupported mode or option");
       }
-      if (pending && mode !== "print" && mode !== "4") {
-        if (!pendingBounded) throw new Error("loop: infinite replay requires a downstream trim before buffered filters");
-        await materializePending();
-      }
       if (named.enable !== undefined && current.length === 0) {
         parseFilterExpression(named.enable, "metadata enable", { n: 0, t: 0, w: 0, h: 0, pos: NaN, NAN: NaN, INF: Infinity });
       }
@@ -2659,80 +2655,65 @@ async function applyVideoFilterChain(
         Math.abs(parseFilterExpression(named.enable, "metadata enable", {
           n, t: frame.ptsSeconds, w: frame.width, h: frame.height, pos: frame.offset ?? NaN, NAN: NaN, INF: Infinity
         })) >= 0.5;
-      if (mode === "delete") {
-        current = await mapWork(current, (frame, n) => {
-          budget.checkCpu();
-          if (!enabled(frame, n)) return frame;
-          return { ...frame, filterMetadata: Object.fromEntries(
-            Object.entries(frame.filterMetadata ?? {}).filter(([key]) =>
-              named.key !== undefined && key.toLowerCase() !== named.key.toLowerCase())
-          ) };
-        }, signal);
-        continue;
+      const { key, value, file } = named;
+      if ((mode === "add" || mode === "modify") && (!key || value === undefined)) {
+        throw new Error(`metadata: ${mode} requires key and value`);
       }
-      if (mode === "add" || mode === "modify") {
-        const { key, value } = named;
-        if (!key || value === undefined) throw new Error(`metadata: ${mode} requires key and value`);
-        const lookupKey = key.toLowerCase();
-        current = await mapWork(current, (frame, n) => {
-          budget.checkCpu();
-          if (!enabled(frame, n)) return frame;
-          if (mode === "modify" ? !Object.hasOwn(frame.filterMetadata ?? {}, key)
-            : Object.keys(frame.filterMetadata ?? {}).some(name => name.toLowerCase() === lookupKey)) return frame;
-          budget.allocateMemory(64 + 2 * (key.length + value.length));
-          return { ...frame, filterMetadata: { ...frame.filterMetadata, [key]: value } };
-        }, signal);
-        continue;
-      }
+      const comparison = named.function ?? "same_str";
       if (mode === "select") {
-        if (!named.key) throw new Error("metadata: mode=select requires key");
-        const comparison = named.function ?? "same_str";
+        if (!key) throw new Error("metadata: mode=select requires key");
         if (comparison !== "same_str" && comparison !== "greater") throw new Error(`metadata: unsupported function ${comparison}`);
-        const lookupKey = named.key.toLowerCase();
-        const selected: typeof current = [];
-        for (const [n, frame] of current.entries()) {
-          if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-          if (!enabled(frame, n)) { selected.push(frame); continue; }
-          const tag = Object.entries(frame.filterMetadata ?? {}).find(([key]) => key.toLowerCase() === lookupKey);
-          if (tag && (named.value === undefined || (comparison === "greater"
-            ? Number.parseFloat(tag[1]) > Number.parseFloat(named.value) : tag[1] === named.value))) {
-            selected.push(frame);
-          }
-        }
-        current = selected;
-        continue;
       }
       if (named.direct !== undefined) parseFilterBoolean(named.direct, "metadata: invalid direct");
-      const file = named.file;
-      const source = pending ?? current;
-      const metadataTimescale = timescale;
-      if (!pending) pendingBounded = true;
-      pending = (async function* () {
-        let report = "";
+      const lookupKey = key?.toLowerCase();
+      const reportTimescale = timescale;
+      if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
+      pendingBounded = pending ? pendingBounded : true;
+      // Pull one frame through upstream detectors and downstream metadata before requesting the next.
+      pending = (async function* (source: Iterable<typeof current[number]> | AsyncIterable<typeof current[number]>) {
         let index = 0;
-        for await (const frame of source) {
-          budget.checkCpu();
-          if (enabled(frame, index) && (file || diagnostics.logLevel >= 32)) {
-            const entries = Object.entries(frame.filterMetadata ?? {}).filter(([key]) => !named.key || key === named.key);
-            if (entries.length) {
-              const pts = Math.round(frame.ptsSeconds * metadataTimescale);
-              const header = `frame:${String(index).padEnd(4)} pts:${String(pts).padEnd(7)} pts_time:${Number(frame.ptsSeconds.toPrecision(6))}\n`;
-              const record = header + entries.map(([key, value]) => `${key}=${value}\n`).join("");
-              if (file) {
-                budget.allocateMemory(record.length * 2);
-                report += record;
-              } else await diagnostics.write(record);
+        let report = "";
+        try {
+          for await (const frame of source) {
+            if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+            budget.checkCpu();
+            const n = index++;
+            if (!enabled(frame, n)) { yield frame; continue; }
+            if (mode === "delete") {
+              yield { ...frame, filterMetadata: Object.fromEntries(
+                Object.entries(frame.filterMetadata ?? {}).filter(([name]) =>
+                  lookupKey !== undefined && name.toLowerCase() !== lookupKey)
+              ) };
+            } else if (mode === "add" || mode === "modify") {
+              if (mode === "modify" ? !Object.hasOwn(frame.filterMetadata ?? {}, key!)
+                : Object.keys(frame.filterMetadata ?? {}).some(name => name.toLowerCase() === lookupKey)) {
+                yield frame;
+                continue;
+              }
+              budget.allocateMemory(64 + 2 * (key!.length + value!.length));
+              yield { ...frame, filterMetadata: { ...frame.filterMetadata, [key!]: value! } };
+            } else if (mode === "select") {
+              const tag = Object.entries(frame.filterMetadata ?? {}).find(([name]) => name.toLowerCase() === lookupKey);
+              if (tag && (value === undefined || (comparison === "greater"
+                ? Number.parseFloat(tag[1]) > Number.parseFloat(value) : tag[1] === value))) yield frame;
+            } else {
+              const entries = Object.entries(frame.filterMetadata ?? {}).filter(([name]) => !key || name === key);
+              if (entries.length && (file || diagnostics.logLevel >= 32)) {
+                const pts = Math.round(frame.ptsSeconds * reportTimescale);
+                const header = `frame:${String(n).padEnd(4)} pts:${String(pts).padEnd(7)} pts_time:${Number(frame.ptsSeconds.toPrecision(6))}\n`;
+                const record = header + entries.map(([name, value]) => `${name}=${value}\n`).join("");
+                if (file) {
+                  budget.allocateMemory(record.length * 2);
+                  report += record;
+                } else await diagnostics.write(record);
+              }
+              yield frame;
             }
           }
-          index++;
-          yield frame;
+        } finally {
+          if (file) await diagnostics.writeReport(file, report);
         }
-        if (file) await diagnostics.writeReport(file, report);
-      })();
-      if (file) {
-        if (!pendingBounded) throw new Error("loop: infinite replay requires a downstream trim before buffered filters");
-        await materializePending();
-      }
+      })(pending ?? current);
     } else if (name === "setdar" || name === "setsar") {
       let expression = "0";
       let maximum = "100";

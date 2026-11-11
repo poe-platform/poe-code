@@ -15168,8 +15168,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const spec = tokens[++i] ?? "";
             const scale = state.distortScale === undefined ? undefined : Math.abs(Number.parseFloat(state.distortScale));
             if (scale !== undefined && (!Number.isFinite(scale) || scale < 0.1)) throw new Error("invalid argument for option distort:scale");
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const expanded = yield* formatMagickPropertyStringSteps(spec, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(spec, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 let background = state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background;
                 if (state.deskewAutoCrop === "1") background = deskewBackground(image, background, [0, image.height - 1].map(y => image.data.subarray(y * image.width * 4, (y * image.width + Math.min(2, image.width)) * 4)));
                 let plan = deskewPlan(image, yield* deskewAngleSteps(image, expanded), background, state.pointFilter, state.interpolation);
@@ -19498,8 +19499,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return kind === "autoOrient" ? output : preserveStoredRegionTransform(image, output, backend, signal);
             });
         } else if (!operandsOnly && token === "-deskew") {
+            let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                images = stack;
                 return stack;
             });
             const spec = tokens[++i] ?? "", background = state.background, autoCrop = state.deskewAutoCrop, fuzz = state.alphaFuzz, percentBackground = state.trimPercentBackground, pointFilter = state.pointFilter, interpolation = state.interpolation, kernel = state.kernel, filter = state.resizeFilter;
@@ -19509,7 +19512,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async (input, backend) => {
                 if (!input) return;
                 let image = input;
-                const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 let color = backgroundExplicit ? background : image.backgroundColor ?? background;
                 if (autoCrop === "1") color = deskewBackground(image, color, await Promise.all([0, image.height - 1].map(y => backend.storage.read(image.position + y * image.width * 4, Math.min(2, image.width) * 4))));
                 let plan = deskewPlan(image, await storedDeskewAngle(image, backend.storage, expanded, signal), color, pointFilter, interpolation);

@@ -85,13 +85,15 @@ export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" 
                 sums[3]! += pixel[3]! * weights[j]!;
             }
             // Q16-HDRI retains float32 quantum samples until output encoding.
-            // Inactive alpha still weights colors, but its original samples are retained.
+            // Deactivated alpha still weights colors and retains its original samples.
             for (let c = 0; c < (cmyk ? 5 : 4); c++) if ((!mask || mask[c]) && !(c === 3 && image.inactiveAlpha)) {
                 const value = Math.fround((c === 3 ? sums[3]! : !alphaActive ? sums[c]! : sums[3] ? sums[c]! / sums[3] : 0) * 257 / scale) / 257;
                 if (inks && c !== 3) inks[i * 4 + (c === 4 ? 3 : c)] = value / 255;
                 else data[i * 4 + c] = value;
             }
         }
+        // Native allocates zeroed alpha for an undefined alpha trait, including disassociate.
+        if (!alphaActive) for (let i = 0; i < count; i++) data[i * 4 + 3] = 0;
         if (inks) {
             for (let i = 0; i < count; i++) for (let c = 0; c < 3; c++) data[i * 4 + c] = (1 - inks[i * 4 + c]!) * (1 - inks[i * 4 + 3]!) * 255;
             yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(inks.buffer) };

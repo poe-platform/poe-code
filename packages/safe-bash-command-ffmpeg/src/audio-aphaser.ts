@@ -31,7 +31,7 @@ export async function phaseAudio(
     const [min, max] = ranges[key];
     const number = parseFilterExpression(value, "aphaser", {
       PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
-      min: min!, max: max!, default: defaults[key],
+      min: min!, max: max!, default: defaults[key], none: 0, all: -1,
       ...(key === "type" ? { t: 1, triangular: 1, s: 0, sinusoidal: 0 } : {})
     });
     if (!value || !Number.isFinite(number) || number < min! || number > max!) {

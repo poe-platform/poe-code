@@ -44,6 +44,7 @@ for (const [filter, exitCode] of [
   ["aphaser=type=t:enable=0", 176],
   ["aphaser=in_gain=2", 222],
   ["aphaser=out_gain=1e9+1", 222],
+  ["aphaser=out_gain=all", 222],
   ["aphaser=delay=6", 222],
   ["aphaser=decay=1", 222],
   ["aphaser=speed=0", 222],
@@ -81,6 +82,29 @@ for (const [expression, literal, hash] of [
         assert.equal(createHash("sha256").update(output).digest("hex"), hash);
       });
     }
+  }
+}
+
+// Native FFmpeg 7.0.2, 1 kHz stereo, 16 frames: generic AVOption gain constants.
+for (const [options, hash] of [
+  ["out_gain=none", "f5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a92759fb4b"],
+  ["out_gain=all+1", "f5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a92759fb4b"],
+  ["out_gain=0", "f5a5fd42d16a20302798ef6ed309979b43003d2320d9f0e8ea9831a92759fb4b"],
+  ["out_gain=default", "59be91bf176782bcee069839ff70f634f24d7ff6818e7e45c7159c1828ad13cf"]
+]) {
+  for (const graph of [false, true]) {
+    it(`aphaser=${options} matches native generic AVOption PCM (${graph ? "graph" : "simple"})`, async () => {
+      const input = encodeWav({ sampleRate: 1000, channels: [
+        Float64Array.from({ length: 16 }, (_, i) => ((i * 97) % 30001 - 15000) / 32768),
+        Float64Array.from({ length: 16 }, (_, i) => ((i * 257) % 20001 - 10000) / 32768)
+      ] }, { bitsPerSample: 16 });
+      const { volume, result, stderr } = await run(`aphaser=${options}`, graph, 16, input);
+      assert.equal(result.exitCode, 0, stderr);
+      assert.equal(stderr, "");
+      const output = volume.readFileSync("/out.raw") as Buffer;
+      assert.equal(output.length, 64);
+      assert.equal(createHash("sha256").update(output).digest("hex"), hash);
+    });
   }
 }
 

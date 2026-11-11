@@ -7986,10 +7986,11 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
         }
         if (codec === "microdvd" || codec === "mpl2") {
           const text = decodeUtf8(sample.data);
+          const lineBreak = outputFormat === "srt" || containerCodec === "subrip" ? "\r\n" : "\n";
           const data = encodeUtf8(codec === "microdvd" ? decodeMicrodvd(text).replaceAll("\n",
             outputFormat === "srt" ? "\r\n" : "\n") : text.split("|")
             .map(line => codec === "mpl2" && line.startsWith("/") ? `<i>${line.slice(1)}</i>` : line)
-            .join(outputFormat === "srt" || containerCodec === "subrip" ? "\r\n" : "\n"));
+            .join(lineBreak).replaceAll("\\N", lineBreak));
           return { ...sample, data, size: data.byteLength };
         }
         return { ...sample, webvtt: undefined };

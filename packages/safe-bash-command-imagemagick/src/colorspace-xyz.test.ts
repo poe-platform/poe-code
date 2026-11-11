@@ -46,8 +46,8 @@ for (const retained of [false, true]) {
         expect(result.stdout).toContain("XYZ xyza(95.0472,99.9957,108.898,1) 1.08898");
         expect(result.stdout).toContain(",0.501961)");
         expect([...decodeImage(retained ? await fs.readFile("/out.png") : files.get("/out.png")!).data]).toEqual([...pixels]);
-        for (const output of ["txt:-", "histogram:-"]) {
-            const text = await runConvertCli(["/in.png", "-colorspace", "XYZ", output], input);
+        for (const output of ["txt:-", "histogram:info:-"]) {
+            const text = await runConvertCli(["/in.png", "-colorspace", "XYZ", ...(output === "histogram:info:-" ? ["-format", "%c"] : []), output], input);
             expect(text.exitCode, text.stderr).toBe(0);
             expect(text.stdout).toContain("xyza(95.0472,99.9957,108.898,1)");
             expect(text.stdout).not.toContain("srgb");

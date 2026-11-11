@@ -35,8 +35,8 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
 for (const retained of [false, true]) {
     it.each(["HCL", "HCLp"])(`preserves alpha and text precision in %s, retained=${retained}`, async space => {
         const input = retained ? { filesystem: new MemoryFileSystem(), cwd: "/" } : new Map<string, Uint8Array>();
-        for (const output of ["info:", "txt:-", "histogram:-"]) {
-            const result = await runConvertCli(["-size", "1x1", "xc:rgba(39,69,86,0.4)", "-colorspace", space.toLowerCase(), "-format", "%[pixel:p{0,0}]", output], input);
+        for (const output of ["info:", "txt:-", "histogram:info:-"]) {
+            const result = await runConvertCli(["-size", "1x1", "xc:rgba(39,69,86,0.4)", "-colorspace", space.toLowerCase(), "-format", "%[pixel:p{0,0}]", ...(output === "histogram:info:-" ? ["-format", "%c"] : []), output], input);
             expect(result.exitCode, result.stderr).toBe(0);
             expect(result.stdout).toContain(`${space.toLowerCase()}a(201.702,18.4314%,24.3054%,0.4)`);
         }

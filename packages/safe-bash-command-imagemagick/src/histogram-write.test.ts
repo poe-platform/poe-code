@@ -5,7 +5,7 @@ import { runConvertCli, runConvertCliSync } from "./index.js";
 
 for (const mode of ["buffered", "sync", "retained", "streamed"] as const) {
     it.each(["-write", "+write"])(`routes intermediate histogram destinations without changing source pixels (${mode}, %s)`, async write => {
-        for (const destination of ["histogram:report.png", "histogram:info:", "histogram:info:report.txt", "histogram:png:-"]) {
+        for (const destination of ["histogram:report.png", "histogram:info:", "histogram:info:report.txt", "histogram:png:-", "histogram:-"]) {
             const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem(), chunks: Uint8Array[] = [];
             const input = mode === "buffered" || mode === "sync" ? files : {
                 filesystem, cwd: "/", ...(mode === "streamed" ? { stdout: { async write(bytes: Uint8Array) { chunks.push(bytes.slice()); } } } : {})
@@ -16,7 +16,7 @@ for (const mode of ["buffered", "sync", "retained", "streamed"] as const) {
             expect(result.stderr).toBe("");
             const read = async (path: string) => mode === "buffered" || mode === "sync" ? files.get(path)! : filesystem.readFile(`/${path}`);
             expect([...await read("end.raw")]).toEqual(Array.from({ length: 6 }, () => [0, 255, 255]).flat());
-            if (destination === "histogram:report.png" || destination === "histogram:png:-") {
+            if (destination === "histogram:report.png" || destination === "histogram:png:-" || destination === "histogram:-") {
                 const bytes = destination === "histogram:report.png" ? await read("report.png") : mode === "streamed" ? Buffer.concat(chunks) : result.stdoutBytes!;
                 expect(bytes).toBeDefined();
                 const image = decodeImage(bytes);

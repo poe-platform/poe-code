@@ -30,8 +30,8 @@ for (const mode of ["buffered", "sync", "command"] as const) {
         const roundtrip = await run(["/in.png", "-colorspace", "Lab", "/out.png"]);
         expect(roundtrip.exitCode).toBe(0);
         expect(decodeImage(mode === "command" ? await fs.readFile("/out.png") : files.get("/out.png")!).data).toEqual(pixels);
-        for (const output of ["txt:-", "histogram:-"]) {
-            const result = await run(["/in.png", "-colorspace", "Lab", output]);
+        for (const output of ["txt:-", "histogram:info:-"]) {
+            const result = await run(["/in.png", "-colorspace", "Lab", ...(output === "histogram:info:-" ? ["-format", "%c"] : []), output]);
             expect(result.exitCode).toBe(0);
             expect(result.stdout).toContain("cielab(32.3027,79.1923,-107.863)");
         }

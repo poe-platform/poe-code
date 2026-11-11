@@ -36,8 +36,8 @@ for (const retained of [false, true]) {
             const decoded = decodeImage(encoded);
             expect([...decoded.data.slice(0, 4)]).toEqual(format === "png" ? pixels.slice(0, 4) : [149, 128, 64, 128]);
         }
-        for (const output of ["txt:-", "histogram:-"]) {
-            const text = await runConvertCli(["in.png", "-colorspace", "HSL", output], input);
+        for (const output of ["txt:-", "histogram:info:-"]) {
+            const text = await runConvertCli(["in.png", "-colorspace", "HSL", ...(output === "histogram:info:-" ? ["-format", "%c"] : []), output], input);
             expect(text.exitCode, text.stderr).toBe(0);
             expect(text.stdout).toContain("hsla(210,50%,25.098%,0.501961)");
             expect(text.stdout).not.toContain("srgb");

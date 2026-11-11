@@ -39,8 +39,8 @@ it("recognizes mixed case and preserves alpha through YDbDr", async () => {
     expect([...files.get("/out")!]).toEqual([255, 0, 0, 128]);
 });
 
-it.each(["info:", "txt:-", "histogram:-"])("preserves unclamped YDbDr samples in %s", async output => {
-    const result = await runConvertCli(["xc:red", "-colorspace", "YDbDr", "-format", "%[pixel:p{0,0}]", output], new Map<string, Uint8Array>());
+it.each(["info:", "txt:-", "histogram:info:-"])("preserves unclamped YDbDr samples in %s", async output => {
+    const result = await runConvertCli(["xc:red", "-colorspace", "YDbDr", "-format", "%[pixel:p{0,0}]", ...(output === "histogram:info:-" ? ["-format", "%c"] : []), output], new Map<string, Uint8Array>());
     expect(result.exitCode, result.stderr).toBe(0);
     expect(result.stdout).toContain("ydbdr(76.2039,12.75,-212.415)");
 });

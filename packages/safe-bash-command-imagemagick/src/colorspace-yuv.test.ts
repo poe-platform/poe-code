@@ -41,8 +41,8 @@ for (const retained of [false, true]) {
         expect(result.stdout).toContain("YUV yuva(255,127.5,127.5,1) 0.5");
         expect(result.stdout).toContain(",0.501961)");
         expect([...decodeImage(retained ? await fs.readFile("/out.png") : files.get("/out.png")!).data]).toEqual([...pixels]);
-        for (const output of ["txt:-", "histogram:-"]) {
-            const text = await runConvertCli(["/in.png", "-colorspace", "YUV", output], input);
+        for (const output of ["txt:-", "histogram:info:-"]) {
+            const text = await runConvertCli(["/in.png", "-colorspace", "YUV", ...(output === "histogram:info:-" ? ["-format", "%c"] : []), output], input);
             expect(text.exitCode, text.stderr).toBe(0);
             expect(text.stdout).toContain("yuva(255,127.5,127.5,1)");
             expect(text.stdout).not.toContain("srgb");
@@ -61,8 +61,8 @@ for (const retained of [false, true]) {
             ["black", "0,127.5,127.5"],
             ["white", "255,127.5,127.5"],
         ]) {
-            for (const output of ["info:", "txt:-", "histogram:-"]) {
-                const result = await runConvertCli(["-size", "1x1", `xc:${color}`, "-colorspace", "yUv", "-format", "%[pixel:p{0,0}]", output!], input);
+            for (const output of ["info:", "txt:-", "histogram:info:-"]) {
+                const result = await runConvertCli(["-size", "1x1", `xc:${color}`, "-colorspace", "yUv", "-format", "%[pixel:p{0,0}]", ...(output === "histogram:info:-" ? ["-format", "%c"] : []), output!], input);
                 expect(result.exitCode, result.stderr).toBe(0);
                 expect(result.stdout).toContain(`yuv(${expected})`);
             }

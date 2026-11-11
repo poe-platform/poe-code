@@ -42,9 +42,9 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
 }
 
 for (const retained of [false, true]) {
-    it.each(["info:", "txt:-", "histogram:-"])(`formats Rec601YCbCr pixels in %s, retained=${retained}`, async output => {
+    it.each(["info:", "txt:-", "histogram:info:-"])(`formats Rec601YCbCr pixels in %s, retained=${retained}`, async output => {
         const input = retained ? { filesystem: new MemoryFileSystem(), cwd: "/" } : new Map<string, Uint8Array>();
-        const result = await runConvertCli(["xc:red", "-colorspace", "Rec601YCbCr", "-format", "%[pixel:p{0,0}]", output], input);
+        const result = await runConvertCli(["xc:red", "-colorspace", "Rec601YCbCr", "-format", "%[pixel:p{0,0}]", ...(output === "histogram:info:-" ? ["-format", "%c"] : []), output], input);
         expect(result.exitCode, result.stderr).toBe(0);
         expect(result.stdout).toContain("rec601ycbcr(76.2039,84.4741,255)");
     });

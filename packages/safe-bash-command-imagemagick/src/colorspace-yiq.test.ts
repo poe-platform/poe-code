@@ -35,8 +35,8 @@ it.each([["R", 0x4c], ["G", 0xff], ["B", 0xb5]] as const)("exports the native YI
 });
 
 
-it.each(["info:", "txt:-", "histogram:-"])("retains unclamped YIQ components in %s output", async output => {
-    const args = ["xc:red", "-colorspace", "YIQ", "-format", "%[pixel:p{0,0}]", output];
+it.each(["info:", "txt:-", "histogram:info:-"])("retains unclamped YIQ components in %s output", async output => {
+    const args = ["xc:red", "-colorspace", "YIQ", "-format", "%[pixel:p{0,0}]", ...(output === "histogram:info:-" ? ["-format", "%c"] : []), output];
     const command = await run(args);
     const buffered = await runMagickCli(args, new Map<string, Uint8Array>());
     const sync = runMagickCliSync(args, new Map<string, Uint8Array>());

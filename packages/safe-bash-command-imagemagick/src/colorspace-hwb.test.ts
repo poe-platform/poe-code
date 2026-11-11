@@ -56,8 +56,8 @@ for (const retained of [false, true]) {
             const decoded = decodeImage(encoded);
             expect([...decoded.data.slice(0, 4)]).toEqual(format === "png" ? pixels.slice(0, 4) : [149, 32, 159, 128]);
         }
-        for (const output of ["txt:-", "histogram:-"]) {
-            const text = await runConvertCli(["in.png", "-colorspace", "HWB", output], input);
+        for (const output of ["txt:-", "histogram:info:-"]) {
+            const text = await runConvertCli(["in.png", "-colorspace", "HWB", ...(output === "histogram:info:-" ? ["-format", "%c"] : []), output], input);
             expect(text.exitCode, text.stderr).toBe(0);
             expect(text.stdout).toContain("hwba(148.75,32,159,0.501961)");
             expect(text.stdout).toContain("hwba(-255,128,127,1)");
@@ -83,8 +83,8 @@ for (const retained of [false, true]) {
             const result = await runConvertCli(["-size", "1x1", `xc:${color}`, "-colorspace", "HWB", "-format", "%[pixel:p{0,0}] %[colorspace]", "info:"], input);
             expect(result.exitCode, result.stderr).toBe(0);
             expect(result.stdout.trim()).toBe(`${expected} HWB`);
-            for (const output of ["txt:-", "histogram:-"]) {
-                const text = await runConvertCli(["-size", "1x1", `xc:${color}`, "-colorspace", "HWB", output], input);
+            for (const output of ["txt:-", "histogram:info:-"]) {
+                const text = await runConvertCli(["-size", "1x1", `xc:${color}`, "-colorspace", "HWB", ...(output === "histogram:info:-" ? ["-format", "%c"] : []), output], input);
                 expect(text.exitCode, text.stderr).toBe(0);
                 expect(text.stdout).toContain(expected);
             }

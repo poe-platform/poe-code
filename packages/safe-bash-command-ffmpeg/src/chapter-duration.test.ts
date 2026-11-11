@@ -34,7 +34,7 @@ for (const sync of [false, true]) {
         assert.equal(result.exitCode, 0, stderr);
       }
       const output = parseMp4(volume.readFileSync("/out.mp4") as Buffer);
-      assert.deepEqual(output.chapters?.map(chapter => chapter.title), duration ? ["Intro"] : ["Intro", "Discussion"]);
+      assert.deepEqual(output.chapters?.map(chapter => chapter.title), duration === "0.25" ? ["Intro"] : ["Intro", "Discussion"]);
       assert.equal(output.chapters?.[0]?.startTimeSeconds, 0);
       // QuickTime chapter samples retain the requested end even when copied audio
       // packets extend the container duration beyond it.

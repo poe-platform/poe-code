@@ -7335,7 +7335,7 @@ function outputChapters(
   startSeconds -= inputTimestampOffset;
   endSeconds -= inputTimestampOffset;
   const end = durationSeconds === undefined ? endSeconds : startSeconds + durationSeconds;
-  return chapters?.filter(chapter => chapter.endTimeSeconds >= startSeconds && chapter.startTimeSeconds < end)
+  return chapters?.filter(chapter => chapter.endTimeSeconds >= startSeconds && chapter.startTimeSeconds <= end)
     .map(chapter => ({
       ...chapter,
       ...(copyMetadata ? {} : { title: "", tags: {} }),

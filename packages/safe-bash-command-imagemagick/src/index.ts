@@ -21862,8 +21862,8 @@ export function runCompareCliSync(argv: readonly string[], files: Map<string, Ui
 interface MontageArguments {
     warnings: string;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth">[];
-    trim: boolean; shadow: boolean;
-    transforms: ({ kind: "flip" | "flop" } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string } | { kind: "scale"; geometry: string } | { kind: "thumbnail"; geometry: string } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
+    shadow: boolean;
+    transforms: ({ kind: "flip" | "flop" } | { kind: "trim"; fuzz: number } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string } | { kind: "scale"; geometry: string } | { kind: "thumbnail"; geometry: string } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
@@ -21878,7 +21878,6 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
     let cellW: number | undefined = 120;
     let cellH: number | undefined = 120;
     let geometry = "120x120>";
-    let trim = false;
     let concatenate = false;
     const transforms: MontageArguments["transforms"] = [];
     const queuedTransforms: MontageArguments["transforms"][number] = [];
@@ -22032,7 +22031,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             i = operation.end;
         }
         else if (t === "-trim") {
-            trim = true;
+            queuedTransforms.push({ kind: "trim", fuzz: state.alphaFuzz });
         }
         else if (t === "-shadow" || t === "+shadow") {
             shadow = t === "-shadow";
@@ -22343,7 +22342,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         }
     }
     if (groups.length) return { exitCode: 1, stdout: "", stderr: "montage: unbalanced parenthesis\n" };
-    return { warnings, trim, shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, frame, matte, title, texture };
+    return { warnings, shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, frame, matte, title, texture };
 }
 function montageTitleSvg(title: string, width: number, state: MagickState, padY: number): { svg: string; height: number } {
     // Montage doubles the title point size and reserves twice the normal line metrics.
@@ -22367,7 +22366,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         return yield* mogrifyTargets(path, files.keys());
     });
     if ("exitCode" in parsed) return parsed;
-    const { trim, shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, frame, matte, title, texture } = parsed;
+    const { shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, frame, matte, title, texture } = parsed;
     const analysis = { warnings: parsed.warnings };
     const squareCells = parseMagickGeometry(geometry).isPercent && !geometry.toLowerCase().includes("x");
     const variableCells = !frame && !squareCells && cellW === undefined && cellH === undefined;
@@ -22390,7 +22389,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const inPaths = operands.slice(0, -1);
     let inputErrors = "";
     const fastMetaDims: { width: number; height: number }[] = [];
-    let canStreamTiles = !shadow && !trim && !transforms.some(operations => operations.length > 0) && !frame && borderW === 0 && variableCells && !labels.some(Boolean);
+    let canStreamTiles = !shadow && !transforms.some(operations => operations.length > 0) && !frame && borderW === 0 && variableCells && !labels.some(Boolean);
     if (canStreamTiles) {
         for (const p of inPaths) {
             const rawBytes = files.get(p);
@@ -22586,6 +22585,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     ? yield* applyMagickCropToStackSteps(image, transform.geometry, transform.gravity)
                     : [yield* ("operation" in transform ? transform.operation.apply(image)
                         : (transform.kind === "resize" || transform.kind === "scale" || transform.kind === "thumbnail") ? applyMagickResizeSteps(image, transform.geometry, state.kernel, transform.kind === "thumbnail", false, transform.kind === "scale", state.resizeFilter)
+                        : transform.kind === "trim" ? trimMagickSteps(image, transform.fuzz)
                         : transform.kind === "extent" ? applyMagickExtentSteps(image, transform.geometry, transform.state, signal)
                         : transform.kind === "rotate" ? rotateImageSteps(image, transform.angle, state.background)
                         : transform.kind === "flop" ? flopImageSteps(image) : flipImageSteps(image))];
@@ -22603,10 +22603,8 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             }
             for (const loaded of loadedList) {
                 if (++cooperativeWork % 64 === 0) yield;
-                const trimmed = trim ? yield* trimMagickSteps(loaded, state.alphaFuzz) : loaded;
-                if (trimmed !== loaded) detachRgbaBuffer(loaded.data);
                 const isNull = (loaded as MagickImage)[magickInput]?.filePath === "null:";
-                for (let thumb of yield* transformTiles(trimmed)) {
+                for (let thumb of yield* transformTiles(loaded)) {
                     if (cellW !== undefined || cellH !== undefined) {
                         const previous = thumb;
                         thumb = (yield* applyMagickResizeSteps(thumb, geometry, state.kernel, true, false, false, state.resizeFilter));
@@ -22797,7 +22795,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         return bytes ? yield* montageInputNames(bytes) : targets;
     }), signal);
     if ("exitCode" in parsed) return parsed;
-    const { trim, shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, frame, matte, title, texture } = parsed;
+    const { shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, frame, matte, title, texture } = parsed;
     const analysis = { warnings: parsed.warnings };
     const squareCells = parseMagickGeometry(geometry).isPercent && !geometry.toLowerCase().includes("x");
     const variableCells = !frame && !squareCells && cellW === undefined && cellH === undefined;
@@ -22814,7 +22812,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         }
         let inputErrors = "";
         const sources = new IntegerTable(backend.storage, 128), images = new StoredImageStack(backend.storage, signal);
-        let fast = !shadow && !trim && !transforms.some(operations => operations.length > 0) && !frame && borderW === 0 && variableCells && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
+        let fast = !shadow && !transforms.some(operations => operations.length > 0) && !frame && borderW === 0 && variableCells && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
         const sourceAt = async (index: number): Promise<ImageByteSource | null> => {
             const size = Number(await sources.get(BigInt(index * 5 + 1)) ?? -1n);
             if (size < 0) return null;
@@ -22871,7 +22869,6 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                         inputErrors += `montage: invalid image index ${invalidIndex} '${parseInputToken(path).baseToken}'\n`;
                     }, visit: async image => {
                         const source = (image as StoredMagickImage)[magickInput];
-                        if (trim) image = await trimStoredMagick(image, backend.storage, state.alphaFuzz, signal);
                         async function* transformTiles(tile: StoredRgbaImage, offset = 0): AsyncGenerator<StoredRgbaImage> {
                             const transform = transforms[index]![offset];
                             if (!transform) { yield tile; return; }
@@ -22894,6 +22891,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                             } else {
                                 let transformed = "operation" in transform
                                     ? await transformStoredMagickPixels(tile, backend, transform.operation, signal)
+                                    : transform.kind === "trim" ? await trimStoredMagick(tile, backend.storage, transform.fuzz, signal)
                                     : transform.kind === "extent" ? await applyStoredMagickExtent(tile, transform.geometry, transform.state, backend, signal)
                                     : await transformStoredImage(tile, backend.storage, transform.kind === "rotate"
                                         ? { ...transform, background: state.background } : transform, signal);

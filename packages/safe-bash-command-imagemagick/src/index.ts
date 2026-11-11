@@ -74,7 +74,7 @@ import { waveletDenoisePixelSteps } from "./wavelet-denoise-kernel.js";
 import { segmentPixelSteps } from "./segment.js";
 import { meanShiftPixelSteps, parseMeanShiftGeometry } from "./mean-shift-kernel.js";
 import { kmeansPixelSteps, parseKmeansGeometry } from "./kmeans.js";
-import { motionBlurPixelSteps } from "./motion-blur-kernel.js";
+import { motionBlurChannelOrder, motionBlurPixelSteps } from "./motion-blur-kernel.js";
 import { rotationalBlurPixelSteps } from "./rotational-blur-kernel.js";
 import { bilateralBlurPixelSteps, parseBilateralGeometry } from "./bilateral-blur-kernel.js";
 import { paintPixelSteps } from "./paint-kernel.js";
@@ -14738,13 +14738,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 validateMagickTransformGeometry(expanded.replaceAll("/", "x"), "-motion-blur");
                 // A lone signed value is a radius, not a rectangle offset (angle).
                 const motion = expanded.trim() && !expanded.toLowerCase().includes("x") && Number.isFinite(Number(expanded)) ? { width: Number(expanded) } : parseMagickGeometry(expanded.replaceAll("/", "x"));
-                const result = yield* applyMagickRasterSteps({ ...im, isPalette: false }, motionBlurPixelSteps(im, motion, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined), signal);
+                const randomChannels = motionBlurChannelOrder(im, state.channelExplicit ? { ...state.channels, default: state.channelDefault } : undefined);
+                const result = yield* applyMagickRasterSteps({ ...im, isPalette: false }, motionBlurPixelSteps(im, motion, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.seed, randomChannels), signal);
                 if (im.metaChannels?.length) {
                     result.metaChannels = [];
                     for (const [index, plane] of im.metaChannels.entries()) {
                         const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index);
                         result.metaChannels.push(selected ? yield* applyMagickRasterSteps(plane,
-                            motionBlurPixelSteps(plane, motion, { r: 0, g: 0, b: 0, a: 255 }, state.virtualPixel), signal) : plane);
+                            motionBlurPixelSteps({ ...plane, space: "b-w" }, motion, { r: 0, g: 0, b: 0, a: 255 }, state.virtualPixel, undefined, state.seed, randomChannels.map(channel => channel === 5 + index ? 0 : 5)), signal) : plane);
                     }
                 }
                 return result;
@@ -18916,7 +18917,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const geometry = tokens[++i] ?? "", background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined, optionProperties = state.optionProperties;
+            const geometry = tokens[++i] ?? "", background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? state.channels : undefined, optionProperties = state.optionProperties, seed = state.seed;
+            const channelDefault = state.channelDefault;
             const meta = state.channelExplicit && !state.channelDefault ? state.channels.meta ?? [] : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
@@ -18924,12 +18926,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 validateMagickTransformGeometry(expanded.replaceAll("/", "x"), "-motion-blur");
                 // A lone signed value is a radius, not a rectangle offset (angle).
                 const motion = expanded.trim() && !expanded.toLowerCase().includes("x") && Number.isFinite(Number(expanded)) ? { width: Number(expanded) } : parseMagickGeometry(expanded.replaceAll("/", "x"));
-                const result = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, motionBlurPixelSteps(image, motion, background, virtualPixel, channels), signal);
+                const randomChannels = motionBlurChannelOrder(image, channels ? { ...channels, default: channelDefault } : undefined);
+                const result = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, motionBlurPixelSteps(image, motion, background, virtualPixel, channels, seed, randomChannels), signal);
                 if (image.storedMetaChannels?.length) {
                     result.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries())
                         result.storedMetaChannels.push(!meta || meta.includes(index) ? await transformStoredMagickRaster(plane, backend,
-                            motionBlurPixelSteps(plane, motion, { r: 0, g: 0, b: 0, a: 255 }, virtualPixel), signal) : plane);
+                            motionBlurPixelSteps({ ...plane, space: "b-w" }, motion, { r: 0, g: 0, b: 0, a: 255 }, virtualPixel, undefined, seed, randomChannels.map(channel => channel === 5 + index ? 0 : 5)), signal) : plane);
                 }
                 return result;
             });

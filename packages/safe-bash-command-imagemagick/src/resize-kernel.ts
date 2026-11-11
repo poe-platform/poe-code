@@ -453,9 +453,9 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
 }
 
 export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, height: number, fraction: number, channels?: readonly boolean[], highDepth = false, kernels: readonly [MagickResizeKernel | undefined, MagickResizeKernel | undefined] = [undefined, undefined], settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    // Undefined alpha stays with the first image; inactive alpha has CopyPixelTrait.
+    // Undefined alpha stays with the first image; Discrete alpha updates while deactivated alpha copies.
     const blendAlpha = !!(a.hasAlpha || a.inactiveAlpha) && !!(b.hasAlpha || b.inactiveAlpha), blendBlack = a.space === "cmyk" && b.space === "cmyk";
-    if (!a.hasAlpha && a.inactiveAlpha) channels = [channels?.[0] ?? true, channels?.[1] ?? true, channels?.[2] ?? true, false, channels?.[4] ?? true];
+    if (!a.hasAlpha && a.inactiveAlpha && !(a.alphaSeparate && a.alphaBlend)) channels = [channels?.[0] ?? true, channels?.[1] ?? true, channels?.[2] ?? true, false, channels?.[4] ?? true];
     // A grayscale first frame has one color channel, shared by R, G and B.
     const gray = a.space === "b-w" || a.space === "grey16";
     const inks = a.space === "cmyk" || b.space === "cmyk", stride = inks ? 5 : 4;

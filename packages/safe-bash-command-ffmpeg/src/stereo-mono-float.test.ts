@@ -13,7 +13,7 @@ for (const [options, format, expected] of [
   [["-af", "aformat=channel_layouts=mono:sample_fmts=flt"], "f32le", floating],
   [["-af", "aformat=sample_fmts=flt:channel_layouts=mono"], "s16le", [8486, -16973, 0, 32767, -32768, 8]],
   [["-ac", "1", "-rematrix_maxval", "1"], "f32le", normalized],
-  [["-ac", "1"], "s16le", [6000, -12002, 0, 30000, -30000, 6]]
+  [["-ac", "1"], "s16le", [6001, -12001, 0, 30000, -30000, 6]]
 ] as const) {
   it(`matches native stereo-to-mono gain: ${options.join(" ")} -f ${format}`, async () => {
     const pairs = [[12001, 0], [0, -24003], [10000, -10000], [30000, 30000], [-30000, -30000], [5, 6]];

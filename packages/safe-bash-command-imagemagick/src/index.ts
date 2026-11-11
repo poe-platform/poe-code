@@ -6325,8 +6325,8 @@ function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: Retur
         }
         if (alphaSource) for (let i = 3; i < samples.length; i += 4) samples[i] = 255;
         if (evaluate) yield { kind: "write", evaluate: true, position, data: new Uint8Array(samples.buffer) };
-        const data = highDepth ? new Uint8Array(Uint16Array.from(samples, value => Math.round(value * 257)).buffer)
-            : Uint8Array.from(samples, value => Math.round(value));
+        const data = highDepth ? new Uint8Array(Uint16Array.from(samples, value => Math.round(Math.fround(value * 257))).buffer)
+            : Uint8Array.from(samples, value => Math.round(Math.fround(value * 257) / 257));
         yield { kind: "write", highDepth, position, data };
     }
 }

@@ -147,7 +147,9 @@ export async function fadeAudio(
       parseFilterExpression(enable, "afade enable", variables, undefined, registers);
       enabled = Math.abs(parseFilterExpression(enable, "afade enable", variables, undefined, registers)) >= 0.5;
     }
-    let pts = frame ? frame.pts + i - frame.start : startSample + i;
+    // FFmpeg rescales frame PTS to whole samples, rounding ties away from zero.
+    const framePts = frame?.pts ?? startSample;
+    let pts = Math.sign(framePts) * Math.round(Math.abs(framePts)) + i - (frame?.start ?? 0);
     // Native AV_NOPTS_VALUE precedes the fade: mute fade-in, preserve fade-out.
     if (Number.isNaN(pts)) pts = -Infinity;
     const progress = Math.max(0, Math.min(1, (type === "out" ? start + samples - pts : pts - start) / samples));

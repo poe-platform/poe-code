@@ -10444,7 +10444,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const adjust = function* (im: RgbaImage, channels: MagickState["channels"], pixelOffset = 0, imageWidth = im.width): Generator<void, RgbaImage> {
             const cmyk = im.space === "cmyk";
             if (cmyk) im = yield* convertCmykPixels(im);
-            const mask = [channels.r, channels.g, channels.b, channels.a && (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false), cmyk && channels.k];
+            // Numeric levels address grayscale's single intensity through the red/gray bit.
+            const gray = !colorEndpoints && (im.space === "b-w" || im.space === "grey16");
+            const mask = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a && (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false), cmyk && channels.k];
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
             const data16 = im.data16 ? new Uint16Array(im.data16) : (im.writeMask || im.region) ? Uint16Array.from(im.data, value => value * 257) : undefined;
@@ -10510,7 +10512,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = function* (image, offset, width) {
             const result = yield* adjust(image, channels, offset, width);
             // Keep every colormap entry adjusted, including colors not used by any pixel.
-            const selected = [channels.r, channels.g, channels.b, channels.a && image.hasAlpha];
+            const gray = !colorEndpoints && (image.space === "b-w" || image.space === "grey16");
+            const selected = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a && image.hasAlpha];
             const paletteValue = (value: number, channel: number) => selected[channel] ? clampByteVal(levelValue(value, channel)) : value;
             const indexedColors = image.indexedColors?.map(color =>
                 paletteValue(color >>> 24, 3) * 16777216 + paletteValue((color >>> 16) & 255, 0) * 65536

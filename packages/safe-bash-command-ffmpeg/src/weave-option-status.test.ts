@@ -5,18 +5,26 @@ import { createFfmpegCommand } from "./index.js";
 
 // Linux FFmpeg 7.0.2 option failures must propagate through the public command.
 for (const name of ["weave", "doubleweave"]) {
-  for (const [suffix, status] of [["=first_field=2", 222], ["=first_field=-1", 222], ["=first_field=no", 234], ["=invalid=1", 8], ["=enable=1", 176], ["=first_field=top", 0]] as const) {
+  for (const [suffix, status] of [
+    ["=first_field=2", 222], ["=first_field=-1", 222],
+    ["=first_field=1/0", 222], ["=first_field=-1/0", 222],
+    ["=first_field=inf", 222], ["=first_field=-inf", 222],
+    ["=first_field=1e999", 222], ["=first_field=abs(-inf)", 222],
+    ["=1/0", 222], ["=-inf", 222],
+    ["=first_field=nan", 234], ["=first_field=0/0", 234],
+    ["=first_field=no", 234], ["=invalid=1", 8], ["=enable=1", 176], ["=first_field=top", 0]
+  ] as const) {
     for (const destination of ["pipe:1", "/out.raw"]) {
       for (const graph of [false, true]) {
         it(`${name}${suffix} returns ${status} for ${destination} (${graph ? "graph" : "simple"})`, async () => {
-          const input = Buffer.from("0d14", "hex");
+          const input = Buffer.from("11589fe62d74bb02", "hex");
           const volume = Volume.fromJSON({ "/in.raw": input, "/out.raw": "KEEP" });
           const stdout: Uint8Array[] = [];
           let stderr = "";
           const filter = `${name}${suffix},showinfo`;
           const result = await createFfmpegCommand().execute({
             args: ["-hide_banner", "-loglevel", "info", "-y", "-f", "rawvideo", "-pix_fmt", "gray",
-              "-s", "1x1", "-r", "2", "-i", "/in.raw",
+              "-s", "2x2", "-r", "4", "-i", "/in.raw",
               ...(graph ? ["-filter_complex", `[0:v]${filter}[out]`, "-map", "[out]"] : ["-vf", filter]),
               "-fps_mode", "passthrough", "-pix_fmt", "gray", "-f", "rawvideo", destination],
             command: "ffmpeg", cwd: "/", env: {}, signal: new AbortController().signal,
@@ -30,7 +38,7 @@ for (const name of ["weave", "doubleweave"]) {
             stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
           } as never);
           assert.equal(result.exitCode, status, stderr);
-          const fields = Buffer.from("0d14", "hex");
+          const fields = Buffer.from("11582d749fe6bb02", "hex");
           assert.deepEqual(Buffer.concat(stdout), status === 0 && destination === "pipe:1" ? fields : Buffer.alloc(0));
           assert.deepEqual(volume.readFileSync("/out.raw"), status === 0 && destination === "/out.raw" ? fields : Buffer.from("KEEP"));
           assert.deepEqual(volume.readFileSync("/in.raw"), input);

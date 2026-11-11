@@ -739,6 +739,7 @@ interface MagickState {
   optimizeLayers?: boolean;
   density: number;
   densityGeometry?: string;
+  chromaticity?: ImageMetadata["chromaticity"];
   orientation?: number;
   units?: "inch" | "cm" | "unknown";
   fuzz: number;
@@ -7024,6 +7025,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             if (state.compression !== undefined) image = { ...image, [magickInput]: { ...image[magickInput], compression: state.compression } };
             if (state.page !== undefined) image = { ...image, virtualCanvas: state.page };
             if (state.densityGeometry !== undefined) image = applyMagickDensity(image, state.densityGeometry);
+            if (state.chromaticity !== undefined) image = { ...image, chromaticity: { ...image.chromaticity, ...state.chromaticity } };
             if (state.delay !== undefined) {
                 const delay = state.delay.value;
                 const source = image[magickInput];
@@ -7067,6 +7069,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
             if (state.orientation !== undefined) im = { ...im, orientation: state.orientation };
             if (state.units !== undefined) im = applyMagickUnits(im, state.units);
             if (state.densityGeometry !== undefined) im = applyMagickDensity(im, state.densityGeometry);
+            if (state.chromaticity !== undefined) im = { ...im, chromaticity: { ...im.chromaticity, ...state.chromaticity } };
             for (const key of ["comment", "label", "caption"] as const) {
                 const value = state[key];
                 if (value !== undefined) {
@@ -10455,6 +10458,18 @@ function parseMagickDensity(value: string): { width: number; height: number } {
     return { width, height: geometry.height ?? width };
 }
 
+function parseMagickChromaticity(option: string, value: string | undefined): ImageMetadata["chromaticity"] {
+    const key = option.slice(1) as keyof NonNullable<ImageMetadata["chromaticity"]>;
+    if (option.startsWith("+")) return { [key]: [0, 0] };
+    if (value === undefined) throw new Error(`missing an argument for option '${option}'`);
+    const parts = value.replaceAll("x", ",").replaceAll("X", ",").split(",");
+    const [x, y = x] = parts.map(Number);
+    if (parts.length > 2 || parts.some(part => !part.trim()) || !Number.isFinite(x) || !Number.isFinite(y)) {
+        throw new Error(`invalid argument for option '${option}': ${value}`);
+    }
+    return { [key]: [x!, y!] };
+}
+
 function applyMagickDensity<T extends ImageMetadata & { magickUnits?: MagickState["units"] }>(image: T, value: string): T {
     const { width: x, height: y } = parseMagickDensity(value);
     const unit = image.resolution?.unit ?? image.magickUnits ?? "unknown";
@@ -11179,6 +11194,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const expanded = image ? yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }) : value;
             const orientation = state.orientation = parseMagickOrientation(expanded);
             stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, orientation }; });
+            i++;
+            continue;
+        }
+        if (["-red-primary", "-green-primary", "-blue-primary", "-white-point", "+red-primary", "+green-primary", "+blue-primary", "+white-point"].includes(t)) {
+            const chromaticity = parseMagickChromaticity(t, t.startsWith("-") ? tokens[++i] : undefined);
+            state.chromaticity = { ...state.chromaticity, ...chromaticity };
+            stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, chromaticity: { ...image.chromaticity, ...chromaticity } }; });
             i++;
             continue;
         }
@@ -14237,6 +14259,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(async image => image ? { ...image, orientation } : undefined);
             continue;
         }
+        if (!operandsOnly && ["-red-primary", "-green-primary", "-blue-primary", "-white-point", "+red-primary", "+green-primary", "+blue-primary", "+white-point"].includes(token)) {
+            const chromaticity = parseMagickChromaticity(token, token.startsWith("-") ? tokens[++i] : undefined);
+            state.chromaticity = { ...state.chromaticity, ...chromaticity };
+            steps.push(async image => image ? { ...image, chromaticity: { ...image.chromaticity, ...chromaticity } } : undefined);
+            continue;
+        }
         if (!operandsOnly && token === "-units") {
             // Resolve expanded settings sequentially before capturing later input settings.
             if (tokens[i + 1]?.includes("%")) return;
@@ -17138,6 +17166,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
          if (state.compression !== undefined) savedImage = { ...savedImage, [magickInput]: { ...savedImage[magickInput], compression: state.compression } };
          if (state.page !== undefined) savedImage = { ...savedImage, virtualCanvas: state.page };
          if (state.densityGeometry !== undefined) savedImage = applyMagickDensity(savedImage, state.densityGeometry);
+         if (state.chromaticity !== undefined) savedImage = { ...savedImage, chromaticity: { ...savedImage.chromaticity, ...state.chromaticity } };
          for (const key of ["comment", "label", "caption"] as const) {
              const value = state[key];
              if (value !== undefined) {
@@ -17352,6 +17381,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   if(state.orientation!==undefined)image={...image,orientation:state.orientation};
   if(state.units!==undefined)image=applyMagickUnits(image,state.units);
   if(state.densityGeometry!==undefined)image=applyMagickDensity(image,state.densityGeometry);
+  if (state.chromaticity !== undefined) image = { ...image, chromaticity: { ...image.chromaticity, ...state.chromaticity } };
  for (const key of ["comment", "label", "caption"] as const) {
   const value = state[key];
   if (value !== undefined) {

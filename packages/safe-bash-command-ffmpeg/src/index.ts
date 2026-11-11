@@ -13808,8 +13808,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (!value || !Number.isFinite(duration)) throw new Error("silencedetect: invalid duration");
                             if (duration < 0 || duration > 86400) throw new RangeError("silencedetect: invalid duration");
                           } else if (key === "mono" || key === "m") {
-                            if (!["0", "1", "true", "false", "yes", "no", "y", "n", "on", "off"].includes(value.toLowerCase())) throw new Error("silencedetect: invalid mono");
-                            mono = ["1", "true", "yes", "y", "on"].includes(value.toLowerCase());
+                            mono = parseFilterBoolean(value, "silencedetect: invalid mono");
                           } else throw new Error(`silencedetect: unsupported option ${key}`);
                         }
                         // Native s16 detection truncates and wraps noise to signed 16-bit PCM.

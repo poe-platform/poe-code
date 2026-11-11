@@ -7166,7 +7166,7 @@ function pngOutputColorType(value: string | undefined, format: ImageFormat, anal
     return undefined;
 }
 
-function inferOutputFormat(spec: string, fallback: ImageFormat = "png"): { format: ImageFormat; path: string; tiffBig?: boolean; gifVersion?: "87a"; bmpFormat?: "bmp2" | "bmp3" | "dib"; pngCoder?: "png00" | "png8" | "png24" | "png32" | "png48" | "png64" } {
+function inferOutputFormat(spec: string, fallback: ImageFormat = "png", inputFormat?: string): { format: ImageFormat; path: string; tiffBig?: boolean; gifVersion?: "87a"; bmpFormat?: "bmp2" | "bmp3" | "dib"; pngCoder?: "png00" | "png8" | "png24" | "png32" | "png48" | "png64" } {
   const prefixMatch = /^([a-zA-Z0-9]+):(.*)$/.exec(spec);
   if (prefixMatch) {
     const prefix = prefixMatch[1]!.toLowerCase();
@@ -7181,6 +7181,10 @@ function inferOutputFormat(spec: string, fallback: ImageFormat = "png"): { forma
     const ext = spec.slice(dotIdx + 1).toLowerCase();
     const fmt = extToImageFormat(ext);
     if (fmt) return { ...inferOutputFormat(`${ext}:${spec}`, fallback), path: spec };
+  }
+  if (spec === "-" && inputFormat) {
+    if (inputFormat === "PATTERN") throw new Error("no encode delegate for this image format 'PATTERN'");
+    fallback = extToImageFormat(inputFormat) ?? fallback;
   }
   return { format: fallback, path: spec };
 }
@@ -7626,7 +7630,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     }
     if (lower.startsWith("pattern:")) {
         const pattern = builtinPattern(baseToken.slice(8));
-        return yield* applyMod([Object.assign(yield* createPatternImageSteps(state.hasSize ? state.sizeWidth : pattern.width, state.hasSize ? state.sizeHeight : pattern.height, pattern, state.hasSize ? "srgb" : pattern.space, state.tileOffset), { bitsPerSample: state.hasSize ? state.inputDepth ?? 16 : pattern.bitsPerSample, [magickInput]: { inputFormat: "PATTERN" } })]);
+        return yield* applyMod([Object.assign(yield* createPatternImageSteps(state.hasSize ? state.sizeWidth : pattern.width, state.hasSize ? state.sizeHeight : pattern.height, pattern, state.hasSize ? "srgb" : pattern.space, state.tileOffset), { bitsPerSample: state.hasSize ? state.inputDepth ?? 16 : pattern.bitsPerSample, [magickInput]: { filePath: baseToken.slice(8), inputFormat: state.hasSize ? "PATTERN" : pattern.format.toUpperCase() } })]);
     }
     if (lower === "rose:" || lower === "logo:" || lower === "wizard:" || lower === "granite:") {
         return yield* applyMod([(yield* createRoseImageSteps())]);
@@ -12746,7 +12750,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             else if (stack.length > 0 && writePath && writePath.toLowerCase() !== "null:") {
                 const top = stack[stack.length - 1]!;
-                const { format, path, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(writePath, top.format);
+                const { format, path, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(writePath, top.format, (stack[0] as MagickImage)[magickInput]?.inputFormat);
                 if ((!state.filenameLiteral && writePath !== writeTemplate) || hasSceneOutputPattern(path, state.filenameLiteral) || (stack.length > 1 && (!state.adjoin || format === "farbfeld" || (path !== "-" && ["png", "jpeg", "bmp"].includes(format))))) {
                     for (let idx = 0; idx < stack.length; idx++) {
                         if (++cooperativeWork % 65536 === 0)
@@ -14784,7 +14788,7 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
             const hist = (yield* formatHistogramOutputSteps(finalImg, state.precision));
             return { exitCode: 0, stdout: hist, stderr: "" };
         }
-        const { format, path: outPath, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(outSpec, "png");
+        const { format, path: outPath, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(outSpec, "png", (stack[0] as MagickImage)[magickInput]?.inputFormat);
         if ((!state.filenameLiteral && filenameExpanded) || hasSceneOutputPattern(outPath, state.filenameLiteral) || (stack.length > 1 && (!state.adjoin || format === "farbfeld" || (outPath !== "-" && ["png", "jpeg", "bmp"].includes(format))))) {
             for (let idx = 0; idx < stack.length; idx++) {
                 if (++cooperativeWork % 64 === 0)
@@ -17098,7 +17102,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     else for await (const part of enumeration()) analysis.text += part;
                 }
                 else if (image && path && path.toLowerCase() !== "null:") {
-                    const output = inferOutputFormat(path, image.format);
+                    const output = inferOutputFormat(path, image.format, (await stack.get(0))![magickInput]?.inputFormat);
                     if ((!filenameLiteral && path !== writeTemplate) || hasSceneOutputPattern(output.path, filenameLiteral) || (stack.length > 1 && (!adjoin || output.format === "farbfeld" || (output.path !== "-" && ["png", "jpeg", "bmp"].includes(output.format))))) {
                         const firstScene = scene ?? (await stack.get(0))![magickInput]?.outputScene ?? (await stack.get(0))![magickInput]?.sceneIdx ?? 0;
                         for (let index = 0; index < stack.length; index++) { await yieldTurn(signal); const bytes = await backend.stage({ ...(await prepareStoredMagickOutput((await stack.get(index))!, output.format, backend, signal, dither, diffusionAmount, output.pngCoder)), ...(output.format === "gif" && background ? { backgroundColor: background } : {}) }, output.path === "-" ? "-" : formatSceneOutputPath(inferOutputFormat(writeTemplate, image.format).path, firstScene + index, filenameLiteral, (await stack.get(index))!.properties, settings.optionProperties), { format: output.format, tiffBig: output.tiffBig, pngCoder: output.pngCoder, gifVersion: output.gifVersion, bmpRenderingIntent, bmpFormat: output.bmpFormat ?? bmpFormat ?? "bmp4", palette: true, pngColorType: pngOutputColorType(pngColorType, output.format, analysis), endian, pngPreserveColormap, pngBitDepth, ...(jpegRestartInterval === undefined ? {} : { jpegRestartInterval }), ...(jpegDctMethod === undefined ? {} : { jpegDctMethod }), ...(jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding }), ...(jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding }), ...(jpegProgressive === undefined ? {} : { jpegProgressive }), rawInterlace, pngInterlace, gifInterlace, transparentColor, synthesizeExif: synthesizeExif && output.format !== "webp", omitPngResolution, ...(miffCompression === undefined ? {} : { miffCompression }), ...(tgaCompression === undefined ? {} : { tgaCompression }), ...(bmpCompression === undefined ? {} : { bmpCompression }), ...(bmpSubtype === undefined ? {} : { bmpSubtype }), ...(bmp3Alpha === undefined ? {} : { bmp3Alpha }), ...(tiffIntegerDepth === undefined ? {} : { tiffIntegerDepth }), ...(tiffSigned === undefined ? {} : { tiffSigned }), ...(tiffFloatDepth === undefined ? {} : { tiffFloatDepth }), ...(tiffPlanar === undefined ? {} : { tiffPlanar }), ...(tiffAlpha === undefined ? {} : { tiffAlpha }), ...(tiffEndian === undefined ? {} : { tiffEndian }), ...(tiffRowsPerStrip === undefined ? {} : { tiffRowsPerStrip }), ...(tiffTile === undefined ? {} : { tiffTile }), ...(tiffCompression === undefined ? {} : { tiffCompression }), netpbmAscii, ...(netpbmDepth === undefined ? {} : { netpbmDepth: isRawCoder(output.format) ? netpbmDepth : Math.min(32, netpbmDepth), miffDepth: netpbmDepth <= 8 ? 8 : 16 }), ...(samplingFactor === undefined ? {} : { samplingFactor }), chromaSubsampling: quality < 90 ? "4:2:0" : "4:4:4", webpTargetSize, webpPass, jpegExtent, webpExact, smartSubsample, alphaCompression, alphaQuality, quality, ...(output.format === "webp" ? { effort, lossless } : {}) }, stack.length > 1 ? firstScene + index : undefined);
@@ -18275,7 +18279,9 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
         }
         const jsonPath = jsonOutputPath(outSpec);
         if (jsonPath !== undefined) return writeStoredJsonOutput(stack, jsonPath, input, backend, signal, state.inputDepth);
-        const output = inferOutputFormat(outSpec, "png");
+        let output: ReturnType<typeof inferOutputFormat>;
+        try { output = inferOutputFormat(outSpec, "png", (await stack.get(0))![magickInput]?.inputFormat); }
+        catch (error) { return { exitCode: 1, stdout: "", stderr: `magick: ${(error as Error).message}\n` }; }
         if (output.format === "tiff") for (let index = 0; index < stack.length; index++) {
             if ((await stack.get(index) as StoredRgbaImage).magickColorspace === "CIELab") return { exitCode: 1, stdout: "", stderr: "magick: unsupported colorspace 'Lab' for TIFF output\n" };
             if ((await stack.get(index))!.space === "cmyk") return { exitCode: 1, stdout: "", stderr: "magick: unsupported colorspace 'CMYK' for TIFF output\n" };
@@ -19098,7 +19104,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   }
   image={position,width,height,...(storedData16?{storedData16}:{}),...(storedEvaluateSamples===undefined?{}:{storedEvaluateSamples}),...(storedHueSamples===undefined?{}:{storedHueSamples}),format:"png",channels:a.space?(a.a<255||b.a<255?2:1):4,depth:checker?"uchar":"ushort",space:a.cmyk?"cmyk":a.space??"srgb",density:72,hasAlpha:checker||a.a<255||b.a<255};
   if (pattern) image = { ...image, space: state.hasSize ? "srgb" : pattern.space, channels: state.hasSize || pattern.space === "srgb" ? 3 : 1, hasAlpha: false };
-  image = Object.assign(image, { ...(pattern ? { bitsPerSample: state.hasSize ? state.inputDepth ?? 16 : pattern.bitsPerSample } : {}), [magickInput]: { ...(!checker ? { filePath: first } : {}), inputFormat: baseToken.slice(0, baseToken.indexOf(":")).toUpperCase() } });
+  image = Object.assign(image, { ...(pattern ? { bitsPerSample: state.hasSize ? state.inputDepth ?? 16 : pattern.bitsPerSample } : {}), [magickInput]: { filePath: pattern ? spec : first, inputFormat: pattern && !state.hasSize ? pattern.format.toUpperCase() : baseToken.slice(0, baseToken.indexOf(":")).toUpperCase() } });
  }else if(lower.startsWith("label:")||lower.startsWith("caption:")){
   const text = baseToken.slice(baseToken.indexOf(":") + 1), kind = lower.startsWith("caption:") ? "caption" : "label";
   const font = state.font === undefined ? defaultCaptionFont : await backend.read(state.font, async source => {

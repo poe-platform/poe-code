@@ -65,6 +65,7 @@ export function builtinPattern(name: string) {
     return {
         width: tile.width,
         height: tile.rows.length,
+        format: key === "checkerboard" ? "gif" as const : "pbm" as const,
         space: key === "checkerboard" ? "srgb" as const : "b-w" as const,
         bitsPerSample: key === "checkerboard" ? 8 : 1,
         gray(x: number, y: number): number {

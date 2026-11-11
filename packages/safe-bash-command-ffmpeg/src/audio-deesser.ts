@@ -37,6 +37,21 @@ export async function deessAudio(
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["i", "m", "f", "s"][index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (key === "thread_type") {
+      // Scheduling flags do not change PCM; validate each set/clear operand.
+      let position = 0;
+      do {
+        if (value[position] === "+" || value[position] === "-") position++;
+        const start = position;
+        if (value[position] === "+" || value[position] === "-") position++;
+        while (position < value.length && value[position] !== "+" && value[position] !== "-") position++;
+        const bits = parseFilterExpression(value.slice(start, position), "deesser", { slice: 1, none: 0, all: -1 });
+        if (!Number.isInteger(bits) || bits < -2147483648 || bits > 4294967295) {
+          throw new RangeError("deesser: invalid thread_type");
+        }
+      } while (position < value.length);
+      continue;
+    }
     if (key === "threads" || key === "extra_hw_frames") {
       const min = key === "threads" ? 0 : -1;
       const number = parseFilterExpression(value, "deesser", { min, max: 2147483647, default: min });

@@ -96,7 +96,8 @@ for (const graph of [false, true]) {
       const baseline = await run(filter, graph, [mono.slice(0, 2048)]);
       assert.equal(baseline.result.exitCode, 0, baseline.stderr);
       for (const option of [
-        "threads=1", "extra_hw_frames=1", "threads=0:extra_hw_frames=-1",
+        "thread_type=slice", "thread_type=0", "thread_type=+slice", "thread_type=slice-slice",
+        "thread_type=none", "thread_type=all", "threads=1", "extra_hw_frames=1", "threads=0:extra_hw_frames=-1",
         "threads=2147483647:extra_hw_frames=2147483647",
         "threads=default:extra_hw_frames=default", "threads=min:extra_hw_frames=min",
         "threads=max:extra_hw_frames=max", "threads=1+1:extra_hw_frames=min+1",

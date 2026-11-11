@@ -5,7 +5,7 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { createFfmpegCommand } from "./index.js";
 
 // FFmpeg 7.0.2: ERANGE, EINVAL, and AVERROR_OPTION_NOT_FOUND shell statuses.
-for (const [option, exitCode] of [["i=2", 222], ["s=q", 234], ["q=1", 8]] as const) {
+for (const [option, exitCode] of [["i=2", 222], ["s=q", 234], ["q=1", 8], ["thread_type=banana", 234]] as const) {
   for (const graph of [false, true]) {
     for (const output of ["pipe:1", "/out.pcm"]) {
       it(`deesser=${option} exits ${exitCode} without output (graph=${graph}, ${output})`, async () => {
@@ -31,6 +31,7 @@ for (const [option, exitCode] of [["i=2", 222], ["s=q", 234], ["q=1", 8]] as con
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
         assert.equal(result.exitCode, exitCode, stderr);
+        if (option === "thread_type=banana") assert.ok(!stderr.includes("unsupported option"), stderr);
         assert.equal(Buffer.concat(chunks).length, 0);
         assert.equal(fs.readFileSync("/out.pcm", "utf8"), "keep");
       });

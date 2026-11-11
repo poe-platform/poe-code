@@ -2533,8 +2533,8 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     const hueSamples = img.hueSamples ? new Float64Array(out.length) : undefined;
     const virtualBackground = bg;
     const random = virtualPixel === "random" ? createMagickRandom(seed) : undefined;
-    if (img.space === "cmyk") {
-        // Native CMYK canvas fills convert linear RGB background values to inks.
+    if (img.space === "cmyk" && !("space" in bg && bg.space === "b-w")) {
+        // Native gray fills retain their intensity; RGB fills use linear samples.
         const rgb = [bg.r, bg.g, bg.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
         bg = { ...bg, r: rgb[0]! * 255, g: rgb[1]! * 255, b: rgb[2]! * 255 };
     }
@@ -15010,8 +15010,8 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         image = { ...image, alphaSeparate: image.alphaBlend === false ? false : image.alphaSeparate, isPalette: false, hasAlpha: image.hasAlpha || background.a < 255, ...(background.a < 255 ? { alphaBlend: true } : {}), ...(virtualCanvas ? { virtualCanvas } : {}) };
         if (width === w && height === h) return image;
     }
-    if (token === "-splice" && image.space === "cmyk") {
-        // Keep the RGB backing and the CMYK working plane in agreement.
+    if (token === "-splice" && image.space === "cmyk" && !("space" in background && background.space === "b-w")) {
+        // Native gray fills retain their intensity; RGB fills use linear samples.
         const rgb = [background.r, background.g, background.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
         background = { ...background, r: rgb[0]! * 255, g: rgb[1]! * 255, b: rgb[2]! * 255 };
     }

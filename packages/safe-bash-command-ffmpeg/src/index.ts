@@ -44,6 +44,7 @@ import { swapUv } from "./swapuv.js";
 import { colorcorrect } from "./colorcorrect.js";
 import { deessAudio } from "./audio-deesser.js";
 import { declickAudio } from "./audio-adeclick.js";
+import { deflicker } from "./deflicker.js";
 import { tmix } from "./tmix.js";
 import { lagfun } from "./lagfun.js";
 import { prewitt } from "./prewitt.js";
@@ -5991,6 +5992,8 @@ async function applyVideoFilterChain(
       current = await hqdn3d(current, argStr, pixelFormat, budget, signal);
     } else if (name === "lagfun") {
       current = await lagfun(current, argStr, pixelFormat, budget, signal);
+    } else if (name === "deflicker") {
+      current = await deflicker(current, argStr, pixelFormat, budget, signal);
     } else if (name === "tmix") {
       const instance = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim();
       // Rejected runtime options leave the mix unchanged, without stopping rendering.

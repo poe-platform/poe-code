@@ -1,3 +1,4 @@
+import {NetpbmAscii} from "./netpbm-ascii.js";
 import {defaultRuntime} from "@poe-code/compression";
 import type {SharpInputOptions} from "../ast.js";
 import {checkLimitInputPixels} from "../limits.js";
@@ -93,6 +94,7 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
  const comment=netpbmComment(image.properties?.comment);
  const pamHeader=`P7\n${comment}WIDTH ${image.width}\nHEIGHT ${image.height}\nDEPTH ${channels}\nMAXVAL ${maximum}\nTUPLTYPE ${gray?"GRAYSCALE":cmyk?"CMYK":"RGB"}${image.hasAlpha?"_ALPHA":""}\nENDHDR\n`;
  const {width,height,position}=image;
+ const layout=new NetpbmAscii(width,height,channels);
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)||!Number.isSafeInteger(position)||position<0||!Number.isSafeInteger(position+width*height*4)) throw new RangeError("Invalid Netpbm backing dimensions");
  if(cmyk&&image.storedHueSamples!==undefined) {
   yield new TextEncoder().encode(pamHeader);
@@ -128,9 +130,9 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
     const r=data[i*4]!,g=data[i*4+1]!,b=data[i*4+2]!;
     const peak=Math.max(r,g,b),inks=cmyk?[peak===0?0:(1-r/peak)*65535,peak===0?0:(1-g/peak)*65535,peak===0?0:(1-b/peak)*65535,65535-peak]:[];
     if(cmyk&&image.hasAlpha) inks.push(data[i*4+3]!);
-    for(const value of cmyk?inks:format==="pam"?(gray?(image.hasAlpha?[r,data[i*4+3]!]:[r]):(image.hasAlpha?[r,g,b,data[i*4+3]!]:[r,g,b])):format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {const scaled=Math.round(value*maximum/65535);if(ascii){text.push(String(scaled));continue;}if(depth>8)out[dst++]=scaled>>>8;out[dst++]=scaled&255;}
+    for(const value of cmyk?inks:format==="pam"?(gray?(image.hasAlpha?[r,data[i*4+3]!]:[r]):(image.hasAlpha?[r,g,b,data[i*4+3]!]:[r,g,b])):format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {const scaled=Math.round(value*maximum/65535);if(ascii){text.push(layout.sample(scaled));continue;}if(depth>8)out[dst++]=scaled>>>8;out[dst++]=scaled&255;}
    }
-   yield ascii?new TextEncoder().encode(text.join("\n")+"\n"):out;
+   yield ascii?new TextEncoder().encode(text.join("")):out;
   }
   return;
  }
@@ -146,14 +148,14 @@ export async function* encodeNetpbmFromStorage(image:StoredRgbaImage,storage:Ima
     for(const channel of cmyk?inks:format==="pam"?(gray?(image.hasAlpha?[r,value>>>24]:[r]):(image.hasAlpha?[r,g,b,value>>>24]:[r,g,b])):format==="ppm"?[r,g,b]:[0.212656*r+0.715158*g+0.072186*b]) {
      const scaled=Math.round(channel*maximum/255);
      if(ascii) {
-      for(const byte of new TextEncoder().encode(`${scaled}\n`)) {buffer[used++]=byte;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}
+      for(const byte of new TextEncoder().encode(layout.sample(scaled))) {buffer[used++]=byte;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}
       continue;
      }
      if(depth>8) {buffer[used++]=scaled>>>8;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}
      buffer[used++]=scaled&255;
      if(used===buffer.length){yield new Uint8Array(buffer);used=0;}
     }
-   } else if(ascii) {buffer[used++]=0.299*r+0.587*g+0.114*b<128?49:48;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}buffer[used++]=10;} else {if(0.299*r+0.587*g+0.114*b<128)bits|=1<<(7-(x&7));if((x&7)===7||x+1===width){buffer[used++]=bits;bits=0;}}
+   } else if(ascii) {for(const byte of new TextEncoder().encode(layout.sample(0.299*r+0.587*g+0.114*b<128?1:0))){buffer[used++]=byte;if(used===buffer.length){yield new Uint8Array(buffer);used=0;}}} else {if(0.299*r+0.587*g+0.114*b<128)bits|=1<<(7-(x&7));if((x&7)===7||x+1===width){buffer[used++]=bits;bits=0;}}
    if(used===buffer.length){yield new Uint8Array(buffer);used=0;}
   }
  }

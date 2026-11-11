@@ -54,3 +54,31 @@ it.each(["ppm", "pam", "pgm", "pbm"] as const)("writes %s comments without chang
     } finally {await storage.close();}
   }
 });
+
+it.each(["ppm", "pgm", "pbm"] as const)("groups plain %s rows in both output paths", async format => {
+  for (const highDepth of [false, true]) for (const width of [2, 513]) {
+    const data = width === 2 ? Uint8Array.from([255,255,255,255,0,0,0,255,0,0,0,255,255,255,255,255]) : new Uint8Array(width * 2 * 4).fill(255);
+    const data16 = Uint16Array.from(data, value => value * 257);
+    const image: RgbaImage = {width, height: 2, data, ...(highDepth ? {data16} : {}), format: "png", depth: "uchar", space: "srgb", channels: 3, density: 72, hasAlpha: false};
+    let expected = format === "ppm" ? "P3\n2 2\n255\n255 255 255 0 0 0\n0 0 0 255 255 255\n" : format === "pgm" ? "P2\n2 2\n255\n255 0\n0 255\n" : "P1\n2 2\n0 1\n1 0\n";
+    if (width !== 2) {
+      const pixel = format === "ppm" ? "255 255 255" : format === "pgm" ? "255" : "0";
+      const perLine = format === "ppm" ? 5 : format === "pgm" ? 17 : 35;
+      const lines: string[] = [];
+      for (let left = width * 2; left > 0; left -= perLine) lines.push(Array(Math.min(left, perLine)).fill(pixel).join(" "));
+      expected = `${format === "ppm" ? "P3" : format === "pgm" ? "P2" : "P1"}\n${width} 2\n${format === "pbm" ? "" : "255\n"}${lines.join("\n")}\n`;
+    }
+    expect(Buffer.from(format === "ppm" ? encodePpm(image, 8, true) : format === "pgm" ? encodePgm(image, 8, true) : encodePbm(image, true)).toString()).toBe(expected);
+    const signal = new AbortController().signal;
+    const storage = new PagedStorage({fs: new MemoryFileSystem(), cwd: "/", env: {}, signal}, 1);
+    try {
+      const position = storage.allocate(data.length);
+      await storage.write(position, data);
+      const storedData16 = {position: storage.allocate(data16.byteLength), length: data16.length};
+      await storage.write(storedData16.position, new Uint8Array(data16.buffer));
+      const chunks: Uint8Array[] = [];
+      for await (const chunk of encodeNetpbmFromStorage({...image, position, ...(highDepth ? {storedData16} : {})}, storage, signal, format, 8, true)) chunks.push(chunk);
+      expect(Buffer.concat(chunks).toString()).toBe(expected);
+    } finally {await storage.close();}
+  }
+});

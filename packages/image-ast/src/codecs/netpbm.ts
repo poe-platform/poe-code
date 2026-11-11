@@ -1,3 +1,4 @@
+import {NetpbmAscii} from "./netpbm-ascii.js";
 import { bmpProfileRange } from "./bmp-profile.js";
 import { decodePngImage } from "./png.js";
 import {tiffTextProperties,tiffPhotometricNames} from "./tiff-properties.js";
@@ -157,6 +158,7 @@ export function encodePpm(img: RgbaImage, depth = img.data16 ? 16 : 8, ascii = f
   if (!Number.isInteger(depth) || depth < 1 || depth > 16) throw new RangeError("Invalid Netpbm depth");
   const maximum = ascii ? (depth <= 8 ? 255 : 65535) : 2 ** depth - 1;
   const text: string[] = [];
+  const layout = new NetpbmAscii(img.width, img.height, 3);
   const comment = netpbmComment(img.properties?.comment);
   const header = pam ? `P7\n${comment}WIDTH ${img.width}\nHEIGHT ${img.height}\nDEPTH ${channels}\nMAXVAL ${maximum}\nTUPLTYPE ${cmyk ? "CMYK" : gray ? "GRAYSCALE" : "RGB"}${img.hasAlpha ? "_ALPHA" : ""}\nENDHDR\n` : `${ascii ? "P3" : "P6"}\n${comment}${img.width} ${img.height}\n${maximum}\n`;
   const headerBytes = new TextEncoder().encode(header);
@@ -166,18 +168,19 @@ export function encodePpm(img: RgbaImage, depth = img.data16 ? 16 : 8, ascii = f
   for (let i = 0; i < img.width * img.height; i++) {
     for (let channel = 0; channel < channels; channel++) {
       const value = Math.round(cmyk && channel < 4 ? img.hueSamples![i * 4 + channel]! * maximum : (img.data16 ?? img.data)[i * 4 + (channel === 4 || (gray && channel === 1) ? 3 : channel)]! * maximum / (img.data16 ? 65535 : 255));
-      if (ascii) { text.push(String(value)); continue; }
+      if (ascii) { text.push(layout.sample(value)); continue; }
       if (depth > 8) out[dst++] = value >>> 8;
       out[dst++] = value & 255;
     }
   }
-  return ascii ? new TextEncoder().encode(header + text.join("\n") + "\n") : out;
+  return ascii ? new TextEncoder().encode(header + text.join("")) : out;
 }
 
 export function encodePgm(img: RgbaImage, depth = img.data16 ? 16 : 8, ascii = false): Uint8Array {
   if (!Number.isInteger(depth) || depth < 1 || depth > 16) throw new RangeError("Invalid Netpbm depth");
   const maximum = ascii ? (depth <= 8 ? 255 : 65535) : 2 ** depth - 1;
   const text: string[] = [];
+  const layout = new NetpbmAscii(img.width, img.height, 1);
   const comment = netpbmComment(img.properties?.comment);
   const header = `${ascii ? "P2" : "P5"}\n${comment}${img.width} ${img.height}\n${maximum}\n`;
   const headerBytes = new TextEncoder().encode(header);
@@ -190,15 +193,16 @@ export function encodePgm(img: RgbaImage, depth = img.data16 ? 16 : 8, ascii = f
     const g = samples[i * 4 + 1]!;
     const b = samples[i * 4 + 2]!;
     const value = Math.round((0.212656 * r + 0.715158 * g + 0.072186 * b) * maximum / (img.data16 ? 65535 : 255));
-    if (ascii) { text.push(String(value)); continue; }
+    if (ascii) { text.push(layout.sample(value)); continue; }
     if (depth > 8) out[dst++] = value >>> 8;
     out[dst++] = value & 255;
   }
-  return ascii ? new TextEncoder().encode(header + text.join("\n") + "\n") : out;
+  return ascii ? new TextEncoder().encode(header + text.join("")) : out;
 }
 
 export function encodePbm(img: RgbaImage, ascii = false): Uint8Array {
   const text: string[] = [];
+  const layout = new NetpbmAscii(img.width, img.height, 1);
   const comment = netpbmComment(img.properties?.comment);
   const header = `${ascii ? "P1" : "P4"}\n${comment}${img.width} ${img.height}\n`;
   const rowBytes = Math.ceil(img.width / 8);
@@ -211,14 +215,14 @@ export function encodePbm(img: RgbaImage, ascii = false): Uint8Array {
       const idx = (y * img.width + x) * 4;
       const luma = 0.299 * img.data[idx]! + 0.587 * img.data[idx + 1]! + 0.114 * img.data[idx + 2]!;
       const bit = luma < 128 ? 1 : 0; // 1 = black
-      if (ascii) { text.push(String(bit)); continue; }
+      if (ascii) { text.push(layout.sample(bit)); continue; }
       if (bit) {
         const bIdx = rowOffset + (x >>> 3);
         out[bIdx] = (out[bIdx] ?? 0) | (1 << (7 - (x & 7)));
       }
     }
   }
-  return ascii ? new TextEncoder().encode(header + text.join("\n") + "\n") : out;
+  return ascii ? new TextEncoder().encode(header + text.join("")) : out;
 }
 
 export function readBmpMetadata(bytes: Uint8Array): ImageMetadata {

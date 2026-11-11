@@ -8,8 +8,13 @@ function readLine(line: string): { start: number; end: number; text: string } | 
   if (first < 2 || line[first + 1] !== "[") return undefined;
   const second = line.indexOf("]", first + 2);
   if (second < first + 3) return undefined;
-  const startText = line.slice(1, first);
-  const endText = line.slice(first + 2, second);
+  let startIndex = 1;
+  let endIndex = first + 2;
+  while (startIndex < first && " \t\v\f".includes(line[startIndex]!)) startIndex++;
+  while (endIndex < second && " \t\v\f".includes(line[endIndex]!)) endIndex++;
+  if (startIndex === first || endIndex === second) return undefined;
+  const startText = line.slice(startIndex, first);
+  const endText = line.slice(endIndex, second);
   for (const text of [startText, endText]) {
     const digits = text.startsWith("+") || text.startsWith("-") ? text.slice(1) : text;
     if (!digits || ![...digits].every(c => c >= "0" && c <= "9")) return undefined;

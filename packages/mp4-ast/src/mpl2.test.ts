@@ -14,6 +14,31 @@ for (const endings of [["\r", "\r"], ["\r\n", "\r\n"], ["\n", "\n"], ["\r", "\n"
   });
 }
 
+for (const [timing, accepted] of [
+  ["[10][20]", true],
+  ["[ 10][ 20]", true],
+  ["[\t10][20]", true],
+  ["[10][\t 20]", true],
+  ["[\v\f 10][\f\v20]", true],
+  ["[10 ][20]", false],
+  ["[10][20 ]", false],
+  ["[ 10 ][ 20 ]", false],
+  ["[ ][20]", false],
+  ["[10][\t]", false],
+  ["[1 0][20]", false],
+  ["[\u00a010][20]", false],
+  ["[10][\u200320]", false]
+] as const) {
+  it(`accepts only leading ASCII whitespace in MPL2 numeric fields: ${JSON.stringify(timing)}`, () => {
+    const bytes = new TextEncoder().encode(`${timing}Alpha\n[30][40]Beta\n`);
+    const plugin = mpl2Ast();
+    assert.equal(plugin.detect(bytes), accepted);
+    assert.deepEqual(plugin.parse(bytes).tracks[0]!.samples.map(sample =>
+      [sample.pts, sample.duration, new TextDecoder().decode(sample.data)]),
+    accepted ? [[10, 10, "Alpha"], [30, 10, "Beta"]] : [[30, 10, "Beta"]]);
+  });
+}
+
 it("reads MPL2 decisecond packets with CRLF and ignores malformed timing", () => {
   const bytes = new TextEncoder().encode("[12][28]First|second\r\n[34][50]Last\r\n[5][4]Reversed\n[][8]Empty\n[1e2][200]Invalid\n[9007199254740992][9007199254740993]Overflow\n");
   const plugin = createMediaAstRegistry(allMediaAsts()).findById("mpl2")!;

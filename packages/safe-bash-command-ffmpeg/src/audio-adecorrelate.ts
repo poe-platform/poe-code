@@ -1,7 +1,6 @@
 import { md5 } from "@noble/hashes/legacy.js";
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
-import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function decorrelateAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
@@ -14,10 +13,6 @@ export async function decorrelateAudio(
   for (const [index, option] of entries.entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["stages", "seed"][index] : option.slice(0, separator).trim();
-    if (key === "threads") {
-      validateWeaveGenericOption(key, option.slice(separator + 1).trim(), "adecorrelate");
-      continue;
-    }
     if (key !== "stages" && key !== "seed") throw new Error(`adecorrelate: unsupported option ${key}`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     const number = Number(value);

@@ -54,6 +54,32 @@ it("uses stack pad order for coordinates and repeats the shorter first input", a
   assert.equal(result.stdout.toString("hex"), "0506ff01020708ff03040506ff0a140708ff1e28");
 });
 
+for (const option of ["threads=1", "thread_type=slice", "extra_hw_frames=1",
+  "threads=1:thread_type=slice:extra_hw_frames=1",
+  "threads=0:thread_type=none:extra_hw_frames=-1",
+  "threads=default:extra_hw_frames=min", "threads=1+1:extra_hw_frames=2-1",
+  "threads=2147483647:thread_type=4294967295:extra_hw_frames=2147483647",
+  "thread_type=all-slice", "threads=1:threads=2"]) {
+  it(`accepts xstack ${option} without changing pixels or frame count`, async () => {
+    const result = await run(`[0:v][1:v]xstack=${option}`);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout.toString("hex"), "01020506030407080a1405061e280708");
+  });
+}
+
+for (const option of ["threads=-1", "threads=2147483648", "threads=", "threads=bogus",
+  "thread_type=bogus", "thread_type=0.5", "thread_type=4294967296",
+  "extra_hw_frames=-2", "extra_hw_frames=2147483648", "extra_hw_frames=",
+  "threads=1:unknown=1"]) {
+  it(`rejects xstack ${option} without replacing output`, async () => {
+    const result = await run(`[0:v][1:v]xstack=${option}`, {}, "/out.raw");
+    assert.notEqual(result.exitCode, 0);
+    assert.ok(result.stderr.includes("xstack"), result.stderr);
+    assert.equal(result.stdout.length, 0);
+    assert.equal(result.volume.readFileSync("/out.raw", "utf8"), "existing output");
+  });
+}
+
 for (const option of ["layout=0_0", "layout=0_0|w2_0", "layout=0_0|-1_0", "grid=2x2",
   "shortest=invalid", "fill=invalid", "inputs=3", "unknown=1", "layout=0_0|w0_0:grid=1x2", "layout=0_0|1e30_0"]) {
   it(`rejects invalid xstack ${option} without emitting pixels`, async () => {

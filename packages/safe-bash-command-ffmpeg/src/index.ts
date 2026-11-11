@@ -27,6 +27,7 @@ import { tmix } from "./tmix.js";
 import { doubleweave } from "./doubleweave.js";
 import { padTinterlace } from "./tinterlace-pad.js";
 import { weave } from "./weave.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 import { separateFields } from "./separatefields.js";
 import { decimate } from "./decimate.js";
 import { meanFrameDifference } from "./select.js";
@@ -11169,8 +11170,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     if (!option) continue;
                     const equals = option.indexOf("=");
                     const key = equals < 0 ? keys[index] : option.slice(0, equals).trim();
+                    const value = (equals < 0 ? option : option.slice(equals + 1)).trim();
+                    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+                      validateWeaveGenericOption(key, value, "xstack");
+                      continue;
+                    }
                     if (!key || !keys.includes(key)) throw new Error(`xstack: unsupported option ${option}`);
-                    xoptions[key] = (equals < 0 ? option : option.slice(equals + 1)).trim();
+                    xoptions[key] = value;
                   }
                   if (xoptions.inputs !== undefined && xoptions.inputs !== "2") {
                     throw new Error("xstack: only two direct inputs are supported");

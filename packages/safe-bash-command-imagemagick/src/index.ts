@@ -12163,7 +12163,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const layout = magickShadowLayout(picture, `80x2+${Math.trunc(border / 3)}+${Math.trunc(border / 3)}`);
                 let result = yield* applyMagickRasterSteps(picture, shadowPixelSteps(picture, layout, state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background, channels?.[3] ?? true), signal, layout);
                 result = { ...yield* flopImageSteps(result), virtualCanvas: magickMirrorCanvas({ ...result, virtualCanvas: layout.virtualCanvas }, "flop") };
-                result = yield* applyMagickRasterSteps(result, composite16PixelSteps(result, picture, Math.trunc(-0.01 * picture.width / 2), 0, "Over", undefined, false, 0, true, undefined, result.space === "cmyk"), signal, result, [result, picture]);
+                result = yield* applyMagickRasterSteps(result, composite16PixelSteps(result, picture, Math.trunc(-0.01 * picture.width / 2), 0, "Over", undefined, false, 0, true, undefined, result.space === "cmyk", channels), signal, result, [result, picture]);
                 const operation = parseMagickWarpOperation(["-rotate", String(angle)], { ...state, background: transparent, backgroundExplicit: true }, 0, analysis);
                 const plan = operation?.plan(result);
                 result = plan ? { ...yield* applyMagickRasterSteps(result, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) }
@@ -15718,7 +15718,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const layout = magickShadowLayout(picture, `80x2+${Math.trunc(border / 3)}+${Math.trunc(border / 3)}`);
                 let result = await transformStoredMagickRaster(picture, backend, shadowPixelSteps(picture, layout, settings.backgroundExplicit ? settings.background : image.backgroundColor ?? settings.background, channels?.[3] ?? true), signal, layout);
                 result = { ...await transformStoredImage(result, backend.storage, { kind: "flop" }, signal), virtualCanvas: magickMirrorCanvas({ ...result, virtualCanvas: layout.virtualCanvas }, "flop") };
-                result = await transformStoredMagickRaster(result, backend, composite16PixelSteps(result, picture, Math.trunc(-0.01 * picture.width / 2), 0, "Over", undefined, false, 0, true, undefined, result.space === "cmyk"), signal, result, [result, picture]);
+                result = await transformStoredMagickRaster(result, backend, composite16PixelSteps(result, picture, Math.trunc(-0.01 * picture.width / 2), 0, "Over", undefined, false, 0, true, undefined, result.space === "cmyk", channels), signal, result, [result, picture]);
                 const operation = parseMagickWarpOperation(["-rotate", String(angle)], { ...settings, background: transparent, backgroundExplicit: true }, 0, analysis);
                 const plan = operation?.plan(result);
                 result = plan ? { ...await transformStoredMagickRaster(result, backend, plan.steps, signal, plan), ...(plan.virtualCanvas ? { virtualCanvas: plan.virtualCanvas } : {}) }

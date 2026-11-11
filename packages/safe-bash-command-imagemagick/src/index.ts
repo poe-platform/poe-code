@@ -18598,6 +18598,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let colorWarnings = "";
     let quiet = false;
     let verbose = false;
+    let identify = false;
+    let stdout = "";
     let regardWarnings = false;
     let compose = "over";
     const levelSteps: (number | "(" | ")" | "option" | MagickPixelOperation)[] = [];
@@ -18681,6 +18683,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             }
         }
         else if (t === "-quiet" || t === "+quiet") quiet = t === "-quiet";
+        else if (t === "-identify") identify = true;
         else if (t === "-verbose" || t === "+verbose") verbose = t === "-verbose";
         else if (t === "-regard-warnings" || t === "+regard-warnings") regardWarnings = t === "-regard-warnings";
         else if (t === "-subimage-search" || t === "+subimage-search") {
@@ -19239,6 +19242,10 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                         const options = magickResizeOptions(image, geometry, state.kernel);
                         if (options) image = await resizeStoredMagickImage(image, backend, options, signal!, false, false, false, state.resizeFilter, undefined, true);
                     }
+                    if (identify) {
+                        const source = image[magickInput];
+                        stdout += formatInlineIdentify({ ...image, [magickInput]: { ...source, filePath: `${source?.filePath ?? operand}[${source?.sceneIdx ?? 0}]` } }) + "\n";
+                    }
                     if (verbose) imageDetails += `${operand} ${image.format.toUpperCase()} ${image.width}x${image.height}\n`;
                     await drainIdentifySteps(acceptImage(image, operations), signal);
                 } });
@@ -19249,6 +19256,10 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 for (let image of images ?? []) {
                     for (const operation of operandLevels[operandIndex]!) image = yield* operation.apply(image);
                     for (const geometry of resizes) image = yield* applyMagickResizeSteps(image, geometry, state.kernel, false, false, false, state.resizeFilter, undefined, true);
+                    if (identify) {
+                        const source = image[magickInput];
+                        stdout += formatInlineIdentify({ ...image, [magickInput]: { ...source, filePath: `${source?.filePath ?? operand}[${source?.sceneIdx ?? 0}]` } }) + "\n";
+                    }
                     if (verbose) imageDetails += `${operand} ${image.format.toUpperCase()} ${image.width}x${image.height}\n`;
                     yield* acceptImage(image, operations);
                 }
@@ -19364,13 +19375,12 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         : metricStr;
     const comparisonStderr = inputErrors + diagnostics + (quiet ? "" : colorWarnings) + (subimageSearch && (metricExplicit ? searchScore > dissimilarityThreshold : searchScore < dissimilarityThreshold)
         ? `compare: images too dissimilar '${refSpec}'\n` : "");
-    let stdout = "";
     if (state.formatStr !== undefined) {
         const image = { ...imgA, properties: { ...imgA.properties, distortion: formatMetricNum(compared.value.distortion) } };
         const context = { filePath: parseInputToken(refSpec).baseToken };
-        if ("data" in image) stdout = yield* formatMagickPropertyStringSteps(state.formatStr, image, () => image, context);
+        if ("data" in image) stdout += yield* formatMagickPropertyStringSteps(state.formatStr, image, () => image, context);
         else yield { async run() {
-            stdout = await formatRetainedIdentify(state.formatStr!, image, context, async () => ({ image, storage: backend!.storage }), signal);
+            stdout += await formatRetainedIdentify(state.formatStr!, image, context, async () => ({ image, storage: backend!.storage }), signal);
         } };
     }
     if("data" in imgA)detachRgbaBuffer(imgA.data);if("data" in imgB)detachRgbaBuffer(imgB.data);

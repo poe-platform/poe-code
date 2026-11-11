@@ -7324,6 +7324,17 @@ function tryHandleMagickListOption(argv: readonly string[]): ImageMagickCliResul
         const arg = argv[i]!;
         if (arg === "-list" || arg === "--list") {
             const listType = (argv[i + 1] ?? "list").toLowerCase();
+            if (listType === "virtual-pixel") {
+                return {
+                    exitCode: 0,
+                    stdout: [
+                        "Background", "Black", "CheckerTile", "Dither", "Edge", "Gray",
+                        "HorizontalTile", "HorizontalTileEdge", "Mirror", "None", "Random",
+                        "Tile", "Transparent", "VerticalTile", "VerticalTileEdge", "White"
+                    ].join("\n") + "\n",
+                    stderr: ""
+                };
+            }
             if (listType === "channel" || listType === "metric") {
                 return {
                     exitCode: 0,

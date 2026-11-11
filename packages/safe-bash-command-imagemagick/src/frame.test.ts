@@ -81,7 +81,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         expect([...image.data.slice(48, 52)]).toEqual([255, 0, 0, 255]);
     });
     it(`renders all four bevel shades, ${mode}`, async () => {
-        const args = ["-size", "1x1", "xc:red", "-frame", "3x3+1+1", "png:-"];
+        const args = ["-size", "1x1", "xc:red", "-frame", "3x3+1+1", "-depth", "8", "png:-"];
         const result = mode === "sync" ? runConvertCliSync(args, new Map())
             : await runConvertCli(args, mode === "retained" ? { filesystem: new MemoryFileSystem(), cwd: "/" } : new Map());
         expect(result.exitCode, result.stderr).toBe(0);

@@ -12,6 +12,13 @@ for (const graph of [false, true]) {
   for (const [filter, options, indices] of [
     ["null", [], [0, 1, 2]],
     ["tpad", [], [0, 1, 2]],
+    ...["0", "add", "default", "min", "0.25", "0.5", "clone-add-1"].map(mode =>
+      [`tpad=start=1:stop=1:start_mode=${mode}:stop_mode=${mode}`, [], [4, 0, 1, 2, 4]] as const),
+    ...["1", "clone", "max", "0.75", "add+clone", "1/2+0.25", "PI-PI+1", "E-E+1", "PHI-PHI+1"].map(mode =>
+      [`tpad=start=1:stop=1:start_mode=${mode}:stop_mode=${mode}`, [], [0, 0, 1, 2, 2]] as const),
+    ...["start_mode", "stop_mode"].flatMap(key =>
+      ["-0.01", "1.01", "2", "NaN", "1/0", "unknown"].map(mode =>
+        [`tpad=${key}=${mode}`, [], null] as const)),
     ["tpad=start_mode=clone:start=1", [], [0, 0, 1, 2]],
     ["tpad=stop_mode=clone:stop_duration=500ms", [], [0, 1, 2, 2, 2]],
     ["tpad=start=1:stop=1", [], [4, 0, 1, 2, 4]],

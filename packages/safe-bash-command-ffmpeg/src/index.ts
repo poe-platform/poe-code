@@ -5721,9 +5721,12 @@ async function applyVideoFilterChain(
         return roundToEven(value);
       });
       const modes = ["start_mode", "stop_mode"].map(key => {
-        const mode = options[key] ?? "add";
-        if (!["add", "clone", "0", "1"].includes(mode)) throw new Error(`tpad: invalid ${key}`);
-        return mode === "clone" || mode === "1";
+        const mode = parseFilterExpression(options[key] ?? "add", `tpad ${key}`, {
+          add: 0, clone: 1, default: 0, min: 0, max: 1,
+          PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+        });
+        if (!Number.isFinite(mode) || mode < 0 || mode > 1) throw new Error(`tpad: invalid ${key}`);
+        return roundToEven(mode) === 1;
       });
       const color = parseColorRgba(options.color ?? "black");
       const first = current[0];

@@ -2,6 +2,7 @@ import { scharr } from "./scharr.js";
 import { sobel } from "./sobel.js";
 import { parseImageSize } from "./image-size.js";
 import { hqdn3d } from "./hqdn3d.js";
+import { kirsch } from "./kirsch.js";
 import { unsharp } from "./unsharp.js";
 import { bilateral } from "./bilateral.js";
 import { gblur } from "./gblur.js";
@@ -2497,6 +2498,8 @@ async function applyVideoFilterChain(
       current = await roberts(current, argStr, pixelFormat, budget, signal);
     } else if (name === "scharr") {
       current = await scharr(current, argStr, pixelFormat, budget, signal);
+    } else if (name === "kirsch") {
+      current = await kirsch(current, argStr, pixelFormat, budget, signal);
     } else if (name === "median") {
       current = await median(current, argStr, pixelFormat, budget, signal);
     } else if (name === "blackdetect") {

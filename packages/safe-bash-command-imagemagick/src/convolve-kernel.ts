@@ -44,9 +44,8 @@ export function* convolvePixelSteps(image: Pick<RgbaImage, "width" | "height" | 
         const working = yield { kind: "read", evaluate: true, position, length: count * 4 };
         const evaluate = !!working?.length;
         const center = yield* readSamples(position, count * 4, evaluate);
-        const floating = hue || cmyk || evaluate || highDepth;
+        const floating = hue || cmyk || evaluate || highDepth || bias !== 0;
         const data = floating ? new Float64Array(center) : new Uint8Array(center), sums = new Float64Array(count * stride);
-        sums.fill(bias);
         for (let ky = 0; ky < kernel.height; ky++) {
             yield;
             for (let kx = 0; kx < kernel.width; kx++) {
@@ -81,12 +80,12 @@ export function* convolvePixelSteps(image: Pick<RgbaImage, "width" | "height" | 
         for (let x = 0; x < count; x++) for (let channel = 0; channel < stride; channel++) {
             if (channel === 3 && !image.hasAlpha || mask && !mask[channel]) continue;
             const alpha = sums[x * stride + 3]!;
-            let value = channel === 3 ? alpha * 255 : sums[x * stride + channel]! / (image.hasAlpha ? (Math.abs(alpha) < 1e-12 ? 1e-12 : alpha) : 1);
+            let value = channel === 3 ? alpha * 255 + bias : (sums[x * stride + channel]! + bias) / (image.hasAlpha ? (Math.abs(alpha) < 1e-12 ? 1e-12 : alpha) : 1);
             if (region && !regionContains(region, left + x, y)) {
                 // Native Q16-HDRI composites the region mask before clipping the
                 // convolution, including negative colors and alpha above one.
                 const sourceAlpha = image.hasAlpha ? center[x * stride + 3]! / 255 : 1;
-                const editedAlpha = image.hasAlpha ? Math.fround(alpha * 65535) / 65535 : 1;
+                const editedAlpha = image.hasAlpha ? Math.fround(alpha * 65535 + bias * 257) / 65535 : 1;
                 value = channel === 3 ? center[x * stride + 3]!
                     : center[x * stride + channel]! * sourceAlpha + Math.fround(value * 257) / 257 * editedAlpha * (1 - sourceAlpha);
             }

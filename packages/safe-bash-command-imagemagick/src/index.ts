@@ -1284,6 +1284,11 @@ function* applyMagickSequenceSteps(stack: readonly RgbaImage[], opRaw: string | 
     return result;
 }
 
+function parseMagickConvolveBias(value: string | undefined): number {
+    // ImageMagick percentages span the full Q16 interval, including the upper endpoint.
+    return (Number.parseFloat(value ?? "0") || 0) * (value?.includes("%") ? 65536 / 100 : 1) / 257;
+}
+
 function parseMagickConvolveKernel(spec: string, normalize = true, reverse = false, scale?: string): ConvolveKernel {
     const afterColon = spec.includes(":") ? spec.slice(spec.indexOf(":") + 1) : spec;
     const kernel = afterColon.trim().split(/[\s,]+/).filter(s => s.length > 0).map(Number).filter(Number.isFinite);
@@ -12620,6 +12625,16 @@ if (t === "-intent" || t === "+intent") {
             if (key === "magnify:method") delete state.magnifyMethod;
             if (key === "trim:edges") delete state.trimEdges;
         }
+        else if (t === "-bias" || t === "+bias") {
+            state.optionProperties = { ...state.optionProperties };
+            if (t === "+bias") delete state.optionProperties["convolve:bias"];
+            else {
+                const value = tokens[++i];
+                if (value === undefined) throw new Error("missing argument '-bias'");
+                validateMagickTransformGeometry(value, t);
+                state.optionProperties["convolve:bias"] = value;
+            }
+        }
         else if (t === "-define") {
             const defStr = tokens[++i] ?? "";
             const separator = defStr.indexOf("=");
@@ -14124,11 +14139,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-convolve") {
             const spec = tokens[++i] ?? "1";
+            const bias = parseMagickConvolveBias(state.optionProperties?.["convolve:bias"]);
             const channels = state.channelExplicit ? state.channels : undefined;
             const { virtualPixel, background, optionProperties } = state;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const kernel = parseMagickConvolveKernel(spec, true, false, im.properties?.["artifact:convolve:scale"] ?? optionProperties?.["convolve:scale"]);
-                return kernel.weights.length ? yield* applyMagickRasterSteps(im, convolvePixelSteps(im, kernel, 0, undefined, channels, virtualPixel, background), signal) : im;
+                return kernel.weights.length ? yield* applyMagickRasterSteps(im, convolvePixelSteps(im, kernel, bias, undefined, channels, virtualPixel, background), signal) : im;
             });
         }
         else if (t === "-read-mask" || t === "+read-mask") {
@@ -18675,12 +18691,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && token === "-convolve") {
             const spec = tokens[++i] ?? "1";
+            const bias = parseMagickConvolveBias(state.optionProperties?.["convolve:bias"]);
             const channels = state.channelExplicit ? state.channels : undefined;
             const { virtualPixel, background, optionProperties } = state;
             steps.push(async (image, backend) => {
                 if (!image) return image;
                 const kernel = parseMagickConvolveKernel(spec, true, false, image.properties?.["artifact:convolve:scale"] ?? optionProperties?.["convolve:scale"]);
-                return kernel.weights.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0, undefined, channels, virtualPixel, background), signal) : image;
+                return kernel.weights.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, bias, undefined, channels, virtualPixel, background), signal) : image;
             });
         } else if (!operandsOnly && token === "-copy") {
             stackStep(async stack => {
@@ -19755,7 +19772,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-white-threshold",
         "-sigmoidal-contrast",
         "+sigmoidal-contrast",
-        "-convolve",
+        "-convolve", "-bias",
         "-color-matrix", "-cdl",
         "-channel-fx",
         "-evaluate-sequence", "-poly", "-complex",
@@ -19843,7 +19860,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-separate", "-combine", "-reverse", "-append", "+append", "-flatten", "-mosaic", "-composite",
         "-coalesce", "-deconstruct", "-average", "-clut", "-hald-clut", "-adjoin", "+adjoin", "+remap",
         "+attenuate", "+seed", "+region", "+write-mask", "+clip-mask", "+repage", "+channel", "+quantize", "+treedepth", "+compress", "+depth", "+endian", "+size",
-        "+read-mask", "+interpolate", "+intensity", "+filter", "+page", "+orient",
+        "+read-mask", "+bias", "+interpolate", "+intensity", "+filter", "+page", "+orient",
         "+virtual-pixel", "+gravity", "+sampling-factor", "+dither", "+clone", "+insert", "+swap", "+delete", "+dispose"
     ]);
     for (let i = 0; i < argv.length; i++) {

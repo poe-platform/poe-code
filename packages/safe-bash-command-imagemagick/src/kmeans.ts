@@ -2,6 +2,7 @@ import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import { createMagickRandom } from "./random.js";
 import { quantizePixelSteps } from "./quantize.js";
+import { regionContains, type Region } from "./region.js";
 
 export function parseKmeansGeometry(raw: string): { colors: number; iterations: number; tolerance: number } {
     const value = raw.trim().replaceAll("%", "");
@@ -24,7 +25,7 @@ export function parseKmeansGeometry(raw: string): { colors: number; iterations: 
 }
 
 /** Quantization seeds followed by Lloyd refinement, with bounded raster reads. */
-export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples" | "storedHueSamples">>, options: ReturnType<typeof parseKmeansGeometry> & { seedColors?: RgbaColor[] | undefined; seed?: bigint | undefined }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "space" | "hueSamples"> & { region?: Region | undefined; alphaBlend?: boolean | undefined } & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples" | "storedHueSamples">>, options: ReturnType<typeof parseKmeansGeometry> & { seedColors?: RgbaColor[] | undefined; seed?: bigint | undefined }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const hue = image.space !== "cmyk" && (!!image.hueSamples || image.storedHueSamples !== undefined);
     const evaluate = !hue && (!!image.evaluateSamples || image.storedEvaluateSamples !== undefined);
     const cmyk = image.space === "cmyk", channels = cmyk ? 5 : 4;
@@ -41,6 +42,27 @@ export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
             pixels.set(inks.subarray(i, i + 3), j);
             pixels[j + 3] = image.hasAlpha ? data[i + 3]! / (evaluate ? 255 : 65535) : 1;
             pixels[j + 4] = inks[i + 3]!;
+        }
+        return pixels;
+    }
+    function* maskedPixels(position: number, size: number, passes: number): Generator<ConvolveRequest | undefined, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
+        const data = yield* readPixels(position, size);
+        if (!image.region || !image.hasAlpha || image.alphaBlend === false || passes === 0) return data;
+        const pixels = Float64Array.from(data);
+        for (let i = 0; i < pixels.length; i += channels) {
+            const pixel = position / 4 + i / channels;
+            if (regionContains(image.region, pixel % image.width, Math.floor(pixel / image.width))) continue;
+            const alpha = pixels[i + 3]! / quantum;
+            if (alpha === 1) continue;
+            // Index-only cache writes still composite protected translucent pixels.
+            // Replay their float32 quantum rounding without retaining the whole raster.
+            for (let pass = 0; pass < passes; pass++) {
+                if (++work % 4096 === 0) yield;
+                for (let c = 0; c < channels; c++) if (c !== 3) {
+                    const value = pixels[i + c]! / quantum * 65535;
+                    pixels[i + c] = Math.fround(value * alpha + value * alpha * (1 - alpha)) / 65535 * quantum;
+                }
+            }
         }
         return pixels;
     }
@@ -78,7 +100,7 @@ export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
     }
     // Explicit opaque colors retain an undefined alpha trait in the native colormap.
     const alphaTraits = palette.map((_, index) => options.seedColors ? (options.seedColors[index]?.a ?? 255) < 255 : image.hasAlpha);
-    let assignments = palette, previousDistortion = 0, work = 0;
+    let assignments = palette, previousDistortion = 0, work = 0, passes = 0;
     function* nearest(pixel: ArrayLike<number>, offset: number, centers: number[][]): Generator<undefined, { index: number; distance: number }> {
         let index = 0, distance = Infinity;
         for (let k = 0; k < centers.length; k++) {
@@ -105,7 +127,7 @@ export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
         assignments = palette;
         for (let position = 0; position < length; position += 2048) {
             yield;
-            const size = Math.min(2048, length - position), data = yield* readPixels(position, size);
+            const size = Math.min(2048, length - position), data = yield* maskedPixels(position, size, passes);
             for (let i = 0; i < data.length; i += channels) {
                 const { index, distance } = yield* nearest(data, i, palette);
                 counts[index]!++;
@@ -113,6 +135,7 @@ export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
                 distortion += distance;
             }
         }
+        passes++;
         palette = sums.map((sum, index) => sum.map(value => value / (counts[index] || 1)));
         if (Math.abs(distortion - previousDistortion) <= options.tolerance) break;
         previousDistortion = distortion;
@@ -120,17 +143,27 @@ export function* kmeansPixelSteps(image: Pick<RgbaImage, "width" | "height" | "h
     // Use the final iteration's assignments with its newly calculated means.
     for (let position = 0; position < length; position += 2048) {
         yield;
-        const size = Math.min(2048, length - position), data = yield* readPixels(position, size);
-        const output = new Uint16Array(size), samples = hue || evaluate || cmyk ? new Float64Array(size) : undefined;
+        const size = Math.min(2048, length - position), data = yield* maskedPixels(position, size, passes - 1);
+        const original = image.region ? yield* maskedPixels(position, size, passes) : undefined;
+        const output = new Uint16Array(size), samples = hue || evaluate || cmyk || image.region ? new Float64Array(size) : undefined;
         const inks = cmyk ? new Float64Array(size) : undefined;
         for (let i = 0, j = 0; i < size; i += 4, j += channels) {
-            const { index } = yield* nearest(data, j, assignments), center = palette[index]!;
+            const { index } = yield* nearest(data, j, assignments), center = image.region ? palette[index]!.slice() : palette[index]!;
+            const pixel = (position + i) / 4;
+            const protectedPixel = image.region && !regionContains(image.region, pixel % image.width, Math.floor(pixel / image.width));
+            if (protectedPixel) {
+                const alpha = image.hasAlpha && image.alphaBlend !== false ? original![j + 3]! / quantum : 1;
+                const editedAlpha = image.hasAlpha && image.alphaBlend !== false && alphaTraits[index] ? Math.fround(center[3]! * 65535) / 65535 : 1;
+                for (let c = 0; c < channels; c++) if (c !== 3)
+                    center[c] = Math.fround((original![j + c]! / quantum * alpha + Math.fround(center[c]! * 65535) / 65535 * editedAlpha * (1 - alpha)) * 65535) / 65535;
+                center[3] = original![j + 3]! / quantum;
+            }
             if (inks) {
                 for (let c = 0; c < 4; c++) inks[i + c] = Math.fround(center[c === 3 ? 4 : c]! * 65535) / 65535;
             }
             // Native Q16-HDRI palette samples are floats before integer export.
             for (let c = 0; c < 4; c++) {
-                const value = c === 3 && !alphaTraits[index] ? 1 : inks && c < 3 ? (1 - inks[i + c]!) * (1 - inks[i + 3]!) : Math.fround(center[c]! * 65535) / 65535;
+                const value = c === 3 && !alphaTraits[index] && !protectedPixel ? 1 : inks && c < 3 ? (1 - inks[i + c]!) * (1 - inks[i + 3]!) : Math.fround(center[c]! * 65535) / 65535;
                 output[i + c] = Math.max(0, Math.min(65535, Math.round(value * 65535)));
                 if (samples) samples[i + c] = value * 255;
             }

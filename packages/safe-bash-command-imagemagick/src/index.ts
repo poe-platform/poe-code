@@ -13959,7 +13959,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const expanded = yield* formatMagickPropertyStringSteps(raw, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 const geometry = { ...parseKmeansGeometry(expanded), seed, seedColors };
                 return geometry.iterations > 0 ? yield* applyMagickRasterSteps({ ...image, isPalette: true }, kmeansPixelSteps(image, geometry), signal) : image;
-            });
+            }, undefined, true);
         }
         else if (t === "-segment") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
@@ -17930,12 +17930,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const raw = tokens[++i] ?? "", optionProperties = state.optionProperties, seed = state.seed, seedColors = state.kmeansSeedColors?.split(";").map(color => parseColor(color, true));
-            steps.push(async (image, backend) => {
+            steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 const geometry = { ...parseKmeansGeometry(expanded), seed, seedColors };
                 return geometry.iterations > 0 ? transformStoredMagickRaster({ ...image, isPalette: true }, backend, kmeansPixelSteps(image, geometry), signal) : image;
-            });
+            }, { handlesRegion: true }));
         } else if (!operandsOnly && token === "-segment") {
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);

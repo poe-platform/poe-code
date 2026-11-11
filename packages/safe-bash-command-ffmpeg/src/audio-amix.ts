@@ -91,7 +91,7 @@ export async function mixAudio(
   const packetIndices = tracks.map(() => 0);
   const frameEnds = tracks.map(() => 0);
   const fallbackFrameSize = 2 ** Math.floor(Math.log2(Math.max(1, Math.floor(a.sampleRate / 10))));
-  const startPts = Math.round((tracks[0]!.samples[0]?.pts ?? 0) * a.sampleRate / tracks[0]!.timescale);
+  let nextPts = Math.round((tracks[0]!.samples[0]?.pts ?? 0) * a.sampleRate / tracks[0]!.timescale);
   for (let start = 0; start < length;) {
     await yieldTurn(signal);
     signal?.throwIfAborted();
@@ -100,6 +100,7 @@ export async function mixAudio(
       if (start >= lengths[index]!) continue;
       while (frameEnds[index]! <= start) {
         const packet = track.samples[packetIndices[index]!++];
+        if (index === 0 && packet) nextPts = Math.round(packet.pts * a.sampleRate / track.timescale);
         frameEnds[index]! += packet
           ? Math.max(0, Math.round(packet.duration * a.sampleRate / track.timescale)
             - Math.round(((packet.skipSamples ?? 0) + (packet.discardPadding ?? 0)) * a.sampleRate / track.decodedAudio!.sampleRate))
@@ -165,8 +166,10 @@ export async function mixAudio(
     }
     // Keep the mixer frames for every downstream filter, including partial EOF frames.
     budget.allocateMemory(96);
-    frames.push({ data: new Uint8Array(0), size: 0, dts: startPts + start, pts: startPts + start, cts: 0,
+    frames.push({ data: new Uint8Array(0), size: 0, dts: nextPts, pts: nextPts, cts: 0,
       duration: end - start, isKeyframe: true, sampleDescriptionIndex: 1 });
+    // Continue within a split frame or beyond first-input EOF until its next packet resets PTS.
+    nextPts += end - start;
     start = end;
   }
   return { ...tracks[0]!, timescale: a.sampleRate, duration: length, samples: frames, editList: undefined,

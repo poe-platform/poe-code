@@ -45,3 +45,55 @@ for (const [shift, selector, bytes] of [
     }
   });
 }
+
+// Native FFmpeg 7.0.2: gaps affect frame timestamps, not PCM alignment.
+for (const [branch, inputs, hex, timestamps] of [
+  ["asetpts=PTS*3", "[x][1:a]", "d00700000000000000000000", [0, 6, 12, 18]],
+  ["aselect='not(eq(n,1))'", "[x][1:a]", "d007000000000000", [0, 4, 6]],
+  ["asetpts=PTS", "[x][1:a]", "0000000000000000", [0, 2, 4, 6]],
+  ["asetpts=PTS+4", "[x][1:a]", "401f0000d00700000000000000000000", [4, 6, 8, 10]],
+  ["asetpts=PTS*3", "[0:a][x]", "0000000000000000", [0, 4]]
+] as const) {
+  it(`keeps amix frame timing for ${branch} on ${inputs}`, async () => {
+    for (const select of [false, true]) {
+      const volume = Volume.fromJSON({});
+      for (const [path, values] of [
+        ["/a.wav", [8000, 0, 0, 0, 0, 0, 0, 0]],
+        ["/b.wav", [0, 0, 2000, 0]]
+      ] as const) {
+        volume.writeFileSync(path, encodeWav({ sampleRate: 1000,
+          channels: [Float64Array.from(values, value => value / 32768)] }));
+      }
+      const errors: Uint8Array[] = [];
+      const output: Uint8Array[] = [];
+      const source = inputs === "[0:a][x]" ? "1:a" : "0:a";
+      const graph = `[${source}]asetnsamples=n=2:p=0,${branch}[x];${inputs}amix=normalize=0,` +
+        (select ? "aselect='gt(t,0.003)'" : "ashowinfo") + "[o]";
+      const result = await createFfmpegCommand().execute({
+        args: ["-v", "info", "-i", "/a.wav", "-i", "/b.wav", "-filter_complex", graph,
+          "-map", "[o]", "-f", "s16le", "pipe:1"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(),
+        stdout: { async write(bytes: Uint8Array) { output.push(bytes); } },
+        stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+      } as never);
+      const stderr = Buffer.concat(errors).toString();
+      assert.equal(result.exitCode, 0, stderr);
+      if (select) assert.equal(Buffer.concat(output).toString("hex"), hex);
+      else {
+        const frames = stderr.split("\n").filter(line => line.includes("nb_samples:"));
+        assert.equal(frames.length, timestamps.length, stderr);
+        for (const [index, pts] of timestamps.entries()) {
+          assert.ok(frames[index]!.includes(`n:${index} pts:${pts} pts_time:${pts / 1000} `), frames[index]);
+        }
+        assert.equal(Buffer.concat(output).toString("hex"), branch.startsWith("aselect")
+          ? "401f0000d007000000000000" : "401f0000d00700000000000000000000");
+      }
+    }
+  });
+}

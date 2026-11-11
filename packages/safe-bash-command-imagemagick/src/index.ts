@@ -7869,9 +7869,19 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         const bracketMatch = /^(.*)\[(\d+)\]$/.exec(inPath);
         let baseInPath = bracketMatch ? bracketMatch[1]! : inPath;
         const colon = baseInPath.indexOf(":");
-        if (colon > 0 && extToImageFormat(baseInPath.slice(0, colon))) {
-            baseInPath = baseInPath.slice(colon + 1);
-        }
+        const requestedCoder = colon > 0 ? extToImageFormat(baseInPath.slice(0, colon)) : undefined;
+        const validateCoder = (metadata: ImageMetadata) => {
+            if (!requestedCoder) return;
+            if (isRawCoder(requestedCoder) || requestedCoder === "mono" || requestedCoder === "map") {
+                if (metadata.format === "raw") return;
+                throw new Error("must specify image size");
+            }
+            const netpbm = ["pnm", "ppm", "pgm", "pbm", "pam"];
+            if (requestedCoder !== metadata.format && !(netpbm.includes(requestedCoder) && netpbm.includes(metadata.format))) {
+                throw new Error(`improper image header for ${requestedCoder.toUpperCase()} input`);
+            }
+        };
+        if (requestedCoder) baseInPath = baseInPath.slice(colon + 1);
         if (!bracketMatch) {
             try {
                 const parsed = parseInputToken(inPath);
@@ -7889,10 +7899,11 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                     else {
                         if (inspection && "error" in inspection) throw inspection.error;
                         const metadata = inspection?.metadata ?? readImageMetadata(bytes!);
+                        validateCoder(metadata);
                         let offset = 0;
                         for (const page of selectedInputPages(parsed.pageSpec, metadata.pages ?? 1)) {
                             yield;
-                            targets.splice(targetIndex + ++offset, 0, { path: `${baseInPath}[${page}]`, originalInput: target.originalInput, listIndex: offset - 1, customFormat, channelSelection, density });
+                            targets.splice(targetIndex + ++offset, 0, { path: `${parsed.baseToken}[${page}]`, originalInput: target.originalInput, listIndex: offset - 1, customFormat, channelSelection, density });
                         }
                         for (let index = 1; index <= offset; index++) targets[targetIndex + index]!.sceneCount = offset;
                     }
@@ -7939,6 +7950,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             let meta = inlineImage??inspected?.metadata??readImageMetadata(bytes!, inputOptions);
             if (density !== undefined) meta = applyMagickDensity(meta, density);
             const size = inlineImage ? 0 : inspected?.size??bytes!.byteLength;
+            validateCoder(meta);
             if (pageIdx === undefined && (meta.format === "tiff" || meta.format === "gif") && (meta.pages ?? 1) > 1) {
                 for (let page = 1; page < meta.pages!; page++) {
                     yield;

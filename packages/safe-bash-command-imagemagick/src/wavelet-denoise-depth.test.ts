@@ -5,6 +5,30 @@ import { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createMagickCommand, runConvertCli, runConvertCliSync, runMogrifyCli, runMogrifyCliSync } from "./index.js";
 
+for (const mode of ["command", "buffered", "retained", "sync"] as const) {
+    it.each([8, 16])(`retains calculated wavelet precision from RGB8 input at depth %s (${mode})`, async depth => {
+        const input = Buffer.concat([Buffer.from("P6\n7 5\n255\n"), Buffer.from(Array.from({ length: 105 }, (_, i) => (i * 41 + 51) % 256))]);
+        for (const threshold of [undefined, "0", "25%"] as const) {
+            const files = new Map([["/input.ppm", input]]), fs = new MemoryFileSystem();
+            await fs.writeFile("/input.ppm", input);
+            const args = ["/input.ppm", ...(threshold === undefined ? [] : ["-wavelet-denoise", threshold]), "-endian", "MSB", "-depth", String(depth), "rgb:/output.rgb"];
+            let stderr = "";
+            const result = mode === "command" ? await createMagickCommand().execute({
+                command: "magick", args, cwd: "/", env: {}, fs, signal: new AbortController().signal,
+                stdin: (async function* () {})(), stdout: { async write() {} },
+                stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+            }) : mode === "sync" ? runConvertCliSync(args, files)
+                : await runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+            expect(result.exitCode, stderr).toBe(0);
+            const output = mode === "command" || mode === "retained" ? await fs.readFile("/output.rgb") : files.get("/output.rgb")!;
+            // ImageMagick Q16-HDRI, complete row-major RGB output including zero/no-op controls.
+            expect(createHash("sha256").update(output).digest("hex")).toBe(depth === 16
+                ? threshold === "25%" ? "43893a98d816d19765d8b376c98565fc53a8ca9911fa38fd1aa0c356cc577e55" : "b3c3ff8a554db91fb0848569f6c964c9d29fa65c0e96c633854e72db1a0872e5"
+                : threshold === "25%" ? "806dc3a0bd4f1ebb7d1fd73875830dc9bd6d2841e576d091b6f6a14272601d0b" : "792768fdc255cbd52a08c3a164d2f08c975a583e680ac165220a7e0d25a548ae");
+        }
+    });
+}
+
 for (const depth of [8, 16]) {
     const input = new Uint8Array(readFileSync(new URL(`./fixtures/wavelet-denoise-${depth}.png`, import.meta.url)));
     const original = decodeImage(input);

@@ -25,7 +25,7 @@ export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "heig
     let levels = 5;
     while (levels > 0 && 2 ** (levels - 1) >= Math.min(width, height)) levels--;
     const highDepth = !!(image.data16 || image.storedData16), quantumScale = highDepth ? 1 : 257;
-    const output = highDepth ? new Uint16Array(size * 4) : new Uint8Array(size * 4);
+    const output = new Float64Array(size * 4);
     for (let start = 0; start < size; start += 1024) {
         yield;
         const count = Math.min(1024, size - start);
@@ -87,17 +87,23 @@ export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "heig
                             masked[i * 4 + color] = original * alpha + (color === channel ? value : original) * alpha * (1 - alpha);
                         }
                     } else masked[i * 4 + channel] = value;
-                } else output[i * 4 + channel] = Math.max(0, Math.min(highDepth ? 65535 : 255, Math.round(value)));
+                } else output[i * 4 + channel] = value;
 
             }
         }
     }
     if (masked) for (let i = 0; i < output.length; i++) {
         if (i % 4096 === 0) yield;
-        output[i] = Math.max(0, Math.min(highDepth ? 65535 : 255, Math.round(masked[i]!)));
+        output[i] = masked[i]!;
     }
     for (let position = 0; position < output.length; position += 4096) {
         yield;
-        yield { kind: "write", highDepth, position, data: new Uint8Array(output.slice(position, position + 4096).buffer) };
+        const samples = output.slice(position, position + 4096);
+        // Keep calculated precision without changing the source image depth.
+        const working = Float64Array.from(samples, value => value / (highDepth ? 257 : 1));
+        yield { kind: "write", evaluate: true, position, data: new Uint8Array(working.buffer) };
+        const bounded = highDepth ? Uint16Array.from(samples, value => Math.max(0, Math.min(65535, Math.round(value))))
+            : Uint8Array.from(samples, value => Math.max(0, Math.min(255, Math.round(value))));
+        yield { kind: "write", highDepth, position, data: new Uint8Array(bounded.buffer) };
     }
 }

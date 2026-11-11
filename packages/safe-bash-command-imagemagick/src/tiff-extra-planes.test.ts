@@ -1,7 +1,7 @@
 import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli, runConvertCliSync } from "./index.js";
-import fixtures from "./tiff-extra-planes-fixtures.json";
+import fixtures from "./tiff-extra-planes-fixtures.json" with { type: "json" };
 
 // Native ImageMagick 7.1.2-31: P5 4x2 planes with (41*plane+13*pixel+5)%256,
 // combined with -combine -depth 8 (or -depth 16 -interlace plane).

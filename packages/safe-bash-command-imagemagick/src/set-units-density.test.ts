@@ -33,7 +33,7 @@ for (const mode of ["buffered", "sync", "retained", "command"] as const) {
             stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
           }) : mode === "sync" ? runMagickCliSync(args, files)
             : await runConvertCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
-          if ("stderr" in result) stderr = result.stderr;
+          if ("stderr" in result && typeof result.stderr === "string") stderr = result.stderr;
           expect(result.exitCode, stderr).toBe(0);
           expect(stderr).toBe("");
           const buffered = mode === "buffered" || mode === "sync";

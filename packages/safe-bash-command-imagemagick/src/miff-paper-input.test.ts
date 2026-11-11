@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createMagickCommand, runConvertCliSync } from "./index.js";
-import fixtures from "../../image-ast/src/codecs/miff-paper-fixtures.json";
+import fixtures from "../../image-ast/src/codecs/miff-paper-fixtures.json" with { type: "json" };
 
 for (const mode of ["command", "sync"] as const) {
     it.each(fixtures)(`${mode}: reads native MIFF paper metadata: $name`, async ({ miff, stdout, rgbaHash }) => {

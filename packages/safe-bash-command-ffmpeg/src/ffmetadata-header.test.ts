@@ -22,9 +22,15 @@ for (const sync of [false, true]) {
       const args = ["-y", "-v", "error", "-i", "/in.wav", "-f", "ffmetadata", "-i", "/in.ffmeta",
         "-map_metadata", "1", "-map_chapters", "1", "-bitexact", "-f", "ffmetadata", "/out.ffmeta"];
       if (sync) {
+        const missingStart = !body.startsWith("START=");
         assert.equal(evalSyncFfmpeg(args, undefined,
           path => volume.readFileSync(path) as Buffer,
-          (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), "");
+          (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), missingStart ? undefined : "");
+        if (missingStart) {
+          // Recoverable diagnostics require the asynchronous execution path.
+          assert.equal(volume.readFileSync("/out.ffmeta", "utf8"), "keep");
+          return;
+        }
       } else {
         let stderr = "";
         const result = await createFfmpegCommand().execute({

@@ -3030,7 +3030,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       section = "chapter";
       tbNum = 1;
       tbDen = 1_000_000_000;
-      curStart = 0;
+      curStart = curEnd ?? 0;
       curEnd = undefined;
       chapterTags = [];
       curTitle = "";
@@ -3096,8 +3096,8 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
             curStart = start;
             continue;
           }
-          demuxErrors.push(`[ffmetadata] Expected chapter start timestamp, found ${line}.`);
         }
+        demuxErrors.push(`[ffmetadata] Expected chapter start timestamp, found ${line}.`);
       }
       if (chapterHeader === "end") {
         chapterHeader = "tags";

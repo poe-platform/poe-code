@@ -313,7 +313,7 @@ export function* channelFxPixelSteps(inputs: readonly (Pick<RgbaImage, "width" |
     }
 }
 
-export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "height"> & { space?: RgbaImage["space"] | undefined; magickColorspace?: string | undefined })[], highDepth = false, intensity = "rec709luma", gray = false, cmyk = inputs[0]!.space === "cmyk", initializeChannels = false): Steps {
+export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "height" | "gamma"> & { space?: RgbaImage["space"] | undefined; magickColorspace?: string | undefined })[], highDepth = false, intensity = "rec709luma", gray = false, cmyk = inputs[0]!.space === "cmyk", initializeChannels = false): Steps {
     const { width, height } = inputs[0]!, chunkPixels = 512;
     // The storage planes are RGBA plus CMYK inks; reduce C, M, Y, alpha and K together.
     const range = highDepth ? 65535 : 255;
@@ -333,6 +333,8 @@ export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "
             inks.set(rgbToCmyk(data[offset]! / range, data[offset + 1]! / range, data[offset + 2]! / range), offset);
         for (let image = 0; image < inputs.length; image++) {
             const sourceImage = inputs[image]!;
+            const linear = sourceImage.magickColorspace === "RGB" || sourceImage.magickColorspace === "scRGB"
+                || (sourceImage.space === "b-w" || sourceImage.space === "grey16") && sourceImage.gamma === 1 && sourceImage.magickColorspace !== "Gray";
             if (y >= sourceImage.height || x >= sourceImage.width) continue;
             const count = Math.min(length, (sourceImage.width - x) * 4);
             const working = image === 0 ? baseWorking : yield { kind: "read", evaluate: true, image, position: (y * sourceImage.width + x) * 4, length: count };
@@ -347,7 +349,7 @@ export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "
                     const channels = inkSamples ? inkSamples.subarray(offset, offset + 3) : sourceImage.space === "cmyk"
                         ? rgbToCmyk(source[offset]! / range, source[offset + 1]! / range, source[offset + 2]! / range)
                         : [source[offset]! / range, source[offset + 1]! / range, source[offset + 2]! / range];
-                    const value = magickIntensity(channels[0]!, channels[1]!, channels[2]!, intensity, 1, sourceImage.magickColorspace === "RGB" || sourceImage.magickColorspace === "scRGB");
+                    const value = magickIntensity(channels[0]!, channels[1]!, channels[2]!, intensity, 1, linear);
                     if (inks && image < 4) inks[offset + image] = value;
                     else {
                         const channel = inks ? 3 : image;
@@ -356,7 +358,7 @@ export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "
                     }
                     continue;
                 }
-                const value = magickIntensity(source[offset]!, source[offset + 1]!, source[offset + 2]!, intensity, highDepth ? 65535 : 255, sourceImage.magickColorspace === "RGB" || sourceImage.magickColorspace === "scRGB");
+                const value = magickIntensity(source[offset]!, source[offset + 1]!, source[offset + 2]!, intensity, highDepth ? 65535 : 255, linear);
                 const channel = gray && image === 1 ? 3 : image;
                 samples[offset + channel] = highDepth ? value / 257 : value;
                 data[offset + channel] = Math.round(Math.max(0, Math.min(range, value)));

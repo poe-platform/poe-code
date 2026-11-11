@@ -10,8 +10,10 @@ export interface MetaChannels {
 }
 
 /** Extra combine inputs use the first image's extent, just like the color planes. */
-export function* combineMetaPixelSteps(extent: Pick<RgbaImage, "width" | "height">, source: Pick<RgbaImage, "width" | "height" | "space"> & HueMetadata, highDepth: boolean, intensity: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* combineMetaPixelSteps(extent: Pick<RgbaImage, "width" | "height">, source: Pick<RgbaImage, "width" | "height" | "space" | "gamma"> & HueMetadata, highDepth: boolean, intensity: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const maximum = highDepth ? 65535 : 255;
+    const linear = source.magickColorspace === "RGB" || source.magickColorspace === "scRGB"
+        || (source.space === "b-w" || source.space === "grey16") && source.gamma === 1 && source.magickColorspace !== "Gray";
     for (let y = 0; y < extent.height; y++) for (let x = 0; x < extent.width; x += 512) {
         yield;
         const length = Math.min(512, extent.width - x) * 4;
@@ -28,7 +30,7 @@ export function* combineMetaPixelSteps(extent: Pick<RgbaImage, "width" | "height
             const channels = offset < count && source.space === "cmyk" ? inks?.subarray(offset, offset + 3)
                 ?? rgbToCmyk(samples[offset]! / maximum, samples[offset + 1]! / maximum, samples[offset + 2]! / maximum) : undefined;
             const value = channels ? magickIntensity(channels[0]!, channels[1]!, channels[2]!, intensity, 1, false) * maximum
-                : offset < count ? magickIntensity(samples[offset]!, samples[offset + 1]!, samples[offset + 2]!, intensity, maximum, source.magickColorspace === "RGB" || source.magickColorspace === "scRGB") : 0;
+                : offset < count ? magickIntensity(samples[offset]!, samples[offset + 1]!, samples[offset + 2]!, intensity, maximum, linear) : 0;
             data[offset] = data[offset + 1] = data[offset + 2] = Math.round(Math.max(0, Math.min(maximum, value)));
             working[offset] = working[offset + 1] = working[offset + 2] = value * 255 / maximum;
             working[offset + 3] = 255;

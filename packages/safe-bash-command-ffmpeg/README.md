@@ -333,7 +333,7 @@ with input format, rate, and channel options:
 Raw Archimedes VIDC input uses `-f vidc`: `ffmpeg -f vidc -ar 8000 -ac 1 -i pipe:0 -f s16le pipe:1` decodes its logarithmic codewords to signed little-endian PCM.
 `-ac` requires a complete integer channel count, including hexadecimal (`0x10`) and exponent (`1e1`) forms; malformed values fail before replacing output. Raw input requires a positive count; output `-ac 0` retains the input channel count.
 Raw PCM decoding ignores an incomplete trailing frame when complete frames precede it; input containing only an incomplete frame fails. Stream copy preserves all payload bytes.
-Input `-sample_rate 8000` also sets the raw PCM sample rate; place it before `-i`. After the final `-i`, `-sample_rate` is accepted without changing the output rate or samples; use output `-ar` to resample.
+Input `-sample_rate 8000` also sets the raw PCM sample rate; place it before `-i`. When both are supplied, input `-ar` takes precedence over `-sample_rate` regardless of order. Both options reset after each input. After the final `-i`, `-sample_rate` is accepted without changing the output rate or samples; use output `-ar` to resample.
 Raw PCM accepts `-sample_fmt:a s16` and `-sample_fmt:a:0 s16` before or after
 `-i`, as well as the bare `-sample_fmt s16`. Nonmatching stream selectors,
 such as `-sample_fmt:v` on audio-only output, leave the audio format unchanged.

@@ -8600,6 +8600,7 @@ export function evalSyncFfmpeg(
     let audioBitrate: number | undefined;
     let subtitleCodec: string | undefined;
     let audioRateOptions: [string, number | undefined][] = [];
+    let pendingSampleRate: number | undefined;
     let audioChannelOptions: [string, number | undefined][] = [];
     let stripAudio = false;
     let stripVideo = false;
@@ -8761,7 +8762,8 @@ export function evalSyncFfmpeg(
       } else if (arg === "-ar" || arg.startsWith("-ar:") || (arg === "-sample_rate" && args.slice(i + 1).includes("-i"))) {
         const audioRate = parseInt(args[++i] ?? "0", 10) || undefined;
         if (audioRate !== undefined && audioRate < 0) return undefined;
-        audioRateOptions.push([arg.startsWith("-ar:") ? arg.slice(4) : "", audioRate]);
+        if (arg === "-sample_rate") pendingSampleRate = audioRate;
+        else audioRateOptions.push([arg.startsWith("-ar:") ? arg.slice(4) : "", audioRate]);
       } else if (arg === "-sample_rate") {
         // This demuxer option is accepted after input without changing the output rate.
         if (args[++i] === undefined) return undefined;
@@ -8891,7 +8893,7 @@ export function evalSyncFfmpeg(
         inputs.push({
           path: args[++i] ?? "",
           format: pendingFormat,
-          sampleRate: audioRateOptions.at(-1)?.[1],
+          sampleRate: audioRateOptions.length ? audioRateOptions.at(-1)?.[1] : pendingSampleRate,
           // The raw demuxer uses the last -ac value regardless of stream selector.
           channels: audioChannelOptions.at(-1)?.[1],
           skipInitialBytes: pendingSkipInitialBytes,
@@ -8916,6 +8918,7 @@ export function evalSyncFfmpeg(
           startNumber: pendingStartNumber,
         });
         audioRateOptions = []; audioChannelOptions = [];
+        pendingSampleRate = undefined;
         pendingTimestampScales = [];
         pendingDisplayTransforms = [];
         pendingTimestampOffset = 0;
@@ -9891,6 +9894,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let kaiserBeta = 9;
         let filterType: "cubic" | "kaiser" | "blackman_nuttall" = "kaiser";
         let audioRateOptions: [string, number | undefined][] = [];
+        let pendingSampleRate: number | undefined;
         let audioChannelOptions: [string, number | undefined][] = [];
         let rematrixMaxval: number | undefined;
         let resampler: "swr" | "soxr" = "swr";
@@ -10658,7 +10662,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: sample rate must be nonnegative\n"), context.signal);
               return { exitCode: 1 };
             }
-            audioRateOptions.push([arg.startsWith("-ar:") ? arg.slice(4) : "", audioRate]);
+            if (arg === "-sample_rate") pendingSampleRate = audioRate;
+            else audioRateOptions.push([arg.startsWith("-ar:") ? arg.slice(4) : "", audioRate]);
           } else if (arg === "-sample_rate") {
             // This demuxer option is accepted after input without changing the output rate.
             if (args[++i] === undefined) throw new Error("Missing argument for option sample_rate");
@@ -11078,7 +11083,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               dumpAttachments: pendingDumpAttachments,
               path,
               format: pendingFormat,
-              sampleRate: audioRateOptions.at(-1)?.[1],
+              sampleRate: audioRateOptions.length ? audioRateOptions.at(-1)?.[1] : pendingSampleRate,
               // The raw demuxer uses the last -ac value regardless of stream selector.
               channels: audioChannelOptions.at(-1)?.[1],
               subtitleFrameRate: pendingSubtitleFrameRate,
@@ -11117,6 +11122,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingGuessLayoutMax = undefined;
             pendingChannelLayout = undefined;
             audioRateOptions = [];
+            pendingSampleRate = undefined;
             audioChannelOptions = [];
             pendingFormat = undefined;
             pendingSafe = undefined;

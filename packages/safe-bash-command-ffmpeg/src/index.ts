@@ -15923,10 +15923,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           filteredChannelMask = 3;
                           filteredChannelNames = undefined;
-                        } else if (mask === 0x3f && stretched.length === 2 && (!filteredChannelMask || filteredChannelMask === 3)) {
+                        } else if ([0xb, 0x33, 0x3f, 0x60f].includes(mask) && stretched.length === 2 && (!filteredChannelMask || filteredChannelMask === 3)) {
                           const length = stretched[0]!.length;
-                          budget.allocateMemory(length * 4 * 8);
-                          stretched = [...stretched, ...Array.from({ length: 4 }, () => new Float64Array(length))];
+                          const silentChannels = input.length - stretched.length;
+                          budget.allocateMemory(length * silentChannels * 8);
+                          stretched = [...stretched, ...Array.from({ length: silentChannels }, () => new Float64Array(length))];
                           filteredChannelMask = mask;
                           filteredChannelNames = undefined;
                         }

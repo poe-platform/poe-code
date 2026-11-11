@@ -12834,6 +12834,7 @@ if (t === "-intent" || t === "+intent") {
                 state.scene = Number(v);
                 if (!Number.isSafeInteger(state.scene)) throw new Error("invalid scene number");
             }
+            if (k === "option:mattecolor") state.matteColor = parseColor(v);
             if (k === "option:bordercolor") state.borderColor = parseColor(v, true);
             if (k === "option:background") {
                 state.background = parseColor(v, true);
@@ -13255,7 +13256,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     return { ...image, bitsPerSample: depth };
                 });
             }
-            if (t === "-mattecolor") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, matteColor: state.matteColor }; });
+            if (t === "-mattecolor" || (t === "-set" && tokens[setting - 1]?.toLowerCase() === "option:mattecolor")) stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, matteColor: state.matteColor }; });
             if (t === "-background" || (t === "-set" && tokens[setting - 1]?.toLowerCase() === "option:background")) stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, backgroundColor: state.background }; });
             if (t === "-interpolate" || t === "+interpolate" || (t === "-set" || t === "-define") && state.optionProperties?.interpolate !== undefined) stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...image[magickInput], interpolation: state.interpolation } }; });
             if (t === "-interlace" || t === "+interlace" || state.interlace !== previousInterlace) stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace! } }; });
@@ -16810,7 +16811,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     return { ...image, bitsPerSample: depth };
                 });
             }
-            if (token === "-mattecolor") {
+            if (token === "-mattecolor" || (token === "-set" && tokens[setting - 1]?.toLowerCase() === "option:mattecolor")) {
                 const matteColor = state.matteColor;
                 steps.push(async image => image ? { ...image, matteColor } : undefined);
             }

@@ -4151,6 +4151,34 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "
         };
     }
     if (method === "arc") throw new Error("Unsupported distortion method: Arc");
+    if (method === "depolar") {
+        if (nums.length === 0) throw new Error("invalid list of numbers");
+        if (nums.length === 3 || nums.length > 8) throw new Error("DePolar : number of arguments");
+        const pageX = img.virtualCanvas?.x ?? 0, pageY = img.virtualCanvas?.y ?? 0;
+        const centerX = nums[2] ?? w / 2 + pageX, centerY = nums[3] ?? h / 2 + pageY;
+        let outer = nums[0]!, end = (nums[5] ?? nums[4] ?? -180) * Math.PI / 180;
+        const inner = nums[1] ?? 0, start = (nums[4] ?? -180) * Math.PI / 180;
+        if (Math.abs(end - start) < 1e-12) end += 2 * Math.PI;
+        if (Math.abs(outer) < 1e-12)
+            outer = Math.min(Math.abs(centerX - pageX), Math.abs(centerY - pageY), Math.abs(centerX - pageX - w), Math.abs(centerY - pageY - h));
+        else if (Math.abs(outer + 1) < 1e-12)
+            outer = Math.hypot(Math.max(Math.abs(centerX - pageX), Math.abs(centerX - pageX - w)), Math.max(Math.abs(centerY - pageY), Math.abs(centerY - pageY - h)));
+        if (outer < 1e-12 || inner < -1e-12 || outer - inner < 1e-12) throw new Error("DePolar : Invalid Radius");
+        const fit = token === "+distort";
+        const width = fit ? Math.ceil((outer - inner) * (end - start) * 0.5) : w, height = fit ? Math.ceil(outer - inner) : h;
+        if (![width, height, width * height * 8].every(Number.isSafeInteger) || width < 1 || height < 1)
+            throw new Error("Distortion dimensions exceed limit");
+        const angleStep = (end - start) / width, radiusStep = (outer - inner) / height;
+        return {
+            ...result((x, y) => {
+                const angle = (x + 0.5) * angleStep + start, radius = (y + 0.5) * radiusStep + inner;
+                return [radius * Math.sin(angle) + centerX - (fit ? pageX : 0) - 0.5,
+                    radius * Math.cos(angle) + centerY - (fit ? pageY : 0) - 0.5];
+            }, width, height),
+            // Native DePolar leaves the resampling footprint at its unit default.
+            derivatives: () => [1, 0, 0, 1]
+        };
+    }
     if (method === "plane2cylinder") {
         if (nums.length === 0) throw new Error("invalid list of numbers");
         const fov = nums[0]!;
@@ -4557,6 +4585,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             plan = { ...plan, interpolation, channels,
                 hasAlpha: plan.hasAlpha || virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255 };
         }
+        const depolar = distort && spec.toLowerCase().replaceAll("-", "").replaceAll("_", "") === "depolar" ? plan : undefined;
         const samplingOrigin = plan?.virtualCanvas;
         if (plan && distort && image.virtualCanvas) {
             const page = image.virtualCanvas, origin = plan.virtualCanvas;
@@ -4588,6 +4617,9 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             return { ...plan, space: gray && virtualPixel === "background" ? "srgb" as const : image.space, steps: warpPixelSteps(image, { ...plan, channels }, color, "background") };
         }
         if (plan && scale !== undefined) plan = scaleMagickWarpPlan(plan, image, scale);
+        // DePolar samples local output coordinates, ignoring viewport/page offsets.
+        if (plan && depolar) plan = { ...plan, interpolation, derivatives: depolar.derivatives!,
+            map: (x, y) => depolar.map((x + 0.5) / (scale ?? 1) - 0.5, (y + 0.5) / (scale ?? 1) - 0.5) };
         return plan ? { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel, kernel, filter) } : undefined;
     } };
 }

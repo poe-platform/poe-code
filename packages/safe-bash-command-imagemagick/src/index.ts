@@ -12833,6 +12833,7 @@ if (t === "-intent" || t === "+intent") {
                 state.scene = Number(v);
                 if (!Number.isSafeInteger(state.scene)) throw new Error("invalid scene number");
             }
+            if (k === "option:bordercolor") state.borderColor = parseColor(v, true);
             if (k === "option:background") {
                 state.background = parseColor(v, true);
                 state.backgroundExplicit = true;

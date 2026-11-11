@@ -2606,9 +2606,22 @@ function resolveMagickChopGeometry(raw: string, image: Pick<RgbaImage, "width" |
         && raw[index - 1]?.toLowerCase() !== "e");
     const trailingSeparator = offset < 0 ? -1 : raw.toLowerCase().indexOf("x", offset);
     if (trailingSeparator >= 0) raw = raw.slice(0, trailingSeparator);
-    // Chop ignores #, ! and ^ and treats % anywhere as a dimension modifier, preserving pixel offsets.
-    let g = parseMagickGeometry(raw.replaceAll("#", "").replaceAll("!", "").replaceAll("^", "").replaceAll("%", "") + (raw.includes("%") ? "%" : ""));
     const dimensionSeparator = raw.toLowerCase().indexOf("x");
+    let rectangle = raw;
+    // After the width, GetGeometry retains numeric fields up to a second decimal point.
+    let decimalPoint = false;
+    for (let i = dimensionSeparator < 0 ? raw.length : dimensionSeparator + 1; i < raw.length; i++) {
+        const character = raw[i]!;
+        if ((character === "+" || character === "-") && raw[i - 1]?.toLowerCase() !== "e") decimalPoint = false;
+        if (character !== ".") continue;
+        if (decimalPoint) {
+            rectangle = raw.slice(0, i);
+            break;
+        }
+        decimalPoint = true;
+    }
+    // Chop ignores #, ! and ^ and treats % anywhere as a dimension modifier, preserving pixel offsets.
+    let g = parseMagickGeometry(rectangle.replaceAll("#", "").replaceAll("!", "").replaceAll("^", "").replaceAll("%", "") + (raw.includes("%") ? "%" : ""));
     // A second decimal point in the width leaves the entire native rectangle untouched.
     if (dimensionSeparator >= 0 && !raw.trimStart().startsWith("+") && !raw.trimStart().startsWith("-")
         && raw.slice(0, dimensionSeparator).split(".").length > 2) {

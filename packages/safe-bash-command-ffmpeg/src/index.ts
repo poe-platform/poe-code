@@ -17855,7 +17855,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = [left, right];
                       } else if (trimmed.startsWith("channelmap=")) {
                         let map: string | undefined;
-                        let layout = "";
+                        let layout: string | undefined;
                         for (const [index, option] of trimmed.slice("channelmap=".length).trimStart().split(":").entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? ["map", "channel_layout"][index] : option.slice(0, separator);
@@ -17872,6 +17872,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             // Scheduling and hardware frame reservations do not change PCM samples.
                           } else throw new Error(`channelmap: unsupported option ${key}`);
                         }
+                        if (layout === "") throw new Error("channelmap: empty channel layout");
                         const speakers = Object.keys(audioSpeakerMasks);
                         const channelName = (name: string) => {
                           if (!name.startsWith("USR")) return name;
@@ -19889,7 +19890,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("astats: unsupported option enable=")) return { exitCode: 176 };
             if (msg.startsWith("astats: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("astats:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
-            if (msg === "channelmap: invalid or duplicate output channel") return { exitCode: 234 };
+            if (msg === "channelmap: invalid or duplicate output channel" || msg === "channelmap: empty channel layout") return { exitCode: 234 };
             const unavailableChannel = msg.startsWith("channelmap: unavailable input channel") &&
               (err instanceof RangeError || msg.endsWith(" (unnamed layout)"));
             const unsupportedPanOrder = msg.startsWith("pan: unsupported output channel order ") ||

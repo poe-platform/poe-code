@@ -105,6 +105,7 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
     geometry: { width?: number; height?: number; x: number; y: number; hasOffset: boolean; hasYOffset: boolean; isPercent: boolean }, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, compose = "Over"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { name } = magickCompositeMode(compose);
     const sourceIn = name === "srcin" || name === "in", destinationOut = name === "dstout" || name === "destout";
+    const destinationIn = name === "dstin" || name === "destin", sourceOut = name === "srcout" || name === "out";
     const copySource = ["src", "source", "copy"].includes(name), copyDestination = ["dst", "destination"].includes(name);
     const blend = name === "multiply" || name === "screen" || name === "difference" || name === "hardlight";
     const copyAlpha = name === "copyalpha" || name === "copyopacity";
@@ -247,7 +248,8 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                 const foreground = protectedPixel ? sourceAlpha : coverage[x]!;
                 const intensity = protectedPixel ? sourceAlpha + coverage[x]! * (1 - sourceAlpha) : 1;
                 const back = (name === "plus" ? 1 : 1 - foreground) * background.a / 255;
-                const alpha = sourceIn ? foreground * background.a / 255 : destinationOut ? back : Math.min(1, foreground + back);
+                const alpha = sourceIn || destinationIn ? foreground * background.a / 255
+                    : sourceOut ? foreground * (1 - background.a / 255) : destinationOut ? back : Math.min(1, foreground + back);
                 for (let channel = 0; channel < (inks ? 4 : 3); channel++) {
                     const color = backgroundInks ? backgroundInks[channel]! * 255 : channel === 0 ? background.r : channel === 1 ? background.g : background.b;
                     const selected = !channels || (channel === 0 ? channels.r : channel === 1 ? channels.g : channel === 2 ? channels.b : channels.k);
@@ -302,8 +304,8 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                         continue;
                     }
                     samples[x * 4 + channel] = !selected || copyDestination || copyAlpha ? round(color * pixelScale) : copySource ? round(sourceColor)
-                        : sourceIn ? round(sourceColor * alpha)
-                        : destinationOut ? (alpha === 0 ? 0 : round(color * pixelScale))
+                        : sourceIn || sourceOut ? round(sourceColor * alpha)
+                        : destinationIn || destinationOut ? (alpha === 0 ? 0 : round(color * pixelScale))
                         // Plus adds alpha-weighted channels without unpremultiplying.
                         : name === "plus" ? round(Math.min(255 * pixelScale, sourceColor * foreground + color * pixelScale * back))
                         : alpha === 0 ? 0 : round((sourceColor * foreground + color * pixelScale * back) / alpha);

@@ -1250,7 +1250,7 @@ Frame limits accept `-frames N` for all output streams, `-frames:0 N` for an out
 
 Use `-frames:s N` to retain at most N subtitle cues per output stream without shortening their intervals; `0` emits no cues.
 
-Use input `-sub_charenc UTF-8` (or another supported charset such as `ASCII` or `ISO-8859-1`) before `-i` to decode SubRip text. Invalid encoded events report decoder errors; `-c:s copy` preserves packet bytes without applying the charset. The option resets after each input.
+Use input `-sub_charenc UTF-8` (or another supported charset such as `ASCII` or `ISO-8859-1`) before `-i` to decode SubRip text. Invalid encoded events report decoder errors; `-c:s copy` preserves packet bytes without applying the charset. Both `-sub_charenc[:stream_specifier]` and `-sub_charenc_mode[:stream_specifier]` accept input stream selectors: `:s` targets all subtitles, `:s:0` the first subtitle, and `:0` the first stream. Nonmatching selectors leave other streams unchanged; the last matching value wins. Both options reset after each input.
 
 Use `-fix_sub_duration` before an input to shorten overlapping subtitle events during transcoding. Each event ends no later than the next event starts; the final buffered event is omitted, matching FFmpeg 7.0.2. Stream copy retains the original events.
 

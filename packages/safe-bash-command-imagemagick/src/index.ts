@@ -7753,7 +7753,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     let locateLimit = 0;
     let optionError = "";
     const readState = createDefaultState();
-    const targets: { path: string; originalInput: string; sceneCount?: number; listIndex: number; readState: MagickState; customFormat: string | undefined; density: string | undefined; channelSelection: MagickFormatContext["channelSelection"] }[] = [];
+    const targets: { path: string; originalInput: string; sceneCount?: number; outputScene?: number; listIndex: number; readState: MagickState; customFormat: string | undefined; density: string | undefined; channelSelection: MagickFormatContext["channelSelection"] }[] = [];
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
@@ -7932,13 +7932,14 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                         if (inspection && "error" in inspection) throw inspection.error;
                         const metadata = inspection?.metadata ?? readImageMetadata(bytes!);
                         validateCoder(metadata);
-                        let offset = 0;
+                        // Identify numbers only zero-scene frames; decoding keeps the original page.
+                        let offset = 0, zeroScene = 0;
                         for (const page of selectedInputPages(parsed.pageSpec, metadata.pages ?? 1, index => {
                             errParts.push(`identify: invalid image index ${index} '${inPath}'\n`);
                             exitCode = 1;
                         }, metadata.format)) {
                             yield;
-                            targets.splice(targetIndex + ++offset, 0, { path: `${parsed.baseToken}[${page}]`, originalInput: target.originalInput, listIndex: offset - 1, readState, customFormat, channelSelection, density });
+                            targets.splice(targetIndex + ++offset, 0, { path: `${parsed.baseToken}[${page}]`, originalInput: target.originalInput, outputScene: page === 0 ? zeroScene++ : page, listIndex: offset - 1, readState, customFormat, channelSelection, density });
                         }
                         for (let index = 1; index <= offset; index++) targets[targetIndex + index]!.sceneCount = offset;
                     }
@@ -7976,7 +7977,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                 rawCoder === "rgb" ? 3 : rawCoder === "gray" ? 1 : rawCoder === "graya" ? 2 : rawCoder === "cmyk" ? 4 : rawCoder === "cmyka" ? 5 : rawCoder, readState.inputOffset);
         } : undefined;
         let inspected:IdentifyInspection|undefined;
-        if(reader && !inlineImage)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,density === undefined ? metadata : applyMagickDensity(metadata, density),{filePath:baseInPath,originalInput:target.originalInput,byteLen:size,sceneIdx:pageIdx??0,listIndex:target.listIndex,sceneCount:sceneCount??metadata.pages??1,precision,analysis,channelSelection,optionProperties:{format:customFormat!}},density === undefined ? pixels : async () => { const raster = await pixels(); return { ...raster, image: applyMagickDensity(raster.image, density) }; },signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision,rawInput);}};
+        if(reader && !inlineImage)yield {async run(){inspected=await reader(baseInPath,pageIdx,verbose,customFormat===undefined?(locateMaximum ? async (_metadata,_size,pixels)=>identifyStoredMaximum(await pixels(),locateLimit,precision,signal) : undefined):(metadata,size,pixels)=>formatRetainedIdentify(customFormat!,density === undefined ? metadata : applyMagickDensity(metadata, density),{filePath:baseInPath,originalInput:target.originalInput,byteLen:size,sceneIdx:pageIdx??0,outputScene:target.outputScene??pageIdx??0,listIndex:target.listIndex,sceneCount:sceneCount??metadata.pages??1,precision,analysis,channelSelection,optionProperties:{format:customFormat!}},density === undefined ? pixels : async () => { const raster = await pixels(); return { ...raster, image: applyMagickDensity(raster.image, density) }; },signal),convexHull && verbose && customFormat === undefined ? precision : undefined,moments && verbose && customFormat === undefined ? precision : undefined,precision,rawInput);}};
         let bytes = baseInPath === "-" ? stdinBytes : files.get(inPath) ?? files.get(baseInPath);
         const byteLength = bytes?.byteLength;
         if (!bytes&&!inspected&&!inlineImage) {
@@ -8017,7 +8018,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                     const image = inlineImage ?? decodeImage(encoded!, inputOptions);
                     return density === undefined ? image : applyMagickDensity(image, density);
                 }, {
-                    filePath: baseInPath, originalInput: target.originalInput, byteLen: size, sceneIdx: pageIdx ?? 0, listIndex: target.listIndex, sceneCount: sceneCount ?? meta.pages ?? 1, precision, analysis, channelSelection, optionProperties: { format: customFormat }
+                    filePath: baseInPath, originalInput: target.originalInput, byteLen: size, sceneIdx: pageIdx ?? 0, outputScene: target.outputScene ?? pageIdx ?? 0, listIndex: target.listIndex, sceneCount: sceneCount ?? meta.pages ?? 1, precision, analysis, channelSelection, optionProperties: { format: customFormat }
                 })));
             }
             else if (locateMaximum) {

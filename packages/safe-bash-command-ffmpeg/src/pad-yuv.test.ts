@@ -84,3 +84,23 @@ it("renders padded YUV for RGB filters without reviving stale native planes", as
   assert.deepEqual(await run(input, "format=rgba,negate,pad=4:4:1:1,crop=2:2:1:1"),
     await run(input, "format=rgba,negate"));
 });
+
+for (const [format, samples, width, size] of [
+  ["yuv420p", 6, 6, 54], ["yuv422p", 8, 6, 84], ["yuv444p", 12, 7, 147]
+] as const) {
+  it(`uses requested pad dimensions in ${format} position expressions before chroma alignment`, async () => {
+    const pixels = Buffer.from(Array.from({ length: samples }, (_, i) => 13 + 7 * i));
+    const expected = await run(pixels, "pad=7:7:2:2", format, true);
+    assert.equal(expected.length, size);
+    assert.deepEqual(expected.subarray(0, width * 2), Buffer.alloc(width * 2, 16));
+    assert.deepEqual(expected.subarray(width * 2 + 2, width * 2 + 4), pixels.subarray(0, 2));
+    for (const filter of [
+      "pad=7:7:ow-5:oh-5",
+      "pad=w=7:h=7:x=out_w-5:y=out_h-5",
+      "pad=oh:7:ow-5:oh-5",
+      "pad=7:ow:ow-5:oh-5"
+    ]) {
+      assert.deepEqual(await run(pixels, filter, format, true), expected, filter);
+    }
+  });
+}

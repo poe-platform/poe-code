@@ -12045,7 +12045,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let time = NaN;
                         return actions.flatMap((command, index) => {
                           const words = Array.from(command, char => char.trim() ? char : " ").join("").split(" ").filter(Boolean);
-                          if (index === 0) time = Number(words.shift());
+                          if (index === 0) {
+                            time = parseHlsDuration((words.shift() ?? "").replaceAll("\\:", ":"));
+                            if (!Number.isFinite(time) || time < 0) throw new Error("asendcmd: invalid start time");
+                          }
                           if (words[0] === "[enter]") words.shift();
                           const [target, action, expression] = words;
                           const supported = action === "enable" && ["tremolo", "vibrato"].some(name => target === name || target?.startsWith(`${name}@`))
@@ -17966,6 +17969,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               return { exitCode: err instanceof CompandError ? err.exitCode : 234 };
             }
+            if (msg === "asendcmd: invalid start time") return { exitCode: 234 };
             if (msg === "channelmap: unsupported option enable") return { exitCode: 176 };
             if (msg.startsWith("channelmap: unsupported option ")) return { exitCode: 8 };
             if (msg === "pan: unsupported option enable") return { exitCode: 176 };

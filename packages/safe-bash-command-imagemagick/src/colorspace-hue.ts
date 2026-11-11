@@ -22,8 +22,8 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
     const lch = target === "LCH" || target === "LCHab" || target === "LCHuv";
     const sourceLch = image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv";
     const data = new Uint8Array(image.data.length), data16 = new Uint16Array(data.length);
-    // Lab, LCH, Oklab, Oklch, Luv, xyY, YUV, YCbCr and OHTA need HDRI samples before integer rounding or clamping.
-    const inputEvaluateSamples = target === "ProPhoto" || target === "DisplayP3" || target === "CAT02LMS" || target === "LMS" || target === "Adobe98" || target === "HSI" || target === "Jzazbz" || target === "CMY" || lch || target === "Log" || target === "xyY" || target === "Oklch" || target === "Oklab" || target === "Luv" || target === "OHTA" || target === "CIELab" || target === "YUV" || target === "YIQ" || target === "YDbDr" || target === "Rec601YCbCr" || ((target === "YPbPr" || target === "YCbCr") || target === "YCC" || target === "Rec709YCbCr") ? image.evaluateSamples : undefined;
+    // Conversion back to sRGB also needs fractional working samples before integer rounding.
+    const inputEvaluateSamples = !toHue || target === "ProPhoto" || target === "DisplayP3" || target === "CAT02LMS" || target === "LMS" || target === "Adobe98" || target === "HSI" || target === "Jzazbz" || target === "CMY" || lch || target === "Log" || target === "xyY" || target === "Oklch" || target === "Oklab" || target === "Luv" || target === "OHTA" || target === "CIELab" || target === "YUV" || target === "YIQ" || target === "YDbDr" || target === "Rec601YCbCr" || ((target === "YPbPr" || target === "YCbCr") || target === "YCC" || target === "Rec709YCbCr") ? image.evaluateSamples : undefined;
     const input = image.hueSamples ?? inputEvaluateSamples ?? image.data16 ?? image.data, range = image.hueSamples ? 1 : inputEvaluateSamples ? 255 : image.data16 ? 65535 : 255;
     const hueSamples = toHue ? new Float64Array(data.length) : undefined;
     const evaluateSamples = toHue ? undefined : new Float64Array(data.length);

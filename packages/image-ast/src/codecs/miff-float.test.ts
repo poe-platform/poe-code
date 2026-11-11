@@ -24,7 +24,7 @@ it.each([16, 32])("decodes %s-bit float chunks and selects mixed-depth frames", 
     const image = decodeMiffImage(bytes);
     expect(readMiffHeader(bytes).metadata).toMatchObject({ pages: 2 });
     expect([...decodeMiffImage(bytes, { page: 1 }).data16!]).toEqual([65535, 65535, 65535, 65535]);
-    const backing = new Uint8Array(2050 * 12), borrowed = new Uint8Array(8192);
+    const backing = new Uint8Array(2050 * 44), borrowed = new Uint8Array(8192);
     let end = 0;
     const source = { size: bytes.length, read: async (offset: number, length: number) => {
         expect(length).toBeLessThanOrEqual(8192);
@@ -39,6 +39,9 @@ it.each([16, 32])("decodes %s-bit float chunks and selects mixed-depth frames", 
     const stored = await decodeMiffToStorage(source, storage, new AbortController().signal);
     expect(backing.subarray(stored.position, stored.position + image.data.length)).toEqual(image.data);
     expect(new Uint16Array(backing.buffer, stored.storedData16!.position, stored.storedData16!.length)).toEqual(image.data16);
+    const gray = Math.fround((depth === 16 ? 0.5 : 0.5000228881835938) * 65535) / 257;
+    expect([...image.evaluateSamples!.subarray(0, 4)]).toEqual([gray, gray, gray, 32767.5 / 257]);
+    expect(new Float64Array(backing.buffer, stored.storedEvaluateSamples!, image.data.length)).toEqual(image.evaluateSamples);
     expect([...image.data16!.subarray(0, 4)]).toEqual([depth === 16 ? 32768 : 32769, depth === 16 ? 32768 : 32769, depth === 16 ? 32768 : 32769, 32768]);
     const truncated = frame.subarray(0, frame.length - 1);
     const untouched = { allocate: vi.fn(), read: vi.fn(), write: vi.fn() };

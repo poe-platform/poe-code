@@ -172,6 +172,8 @@ export function miffPixels(bytes: Uint8Array, metadata: MiffHeader["metadata"], 
     const count = bytes.length / pixelBytes, data = new Uint8Array(count * 4), data16 = sampleBytes > 1 || metaChannel === undefined && metadata.space === "cmyk" ? new Uint16Array(count * 4) : undefined;
     const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), gray = channels < 3;
     const hueSamples = metaChannel === undefined && metadata.space === "cmyk" ? new Float64Array(count * 4) : undefined;
+    // Keep Q16-HDRI quanta for interpolation; integer export planes are rounded separately.
+    const evaluateSamples = metaChannel === undefined && metadata.depth === "float" && !hueSamples ? new Float64Array(count * 4) : undefined;
     const colormap = palette ? new DataView(palette.buffer, palette.byteOffset, palette.byteLength) : undefined;
     for (let pixel = 0; pixel < count; pixel++) {
         const index = colormap ? indexBytes === 2 ? view.getUint16(pixel * pixelBytes) : bytes[pixel * pixelBytes]! : 0;
@@ -195,6 +197,7 @@ export function miffPixels(bytes: Uint8Array, metadata: MiffHeader["metadata"], 
                 hueSamples[pixel * 4 + channel] = value / 65535;
             } else {
                 const target = pixel * 4 + (channel === 4 ? 3 : channel);
+                if (evaluateSamples) evaluateSamples[target] = Math.fround(value) / 257;
                 data[target] = Math.round(value / 257);
                 if (data16) data16[target] = Math.round(value);
             }
@@ -209,7 +212,7 @@ export function miffPixels(bytes: Uint8Array, metadata: MiffHeader["metadata"], 
             if (!hasAlpha) { data[pixel * 4 + 3] = 255; data16![pixel * 4 + 3] = 65535; }
         }
     }
-    return { data, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
+    return { data, ...(evaluateSamples ? { evaluateSamples } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
 }
 
 // Read requests and decoded chunks share the same bounded decoder in both paths.
@@ -302,6 +305,7 @@ export function decodeMiffImage(bytes: Uint8Array, options?: SharpInputOptions):
     checkLimitInputPixels(metadata.width, metadata.height, options);
     const count = metadata.width * metadata.height, data = new Uint8Array(count * 4);
     const hueSamples = metadata.space === "cmyk" ? new Float64Array(count * 4) : undefined;
+    const evaluateSamples = metadata.depth === "float" && !hueSamples ? new Float64Array(count * 4) : undefined;
     const data16 = metadata.bitsPerSample! > 8 || hueSamples ? new Uint16Array(count * 4) : undefined;
     const metaChannels: RgbaImage[] = Array.from({ length: metadata.metaChannelCount }, () => ({
         ...metadata, metaChannelCount: 0, channels: 1, space: "b-w", magickColorspace: "Gray", hasAlpha: false,
@@ -314,7 +318,7 @@ export function decodeMiffImage(bytes: Uint8Array, options?: SharpInputOptions):
         while (!next.done) {
             if (next.value instanceof Uint8Array) {
                 const pixels = miffPixels(next.value, metadata, palette);
-                data.set(pixels.data, position); data16?.set(pixels.data16!, position); hueSamples?.set(pixels.hueSamples!, position);
+                data.set(pixels.data, position); data16?.set(pixels.data16!, position); hueSamples?.set(pixels.hueSamples!, position); evaluateSamples?.set(pixels.evaluateSamples!, position);
                 for (const [index, plane] of metaChannels.entries()) {
                     const samples = miffPixels(next.value, metadata, undefined, index);
                     plane.data.set(samples.data, position);
@@ -325,5 +329,5 @@ export function decodeMiffImage(bytes: Uint8Array, options?: SharpInputOptions):
             } else next = steps.next(bytes.subarray(next.value.offset, next.value.offset + next.value.length));
         }
     } finally { steps.return(header.offset); }
-    return { ...metadata, data, ...(metaChannels.length ? { metaChannels } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
+    return { ...metadata, data, ...(evaluateSamples ? { evaluateSamples } : {}), ...(metaChannels.length ? { metaChannels } : {}), ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
 }

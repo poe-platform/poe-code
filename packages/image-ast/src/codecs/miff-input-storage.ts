@@ -31,6 +31,7 @@ export async function decodeMiffToStorage(source: ImageByteSource, storage: Imag
     checkLimitInputPixels(metadata.width, metadata.height, options);
     const count = metadata.width * metadata.height, position = storage.allocate(count * 4), sampleBytes = metadata.bitsPerSample! / 8;
     const storedHueSamples = metadata.space === "cmyk" ? storage.allocate(count * 32) : undefined;
+    const storedEvaluateSamples = metadata.depth === "float" && storedHueSamples === undefined ? storage.allocate(count * 32) : undefined;
     const storedData16 = sampleBytes > 1 || storedHueSamples !== undefined ? { position: storage.allocate(count * 8), length: count * 4 } : undefined;
     const storedMetaChannels: StoredRgbaImage[] = Array.from({ length: metadata.metaChannelCount }, () => ({
         ...metadata, metaChannelCount: 0, channels: 1, space: "b-w", magickColorspace: "Gray", hasAlpha: false,
@@ -52,6 +53,7 @@ export async function decodeMiffToStorage(source: ImageByteSource, storage: Imag
             if (next.value instanceof Uint8Array) {
                 const pixels = miffPixels(next.value, metadata, palette);
                 await storage.write(position + pixel * 4, pixels.data, { signal });
+                if (storedEvaluateSamples !== undefined) await storage.write(storedEvaluateSamples + pixel * 32, new Uint8Array(pixels.evaluateSamples!.buffer), { signal });
                 if (storedHueSamples !== undefined) await storage.write(storedHueSamples + pixel * 32, new Uint8Array(pixels.hueSamples!.buffer), { signal });
                 if (storedData16) await storage.write(storedData16.position + pixel * 8, new Uint8Array(pixels.data16!.buffer), { signal });
                 for (const [index, plane] of storedMetaChannels.entries()) {
@@ -68,5 +70,5 @@ export async function decodeMiffToStorage(source: ImageByteSource, storage: Imag
             }
         }
     } finally { steps.return(header.offset); }
-    return { ...metadata, position, ...(storedMetaChannels.length ? { storedMetaChannels } : {}), ...(storedData16 ? { storedData16 } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }) };
+    return { ...metadata, position, ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), ...(storedMetaChannels.length ? { storedMetaChannels } : {}), ...(storedData16 ? { storedData16 } : {}), ...(storedHueSamples === undefined ? {} : { storedHueSamples }) };
 }

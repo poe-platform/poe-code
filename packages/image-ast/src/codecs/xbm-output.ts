@@ -10,8 +10,8 @@ function* xbmChunks(image: Pick<RgbaImage, "width" | "height">, filename = "imag
   const name = Array.from(encoder.encode(stem), (byte, index) =>
     (byte >= 65 && byte <= 90) || (byte >= 97 && byte <= 122) || (index > 0 && byte >= 48 && byte <= 57)
       ? String.fromCharCode(byte) : "_").join("") || "_";
-  yield encoder.encode(`#define ${name}_width ${image.width}\n#define ${name}_height ${image.height}\nstatic unsigned char ${name}_bits[] = {\n`);
-  let byte = 0, bit = 0, first = true;
+  yield encoder.encode(`#define ${name}_width ${image.width}\n#define ${name}_height ${image.height}\nstatic char ${name}_bits[] = {\n  `);
+  let byte = 0, bit = 0, count = 0;
   for (let offset = 0; offset < image.width * image.height * 4; offset += 4096) {
     const data = yield offset;
     let text = "";
@@ -19,13 +19,14 @@ function* xbmChunks(image: Pick<RgbaImage, "width" | "height">, filename = "imag
       if (0.212656 * data[i]! + 0.715158 * data[i + 1]! + 0.072186 * data[i + 2]! < 127.5) byte |= 1 << bit;
       bit++;
       if (bit === 8 || ((offset + i) / 4 + 1) % image.width === 0) {
-        text += `${first ? " " : ", "}0x${byte.toString(16).padStart(2, "0")}`;
-        first = false; byte = 0; bit = 0;
+        text += `0x${byte.toString(16).toUpperCase().padStart(2, "0")}, `;
+        if (++count === 12) { text += "\n  "; count = 0; }
+        byte = 0; bit = 0;
       }
     }
     yield encoder.encode(text);
   }
-  yield encoder.encode(" };\n");
+  yield encoder.encode("};\n");
 }
 
 export function encodeXbmImage(image: RgbaImage, filename?: string): Uint8Array {

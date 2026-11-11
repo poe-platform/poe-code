@@ -34,9 +34,30 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
         const text = new TextDecoder().decode(bytes);
         expect(text).toContain("_width 13\n");
         expect(text).toContain("_height 5\n");
-        const values = text.slice(text.indexOf("{") + 1, text.indexOf("}")).split(",").map(value => Number(value.trim()));
+        const values = text.slice(text.indexOf("{") + 1, text.indexOf("}")).split(",").map(value => value.trim()).filter(Boolean).map(Number);
         expect(values).toEqual([7, 0, 7, 0, 7, 0, 7, 0, 0, 16]);
       });
     }
   }
 }
+
+it.each([
+  [["tile.xbm", "xbm:-"], "#define __width 9\n#define __height 2\nstatic char __bits[] = {\n  0x81, 0x01, 0x02, 0x00, };\n"],
+  [["-size", "9x5", "gradient:black-white", "xbm:-"], "#define __width 9\n#define __height 5\nstatic char __bits[] = {\n  0xFF, "],
+])("matches native XBM C text on command stdout (%s)", async (args, expected) => {
+  const filesystem = new MemoryFileSystem();
+  await filesystem.writeFile("/tile.xbm", new TextEncoder().encode("#define tile_width 9\n#define tile_height 2\nstatic unsigned char tile_bits[] = {\n 0x81, 0x01, 0x02, 0x00 };\n"));
+  const arguments_ = createCommandArguments(args);
+  const stdout: Uint8Array[] = [];
+  let stderr = "";
+  const result = await createMagickCommand().execute({
+    command: "magick", args: arguments_.args, argumentValues: arguments_, cwd: "/", env: {}, fs: filesystem,
+    signal: new AbortController().signal, stdin: (async function* () {})(),
+    stdout: { async write(bytes) { stdout.push(bytes.slice()); } },
+    stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+  });
+  expect({ exitCode: result.exitCode, stderr }).toEqual({ exitCode: 0, stderr: "" });
+  const text = Buffer.concat(stdout).toString();
+  if (args[0] === "tile.xbm") expect(text).toBe(expected);
+  else expect(text.startsWith(expected)).toBe(true);
+});

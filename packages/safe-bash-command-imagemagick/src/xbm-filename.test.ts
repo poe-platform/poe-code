@@ -25,7 +25,7 @@ for (const mode of ["sync", "buffered", "retained"] as const) {
             : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
         expect(result.exitCode, result.stderr).toBe(0);
         const bytes = path === "-" ? result.stdoutBytes! : mode === "retained" ? await filesystem.readFile(path) : files.get(path)!;
-        expect(new TextDecoder().decode(bytes)).toBe(`#define ${name}_width 8\n#define ${name}_height 1\nstatic unsigned char ${name}_bits[] = {\n 0x55 };\n`);
+        expect(new TextDecoder().decode(bytes)).toBe(`#define ${name}_width 8\n#define ${name}_height 1\nstatic char ${name}_bits[] = {\n  0x55, };\n`);
         expect(decodeImage(bytes)).toMatchObject({ width: 8, height: 1 });
     });
 }
@@ -43,6 +43,6 @@ for (const [name, sync, asyncRun, args, path] of [
             : await asyncRun([...args], mode === "retained" ? { filesystem, cwd: "/" } : files);
         expect(result.exitCode, result.stderr).toBe(0);
         const bytes = mode === "retained" ? await filesystem.readFile(path) : files.get(path)!;
-        expect(new TextDecoder().decode(bytes)).toContain(`static unsigned char ${name === "mogrify" ? "alpha" : "app_icon"}_bits[]`);
+        expect(new TextDecoder().decode(bytes)).toContain(`static char ${name === "mogrify" ? "alpha" : "app_icon"}_bits[]`);
     });
 }

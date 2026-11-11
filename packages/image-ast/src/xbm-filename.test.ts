@@ -16,7 +16,7 @@ it.each([undefined, "/icons/app-icon.xbm"])("names both XBM encoders from %s", a
   }, new AbortController().signal, options)) chunks.push(chunk);
   expect(Buffer.concat(chunks)).toEqual(Buffer.from(expected));
   const name = outputFilename ? "app_icon" : "image";
-  expect(new TextDecoder().decode(expected)).toContain(`#define ${name}_width 1\n#define ${name}_height 1\nstatic unsigned char ${name}_bits[]`);
+  expect(new TextDecoder().decode(expected)).toContain(`#define ${name}_width 1\n#define ${name}_height 1\nstatic char ${name}_bits[]`);
   expect(decodeImage(expected).data).toEqual(image.data);
 });
 
@@ -26,6 +26,6 @@ it.each([true, false])("uses the file name without leaking it into buffer output
     filesystem: retained ? filesystem : { readFile: filesystem.readFile.bind(filesystem), writeFile: filesystem.writeFile.bind(filesystem) }
   });
   await output.toFile("/app-icon.xbm");
-  expect(new TextDecoder().decode(await filesystem.readFile("/app-icon.xbm"))).toContain("static unsigned char app_icon_bits[]");
-  expect(new TextDecoder().decode(await output.toBuffer())).toContain("static unsigned char image_bits[]");
+  expect(new TextDecoder().decode(await filesystem.readFile("/app-icon.xbm"))).toContain("static char app_icon_bits[]");
+  expect(new TextDecoder().decode(await output.toBuffer())).toContain("static char image_bits[]");
 });

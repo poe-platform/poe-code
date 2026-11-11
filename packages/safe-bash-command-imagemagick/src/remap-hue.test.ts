@@ -27,7 +27,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     });
 }
 
-// Native ImageMagick selects the same palette entries with and without the hue round trip.
+// Native ImageMagick compares the palette entries in the reference hue colorspace.
 for (const retained of [false, true]) it.each(["HSL", "HSB"])(`retained=${retained}: keeps %s palette selection and metadata`, async space => {
     const files = new Map([["in.png", input]]), fs = new MemoryFileSystem();
     await fs.writeFile("/in.png", input);
@@ -38,5 +38,5 @@ for (const retained of [false, true]) it.each(["HSL", "HSB"])(`retained=${retain
     expect(info.stdout.trim()).toBe(space);
     expect((await runConvertCli([...prefix, "-colorspace", "sRGB", "PNG64:out.png"], context)).exitCode).toBe(0);
     const output = retained ? await fs.readFile("/out.png") : files.get("out.png")!;
-    expect(Array.from(decodeImage(output).data16!)).toEqual(Array.from({ length: 8 }, (_, i) => i < 2 ? [65535, 0, 0, 65535] : [0, 0, 65535, 65535]).flat());
+    expect(Array.from(decodeImage(output).data16!)).toEqual(Array.from({ length: 8 }, (_, i) => (i < 2 || i >= 6) ? [65535, 0, 0, 65535] : [0, 0, 65535, 65535]).flat());
 });

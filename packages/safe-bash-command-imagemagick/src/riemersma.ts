@@ -23,13 +23,14 @@ export function* hilbertPixels(img: { width: number; height: number }): Generato
 }
 
 /** ImageMagick Riemersma diffusion: a 16-entry weighted error queue. */
-export function* riemersmaRemapSteps(image: { width: number; height: number }, paletteImage: { width: number; height: number; hasAlpha: boolean; space?: string }, highDepth: boolean, diffusionAmount: number): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
+export function* riemersmaRemapSteps(image: { width: number; height: number; hueSamples?: Float64Array; storedHueSamples?: number }, paletteImage: { width: number; height: number; hasAlpha: boolean; space?: string; hueSamples?: Float64Array; storedHueSamples?: number }, highDepth: boolean, diffusionAmount: number): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
+    const hue = (image.hueSamples !== undefined || image.storedHueSamples !== undefined) && (paletteImage.hueSamples !== undefined || paletteImage.storedHueSamples !== undefined);
     const palette: Float64Array[] = [], seen = new Set<string>();
     for (let position = 0; position < paletteImage.width * paletteImage.height * 4; position += 4096) {
         yield;
         const length = Math.min(4096, paletteImage.width * paletteImage.height * 4 - position);
-        const bytes = (yield { kind: "read", highDepth, image: 1, position, length })!;
-        const samples = highDepth ? Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257) : Float64Array.from(bytes);
+        const bytes = (yield { kind: "read", hue, highDepth, image: 1, position, length })!;
+        const samples = hue ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => value * 255) : highDepth ? Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257) : Float64Array.from(bytes);
         for (let i = 0; i < samples.length; i += 4) {
             const color = samples.slice(i, i + 4);
             // Native palette classification discards RGB at zero alpha.
@@ -47,7 +48,8 @@ export function* riemersmaRemapSteps(image: { width: number; height: number }, p
     let work = 0;
     for (const position of hilbertPixels(image)) {
         if (++work % 1024 === 0) yield;
-        const input = (yield { kind: "read", position, length: 4 })!;
+        const bytes = (yield { kind: "read", hue, position, length: 4 })!;
+        const input = hue ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => value * 255) : bytes;
         const target = Float64Array.from(input);
         if (paletteImage.hasAlpha) for (let c = 0; c < 3; c++) target[c]! *= input[3]! / 255;
         for (let channel = 0; channel < 4; channel++) {
@@ -70,6 +72,7 @@ export function* riemersmaRemapSteps(image: { width: number; height: number }, p
             const alpha = paletteImage.hasAlpha && c < 3 ? best[3]! / 255 : 1;
             errors[60 + c] = target[c]! - best[c]! * alpha;
         }
+        if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(Float64Array.from(best, value => value / 255).buffer) };
         const gray = best === white ? 255 : 0;
         const output = white ? Float64Array.of(gray, gray, gray, best[3]!) : best;
         yield highDepth

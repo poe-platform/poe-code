@@ -13,12 +13,14 @@ export function remapColorOrder(r: number, g: number, b: number): number {
 }
 
 export async function remapStoredImage(image: StoredRgbaImage, paletteImage: StoredRgbaImage, storage: ImageByteStorage, dither: boolean, diffusionAmount: number, signal: AbortSignal): Promise<StoredRgbaImage> {
+    const hue = image.storedHueSamples !== undefined && paletteImage.storedHueSamples !== undefined;
     const palette: number[][] = [], seen = new Set<string>();
     for (let offset = 0; offset < paletteImage.width * paletteImage.height * 4; offset += 4096) {
         await yieldTurn(signal);
         const length = Math.min(4096, paletteImage.width * paletteImage.height * 4 - offset), bytes = await storage.read((paletteImage.storedData16?.position ?? paletteImage.position) + offset * (paletteImage.storedData16 ? 2 : 1), length * (paletteImage.storedData16 ? 2 : 1), { signal });
         if (bytes.length !== length * (paletteImage.storedData16 ? 2 : 1)) throw new Error("Truncated remap palette");
-        const samples = paletteImage.storedData16 ? Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257) : bytes;
+        const hueBytes = hue ? await storage.read(paletteImage.storedHueSamples! + offset * 8, length * 8, { signal }) : undefined;
+        const samples = hueBytes ? Float64Array.from(new Float64Array(hueBytes.slice().buffer), value => value * 255) : paletteImage.storedData16 ? Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257) : bytes;
         for (let i = 0; i < length; i += 4) {
             const color = Array.from(samples.subarray(i, i + 4));
             // Native palette classification discards RGB at zero alpha.
@@ -38,14 +40,17 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
         await yieldTurn(signal);
         const length = Math.min(1024, count - start), pixels = await storage.read(image.position + start * 4, length * 4, { signal });
         if (pixels.length !== length * 4) throw new Error("Truncated remap pixels");
+        const hueBytes = hue ? await storage.read(image.storedHueSamples! + start * 32, length * 32, { signal }) : undefined;
+        const input = hueBytes ? Float64Array.from(new Float64Array(hueBytes.slice().buffer), value => value * 255) : pixels;
         const bytes = new Uint8Array(length * 16), view = new DataView(bytes.buffer);
         for (let i = 0; i < length; i++) for (let c = 0; c < 4; c++) {
-            const alpha = paletteImage.hasAlpha && c < 3 ? pixels[i * 4 + 3]! / 255 : 1;
-            view.setFloat32(i * 16 + c * 4, pixels[i * 4 + c]! * alpha, true);
+            const alpha = paletteImage.hasAlpha && c < 3 ? input[i * 4 + 3]! / 255 : 1;
+            view.setFloat32(i * 16 + c * 4, input[i * 4 + c]! * alpha, true);
         }
         await storage.write(errors.position + start * 16, bytes, { signal });
     }
     const position = storage.allocate(count * 4);
+    const storedHueSamples = hue ? storage.allocate(count * 32) : undefined;
     const storedData16 = (image.storedData16 || paletteImage.storedData16) ? { position: storage.allocate(count * 8), length: count * 4 } : undefined;
     for (let scanned = 0; scanned < count;) {
         await yieldTurn(signal);
@@ -56,14 +61,17 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
         const pixels = new Uint8Array(await storage.read(image.position + start * 4, length * 4, { signal }));
         if (pixels.length !== length * 4) throw new Error("Truncated remap pixels");
         const samples = storedData16 ? new Uint16Array(length * 4) : undefined;
+        const hueBytes = hue ? await storage.read(image.storedHueSamples! + start * 32, length * 32, { signal }) : undefined;
+        const input = hueBytes ? Float64Array.from(new Float64Array(hueBytes.slice().buffer), value => value * 255) : pixels;
+        const hueSamples = hue ? new Float64Array(length * 4) : undefined;
         for (let step = 0; step < length; step++) {
             const i = direction === 1 ? step : length - 1 - step;
             const current = start + i, offset = i * 4;
-            const inputAlpha = paletteImage.hasAlpha ? pixels[offset + 3]! / 255 : 1;
-            const r = errors ? Math.max(0, Math.min(255, await cache.float32(errors, current * 16))) : pixels[offset]! * inputAlpha;
-            const g = errors ? Math.max(0, Math.min(255, await cache.float32(errors, current * 16 + 4))) : pixels[offset + 1]! * inputAlpha;
-            const b = errors ? Math.max(0, Math.min(255, await cache.float32(errors, current * 16 + 8))) : pixels[offset + 2]! * inputAlpha;
-            const a = errors ? Math.max(0, Math.min(255, await cache.float32(errors, current * 16 + 12))) : pixels[offset + 3]!;
+            const inputAlpha = paletteImage.hasAlpha ? input[offset + 3]! / 255 : 1;
+            const r = errors ? Math.max(0, Math.min(255, await cache.float32(errors, current * 16))) : input[offset]! * inputAlpha;
+            const g = errors ? Math.max(0, Math.min(255, await cache.float32(errors, current * 16 + 4))) : input[offset + 1]! * inputAlpha;
+            const b = errors ? Math.max(0, Math.min(255, await cache.float32(errors, current * 16 + 8))) : input[offset + 2]! * inputAlpha;
+            const a = errors ? Math.max(0, Math.min(255, await cache.float32(errors, current * 16 + 12))) : input[offset + 3]!;
             const alpha = paletteImage.hasAlpha ? a / 255 : 1;
             let best = palette[0]!, distance = Infinity;
             for (const color of palette) {
@@ -74,6 +82,7 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
             for (let c = 0; c < 4; c++) {
                 const value = white && c < 3 ? best === white ? 255 : 0 : best[c]!;
                 pixels[offset + c] = Math.round(value);
+                if (hueSamples) hueSamples[offset + c] = best[c]! / 255;
                 if (samples) samples[offset + c] = Math.round(value * 257);
             }
             if (errors) {
@@ -95,6 +104,7 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
             }
         }
         await storage.write(position + start * 4, pixels, { signal });
+        if (storedHueSamples !== undefined && hueSamples) await storage.write(storedHueSamples + start * 32, new Uint8Array(hueSamples.buffer), { signal });
         if (storedData16 && samples) {
             await storage.write(storedData16.position + start * 8, new Uint8Array(samples.buffer), { signal });
         }
@@ -104,5 +114,5 @@ export async function remapStoredImage(image: StoredRgbaImage, paletteImage: Sto
     // Search visits the last octree entry first for ties; cycling uses tree order.
     if (white) for (const color of palette) color.fill(color === white ? 255 : 0, 0, 3);
     const indexedColors = palette.reverse().map(color => Math.round(color[3]!) * 16777216 + Math.round(color[0]!) * 65536 + Math.round(color[1]!) * 256 + Math.round(color[2]!));
-    return { ...metadata, position, indexedColors, isPalette: true, ...(storedData16 ? { storedData16 } : {}) };
+    return { ...metadata, position, indexedColors, isPalette: true, ...(storedHueSamples === undefined ? {} : { storedHueSamples }), ...(storedData16 ? { storedData16 } : {}) };
 }

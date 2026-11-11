@@ -1355,6 +1355,7 @@ function* applyMagickColorMatrixSteps(img: RgbaImage, spec: string, signal?: Abo
 
 function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boolean, diffusionAmount: number, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     let cooperativeWork = 0;
+    const paletteSamples = img.hueSamples ? palImg.hueSamples : undefined;
     const palette: Array<{
         r: number;
         g: number;
@@ -1365,12 +1366,12 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
     for (let i = 0; i < palImg.data.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
-        const a = palImg.data16 ? palImg.data16[i + 3]! / 257 : palImg.data[i + 3]!;
+        const a = paletteSamples ? paletteSamples[i + 3]! * 255 : palImg.data16 ? palImg.data16[i + 3]! / 257 : palImg.data[i + 3]!;
         // Native palette classification discards RGB at zero alpha.
         const transparent = palImg.hasAlpha && a === 0;
-        const r = transparent ? 0 : palImg.data16 ? palImg.data16[i]! / 257 : palImg.data[i]!;
-        const g = transparent ? 0 : palImg.data16 ? palImg.data16[i + 1]! / 257 : palImg.data[i + 1]!;
-        const b = transparent ? 0 : palImg.data16 ? palImg.data16[i + 2]! / 257 : palImg.data[i + 2]!;
+        const r = transparent ? 0 : paletteSamples ? paletteSamples[i]! * 255 : palImg.data16 ? palImg.data16[i]! / 257 : palImg.data[i]!;
+        const g = transparent ? 0 : paletteSamples ? paletteSamples[i + 1]! * 255 : palImg.data16 ? palImg.data16[i + 1]! / 257 : palImg.data[i + 1]!;
+        const b = transparent ? 0 : paletteSamples ? paletteSamples[i + 2]! * 255 : palImg.data16 ? palImg.data16[i + 2]! / 257 : palImg.data[i + 2]!;
         const key = `${r},${g},${b},${a}`;
         if (!seen.has(key)) {
             seen.add(key);
@@ -1385,7 +1386,8 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
         ? palette[palette[0]!.r > palette[1]!.r ? 0 : 1] : undefined;
     const w = img.width;
     const h = img.height;
-    const buf = new Float32Array(img.data);
+    const buf = paletteSamples && img.hueSamples ? Float32Array.from(img.hueSamples, value => value * 255) : new Float32Array(img.data);
+    const hueSamples = paletteSamples ? new Float64Array(img.data.length) : undefined;
     // Native diffusion works on associated RGB; ClosestColor applies alpha again.
     if (palImg.hasAlpha) for (let i = 0; i < buf.length; i += 4) {
         if (++cooperativeWork % 65536 === 0) yield;
@@ -1421,6 +1423,7 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
                     best = p;
                 }
             }
+            if (hueSamples) hueSamples.set([best.r / 255, best.g / 255, best.b / 255, best.a / 255], idx);
             const gray = white ? best === white ? 255 : 0 : undefined;
             out[idx] = Math.round(gray ?? best.r);
             out[idx + 1] = Math.round(gray ?? best.g);
@@ -1457,7 +1460,7 @@ function* applyMagickRemapSteps(img: RgbaImage, palImg: RgbaImage, dither: boole
     const { pngPalette: ignoredPalette, pngIndices: ignoredIndices, ...metadata } = img;
     if (white) for (const color of palette) color.r = color.g = color.b = color === white ? 255 : 0;
     const indexedColors = palette.reverse().map(color => Math.round(color.a) * 16777216 + Math.round(color.r) * 65536 + Math.round(color.g) * 256 + Math.round(color.b));
-    return { ...metadata, data: out, indexedColors, isPalette: true, ...(data16 ? { data16 } : {}) };
+    return { ...metadata, data: out, indexedColors, isPalette: true, ...(hueSamples ? { hueSamples } : {}), ...(data16 ? { data16 } : {}) };
 }
 
 type MagickImage = RgbaImage & { [magickInput]?: MagickFormatContext };
@@ -13714,27 +13717,29 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 : yield* parseInputOperandSteps(palSpec, files, state, stdinBytes, analysis);
             if (!palImg) throw new Error(`unable to open image '${palSpec}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                if (t === "-remap" && (im.magickColorspace === "RGB" || im.magickColorspace === "scRGB")) {
-                    const { evaluateSamples: ignoredSamples, ...converted } = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(im);
-                    im = converted;
+                const paletteSpace = palImg.magickColorspace ?? (palImg.space === "cmyk" ? "CMYK" : palImg.space === "b-w" || palImg.space === "grey16" ? palImg.gamma === 1 ? "LinearGray" : "Gray" : "sRGB");
+                const sourceSpace = im.magickColorspace ?? (im.space === "cmyk" ? "CMYK" : im.space === "b-w" || im.space === "grey16" ? im.gamma === 1 ? "LinearGray" : "Gray" : "sRGB");
+                const outputSpace = ["sRGB", "RGB", "scRGB", "Adobe98", "ProPhoto", "DisplayP3", "Gray", "LinearGray"].includes(sourceSpace) ? paletteSpace : sourceSpace;
+                let palette = palImg;
+                if (t === "-remap") {
+                    if (sourceSpace !== paletteSpace) im = yield* parseMagickPixelOperation(["-colorspace", paletteSpace], state, 0, signal)!.apply(im);
+                    // The CMYK codec backing is RGB; remap compares CMY and assigns zero black.
+                    if (paletteSpace === "CMYK") {
+                        im = yield* setColorspacePixels(im, "sRGB");
+                        palette = yield* setColorspacePixels(palImg, "sRGB");
+                    }
                 }
-                const hueSpace = t === "-remap" && (im.magickColorspace === "HSL" || im.magickColorspace === "HSB" || im.magickColorspace === "HSV" || im.magickColorspace === "CIELab" || im.magickColorspace === "XYZ") ? im.magickColorspace : undefined;
-                // Matching Lab images must compare Lab channels, not converted RGB.
-                const remapPixels = im.magickColorspace === "CIELab" && palImg.magickColorspace === "CIELab" ? setColorspacePixels : convertHuePixels;
-                if (hueSpace) im = yield* remapPixels(im, "sRGB");
-                const palette = hueSpace && (palImg.magickColorspace === "HSL" || palImg.magickColorspace === "HSB" || palImg.magickColorspace === "HSV" || palImg.magickColorspace === "CIELab" || palImg.magickColorspace === "XYZ") ? yield* remapPixels(palImg, "sRGB") : palImg;
-                // Remap replaces the pixels, including the source's working samples.
-                const { hueSamples: ignoredHue, evaluateSamples: ignoredEvaluate, ...result } = state.dither === "riemersma"
+                let result = state.dither === "riemersma"
                     ? yield* applyMagickRasterSteps(im, riemersmaRemapSteps(im, palette, !!(im.data16 || palette.data16), state.diffusionAmount ?? 1), signal, im, [im, palette])
                     : yield* applyMagickRemapSteps(im, palette, state.dither !== false, state.diffusionAmount ?? 1, signal);
-                if (t === "-remap" && result.space === "cmyk") {
-                    // Remap replaces RGB backing; rebuild inks instead of retaining source samples.
-                    // Native CMYK palettes leave the remapped black channel at zero.
-                    return { ...yield* (palette.space === "cmyk"
-                        ? applyMagickEvaluateSteps(result, "set", "0", { r: false, g: false, b: false, a: false, k: true }, undefined, signal)
-                        : convertCmykPixels(result)), isPalette: true };
+                if (t === "+remap") {
+                    const { hueSamples: ignoredHue, evaluateSamples: ignoredEvaluate, ...remapped } = result;
+                    return remapped;
                 }
-                return hueSpace ? yield* remapPixels(result, hueSpace) : result;
+                // The selected palette samples replace every source working sample.
+                const { evaluateSamples: ignoredEvaluate, ...remapped } = result;
+                result = paletteSpace === "CMYK" ? yield* setColorspacePixels(remapped, paletteSpace) : remapped;
+                return outputSpace === paletteSpace ? result : yield* parseMagickPixelOperation(["-colorspace", outputSpace], state, 0, signal)!.apply(result);
             });
         }
         else if (t === "-clut" || t === "-hald-clut") {
@@ -17711,25 +17716,22 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     ? await registers.get(palette.slice(4).toLowerCase())?.get(0)
                     : await parseStoredCompareInput(palette, settings, backend, signal, { analysis });
                 if (!colors) throw new Error(`unable to open image '${palette}'`);
-                if (image.magickColorspace === "RGB" || image.magickColorspace === "scRGB") {
-                    const { storedEvaluateSamples: ignoredSamples, ...converted } = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], settings, 0, signal)!, signal);
-                    image = converted;
+                const paletteSpace = colors.magickColorspace ?? (colors.space === "cmyk" ? "CMYK" : colors.space === "b-w" || colors.space === "grey16" ? colors.gamma === 1 ? "LinearGray" : "Gray" : "sRGB");
+                const sourceSpace = image.magickColorspace ?? (image.space === "cmyk" ? "CMYK" : image.space === "b-w" || image.space === "grey16" ? image.gamma === 1 ? "LinearGray" : "Gray" : "sRGB");
+                const outputSpace = ["sRGB", "RGB", "scRGB", "Adobe98", "ProPhoto", "DisplayP3", "Gray", "LinearGray"].includes(sourceSpace) ? paletteSpace : sourceSpace;
+                if (sourceSpace !== paletteSpace) image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", paletteSpace], settings, 0, signal)!, signal);
+                if (paletteSpace === "CMYK") {
+                    const working = { end: 0, highDepth: true, evaluate: true, apply: (frame: RgbaImage) => setColorspacePixels(frame, "sRGB") };
+                    image = await transformStoredMagickPixels(image, backend, working, signal);
+                    colors = await transformStoredMagickPixels(colors, backend, working, signal);
                 }
-                const hueSpace = image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "CIELab" || image.magickColorspace === "XYZ" ? image.magickColorspace : undefined;
-                const remapPixels = image.magickColorspace === "CIELab" && colors.magickColorspace === "CIELab" ? setColorspacePixels : convertHuePixels;
-                if (hueSpace) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => remapPixels(frame, "sRGB") }, signal);
-                if (hueSpace && (colors.magickColorspace === "HSL" || colors.magickColorspace === "HSB" || colors.magickColorspace === "HSV" || colors.magickColorspace === "CIELab" || colors.magickColorspace === "XYZ")) colors = await transformStoredMagickPixels(colors, backend, { end: 0, highDepth: true, apply: frame => remapPixels(frame, "sRGB") }, signal);
-                // Remap replaces the pixels, including the source's working samples.
-                const { storedHueSamples: ignoredHue, storedEvaluateSamples: ignoredEvaluate, ...result } = settings.dither === "riemersma"
+                let result = settings.dither === "riemersma"
                     ? await transformStoredMagickRaster(image, backend, riemersmaRemapSteps(image, colors, !!(image.storedData16 || colors.storedData16), settings.diffusionAmount ?? 1), signal, image, [image, colors])
                     : await remapStoredImage(image, colors, backend.storage, settings.dither !== false, settings.diffusionAmount ?? 1, signal);
-                if (result.space === "cmyk") {
-                    return { ...await transformStoredMagickPixels(result, backend,
-                        { end: 0, highDepth: true, apply: colors.space === "cmyk"
-                            ? frame => applyMagickEvaluateSteps(frame, "set", "0", { r: false, g: false, b: false, a: false, k: true }, undefined, signal)
-                            : convertCmykPixels }, signal), isPalette: true };
-                }
-                return hueSpace ? transformStoredMagickPixels(result, backend, { end: 0, highDepth: true, apply: frame => remapPixels(frame, hueSpace) }, signal) : result;
+                const { storedEvaluateSamples: ignoredEvaluate, ...remapped } = result;
+                result = paletteSpace === "CMYK" ? await transformStoredMagickPixels(remapped, backend,
+                    { end: 0, highDepth: true, apply: frame => setColorspacePixels(frame, paletteSpace) }, signal) : remapped;
+                return outputSpace === paletteSpace ? result : transformStoredMagickPixels(result, backend, parseMagickPixelOperation(["-colorspace", outputSpace], settings, 0, signal)!, signal);
             });
         } else if (!operandsOnly && (token === "-floodfill" || token === "+floodfill")) {
             if (i + 2 >= tokens.length) throw new Error(`missing argument '${token}'`);

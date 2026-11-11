@@ -1,3 +1,4 @@
+import { resizeContributions, type MagickResizeKernel, type ResizeFilterSettings } from "./resize-kernel.js";
 import { createMagickRandom } from "./random.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
@@ -14,7 +15,7 @@ function kernelWidth(radius: number, sigma: number): number {
 }
 
 /** ImageMagick's noise, directional blur, edge, normalize and color-dodge sketch. */
-export function* sketchPixelSteps(image: { width: number; height: number; hasAlpha: boolean; inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined }, geometry: { width?: number; height?: number; x?: number }, seed: bigint, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* sketchPixelSteps(image: { width: number; height: number; hasAlpha: boolean; inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined }, geometry: { width?: number; height?: number; x?: number }, seed: bigint, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, kernel?: MagickResizeKernel, settings: ResizeFilterSettings = {}): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const selected = channels ? [channels.r, channels.g, channels.b, channels.a] : undefined;
     const radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1), angle = geometry.x ?? 0;
     if (![radius, sigma, angle].every(Number.isFinite) || radius < 0 || radius > 5000) throw new Error("Invalid sketch geometry");
@@ -96,25 +97,23 @@ export function* sketchPixelSteps(image: { width: number; height: number; hasAlp
         values[i] = 1 - Math.max(0, Math.min(1, high === low ? values[i]! / 65535 : (values[i]! - low) / (high - low)));
         if (alphas && !copyAlpha) alphas[i] = 1 - Math.max(0, Math.min(1, high === low ? alphas[i]! / 65535 : (alphas[i]! - low) / (high - low)));
     }
-    // Native 50% resize filters vertically first; alpha selects Mitchell instead of Lanczos.
-    const sinc = (x: number): number => Math.abs(x) < 1e-12 ? 1 : Math.sin(Math.PI * x) / (Math.PI * x);
-    const filter = (x: number): number => {
-        x = Math.abs(x);
-        if (!hasAlpha) return sinc(x) * sinc(x / 3);
-        return x < 1 ? (7 * x * x * x - 12 * x * x + 16 / 3) / 6 : x < 2 ? (-7 / 3 * x * x * x + 12 * x * x - 20 * x + 32 / 3) / 6 : 0;
-    };
-    const support = hasAlpha ? 4 : 6;
-    for (let y = 0; y < image.height; y++) for (let x = 0; x < width; x++) {
-        if (x % 1024 === 0) yield;
-        const center = y * 2 + 0.5;
-        let sum = 0, weight = 0, alpha = 0;
-        for (let sy = Math.max(0, Math.ceil(center - support)); sy <= Math.min(height - 1, Math.floor(center + support)); sy++) {
-            const w = filter((sy - center) / 2), i = sy * width + x;
-            sum += values[i]! * w * (alphas?.[i] ?? 1);
-            alpha += w * (alphas?.[i] ?? 1); weight += w;
+    // Native 50% resize filters vertically first; alpha defaults to Mitchell.
+    kernel = settings.window ? "sinc" : kernel ?? (hasAlpha ? "mitchell" : "lanczos3");
+    const blur = Math.max(1e-12, (settings.blur ?? 1) * (kernel === "lanczos2sharp" ? 0.9549963639785485
+        : kernel === "lanczossharp" ? 0.9812505644269356 : 1));
+    for (let y = 0; y < image.height; y++) {
+        const vertical = resizeContributions(y, height, image.height, blur, false, kernel, 0, settings);
+        for (let x = 0; x < width; x++) {
+            if (x % 1024 === 0) yield;
+            let sum = 0, weight = 0, alpha = 0;
+            for (let k = 0; k < vertical.weights.length; k++) {
+                const w = vertical.weights[k]!, i = (vertical.first + k) * width + x;
+                sum += values[i]! * w * (alphas?.[i] ?? 1);
+                alpha += w * (alphas?.[i] ?? 1); weight += w;
+            }
+            scratch[y * width + x] = sum / (Math.abs(alpha) < 1e-12 ? (alpha < 0 ? -1e-12 : 1e-12) : alpha);
+            if (alphaScratch) alphaScratch[y * width + x] = copyAlpha ? alphas![Math.min(height - 1, y * 2 + 1) * width + x]! : alpha / weight;
         }
-        scratch[y * width + x] = sum / (Math.abs(alpha) < 1e-12 ? (alpha < 0 ? -1e-12 : 1e-12) : alpha);
-        if (alphaScratch) alphaScratch[y * width + x] = copyAlpha ? alphas![Math.min(height - 1, y * 2 + 1) * width + x]! : alpha / weight;
     }
     for (let y = 0; y < image.height; y++) for (let left = 0; left < image.width; left += 1024) {
         yield;
@@ -123,10 +122,10 @@ export function* sketchPixelSteps(image: { width: number; height: number; hasAlp
         if (!bytes || bytes.length !== count * 4) throw new Error("Truncated sketch pixels");
         const data = new Uint8Array(bytes);
         for (let x = 0; x < count; x++) {
-            const center = (left + x) * 2 + 0.5;
+            const horizontal = resizeContributions(left + x, width, image.width, blur, false, kernel, 0, settings);
             let sum = 0, weight = 0, alpha = 0;
-            for (let sx = Math.max(0, Math.ceil(center - support)); sx <= Math.min(width - 1, Math.floor(center + support)); sx++) {
-                const w = filter((sx - center) / 2), i = y * width + sx;
+            for (let k = 0; k < horizontal.weights.length; k++) {
+                const w = horizontal.weights[k]!, i = y * width + horizontal.first + k;
                 sum += scratch[i]! * w * (alphaScratch?.[i] ?? 1);
                 alpha += w * (alphaScratch?.[i] ?? 1); weight += w;
             }

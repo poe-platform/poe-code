@@ -179,12 +179,12 @@ export function resizeFilter(kernel: MagickResizeKernel, settings: ResizeFilterS
     } };
 }
 
-function contributions(index: number, source: number, target: number, blur: number, area: boolean, kernel: MagickResizeKernel, thumbnailFactor = 0, settings: ResizeFilterSettings = {}) {
+export function resizeContributions(index: number, source: number, target: number, blur: number, area: boolean, kernel: MagickResizeKernel, thumbnailFactor = 0, settings: ResizeFilterSettings = {}) {
     if (thumbnailFactor >= 3) {
         // ThumbnailImage samples to 4x, box-filters to 2x, then applies the final
         // filter. Compose the weights to retain HDRI precision without temporary rasters.
         const sampled = thumbnailFactor >= 5 ? 4 * target : source;
-        const filtered = contributions(index, 2 * target, target, blur, false, kernel, 0, settings);
+        const filtered = resizeContributions(index, 2 * target, target, blur, false, kernel, 0, settings);
         const boxes = Array.from(filtered.weights, (_, i) => {
             const center = (filtered.first + i + 0.5) * sampled / (2 * target);
             const support = sampled / (4 * target);
@@ -254,11 +254,11 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
         : kernel === "lanczossharp" ? 0.9812505644269356 : 1));
     const thumbnailFactor = thumbnail ? Math.floor(Math.min(image.width / width, image.height / height)) : 0;
     for (let left = 0; left < width; left += 256) {
-        const count = Math.min(256, width - left), horizontal = Array.from({ length: count }, (_, x) => axis === "vertical" ? { first: left + x, weights: [1] } : contributions(left + x, image.width, width, blur, scale, kernel, thumbnailFactor, settings));
+        const count = Math.min(256, width - left), horizontal = Array.from({ length: count }, (_, x) => axis === "vertical" ? { first: left + x, weights: [1] } : resizeContributions(left + x, image.width, width, blur, scale, kernel, thumbnailFactor, settings));
         const rows = new Map<number, Float64Array>();
         for (let y = 0; y < height; y++) {
             yield;
-            const vertical = axis === "horizontal" ? { first: y, weights: [1] } : contributions(y, image.height, height, blur, scale, kernel, thumbnailFactor, settings), sums = new Float64Array(count * stride);
+            const vertical = axis === "horizontal" ? { first: y, weights: [1] } : resizeContributions(y, image.height, height, blur, scale, kernel, thumbnailFactor, settings), sums = new Float64Array(count * stride);
             for (let k = 0; k < vertical.weights.length; k++) {
                 const sy = vertical.first + k;
                 let row = rows.get(sy);

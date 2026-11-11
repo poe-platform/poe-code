@@ -14149,10 +14149,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-sketch") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const raw = tokens[++i] ?? "0x1", seed = state.seed ?? 0n;
+            const channels = state.channelExplicit ? { ...state.channels } : undefined;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 const geometry = parseMagickSketchGeometry(expanded);
-                return yield* applyMagickRasterSteps(im, sketchPixelSteps(im, geometry, seed), signal);
+                return yield* applyMagickRasterSteps(im, sketchPixelSteps(im, geometry, seed, channels), signal);
             });
         }
         else if (t === "+repage" || t === "-repage") {
@@ -18291,11 +18292,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const raw = tokens[++i] ?? "0x1", seed = state.seed ?? 0n, optionProperties = state.optionProperties;
+            const channels = state.channelExplicit ? { ...state.channels } : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 const geometry = parseMagickSketchGeometry(expanded);
-                return transformStoredMagickRaster(image, backend, sketchPixelSteps(image, geometry, seed), signal);
+                return transformStoredMagickRaster(image, backend, sketchPixelSteps(image, geometry, seed, channels), signal);
             });
         } else if (!operandsOnly && token === "-edge") {
             stackStep(async stack => {

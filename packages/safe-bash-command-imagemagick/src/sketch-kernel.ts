@@ -14,7 +14,8 @@ function kernelWidth(radius: number, sigma: number): number {
 }
 
 /** ImageMagick's noise, directional blur, edge, normalize and color-dodge sketch. */
-export function* sketchPixelSteps(image: { width: number; height: number; hasAlpha: boolean; inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined }, geometry: { width?: number; height?: number; x?: number }, seed: bigint): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* sketchPixelSteps(image: { width: number; height: number; hasAlpha: boolean; inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined }, geometry: { width?: number; height?: number; x?: number }, seed: bigint, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const selected = channels ? [channels.r, channels.g, channels.b, channels.a] : undefined;
     const radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1), angle = geometry.x ?? 0;
     if (![radius, sigma, angle].every(Number.isFinite) || radius < 0 || radius > 5000) throw new Error("Invalid sketch geometry");
     const width = image.width * 2, height = image.height * 2, size = width * height;
@@ -139,13 +140,14 @@ export function* sketchPixelSteps(image: { width: number; height: number; hasAlp
             const blendAlpha = image.hasAlpha ? originalAlpha : 0;
             const outputAlpha = Math.max(0, Math.min(1, blendAlpha + (copyAlpha ? originalAlpha : dodgeAlpha)));
             for (let channel = 0; channel < 3; channel++) {
+                if (selected && !selected[channel]) continue;
                 const original = bytes[x * 4 + channel]! / 255;
                 const color = dodge >= 1 ? 1 : Math.min(1, original / Math.max(1e-12, 1 - dodge));
                 const premultiplied = sourceAlpha * originalAlpha * color + sourceAlpha * (1 - originalAlpha) * sourceColor + originalAlpha * (1 - sourceAlpha) * original;
                 const dodgeColor = Math.max(0, Math.min(1, premultiplied / Math.max(1e-12, dodgeAlpha)));
                 data[x * 4 + channel] = Math.round(255 * Math.max(0, Math.min(1, (blendAlpha * original + (copyAlpha ? originalAlpha : dodgeAlpha) * dodgeColor) / Math.max(1e-12, outputAlpha))));
             }
-            if (!copyAlpha) data[x * 4 + 3] = Math.round(255 * outputAlpha);
+            if (!copyAlpha && (!selected || selected[3])) data[x * 4 + 3] = Math.round(255 * outputAlpha);
         }
         yield { kind: "write", position, data };
     }

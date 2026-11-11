@@ -32,19 +32,22 @@ export function liquidRescaleSteps(image: { width: number; height: number; hasAl
         for (let offset = 0; offset < image.width * image.height * 4; offset += 4096) {
             yield;
             const length = Math.min(4096, image.width * image.height * 4 - offset);
-            const bytes = yield { kind: "read", hue, highDepth: !hue, position: offset, length };
-            if (!bytes || bytes.length !== length * (hue ? 8 : 2)) throw new Error("Truncated liquid rescale pixels");
-            const samples = hue ? new Float64Array(bytes.slice().buffer) : new Uint16Array(bytes.slice().buffer);
+            const working = !hue ? yield { kind: "read", evaluate: true, position: offset, length } : undefined;
+            const evaluate = !!working?.length;
+            const bytes = evaluate ? working : yield { kind: "read", hue, highDepth: !hue, position: offset, length };
+            if (!bytes || bytes.length !== length * (hue || evaluate ? 8 : 2)) throw new Error("Truncated liquid rescale pixels");
+            const samples = hue || evaluate ? new Float64Array(bytes.slice().buffer) : new Uint16Array(bytes.slice().buffer);
+            const scale = hue ? 1 : evaluate ? 255 : 65535;
             const inkBytes = cmyk ? yield { kind: "read", hue: true, position: offset, length } : undefined;
             const inks = inkBytes?.length ? new Float64Array(inkBytes.slice().buffer) : undefined;
             for (let i = 0; i < length; i += 4) {
                 const p = (offset + i) / 4 * stride;
-                for (let c = 0; c < 4; c++) data[p + c] = samples[i + c]! / (hue ? 1 : 65535);
+                for (let c = 0; c < 4; c++) data[p + c] = samples[i + c]! / scale;
                 if (cmyk) {
                     data.set(inks ? inks.subarray(i, i + 4) : rgbToCmyk(data[p]!, data[p + 1]!, data[p + 2]!), p);
-                    data[p + 4] = samples[i + 3]! / 65535;
+                    data[p + 4] = samples[i + 3]! / scale;
                 } else if (palette.size) {
-                    const color = Math.round(samples[i]! / 257) * 65536 + Math.round(samples[i + 1]! / 257) * 256 + Math.round(samples[i + 2]! / 257);
+                    const color = Math.round(samples[i]! / scale * 255) * 65536 + Math.round(samples[i + 1]! / scale * 255) * 256 + Math.round(samples[i + 2]! / scale * 255);
                     data[p + 4] = (palette.get(color) ?? 0) / 65535;
                 }
             }
@@ -163,7 +166,7 @@ export function liquidRescaleSteps(image: { width: number; height: number; hasAl
                         const value = c === 3 ? Math.fround(data[p + 4]! * 65535) / 65535
                             : (1 - inks[i + c]!) * (1 - inks[i + 3]!);
                         evaluated[i + c] = value * 255;
-                        samples[i + c] = Math.round(value * 65535);
+                        samples[i + c] = Math.max(0, Math.min(65535, Math.round(value * 65535)));
                     }
                 }
                 yield { kind: "write", hue: true, position: offset, data: new Uint8Array(inks.buffer) };
@@ -175,7 +178,7 @@ export function liquidRescaleSteps(image: { width: number; height: number; hasAl
             for (let i = 0; i < length; i++) {
                 const quantum = Math.fround(data[Math.floor((offset + i) / 4) * stride + i % 4]! * 65535);
                 evaluated[i] = quantum / 257;
-                samples[i] = !hue && (image.depth === "uchar" || image.depth === "bit") ? Math.round(quantum / 257) * 257 : Math.round(quantum);
+                samples[i] = Math.max(0, Math.min(65535, !hue && (image.depth === "uchar" || image.depth === "bit") ? Math.round(quantum / 257) * 257 : Math.round(quantum)));
                 if (hueSamples) hueSamples[i] = quantum / 65535;
             }
             // Keep fractional samples for high-depth output, as the resize kernel does.

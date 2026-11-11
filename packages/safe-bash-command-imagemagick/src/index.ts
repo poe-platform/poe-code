@@ -11524,8 +11524,8 @@ if (t === "-intent" || t === "+intent") {
                     const id = Number(value);
                     if (extra !== undefined || !value?.trim() || !Number.isSafeInteger(id) || id < -1) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     state.connectedBackgroundId = id;
-                } else {
-                    if (extra !== undefined || (key !== "connected-components:mean-color" && key !== "connected-components:exclude-header" && key !== "connected-components:exclude-ids") || (value !== "true" && value !== "false")) throw new Error(`Unsupported connected-components define: ${defStr}`);
+                } else if (key === "connected-components:mean-color" || key === "connected-components:exclude-header" || key === "connected-components:exclude-ids") {
+                    if (extra !== undefined || (value !== "true" && value !== "false")) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     if (key === "connected-components:mean-color") state.connectedMeanColor = value === "true";
                     else if (key === "connected-components:exclude-header") state.connectedExcludeHeader = value === "true";
                     else if (key === "connected-components:exclude-ids") state.connectedExcludeIds = value === "true";

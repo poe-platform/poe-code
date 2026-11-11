@@ -12741,6 +12741,10 @@ if (t === "-intent" || t === "+intent") {
                 const method = parseMagickVirtualPixel(v);
                 if (method) state.virtualPixel = method;
             }
+            if (k === "option:quality") {
+                state.quality = Math.max(1, Math.min(100, Number(v)));
+                state.qualityExplicit = true;
+            }
             if (k === "option:scene") {
                 state.scene = Number(v);
                 if (!Number.isSafeInteger(state.scene)) throw new Error("invalid scene number");
@@ -13154,7 +13158,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t === "-interlace" || t === "+interlace" || state.interlace !== previousInterlace) stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace! } }; });
             if (t === "-compose" || t === "+compose") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, properties: { ...image.properties, compose: state.composeRaw } }; });
             if (t === "-compress") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...image[magickInput], compression: state.compression! } }; });
-            if (t === "-quality") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, quality: state.quality }; });
+            if (t === "-quality" || (t === "-set" && tokens[setting - 1]?.toLowerCase() === "option:quality")) stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, quality: state.quality }; });
             if (t === "-gravity" || t === "+gravity") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, gravity: state.gravity, placementGravity: undefined }; });
             if (t === "-virtual-pixel" || t === "-set" && tokens[i - 1]?.toLowerCase() === "option:virtual-pixel") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, hasAlpha: image.hasAlpha || state.virtualPixel === "transparent" || state.virtualPixel === "background" && state.background.a < 255, virtualPixel: state.virtualPixel ?? "edge" }; });
         }
@@ -16691,7 +16695,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const compression = state.compression!;
                 steps.push(async image => image ? { ...image, [magickInput]: { ...image[magickInput], compression } } : undefined);
             }
-            if (token === "-quality") {
+            if (token === "-quality" || (token === "-set" && tokens[setting - 1]?.toLowerCase() === "option:quality")) {
                 const quality = state.quality;
                 steps.push(async image => image ? { ...image, quality } : undefined);
             }

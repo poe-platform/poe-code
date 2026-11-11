@@ -50,6 +50,9 @@ function parseSami(bytes: Uint8Array): MediaDocument {
     onclosetag(name) {
       if (name === "p" || name === "body") paragraph = false;
     },
+    oncomment(value) {
+      if (paragraph && start !== undefined) text += `<!--${value}-->`;
+    },
     ontext(value) {
       if (!paragraph || start === undefined) return;
       for (const char of value) {

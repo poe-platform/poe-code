@@ -29,6 +29,9 @@ async function run(filter: string, graph: boolean) {
 for (const graph of [false, true]) {
   // Native FFmpeg 7.0.2: 128 signed PCM16 samples of 16000 at 48 kHz.
   for (const [option, hash] of [
+    ["listen=1:freq=7500:0.5", "e55bedddc6e39ca373e060660ae19ad9e4d0b25bfcf1c97dc03e5b8ea3840d23"],
+    ["listen=1:freq=7500:level_in=0.5", "e55bedddc6e39ca373e060660ae19ad9e4d0b25bfcf1c97dc03e5b8ea3840d23"],
+    ["listen=1:freq=7500:amount=0.5", "85e7da4a346a265b9bf5efd5d9fbb2fa9273c85f675823e0d2c639a964bc3b64"],
     ["amount=default", "d051ccfda1e05ec18d3f45726052e49ee98f2d7d77ee0c2e1df506658e7f93da"],
     ["amount=1", "d051ccfda1e05ec18d3f45726052e49ee98f2d7d77ee0c2e1df506658e7f93da"],
     ["drive=max", "7297e84fa9121f4a9e091623825aa2a110ddc0c5e27f09ede515fd25061e8b7b"],

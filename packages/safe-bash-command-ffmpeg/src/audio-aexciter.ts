@@ -27,9 +27,10 @@ export async function exciteAudio(
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const args = argument.split(":");
   if (args.at(-1) === "") args.pop();
-  for (const [index, option] of args.entries()) {
+  let positional = 0;
+  for (const option of args) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? names[index] : option.slice(0, separator).trim() as keyof typeof options | "enable" | "threads" | "extra_hw_frames";
+    const key = separator < 0 ? names[positional++] : option.slice(0, separator).trim() as keyof typeof options | "enable" | "threads" | "extra_hw_frames";
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "threads" || key === "extra_hw_frames") {
       const min = key === "threads" ? 0 : -1;

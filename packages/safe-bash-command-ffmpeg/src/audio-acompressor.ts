@@ -21,7 +21,9 @@ export async function compressAudio(
   };
   const names = Object.keys(options);
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  const parts = argument ? argument.split(":") : [];
+  if (parts.at(-1) === "") parts.pop();
+  for (const [index, option] of parts.entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? names[index] : option.slice(0, separator).trim();
     if (!key || !Object.hasOwn(options, key)) throw new Error(`${name}: unsupported option ${key}`);

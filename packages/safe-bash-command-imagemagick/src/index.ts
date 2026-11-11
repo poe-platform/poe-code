@@ -7617,6 +7617,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         // Native WebP frames have scene zero; keep the decode index for frame timing.
         const source: MagickFormatContext = {
             filePath: cleanToken, byteLen: rawBytes.byteLength,
+            ...(inputMeta && ["pbm", "pgm", "ppm", "pam"].includes(inputMeta.format) ? { inputFormat: inputMeta.format.toUpperCase() } : {}),
             ...(img.format === "farbfeld" ? { inputFormat: lower.startsWith("farbfeld:") ? "FARBFELD" : "FF" } : {}),
             originalWidth: inputMeta?.width ?? img.width, originalHeight: inputMeta?.height ?? img.height, sceneCount: totalPages, sceneIdx: pageIdx, ...(img.format === "webp" ? { outputScene: 0 } : {})
         };
@@ -8096,6 +8097,8 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             if(inspected&&"error" in inspected)throw inspected.error;
             const size = inlineImage ? 0 : inspected?.size??byteLength!;
             let meta = inlineImage??inspected?.metadata??readImageMetadata(bytes!, inputOptions);
+            if (!inspected && pageIdx && ["pbm", "pgm", "ppm", "pam"].includes(meta.format))
+                meta = { ...meta, format: readImageMetadata(bytes!, { page: 0 }).format };
             if (inlineGeom !== undefined && (!inspected || inspected.bytes)) {
                 inlineImage = yield* applyInlineReadModifierSteps(inlineImage ?? decodeImage(inspected?.bytes ?? bytes!, inputOptions), inlineGeom, baseInPath, readState.kernel, readState.resizeFilter, false, analysis);
                 meta = inlineImage = { ...inlineImage, format: meta.format, ...(meta.pages === undefined ? {} : { pages: meta.pages }) };

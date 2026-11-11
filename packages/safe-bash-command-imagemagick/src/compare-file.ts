@@ -196,6 +196,7 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
                                 }
                                 image = Object.assign(image, { [magickInput]: {
                                     filePath: path, byteLen: checked.size, mtimeMs,
+                                    ...(metadata && ["pbm", "pgm", "ppm", "pam"].includes(metadata.format) ? { inputFormat: metadata.format.toUpperCase() } : {}),
                                     originalWidth: metadata?.width ?? image.width, originalHeight: metadata?.height ?? image.height,
                                     sceneCount: metadata?.pages ?? 1, sceneIdx: configured.page ?? 0
                                 } });

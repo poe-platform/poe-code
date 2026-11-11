@@ -69,6 +69,8 @@ export async function withIdentifyFiles<T>(input: IdentifyFileInput, stdinBytes:
                                 try {
                                     const { storedDelay: ignoredDelay, ...result } = await readImageMetadataFromSource(checked, signal, options, storage);
                                     metadata = result;
+                                    if (page && ["pbm", "pgm", "ppm", "pam"].includes(metadata.format))
+                                        metadata = { ...metadata, format: (await readImageMetadataFromSource(checked, signal, { page: 0 }, storage)).format };
                                 }
                                 catch (error) {
                                     if (!(error instanceof UnsupportedStoredResource) || error instanceof UnsupportedImageFormat)

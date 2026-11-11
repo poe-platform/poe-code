@@ -19,9 +19,10 @@ export async function exciteAudio(
       : ["true", "yes", "on"].includes(value.toLowerCase()) ? 1
       : key === "listen" && ["false", "no", "off"].includes(value.toLowerCase()) ? 0 : Number(value);
     const [min, max] = ranges[key];
-    if (!value || !Number.isFinite(number) || number < min! || number > max! || key === "listen" && !Number.isInteger(number)) {
+    if (!value || !Number.isFinite(number) || key === "listen" && !Number.isInteger(number)) {
       throw new Error(`aexciter: invalid ${key}`);
     }
+    if (number < min! || number > max!) throw new RangeError(`aexciter: invalid ${key}`);
     options[key] = number;
   }
   // Native exciter transfer curve, with its near-zero suppression and DC blocker.

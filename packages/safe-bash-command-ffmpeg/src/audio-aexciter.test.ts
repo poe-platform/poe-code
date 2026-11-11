@@ -89,7 +89,24 @@ for (const filter of ["aexciter=amount=1+", "aexciter=amount=1/0", "aexciter=amo
   });
 }
 
-async function run(filter: string, graph = false, mono = false) {
+// Native FFmpeg 7.0.2 statuses for rejected AVOptions.
+for (const [option, exitCode] of [
+  ["drive=0", 222], ["amount=65", 222], ["listen=maybe", 234],
+  ["amount=garbage", 234], ["unknown=1", 8]
+] as const) {
+  for (const graph of [false, true]) {
+    for (const pipe of [false, true]) {
+      it(`aexciter=${option} returns ${exitCode} without output (${graph ? "graph" : "simple"}, ${pipe ? "pipe" : "file"})`, async () => {
+        const { volume, result, stdout, stderr } = await run(`asetnsamples=n=96:p=0,aexciter=${option}`, graph, true, pipe);
+        assert.equal(result.exitCode, exitCode, stderr);
+        assert.equal(stdout.length, 0);
+        assert.equal(volume.readFileSync("/out.wav", "utf8"), "keep");
+      });
+    }
+  }
+}
+
+async function run(filter: string, graph = false, mono = false, pipe = false) {
   const period: number[] = [];
   for (const [amplitude, count] of [[0, 600], [400, 1600], [12000, 1600], [0, 800], [4000, 1600], [0, 1000]]) {
     for (let i = 0; i < count!; i++) period.push((i % 2 ? -amplitude! : amplitude!) / 32768);
@@ -101,17 +118,18 @@ async function run(filter: string, graph = false, mono = false) {
   const volume = Volume.fromJSON({ "/out.wav": "keep" });
   volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 48000, channels: mono ? channels.slice(0, 1) : channels }));
   let stderr = "";
+  const stdout: Uint8Array[] = [];
   const result = await createFfmpegCommand({ limits: { maxDurationSeconds: 3 } }).execute({
     args: ["-y", "-v", "error", "-i", "/in.wav", ...(graph
-      ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-c:a", "pcm_s16le", "/out.wav"],
+      ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-c:a", "pcm_s16le", ...(pipe ? ["-f", "s16le", "pipe:1"] : ["/out.wav"])],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
       async readFile(path: string) { return volume.readFileSync(path); },
       async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
       async stat(path: string) { return volume.statSync(path); }
     },
-    stdin: (async function* () {})(), stdout: { async write() {} },
+    stdin: (async function* () {})(), stdout: { async write(bytes: Uint8Array) { stdout.push(bytes); } },
     stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
   } as never);
-  return { volume, result, stderr };
+  return { volume, result, stdout: Buffer.concat(stdout), stderr };
 }

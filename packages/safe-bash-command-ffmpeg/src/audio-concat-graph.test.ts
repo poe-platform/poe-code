@@ -83,3 +83,18 @@ for (const gaps of [false, true]) {
     assert.deepEqual(Array.from({ length: result.output.length / 2 }, (_, i) => result.output.readInt16LE(i * 2)), inputs.flat());
   });
 }
+
+for (const marked of [0, 1]) {
+  for (const framed of [false, true]) {
+    it(`preserves concat frame tags from input ${marked}, framed=${framed}`, async () => {
+      const inputs = [Array.from({ length: 11 }, (_, i) => i + 1),
+        Array.from({ length: 9 }, (_, i) => i + 101)];
+      const branches = inputs.map((_, i) => `[${i}:a]${framed ? "asetnsamples=3:0," : ""}` +
+        (i === marked ? `ametadata=add:k:y${framed ? ":enable='eq(n,1)'" : ""}` : "anull") + `[f${i}]`).join(";");
+      const result = await run(`${branches};[f0][f1]concat=n=2:v=0:a=1,ametadata=select:k:y[out]`, inputs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(Array.from({ length: result.output.length / 2 }, (_, i) => result.output.readInt16LE(i * 2)),
+        framed ? inputs[marked]!.slice(3, 6) : inputs[marked]);
+    });
+  }
+}

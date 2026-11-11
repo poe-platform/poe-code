@@ -2023,7 +2023,8 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
             const packet = track.samples[index++]!;
             const pts = Math.round(sample.pts * scale);
             const dts = Math.round(sample.dts * scale);
-            samples.push({ ...packet, pts: offset + pts, dts: offset + dts, cts: pts - dts });
+            samples.push({ ...packet, ...(sample.tags ? { tags: sample.tags } : {}),
+              pts: offset + pts, dts: offset + dts, cts: pts - dts });
             end = pts + packet.duration;
           }
           offset += end;
@@ -13553,9 +13554,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let audioInitialFrameUnavailable = false;
                   const delayTails = new Set<string>();
                   let audioMetadata: { pts: number; tags: Map<string, string> }[] = [];
+                  const hasFrameTags = t.samples.some(sample => sample.tags);
                   let audioTimestamps: { start: number; end: number; pts: number; exactPts?: bigint | undefined; pos?: number | undefined }[] | undefined;
                   // Silence events and frame tags retain input PTS, including after seeking and reframing.
-                  if (!sink && (t.samples.some(sample => "exactPts" in sample) || outputCut || (index !== undefined && (audioSegment || frameChecksumOutput)) || (filter && parseFilterChain(filter.expression)
+                  if (!sink && (index === undefined || hasFrameTags || t.samples.some(sample => "exactPts" in sample) || outputCut || (index !== undefined && (audioSegment || frameChecksumOutput)) || (filter && parseFilterChain(filter.expression)
                     .some(item => ["areverse", "silencedetect"].includes(item.trim().split("=", 1)[0]!.split("@", 1)[0]!))))) {
                     if (index !== undefined && audioSegment) segmentAudioPackets = [];
                     audioTimestamps = [];
@@ -13569,6 +13571,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       const end = Math.min(length, start + count);
                       budget.allocateMemory(32);
                       const pts = packet ? packet.pts * origRate / t.timescale + (packet.skipSamples ?? 0) : audioStartSample + start;
+                      if (hasFrameTags) {
+                        budget.allocateMemory(64 + Object.entries(packet?.tags ?? {}).reduce((size, [key, value]) => size + 2 * (key.length + value.length), 0));
+                        audioMetadata[n] = { pts, tags: new Map(Object.entries(packet?.tags ?? {})) };
+                      }
                       audioTimestamps.push({ start, end, pts, pos: packet?.offset,
                         exactPts: packet && "exactPts" in packet && typeof packet.exactPts === "bigint"
                           && origRate === t.timescale ? packet.exactPts : undefined });
@@ -18413,10 +18419,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     budget.checkSamples(length);
                     budget.checkDuration(length / origRate);
                     const samples: MediaTrack["samples"][number][] = [];
-                    for (const frame of audioTimestamps ?? []) {
+                    for (const [n, frame] of (audioTimestamps ?? []).entries()) {
                       if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                       budget.allocateMemory(96);
                       samples.push({ data: new Uint8Array(0), size: 0, pts: frame.pts, dts: frame.pts, cts: 0,
+                        ...(audioMetadata[n]?.tags.size ? { tags: Object.fromEntries(audioMetadata[n]!.tags) } : {}),
                         duration: frame.end - frame.start, isKeyframe: true, sampleDescriptionIndex: 1 });
                     }
                     const result = { ...t, timescale: origRate, duration: length, samples, editList: undefined,

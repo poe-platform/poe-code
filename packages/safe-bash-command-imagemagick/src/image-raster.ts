@@ -6,7 +6,7 @@ export async function decodeFileImage(source: ImageByteSource, storage: ImageByt
     try {
         const image = await decodeImageToStorage(source, storage, signal, { ...options, hdrPreserveScanlineOrder: true });
         // ImageMagick imports WebP milliseconds as centisecond ticks.
-        if (image.format === "webp" && image.delay) image.delay = image.delay.map(delay => Math.round(delay / 10) * 10);
+        if (image.format === "webp" && image.delay) return { ...image, delay: image.delay.map(delay => Math.round(delay / 10) * 10) };
         if (image.format === "exr" && image.storedDataFloat) {
             for (let offset = 0; offset < image.storedDataFloat.length; offset += 4096) {
                 signal.throwIfAborted();
@@ -48,7 +48,7 @@ function roundExrSamples(samples: Float32Array, data: Uint8Array, data16?: Uint1
 
 export function decodeMagickImage(bytes: Uint8Array, options?: SharpInputOptions): RgbaImage {
     const image = decodeImage(bytes, options);
-    if (image.format === "webp" && image.delay) image.delay = image.delay.map(delay => Math.round(delay / 10) * 10);
+    if (image.format === "webp" && image.delay) return { ...image, delay: image.delay.map(delay => Math.round(delay / 10) * 10) };
     if (image.format === "exr" && image.dataFloat) roundExrSamples(image.dataFloat, image.data, image.data16);
     return image;
 }

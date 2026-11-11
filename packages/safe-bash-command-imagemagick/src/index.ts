@@ -1266,6 +1266,7 @@ function* applyMagickSequenceSteps(stack: readonly RgbaImage[], opRaw: string | 
     const readMask = normalized.some(image => image.readMask)
         ? yield* createSolidRgbaImageSteps(w, h, { r: 0, g: 0, b: 0, a: 255 }) : base.readMask;
     const result = { ...yield* applyMagickRasterSteps(base, (typeof opRaw === "string" ? evaluateSequencePixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16), state.seed ?? 0n, w) : polyPixelSteps(w * h * 4, normalized, opRaw, channels, normalized.some(image => !!image.data16))), signal, { ...base, width: w, height: h, hasAlpha: !inactiveAlpha && normalized.some(image => image.hasAlpha) }, normalized), isPalette: false, inactiveAlpha, region: undefined, writeMask, readMask, ...(virtualCanvas ? { virtualCanvas } : {}) };
+    result[magickInput] = { ...base[magickInput], imageType: undefined };
     if (base.metaChannels?.length) {
         result.metaChannels = [];
         for (let channel = 0; channel < base.metaChannels.length; channel++) {
@@ -16916,6 +16917,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     // Keep the native mask channel while resetting its protection.
                     const storedWriteMask = frames.some(image => image.storedWriteMask || image.region) ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
                     const result = await transformStoredMagickRaster({ ...base, isPalette: false, inactiveAlpha }, backend, (terms ? polyPixelSteps(base.width * base.height * 4, frames, terms, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a, settings.channels.k === true] : undefined, highDepth) : evaluateSequencePixelSteps(base.width * base.height * 4, frames, operation, settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a, settings.channels.k === true] : undefined, highDepth, settings.seed ?? 0n, base.width)), signal, { ...base, hasAlpha: !inactiveAlpha && frames.some(image => image.hasAlpha) }, async index => (await stack.get(index))!);
+                    result[magickInput] = { ...base[magickInput], imageType: undefined };
                     if (base.storedMetaChannels?.length) {
                         result.storedMetaChannels = [];
                         for (let channel = 0; channel < base.storedMetaChannels.length; channel++) {

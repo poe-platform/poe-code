@@ -11646,8 +11646,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-af" || arg === "-filter:a" || arg.startsWith("-af:") || arg.startsWith("-filter:a:")) {
             const f = args[++i];
-            const selector = arg.startsWith("-af:") ? arg.slice(4)
-              : arg.startsWith("-filter:a:") ? arg.slice(10) : undefined;
+            // Native -af always targets all audio streams, even with a suffix.
+            const selector = arg.startsWith("-filter:a:") ? arg.slice(10) : undefined;
             const ordinal = selector === undefined ? undefined : Number(selector);
             if (selector !== undefined && (!selector || !Array.from(selector).every(char => char >= "0" && char <= "9") || !Number.isSafeInteger(ordinal))) {
               throw new Error(`Unsupported audio stream specifier: ${selector}`);

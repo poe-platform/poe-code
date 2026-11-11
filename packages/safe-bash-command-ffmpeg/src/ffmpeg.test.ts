@@ -2380,6 +2380,27 @@ describe("frame-evaluated volume", () => {
 });
 
 describe("stream-scoped audio filters", () => {
+  // Native FFmpeg ignores -af suffixes, but honors -filter:a output ordinals.
+  for (const option of ["-af", "-af:0", "-af:1", "-af:a:1", "-filter:a:0", "-filter:a:1"]) {
+    it(`matches native duplicated-stream scope for ${option}`, async () => {
+      const input = encodeWav({ sampleRate: 8000, channels: [
+        Float64Array.from({ length: 1100 }, (_, i) => (i * 101 % 30001 - 15000) / 32768),
+        Float64Array.from({ length: 1100 }, (_, i) => (10000 - i * 53 % 20001) / 32768)
+      ] });
+      const vfs = createTestVfs({ "/in.wav": input });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-v", "error", "-i", "/in.wav", "-bitexact", "-map", "0:a", "-map", "0:a",
+        option, "volume=0", "-f", "streamhash", "pipe:1"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const source = "cbdb12078fb1ea9b5076de8bfb45aa4550bf4082293f81570005148d8168f14a";
+      const silence = "34fa1826a0a171d2579b65040894c503d1bfc945f90690b95a979dd136dd0dfd";
+      assert.equal(result.stdout,
+        `0,a,SHA256=${option === "-filter:a:1" ? source : silence}\n` +
+        `1,a,SHA256=${option === "-filter:a:0" ? source : silence}\n`);
+    });
+  }
+
   for (const options of [
     ["-af", "volume=0", "-af", "volume=1"],
     ["-af", "areverse", "-af", "areverse"],
@@ -2400,7 +2421,7 @@ describe("stream-scoped audio filters", () => {
       ], vfs);
       assert.equal(result.exitCode, 0, result.stderr);
       const expected = parseWav(input).tracks[0]!.decodedAudio!.channelData[0]!.slice();
-      if (options.includes("volume=0,volume=1")) expected.fill(0);
+      if (options.includes("volume=0,volume=1") || options.includes("-af:1")) expected.fill(0);
       if (options.includes("areverse")) expected.reverse();
       const actual = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData[0]!;
       assert.deepEqual(actual, expected);
@@ -2422,7 +2443,7 @@ describe("stream-scoped audio filters", () => {
   for (const alias of ["-filter:a", "-af"]) {
     for (const ordinal of [0, 1]) {
       for (const codec of ["pcm_s16le", "copy"]) {
-        it(`${alias}:${ordinal} applies only to matching output audio with ${codec}`, async () => {
+        it(`${alias}:${ordinal} uses native output audio scope with ${codec}`, async () => {
           const input = encodeWav({ sampleRate: 8000, channels: [new Float64Array(8000).fill(0.375)] });
           const vfs = createTestVfs({ "/in.wav": input });
           const args = ["-y", "-v", "error", "-i", "/in.wav", `${alias}:${ordinal}`, "volume=0", "-c:a", codec, "/out.wav"];
@@ -2430,7 +2451,7 @@ describe("stream-scoped audio filters", () => {
             assert.fail("scoped audio filters must defer without writing");
           }), undefined);
           const result = await runCmd(createFfmpegCommand(), args, vfs);
-          if (codec === "copy" && ordinal === 0) {
+          if (codec === "copy" && (alias === "-af" || ordinal === 0)) {
             assert.notEqual(result.exitCode, 0);
             assert.ok(result.stderr.includes("Filtering and streamcopy"), result.stderr);
             assert.equal(vfs.store.has("/out.wav"), false);
@@ -2439,7 +2460,7 @@ describe("stream-scoped audio filters", () => {
             const samples = parseWav(vfs.store.get("/out.wav")!).tracks[0]!.decodedAudio!.channelData[0]!;
             const source = parseWav(input).tracks[0]!.decodedAudio!.channelData[0]!;
             assert.equal(samples.length, source.length);
-            if (ordinal === 0) assert.ok(samples.every(value => value === 0));
+            if (alias === "-af" || ordinal === 0) assert.ok(samples.every(value => value === 0));
             else assert.deepEqual(samples, source);
           }
         });

@@ -14647,7 +14647,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geometry = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geometry, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                return yield* applyMagickRasterSteps(im, waveletDenoisePixelSteps(im, expanded), signal);
+                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, waveletDenoisePixelSteps(im, expanded), signal);
             }, undefined, true);
         }
         else if (t === "-clahe") {
@@ -18804,7 +18804,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                return transformStoredMagickRaster(image, backend, waveletDenoisePixelSteps(image, expanded), signal);
+                return transformStoredMagickRaster({ ...image, isPalette: false }, backend, waveletDenoisePixelSteps(image, expanded), signal);
             }, { handlesRegion: true }));
         } else if (!operandsOnly && token === "-clahe") {
             stackStep(async stack => {

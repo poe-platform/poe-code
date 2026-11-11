@@ -32,7 +32,7 @@ for (const graph of [false, true]) {
       const wav = encodeWav({ sampleRate: 8000, channels: [Float64Array.from(samples, sample => sample / 32768)] });
       const { result, stderr, output } = await run(`alimiter=attack=0.5:level=0:enable=${enable}`, graph, wav);
       assert.equal(result.exitCode, 0, stderr);
-      assert.equal(stderr, "");
+      assert.equal(stderr, "ffmpeg: Guessed Channel Layout: mono\n");
       assert.deepEqual(Array.from({ length: output.length / 2 }, (_, i) => output.readInt16LE(i * 2)),
         delayed ? [0, 0, 0, ...samples.slice(0, -3)] : samples);
     });

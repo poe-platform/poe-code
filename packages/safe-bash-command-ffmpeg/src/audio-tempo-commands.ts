@@ -8,7 +8,9 @@ export async function filterScheduledTempo(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, sampleFormat: string,
   tempo: number, commands: readonly { sample: number; expression: string }[],
   frames: readonly { start: number; end: number; pts: number }[], budget: MediaBudgetTracker, signal?: AbortSignal
-): Promise<{ channels: readonly Float32Array[]; frames: { start: number; end: number; pts: number; inputEnd: number }[] }> {
+): Promise<{ channels: readonly (Float32Array | Float64Array)[]; frames: { start: number; end: number; pts: number; inputEnd: number }[] }> {
+  // Unblended samples retain the input format's precision.
+  const SampleArray = sampleFormat === "dbl" || sampleFormat === "dblp" ? Float64Array : Float32Array;
   const length = channels[0]?.length ?? 0;
   const window = 2 ** Math.ceil(Math.log2(Math.max(2, Math.floor(sampleRate / 24))));
   const hop = window / 2;
@@ -91,9 +93,9 @@ export async function filterScheduledTempo(
         // Keep the unsigned byte origin through blending, then normalize the result.
         const a = sampleFormat === "u8" ? (channel[previous.input + aIndex] ?? -1) * 128 + 128 : channel[previous.input + aIndex] ?? 0;
         const b = sampleFormat === "u8" ? (channel[current.input + bIndex] ?? -1) * 128 + 128 : channel[current.input + bIndex] ?? 0;
-        // FFmpeg 7 rounds each float product before summing and truncating PCM16.
+        // FFmpeg 7 converts inputs and each product to float before summing and truncating PCM16.
         const sample = !blend ? b : current.input + position - emitted < 0 ? a
-          : Math.fround(Math.fround(a * hann[aIndex]!) + Math.fround(b * hann[bIndex]!));
+          : Math.fround(Math.fround(Math.fround(a) * hann[aIndex]!) + Math.fround(Math.fround(b) * hann[bIndex]!));
         dst.push(sampleFormat === "u8" ? Math.trunc(sample) / 128 - 1
           : blend && sampleFormat === "s16" ? Math.trunc(sample * 32768) / 32768 : sample);
       }
@@ -155,5 +157,5 @@ export async function filterScheduledTempo(
     if (emitted === current.output + current.count) break;
   }
   pushFrame();
-  return { channels: output.map(channel => Float32Array.from(channel)), frames: outputFrames };
+  return { channels: output.map(channel => SampleArray.from(channel)), frames: outputFrames };
 }

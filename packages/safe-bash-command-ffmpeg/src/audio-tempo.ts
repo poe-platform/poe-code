@@ -22,11 +22,13 @@ export function parseTempo(argument: string): number {
 export async function filterTempo(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, tempo: number, sampleFormat: string, frameSize: number,
   budget: MediaBudgetTracker, signal?: AbortSignal
-): Promise<readonly Float32Array[]> {
+): Promise<readonly (Float32Array | Float64Array)[]> {
+  // Unblended samples retain the input format's precision.
+  const SampleArray = sampleFormat === "dbl" || sampleFormat === "dblp" ? Float64Array : Float32Array;
   const length = channels[0]?.length ?? 0;
   const window = 2 ** Math.ceil(Math.log2(Math.max(2, Math.floor(sampleRate / 24))));
   const hop = window / 2;
-  if (length < hop) return channels.map(() => new Float32Array(0));
+  if (length < hop) return channels.map(() => new SampleArray(0));
   const hann = Float32Array.from({ length: window }, (_, i) => (1 - Math.cos(2 * Math.PI * i / (window - 1))) / 2);
   const mono = new Float32Array(length);
   for (let i = 0; i < length; i++) {
@@ -82,9 +84,9 @@ export async function filterTempo(
         // Native u8 alignment and blending use unsigned bytes, including zero padding.
         const a = sampleFormat === "u8" ? (channel[previous + hop + i] ?? -1) * 128 + 128 : channel[previous + hop + i] ?? 0;
         const b = sampleFormat === "u8" ? (channel[current + i] ?? -1) * 128 + 128 : channel[current + i] ?? 0;
-        // Native rounds both float products before adding, then truncates PCM16
+        // Native converts inputs and both products to float before adding, then truncates PCM16
         // toward zero rather than using the WAV encoder's rounding.
-        const sample = current + i < 0 ? a : Math.fround(Math.fround(a * hann[hop + i]!) + Math.fround(b * hann[i]!));
+        const sample = current + i < 0 ? a : Math.fround(Math.fround(Math.fround(a) * hann[hop + i]!) + Math.fround(Math.fround(b) * hann[i]!));
         dst.push(sampleFormat === "u8" ? Math.trunc(sample) / 128 - 1
           : sampleFormat === "s16" ? Math.trunc(sample * 32768) / 32768 : sample);
       }
@@ -96,5 +98,5 @@ export async function filterTempo(
     if (final) break;
     previous = current;
   }
-  return output.map(channel => Float32Array.from(channel));
+  return output.map(channel => SampleArray.from(channel));
 }

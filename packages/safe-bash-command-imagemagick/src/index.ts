@@ -5532,8 +5532,8 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha"|"isP
             return undefined;
     }
     else if (g.fillArea) {
-        const boxW = g.width ?? g.height ?? srcW;
-        const boxH = g.height ?? g.width ?? srcH;
+        const boxW = Math.round(g.width ?? g.height ?? srcW);
+        const boxH = Math.round(g.height ?? g.width ?? srcH);
         if (g.shrinkOnly && srcW <= boxW && srcH <= boxH)
             return undefined;
         if (g.enlargeOnly && srcW >= boxW && srcH >= boxH)
@@ -5543,8 +5543,9 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha"|"isP
         targetH = Math.max(1, Math.round(srcH * scale));
     }
     else {
-        const boxW = g.width;
-        const boxH = g.height;
+        // Native pixel bounds are integral before aspect-preserving fitting.
+        const boxW = g.width === undefined ? undefined : Math.round(g.width);
+        const boxH = g.height === undefined ? undefined : Math.round(g.height);
         if (boxW !== undefined && boxH !== undefined) {
             if (g.shrinkOnly && srcW <= boxW && srcH <= boxH)
                 return undefined;

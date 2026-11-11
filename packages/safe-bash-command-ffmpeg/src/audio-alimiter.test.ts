@@ -84,7 +84,7 @@ for (const [filter, exitCode] of [
   });
 }
 
-for (const [token, value] of [["TrUe", "1"], ["YeS", "1"], ["ON", "1"], ["FaLsE", "0"], ["No", "0"], ["OFF", "0"]]) {
+for (const [token, value] of [["TrUe", "1"], ["YeS", "1"], ["ON", "1"], ["y", "1"], ["Y", "1"], ["FaLsE", "0"], ["No", "0"], ["OFF", "0"], ["n", "0"], ["N", "0"]]) {
   for (const key of ["latency", "level", "asc"]) {
     it(`alimiter ${key}=${token} produces the same PCM as ${value}`, async () => {
       const fs = Volume.fromJSON({});
@@ -99,6 +99,39 @@ for (const [token, value] of [["TrUe", "1"], ["YeS", "1"], ["ON", "1"], ["FaLsE"
         assert.equal(result.exitCode, 0);
       }
       assert.deepEqual(fs.readFileSync(`/${token}.pcm`), fs.readFileSync(`/${value}.pcm`));
+    });
+  }
+}
+
+// Native FFmpeg 7: latency compensation preserves this input; disabling it
+// introduces three silent samples and drops the last three input samples.
+for (const latency of ["1", "y", "Y", "0", "n", "N"]) {
+  for (const graph of [false, true]) {
+    it(`alimiter latency=${latency} matches native PCM (${graph ? "graph" : "simple"})`, async () => {
+      const samples = [1000, -2000, 3000, -4000, 5000, -6000, 7000, -8000,
+        9000, -10000, 11000, -12000, 13000, -14000, 15000, -16000];
+      const fs = Volume.fromJSON({});
+      fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000,
+        channels: [Float64Array.from(samples, sample => sample / 32768)] }));
+      const output: Uint8Array[] = [];
+      const errors: Uint8Array[] = [];
+      const filter = `alimiter=attack=0.5:level=0:latency=${latency}`;
+      const result = await createFfmpegCommand().execute({
+        args: ["-v", "error", "-i", "/in.wav", ...(graph
+          ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"]
+          : ["-af", filter]), "-f", "s16le", "pipe:1"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: { async readFile(p: string) { return fs.readFileSync(p); }, async stat(p: string) { return fs.statSync(p); } },
+        stdin: (async function* () {})(),
+        stdout: { async write(b: Uint8Array) { output.push(b); } },
+        stderr: { async write(b: Uint8Array) { errors.push(b); } }
+      } as never);
+      assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+      assert.equal(Buffer.concat(errors).toString(), "");
+      const pcm = Buffer.concat(output);
+      assert.equal(pcm.length, samples.length * 2);
+      assert.deepEqual(Array.from({ length: samples.length }, (_, i) => pcm.readInt16LE(i * 2)),
+        ["1", "y", "Y"].includes(latency) ? samples : [0, 0, 0, ...samples.slice(0, -3)]);
     });
   }
 }

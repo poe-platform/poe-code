@@ -201,7 +201,8 @@ export function miffPixels(bytes: Uint8Array, metadata: MiffHeader["metadata"], 
         }
         if (hueSamples) {
             for (let channel = 0; channel < 3; channel++) {
-                const value = (1 - hueSamples[pixel * 4 + channel]!) * (1 - hueSamples[pixel * 4 + 3]!) * 65535;
+                // Q16-HDRI stores converted RGB as float quanta before integer export.
+                const value = Math.fround((1 - hueSamples[pixel * 4 + channel]!) * (1 - hueSamples[pixel * 4 + 3]!) * 65535);
                 data[pixel * 4 + channel] = Math.round(value / 257);
                 data16![pixel * 4 + channel] = Math.round(value);
             }

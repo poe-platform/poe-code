@@ -1,5 +1,6 @@
 import { isWbmpBytes, decodeWbmpToStorage } from "./wbmp-input.js";
 import { isFitsBytes, decodeFitsToStorage } from "./fits-input.js";
+import { isOtbBytes, decodeOtbToStorage } from "./otb-input.js";
 import { isSixelBytes, decodeSixelToStorage } from "./sixel-input.js";
 import { isPsdBytes, decodePsdToStorage } from "./psd-input.js";
 import { isPcxBytes, decodePcxToStorage } from "./pcx-input.js";
@@ -63,6 +64,7 @@ export async function storedImageDecoder(source:ImageByteSource,signal:AbortSign
  if(isTxtBytes(prefix))return readTxtFromSource;
  if(isTgaBytes(prefix))return decodeTgaToStorage;
  if(isIcoBytes(prefix))return decodeIcoToStorage;
+ if(isOtbBytes(prefix))return decodeOtbToStorage;
  const decoder=await detectHeifFormatFromSource(source,signal)?decodeHeifToStorage:isWebpBytes(prefix)?decodeWebpToStorage:isJpegBytes(prefix)?decodeJpegToStorage:isPngBytes(prefix)?decodePngToStorage:isNetpbmBytes(prefix)?decodeNetpbmToStorage:isBmpBytes(prefix)?decodeBmpToStorage:isTiffBytes(prefix)?decodeTiffToStorage:isGifBytes(prefix)?decodeGifToStorage:isMngBytes(prefix)?decodeMngToStorage:undefined;
  if(decoder)return decoder;
  if(isWbmpBytes(prefix))return decodeWbmpToStorage;

@@ -1,5 +1,6 @@
 import { isWbmpBytes, readWbmpHeader } from "./wbmp-input.js";
 import { isFitsBytes, readFitsFromSource } from "./fits-input.js";
+import { isOtbBytes, readOtbHeader } from "./otb-input.js";
 import { isSixelBytes, readSixelFromSource } from "./sixel-input.js";
 import { bmpProfileRange } from "./bmp-profile.js";
 import { isPsdBytes, readPsdFromSource } from "./psd-input.js";
@@ -69,6 +70,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  else if(isTxtBytes(prefix))metadata=await readTxtFromSource(source,undefined,signal,options);
  else if(isTgaBytes(prefix))metadata={...readTgaMetadata(prefix),size:source.size};
  else if(isIcoBytes(prefix))metadata=(await readIcoEntryFromSource(source,signal,options)).metadata;
+ else if(isOtbBytes(prefix))metadata=readOtbHeader(prefix,source.size).metadata;
  else if(isMngBytes(prefix))metadata=(await readMngLayoutFromSource(source,signal)).metadata;
  else if(isPngBytes(prefix))metadata=await readPngMetadataFromSource(source,signal);
  else if(isJpegBytes(prefix))metadata=await readJpegMetadataFromSource(source,signal);

@@ -1,4 +1,5 @@
 import { isWbmpBytes, readWbmpHeader, decodeWbmpImage } from "./wbmp-input.js";
+import { isOtbBytes, readOtbHeader, decodeOtbImage } from "./otb-input.js";
 import { encodeFitsImage } from "./fits-output.js";
 import { isFitsBytes, readFitsHeader, decodeFitsImage } from "./fits-input.js";
 import { encodeSixelImage } from "./sixel-output.js";
@@ -102,6 +103,7 @@ export function detectImageFormat(bytes: Uint8Array): ImageFormat {
   if (isTxtBytes(bytes)) return "txt";
   if (isTgaBytes(bytes)) return "tga";
   if (isIcoBytes(bytes)) return bytes[2] === 1 ? "ico" : "cur";
+  if (isOtbBytes(bytes)) return "otb";
   if (isMngBytes(bytes)) return "mng";
   if (isPngBytes(bytes)) return "png";
   if (isJpegBytes(bytes)) return "jpeg";
@@ -192,6 +194,7 @@ export function readImageMetadata(
   const fmt = detectImageFormat(bytes);
   let meta: ImageMetadata;
   switch (fmt) {
+    case "otb": meta = readOtbHeader(bytes).metadata; break;
     case "sixel": meta = readSixelMetadata(bytes, options); break;
     case "pcx": meta = readPcxHeader(bytes).metadata; break;
     case "xwd": meta = readXwdHeader(bytes).metadata; break;
@@ -440,6 +443,7 @@ export function decodeImage(
   const meta = readImageMetadata(bytes, options);
   let decoded: RgbaImage;
   switch (meta.format) {
+    case "otb": decoded = decodeOtbImage(bytes, options); break;
     case "sixel": decoded = decodeSixelImage(bytes, options); break;
     case "pcx": decoded = decodePcxImage(bytes, options); break;
     case "xwd": decoded = decodeXwdImage(bytes, options); break;

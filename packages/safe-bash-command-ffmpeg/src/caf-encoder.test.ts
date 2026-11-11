@@ -12,7 +12,7 @@ for (const sync of [false, true]) {
         const args = ["-v", "error", "-y", "-f", "s16le", "-ar", "8000",
           "-ac", "2", "-channel_layout", "stereo", "-i", sync ? "/in.raw" : "pipe:0",
           ...(bitexact ? ["-fflags", "+bitexact"] : []),
-          ...(tagged ? ["-metadata", "title=Title", "-metadata", "artist=Artist"] : []),
+          ...(tagged ? ["-metadata", "title=Title", "-metadata", "artist=Artist", "-metadata", "album=Record", "-metadata", "comment=Note"] : []),
           "-f", "caf", "/out.caf"];
         if (sync) {
           assert.equal(evalSyncFfmpeg(args, undefined,
@@ -52,7 +52,7 @@ for (const sync of [false, true]) {
         }
         assert.deepEqual(tags, {
           ...(!bitexact ? { encoder: "Lavf61.7.100" } : {}),
-          ...(tagged ? { title: "Title", artist: "Artist" } : {})
+          ...(tagged ? { title: "Title", artist: "Artist", album: "Record", comment: "Note" } : {})
         });
         assert.equal(chunks.includes("info"), !bitexact || tagged);
         if (!sync) assert.ok(chunks.includes("chan"));

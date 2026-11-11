@@ -26,7 +26,7 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   let channelMask: number | undefined;
   let data: Uint8Array | undefined;
   let cookie: Uint8Array | undefined, packetTable: Uint8Array | undefined;
-  const metadata: { title?: string; artist?: string; encoder?: string } = {};
+  const metadata: { title?: string; artist?: string; album?: string; comment?: string; encoder?: string } = {};
   for (let offset = 8; offset < bytes.length;) {
     budget.checkCpu();
     if (offset + 12 > bytes.length) {
@@ -105,7 +105,7 @@ function parseCaf(bytes: Uint8Array, options: ParseMediaOptions = {}) {
         const valueEnd = keyEnd < 0 ? -1 : info.indexOf(0, keyEnd + 1);
         if (valueEnd < 0) throw new Error("Truncated CAF info entry");
         const key = decoder.decode(info.subarray(cursor, keyEnd));
-        if (key === "title" || key === "artist" || key === "encoder") {
+        if (key === "title" || key === "artist" || key === "album" || key === "comment" || key === "encoder") {
           metadata[key] = decoder.decode(info.subarray(keyEnd + 1, valueEnd));
         }
         cursor = valueEnd + 1;
@@ -390,7 +390,7 @@ export function cafAst(): MediaAstPlugin {
       const frameSize = ima ? channels * 34 : channels * bits / 8;
       const metadata = options.metadata ?? doc.metadata;
       const entries: Uint8Array[] = [];
-      for (const key of ["title", "artist", "encoder"] as const) {
+      for (const key of ["title", "artist", "album", "comment", "encoder"] as const) {
         const value = metadata[key];
         if (value === undefined) continue;
         if (value.includes("\0")) throw new Error("CAF metadata cannot contain null bytes");

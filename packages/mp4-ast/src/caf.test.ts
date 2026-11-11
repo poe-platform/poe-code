@@ -78,7 +78,7 @@ it("rejects malformed CAF dimensions, chunks, encodings, and budget overruns", (
 it("round-trips UTF-8 and empty CAF tags, probes them, and honors metadata replacement", () => {
   const ast = cafAst();
   const doc = ast.parse(native, { decodeAudio: false });
-  const metadata = { title: "針 🎵", artist: "", encoder: "Lavf61.7.100" };
+  const metadata = { title: "針 🎵", artist: "", album: "Record", comment: "Note 🎵", encoder: "Lavf61.7.100" };
   const bytes = ast.serialize(doc, { audioCodec: "copy", metadata });
   assert.deepEqual(ast.parse(bytes).metadata, metadata);
   assert.equal(ast.probe(bytes).format.tags?.title, metadata.title);

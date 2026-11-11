@@ -33,7 +33,7 @@ it("preserves fractional copied pixels across bounded storage pages and output c
     const width = 41, height = 27;
     const samples = Float64Array.from({ length: width * height * 4 }, (_, i) => (i % 255) + 0.25);
     const output = new Float64Array(samples.length), bytes = new Uint8Array(samples.length);
-    const steps = warpPixelSteps({ width, height, storedEvaluateSamples: 0 }, {
+    const steps = warpPixelSteps({ width, height, hasAlpha: true, storedEvaluateSamples: 0 }, {
         width, height, hasAlpha: true, map: (x, y) => [x, y, true]
     }, { r: 0, g: 0, b: 0, a: 0 });
     let next = steps.next();

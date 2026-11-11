@@ -69,7 +69,7 @@ for (const depth of [8, 16]) {
     ] as const)(`honors blend boundaries at %s,%s with ${depth}-bit alpha`, (x, y, expected8, expected16) => {
         const values = [210, 0, 0, 255, 0, 210, 0, 85, 0, 0, 210, 0, 210, 210, 210, 255];
         const data = depth === 16 ? Uint16Array.from(values, value => value * 257) : Uint8Array.from(values);
-        const steps = warpPixelSteps({ width: 2, height: 2, ...(depth === 16 ? { data16: data as Uint16Array } : {}) }, {
+        const steps = warpPixelSteps({ width: 2, height: 2, hasAlpha: true, ...(depth === 16 ? { data16: data as Uint16Array } : {}) }, {
             width: 1, height: 1, hasAlpha: true, interpolation: "blend", map: () => [x, y]
         }, { r: 0, g: 0, b: 0, a: 0 }, "edge");
         let next = steps.next(), output: number[] | undefined;

@@ -88,7 +88,7 @@ function* averageSamples(x: number, y: number, size: number): Generator<readonly
         yield [left + column, top + row, 1];
 }
 
-export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "space" | "storedData16" | "storedEvaluateSamples" | "storedHueSamples">> & { alphaBlend?: boolean | undefined }, plan: WarpPlan, background: RgbaColor, virtualPixel?: VirtualPixelMethod, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "space" | "storedData16" | "storedEvaluateSamples" | "storedHueSamples">> & { alphaBlend?: boolean | undefined }, plan: WarpPlan, background: RgbaColor, virtualPixel?: VirtualPixelMethod, kernel?: MagickResizeKernel, settings?: ResizeFilterSettings): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = source;
     const filter = kernel === "nearest" ? undefined : resizeFilter(kernel ?? "robidoux", settings, true);
     const blur = Math.max(1e-12, (settings?.blur ?? 1) * (kernel === "lanczos2sharp" ? 0.9549963639785485 : kernel === "lanczossharp" ? 0.9812505644269356 : 1));
@@ -108,8 +108,10 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
             } else {
                 // Native virtual gray is the Q16 midpoint, including for 8-bit inputs.
                 const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 32768 / 257 : 0;
+                // Tiled background samples inherit the source alpha trait, not the output alpha channel.
+                const alpha = virtualPixel?.endsWith("-tile") && !source.hasAlpha ? 255 : background.a;
                 return (virtualPixel === "background" || virtualPixel?.endsWith("-tile"))
-                    ? [background.r * scale, background.g * scale, background.b * scale, background.a * scale, 0]
+                    ? [background.r * scale, background.g * scale, background.b * scale, alpha * scale, 0]
                     : [gray * scale, gray * scale, gray * scale, virtualPixel === "transparent" ? 0 : maximum, 0];
             }
         }

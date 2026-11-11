@@ -12,6 +12,40 @@ const background = [5, 31, 15, 255, 28, 78, 34, 255, 51, 125, 53, 255, 76, 144, 
 const tile = [5, 31, 15, 255, 28, 78, 34, 255, 51, 125, 53, 255, 76, 144, 74, 255, 97, 219, 91, 255, 186, 144, 164, 255, 143, 57, 129, 255, 44, 119, 50, 255, 189, 151, 167, 255, 141, 142, 198, 255, 235, 245, 205, 255, 96, 109, 208, 255, 25, 83, 243, 255, 168, 107, 149, 255, 71, 177, 25, 255, 97, 133, 188, 255, 117, 15, 63, 255, 127, 78, 71, 255];
 const unchanged = [5, 31, 15, 255, 28, 78, 34, 255, 51, 125, 53, 255, 74, 172, 72, 255, 97, 219, 91, 255, 120, 10, 110, 255, 143, 57, 129, 255, 166, 104, 148, 255, 189, 151, 167, 255, 212, 198, 186, 255, 235, 245, 205, 255, 2, 36, 224, 255, 25, 83, 243, 255, 48, 130, 6, 255, 71, 177, 25, 255, 94, 224, 44, 255, 117, 15, 63, 255, 140, 62, 82, 255];
 
+// Native ImageMagick 7.1.2-35 Q16-HDRI, big-endian RGBA16 pixel (1,4).
+for (const mode of ["command", "retained", "buffered", "sync"] as const) {
+    it.each([
+        ["black", "#2872a380", "vertical-tile", "bilinear", "0d5526003655ffff"],
+        ["black", "#2872a380", "checker-tile", "bilinear", "0d5526003655ffff"],
+        ["black", "#2872a380", "horizontal-tile", "spline", "02d108070b7affff"],
+        ["red", "#2872a380", "vertical-tile", "bilinear", "b85426003655ffff"],
+        ["#ff0000ff", "#2872a380", "vertical-tile", "bilinear", "d4e516db20add5aa"],
+        ["black", "#2872a380", "background", "bilinear", "080516db20add5aa"],
+        ["black", "#2872a3ff", "vertical-tile", "bilinear", "0d5526003655ffff"],
+        ["black", "#2872a380", "vertical-tile", "bilinear", "Blend:True"],
+    ] as const)(`${mode}: preserves source alpha with %s, background %s, %s, %s (%s)`, async (color, background, virtualPixel, interpolation, expected) => {
+        const filesystem = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
+        const info = expected === "Blend:True";
+        const args = ["-size", "2x5", `xc:${color}`, "-background", background, "-virtual-pixel", virtualPixel, "-interpolate", interpolation, "-swirl", "-210",
+            ...(info ? ["-format", "%A:%[opaque]", "info:"] : ["-crop", "1x1+1+4", "+repage", "-depth", "16", "-endian", "MSB", "rgba:-"])];
+        const stdout: Buffer[] = [];
+        let stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write(bytes) { stdout.push(Buffer.from(bytes)); } },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        }) : mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result, stderr).toMatchObject({ exitCode: 0 });
+        if (info) expect("stdout" in result ? result.stdout : Buffer.concat(stdout).toString()).toBe(expected);
+        else {
+            const bytes = "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : Buffer.concat(stdout);
+            expect(Buffer.from(bytes).toString("hex")).toBe(expected);
+        }
+    });
+}
+
 for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     it.each([
         { options: [], angle: "-360", expected: edge },

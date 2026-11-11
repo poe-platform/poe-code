@@ -85,7 +85,7 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
         continue;
       }
       if (view) {
-        const value = Math.min(255, (view.getUint16(pixel * 2, (gray10 || pixelFormat === "gray16le")) + 128) >> 8);
+        const value = Math.min(255, (view.getUint16(pixel * 2, gray10 || pixelFormat === "gray16le") + 128) >> 8);
         rgba.fill(value, pixel * 4, pixel * 4 + 3);
       } else if (gray || pixelFormat === "ya8") rgba.fill(data[pixel * (gray ? 1 : 2)]!, pixel * 4, pixel * 4 + 3);
       else rgba.set(data.subarray(pixel * 3, pixel * 3 + 3), pixel * 4);

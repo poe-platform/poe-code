@@ -26,6 +26,31 @@ async function run(input: string, format: string, args: string[], options: Param
   return { ...result, stderr, output: volume.readFileSync("/out.raw") as Buffer };
 }
 
+for (const [format, input, expected] of [
+  ["gray10le", "000000010002ff03", "000010402080ffff"],
+  ["gray16le", "61ea53c3459c37750d000d000d000d000d000d000d000d00", "61ea53c3459c37750d000d000d000d000d000d000d000d00"]
+] as const) {
+  it(`matches native ${format} input converted to gray16le`, async () => {
+    const result = await run(input, format, ["-vf", "null", "-pix_fmt", "gray16le"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.output.toString("hex"), expected);
+  });
+}
+
+it("copies gray10le packets without expanding samples, including a short final packet", async () => {
+  const input = "000000010002ff0301";
+  const result = await run(input, "gray10le", ["-c:v", "copy"], { limits: { maxFrames: 0 } });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.output.toString("hex"), input);
+});
+
+it("decodes complete gray10le frames and preserves low sample bits in either output byte order", async () => {
+  const result = await run("0100020003000400000000010002ff0301", "gray10le", ["-vf", "null", "-pix_fmt", "gray16be"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.output.toString("hex"), "0040008000c00100000040108020ffff");
+});
+
 for (const format of ["gray16be", "gray16le"]) {
   for (const [input, args, expected] of [
     [gray, [], gray],

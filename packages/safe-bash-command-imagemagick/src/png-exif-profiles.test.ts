@@ -12,9 +12,9 @@ const cases = [
   { name: "embedded EXIF and ICC", input: tagged, options: [], expected: "exif,icc|ParityCamera" },
   { name: "untagged control", input: untagged, options: [], expected: "|" },
   { name: "EXIF alone", input: tagged, options: ["+profile", "icc"], expected: "exif|ParityCamera" },
-  { name: "removed EXIF", input: tagged, options: ["+profile", "exif"], expected: "icc|" },
-  { name: "removed profiles", input: tagged, options: ["+profile", "*"], expected: "|" },
-  { name: "stripped profiles", input: tagged, options: ["-strip"], expected: "|" }
+  { name: "removed EXIF", input: tagged, options: ["+profile", "exif"], expected: "icc|ParityCamera" },
+  { name: "removed profiles", input: tagged, options: ["+profile", "*"], expected: "|ParityCamera" },
+  { name: "stripped profiles", input: tagged, options: ["-strip"], expected: "|ParityCamera" }
 ];
 
 for (const mode of ["command", "retained", "buffered", "sync"] as const) {

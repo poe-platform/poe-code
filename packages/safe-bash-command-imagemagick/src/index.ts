@@ -1778,7 +1778,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
         if (value !== undefined) parts.push(value);
         else if (context.analysis) warnUnknownMagickProperty(token, context.analysis);
       } else if (key.startsWith("exif:")) {
-        exifProperties ??= meta.exif ? readExifTextProperties(meta.exif) : {};
+        exifProperties ??= meta.exif ? readExifTextProperties(meta.exif) : (meta as MagickImage)[magickInput]?.exifTextProperties ?? {};
         const value = exifProperties[key];
         if (value !== undefined) parts.push(value);
         else if (context.analysis) warnUnknownMagickProperty(token, context.analysis);
@@ -11708,7 +11708,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-strip") {
             state.strip = true;
-            for (let index = 0; index < stack.length; index++) { const {gifApplications: ignoredGifApplications, icc: ignored, exif: ignoredExif, xmp: ignoredXmp, properties: ignoredProperties, ...image} = stack[index]!; stack[index] = image; }
+            for (let index = 0; index < stack.length; index++) { const {gifApplications: ignoredGifApplications, properties: ignoredProperties, ...image} = applyMagickProfile(stack[index]!, "*"); stack[index] = image; }
         }
         else if (t === "-format") {
             state.formatStr = tokens[++i] ?? "";
@@ -13856,7 +13856,7 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
     return { ...base, storedEvaluateSamples: undefined, position, hasAlpha, channels: hasAlpha ? base.channels : base.channels <= 2 ? 1 : 3 };
 }
 
-function applyMagickProfile<T extends { readonly icc?: Uint8Array; readonly exif?: Uint8Array; readonly xmp?: Uint8Array }>(image: T, name: string, profile?: Uint8Array): T {
+function applyMagickProfile<T extends { readonly icc?: Uint8Array; readonly exif?: Uint8Array; readonly xmp?: Uint8Array; [magickInput]?: MagickFormatContext }>(image: T, name: string, profile?: Uint8Array): T {
     if (profile) {
         if (profile.length < 128 || String.fromCharCode(...profile.subarray(36, 40)) !== "acsp") throw new Error(`invalid ICC profile '${name}'`);
         return { ...image, icc: profile };
@@ -13866,8 +13866,9 @@ function applyMagickProfile<T extends { readonly icc?: Uint8Array; readonly exif
         image = rest as T;
     }
     if (["exif", "*"].includes(name.toLowerCase())) {
-        const { exif: ignored, ...rest } = image;
-        image = rest as T;
+        const { exif, ...rest } = image;
+        // Native keeps decoded text available for this invocation, without serializing it.
+        image = exif ? { ...rest, [magickInput]: { ...image[magickInput], exifTextProperties: readExifTextProperties(exif) } } as T : rest as T;
     }
     if (["icc", "icm", "*"].includes(name.toLowerCase())) {
         const { icc: ignored, ...rest } = image;
@@ -15534,7 +15535,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && token === "-strip") {
             state.strip = true;
-            steps.push(async image => { if (!image) return image; const {gifApplications: ignoredGifApplications, icc: ignored, exif: ignoredExif, xmp: ignoredXmp, properties: ignoredProperties, ...rest} = image; return rest; });
+            steps.push(async image => { if (!image) return image; const {gifApplications: ignoredGifApplications, properties: ignoredProperties, ...rest} = applyMagickProfile(image, "*"); return rest; });
             continue;
         }
         if (!operandsOnly && (token === "+repage" || token === "-repage")) {

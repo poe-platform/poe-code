@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { encodeImage } from "@poe-code/image-ast/portable";
+import { decodeImage, encodeImage } from "@poe-code/image-ast/portable";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js";
@@ -56,10 +56,28 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
   }
 }
 
-it.each(["-strip", "+profile"])("does not expose removed EXIF through %s", async operation => {
-  const result = await runMagickCli(["/tags.jpg", operation, ...(operation === "+profile" ? ["exif"] : []), "-format", "%[EXIF:Make]", "info:-"], new Map([["/tags.jpg", jpeg(true)]]));
-  expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "magick: unknown image property '%[EXIF:Make]'\n" });
-});
+for (const input of ["jpeg", "png"] as const) {
+  for (const mode of ["buffered", "retained", "sync"] as const) {
+    it.each([["-strip"], ["+profile", "exif"], ["+profile", "*"]])(`retains EXIF text only in the current invocation (${input}/${mode}, %s)`, async (...operation) => {
+      const bytes = input === "jpeg" ? jpeg(true) : encodeImage(decodeImage(jpeg(true)), { format: input }).data;
+      const files = new Map([["/input", bytes]]), fs = new MemoryFileSystem();
+      await fs.writeFile("/input", bytes);
+      const run = (args: string[]) => mode === "sync" ? runMagickCliSync(args, files)
+        : runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+      const query = "%[profiles]|%[EXIF:Orientation]|%[EXIF:Artist]|%[EXIF:ImageDescription]";
+      expect(await run(["/input", "-quiet", "-format", query, "info:"]))
+        .toEqual({ exitCode: 0, stdout: "exif|6|grid author|grid desc", stderr: "" });
+      expect(await run(["/input", ...operation, "-quiet", "-format", query, "info:"]))
+        .toEqual({ exitCode: 0, stdout: "||grid author|grid desc", stderr: "" });
+      expect(await run(["/input", ...operation, "/stripped.png"]))
+        .toEqual({ exitCode: 0, stdout: "", stderr: "" });
+      const output = mode === "retained" ? await fs.readFile("/stripped.png") : files.get("/stripped.png")!;
+      expect(decodeImage(output).exif).toBeUndefined();
+      expect(await run(["/stripped.png", "-quiet", "-format", query, "info:"]))
+        .toEqual({ exitCode: 0, stdout: "|||", stderr: "" });
+    });
+  }
+}
 
 it("lets explicit properties override embedded EXIF and matches property names without case", async () => {
   expect(await runMagickCli(["/tags.jpg", "-set", "exif:make", "override", "-format", "%[exif:make]|%[eXiF:mOdEl]", "info:-"], new Map([["/tags.jpg", jpeg(true)]])))

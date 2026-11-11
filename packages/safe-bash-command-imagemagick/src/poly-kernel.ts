@@ -45,8 +45,10 @@ export function parseMagickPoly(value: string): number[] {
     return terms.slice(0, terms.length - terms.length % 2);
 }
 
-export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette"> & { magickColorspace?: string; [magickInput]?: MagickFormatContext })[], terms: readonly number[], channels?: readonly boolean[], highDepth = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette"> & { inactiveAlpha?: boolean | undefined; alphaSeparate?: boolean | undefined; alphaBlend?: boolean | undefined; magickColorspace?: string; [magickInput]?: MagickFormatContext })[], terms: readonly number[], channels?: readonly boolean[], highDepth = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const canvas = sequenceCanvas(inputs), cmyk = canvas.space === "cmyk";
+    // Deactivated canvas alpha remains a zero sample until explicitly activated.
+    const inactiveAlpha = !canvas.hasAlpha && canvas.inactiveAlpha && (canvas.alphaSeparate ? canvas.alphaBlend === false : canvas.alphaBlend !== false);
     const hasAlpha = inputs.some(image => image.hasAlpha);
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
     const hue = !!canvas.magickColorspace && canvas.magickColorspace !== "RGB" && canvas.magickColorspace !== "scRGB" && canvas.magickColorspace !== "Gray" && !cmyk;
@@ -89,7 +91,7 @@ export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, 
                 const channel = offset % 4;
                 // Native CMYK alpha occupies slot 4, which non-CMYK sources lack.
                 if (channel === 3 && cmyk && input.space !== "cmyk") continue;
-                if (channels && !channels[channel] || sourceMask && !sourceMask[channel] || (channel === 3 ? !input.hasAlpha || gray : channel >= colorSlots)) continue;
+                if (channels && !channels[channel] || sourceMask && !sourceMask[channel] || (channel === 3 ? inactiveAlpha || !input.hasAlpha || gray : channel >= colorSlots)) continue;
                 // Native GrayAlpha stores alpha in slot 1; our samples are expanded RGBA.
                 const source = gray && input.hasAlpha && channel === 1 ? offset + 2 : offset;
                 const value = terms[image * 2]! * (samples[source]! / range) ** terms[image * 2 + 1]!;
@@ -98,7 +100,7 @@ export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, 
                 if (inks && input.space !== "cmyk" && channel < 3) inks[offset]! += value;
             }
         }
-        for (let offset = 0; offset < length; offset++) values[offset] = offset % 4 === 3 && !hasAlpha ? 255 : values[offset]! * 255;
+        for (let offset = 0; offset < length; offset++) values[offset] = offset % 4 === 3 && !hasAlpha && !inactiveAlpha ? 255 : values[offset]! * 255;
         if (!colorOutput) {
             // Gray has one logical color channel (R); an unselected Gray
             // channel retains the white polynomial output canvas.

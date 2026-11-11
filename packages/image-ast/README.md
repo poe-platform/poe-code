@@ -33,7 +33,7 @@ MIFF output preserves `renderingIntent`, including intent read from BMP V5 and M
 XWD version-7 ZPixmap input supports 8-bit indexed colors and 24/32-bit true-color pixels, including row padding and either pixel byte order, through buffered and retained decoding.
 Both encoders accept `format: "xpm"` for XPM C source with an RGB palette and binary transparency. Set `outputFilename` to derive the C array name from a basename (for example, `app-icon.xpm` becomes `app_icon`); file output supplies its destination automatically, and unnamed buffers use `image`. `format: "xwd"` writes version-7, 24-bit RGB XWD with padded rows, including indexed inputs; alpha is omitted. The sharp API also accepts `.toFormat("xwd")`. `format: "pcx"`, `.toFormat("pcx")`, and `.pcx` file output write version-5 PCX with lossless 8-bit RGB planes, run-length encoding, and inch resolution; alpha is omitted.
 Both encoders accept `format: "tga"` for RGB/RGBA TGA output, with optional
-`tgaCompression: "rle"` (default: uncompressed). TGA output uses the image's `orientation` for its origin, preserving stored sample order; undefined orientation defaults to top-left.
+`tgaCompression: "rle"` (default: uncompressed). Palette sources with at most 256 colors use indexed type 1 or 9 with 8-bit indices and RGB/RGBA palette entries. TGA output uses the image's `orientation` for its origin, preserving stored sample order; undefined orientation defaults to top-left.
 Both `encodeImage` and `encodeStoredImage` accept `format: "apng"` to encode
 stacked RGBA frames using `pageHeight`, millisecond delays and a total play count
 (`loop: 0` repeats indefinitely).

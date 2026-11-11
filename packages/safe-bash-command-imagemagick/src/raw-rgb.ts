@@ -109,7 +109,8 @@ export function rawRasterInput(width: number, height: number, depth: number, end
                     if (floatingPoint || depth === 32) input = rawSamplesTo16(input, depth, endian, floatingPoint, minimum, scale);
                     for (let i = Math.max(start, cursor); i < Math.min(end, cursor + length); i++) {
                         const channel = Math.floor(i % pixelBytes / sampleBytes);
-                        const source = bgr && channel < 3 ? i + (2 - 2 * channel) * sampleBytes : i;
+                        // Native floating BGR samples use RGB order; integer samples use BGR order.
+                        const source = bgr && !floatingPoint && channel < 3 ? i + (2 - 2 * channel) * sampleBytes : i;
                         const value = input[(swap ? source ^ 1 : source) - cursor]!;
                         bytes[headerLength + i - start] = (layout === "bgro" || layout === "rgbo") && channel === 3 ? 255 - value : value;
                     }

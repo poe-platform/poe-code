@@ -6897,6 +6897,7 @@ export function evalSyncFfmpeg(
     const inputs: InputSpec[] = [];
     let pendingFormat: string | undefined;
     let pendingAudioDecoder: string | undefined;
+    let pendingVideoDecoder: string | undefined;
     let pendingTimestampOffset = 0;
     let pendingSyncReference: number | undefined;
     let copyInitialNonKeyframes = false;
@@ -7209,6 +7210,8 @@ export function evalSyncFfmpeg(
       } else if (arg === "-i") {
         if (pendingAudioDecoder !== undefined && !astPlugins.some(plugin => plugin.canDemux && plugin.supportedAudioCodecs.includes(pendingAudioDecoder!))) return undefined;
         pendingAudioDecoder = undefined;
+        if (pendingVideoDecoder !== undefined && !astPlugins.some(plugin => plugin.canDemux && plugin.supportedVideoCodecs.includes(pendingVideoDecoder!))) return undefined;
+        pendingVideoDecoder = undefined;
         inputs.push({
           path: args[++i] ?? "",
           format: pendingFormat,
@@ -7251,7 +7254,11 @@ export function evalSyncFfmpeg(
       } else if (arg === "-c" || arg === "-codec") {
         const val = args[++i]; videoCodec = val; audioCodec = val; subtitleCodec = val;
       } else if (arg === "-force_key_frames") return undefined;
-      else if (arg === "-c:v" || arg === "-vcodec" || arg === "-codec:v") videoCodec = args[++i];
+      else if (arg === "-c:v" || arg === "-vcodec" || arg === "-codec:v") {
+        const value = args[++i];
+        if (args.slice(i + 1).includes("-i")) pendingVideoDecoder = value;
+        else videoCodec = value;
+      }
       else if (arg === "-c:a" || arg === "-acodec" || arg === "-codec:a") {
         const value = args[++i];
         if (args.slice(i + 1).includes("-i")) pendingAudioDecoder = value;
@@ -8067,6 +8074,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingAutoConvert: boolean | undefined;
       let pendingSegmentTimeMetadata: boolean | undefined;
       let pendingAudioDecoder: string | undefined;
+      let pendingVideoDecoder: string | undefined;
       let pendingTimestampOffset = 0;
       let pendingSyncReference: number | undefined;
       let copyInitialNonKeyframes = false;
@@ -9280,6 +9288,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             pendingAudioDecoder = undefined;
+            if (pendingVideoDecoder !== undefined && !astPlugins.some(plugin => plugin.canDemux && plugin.supportedVideoCodecs.includes(pendingVideoDecoder!))) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Unknown decoder '${pendingVideoDecoder}'\n`), context.signal);
+              return { exitCode: 1 };
+            }
+            pendingVideoDecoder = undefined;
             const path = args[++i] ?? "";
             if (pendingFormat !== undefined && !["lavfi", "rawvideo", "concat", "image2", "image2pipe"].includes(pendingFormat) &&
                 !registry.findByFormatName(pendingFormat)?.canDemux) {
@@ -9372,7 +9385,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
           } else if (arg === "-c:v" || arg === "-vcodec" || arg === "-codec:v") {
-            videoCodec = args[++i];
+            const value = args[++i];
+            if (args.slice(i + 1).includes("-i")) pendingVideoDecoder = value;
+            else videoCodec = value;
           } else if (arg === "-c:a" || arg === "-acodec" || arg === "-codec:a") {
             const value = args[++i];
             if (args.slice(i + 1).includes("-i")) pendingAudioDecoder = value;

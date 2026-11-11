@@ -10346,8 +10346,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const value = token === "+blue-shift" ? "1.5" : operand ?? "";
         validateMagickTransformGeometry(value, token);
         const geometry = [...value].filter(character => character.trim() !== "" && !"()".includes(character)).join("");
-        // BlueShiftImage uses the leading geometry value, including a literal percent.
-        const factor = Number.parseFloat(geometry);
+        // BlueShiftImage uses a colon ratio or the leading geometry value, including a literal percent.
+        const factor = parseMagickGeometry(geometry).aspectRatio ?? Number.parseFloat(geometry);
         if (!Number.isFinite(factor)) throw new Error(`invalid argument '-blue-shift' '${value}'`);
         let regionAlpha: Float64Array | undefined;
         apply = function* (image, pixelOffset = 0, imageWidth = image.width) {

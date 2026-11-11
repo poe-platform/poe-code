@@ -3,13 +3,24 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js";
 
-// ImageMagick 7.1.2-35 Q16-HDRI: complete 8-bit RGBA stdout for xc:#4080a080.
+// ImageMagick 7.1.2-35 Q16-HDRI: complete 8-bit RGBA stdout including alpha preservation.
 for (const mode of ["buffered", "sync", "retained", "command"] as const)
 it.each([
     { factor: "1.5", expected: "a0b0b880", exitCode: 0 },
     { factor: "1.5%", expected: "a0b0b880", exitCode: 0 },
     { factor: "1.5x2", expected: "a0b0b880", exitCode: 0 },
     { factor: "(1.5)", expected: "a0b0b880", exitCode: 0 },
+    { factor: "2:4", input: "xc:#345caa80", expected: "3e485c80", exitCode: 0 },
+    { factor: "4:2", input: "xc:#345caa80", expected: "d1dbef80", exitCode: 0 },
+    { factor: "1:4", input: "xc:#345caa80", expected: "26304380", exitCode: 0 },
+    { factor: "0.25", input: "xc:#345caa80", expected: "26304380", exitCode: 0 },
+    { factor: "0.5", input: "xc:#345caa80", expected: "3e485c80", exitCode: 0 },
+    { factor: "2", input: "xc:#345caa80", expected: "d1dbef80", exitCode: 0 },
+    { factor: "2x3", input: "xc:#345caa80", expected: "d1dbef80", exitCode: 0 },
+    { factor: "(2:4)", input: "xc:#345caa80", expected: "3e485c80", exitCode: 0 },
+    { factor: "2:4%", input: "xc:#345caa80", expected: "3e485c80", exitCode: 0 },
+    { factor: "2:4+1+2", input: "xc:#345caa80", expected: "3e485c80", exitCode: 0 },
+    { factor: "%[option:shift]", input: "xc:#345caa80", expected: "3e485c80", exitCode: 0, options: ["-set", "option:shift", "2:4"] },
     { factor: "bad", expected: "", exitCode: 1 },
     { factor: "1.5+1", expected: "", exitCode: 1, input: "xc:#345caa80" },
     { factor: "1.5-1", expected: "", exitCode: 1, input: "xc:#345caa80" },
@@ -19,7 +30,7 @@ it.each([
     { factor: "0", expected: "10202880", exitCode: 0, options: ["-set", "option:shift", "1.5"] },
     { factor: "2", expected: "d0e0e880", exitCode: 0, options: ["-set", "option:shift", "1.5"] },
     { factor: "0x2", expected: "10202880", exitCode: 0, options: ["-set", "option:shift", "1.5"] },
-])(`reads the leading blue-shift geometry factor $factor (${mode})`, async ({ factor, expected, exitCode, options, input }) => {
+])(`reads the blue-shift geometry factor $factor (${mode})`, async ({ factor, expected, exitCode, options, input }) => {
     const args = [...(options ?? []), input ?? "xc:#4080a080", "-blue-shift", factor, "-depth", "8", "rgba:-"];
     const fs = new MemoryFileSystem();
     let stdout = "", stderr = "";

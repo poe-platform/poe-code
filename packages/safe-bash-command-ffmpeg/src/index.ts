@@ -9407,7 +9407,8 @@ export function evalSyncFfmpeg(
       }
       if (subtitleCodec !== "copy") doc = validateSubtitleText(doc, false, inp.subtitleCharencModes);
       // Input timestamp scaling includes the offset, after seeking and before filtering.
-      doc = shiftTimestamps(doc, inp.timestampOffset ?? 0, budget);
+      // Slicing clamps negative seeks to zero; retain their requested timeline origin.
+      doc = shiftTimestamps(doc, (inp.timestampOffset ?? 0) - (copyTimestamps ? 0 : Math.min(0, startSeconds ?? 0)), budget);
       loadedDocs.push(scaleInputTimestamps(doc, inp.timestampScales, budget));
     }
 
@@ -12711,7 +12712,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               if (subtitleCodec !== "copy") doc = validateSubtitleText(doc, exitOnError, inp.subtitleCharencModes);
               // Input timestamp scaling includes the offset, after seeking and before filtering.
-              doc = shiftTimestamps(doc, inp.timestampOffset ?? 0, budget);
+              // Slicing clamps negative seeks to zero; retain their requested timeline origin.
+              doc = shiftTimestamps(doc, (inp.timestampOffset ?? 0) - (copyTimestamps ? 0 : Math.min(0, startSeconds ?? 0)), budget);
               loadedDocs.push(scaleInputTimestamps(doc, inp.timestampScales, budget));
             }
 

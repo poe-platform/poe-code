@@ -13873,7 +13873,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-write" || t === "+write" || t === "-identify") {
-            if (t !== "-identify" && i + 1 >= tokens.length) throw new Error(`missing argument '${t}'`);
+            if (t !== "-identify" && i + 1 >= tokens.length) throw new ConvertSyntaxError(`missing argument '${t}' at CLI arg ${argumentOffset + i + 1}`);
             if (stack.length === 0) throw new Error(`no images for write '${t}'`);
             const writeTemplate = t === "-identify" ? "info:" : tokens[++i] ?? "";
             const writePath = state.filenameLiteral ? writeTemplate : expandFilenameProperties(writeTemplate, stack[0]!.properties, state.optionProperties);
@@ -15956,7 +15956,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = [{ ...result, space: "srgb", channels: 3, isPalette: false, inactiveAlpha: false, readMask: undefined, writeMask: undefined, region: undefined }];
         }
         else if ((t === "-stereo" || t === "-stegano") && !analysis.composite) {
-            throw new UnrecognizedConvertOptionError(`unrecognized option '${t}'`);
+            throw new ConvertSyntaxError(`unrecognized option '${t}'`);
         }
         else if (t === "-stereo") {
             const geometry = parseMagickGeometry(tokens[++i] ?? "");
@@ -16026,7 +16026,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t === "-maximum" || t === "+maximum" || t === "-minimum" || t === "+minimum" || t === "+median" || t === "+enhance" || t === "+bilateral-blur" || t === "+despeckle" || t === "+sketch" || t === "+charcoal" || t === "+paint" || t === "+swirl" || t === "+implode" || t === "+wave" || t === "+spread" || t === "-mask" || t === "+mask" || t === "+auto-orient" || t === "+transpose" || t === "+transverse" || t === "+color-threshold" || t === "+trim" || t === "+roll" || t === "+chop" || t === "+splice" || t === "+shave" || t === "+shade" || t === "+ordered-dither" || t === "+range-threshold" || t === "+print" || t === "+wavelet-denoise" || t === "+local-contrast" || t === "+identify" || t === "+evaluate-sequence" || t === "+evaluate" || t === "+average" || t === "+poly" || t === "+clut" || t === "+hald-clut" || t === "+coalesce" || t === "+flatten" || t === "+mosaic" || t === "+deconstruct" || t === "+morph" || t === "+layers") throw new Error(`option deprecated, unable to execute '${t}' at CLI arg ${argumentOffset + i + 1}`);
             if (t === "+flip" || t === "+flop" || t === "+auto-level" || t === "+auto-gamma" || t === "+normalize" || t === "+color-matrix" || t === "+colors" || t === "+solarize" || t === "+separate" || t === "+unique-colors" || t === "+sort-pixels" || t === "+reverse") throw new Error(`option deprecated, unable to execute '${t}'`);
             if (t === "-layers") throw new Error(`UnrecognizedLayerMethod '-layers' '${tokens[i + 1] ?? ""}'`);
-            if (t !== "-read" && ((t.startsWith("-") && t !== "-" && t !== "--list") || t.startsWith("+"))) throw new UnrecognizedConvertOptionError(`unrecognized option '${t}'`);
+            if (t !== "-read" && ((t.startsWith("-") && t !== "-" && t !== "--list") || t.startsWith("+"))) throw new ConvertSyntaxError(`unrecognized option '${t}'`);
             const operand = t === "-read" ? tokens[++i] : t;
             if (operand === undefined) throw new Error("missing argument '-read'");
             const bytes = operand.startsWith("@") ? files.get(operand.slice(1)) : undefined;
@@ -16091,7 +16091,7 @@ async function writeStoredDescriptionOutput(stack: StoredImageStack, { path, for
     return { exitCode: 0, stdout, stderr: "" };
 }
 
-class UnrecognizedConvertOptionError extends Error {}
+class ConvertSyntaxError extends Error {}
 
 function createConvertAnalysis(composite = false) {
     let warnings = "";
@@ -16213,7 +16213,7 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
     }
     catch (err) {
         return {
-            exitCode: err instanceof UnrecognizedConvertOptionError ? 11 : 1,
+            exitCode: err instanceof ConvertSyntaxError ? 11 : 1,
             stdout: "",
             stderr: `magick: ${(err as Error).message}\n`
         };
@@ -18033,7 +18033,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (token === "-stereo" || token === "-stegano") && !analysis.composite) {
-            stackStep(async () => { throw new UnrecognizedConvertOptionError(`unrecognized option '${token}'`); });
+            stackStep(async () => { throw new ConvertSyntaxError(`unrecognized option '${token}'`); });
             continue;
         }
         if (!operandsOnly && token === "-stereo") {
@@ -18726,7 +18726,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && (token === "-write" || token === "+write" || token === "-identify")) {
             if (token !== "-identify" && i + 1 >= tokens.length) {
-                stackStep(async () => { throw new Error(`missing argument '${token}'`); });
+                stackStep(async () => { throw new ConvertSyntaxError(`missing argument '${token}' at CLI arg ${i + 1}`); });
                 break;
             }
             const settings = { ...state };
@@ -20176,7 +20176,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (token === "-maximum" || token === "+maximum" || token === "-minimum" || token === "+minimum" || token === "+median" || token === "+enhance" || token === "+bilateral-blur" || token === "+despeckle" || token === "+sketch" || token === "+charcoal" || token === "+paint" || token === "+swirl" || token === "+implode" || token === "+wave" || token === "+spread" || token === "-mask" || token === "+mask" || token === "+auto-orient" || token === "+transpose" || token === "+transverse" || token === "+color-threshold" || token === "+trim" || token === "+roll" || token === "+chop" || token === "+splice" || token === "+shave" || token === "+shade" || token === "+ordered-dither" || token === "+range-threshold" || token === "+print" || token === "+wavelet-denoise" || token === "+local-contrast" || token === "+identify" || token === "+evaluate-sequence" || token === "+evaluate" || token === "+average" || token === "+poly" || token === "+clut" || token === "+hald-clut" || token === "+coalesce" || token === "+flatten" || token === "+mosaic" || token === "+deconstruct" || token === "+morph" || token === "+layers") throw new Error(`option deprecated, unable to execute '${token}' at CLI arg ${i + 1}`);
                     if (token === "+flip" || token === "+flop" || token === "+auto-level" || token === "+auto-gamma" || token === "+normalize" || token === "+color-matrix" || token === "+colors" || token === "+solarize" || token === "+separate" || token === "+unique-colors" || token === "+sort-pixels" || token === "+reverse") throw new Error(`option deprecated, unable to execute '${token}'`);
                     if (token === "-layers") throw new Error(`UnrecognizedLayerMethod '-layers' '${tokens[i + 1] ?? ""}'`);
-                    throw new UnrecognizedConvertOptionError(`unrecognized option '${token}'`);
+                    throw new ConvertSyntaxError(`unrecognized option '${token}'`);
                 });
                 break;
             }
@@ -20256,7 +20256,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             signal.throwIfAborted();
             if (error instanceof CompareInputFailure) throw error.reason;
             await backend.publishPending();
-            return { exitCode: error instanceof UnrecognizedConvertOptionError ? 11 : 1, stdout: "", stderr: `magick: ${(error as Error).message}\n` };
+            return { exitCode: error instanceof ConvertSyntaxError ? 11 : 1, stdout: "", stderr: `magick: ${(error as Error).message}\n` };
         }
         if (!image) { await backend.publishPending(); return { exitCode: 1, stdout: "", stderr: `magick: no images defined '${outSpec}'\n` }; }
         await yieldTurn(signal);

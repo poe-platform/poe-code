@@ -17,7 +17,7 @@ export function pixelEnumerationLine(x: number, y: number, r: number, g: number,
     const name = colorspace === "srgba" && a === 255 ? histogramColorNames[(r << 16) | (g << 8) | b] : undefined;
     return `${x},${y}: (${samples}${alpha ? `,${a}` : ""})  #${hex(r)}${hex(g)}${hex(b)}${alpha ? hex(a) : ""}  ${name ?? `${colorspace}(${description}${alpha ? `,${Number(((channels ? working![3]! : a) / 255).toPrecision(6))}` : ""})`}`;
 }
-export function srgbDepthEnumerationLine(x: number, y: number, samples: Uint8Array | Uint16Array, hasAlpha: boolean, depth: number): string {
+export function srgbDepthEnumerationLine(x: number, y: number, samples: Uint8Array | Uint16Array, hasAlpha: boolean, depth: number, evaluated?: Float64Array): string {
     const levels = 2 ** Math.min(depth, 16) - 1, maximum = depth <= 8 ? 255 : 65535;
     const sourceMaximum = samples instanceof Uint16Array ? 65535 : 255;
     const working = Array.from(samples.subarray(0, hasAlpha ? 4 : 3), value => Math.round(value * levels / sourceMaximum) / levels);
@@ -26,7 +26,7 @@ export function srgbDepthEnumerationLine(x: number, y: number, samples: Uint8Arr
     const rgb = channels.slice(0, 3);
     const percent = working.slice(0, 3).some(value => Math.abs(value * 255 - Math.round(value * 255)) > 1e-9);
     const values = working.slice(0, 3).map(value => percent ? `${Number((value * 100).toPrecision(6))}%` : String(Math.round(value * 255)));
-    if (hasAlpha) values.push(String(Number(working[3]!.toPrecision(6))));
+    if (hasAlpha) values.push(String(Number((evaluated && depth >= 16 ? evaluated[3]! / 255 : working[3]!).toPrecision(6))));
     const name = !hasAlpha || channels[3] === maximum ? histogramColorNames[(Math.round(rgb[0]! * 255 / maximum) << 16) | (Math.round(rgb[1]! * 255 / maximum) << 8) | Math.round(rgb[2]! * 255 / maximum)] : undefined;
     return `${x},${y}: (${channels.join(",")})  #${color}  ${name && !percent ? name : `srgb${hasAlpha ? "a" : ""}(${values.join(",")})`}`;
 }
@@ -254,7 +254,7 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
     for (let start = 0; start < size; start += 16384) {
         await yieldTurn(signal);
         const bytes = await storage.read(image.position + start, Math.min(16384, size - start));
-        const evaluated = (image.space === "b-w" || image.space === "grey16" || image.magickColorspace === "RGB") && image.storedEvaluateSamples !== undefined
+        const evaluated = (srgbDepth || image.space === "b-w" || image.space === "grey16" || image.magickColorspace === "RGB") && image.storedEvaluateSamples !== undefined
             ? await storage.read(image.storedEvaluateSamples + start * 8, bytes.length * 8) : undefined;
         const working = evaluated ? new Float64Array(evaluated.slice().buffer) : undefined;
         const original = (srgbDepth || gray16 || image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "DisplayP3" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") && image.storedData16 ? await storage.read(image.storedData16.position + start * 2, bytes.length * 2) : undefined;
@@ -264,7 +264,7 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
         for (let offset = 0; offset < bytes.length; offset += 4) {
             const pixel = (start + offset) / 4;
             if (srgbDepth) {
-                yield srgbDepthEnumerationLine(pixel % image.width, Math.floor(pixel / image.width), (data16 ?? bytes).subarray(offset, offset + 4), image.hasAlpha, depth) + "\n";
+                yield srgbDepthEnumerationLine(pixel % image.width, Math.floor(pixel / image.width), (data16 ?? bytes).subarray(offset, offset + 4), image.hasAlpha, depth, working?.subarray(offset, offset + 4)) + "\n";
                 continue;
             }
             if ((image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "DisplayP3" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab")) {

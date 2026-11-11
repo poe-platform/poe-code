@@ -2075,7 +2075,7 @@ function* formatTxtEnumerationSteps(img: RgbaImage, depth = img.bitsPerSample ??
                 yield;
             const idx = (y * img.width + x) * 4;
             if (srgbDepth) {
-                lines.push(srgbDepthEnumerationLine(x, y, (img.data16 ?? img.data).subarray(idx, idx + 4), img.hasAlpha, depth));
+                lines.push(srgbDepthEnumerationLine(x, y, (img.data16 ?? img.data).subarray(idx, idx + 4), img.hasAlpha, depth, img.evaluateSamples?.subarray(idx, idx + 4)));
                 continue;
             }
             if (gray16) {

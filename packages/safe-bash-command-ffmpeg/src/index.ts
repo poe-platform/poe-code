@@ -13917,8 +13917,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const evaluate = words[0] === "[expr]";
                           if (words[0] === "[enter]" || leave || evaluate) words.shift();
                           const [requestedTarget, action, expression] = words;
-                          // Only afade accepts unity; reuse its first-instance command routing.
-                          const target = requestedTarget === "all" && action === "unity" ? "afade" : requestedTarget;
+                          // These actions have one accepting filter type; reuse its first-instance routing.
+                          const target = requestedTarget !== "all" ? requestedTarget
+                            : action === "unity" ? "afade"
+                            : action === "start_threshold" || action === "stop_threshold" ? "silenceremove" : requestedTarget;
                           const supported = action === "enable" && ["tremolo", "vibrato", "dcshift", "deesser"].some(name => target === name || target?.startsWith(`${name}@`))
                             || target === "silenceremove" || target?.startsWith("silenceremove@")
                             || action === "percent" && (target === "afwtdn" || target?.startsWith("afwtdn@"))

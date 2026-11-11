@@ -11945,11 +11945,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredChannelNames = undefined;
                       }
                       let measuredEnd = 0;
-                      if (filterName === "astats" || filterName === "volumedetect") {
+                      if (filterName === "astats" || filterName === "volumedetect" || filterName === "silencedetect") {
+                        // Silence detection sees the first requested frame even when the encoder emits none.
+                        const requestedFrames = filterName === "silencedetect" && maxAudioFrames === 0 ? 1 : maxAudioFrames;
                         // Reverse consumes its entire input before emitting a frame.
                         const reverse = audioFilters.slice(filterIndex + 1)
                           .some(filter => filter.trim().split("=", 1)[0]!.split("@", 1)[0] === "areverse");
-                        const frameLimit = reverse && maxAudioFrames !== 0 ? undefined : maxAudioFrames;
+                        const frameLimit = reverse && requestedFrames !== 0 ? undefined : requestedFrames;
                         // Demand includes the complete frame where a downstream trim discovers EOF.
                         let nextIndex = filterIndex + 1;
                         while (nextIndex < audioFilters.length) {
@@ -12784,7 +12786,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const counts = new Array<number>(mono ? channels : 1).fill(0);
                         const starts = new Array<number | undefined>(counts.length).fill(undefined);
                         const minimum = Math.round(duration * origRate) * (mono ? 1 : channels);
-                        const length = stretched[0]?.length ?? 0;
+                        const length = measuredEnd;
                         let frameEndPts = 0;
                         for (let frameStart = 0, n = 0; frameStart < length; n++) {
                           const timestamp = audioTimestamps?.[n];

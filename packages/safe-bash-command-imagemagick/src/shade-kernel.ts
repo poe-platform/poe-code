@@ -5,12 +5,13 @@ import { magickIntensity } from "./intensity.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 
 /** Directional surface normals from a 3x3 intensity neighborhood. */
-export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">> & { magickColorspace?: string | undefined }, spec: string, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, intensity = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { magickColorspace?: string | undefined }, spec: string, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, intensity = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const angles = spec.toLowerCase().split("x"), azimuth = Number(angles[0]), elevation = Number(angles[1]);
     if (!spec.trim() || angles.length !== 2 || !angles.every(value => value.trim()) || ![azimuth, elevation].every(Number.isFinite)) throw new Error(`invalid argument for option '-shade': ${spec}`);
     const a = azimuth * Math.PI / 180, e = elevation * Math.PI / 180;
     const lightX = Math.cos(a) * Math.cos(e), lightY = Math.sin(a) * Math.cos(e), lightZ = Math.sin(e);
     const { width, height } = image, highDepth = !!(image.data16 || image.storedData16), quantum = highDepth ? 65535 : 255;
+    const cmyk = image.space === "cmyk", hue = !!image.hueSamples || image.storedHueSamples !== undefined;
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha] : [true, true, true, image.hasAlpha];
     const gray = method === "white" ? 255 : method === "gray" ? 128 : 0;
     const fill = (method === "background" || method.endsWith("-tile") ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255]).map(value => value * quantum / 255);
@@ -22,8 +23,8 @@ export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
         let data = blocks.get(start);
         if (!data) {
             const length = Math.min(1024, width * height - start) * 4;
-            const working = yield { kind: "read", evaluate: true, position: start * 4, length };
-            if (working?.length) data = new Float64Array(working.slice().buffer).map(value => value * quantum / 255);
+            const working = yield { kind: "read", hue, evaluate: !hue, position: start * 4, length };
+            if (working?.length) data = new Float64Array(working.slice().buffer).map(value => value * quantum / (hue ? 1 : 255));
             else {
                 const bytes = yield { kind: "read", highDepth, position: start * 4, length };
                 if (!bytes || bytes.length !== length * (highDepth ? 2 : 1)) throw new Error("Truncated shade pixels");
@@ -37,6 +38,9 @@ export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
     for (let start = 0; start < width * height; start += 1024) {
         yield;
         const count = Math.min(1024, width * height - start), data = new Float64Array(count * 4);
+        const inks = cmyk ? new Float64Array(count * 4) : undefined;
+        const alphaBytes = cmyk ? yield { kind: "read", highDepth: true, position: start * 4, length: count * 4 } : undefined;
+        const alpha = alphaBytes ? new Uint16Array(alphaBytes.slice().buffer) : undefined;
         for (let i = 0; i < count; i++) {
             yield;
             const x = (start + i) % width, y = Math.floor((start + i) / width);
@@ -52,7 +56,15 @@ export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
             const center = yield* sample(x, y);
             // Retain Q16-HDRI samples for subsequent operations and write-mask blending.
             for (let c = 0; c < 4; c++) data[i * 4 + c] = mask[c] ? Math.fround(shade * 65535 / quantum) / 257 : center[c]! * 255 / quantum;
+            if (inks) {
+                for (let c = 0; c < 4; c++) inks[i * 4 + c] = (c === 3 ? !channels || channels.k : mask[c])
+                    ? Math.fround(shade * 65535 / quantum) / 65535 : center[c]! / quantum;
+                for (let c = 0; c < 3; c++) data[i * 4 + c] = (1 - inks[i * 4 + c]!) * (1 - inks[i * 4 + 3]!) * 255;
+                data[i * 4 + 3] = mask[3] ? Math.fround(shade * 65535 / quantum) / 257 : alpha![i * 4 + 3]! / 257;
+            }
         }
+        if (inks) yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(inks.buffer) };
+        else if (hue) yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(data.map(value => value / 255).buffer) };
         const encoded = highDepth
             ? Uint16Array.from(data, value => Math.max(0, Math.min(65535, Math.round(value * 257))))
             : Uint8Array.from(data, value => Math.max(0, Math.min(255, Math.round(value))));

@@ -1905,8 +1905,12 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         if (sources.length !== concatInputs) throw new Error(`concat requires ${concatInputs} inputs`);
         const segments: MediaDocument[] = [];
         for (const source of sources) {
-          const track = source.expression && source.expression !== "anull"
+          let track = source.expression && source.expression !== "anull"
             ? await filterAudio(source.track, source.expression) : source.track;
+          const sampleRate = segments[0]?.tracks[0]?.decodedAudio?.sampleRate;
+          if (sampleRate !== undefined && track.decodedAudio?.sampleRate !== sampleRate) {
+            track = await filterAudio(track, `aresample=${sampleRate}`);
+          }
           segments.push({ ...docs[0]!, tracks: [track], duration: track.duration,
             timescale: track.timescale, durationSeconds: track.duration / track.timescale });
         }

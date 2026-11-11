@@ -40,7 +40,7 @@ for (const options of ["level_in=1:level_out=1:type=cd", "level_in=max/64", "lev
 
 for (const [argument, exitCode] of [
   ["level_in=max+1", 222], ["level_out=min-1", 222], ["type=max+1", 222],
-  ["type=min", 8], ["mode=max", 8]
+  ["type=min", 8], ["mode=max+1", 222]
 ] as const) {
   it(`rejects aemphasis=${argument} without replacing output`, async () => {
     const volume = Volume.fromJSON({ "/in.raw": Buffer.alloc(16), "/out.raw": "existing" });

@@ -1,3 +1,4 @@
+import { murmur3 } from "./murmur3.js";
 import { ripemd128, ripemd256, ripemd320 } from "./ripemd.js";
 import { md5, sha1, ripemd160 } from "@noble/hashes/legacy.js";
 import { sha224, sha256, sha384, sha512, sha512_224, sha512_256 } from "@noble/hashes/sha2.js";
@@ -81,13 +82,15 @@ export function serializeFrameChecksum(
   }
   const name = algorithm.toLowerCase();
   const hashes = { md5, sha160: sha1, sha224, sha256, sha384, sha512, ripemd128, ripemd160, ripemd256, ripemd320, "sha512/224": sha512_224, "sha512/256": sha512_256 };
-  if (format !== "framecrc" && name !== "crc32" && name !== "adler32" && !Object.hasOwn(hashes, name)) throw new Error(`Unknown hash algorithm '${algorithm}'`);
+  if (format !== "framecrc" && name !== "crc32" && name !== "adler32" && name !== "murmur3" && !Object.hasOwn(hashes, name)) throw new Error(`Unknown hash algorithm '${algorithm}'`);
   function checksum(bytes: Uint8Array): string {
     if (format === "framecrc") {
       // framecrc starts Adler-32 at zero; the hash algorithm starts at one.
       return `0x${adler32(bytes, budget, 0)}`;
     } else if (name === "adler32") {
       return adler32(bytes, budget, 1);
+    } else if (name === "murmur3") {
+      return bytesToHex(murmur3([bytes], budget));
     } else if (name === "crc32") {
       let crc = 0xffffffff;
       for (let i = 0; i < bytes.length; i++) {
@@ -112,7 +115,7 @@ export function serializeFrameChecksum(
     return track.type === "video" ? videoTimeBase(track)
       : [1, track.decodedAudio?.sampleRate ?? track.codecDescriptions[0]?.sampleRate ?? track.timescale];
   });
-  const lines = format === "framecrc" ? [] : ["#format: frame checksums", `#version: ${formatVersion}`, `#hash: ${name === "adler32" ? name : name.toUpperCase()}`];
+  const lines = format === "framecrc" ? [] : ["#format: frame checksums", `#version: ${formatVersion}`, `#hash: ${name === "adler32" || name === "murmur3" ? name : name.toUpperCase()}`];
   for (const [index, track] of doc.tracks.entries()) {
     if ((track.type === "video" ? videoCodec : track.type === "subtitle" ? subtitleCodec : audioCodec) !== "copy") continue;
     const codec = track.codecDescriptions[0];

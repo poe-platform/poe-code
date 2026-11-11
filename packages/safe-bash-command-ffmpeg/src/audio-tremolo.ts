@@ -62,8 +62,10 @@ export async function tremoloAudio(
     while (commandIndex < commands.length && commands[commandIndex]!.sample <= timestamp.start) {
       const command = commands[commandIndex++]!;
       try {
-        parseFilterExpression(command.expression, "tremolo enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 });
+        parseFilterExpression(command.expression, "tremolo enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10), []);
         enable = command.expression;
+        registers.fill(0);
+        randomStates.length = 0;
       } catch { /* Native asendcmd retains the previous expression after a rejected command. */ }
     }
     let enabled = true;

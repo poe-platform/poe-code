@@ -18,7 +18,7 @@ for (const mode of ["map", "filesystem", "command"]) {
         { draw: "point 1,1 stroke-opacity" },
         { draw: "fill-opacity 0 fill-opacity 1 point 3,2", x: 3, y: 2, pixel: [255, 0, 0, 255] },
         { draw: "fill-opacity 0.5 circle 3,2 4,2", x: 3, y: 2, pixel: [255, 128, 128, 255] },
-        { draw: "fill-opacity 0.5 stroke blue stroke-opacity 0.5 line 1,1 4,1", x: 2, y: 1, pixel: [128, 64, 192, 255] },
+        { draw: "fill-opacity 0.5 stroke blue stroke-opacity 0.5 line 1,1 4,1", x: 2, y: 1, pixel: [128, 64, 191, 255] },
     ])(`${mode}: $draw`, async ({ draw, x, y, pixel }) => {
         const original = new TextEncoder().encode("keep");
         const files = new Map([["out.png", original]]);

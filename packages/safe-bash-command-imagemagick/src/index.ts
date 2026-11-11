@@ -7079,6 +7079,8 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
                 coverage = dx * (py - ay) - dy * (px - ax) >= 0 ? 1 : Math.max(0, 1 - distance) ** 2;
                 if (shape.antialias === false) coverage = coverage >= 0.5 ? 1 : 0;
             }
+            const offset = i * 4;
+            let red = data[offset]!, green = data[offset + 1]!, blue = data[offset + 2]!, opacity = data[offset + 3]!;
             let color = shape.color;
             if (shape.shape === "line") {
                 const dx = shape.x1 - shape.x, dy = shape.y1 - shape.y;
@@ -7096,10 +7098,13 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
                 let fillCoverage = Math.max(0, 1 - distance) ** 2;
                 if (shape.antialias === false) fillCoverage = fillCoverage >= 0.5 ? 1 : 0;
                 if (fillCoverage > 0 && shape.fill.a > 0) {
-                    const alpha = shape.fill.a / 255 * fillCoverage, offset = i * 4, da = data[offset + 3]! / quantum;
+                    const alpha = shape.fill.a / 255 * fillCoverage, da = opacity / quantum;
                     const outA = alpha + da * (1 - alpha);
-                    for (const [channel, value] of [shape.fill.r, shape.fill.g, shape.fill.b].entries()) data[offset + channel] = Math.round((value * scale * alpha + data[offset + channel]! * da * (1 - alpha)) / outA);
-                    data[offset + 3] = Math.round(outA * quantum);
+                    // Retain fractional fill samples until the stroke is composited.
+                    red = (shape.fill.r * scale * alpha + red * da * (1 - alpha)) / outA;
+                    green = (shape.fill.g * scale * alpha + green * da * (1 - alpha)) / outA;
+                    blue = (shape.fill.b * scale * alpha + blue * da * (1 - alpha)) / outA;
+                    opacity = outA * quantum;
                 }
             }
             if (shape.tile && tile) {
@@ -7107,18 +7112,20 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
                 if (!source || source.length !== 4) throw new Error("Truncated drawing tile");
                 color = { r: source[0]!, g: source[1]!, b: source[2]!, a: source[3]! * shape.color.a / 255 };
             }
-            const alpha = color.a / 255 * coverage, offset = i * 4;
+            const alpha = color.a / 255 * coverage;
             if (alpha >= 0.999) {
-                data[offset] = color.r * scale; data[offset + 1] = color.g * scale; data[offset + 2] = color.b * scale; data[offset + 3] = quantum;
+                red = color.r * scale; green = color.g * scale; blue = color.b * scale; opacity = quantum;
             } else if (alpha > 0) {
-                const da = data[offset + 3]! / quantum, outA = alpha + da * (1 - alpha);
+                const da = opacity / quantum, outA = alpha + da * (1 - alpha);
                 if (outA > 0) {
-                    data[offset] = Math.round((color.r * scale * alpha + data[offset]! * da * (1 - alpha)) / outA);
-                    data[offset + 1] = Math.round((color.g * scale * alpha + data[offset + 1]! * da * (1 - alpha)) / outA);
-                    data[offset + 2] = Math.round((color.b * scale * alpha + data[offset + 2]! * da * (1 - alpha)) / outA);
-                    data[offset + 3] = Math.round(outA * quantum);
+                    red = (color.r * scale * alpha + red * da * (1 - alpha)) / outA;
+                    green = (color.g * scale * alpha + green * da * (1 - alpha)) / outA;
+                    blue = (color.b * scale * alpha + blue * da * (1 - alpha)) / outA;
+                    opacity = outA * quantum;
                 }
             }
+            data[offset] = Math.round(red); data[offset + 1] = Math.round(green);
+            data[offset + 2] = Math.round(blue); data[offset + 3] = Math.round(opacity);
         }
         yield { kind: "write", position: start * 4, data: new Uint8Array(data.buffer), highDepth };
     }

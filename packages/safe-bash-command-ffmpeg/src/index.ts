@@ -7436,6 +7436,10 @@ function mapGlobalMetadata(documents: readonly MediaDocument[], sources: readonl
       if (document.compatibleBrands?.length) custom.compatible_brands = document.compatibleBrands.join("");
     }
     if (sources.length === 0) delete custom.creation_time;
+    const mappedKeys = new Set(Object.keys(metadata.custom ?? {}).map(key => key.toLowerCase()));
+    for (const key of Object.keys(custom)) {
+      if (mappedKeys.has(key.toLowerCase())) delete custom[key];
+    }
     metadata = {
       ...Object.fromEntries(Object.entries(tags).filter(([, value]) => value !== undefined)),
       ...metadata,

@@ -536,6 +536,9 @@ aliases for `metadata=yes` and `metadata=no`.
 Rejected `astats` options return native Linux FFmpeg statuses: 8 for unknown
 options, 222 for values outside the allowed range, and 234 for invalid expressions,
 without emitting audio.
+
+`aemphasis` applies CD reproduction equalization to PCM audio; `aemphasis=type=riaa` selects RIAA reproduction. Both preserve sample rate, duration, and independent channel history, with native double-precision filtering. `level_in` and `level_out` set gains from 0 to 64 (default 1); positional `level_in:level_out:mode:type` options are also accepted. Only reproduction mode and CD/RIAA curves are supported; other modes, curves, timeline options, and runtime commands are rejected.
+
 `crystalizer=i=2` sharpens changes between successive samples independently per channel.
 Intensity defaults to 2 (range -10 to 10); negative values smooth the audio.
 Intensity expressions accept `PI`, `E`, and `PHI`, for example `crystalizer=i=PI/2`.

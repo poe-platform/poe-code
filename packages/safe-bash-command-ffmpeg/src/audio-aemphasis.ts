@@ -1,0 +1,87 @@
+import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
+import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
+
+export async function emphasizeAudio(
+  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
+  budget: MediaBudgetTracker, signal?: AbortSignal
+): Promise<Float64Array[]> {
+  const names = ["level_in", "level_out", "mode", "type"];
+  const values = [1, 1, 0, 4];
+  const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+  const options = argument ? argument.split(":") : [];
+  if (options.at(-1) === "") options.pop();
+  let position = 0;
+  for (const option of options) {
+    const separator = option.indexOf("=");
+    const name = separator < 0 ? names[position++] : option.slice(0, separator).trim();
+    const key = names.indexOf(name!);
+    if (key < 0) throw new Error(`aemphasis: unsupported option ${name}`);
+    const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    const constants: Record<string, number> = key === 2 ? { reproduction: 0, production: 1 }
+      : key === 3 ? { col: 0, emi: 1, bsi: 2, riaa: 3, cd: 4, "50fm": 5, "75fm": 6, "50kf": 7, "75kf": 8 } : {};
+    const value = Object.hasOwn(constants, raw) ? constants[raw]! : parseFilterExpression(raw, "aemphasis", constants);
+    if (!Number.isFinite(value) || value < 0 || value > [64, 64, 1, 8][key]!) {
+      throw new RangeError(`aemphasis: invalid ${name}`);
+    }
+    // Native integer options round exact halves to even.
+    const lower = Math.floor(value);
+    values[key] = key < 2 ? value : value - lower === 0.5 ? lower + lower % 2 : Math.round(value);
+  }
+  const [levelIn, levelOut, mode, type] = values;
+  if (mode !== 0) throw new Error("aemphasis: unsupported mode (only reproduction is supported)");
+  if (type !== 3 && type !== 4) throw new Error("aemphasis: unsupported type (only cd and riaa are supported)");
+
+  // Bilinear transform of the CD (50/15 microsecond) or RIAA
+  // (3180/318/75 microsecond) reproduction curve.
+  const i = 1 / (type === 4 ? 0.000050 : 0.003180);
+  const j = 1 / (type === 4 ? 0.000015 : 0.000318);
+  const k = 1 / (type === 4 ? 0.0000001 : 0.000075);
+  const t = 1 / sampleRate;
+  const g = 1 / (4 + 2 * i * t + 2 * k * t + i * k * t * t);
+  let a0 = (2 * t + j * t * t) * g;
+  let a1 = 2 * j * t * t * g;
+  let a2 = (-2 * t + j * t * t) * g;
+  const b1 = (-8 + 2 * i * k * t * t) * g;
+  const b2 = (4 - 2 * i * t - 2 * k * t + i * k * t * t) * g;
+  // Normalize the emphasis stage to unity gain at 1 kHz.
+  const zr = Math.cos(1000 * 2 * Math.PI / sampleRate);
+  const zi = -Math.sin(1000 * 2 * Math.PI / sampleRate);
+  const gain = Math.hypot(1 + b1 * zr + b2 * (zr * zr - zi * zi), b1 * zi + 2 * b2 * zr * zi)
+    / Math.hypot(a0 + a1 * zr + a2 * (zr * zr - zi * zi), a1 * zi + 2 * a2 * zr * zi);
+  a0 *= gain;
+  a1 *= gain;
+  a2 *= gain;
+
+  // Native reproduction first applies a low-pass stage at 0.45 * rate,
+  // capped at 21 kHz, with Q = 0.707.
+  const omega = 2 * Math.PI * Math.min(0.45 * sampleRate, 21000) / sampleRate;
+  const alpha = Math.sin(omega) / (2 * 0.707);
+  const inverse = 1 / (1 + alpha);
+  const lowA0 = inverse * (1 - Math.cos(omega)) * 0.5;
+  const lowA1 = 2 * lowA0;
+  const lowB1 = -2 * Math.cos(omega) * inverse;
+  const lowB2 = (1 - alpha) * inverse;
+
+  budget.allocateMemory(channels.reduce((sum, channel) => sum + channel.length * 8, 0));
+  const output = channels.map(channel => new Float64Array(channel.length));
+  for (const [c, channel] of channels.entries()) {
+    let low1 = 0, low2 = 0, emphasis1 = 0, emphasis2 = 0;
+    for (let sample = 0; sample < channel.length; sample++) {
+      if (sample % 4096 === 0) {
+        budget.checkCpu();
+        await yieldTurn(signal);
+        signal?.throwIfAborted();
+      }
+      const low = channel[sample]! * levelIn! - low1 * lowB1 - low2 * lowB2;
+      const input = low * lowA0 + low1 * lowA1 + low2 * lowA0;
+      low2 = low1;
+      low1 = low;
+      const emphasis = input - emphasis1 * b1 - emphasis2 * b2;
+      output[c]![sample] = (emphasis * a0 + emphasis1 * a1 + emphasis2 * a2) * levelOut!;
+      emphasis2 = emphasis1;
+      emphasis1 = emphasis;
+    }
+  }
+  return output;
+}

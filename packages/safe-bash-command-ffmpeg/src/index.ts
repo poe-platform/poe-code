@@ -67,6 +67,7 @@ import { normalizeAudio } from "./audio-dynaudnorm.js";
 import { CompandError, compandAudio } from "./audio-compand.js";
 import { multibandCompandAudio } from "./audio-mcompand.js";
 import { removeSilence } from "./audio-silenceremove.js";
+import { emphasizeAudio } from "./audio-aemphasis.js";
 import { compensateAudioDelay } from "./audio-compensationdelay.js";
 import { fadeAudio } from "./audio-fade.js";
 import { acrossfadeAudio } from "./audio-acrossfade.js";
@@ -12697,6 +12698,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredChannelNames = undefined;
                         filteredSampleFormat = "dbl";
                         statsScale = 1;
+                      } else if (filterName === "aemphasis") {
+                        stretched = await emphasizeAudio(stretched, origRate, trimmed, budget, context.signal);
+                        filteredSampleFormat = "dblp";
+                        statsScale = 1;
                       } else if (trimmed === "adynamicequalizer" || trimmed.startsWith("adynamicequalizer=")) {
                         stretched = await listenDynamicEqualizer(stretched, origRate, trimmed, budget, context.signal);
                         statsScale = 1;
@@ -17759,6 +17764,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 234 };
             }
             if (msg.startsWith("Unsupported audio filter:")) return { exitCode: 8 };
+            if (msg.startsWith("aemphasis: unsupported ")) return { exitCode: 8 };
+            if (msg.startsWith("aemphasis:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("Unknown input format:")) return { exitCode: 234 };
             if (msg === audioConversionDisabled) return { exitCode: 234 };
             if (err instanceof RangeError && msg.startsWith("compensationdelay:")) return { exitCode: 222 };

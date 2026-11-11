@@ -13708,7 +13708,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                           }
                         }
-                        if (size! > 0 && loopStart < inputLength) {
+                        // Even an unreachable start consumes size-limited chunks through EOF.
+                        loopStart = Math.min(loopStart, inputLength);
+                        if (size! > 0) {
                           let regionLength = Math.min(size!, inputLength - loopStart);
                           let regionEnd = loopStart + regionLength;
                           const regions = [{ start: loopStart, end: regionEnd }];
@@ -13819,6 +13821,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                             offset = end;
                           }
+                          if (repeatedLength === 0) continue;
                           stretched = await mapWork(stretched, async channel => {
                             budget.allocateMemory(length * channel.BYTES_PER_ELEMENT);
                             const output = channel instanceof Float64Array ? new Float64Array(length) : new Float32Array(length);

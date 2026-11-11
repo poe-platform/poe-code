@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { resampleAudio } from "./audio-resample.js";
 
 export async function headphoneAudio(
   tracks: MediaTrack[], filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
@@ -37,7 +38,16 @@ export async function headphoneAudio(
     return decoded;
   });
   const source = audio[0]!;
-  if (audio.some(input => input.sampleRate !== source.sampleRate)) throw new Error("headphone requires matching sample rates");
+  for (let index = 1; index < audio.length; index++) {
+    const response = audio[index]!;
+    if (response.sampleRate === source.sampleRate) continue;
+    const length = Math.ceil(response.channelData[0]!.length * source.sampleRate / response.sampleRate);
+    budget.checkSamples(length);
+    budget.checkDuration(length / source.sampleRate);
+    budget.allocateMemory(length * response.channels * Float32Array.BYTES_PER_ELEMENT);
+    audio[index] = { ...response, sampleRate: source.sampleRate,
+      channelData: await resampleAudio(response.channelData, length, response.sampleRate, source.sampleRate, budget, signal) };
+  }
   if (audio.slice(1).some(input => !input.channelData[0]!.length)) throw new Error("headphone requires nonempty impulse responses");
   const length = source.channelData[0]!.length;
   budget.checkSamples(length);

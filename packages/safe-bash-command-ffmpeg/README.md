@@ -809,7 +809,7 @@ through separate stereo impulse responses for its left and right channels.
 Both `type=time` and `type=freq` use bounded direct convolution, preserve the source
 frame count, sample rate, and timestamps, and apply native gain (−6 dB for stereo plus `gain`).
 Use `map=FR|FL` to reverse the response assignments. All three inputs must be stereo
-PCM at the same sample rate after any preceding filters. Filters on the source and
+PCM; impulse responses are resampled to the source sample rate. Filters on the source and
 on either impulse-response branch apply independently before convolution;
 multichannel HRIR files are unsupported.
 `earwax` applies the headphone stereo filter to mono or stereo input, resampling

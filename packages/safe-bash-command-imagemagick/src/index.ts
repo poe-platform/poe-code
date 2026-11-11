@@ -845,7 +845,6 @@ interface MagickState {
   interpolation?: LookupInterpolation;
   kernel: ResizeKernel | undefined;
   magnifyMethod?: MagnifyMethod;
-  modulateColorspace?: string;
   whiteBalanceVibrance?: string;
   kmeansSeedColors?: string;
   verbose?: boolean;
@@ -9950,8 +9949,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         const geometry = parseMagickGeometry(value);
         const brightness = (geometry.width ?? 100) / 100, saturation = (geometry.height ?? 100) / 100, hueShift = ((geometry.hasOffset ? geometry.x : 100) - 100) * 3 / 100;
-        const colorspace = state.modulateColorspace ?? "hsl";
+        const optionColorspace = state.optionProperties?.["modulate:colorspace"];
         apply = function* (image) {
+            const colorspace = (image.properties?.["artifact:modulate:colorspace"] ?? optionColorspace ?? "hsl").toLowerCase();
             // Native modulation relabels these working channels as sRGB, without conversion.
             if (image.space === "cmyk") image = yield* convertCmykPixels(image);
             let workingSamples: Float64Array | undefined;
@@ -12396,7 +12396,6 @@ if (t === "-intent" || t === "+intent") {
             if (key === "tiff:predictor") delete state.tiffPredictor;
             if (key === "tiff:rows-per-strip") delete state.tiffRowsPerStrip;
             if (key === "dither:diffusion-amount") delete state.diffusionAmount;
-            if (key === "modulate:colorspace") delete state.modulateColorspace;
             if (key === "complex:snr") delete state.complexSnr;
             if (key === "kmeans:seed-colors") delete state.kmeansSeedColors;
             if (key === "white-balance:vibrance") delete state.whiteBalanceVibrance;
@@ -12431,7 +12430,6 @@ if (t === "-intent" || t === "+intent") {
                 const amount = parseFloat(filterValue ?? "");
                 state.diffusionAmount = Number.isFinite(amount) ? amount / (filterValue?.includes("%") ? 100 : 1) : 0;
             }
-            if (filterKey === "modulate:colorspace") state.modulateColorspace = filterValue ?? "hsl";
             if (filterKey === "complex:snr") {
                 const value = (filterValue ?? "").trimStart();
                 const unsigned = value.startsWith("+") || value.startsWith("-") ? value.slice(1) : value;

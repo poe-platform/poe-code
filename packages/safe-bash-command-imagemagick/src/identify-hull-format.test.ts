@@ -31,7 +31,7 @@ for (const route of ["sync", "buffered", "retained", "identify", "magick"]) {
     expect(result).toEqual({
       exitCode: 0,
       stdout: solid ? "|" : "1,0 2,0 2,1 0,1 1,0 |2,0 2,1 0,1 0,0 ",
-      stderr: solid ? "magick: unknown image property '%[convex-hull]'\nmagick: unknown image property '%[minimum-bounding-box]'\n" : ""
+      stderr: solid ? "identify: unknown image property '%[convex-hull]'\nidentify: unknown image property '%[minimum-bounding-box]'\n" : ""
     });
   });
 }

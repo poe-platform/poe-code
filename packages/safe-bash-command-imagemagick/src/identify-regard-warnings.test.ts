@@ -39,6 +39,6 @@ for (const route of ["sync", "map", "sdk", "identify", "magick"] as const) {
             result = { ...status, stdout: output, stderr: errors };
         } else result = route === "sync" ? runIdentifyCliSync(args, files)
             : await runIdentifyCli(args, route === "map" ? files : { filesystem, cwd: "/" });
-        expect(result).toEqual({ exitCode, stdout, stderr: warns ? "magick: unknown image property '%[no-such-prop]'\n" : "" });
+        expect(result).toEqual({ exitCode, stdout, stderr: warns ? "identify: unknown image property '%[no-such-prop]'\n" : "" });
     });
 }

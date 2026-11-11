@@ -44,7 +44,7 @@ for (const route of ["sync", "map", "filesystem", "stream", "identify", "magick"
       expect(result).toEqual({
         exitCode: missing ? 1 : 0,
         stdout: expectedStdout,
-        stderr: properties.map(property => `magick: unknown image property '%[${property}]'\n`).join("")
+        stderr: properties.map(property => `identify: unknown image property '%[${property}]'\n`).join("")
           + (missing ? "identify: unable to open image 'missing.ppm': No such file or directory\n" : "")
       });
     }

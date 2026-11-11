@@ -91,5 +91,5 @@ it.each(["offset", "length", "type", "empty"])("ignores an invalid EXIF Make %s 
   else if (invalid === "offset") view.setUint32(30, 0xffffffff, true);
   else view.setUint32(26, invalid === "empty" ? 0 : 0xffffffff, true);
   expect(await runMagickCli(["identify", "-format", "%[EXIF:Make]|%[EXIF:Model]", "/tags.jpg"], new Map([["/tags.jpg", bytes]])))
-    .toEqual({ exitCode: 0, stdout: "|grid model", stderr: "magick: unknown image property '%[EXIF:Make]'\n" });
+    .toEqual({ exitCode: 0, stdout: "|grid model", stderr: "identify: unknown image property '%[EXIF:Make]'\n" });
 });

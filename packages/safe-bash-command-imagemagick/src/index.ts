@@ -1629,9 +1629,9 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
 
 const MAGICK_VERSION = "ImageMagick 7.1.1-safe-bash (@poe-code/image-ast)";
 
-function warnUnknownMagickProperty(token: string, analysis: { warnings: string; unknownPropertyWarning?: boolean }): void {
+function warnUnknownMagickProperty(token: string, analysis: { warnings: string; commandName?: string; unknownPropertyWarning?: boolean }): void {
   analysis.unknownPropertyWarning = true;
-  const warning = `magick: unknown image property '${token}'\n`;
+  const warning = `${analysis.commandName ?? "magick"}: unknown image property '${token}'\n`;
   // Native keeps the first diagnostic as its duplicate-warning key.
   if (!analysis.warnings.startsWith(warning)) analysis.warnings += warning;
 }
@@ -1640,7 +1640,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   fmt: string,
   meta: ImageMetadata & { magickUnits?: MagickState["units"] } & Pick<RgbaImage, "readMask" | "writeMask" | "region" | "gravity"> & Pick<StoredRgbaImage, "storedWriteMask">,
   getImage: () => RgbaImage,
-  context: MagickFormatContext & { analysis?: { warnings: string; errors?: string; readError?: boolean; boundsWarning?: boolean; unknownPropertyWarning?: boolean }; optionProperties?: Record<string, string> | undefined; fxStack?: readonly RgbaImage[] } = {},
+  context: MagickFormatContext & { analysis?: { warnings: string; commandName?: string; errors?: string; readError?: boolean; boundsWarning?: boolean; unknownPropertyWarning?: boolean }; optionProperties?: Record<string, string> | undefined; fxStack?: readonly RgbaImage[] } = {},
   resolvePixels?: (property:string)=>Generator<Step,string,void>
 ): Generator<void|Step, string, void> {
   const filePath = context.filePath ?? "";
@@ -1965,7 +1965,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
  return formatRgbPixel(channels, context.precision);
 }
 
-async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext & { analysis?: { warnings: string; errors?: string; readError?: boolean; boundsWarning?: boolean; unknownPropertyWarning?: boolean }; optionProperties?: Record<string, string> | undefined },getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal,stack?:StoredImageStack):Promise<string>{
+async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext & { analysis?: { warnings: string; commandName?: string; errors?: string; readError?: boolean; boundsWarning?: boolean; unknownPropertyWarning?: boolean }; optionProperties?: Record<string, string> | undefined },getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal,stack?:StoredImageStack):Promise<string>{
  let raster:IdentifyRaster|undefined,properties:Record<string,string>|undefined,hull:Record<string,string>|undefined;
  const statistics:Record<string,number>={};
  function* resolve(property:string):Generator<IdentifyStep,string,void>{
@@ -7900,7 +7900,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         }
     };
     let exitCode = 0;
-    const analysis = { warnings: "", errors: "", readError: false };
+    const analysis = { warnings: "", errors: "", readError: false, commandName: "identify" };
     for (let targetIndex = 0; targetIndex < targets.length; targetIndex++) {
         const target = targets[targetIndex]!;
         const { customFormat, channelSelection, density, readState } = target;

@@ -70,6 +70,6 @@ it.each(["sync", "map", "filesystem", "stream", "identify", "magick"])("omits un
     }
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toBe(expected);
-    expect(result.stderr).toBe(unknown.map(property => `magick: unknown image property '${property}'\n`).join(""));
+    expect(result.stderr).toBe(unknown.map(property => `identify: unknown image property '${property}'\n`).join(""));
   }
 });

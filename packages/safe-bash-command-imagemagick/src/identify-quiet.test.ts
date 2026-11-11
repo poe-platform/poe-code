@@ -53,6 +53,6 @@ for (const route of ["sync", "map", "filesystem", "stream", "identify", "magick"
     if (error) expect(result.stderr).toContain(error);
     else expect(result.stderr).toBe(missing
       ? "identify: unable to open image 'miss.ppm': No such file or directory\n"
-      : warning ? "magick: unknown image property '%[no-such-prop]'\n" : "");
+      : warning ? "identify: unknown image property '%[no-such-prop]'\n" : "");
   });
 }

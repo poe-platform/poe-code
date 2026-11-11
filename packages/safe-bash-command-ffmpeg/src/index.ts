@@ -13988,7 +13988,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const hasFrameTags = t.samples.some(sample => sample.tags);
                   let audioTimestamps: { start: number; end: number; pts: number; exactPts?: bigint | undefined; pos?: number | undefined }[] | undefined;
                   // Silence events and frame tags retain input PTS, including after seeking and reframing.
-                  if (!sink && (index === undefined || hasFrameTags || t.samples.some(sample => "exactPts" in sample) || outputCut || (index !== undefined && (audioSegment || frameChecksumOutput)) || (filter && parseFilterChain(filter.expression)
+                  if (!sink && (index === undefined || hasFrameTags || t.samples.some(sample => "exactPts" in sample) || outputCut || (index !== undefined && (audioSegment || checksumOutput)) || (filter && parseFilterChain(filter.expression)
                     .some(item => ["areverse", "silencedetect", "adeclick", "adeclip", "afwtdn", "afftdn", "afftfilt"].includes(item.trim().split("=", 1)[0]!.split("@", 1)[0]!))))) {
                     if (index !== undefined && audioSegment) segmentAudioPackets = [];
                     audioTimestamps = [];
@@ -19495,7 +19495,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     if (cutoff) stretched = stretched.map(channel => channel.subarray(0, cutoff.start));
                   }
 
-                  if (!segmentAudioPackets && !frameChecksumOutput && !filter && audioRate === undefined && audioChannels === undefined && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms") {
+                  if (!segmentAudioPackets && !checksumOutput && !filter && audioRate === undefined && audioChannels === undefined && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms") {
                     return { ...t, duration: (stretched[0]?.length ?? 0) * t.timescale / origRate,
                       samples: [], decodedAudio: { ...audio, channelData: stretched } };
                   }
@@ -19711,7 +19711,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
 
                   const samples: (typeof t.samples)[number][] = [];
-                  if ((segmentAudioPackets || frameChecksumOutput || outPlugin?.id === "s16le") && audioTimestamps) {
+                  if ((segmentAudioPackets || checksumOutput || outPlugin?.id === "s16le") && audioTimestamps) {
                     let start = 0;
                     for (const frame of audioTimestamps) {
                       if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -19719,7 +19719,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (end <= start) continue;
                       budget.allocateMemory(16);
                       segmentAudioPackets?.push({ pts: start, isKeyframe: true });
-                      if (frameChecksumOutput || outPlugin?.id === "s16le") {
+                      if (checksumOutput || outPlugin?.id === "s16le") {
                         // Format conversion rounds near-INT64_MIN timestamps back to
                         // NOPTS; packed PCM without conversion retains its finite PTS.
                         const pts = filteredSampleFormat.endsWith("p") && frame.exactPts !== undefined && frame.pts === -(2 ** 63) ? NaN
@@ -19733,7 +19733,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     if (start < targetSamples) {
                       budget.allocateMemory(16);
                       segmentAudioPackets?.push({ pts: start, isKeyframe: true });
-                      if (frameChecksumOutput || outPlugin?.id === "s16le") {
+                      if (checksumOutput || outPlugin?.id === "s16le") {
                         const last = samples.at(-1);
                         const pts = last ? last.pts + last.duration : 0;
                         budget.allocateMemory(48);

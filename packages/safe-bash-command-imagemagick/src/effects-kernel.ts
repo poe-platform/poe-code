@@ -11,7 +11,7 @@ export interface ShadowLayout {
     readonly opacity: number;
     readonly sigma: number;
 }
-export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "hasAlpha" | "space" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples" | "storedEvaluateSamples">> & { region?: Region | undefined; writeMask?: RgbaImage | undefined; storedWriteMask?: StoredRgbaImage | undefined }, layout: ShadowLayout, color: RgbaColor, alpha = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "hasAlpha" | "space" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples" | "storedEvaluateSamples">> & { region?: Region | undefined; inactiveAlpha?: boolean | undefined; writeMask?: RgbaImage | undefined; storedWriteMask?: StoredRgbaImage | undefined }, layout: ShadowLayout, color: RgbaColor, alpha = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = !!(source.data16 || source.storedData16);
     const hue = source.space !== "cmyk" && (!!source.hueSamples || source.storedHueSamples !== undefined);
     const evaluate = !hue && (!!source.evaluateSamples || source.storedEvaluateSamples !== undefined);
@@ -66,7 +66,7 @@ export function* shadowPixelSteps(source: Pick<RgbaImage, "width" | "height" | "
                             if (x % 32 === 0) yield;
                             for (let k = -half; k <= half; k++) {
                                 const sx = Math.max(0, Math.min(layout.width - 1, left + x + k)) - layout.offsetX;
-                                if (sx >= first && sx <= last) row[x]! += quantum((source.hasAlpha ? samples[(sx - first) * 4 + 3]! : maximum) * layout.opacity) * weights[k + half]!;
+                                if (sx >= first && sx <= last) row[x]! += quantum((source.hasAlpha || source.inactiveAlpha ? samples[(sx - first) * 4 + 3]! : maximum) * layout.opacity) * weights[k + half]!;
                             }
                             row[x] = quantum(row[x]!);
                         }

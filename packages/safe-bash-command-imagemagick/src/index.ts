@@ -12742,7 +12742,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-delay") {
             const value = tokens[++i] ?? "0";
             const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
-            state.delay = { value: yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], listIndex: 0, optionProperties: state.optionProperties }) };
+            state.delay = { value: yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: 0, optionProperties: state.optionProperties }) };
             parseDelayOption(state.delay.value, 0);
         }
         else if (t === "-transparent-color") {
@@ -16482,7 +16482,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const delay = state.delay = { value: tokens[++i] ?? "0" }, settings = { ...state };
             stackStep(async (stack, backend) => {
                 const image = await stack.get(0) ?? await createStoredCanvas(1, 1, settings.background, backend, signal);
-                delay.value = await formatRetainedIdentify(delay.value, image, { ...(image as StoredMagickImage)[magickInput], listIndex: 0, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                delay.value = await formatRetainedIdentify(delay.value, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, listIndex: 0, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack);
                 parseDelayOption(delay.value, 0);
                 return stack;
             });

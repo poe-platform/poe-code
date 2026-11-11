@@ -14665,6 +14665,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-bilateral-blur") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const raw = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
@@ -18778,6 +18779,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return transformStoredMagickRaster({ ...image, isPalette: false }, backend, meanShiftPixelSteps(image, geometry, background, virtualPixel), signal);
             });
         } else if (!operandsOnly && token === "-bilateral-blur") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const raw = tokens[++i] ?? "", { background, virtualPixel, intensity, optionProperties } = state, channels = state.channelExplicit ? state.channels : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;

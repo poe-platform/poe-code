@@ -60,3 +60,17 @@ it("renders the swapped chroma for downstream RGB consumers", async () => {
   // The raw decoder and swscale use slightly different RGB rounding.
   for (const [i, value] of actual.entries()) assert.ok(Math.abs(value - expected[i]!) <= 2);
 });
+
+// Native FFmpeg 7.0.2 RGBA output includes packed-to-planar alpha rounding.
+for (const [filter, expected] of [
+  ["swapuv", "41352c506e62587c9a8e84a9c5b9afd52d47ff2e4c40365a776b6187a3978eb3"],
+  ["swapuv,swapuv", "2e3a44505b67707c87939ca9b2bec8d5e018232e39454e5a64707a87909ca6b3"],
+  ["format=yuva444p,swapuv", "41352c506e62587c9a8e84a9c5b9afd52d47ff2e4c40365a776b6187a3978eb3"],
+  ["null", "2f3a45505b66717c87929da8b3bec9d4df18232e39444f5a65707b86919ca7b2"],
+  ["format=yuv444p,format=rgba", "2e3a44ff5b6770ff87939cffb2bec8ffe01823ff39454eff64707aff909ca6ff"]
+] as const) {
+  it(`matches native RGBA samples for ${filter}`, async () => {
+    const input = Buffer.from("2f3a45505b66717c87929da8b3bec9d4df18232e39444f5a65707b86919ca7b2", "hex");
+    assert.equal((await run(input, "rgba", filter, "4x2")).toString("hex"), expected);
+  });
+}

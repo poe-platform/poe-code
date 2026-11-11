@@ -4009,6 +4009,8 @@ async function applyVideoFilterChain(
             const planar = native?.rgba === f.data && native.width === f.width && native.height === f.height &&
               [0, 4, 5, 12, 13, 14].includes(native.format) ? native : undefined;
             const data = f.data.slice();
+            const pixels = pixelFormat === "gray" || pixelFormat === "gray8"
+              ? new Uint8Array(f.width * f.height) : undefined;
             for (let i = 0; i < data.length; i += 4) {
               if (i % 65536 === 0) {
                 await yieldTurn(signal);
@@ -4022,13 +4024,16 @@ async function applyVideoFilterChain(
                   : Math.max(0, Math.min(255, Math.round((planar.pixels[i / 4]! - 16) * 255 / 219)))
                 : Math.round(0.299 * data[i]! + 0.587 * data[i + 1]! + 0.114 * data[i + 2]!);
               data[i] = data[i + 1] = data[i + 2] = gray;
+              if (pixels) pixels[i / 4] = gray;
               if (pixelFormat !== "ya8") data[i + 3] = 255;
               else if (previousPixelFormat !== "ya8") {
                 // Match swscale's rounded alpha conversion from RGB to YA8.
                 data[i + 3] = Math.min(255, Math.round(data[i + 3]! * 257 / 256));
               }
             }
-            return { ...f, data };
+            return { ...f, data, ...(pixels ? { native: {
+              pixels, format: 8, width: f.width, height: f.height, rgba: data, fullRange: 1, colorspace: 5
+            } } : {}) };
           }, signal);
         }
       }
@@ -11562,6 +11567,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       fieldOrder: first?.interlaced === undefined ? codec.fieldOrder
                         : first.interlaced ? first.topFieldFirst ? "tt" : "bb" : "progressive",
                       pixFmt: diagnostics.pixelFormat,
+                      colorRange: diagnostics.pixelFormat === "gray" || diagnostics.pixelFormat === "gray8" ? "pc" : codec.colorRange,
                       sarWidth: diagnostics.sarWidth,
                       sarHeight: diagnostics.sarHeight
                     })),

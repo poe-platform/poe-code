@@ -1662,7 +1662,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const hasAlphaChannel = meta.hasAlpha || meta.inactiveAlpha;
   const short: Record<string, string> = {
     w: String(meta.width), h: String(meta.height), m: context.inputFormat ?? meta.format.toUpperCase(),
-    A: meta.hasAlpha ? "Blend" : "Undefined",
+    A: meta.hasAlpha ? "Blend" : meta.inactiveAlpha && meta.alphaBlend !== false ? meta.alphaSeparate ? "Update" : "Copy" : "Undefined",
     W: pageWidth, H: pageHeight,
     G: `${context.originalWidth ?? meta.width}x${context.originalHeight ?? meta.height}`,
     z: bitDepth, q: "16", r: `${meta.isPalette ? "PseudoClass" : "DirectClass"} ${space} ${meta.hasAlpha || meta.inactiveAlpha && meta.alphaBlend !== false ? "Alpha" : ""}`,

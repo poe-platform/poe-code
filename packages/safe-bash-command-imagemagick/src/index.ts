@@ -15954,7 +15954,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const base = destinations[destinations.length === 1 ? 0 : n]!, overlay = sources[sources.length === 1 ? 0 : n]!;
                 const x = offset.x + (overlay.virtualCanvas?.x ?? 0) - (base.virtualCanvas?.x ?? 0);
                 const y = offset.y + (overlay.virtualCanvas?.y ?? 0) - (base.virtualCanvas?.y ?? 0);
-                let result = yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, x, y, state.composeArgs, signal, state.alphaFuzz);
+                const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
+                let result = yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, x, y, state.composeArgs, signal, state.alphaFuzz, false, channels);
                 if (destinations.length === 1 && sources.length > 1) {
                     const source = (overlay as MagickImage)[magickInput], destination = (base as MagickImage)[magickInput];
                     const delayTicks = source?.delayTicks ?? overlay.delayTicks ?? Math.round((overlay.delay?.[source?.sceneIdx ?? 0] ?? 0) * (overlay.ticksPerSecond ?? 100) / 1000);
@@ -16028,7 +16029,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     overlay = tiled;
                 }
                 const pos = gravityAdjustBox(base.width, base.height, overlay.width, overlay.height, gx, gy, state.gravity);
-                let composed = (yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, pos.x, pos.y, state.composeArgs, signal, state.alphaFuzz));
+                const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
+                let composed = (yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, pos.x, pos.y, state.composeArgs, signal, state.alphaFuzz, false, channels));
                 if (maskedCopy) {
                     // Native channel copies apply the mask to the completed canvas.
                     const masked = yield* applyMagickCompositeLayerSteps(composed, mask!, "CopyAlpha", 0, 0, undefined, signal);
@@ -18026,7 +18028,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const overlay = (await stack.get(separator + 1 + (sourceCount === 1 ? 0 : n)))!;
                     const x = offset.x + (overlay.virtualCanvas?.x ?? 0) - (base.virtualCanvas?.x ?? 0);
                     const y = offset.y + (overlay.virtualCanvas?.y ?? 0) - (base.virtualCanvas?.y ?? 0);
-                    let result = await compositeStoredMagick(base, overlay, backend, signal, x, y, settings.composeRaw, settings.composeArgs, false, false, false, false, settings.alphaFuzz);
+                    const channels = settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined;
+                    let result = await compositeStoredMagick(base, overlay, backend, signal, x, y, settings.composeRaw, settings.composeArgs, false, false, false, false, settings.alphaFuzz, false, channels);
                     if (separator === 1 && sourceCount > 1) {
                         const source = overlay[magickInput], destination = base[magickInput];
                         const delay = await overlay.storedDelay?.at(source?.sceneIdx ?? 0, { signal }) ?? overlay.delay?.[source?.sceneIdx ?? 0] ?? 0;
@@ -18104,7 +18107,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (mask && !maskedCopy) overlay = await transformStoredMagickRaster(overlay, backend, compositeMaskPixelSteps(overlay, mask), signal, { ...overlay, hasAlpha: true }, [overlay, mask]);
                     if (settings.geometry && !settings.composeTile) { const geometry = parseMagickGeometry(settings.geometry); gx = geometry.x; gy = geometry.y; const resize = magickResizeOptions(overlay, settings.geometry, settings.kernel); if (resize) overlay = await resizeStoredMagickImage(overlay, backend, resize, signal, false, false, false, settings.resizeFilter); }
                     const offset = settings.composeTile ? { x: 0, y: 0 } : gravityAdjustBox(base.width, base.height, overlay.width, overlay.height, gx, gy, settings.gravity);
-                    result = await compositeStoredMagick(base, overlay, backend, signal, offset.x, offset.y, settings.composeRaw, settings.composeArgs, false, false, false, settings.composeTile, settings.alphaFuzz);
+                    const channels = settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined;
+                    result = await compositeStoredMagick(base, overlay, backend, signal, offset.x, offset.y, settings.composeRaw, settings.composeArgs, false, false, false, settings.composeTile, settings.alphaFuzz, false, channels);
                     if (maskedCopy) {
                         result = await compositeStoredMagick(result, mask!, backend, signal, 0, 0, "CopyAlpha");
                         result = await compositeStoredMagick(base, result, backend, signal, 0, 0, "Over");

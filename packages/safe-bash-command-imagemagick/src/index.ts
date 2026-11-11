@@ -12102,6 +12102,18 @@ function magickTrimSettings(state: MagickState, properties: ImageMetadata["prope
     return settings;
 }
 
+function parseMagickVirtualPixel(value: string): MagickState["virtualPixel"] {
+    let method = value.toLowerCase();
+    if (method === "horizontaltile") method = "horizontal-tile";
+    else if (method === "verticaltile") method = "vertical-tile";
+    else if (method === "checkertile") method = "checker-tile";
+    else if (method === "horizontaltileedge") method = "horizontal-tile-edge";
+    else if (method === "verticaltileedge") method = "vertical-tile-edge";
+    else if (method === "none") method = "transparent";
+    if (method !== "random" && method !== "edge" && method !== "dither" && method !== "background" && method !== "transparent" && method !== "black" && method !== "white" && method !== "gray" && method !== "tile" && method !== "mirror" && method !== "horizontal-tile" && method !== "vertical-tile" && method !== "checker-tile" && method !== "horizontal-tile-edge" && method !== "vertical-tile-edge") return undefined;
+    return method;
+}
+
 function applyMagickReadSetting(tokens: readonly string[], state: MagickState, start: number): number | undefined {
     let i = start;
     const t = tokens[i];
@@ -12271,14 +12283,8 @@ if (t === "-intent" || t === "+intent") {
             state.respectParentheses = t === "-respect-parentheses";
         }
         else if (t === "-virtual-pixel") {
-            let method = (tokens[++i] ?? "").toLowerCase();
-            if (method === "horizontaltile") method = "horizontal-tile";
-            else if (method === "verticaltile") method = "vertical-tile";
-            else if (method === "checkertile") method = "checker-tile";
-            else if (method === "horizontaltileedge") method = "horizontal-tile-edge";
-            else if (method === "verticaltileedge") method = "vertical-tile-edge";
-            else if (method === "none") method = "transparent";
-            if (method !== "random" && method !== "edge" && method !== "dither" && method !== "background" && method !== "transparent" && method !== "black" && method !== "white" && method !== "gray" && method !== "tile" && method !== "mirror" && method !== "horizontal-tile" && method !== "vertical-tile" && method !== "checker-tile" && method !== "horizontal-tile-edge" && method !== "vertical-tile-edge") throw new Error(`Unsupported virtual-pixel method: ${method}`);
+            const method = parseMagickVirtualPixel(tokens[++i] ?? "");
+            if (!method) throw new Error(`Unsupported virtual-pixel method: ${(tokens[i] ?? "").toLowerCase()}`);
             state.virtualPixel = method;
         }
         else if (t === "+virtual-pixel") {
@@ -12723,6 +12729,10 @@ if (t === "-intent" || t === "+intent") {
             const k = (tokens[++i] ?? "").toLowerCase();
             const v = tokens[++i] ?? "";
             if (k.startsWith("option:")) state.optionProperties = { ...state.optionProperties, [k.slice("option:".length)]: v };
+            if (k === "option:virtual-pixel") {
+                const method = parseMagickVirtualPixel(v);
+                if (method) state.virtualPixel = method;
+            }
             if (k === "option:scene") {
                 state.scene = Number(v);
                 if (!Number.isSafeInteger(state.scene)) throw new Error("invalid scene number");
@@ -13132,7 +13142,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t === "-compress") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...image[magickInput], compression: state.compression! } }; });
             if (t === "-quality") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, quality: state.quality }; });
             if (t === "-gravity" || t === "+gravity") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, gravity: state.gravity }; });
-            if (t === "-virtual-pixel") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, hasAlpha: image.hasAlpha || state.virtualPixel === "transparent" || state.virtualPixel === "background" && state.background.a < 255, virtualPixel: state.virtualPixel ?? "edge" }; });
+            if (t === "-virtual-pixel" || t === "-set" && tokens[i - 1]?.toLowerCase() === "option:virtual-pixel") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, hasAlpha: image.hasAlpha || state.virtualPixel === "transparent" || state.virtualPixel === "background" && state.background.a < 255, virtualPixel: state.virtualPixel ?? "edge" }; });
         }
         else if (t === "-connected-components" || t === "+connected-components") {
             const connectivity = parseConnectedComponents(tokens, i++);
@@ -16671,7 +16681,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const gravity = state.gravity;
                 steps.push(async image => image ? { ...image, gravity } : undefined);
             }
-            if (token === "-virtual-pixel") {
+            if (token === "-virtual-pixel" || token === "-set" && tokens[i - 1]?.toLowerCase() === "option:virtual-pixel") {
                 const virtualPixel = state.virtualPixel, activateAlpha = virtualPixel === "transparent" || virtualPixel === "background" && state.background.a < 255;
                 steps.push(async image => image ? { ...image, hasAlpha: image.hasAlpha || activateAlpha, virtualPixel: virtualPixel ?? "edge" } : undefined);
             }

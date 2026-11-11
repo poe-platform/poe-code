@@ -38,9 +38,13 @@ export async function compressAudio(
       options[key] = numeric;
     } else {
       const values = choices[key]!;
-      const choice = value === "0" || value === "1" ? values[Number(value)]! : value;
-      if (!values.includes(choice)) throw new Error(`${name}: invalid ${key}`);
-      options[key] = choice;
+      const numeric = parseFilterExpression(value, name, Object.fromEntries(values.map((choice, index) => [choice, index])));
+      if (!Number.isFinite(numeric) || numeric < 0 || numeric > values.length - 1) {
+        throw new Error(`${name}: invalid ${key}`);
+      }
+      // FFmpeg validates before rounding integer options, with ties to even.
+      const index = numeric % 1 === 0.5 ? 2 * Math.round(numeric / 2) : Math.round(numeric);
+      options[key] = values[index]!;
     }
   }
   const level = Number(options.level_in);

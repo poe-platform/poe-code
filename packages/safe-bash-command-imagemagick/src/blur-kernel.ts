@@ -18,8 +18,9 @@ export function parseUnsharpGeometry(raw: string): { width: number; height: numb
 }
 
 /** Native sampled Gaussian or rank-three blur, with bounded row caching. */
-export function* blurPixelSteps(image: { width: number; height: number; region?: Region | undefined }, geometry: { width?: number; height?: number }, gaussian: boolean, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, unsharp?: { amount: number; threshold: number }, writeMask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* blurPixelSteps(image: { width: number; height: number; region?: Region | undefined; evaluateSamples?: Float64Array | undefined; storedEvaluateSamples?: number | undefined }, geometry: { width?: number; height?: number }, gaussian: boolean, channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, unsharp?: { amount: number; threshold: number }, writeMask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
+    const evaluate = !!unsharp && (!!image.evaluateSamples || image.storedEvaluateSamples !== undefined);
     const region = !gaussian ? image.region : undefined;
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a] : undefined;
     let half = 0;
@@ -55,8 +56,9 @@ export function* blurPixelSteps(image: { width: number; height: number; region?:
                 let row = rows.get(sy);
                 if (!row) {
                     const first = Math.max(0, left - half), last = Math.min(width - 1, left + count - 1 + half), length = (last - first + 1) * 4;
-                    const bytes = yield { kind: "read", position: (sy * width + first) * 4, length };
-                    if (!bytes || bytes.length !== length) throw new Error("Truncated blur pixels");
+                    const bytes = yield { kind: "read", evaluate, position: (sy * width + first) * 4, length };
+                    if (!bytes || bytes.length !== length * (evaluate ? 8 : 1)) throw new Error("Truncated blur pixels");
+                    const samples = evaluate ? new Float64Array(bytes.slice().buffer) : bytes;
                     const maskX = writeMask ? Math.min(left, writeMask.width - 1) : 0;
                     const maskCount = writeMask ? Math.min(count, writeMask.width - maskX) : 0;
                     const protection = writeMask ? yield { kind: "read", image: 1, position: (Math.min(sy, writeMask.height - 1) * writeMask.width + maskX) * 4, length: maskCount * 4 } : undefined;
@@ -66,30 +68,33 @@ export function* blurPixelSteps(image: { width: number; height: number; region?:
                         if (x % 32 === 0) yield;
                         for (let k = -half; k <= half; k++) {
                             const offset = (Math.max(0, Math.min(width - 1, left + x + k)) - first) * 4;
-                            const alpha = bytes[offset + 3]! / 255, weight = weights[k + half]!;
-                            for (let c = 0; c < 3; c++) row[x * 4 + c]! += bytes[offset + c]! * alpha * weight;
+                            const alpha = samples[offset + 3]! / 255, weight = weights[k + half]!;
+                            for (let c = 0; c < 3; c++) row[x * 4 + c]! += samples[offset + c]! * alpha * weight;
                             row[x * 4 + 3]! += alpha * weight;
                         }
                         const maskOffset = Math.min(x, maskCount - 1) * 4;
                         const protectedAmount = region && !regionContains(region, left + x, sy) ? 1 : protection
                             ? (0.212656 * protection[maskOffset]! + 0.715158 * protection[maskOffset + 1]! + 0.072186 * protection[maskOffset + 2]!) / 255 : 0;
                         if (protectedAmount > 0) {
-                            const offset = (left + x - first) * 4, alpha = bytes[offset + 3]! / 255;
+                            const offset = (left + x - first) * 4, alpha = samples[offset + 3]! / 255;
                             // Native clips each separable pass before the next one reads it.
-                            for (let c = 0; c < 3; c++) row[x * 4 + c] = (bytes[offset + c]! * alpha * protectedAmount + row[x * 4 + c]! * (1 - alpha * protectedAmount)) * alpha;
+                            for (let c = 0; c < 3; c++) row[x * 4 + c] = (samples[offset + c]! * alpha * protectedAmount + row[x * 4 + c]! * (1 - alpha * protectedAmount)) * alpha;
                             row[x * 4 + 3] = alpha;
                         }
                     }
+                    // Q16-HDRI stores float quantum samples between separable passes.
+                    if (evaluate) for (let i = 0; i < row.length; i++) row[i] = Math.fround(row[i]! * (i % 4 === 3 ? 65535 : 257)) / (i % 4 === 3 ? 65535 : 257);
                     if (rows.size >= 32) rows.delete(rows.keys().next().value!);
                     rows.set(sy, row);
                 }
                 for (let i = 0; i < sums.length; i++) sums[i]! += row[i]! * weights[ky + half]!;
             }
-            const data = new Uint8Array(count * 4);
-            const original = region || unsharp || mask?.some(active => !active)
-                ? yield { kind: "read" as const, position: (y * width + left) * 4, length: data.length }
+            const data = evaluate ? new Float64Array(count * 4) : new Uint8Array(count * 4);
+            const originalBytes = region || unsharp || mask?.some(active => !active)
+                ? yield { kind: "read" as const, evaluate, position: (y * width + left) * 4, length: data.length }
                 : undefined;
-            if ((region || unsharp || mask?.some(active => !active)) && (!original || original.length !== data.length)) throw new Error("Truncated blur pixels");
+            if ((region || unsharp || mask?.some(active => !active)) && (!originalBytes || originalBytes.length !== data.length * (evaluate ? 8 : 1))) throw new Error("Truncated blur pixels");
+            const original = originalBytes && (evaluate ? new Float64Array(originalBytes.slice().buffer) : originalBytes);
             for (let x = 0; x < count; x++) {
                 const alpha = sums[x * 4 + 3]!;
                 for (let c = 0; c < 4; c++) {
@@ -99,17 +104,22 @@ export function* blurPixelSteps(image: { width: number; height: number; region?:
                         const sourceAlpha = original![x * 4 + 3]! / 255;
                         value = c === 3 ? original![index]! : original![index]! * sourceAlpha + sums[index]! * (1 - sourceAlpha);
                     }
+                    if (evaluate) value = Math.fround(value * 257) / 257;
                     if (unsharp) {
                         const source = original![index]!, difference = source - value;
                         value = Math.abs(2 * difference) < 255 * unsharp.threshold ? source : source + unsharp.amount * difference;
                     }
-                    data[index] = Math.max(0, Math.min(255, Math.round(value)));
+                    data[index] = evaluate ? Math.fround(value * 257) / 257 : Math.max(0, Math.min(255, Math.round(value)));
                 }
             }
             if (mask && mask.some(active => !active)) {
                 for (let i = 0; i < data.length; i++) if (!mask[i % 4]) data[i] = original![i]!;
             }
-            yield { kind: "write", position: (y * width + left) * 4, data };
+            yield { kind: "write", evaluate, position: (y * width + left) * 4, data: new Uint8Array(data.buffer) };
+            if (evaluate) {
+                const bounded = Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(65535, value * 257))));
+                yield { kind: "write", highDepth: true, position: (y * width + left) * 4, data: new Uint8Array(bounded.buffer) };
+            }
         }
     }
 }

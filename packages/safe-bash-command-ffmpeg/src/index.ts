@@ -15024,7 +15024,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             budget.checkCpu();
                             await yieldTurn(context.signal);
                             context.signal?.throwIfAborted();
-                            if (!select(frame)) continue;
+                            if (!select(frame)) {
+                              if (n === 0) audioInitialFrameUnavailable = true;
+                              continue;
+                            }
                             ranges.push(frame);
                             const end = length + frame.end - frame.start;
                             selected.push({ ...frame, start: length, end });

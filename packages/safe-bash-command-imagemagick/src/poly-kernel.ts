@@ -1,5 +1,6 @@
 import type { RgbaImage } from "@poe-code/image-ast";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
+import { sequenceCanvas } from "./sequence-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 export function parseMagickPoly(value: string): number[] {
@@ -43,11 +44,11 @@ export function parseMagickPoly(value: string): number[] {
     return terms.slice(0, terms.length - terms.length % 2);
 }
 
-export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth"> & { magickColorspace?: string })[], terms: readonly number[], channels?: readonly boolean[], highDepth = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const cmyk = inputs[0]?.space === "cmyk";
+export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette"> & { magickColorspace?: string })[], terms: readonly number[], channels?: readonly boolean[], highDepth = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const canvas = sequenceCanvas(inputs), cmyk = canvas.space === "cmyk";
     const hasAlpha = inputs.some(image => image.hasAlpha);
     const colorOutput = inputs.some(image => image.space !== "b-w" && image.space !== "grey16");
-    const hue = !!inputs[0]?.magickColorspace && inputs[0].magickColorspace !== "RGB" && inputs[0].magickColorspace !== "Gray" && inputs[0].space !== "cmyk";
+    const hue = !!canvas.magickColorspace && canvas.magickColorspace !== "RGB" && canvas.magickColorspace !== "Gray" && !cmyk;
     // Float64 reads must fit the 16 KiB storage page limit.
     for (let position = 0; position < size; position += 2048) {
         yield;

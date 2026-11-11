@@ -1118,7 +1118,7 @@ function* applyMagickSequenceSteps(stack: readonly RgbaImage[], opRaw: string | 
     if (stack.length === 0) {
         throw new Error("evaluate-sequence requires at least one image");
     }
-    const first = typeof opRaw === "string" ? sequenceCanvas(stack) : stack[0]!;
+    const first = sequenceCanvas(stack);
     const base = first.space !== "cmyk" && stack.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
     const w = stack.reduce((width, image) => Math.max(width, image.width), 0);
     const h = stack.reduce((height, image) => Math.max(height, image.height), 0);
@@ -14016,7 +14016,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             await stack.set(index, { ...await transformStoredMagickRaster(image, backend, extendEdgePixelSteps(image, width, height, !!image.storedData16, image.virtualPixel, settings.background), signal, { ...image, width, height }), ...(virtualCanvas ? { virtualCanvas } : {}) });
                         }
                     }
-                    const first = (await stack.get(terms ? 0 : frames.indexOf(sequenceCanvas(frames))))!;
+                    const first = (await stack.get(frames.indexOf(sequenceCanvas(frames))))!;
                     const base: StoredRgbaImage = first.space !== "cmyk" && frames.some(image => image.space !== "b-w" && image.space !== "grey16") ? { ...first, space: "srgb" as const, channels: 4 as const } : first;
                     // Keep the native mask channel while resetting its protection.
                     const storedWriteMask = (terms ? frames.some(image => image.storedWriteMask || image.region) : base.storedWriteMask || base.region) ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;

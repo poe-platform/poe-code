@@ -77,7 +77,9 @@ function parse(context: CommandContext, budget: Budget): Options {
     }
     else if (flag === "t") {
       let bytes = value === "\\0" ? Uint8Array.of(0) : rawValue ?? encode(value);
+      options.delimiter = bytes.length === 0 ? undefined : bytes;
       // GNU uses LF and the empty delimiter for whole-record matching, even with -z.
+      // Retain the literal delimiter above for output.
       if (bytes.length === 1 && bytes[0] === 10) bytes = empty;
       if (delimiterChoice !== undefined && compare(delimiterChoice, bytes) !== 0) fail("incompatible field delimiters");
       delimiterChoice = bytes;
@@ -86,7 +88,6 @@ function parse(context: CommandContext, budget: Budget): Options {
         if (bytes.length > 4 || Array.from(value).length !== 1 || compare(encode(value), bytes) !== 0) fail("join delimiter must be one character");
       }
       options.whole = bytes.length === 0;
-      options.delimiter = options.whole ? undefined : bytes;
     } else if (flag === "o") {
       if (value === "auto") {
         options.format ??= "auto";

@@ -51,6 +51,21 @@ for (const { args, expected } of [
  });
 }
 
+for (const terminator of ["\n", "\0"]) {
+ for (const delimiter of ["\n", "|"]) {
+  for (const format of ["1.1,2.1", "0,0"]) {
+   test(`join preserves the output delimiter: ${JSON.stringify({ terminator, delimiter, format })}`, async () => {
+    const result = await run([
+     ...(terminator === "\0" ? ["-z"] : []), "-t", delimiter, "-o", format, "/left", "/right",
+    ], { "/left": `A${terminator}`, "/right": `A${terminator}` }, { LC_ALL: "C" });
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.stdoutBytes, [...Buffer.from(`A${delimiter}A${terminator}`)]);
+    assert.equal(result.stderr, "");
+   });
+  }
+ }
+}
+
 for (const args of [
  ["-z", "-t", "\n"],
  ["-t\n", "-z"],

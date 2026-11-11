@@ -1905,6 +1905,7 @@ function audioConcatInputs(filter: string): number | undefined {
 
 // Delay tails are execution metadata, not part of the media container.
 const audioDelayTails = new WeakMap<MediaTrack, Set<string>>();
+const audioPassthroughFormats = new WeakMap<MediaTrack, Set<string>>();
 const audioGraphFormats = new WeakMap<MediaTrack, string>();
 
 // Recognize filters before graph binding can hide an unknown filter in a later chain.
@@ -2448,7 +2449,8 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
                 buffered = true;
                 return true;
               }
-              return ["anull", "acopy"].includes(name);
+              if (name === "aformat") return audioPassthroughFormats.get(sources[inputIndex]!.track)?.has(filter) ?? false;
+              return ["anull", "acopy", "asetpts", "afade"].includes(name);
             })) {
             branch = nodes.get(branch.inputs[0]!);
           }
@@ -13796,6 +13798,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let audioStartSample = 0;
                   let audioInitialFrameUnavailable = false;
                   const delayTails = new Set<string>();
+                  const passthroughFormats = new Set<string>();
                   let audioMetadata: { pts: number; tags: Map<string, string> }[] = [];
                   const hasFrameTags = t.samples.some(sample => sample.tags);
                   let audioTimestamps: { start: number; end: number; pts: number; exactPts?: bigint | undefined; pos?: number | undefined }[] | undefined;
@@ -17744,6 +17747,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           - Number(a.key === "sample_fmts" || a.key === "f")
                           || Number(b.key === "sample_rates" || b.key === "r") - Number(a.key === "sample_rates" || a.key === "r"));
                         const inputRate = origRate;
+                        const inputChannels = stretched.length;
+                        const inputMask = filteredChannelMask;
+                        const inputNames = filteredChannelNames?.join("+");
                         for (const { key, value } of parsed) {
                           if (!value) throw new Error(`aformat: unsupported empty value for ${key}`);
                           if (key === "sample_rates" || key === "r") {
@@ -17784,6 +17790,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (doubleMono && ["flt", "fltp"].includes(filteredSampleFormat)) {
                           stretched = await convertAudioSampleFormat(stretched, inputSampleFormat, filteredSampleFormat, budget, context.signal);
                         }
+                        // Only aformat without an inserted conversion shares upstream EOF.
+                        if (origRate === inputRate && filteredSampleFormat === inputSampleFormat &&
+                            stretched.length === inputChannels && filteredChannelMask === inputMask &&
+                            filteredChannelNames?.join("+") === inputNames) passthroughFormats.add(item.trim());
                       } else if (trimmed === "pan" || trimmed.startsWith("pan=")) {
                         const panned = await panAudio(trimmed.slice(4), stretched, filteredChannelMask, panSampleFormat, budget, context.signal);
                         // SWR accepts custom input speaker orders for weighted mixing and mono output.
@@ -19020,6 +19030,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         channelMask: filteredChannelMask, channelData: stretched } };
                     audioGraphFormats.set(result, filteredSampleFormat);
                     if (delayTails.size) audioDelayTails.set(result, delayTails);
+                    if (passthroughFormats.size) audioPassthroughFormats.set(result, passthroughFormats);
                     return result;
                   }
 

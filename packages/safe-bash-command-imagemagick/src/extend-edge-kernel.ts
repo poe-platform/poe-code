@@ -32,6 +32,8 @@ export function* extendEdgePixelSteps(source: { width: number; height: number; s
                 const top = constant ? 0 : Math.floor(index / source.width);
                 const reverse = method === "mirror" && Math.floor(x / source.width) % 2 === 1;
                 if (x < source.width || method === "tile" || method === "mirror" || method.includes("-tile")) count = Math.min(count, source.width - x % source.width);
+                // Dither offsets both axes independently for each out-of-bounds pixel.
+                if (method === "dither" && (x >= source.width || y >= source.height)) count = 1;
                 if (reverse) left -= count - 1;
                 const data = new Uint8Array(count * stride);
                 if (constant) {

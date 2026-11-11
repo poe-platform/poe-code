@@ -43,7 +43,7 @@ for (const sync of [false, true]) {
           assert.equal(stderr, "");
         }
         assert.equal(stdout, format === "microdvd" ? `{25}{50}${cue}\n`
-          : format === "srt" ? `1\n00:00:01,000 --> 00:00:02,000\n${expected}\n\n`
+          : format === "srt" ? `1\n00:00:01,000 --> 00:00:02,000\n${expected!.replaceAll("\n", "\r\n")}\n\n`
           : `WEBVTT\n\n00:01.000 --> 00:02.000\n${expected}\n`);
         assert.equal(volume.readFileSync("/input.sub", "utf8"), input);
       });

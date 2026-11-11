@@ -1,12 +1,13 @@
 import { encodeImage as encodeRaster, encodeStoredImage as encodeStoredRaster, type ImageFormat as RasterFormat, type OutputEncodeOptions as RasterOptions, type RgbaImage, type StoredRgbaImage, type ImageByteStorage, type OutputInfo } from "@poe-code/image-ast/portable";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { encodeMapImage, encodeMapFromStorage } from "./map-output.js";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
 
 export type RawImage = RgbaImage & { rawFrames?: readonly RgbaImage[] };
 export type StoredRawImage = StoredRgbaImage & { rawFrames?: { length: number; at(index: number): Promise<StoredRgbaImage> } };
 
 export type RawCoder = "rgb" | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro" | "gray" | "graya" | "cmyk" | "cmyka";
-export type ImageFormat = RasterFormat | RawCoder;
+export type ImageFormat = RasterFormat | RawCoder | "map";
 export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; rawInterlace?: "line" | "plane" | "partition" | undefined; jpegExtent?: number | undefined; webpTargetSize?: number | undefined; webpPass?: number | undefined };
 
 /** Search complete output sizes, including alpha and container overhead. */
@@ -33,6 +34,7 @@ export function encodeImage(image: RawImage, options: OutputEncodeOptions): Retu
     if (options.format === "png" && (image.resolution?.x === 0 || image.resolution?.y === 0)) options = { ...options, omitPngResolution: true };
     if (options.format === "pam") options = { ...options, netpbmDepth: options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8) };
     const format = options.format;
+    if (format === "map") return { data: encodeMapImage(image), format: "raw", channels: 3 };
     if (!isRawCoder(format)) {
         if (format === "webp" && options.lossless === false && (options.webpTargetSize ?? 0) > 0) {
             const search = webpTargetQualities(options);
@@ -149,6 +151,11 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
 export async function* encodeStoredImage(image: StoredRawImage, storage: ImageByteStorage, signal: AbortSignal, options: OutputEncodeOptions): ReturnType<typeof encodeStoredRaster> {
     if (options.format === "png" && (image.resolution?.x === 0 || image.resolution?.y === 0)) options = { ...options, omitPngResolution: true };
     if (options.format === "pam") options = { ...options, netpbmDepth: options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8) };
+    if (options.format === "map") {
+        let size = 0;
+        for await (const chunk of encodeMapFromStorage(image, storage, signal)) { size += chunk.length; yield chunk; }
+        return { format: "raw", width: image.width, height: image.height, channels: 3, premultiplied: false, size };
+    }
     if (!isRawCoder(options.format)) {
         let quality = options.quality ?? 92;
         if (options.format === "webp" && options.lossless === false && (options.webpTargetSize ?? 0) > 0) {

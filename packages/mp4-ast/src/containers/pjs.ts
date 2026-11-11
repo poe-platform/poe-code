@@ -6,7 +6,7 @@ function readLine(line: string): { start: number; end: number; text: string } | 
   const first = line.indexOf(",");
   const second = line.indexOf(",", first + 1);
   if (first < 1 || second < first + 2) return undefined;
-  const startText = line.slice(0, first).trim();
+  const startText = line.slice(0, first).trimStart();
   const endText = line.slice(first + 1, second).trim();
   const quoted = line.slice(second + 1).trim();
   if (!startText || !endText || quoted.length < 2 || !quoted.startsWith('"') || !quoted.endsWith('"')) return undefined;

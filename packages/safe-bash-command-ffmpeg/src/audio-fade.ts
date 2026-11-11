@@ -65,7 +65,7 @@ export async function fadeAudio(
       }
       // Thread scheduling and hardware frame reservations do not change PCM samples.
     } else if (key === "enable") {
-      parseFilterExpression(value, "afade enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 }, undefined, new Float64Array(10));
+      parseFilterExpression(value, "afade enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10));
       registers.fill(0);
       enable = value;
     } else {
@@ -147,7 +147,8 @@ export async function fadeAudio(
     if (enable !== undefined && (i === 0 || i === frame?.start)) {
       const variables = {
         n: frameIndex, t: (frame?.pts ?? startSample) / sampleRate,
-        pos: frame?.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0, h: 0
+        pos: frame?.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0, h: 0,
+        PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
       };
       // FFmpeg evaluates on frame consumption and again before filter_frame.
       parseFilterExpression(enable, "afade enable", variables, undefined, registers);

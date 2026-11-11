@@ -167,9 +167,9 @@ export function parseFilterExpression(expression: string, filter: string, variab
         else if (name === "lerp" && args.length === 3) value = args[0]! + (args[1]! - args[0]!) * args[2]!;
         else if (name === "between" && args.length === 3) value = Number(args[0]! >= args[1]! && args[0]! <= args[2]!);
         else throw new Error(`${filter}: invalid or unsupported expression`);
-      } else if ((filter === "crop" || filter === "drawbox enable" || filter === "colorcontrast enable") && name.toLowerCase() === "nan") {
+      } else if ((filter === "crop" || filter === "drawbox enable" || filter === "colorcontrast enable" || filter === "afade enable") && name.toLowerCase() === "nan") {
         value = NaN;
-      } else if ((filter === "astats" || filter === "tremolo" || filter === "silenceremove" || filter === "drawbox enable") && (name.toLowerCase() === "inf" || name.toLowerCase() === "infinity")) {
+      } else if ((filter === "astats" || filter === "tremolo" || filter === "silenceremove" || filter === "drawbox enable" || filter === "afade enable") && (name.toLowerCase() === "inf" || name.toLowerCase() === "infinity")) {
         value = Infinity;
       } else {
         if (!Object.hasOwn(variables, name)) throw new Error(`${filter}: invalid or unsupported expression`);

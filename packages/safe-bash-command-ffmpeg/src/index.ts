@@ -1503,9 +1503,16 @@ async function panAudio(
     }
   }
   const [layout = "", ...assignments] = expression.split("|").map(value => value.trim());
-  // Numbered first-order ambisonic routes use four components, plus optional stereo.
-  const count = layout === "ambisonic 1" ? 4 : layout === "ambisonic 1+stereo" ? 6
-    : parseAudioChannelCount(layout);
+  let count = parseAudioChannelCount(layout);
+  if (layout.startsWith("ambisonic ")) {
+    const [order = "", extra, ...rest] = layout.slice("ambisonic ".length).split("+");
+    if (order.length && [...order].every(digit => digit >= "0" && digit <= "9") &&
+        rest.length === 0 && (extra === undefined || extra === "mono" || extra === "stereo")) {
+      // Order N has (N + 1)^2 components, followed by any conventional channels.
+      const channels = (Number(order) + 1) ** 2 + (extra === "mono" ? 1 : extra === "stereo" ? 2 : 0);
+      if (channels <= 64) count = channels;
+    }
+  }
   const speakerList = layout.indexOf(" channels (");
   const explicitCount = speakerList < 0 ? undefined : parseAudioChannelCount(`${layout.slice(0, speakerList)} channels`);
   const names = speakerList >= 0 && layout.endsWith(")")

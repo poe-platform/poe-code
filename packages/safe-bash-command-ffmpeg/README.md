@@ -886,8 +886,9 @@ Terms accept hexadecimal gains (`0x1`, `0x1p-1`), subtraction (`c0-c1`), compact
 `pan=mono|c0=nan*c0` produces silence on PCM16 input/output. Floating-point paths retain nonfinite samples. Zero-gain inputs do not affect other channels, so selecting or swapping channels preserves finite samples even when an unused input contains NaN.
 Count-only outputs also accept `2C` and `2 channels`, for example
 `pan=2C|c0=c1|c1=c0`; use numbered output channels because these layouts have no speaker assignments.
-Numbered pan routes also accept `ambisonic 1` (four channels) and `ambisonic 1+stereo` (six channels),
-for example `pan=ambisonic 1|c0=c1`. Unassigned channels stay silent; this supports PCM routing without ambisonic layout metadata.
+Numbered pan routes also accept ambisonic layouts: order N has (N + 1)² channels, with optional `+mono` or `+stereo` channels appended (up to 64 channels total).
+For example, `ambisonic 0` has one channel, `ambisonic 1+mono` has five, and `ambisonic 2+stereo` has eleven.
+`pan=ambisonic 2|c8=c1` routes the right input to the last of nine output channels. Unassigned channels stay silent; this supports PCM routing without ambisonic layout metadata.
 Stereo layouts also accept `0x3` and `FL+FR`. Explicit counts with speaker lists, such as `2 channels (FL+FR)` and `3 channels (FL+FR+FC)`, accept named or numbered assignments and leave unassigned outputs silent. The count must match the speaker list. `pan=5.1|FC=c1|LFE=c0` routes
 stereo into center and LFE; unassigned speakers stay silent. Empty equation fields
 between or after assignments are ignored, so `pan=stereo|c0=c0||c1=c1` preserves

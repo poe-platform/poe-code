@@ -10,16 +10,20 @@ const silence = left.map(() => 0);
 
 // PCM samples and invalid-channel statuses checked against native FFmpeg 7.0.2.
 for (const [layout, count] of [
-  ["ambisonic 1", 4], ["ambisonic 1+stereo", 6], ["4C", 4], ["6C", 6]
+  ["ambisonic 0", 1], ["ambisonic 0+mono", 2], ["ambisonic 0+stereo", 3],
+  ["ambisonic 1", 4], ["ambisonic 1+mono", 5], ["ambisonic 1+stereo", 6],
+  ["ambisonic 2", 9], ["ambisonic 2+mono", 10], ["ambisonic 2+stereo", 11],
+  ["ambisonic 7", 64], ["4C", 4], ["6C", 6], ["9C", 9]
 ] as const) {
   for (const [equations, expected, exitCode] of [
     ["c0=c1", [right, ...Array.from({ length: count - 1 }, () => silence)], 0],
+    [`c${count - 1}=c1`, [...Array.from({ length: count - 1 }, () => silence), right], 0],
     [`c${count - 1}=c0`, [...Array.from({ length: count - 1 }, () => silence), left], 0],
     ["c0=0.5*c1", [[16384, -1, -359, 3031, 1066, -4096], ...Array.from({ length: count - 1 }, () => silence)], 0],
     [`c${count}=c0`, undefined, 234]
   ] as const) {
     for (const complex of [false, true]) {
-      it(`routes first-order ambisonic pan (${layout}|${equations}, graph=${complex})`, async () => {
+      it(`routes ambisonic pan (${layout}|${equations}, graph=${complex})`, async () => {
         const volume = Volume.fromJSON({ "/out.pcm": "KEEP" });
         volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000,
           channels: [left, right].map(samples => Float64Array.from(samples, sample => sample / 32768)) }));
@@ -51,4 +55,24 @@ for (const [layout, count] of [
       });
     }
   }
+}
+
+for (const layout of ["ambisonic 7+mono", "ambisonic 8", "ambisonic -1", "ambisonic 1.5", "ambisonic 2+mono+stereo"]) {
+  it(`rejects unsupported ambisonic layout without replacing output: ${layout}`, async () => {
+    const volume = Volume.fromJSON({ "/out.pcm": "KEEP" });
+    volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000,
+      channels: [left, right].map(samples => Float64Array.from(samples, sample => sample / 32768)) }));
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "error", "-y", "-i", "/in.wav", "-af", `pan=${layout}|c0=c1`, "-f", "s16le", "/out.pcm"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} }
+    } as never);
+    assert.equal(result.exitCode, 1);
+    assert.equal(volume.readFileSync("/out.pcm", "utf8"), "KEEP");
+  });
 }

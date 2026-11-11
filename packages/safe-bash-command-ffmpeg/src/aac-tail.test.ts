@@ -33,8 +33,10 @@ for (const sync of [false, true]) {
       if (sync) {
         assert.equal(evalSyncFfmpeg(args, undefined,
           path => volume.existsSync(path) ? volume.readFileSync(path) as Buffer : undefined,
-          (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), "");
-      } else {
+          (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), test.output.length ? undefined : "");
+        if (test.output.length) assert.equal(volume.existsSync("/out.pcm"), false);
+      }
+      if (!sync || test.output.length) {
         let stderr = "";
         const result = await createFfmpegCommand().execute({
           args, cwd: "/", env: {}, signal: new AbortController().signal,

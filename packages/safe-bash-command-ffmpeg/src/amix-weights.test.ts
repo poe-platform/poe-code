@@ -56,3 +56,42 @@ for (const [weights, normalize, expected] of [
     assert.deepEqual(Array.from(audio.channelData[0]!, sample => sample * 32768), Array(2048).fill(expected));
   });
 }
+
+// Native FFmpeg 7.0.2 output, including the longer first input's tail.
+for (const [weights, expected] of [
+  ["x1", "43fd21037bfc0704000000000000"],
+  ["0 1", "43fd21037bfc0704000000000000"],
+  ["1 abc", "e9032df8bd0ba70feb137917b3e2"],
+  ["1 0", "e9032df8bd0ba70feb137917b3e2"],
+  ["abc", "0000000000000000000000000000"],
+  ["bad", "0000000000000000000000000000"],
+  ["x", "0000000000000000000000000000"],
+  ["+x1", "0000000000000000000000000000"],
+  ["dB1", "0000000000000000000000000000"],
+  ["0 0", "0000000000000000000000000000"],
+  ["1x2", "7aff7aff9101e707a406d3073bf6"],
+  ["1 2", "7aff7aff9101e707a406d3073bf6"]
+] as const) {
+  it(`matches native raw PCM for amix weights=${JSON.stringify(weights)}`, async () => {
+    const volume = new Volume();
+    volume.writeFileSync("/a.pcm", Buffer.from("e9032df8bd0ba70feb137917b3e2", "hex"));
+    volume.writeFileSync("/b.pcm", Buffer.from("43fd21037bfc0704", "hex"));
+    const output: Uint8Array[] = [];
+    const errors: Uint8Array[] = [];
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "error", "-f", "s16le", "-ar", "8000", "-ac", "1", "-i", "/a.pcm",
+        "-f", "s16le", "-ar", "8000", "-ac", "1", "-i", "/b.pcm", "-filter_complex",
+        `[0:a][1:a]amix=weights=${weights}[o]`, "-map", "[o]", "-f", "s16le", "pipe:1"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(),
+      stdout: { async write(bytes: Uint8Array) { output.push(bytes); } },
+      stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+    assert.equal(Buffer.concat(output).toString("hex"), expected);
+  });
+}

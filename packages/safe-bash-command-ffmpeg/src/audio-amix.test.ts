@@ -125,7 +125,7 @@ for (const [filter, runs] of [
 }
 
 for (const filter of ["amix=inputs=3", "amix=duration=invalid", "amix=normalize=maybe",
-  "amix=dropout_transition=-1", "amix=weights=bad", "amix=unknown=1"]) {
+  "amix=dropout_transition=-1", "amix=unknown=1"]) {
   it(`rejects ${filter} without replacing output`, async () => {
     const { result, volume } = await mix(filter, a, b);
     assert.notEqual(result.exitCode, 0);

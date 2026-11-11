@@ -195,7 +195,13 @@ function parseWeights(source: string, count: number): number[] {
       } else if (character === "." && !fraction && !hexInteger) fraction = true;
       else break;
     }
-    if (!digits) throw new Error("amix: invalid weights");
+    if (!digits) {
+      // Failed av_strtod conversion returns zero without consuming input;
+      // amix then skips one character before reading the next weight.
+      weights.push(0);
+      offset = start + 1;
+      continue;
+    }
     if (hexadecimal) {
       value /= 16 ** fractionDigits;
       if (source[numberStart] === "-") value = -value;

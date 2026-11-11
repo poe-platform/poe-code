@@ -34,6 +34,7 @@ async function mix(command: string, mixer = "amix", channels = 1) {
 for (const [command, expected] of [
   ["0.15 amix normalize 0", "fdc6a160022d680b"],
   ["0.15 amix weights 0|1", "3c191f8c55abd046"],
+  ["0.15 amix weights x1", "3c191f8c55abd046"],
   ["1 amix normalize 0", "e2cef1367f969d5b"],
   ["0.15 amix normalize nope", "e2cef1367f969d5b"],
   ["0.15 amix inputs 3", "e2cef1367f969d5b"],

@@ -4497,7 +4497,7 @@ async function applyVideoFilterChain(
       if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       const expr = named.e ?? named.expr ?? positional[0] ?? "1";
       const variables = {
-        pict_type: 0, I: 1, P: 2, B: 3,
+        pos: NaN, pict_type: 0, I: 1, P: 2, B: 3,
         interlace_type: NaN, PROGRESSIVE: 0, TOPFIRST: 1, BOTTOMFIRST: 2,
         n: 0, t: NaN, pts: NaN, TB: 1 / timescale, start_pts: NaN, key: 0, selected_n: 0, scene: NaN,
         prev_selected_n: NaN, prev_selected_pts: NaN, prev_selected_t: NaN,
@@ -4528,6 +4528,7 @@ async function applyVideoFilterChain(
           variables.pts = Math.round(f.ptsSeconds * timescale);
           if (Number.isNaN(variables.start_pts)) variables.start_pts = variables.pts;
           variables.key = Number(f.keyframe);
+          variables.pos = f.offset ?? NaN;
           variables.pict_type = f.pictureType ?? 0;
           variables.interlace_type = f.interlaced ? (f.topFieldFirst ? 1 : 2) : 0;
           const selected = parseFilterExpression(expr, "select", variables, undefined, registers) !== 0;

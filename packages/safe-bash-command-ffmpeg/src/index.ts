@@ -1,3 +1,4 @@
+import { parseImageSize } from "./image-size.js";
 import { hqdn3d } from "./hqdn3d.js";
 import { unsharp } from "./unsharp.js";
 import { bilateral } from "./bilateral.js";
@@ -5025,14 +5026,11 @@ async function applyVideoFilterChain(
         if (!key) throw new Error("tile: too many positional options");
         named[key] ??= value;
       }
-      const dimensions = (named.layout ?? "6x5").toLowerCase().split("x");
-      if (dimensions.length !== 2 || dimensions.some(value =>
-        !value || [...value].some(char => char < "0" || char > "9") ||
-        !Number.isSafeInteger(Number(value)) || Number(value) < 1 || Number(value) > 2147483647)) {
+      const dimensions = parseImageSize(named.layout ?? "6x5");
+      if (!dimensions) {
         throw new Error("tile: layout must contain two positive integer dimensions");
       }
-      const cols = Number(dimensions[0]);
-      const rows = Number(dimensions[1]);
+      const [cols, rows] = dimensions;
       if (cols * rows > 2147483647) throw new Error("tile: layout has too many cells");
       const integerOption = (key: string, max: number): number => {
         const value = parseFilterExpression(named[key] ?? "0", `tile: ${key}`, {

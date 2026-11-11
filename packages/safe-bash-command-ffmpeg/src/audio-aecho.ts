@@ -35,7 +35,7 @@ export async function echoAudio(
     }
     if (!key || !Object.hasOwn(options, key)) throw new Error(`aecho: unsupported option ${key}`);
     if (key === "in_gain" || key === "out_gain") {
-      const gain = parseFilterExpression(value, "aecho", { min: 0, max: 1, default: key === "in_gain" ? 0.6 : 0.3 }, undefined, new Float64Array(10));
+      const gain = parseFilterExpression(value, "aecho", { PI: Math.PI, E: Math.E, none: 0, all: -1, min: 0, max: 1, default: key === "in_gain" ? 0.6 : 0.3 }, undefined, new Float64Array(10));
       if (!Number.isFinite(gain) || gain < 0 || gain > 1) throw new Error("aecho: invalid gain");
       options[key] = gain;
     } else {

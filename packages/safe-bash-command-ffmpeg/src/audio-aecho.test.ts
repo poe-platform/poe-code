@@ -103,6 +103,14 @@ for (const [filter, frames, left, right] of [
 
 // Numeric gain options expose their own AVOption bounds and default.
 for (const [filter, expected] of [
+  ["aecho=PI/4:1:0.25:0.5", "aecho=0.7853981633974483:1:0.25:0.5"],
+  ["aecho=E/4:1:0.25:0.5", "aecho=0.6795704571147613:1:0.25:0.5"],
+  ["aecho=none:1:0.25:0.5", "aecho=0:1:0.25:0.5"],
+  ["aecho=all+1:1:0.25:0.5", "aecho=0:1:0.25:0.5"],
+  ["aecho=in_gain=1:out_gain=PI/4", "aecho=1:0.7853981633974483"],
+  ["aecho=in_gain=1:out_gain=E/4", "aecho=1:0.6795704571147613"],
+  ["aecho=in_gain=1:out_gain=none", "aecho=1:0"],
+  ["aecho=in_gain=1:out_gain=all+1", "aecho=1:0"],
   ["aecho=in_gain=default", "aecho"],
   ["aecho=out_gain=default", "aecho"],
   ["aecho=default:default", "aecho"],
@@ -288,6 +296,10 @@ for (const [filter, exitCode, output] of [
   ["aecho=foo=1", 8, "4b454550"],
   ["aecho=2:1:1:0.5", 222, "4b454550"],
   ["aecho=in_gain=-1", 222, "4b454550"],
+  ["aecho=in_gain=PI", 222, "4b454550"],
+  ["aecho=out_gain=E", 222, "4b454550"],
+  ["aecho=in_gain=all", 222, "4b454550"],
+  ["aecho=out_gain=all", 222, "4b454550"],
   ["aecho=in_gain=min-0.1", 222, "4b454550"],
   ["aecho=out_gain=max+0.1", 222, "4b454550"],
   ["aecho=out_gain=1.1", 222, "4b454550"],

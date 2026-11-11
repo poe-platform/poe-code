@@ -69,7 +69,7 @@ export function parseOrderedDither(argument: string) {
             let token = nextToken();
             if (token === ",") token = nextToken();
             supplied.push(token.toLowerCase().startsWith("0x") ? Number.parseInt(token, 16) : Number.parseFloat(token) || 0);
-        } while (position < argument.length && supplied.length < 5);
+        } while (position < argument.length && supplied.length < 6);
     }
     if (supplied.some(value => !Number.isFinite(value) || value < 0 || value > Number.MAX_SAFE_INTEGER / map.divisor))
         throw new Error(`invalid ordered-dither levels '${argument}'`);

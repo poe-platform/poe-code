@@ -4,6 +4,30 @@ import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js"
 
 // ImageMagick 7.1.2-31 Q16-HDRI, C,M,Y,K,A or R,G,B,A bytes at depth 8.
 for (const mode of ["command", "buffered", "retained", "sync"] as const) {
+    // ImageMagick 7.1.2-35 Q16-HDRI: default count followed by C,M,Y,K,A overrides.
+    it.each([
+        { levels: "2,3,4,5,6,7", expected: "808080808055" },
+        { levels: "2,3,4,5,6", expected: "ff00ff00ff00" },
+        { levels: "7", expected: "808080808055" },
+    ])(`${mode}: CMYKA alpha ordered dither levels $levels`, async ({ levels, expected }) => {
+        const fs = new MemoryFileSystem();
+        const files = new Map<string, Uint8Array>();
+        const args = ["-size", "3x2", "xc:#33559977", "-colorspace", "CMYK", "-channel", "Default",
+            "-ordered-dither", `o4x4,${levels}`, "-channel", "A", "-separate", "-depth", "8", "gray:out"];
+        let stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args, cwd: "/", env: {}, fs,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        }) : mode === "sync" ? runMagickCliSync(args, files)
+            : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        const bytes = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("out")!;
+        expect(Buffer.from(bytes).toString("hex")).toBe(expected);
+    });
+
     it.each([
         { channel: [], operation: ["-ordered-dither", "o2x2,3,4,5,6,7"], output: "cmyka", expected: "aa00668080" },
         { channel: ["-channel", "K,A"], operation: ["-ordered-dither", "o2x2,3,4,5,6,7"], output: "cmyka", expected: "ac006c5580" },

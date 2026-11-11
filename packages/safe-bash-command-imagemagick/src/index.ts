@@ -9748,7 +9748,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             }
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
-            const evaluateSamples = image.evaluateSamples?.slice() ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);
+            const hueSamples = image.magickColorspace === "DisplayP3" ? image.hueSamples?.slice() : undefined;
+            const evaluateSamples = (hueSamples ? Float64Array.from(hueSamples, value => value * 255) : image.evaluateSamples?.slice()) ?? Float64Array.from(image.data16 ?? image.data, value => image.data16 ? value / 257 : value);
             const quantum = data16 ? 65535 : 255;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) { signal?.throwIfAborted(); yield; }
@@ -9758,6 +9759,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     // Q16-HDRI stores float samples before rounding to output depth.
                     const value = Math.fround(rgb[channel]! * 65535);
                     evaluateSamples[idx + channel] = value / 257;
+                    if (hueSamples) hueSamples[idx + channel] = value / 65535;
                     const sample = Math.max(0, Math.min(quantum, Math.round(data16 ? value : Math.fround(value / 257))));
                     if (data16) data16[idx + channel] = sample;
                     out[idx + channel] = data16 ? Math.round(sample / 257) : sample;
@@ -9777,7 +9779,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 for (let i = 0; i < bytes.length; i += 3) bytes.set(modulateColor(bytes[i]!, bytes[i + 1]!, bytes[i + 2]!), i);
                 pngPalette = { ...pngPalette, bytes };
             }
-            return { ...image, data: out, evaluateSamples, ...(data16 ? { data16 } : {}), ...(indexedColors ? { indexedColors } : {}), ...(pngPalette ? { pngPalette } : {}) };
+            return { ...image, data: out, evaluateSamples, ...(hueSamples ? { hueSamples } : {}), ...(data16 ? { data16 } : {}), ...(indexedColors ? { indexedColors } : {}), ...(pngPalette ? { pngPalette } : {}) };
         };
     } else if (token === "-brightness-contrast") {
         highDepth = true;

@@ -16,14 +16,15 @@ export async function blackdetect(
     const name = separator < 0 ? ["d", "pic_th", "pix_th"][index] : part.slice(0, separator).trim();
     const key = name === "black_min_duration" ? "d" : name === "picture_black_ratio_th" ? "pic_th"
       : name === "pixel_black_th" ? "pix_th" : name;
-    if (key !== "d" && key !== "pic_th" && key !== "pix_th") throw new Error(`blackdetect: unsupported option ${name}`);
-    const maximum = key === "d" ? Number.MAX_VALUE : 1;
+    if (key !== "d" && key !== "pic_th" && key !== "pix_th" && key !== "threads") throw new Error(`blackdetect: unsupported option ${name}`);
+    const maximum = key === "d" ? Number.MAX_VALUE : key === "threads" ? 2147483647 : 1;
     const value = parseFilterExpression(separator < 0 ? part : part.slice(separator + 1), "blackdetect", {
-      default: key === "d" ? 2 : key === "pic_th" ? 0.98 : 0.1,
+      default: key === "d" ? 2 : key === "pic_th" ? 0.98 : key === "threads" ? 0 : 0.1,
       min: 0, max: maximum, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
     });
     if (!Number.isFinite(value) || value < 0 || value > maximum) throw new Error(`blackdetect: invalid ${key}`);
-    options[key] = value;
+    // Thread scheduling does not change software frame analysis.
+    if (key !== "threads") options[key] = value;
   }
 
   const minimum = Math.trunc(options.d * diagnostics.timescale);
@@ -40,7 +41,8 @@ export async function blackdetect(
     const native = source && source.rgba === frame.data && source.width === frame.width && source.height === frame.height &&
       [0, 4, 5, 12, 13, 14, 29, 49, 68].includes(source.format) ? source : undefined;
     const depth = native?.format === 68 ? 10 : native && [29, 49].includes(native.format) ? 16 : 8;
-    const full = native && (native.fullRange || [12, 13, 14].includes(native.format));
+    const full = native ? native.fullRange || [12, 13, 14].includes(native.format)
+      : diagnostics.pixelFormat === "gray" || diagnostics.pixelFormat === "gray8";
     const threshold = Math.trunc(full ? options.pix_th * (2 ** depth - 1)
       : (16 + options.pix_th * 219) * 2 ** (depth - 8));
     const view = native && depth > 8 ? new DataView(native.pixels.buffer, native.pixels.byteOffset, native.pixels.byteLength) : undefined;

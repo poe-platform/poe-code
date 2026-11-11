@@ -6969,9 +6969,12 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 image = { ...image, ticksPerSecond: timing.ticksPerSecond, delayTicks: timing.delayTicks, [magickInput]: { ...source, ticksPerSecond: timing.ticksPerSecond, delayTicks: timing.delayTicks },
                     delay: (image.delay ?? [0]).map(current => parseDelayOption(delay, current).milliseconds) };
             }
-            if (state.label !== undefined) {
-                const label = yield* formatMagickPropertyStringSteps(state.label, image, () => image, { filePath: baseToken });
-                image = { ...image, properties: { ...image.properties, label } };
+            for (const key of ["comment", "label"] as const) {
+                const value = state[key];
+                if (value !== undefined) {
+                    const expanded = yield* formatMagickPropertyStringSteps(value, image, () => image, { filePath: baseToken });
+                    image = { ...image, properties: { ...image.properties, [key]: expanded } };
+                }
             }
             images.push(inlineGeom ? yield* applyInlineReadModifierSteps(image, inlineGeom, baseToken, state.kernel, state.resizeFilter, extract !== undefined, analysis) : image);
         }
@@ -16990,9 +16993,12 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
          if (state.compression !== undefined) savedImage = { ...savedImage, [magickInput]: { ...savedImage[magickInput], compression: state.compression } };
          if (state.page !== undefined) savedImage = { ...savedImage, virtualCanvas: state.page };
          if (state.densityGeometry !== undefined) savedImage = applyMagickDensity(savedImage, state.densityGeometry);
-         if (state.label !== undefined) {
-             const label = await formatRetainedIdentify(state.label, savedImage, { filePath: baseToken }, async () => ({ image: savedImage, storage: backend.storage }), signal);
-             savedImage = { ...savedImage, properties: { ...savedImage.properties, label } };
+         for (const key of ["comment", "label"] as const) {
+             const value = state[key];
+             if (value !== undefined) {
+                 const expanded = await formatRetainedIdentify(value, savedImage, { filePath: baseToken }, async () => ({ image: savedImage, storage: backend.storage }), signal);
+                 savedImage = { ...savedImage, properties: { ...savedImage.properties, [key]: expanded } };
+             }
          }
          if (state.delay !== undefined) {
              const delay = state.delay.value, original = savedImage;

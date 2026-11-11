@@ -656,6 +656,7 @@ function parseDelayOption(value: string, current: number): ReturnType<typeof par
 }
 
 interface MagickState {
+  monitor?: boolean;
   blackPointCompensation?: boolean;
   respectParentheses?: boolean;
   extract?: string;
@@ -11320,6 +11321,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         if (t === "-regard-warnings" || t === "+regard-warnings") { analysis.regardWarnings = t === "-regard-warnings"; i++; continue; }
         if (t === "(") {
             let depth = 1;
+        if (t === "-monitor" || t === "+monitor") { state.monitor = t === "-monitor"; i++; continue; }
             let j = i + 1;
             while (j < tokens.length && depth > 0) {
                 if (++cooperativeWork % 65536 === 0)
@@ -12685,6 +12687,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-crop") {
             const geom = tokens[++i] ?? "100%";
+                if (state.monitor && t === "-resize") analysis.progress += `resize image[${(im as MagickImage)[magickInput]?.filePath ?? ""}]: 100% complete\n`;
             const nextStack: RgbaImage[] = [];
             for (const im of stack) {
                 if (++cooperativeWork % 65536 === 0)
@@ -13588,14 +13591,14 @@ class UnrecognizedConvertOptionError extends Error {}
 function createConvertAnalysis() {
     let warnings = "";
     return {
-        text: "", errors: "", bytes: [] as Uint8Array[], quiet: false, regardWarnings: false, boundsWarning: false, unknownPropertyWarning: false,
+        text: "", errors: "", progress: "", bytes: [] as Uint8Array[], quiet: false, regardWarnings: false, boundsWarning: false, unknownPropertyWarning: false,
         get warnings() { return warnings; },
         set warnings(value: string) { if (!this.quiet) warnings = value; }
     };
 }
 
 function combineConvertOutput(result: ImageMagickCliResult, analysis: ReturnType<typeof createConvertAnalysis>): ImageMagickCliResult {
-    const stdout = analysis.text + result.stdout, stderr = analysis.warnings + analysis.errors + result.stderr;
+    const stdout = analysis.text + result.stdout, stderr = analysis.progress + analysis.warnings + analysis.errors + result.stderr;
     if (analysis.errors || analysis.regardWarnings && (analysis.boundsWarning || analysis.unknownPropertyWarning)) result = { ...result, exitCode: 1 };
     if (!analysis.bytes.length) return { ...result, stdout, stderr };
     const chunks = [...analysis.bytes, ...(result.stdoutBytes ? [result.stdoutBytes] : stdout ? [new TextEncoder().encode(stdout)] : [])];
@@ -14229,6 +14232,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async stack => { analysis.quiet = token === "-quiet"; return stack; });
             continue;
         }
+        if (!operandsOnly && (token === "-monitor" || token === "+monitor")) { state.monitor = token === "-monitor"; continue; }
         if (!operandsOnly && (token === "-regard-warnings" || token === "+regard-warnings")) {
             stackStep(async stack => { analysis.regardWarnings = token === "-regard-warnings"; return stack; });
             continue;
@@ -16532,11 +16536,18 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 validateMagickTransformGeometry(expanded, token);
                 const options = magickResizeOptions(image, expanded, kernel ?? (thumbnail ? "lanczossharp" : undefined));
-                return resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings, magickSampleOffset(image, optionProperties?.["sample:offset"]), false, images.length, channels);
+                const resized = await resizeStoredMagickImage(image, backend, options, signal, thumbnail, token === "-sample", token === "-scale", settings, magickSampleOffset(image, optionProperties?.["sample:offset"]), false, images.length, channels);
+                if (monitor && token === "-resize") {
+                    const progress = `resize image[${(image as StoredMagickImage)[magickInput]?.filePath ?? ""}]: 100% complete\n`;
+                    if (input.stderr) await writeIdentifyText(input.stderr, progress, signal);
+                    else analysis.progress += progress;
+                }
+                return resized;
             });
         } else if (!operandsOnly && token === "-sort-pixels") {
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+            const monitor = state.monitor;
                 return stack;
             });
             const intensity = state.intensity;

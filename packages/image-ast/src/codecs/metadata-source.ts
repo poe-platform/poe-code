@@ -1,3 +1,4 @@
+import { isWbmpBytes, readWbmpHeader } from "./wbmp-input.js";
 import { isFitsBytes, readFitsFromSource } from "./fits-input.js";
 import { isSixelBytes, readSixelFromSource } from "./sixel-input.js";
 import { bmpProfileRange } from "./bmp-profile.js";
@@ -100,7 +101,8 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
   while(!next.done)next=steps.next(await reader.at(next.value));
   const {header:{format,width,height,maxval,channels,hasAlpha,cmyk,properties},pages}=next.value;
   metadata={...(properties?{properties}:{}),format,width,height,space:cmyk?"cmyk":channels>=3?"srgb":"b-w",channels,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",density:72,hasAlpha,size:source.size,...(pages>1?{pages}:{})};
- } else {
+ } else if(isWbmpBytes(prefix))metadata=readWbmpHeader(prefix,source.size).metadata;
+ else {
   const length=Math.min(1029,source.size),head=await source.read(0,length,{signal});signal.throwIfAborted();
   if(!(head instanceof Uint8Array)||head.length!==length)throw new Error("Truncated image metadata source");
   if(!isSvgBytes(head)){if(isPdfBytes(head))throw new UnsupportedStoredResource();return rejectUnknownImage(source,signal);}

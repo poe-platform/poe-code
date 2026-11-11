@@ -1,3 +1,4 @@
+import { isWbmpBytes, readWbmpHeader, decodeWbmpImage } from "./wbmp-input.js";
 import { encodeFitsImage } from "./fits-output.js";
 import { isFitsBytes, readFitsHeader, decodeFitsImage } from "./fits-input.js";
 import { encodeSixelImage } from "./sixel-output.js";
@@ -118,6 +119,7 @@ export function detectImageFormat(bytes: Uint8Array): ImageFormat {
   if (isTiffBytes(bytes)) return "tiff";
   if (isPdfBytes(bytes)) return "pdf";
   if (isSvgBytes(bytes)) return "svg";
+  if (isWbmpBytes(bytes)) return "wbmp";
   throw new Error("Input buffer contains unsupported image format");
 }
 
@@ -204,6 +206,7 @@ export function readImageMetadata(
     case "tga":
       meta = readTgaMetadata(bytes);
       break;
+    case "wbmp": meta = readWbmpHeader(bytes).metadata; break;
     case "xbm": meta = readXbmImage(bytes, options, true); break;
     case "xpm": meta = readXpmImage(bytes, options, true); break;
     case "txt":
@@ -451,6 +454,7 @@ export function decodeImage(
     case "tga":
       decoded = decodeTgaImage(bytes, options);
       break;
+    case "wbmp": decoded = decodeWbmpImage(bytes, options); break;
     case "xbm": decoded = readXbmImage(bytes, options); break;
     case "xpm": decoded = readXpmImage(bytes, options); break;
     case "txt":

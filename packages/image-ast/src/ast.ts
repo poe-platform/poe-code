@@ -13,6 +13,7 @@ export type ImageFormat =
   | "xpm"
   | "xwd"
   | "tga"
+  | "wbmp"
   | "xbm"
   | "txt"
   | "png"

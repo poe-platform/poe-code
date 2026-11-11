@@ -1,3 +1,4 @@
+import { isWbmpBytes, decodeWbmpToStorage } from "./wbmp-input.js";
 import { isFitsBytes, decodeFitsToStorage } from "./fits-input.js";
 import { isSixelBytes, decodeSixelToStorage } from "./sixel-input.js";
 import { isPsdBytes, decodePsdToStorage } from "./psd-input.js";
@@ -64,6 +65,7 @@ export async function storedImageDecoder(source:ImageByteSource,signal:AbortSign
  if(isIcoBytes(prefix))return decodeIcoToStorage;
  const decoder=await detectHeifFormatFromSource(source,signal)?decodeHeifToStorage:isWebpBytes(prefix)?decodeWebpToStorage:isJpegBytes(prefix)?decodeJpegToStorage:isPngBytes(prefix)?decodePngToStorage:isNetpbmBytes(prefix)?decodeNetpbmToStorage:isBmpBytes(prefix)?decodeBmpToStorage:isTiffBytes(prefix)?decodeTiffToStorage:isGifBytes(prefix)?decodeGifToStorage:isMngBytes(prefix)?decodeMngToStorage:undefined;
  if(decoder)return decoder;
+ if(isWbmpBytes(prefix))return decodeWbmpToStorage;
  const size=Math.min(1029,source.size),header=await source.read(0,size,{signal});signal.throwIfAborted();
  if(!(header instanceof Uint8Array)||header.length!==size)throw new Error("Truncated image source");
  if(isSvgBytes(header))return decodeSvgSourceToStorage;

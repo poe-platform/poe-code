@@ -10,6 +10,8 @@ export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "has
     const hue = !cmyk && !!image.magickColorspace && (image.hueSamples !== undefined || image.storedHueSamples !== undefined);
     const highDepth = !!(image.data16 || image.storedData16), maximum = highDepth ? 65535 : 255;
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha, channels.k] : [true, true, true, image.hasAlpha, true];
+    // Gray's RGB backing samples share the single red/gray channel selection.
+    if (image.space === "b-w" || image.space === "grey16") mask[1] = mask[2] = mask[0];
     const half = radius > 0 ? Math.ceil(radius) : 2;
     if (!Number.isFinite(half) || half > 5000) throw new Error("Edge radius exceeds 5000");
     const { width, height } = image, area = (2 * half + 1) ** 2;

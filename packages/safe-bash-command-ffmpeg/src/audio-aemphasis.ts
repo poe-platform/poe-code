@@ -55,7 +55,7 @@ export async function emphasizeAudio(
     if (name === "enable") {
       enable = raw;
       try {
-        parseFilterExpression(enable, "aemphasis enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, NAN: NaN, INF: Infinity, PI: Math.PI, E: Math.E }, undefined, new Float64Array(10), []);
+        parseFilterExpression(enable, "aemphasis enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, NAN: NaN, nan: NaN, INF: Infinity, inf: Infinity, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10), []);
       } catch { throw new Error("aemphasis: invalid enable expression"); }
       continue;
     }
@@ -86,7 +86,7 @@ export async function emphasizeAudio(
   for (const [n, frame] of frames.entries()) {
     if (n % 1024 === 0) { budget.checkCpu(); await yieldTurn(signal); signal?.throwIfAborted(); }
     const variables = { n, t: frame.pts / sampleRate,
-      pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0, h: 0, NAN: NaN, INF: Infinity, PI: Math.PI, E: Math.E };
+      pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0, h: 0, NAN: NaN, nan: NaN, INF: Infinity, inf: Infinity, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 };
     while (nextEnableCommand < commands.length && commands[nextEnableCommand]!.sample <= frame.start) {
       const command = commands[nextEnableCommand++]!;
       if (command.action !== "enable") continue;

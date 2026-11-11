@@ -12840,6 +12840,7 @@ if (t === "-intent" || t === "+intent") {
             if (k === "option:magnify:method") state.magnifyMethod = parseMagnifyMethod(v);
             if (k === "option:size") applyMagickReadSetting(["-size", v], state, 0);
             if (k === "option:filter") applyMagickReadSetting(["-filter", v], state, 0);
+            if (k === "option:compose") applyMagickReadSetting(["-compose", v], state, 0);
             if (k === "option:fuzz") applyMagickReadSetting(["-fuzz", v], state, 0);
             if (k === "option:deskew:auto-crop") state.deskewAutoCrop = v.toLowerCase();
             if (k === "option:connected-components:verbose") {
@@ -13256,7 +13257,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t === "-background" || (t === "-set" && tokens[setting - 1]?.toLowerCase() === "option:background")) stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, backgroundColor: state.background }; });
             if (t === "-interpolate" || t === "+interpolate" || (t === "-set" || t === "-define") && state.optionProperties?.interpolate !== undefined) stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...image[magickInput], interpolation: state.interpolation } }; });
             if (t === "-interlace" || t === "+interlace" || state.interlace !== previousInterlace) stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace! } }; });
-            if (t === "-compose" || t === "+compose") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, properties: { ...image.properties, compose: state.composeRaw } }; });
+            if (t === "-compose" || t === "+compose" || (t === "-set" && tokens[setting - 1]?.toLowerCase() === "option:compose")) stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, properties: { ...image.properties, compose: state.composeRaw } }; });
             if (t === "-compress") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...image[magickInput], compression: state.compression! } }; });
             if (t === "-quality" || (t === "-set" && tokens[setting - 1]?.toLowerCase() === "option:quality")) stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, quality: state.quality }; });
             if (t === "-gravity" || t === "+gravity") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, gravity: state.gravity, placementGravity: undefined }; });
@@ -16816,7 +16817,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const interlace = state.interlace!;
                 steps.push(async image => image ? { ...image, [magickInput]: { ...(image as StoredMagickImage)[magickInput], interlace } } : undefined);
             }
-            if (token === "-compose" || token === "+compose") {
+            if (token === "-compose" || token === "+compose" || (token === "-set" && tokens[setting - 1]?.toLowerCase() === "option:compose")) {
                 const compose = state.composeRaw;
                 steps.push(async image => image ? { ...image, properties: { ...image.properties, compose } } : undefined);
             }

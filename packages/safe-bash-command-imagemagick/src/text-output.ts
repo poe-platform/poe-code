@@ -57,7 +57,7 @@ export function histogramLine(key: number | bigint, count: number, hasAlpha: boo
     if (hasAlpha) values.push(String(Number((samples[3]! / maximum).toPrecision(6))));
     const name = colorspace === "srgb" && !percent && !hasAlpha
         ? histogramColorNames[(Number(values[0]) << 16) | (Number(values[1]) << 8) | Number(values[2])] : undefined;
-    return `${hasAlpha && !highDepth ? `  ${count}` : String(count).padStart(14)}: (${samples.map(value => formatSignificantMetric(value, precision)).join(",")}) #${samples.map(value => hex(value).padStart(highDepth ? 4 : 2, "0")).join("")} ${name ?? `${colorspace}${hasAlpha ? "a" : ""}(${values.join(",")})`}`;
+    return `${String(count).padStart(14)}: (${samples.map(value => formatSignificantMetric(value, precision)).join(",")}) #${samples.map(value => hex(value).padStart(highDepth ? 4 : 2, "0")).join("")} ${name ?? `${colorspace}${hasAlpha ? "a" : ""}(${values.join(",")})`}`;
 }
 export function hueHistogramPixel(values: readonly number[], hasAlpha: boolean, space: Parameters<typeof formatHuePixel>[1], samples: readonly number[] | undefined, depth: number, precision = 6): string {
     const channels = (samples ?? values.map(value => value / 65535)).slice(0, hasAlpha ? 4 : 3);

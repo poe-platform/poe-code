@@ -2404,7 +2404,7 @@ async function applyVideoFilterChain(
     // A final pixel conversion preserves frame counts and timestamps, so output limits can stop replay first.
     if (pending && name === "format" && filterIndex === filters.length - 1) {
       await materializePending(output);
-    } else if (pending && !["select", "trim", "null"].includes(name)) {
+    } else if (pending && !["select", "trim", "null", "metadata"].includes(name)) {
       // Keep replay lazy through filters that can discard frames or stop the source.
       if (!pendingBounded) throw new Error("loop: infinite replay requires a downstream trim before buffered filters");
       await materializePending();
@@ -2645,6 +2645,10 @@ async function applyVideoFilterChain(
           (index > 1 || index === 1 && positional[0]!.includes("=")))) {
         throw new Error("metadata: unsupported mode or option");
       }
+      if (pending && mode !== "print" && mode !== "4") {
+        if (!pendingBounded) throw new Error("loop: infinite replay requires a downstream trim before buffered filters");
+        await materializePending();
+      }
       if (named.enable !== undefined && current.length === 0) {
         parseFilterExpression(named.enable, "metadata enable", { n: 0, t: 0, w: 0, h: 0, pos: NaN, NAN: NaN, INF: Infinity });
       }
@@ -2697,21 +2701,35 @@ async function applyVideoFilterChain(
       }
       if (named.direct !== undefined) parseFilterBoolean(named.direct, "metadata: invalid direct");
       const file = named.file;
-      let report = "";
-      for (const [index, frame] of current.entries()) {
-        budget.checkCpu();
-        if (!enabled(frame, index) || !file && diagnostics.logLevel < 32) continue;
-        const entries = Object.entries(frame.filterMetadata ?? {}).filter(([key]) => !named.key || key === named.key);
-        if (!entries.length) continue;
-        const pts = Math.round(frame.ptsSeconds * diagnostics.timescale);
-        const header = `frame:${String(index).padEnd(4)} pts:${String(pts).padEnd(7)} pts_time:${Number(frame.ptsSeconds.toPrecision(6))}\n`;
-        const record = header + entries.map(([key, value]) => `${key}=${value}\n`).join("");
-        if (file) {
-          budget.allocateMemory(record.length * 2);
-          report += record;
-        } else await diagnostics.write(record);
+      const source = pending ?? current;
+      const metadataTimescale = timescale;
+      if (!pending) pendingBounded = true;
+      pending = (async function* () {
+        let report = "";
+        let index = 0;
+        for await (const frame of source) {
+          budget.checkCpu();
+          if (enabled(frame, index) && (file || diagnostics.logLevel >= 32)) {
+            const entries = Object.entries(frame.filterMetadata ?? {}).filter(([key]) => !named.key || key === named.key);
+            if (entries.length) {
+              const pts = Math.round(frame.ptsSeconds * metadataTimescale);
+              const header = `frame:${String(index).padEnd(4)} pts:${String(pts).padEnd(7)} pts_time:${Number(frame.ptsSeconds.toPrecision(6))}\n`;
+              const record = header + entries.map(([key, value]) => `${key}=${value}\n`).join("");
+              if (file) {
+                budget.allocateMemory(record.length * 2);
+                report += record;
+              } else await diagnostics.write(record);
+            }
+          }
+          index++;
+          yield frame;
+        }
+        if (file) await diagnostics.writeReport(file, report);
+      })();
+      if (file) {
+        if (!pendingBounded) throw new Error("loop: infinite replay requires a downstream trim before buffered filters");
+        await materializePending();
       }
-      if (file) await diagnostics.writeReport(file, report);
     } else if (name === "setdar" || name === "setsar") {
       let expression = "0";
       let maximum = "100";

@@ -120,3 +120,39 @@ for (const [filter, expected] of [["null", raw], ["select='eq(n,3)'", raw.subarr
     assert.deepEqual(output, expected);
   });
 }
+
+it("interleaves interval closures with metadata and reports the open interval after the last frame", async () => {
+  const input = Buffer.from([0, 0, 0, 0, 255, 255, 0, 255, 1, 1, 0, 0, 220, 220, 0, 0]);
+  for (const metadata of [",metadata=print", ""]) {
+    const volume = Volume.fromJSON({ "/in.raw": input });
+    const errors: Uint8Array[] = [];
+    const output: Uint8Array[] = [];
+    const result = await createFfmpegCommand().execute({
+      args: ["-hide_banner", "-nostats", "-v", "info", "-f", "rawvideo", "-pixel_format", "gray",
+        "-video_size", "2x1", "-framerate", "4", "-i", "in.raw", "-vf", `blackdetect=d=0:pix_th=0.01${metadata}`,
+        "-fps_mode", "passthrough", "-pix_fmt", "gray", "-f", "rawvideo", "pipe:1"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+        async stat(path: string) { return volume.statSync(path); }
+      }, stdin: (async function* () {})(),
+      stdout: { async write(bytes: Uint8Array) { output.push(bytes); } },
+      stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+    } as never);
+    const error = Buffer.concat(errors).toString();
+    assert.equal(result.exitCode, 0, error);
+    assert.deepEqual(Buffer.concat(output), input);
+    const expected = [
+      "frame:0    pts:0       pts_time:0", "lavfi.black_start=0",
+      "black_start:0 black_end:0.5 black_duration:0.5",
+      "frame:2    pts:2       pts_time:0.5", "lavfi.black_end=0.5",
+      "frame:4    pts:4       pts_time:1", "lavfi.black_start=1",
+      "black_start:1 black_end:1.5 black_duration:0.5",
+      "frame:6    pts:6       pts_time:1.5", "lavfi.black_end=1.5",
+      "frame:7    pts:7       pts_time:1.75", "lavfi.black_start=1.75",
+      "black_start:1.75 black_end:1.75 black_duration:0"
+    ];
+    assert.deepEqual(error.trimEnd().split("\n"), metadata ? expected : expected.filter(line => line.startsWith("black_start:")));
+  }
+});

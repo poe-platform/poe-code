@@ -724,7 +724,10 @@ Downstream `ashowinfo` reports packed float (`flt`) frames before output encodin
 `haas` applies the default stereo enhancer: the channel average plus a 2.05 ms
 delayed tap on the right and minus a 2.12 ms delayed tap on the left. It preserves
 the sample rate and frame count. Mono input is first mixed to stereo with
-1/√2 gain per channel. Named and positional options follow FFmpeg order:
+1/√2 gain per channel. Two-channel input follows its speaker labels: `FC+LFE`
+mixes the center into both stereo channels at 1/√2 gain and omits LFE;
+unsupported layouts such as `FR+FL` and `BL+BR` fail with status 234 and an empty
+output file. Named and positional options follow FFmpeg order:
 `level_in`, `level_out`, `side_gain`, `middle_source`, `middle_phase`,
 `left_delay`, `left_balance`, `left_gain`, `left_phase`,
 `right_delay`, `right_balance`, `right_gain`, `right_phase`.

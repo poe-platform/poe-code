@@ -17542,7 +17542,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredSampleFormat = "s16p";
                         panSampleFormat = "s16";
                       } else if (trimmed === "haas" || trimmed.startsWith("haas=")) {
-                        if (stretched.length > 2) {
+                        if (stretched.length === 2 && (
+                          !filteredChannelMask && filteredChannelNames?.some(name => name !== "") ||
+                          filteredChannelMask && ![3, 12, 0x60000000].includes(filteredChannelMask))) {
+                          throw new Error("haas: unsupported input channel layout");
+                        }
+                        if (stretched.length > 2 || stretched.length === 2 && filteredChannelMask === 12) {
                           if (!autoConversionFilters) throw new Error(audioConversionDisabled);
                           // Haas negotiates double-precision stereo; omit LFE without normalizing the mix.
                           const stereo = await panAudio(
@@ -20045,6 +20050,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 msg === "stereotools: unsupported input channel layout" ||
                 msg.startsWith("channelsplit: unsupported input channel order ") ||
                 msg === "channelsplit: matching input channel layout required" ||
+                msg === "haas: unsupported input channel layout" ||
                 msg === "crossfeed: unsupported input channel layout" ||
                 msg === "Padded dimensions cannot be smaller than input dimensions" ||
                 msg === "separatefields: height must be even" ||

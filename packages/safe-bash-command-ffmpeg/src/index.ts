@@ -1,3 +1,4 @@
+import { zoompan } from "./zoompan.js";
 import { imagePipeFrameEnd } from "./image-pipe.js";
 import { parseAudioSegment } from "./audio-asegment.js";
 import { createAudioTimestampTransform } from "./audio-clock.js";
@@ -2805,6 +2806,14 @@ async function applyVideoFilterChain(
         }
         await diagnostics.write(`[showinfo] n:${n} pts:${Math.round(frame.ptsSeconds * diagnostics.timescale)} pts_time:${Number(frame.ptsSeconds.toPrecision(6))} duration:${Math.round(frame.durationSeconds * diagnostics.timescale)} duration_time:${Number(frame.durationSeconds.toPrecision(6))} fmt:${format} s:${frame.width}x${frame.height} iskey:${Number(frame.keyframe)}${stats}\n`);
       }
+    } else if (name === "zoompan") {
+      const result = await zoompan(current, argStr, diagnostics.sar, budget, signal);
+      current = result.frames;
+      timescale = result.fps;
+      frameDuration = 1 / result.fps;
+      frameRateKnown = true;
+      frameRateScale = 1;
+      endTimeSeconds = undefined;
     } else if (name === "scale") {
       for (const key of Object.keys(named)) {
         if (!["w", "width", "h", "height", "s", "size", "flags", "force_original_aspect_ratio", "force_divisible_by"].includes(key)) {

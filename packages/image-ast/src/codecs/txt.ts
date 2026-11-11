@@ -42,7 +42,15 @@ function* txtSteps(size: number, page: number, options?: SharpInputOptions): Gen
     if (!metadata) throw new Error("Invalid TXT signature");
     const colon = line.indexOf(":"), open = line.indexOf("(", colon), close = line.indexOf(")", open);
     const coordinates = line.slice(0, colon).split(",").map(Number);
-    const values = line.slice(open + 1, close).split(",").map(value => value.trim() === "" ? NaN : Number(value));
+    const values = line.slice(open + 1, close).split(",").map(value => {
+      const token = value.trim(), percent = token.endsWith("%");
+      const number = (percent ? token.slice(0, -1) : token).trim();
+      if (number === "") return NaN;
+      const component = Number(number);
+      if (!percent) return component;
+      if (component < 0 || component > 100) return NaN;
+      return Math.trunc(component * (0.01 * maximum));
+    });
     if (colon < 0 || open < colon || close < open || coordinates.length !== 2 || coordinates[0] !== pixels % metadata.width || coordinates[1] !== Math.floor(pixels / metadata.width) || pixels >= metadata.width * metadata.height || values.length !== metadata.channels || values.some(value => !Number.isFinite(value) || value < 0 || value > maximum)) throw new Error("Invalid TXT pixel");
     if (index === page) {
       const r = values[0]!, g = metadata.channels < 3 ? r : values[1]!, b = metadata.channels < 3 ? r : values[2]!, a = metadata.hasAlpha ? values[values.length - 1]! : maximum;

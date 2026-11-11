@@ -375,6 +375,60 @@ for (const [first, second] of [["e\u0301", "é"], ["a", "a\u00ad"], ["a", "a\u20
  }
 }
 
+// Expected byte output checked against GNU coreutils comm 9.4 (en_US.utf8).
+for (const [left, right] of [
+ ["a", "a\0"],
+ ["a\0b", "ab"],
+ ["a\0z", "ab"],
+ ["a\0", "a\0\0"],
+ ["", "\0"],
+ ["\0a", "a"],
+ ["a\0b", "a\0c"],
+ ["a\0\0b", "a\0b"],
+]) {
+ test(`comm respects embedded NUL boundaries: ${JSON.stringify([left, right])}`, async () => {
+  for (const locale of ["en_US.utf8", "C"]) {
+   for (const reverse of [false, true]) {
+    const files = { "/a": `${left}\n`, "/b": `${right}\n` };
+    const args = reverse ? ["/b", "/a"] : ["/a", "/b"];
+    const env = { LC_ALL: locale };
+    for (const flags of [[], ["-12"], ["-123", "--total"]]) {
+     const result = await run([...flags, ...args], files, env);
+     const expected = flags.includes("--total") ? "1\t1\t0\ttotal\n"
+      : flags.includes("-12") ? ""
+      : reverse ? `\t${left}\n${right}\n` : `${left}\n\t${right}\n`;
+     assert.deepEqual(result.stdoutBytes, [...new TextEncoder().encode(expected)]);
+     assert.equal(result.stderr, "");
+     assert.equal(result.exitCode, 0);
+    }
+   }
+  }
+ });
+}
+
+test("comm compares all embedded NUL portions using the selected locale", async () => {
+ const result = await run(["--check-order", "--total", "/a", "/b"], {
+  "/a": "a\0alpha\na\0Beta\na\0Beta\0\n",
+  "/b": "a\0Beta\n",
+ }, { LC_ALL: "en_US.utf8" });
+ assert.deepEqual(result.stdoutBytes, [...new TextEncoder().encode("a\0alpha\n\t\ta\0Beta\na\0Beta\0\n2\t0\t1\ttotal\n")]);
+ assert.equal(result.stderr, "");
+ assert.equal(result.exitCode, 0);
+});
+
+for (const file of ["/a", "/b"]) {
+ test(`comm checks embedded NUL order in ${file}`, async () => {
+  for (const ordered of [true, false]) {
+   const rows = ordered ? "a\0z\nab\n" : "ab\na\0z\n";
+   const result = await run(["--check-order", "/a", "/b"], { "/a": "", "/b": "", [file]: rows }, { LC_ALL: "en_US.utf8" });
+   assert.equal(result.exitCode, ordered ? 0 : 1);
+   assert.equal(result.stderr, ordered ? "" : `comm: file ${file === "/a" ? 1 : 2} is not in sorted order\n`);
+   const prefix = file === "/a" ? "" : "\t";
+   assert.deepEqual(result.stdoutBytes, [...new TextEncoder().encode(ordered ? `${prefix}a\0z\n${prefix}ab\n` : `${prefix}ab\n`)]);
+  }
+ });
+}
+
 for (const locale of ["invalid_locale", "en_US.utf8@unsupported"]) {
  test(`comm rejects unsupported collation ${locale}`, async () => {
   const result = await run(["/a", "/a"], { "/a": "x\n" }, { LC_ALL: locale });

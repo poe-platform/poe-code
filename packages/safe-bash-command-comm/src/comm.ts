@@ -18,8 +18,15 @@ function recordComparison(env: Readonly<Record<string, string>>): typeof compare
     try { first = decoder.decode(left); } catch { /* Invalid bytes follow valid text. */ }
     try { second = decoder.decode(right); } catch { /* Preserve byte ordering for invalid text. */ }
     if (first === undefined) return second === undefined ? compare(left, right) : 1;
+    if (second === undefined) return -1;
+    // GNU xmemcoll compares NUL-separated portions, including empty ones.
+    const firstParts = first.split("\0"), secondParts = second.split("\0");
+    for (let index = 0; index < Math.min(firstParts.length, secondParts.length); index++) {
+      const result = collator.compare(firstParts[index]!, secondParts[index]!);
+      if (result !== 0) return result;
+    }
     // Runtime collation can equate distinct Unicode records; keep their byte order.
-    return second === undefined ? -1 : collator.compare(first, second) || compare(left, right);
+    return firstParts.length - secondParts.length || compare(left, right);
   };
 }
 

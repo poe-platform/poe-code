@@ -40,20 +40,22 @@ export function escapeText(value: string, mode: "display" | "diagnostic", checkO
   return result;
 }
 
-/** GNU shell-escape-always operand quoting in the C locale. */
-export function quoteShellOperand(value: string): string {
+/** GNU shell-escape-always operand quoting; C locale unless UTF-8 is enabled. */
+export function quoteShellOperand(value: string, utf8 = false): string {
   if (value.includes("'") && !["$", "`", "\\", '"'].some(character => value.includes(character))
-    && [...value].every(character => character >= " " && character <= "~")) return `"${value}"`;
+    && [...value].every(character => character >= " " && (character <= "~" || utf8 && character > "\u009f"))) return `"${value}"`;
   const escapes: Readonly<Record<number, string>> = { 7: "\\a", 8: "\\b", 9: "\\t", 10: "\\n", 11: "\\v", 12: "\\f", 13: "\\r" };
   let result = "'", escaped = false;
-  for (const byte of encoder.encode(value)) {
-    const special = byte < 32 || byte >= 127;
+  for (const character of value) {
+    const point = character.codePointAt(0)!;
+    const special = point < 32 || point >= 127 && (!utf8 || point <= 159);
     if (special !== escaped) {
-      result += special ? "'$'" : byte === 39 ? "" : "''";
+      result += special ? "'$'" : point === 39 ? "" : "''";
       escaped = special;
     }
-    result += special ? escapes[byte] ?? `\\${byte.toString(8).padStart(3, "0")}`
-      : byte === 39 ? "'\\''" : String.fromCharCode(byte);
+    if (special) {
+      for (const byte of encoder.encode(character)) result += escapes[byte] ?? `\\${byte.toString(8).padStart(3, "0")}`;
+    } else result += point === 39 ? "'\\''" : character;
   }
   return `${result}'`;
 }

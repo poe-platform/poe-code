@@ -73,7 +73,7 @@ function operandName(value: ShellValue): string {
   }
 }
 
-function fileError(error: unknown, file: ShellValue): unknown {
+function fileError(error: unknown, file: ShellValue, locale: string): unknown {
   if (!(error instanceof FsError)) return error;
   const reasons: Partial<Record<FsError["code"], string>> = {
     ENOENT: "No such file or directory", ENOTDIR: "Not a directory", EISDIR: "Is a directory",
@@ -83,9 +83,11 @@ function fileError(error: unknown, file: ShellValue): unknown {
   const reason = reasons[error.code];
   if (!reason) return error;
   const name = operandName(file);
+  const encoding = locale.split("@")[0]!.split(".")[1]?.toLowerCase();
+  const utf8 = encoding === "utf-8" || encoding === "utf8";
   const quoted = !name || "#~".includes(name[0]!) || name === "{" || name === "}"
-    || [...name].some(character => character <= " " || character >= "\x7f" || "\"'`$&*():;<=>?[\\^|!".includes(character));
-  return new PublicDiagnostic(`${quoted ? quoteShellOperand(name) : name}: ${reason}`);
+    || [...name].some(character => character <= " " || (character >= "\x7f" && (!utf8 || character <= "\u009f")) || "\"'`$&*():;<=>?[\\^|!".includes(character));
+  return new PublicDiagnostic(`${quoted ? quoteShellOperand(name, utf8) : name}: ${reason}`);
 }
 
 export function createPasteCommand(options: TableTextCommandsOptions = {}): CommandDefinition {
@@ -154,7 +156,7 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
           catch (error) {
             context.signal.throwIfAborted();
             if (budget.hasPendingOutput()) await budget.flushOutput();
-            await diagnostic(context, fileError(error, file)); status = 1;
+            await diagnostic(context, fileError(error, file, locale)); status = 1;
             if (error instanceof FsError && error.code === "EISDIR") await budget.output([terminator]);
             continue;
           }
@@ -174,8 +176,8 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
         try { readers.push(await inputs.open(operandName(file))); }
         catch (error) {
           context.signal.throwIfAborted();
-          if (!(error instanceof FsError) || error.code !== "EISDIR") throw fileError(error, file);
-          directoryErrors.push(fileError(error, file));
+          if (!(error instanceof FsError) || error.code !== "EISDIR") throw fileError(error, file, locale);
+          directoryErrors.push(fileError(error, file, locale));
           readers.push(undefined);
         }
       }

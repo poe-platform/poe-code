@@ -6926,6 +6926,28 @@ function applyChapterMetadata(
   return result;
 }
 
+function orderFfmetadataReplacements(tags: Mp4MetadataTags, source: Mp4MetadataTags, metadata: Record<string, string>): Mp4MetadataTags {
+  const custom = { ...tags.custom };
+  const ordered = { ...tags, custom };
+  for (const [key, value] of Object.entries(metadata)) {
+    if (key === "encoder") continue;
+    const field = (["title", "artist", "album", "date", "comment", "copyright", "genre"] as const).find(field => field === key);
+    if (field) {
+      if (source[field] === undefined && value !== "") continue;
+      delete ordered[field];
+      if (value !== "") custom[tags.keySpellings?.[key] ?? key] = value;
+    } else if (Object.hasOwn(custom, key)) {
+      delete custom[key];
+      if (value !== "") custom[key] = value;
+    }
+  }
+  if (Object.keys(metadata).length > 0 && tags.encoder !== undefined) {
+    custom.encoder = tags.encoder;
+    delete ordered.encoder;
+  }
+  return ordered;
+}
+
 function mapGlobalMetadata(documents: readonly MediaDocument[], sources: readonly number[]): Mp4MetadataTags {
   let metadata: Mp4MetadataTags = {};
   for (const source of sources.length ? sources : [0]) {
@@ -8882,7 +8904,7 @@ export function evalSyncFfmpeg(
     if (chapterSource >= loadedDocs.length) return undefined;
     workingDoc = { ...workingDoc, chapters: applyChapterMetadata(chapterSource < 0 ? undefined : outputChapters(loadedDocs[chapterSource]!.chapters, outputSs, outputDuration, outputTo, inputs[chapterSource]!.timestampOffset), chapterMetadata) };
     const sourceMetadata = mapGlobalMetadata(loadedDocs, metadataSources);
-    const metaTags: Mp4MetadataTags = {
+    let metaTags: Mp4MetadataTags = {
       ...sourceMetadata,
       description: metadata.description ?? sourceMetadata.description,
       compilation: metadata.compilation ?? sourceMetadata.compilation,
@@ -8900,6 +8922,7 @@ export function evalSyncFfmpeg(
       discNumber: metadata.disc ?? sourceMetadata.discNumber,
       encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav" || outPlugin?.id === "flac" || outPlugin?.id === "caf") ? ((outPlugin.id === "ffmetadata" ? outputBitexact : bitexact) ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
     };
+    if (outPlugin?.id === "ffmetadata") metaTags = orderFfmetadataReplacements(metaTags, sourceMetadata, metadata);
     workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamMetadata(mapStreamMetadata(workingDoc.tracks, loadedDocs, streamMetadataMaps), streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id, defaultMode) };
     if (outPlugin?.id === "mp4" || outPlugin?.id === "mov") {
       workingDoc = { ...workingDoc, tracks: writeTmcd ? authorTimecode(workingDoc.tracks, metadata.timecode) : removeTimecode(workingDoc.tracks) };
@@ -18314,7 +18337,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const sourceMetadata = mapGlobalMetadata(loadedDocs, metadataSources);
 
             // Apply `-metadata` tags
-            const metaTags: Mp4MetadataTags = {
+            let metaTags: Mp4MetadataTags = {
               ...sourceMetadata,
               description: metadata.description ?? sourceMetadata.description,
               compilation: metadata.compilation ?? sourceMetadata.compilation,
@@ -18332,6 +18355,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               discNumber: metadata.disc ?? sourceMetadata.discNumber,
               encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav" || outPlugin?.id === "flac" || outPlugin?.id === "caf") ? ((outPlugin.id === "ffmetadata" ? outputBitexact : bitexact) ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder
             };
+            if (outPlugin?.id === "ffmetadata") metaTags = orderFfmetadataReplacements(metaTags, sourceMetadata, metadata);
             workingDoc = {
               ...workingDoc,
               faststart,

@@ -7,6 +7,41 @@ import { fixture, run } from "./helpers.js";
 
 const commands = textCommands();
 
+for (const selection of [
+  "-d: -f1 --fields=2",
+  "-d: -f1 -f1",
+  "-b1 -b1",
+  "--bytes=1 -b2",
+  "--characters=1 -c2",
+  "-c1 -c1",
+  "--f=1 --fields 2 -d:",
+  "-b1 -c2",
+]) {
+  for (const source of ["stdin", "file"]) {
+    test(`cut rejects repeated lists (${source}): ${selection}`, async () => {
+      const shell = new Shell({ fs: await fixture({ input: "left:right\nlast:field" }), cwd: "/work", commands: new CommandRegistry(commands) });
+      try {
+        const result = await shell.exec(`cut ${selection} ${source === "stdin" ? "< input" : "input"}`);
+        assert.equal(result.exitCode, 1);
+        assert.equal(result.stdout, "");
+        assert.match(result.stderr, /only one list may be specified/);
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
+for (const selection of ["-d: -f1,2", "-b1-", "-c1-"]) {
+  test(`cut preserves a single list with multiple positions: ${selection}`, async () => {
+    const shell = new Shell({ fs: await fixture({ input: "left:right\nlast:field" }), cwd: "/work", commands: new CommandRegistry(commands) });
+    try {
+      const result = await shell.exec(`cut ${selection} input`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stdout, "left:right\nlast:field\n");
+      assert.equal(result.stderr, "");
+    } finally { await shell.dispose(); }
+  });
+}
+
 for (const { args, output } of [
   { args: ["--comp", "-b2"], output: "ab:c\n" },
   { args: ["--complement", "-b2"], output: "ab:c\n" },

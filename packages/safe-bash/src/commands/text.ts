@@ -269,6 +269,8 @@ async function executeCutGeneral(context: CommandContext): Promise<{ exitCode: n
         }
       }
       const parsed = options(args, "b:c:f:d:nsz", long);
+      const listCount = ["b", "c", "f"].reduce((count, mode) => count + (parsed.values.get(mode)?.length ?? 0), 0);
+      if (listCount > 1) throw new PublicDiagnostic("only one list may be specified");
       await assertInputRequirements(context, parsed.operands);
       const modes = ["b", "c", "f"].filter(mode => parsed.flags.has(mode));
       if (modes.length !== 1) throw new UsageError("exactly one byte, character, or field list is required");

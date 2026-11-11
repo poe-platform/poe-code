@@ -13,7 +13,7 @@ export function gradientProjection(width: number, height: number, direction?: st
     let x = 0, y = 1;
     if (direction !== undefined) {
         direction = direction.toLowerCase();
-        if (direction === "center") direction = "southeast";
+        if (["center", "none", "forget", "undefined"].includes(direction)) direction = "southeast";
         x = direction.includes("west") ? -1 : direction.includes("east") ? 1 : 0;
         y = direction.includes("north") ? -1 : direction.includes("south") ? 1 : 0;
         if (x && y) { x *= width - 1; y *= height - 1; }

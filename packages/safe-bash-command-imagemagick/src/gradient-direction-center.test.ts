@@ -8,12 +8,19 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
         "direction=Center",
         "direction=center",
         "direction=SouthEast",
-        "vector=0,0 3,2",
-    ])(`draws the native diagonal gradient in ${mode}: %s`, async (define) => {
-        // ImageMagick 7.1.2-35 Q16-HDRI, 4x3 gray bytes in row order.
-        const expected = "003b76b127629dd84e89c4ff";
+        "direction=None",
+        "direction=none",
+        "direction=Forget",
+        "direction=forget",
+        "direction=Undefined",
+        "direction=undefined",
+        "vector=0,0 4,2",
+        undefined,
+    ])(`draws the native gradient in ${mode}: %s`, async (define) => {
+        // ImageMagick 7.1.2-35 Q16-HDRI, 5x3 gray bytes in row order.
+        const expected = define === undefined ? "00000000008080808080ffffffffff" : "00336699cc1a4d80b3e6336699ccff";
         const fs = new MemoryFileSystem();
-        const argv = ["-size", "4x3", "-define", `gradient:${define}`, "gradient:black-white", "-depth", "8", "gray:-"];
+        const argv = ["-size", "5x3", ...(define === undefined ? [] : ["-define", `gradient:${define}`]), "gradient:black-white", "-depth", "8", "gray:-"];
         const args = createCommandArguments(argv);
         const chunks: Uint8Array[] = [];
         let stderr = "";

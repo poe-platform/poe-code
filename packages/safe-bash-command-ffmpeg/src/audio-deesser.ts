@@ -33,9 +33,10 @@ export async function deessAudio(
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const parts = argument.split(":");
   if (parts.at(-1) === "") parts.pop();
-  for (const [index, option] of parts.entries()) {
+  let positional = 0;
+  for (const option of parts) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? ["i", "m", "f", "s"][index] : option.slice(0, separator).trim();
+    const key = separator < 0 ? ["i", "m", "f", "s"][positional++] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "thread_type") {
       // Scheduling flags do not change PCM; validate each set/clear operand.

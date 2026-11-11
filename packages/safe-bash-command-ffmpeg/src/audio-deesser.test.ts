@@ -60,6 +60,27 @@ for (const filter of ["anull", "deesser", "deesser=i=0.8:s=i", "deesser=i=0.8:m=
   assert.deepEqual(Array.from(parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData[0]!), Array.from(mono));
 });
 
+// Native FFmpeg shorthand advances only for unnamed options, even after named settings.
+for (const [options, expected] of [
+  ["i=1:m=0.5:0", [12000, -18000, 24000, -16000]],
+  ["i=0:m=0.5", [12000, -18000, 24000, -16000]],
+  ["i=1:m=0.5:f=0", [757, -5479, 1514, -4413]],
+  ["m=0.5:f=0:1", [757, -5479, 1514, -4413]],
+  ["1:f=0:0.5", [757, -5479, 1514, -4413]],
+  ["threads=1:extra_hw_frames=0:1:0.5:0", [757, -5479, 1514, -4413]],
+  ["enable=1:s=e:1:0.5:0:o", [757, -5479, 1514, -4413]],
+  ["0:m=0.5:i=1:f=0", [757, -5479, 1514, -4413]]
+] as const) for (const graph of [false, true]) {
+  it(`deesser shorthand ${options} matches native PCM (graph=${graph})`, async () => {
+    const input = Float64Array.from([12000, -18000, 24000, -16000], value => value / 32768);
+    const { fs, result, stderr } = await run(`deesser=${options}`, graph, [input], 8000);
+    assert.equal(result.exitCode, 0, stderr);
+    assert.equal(stderr, "");
+    const audio = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+    assert.deepEqual(Array.from(audio.channelData[0]!, value => value * 32768), expected);
+  });
+}
+
 // Native FFmpeg rounds integer AVOptions to nearest, with exact halves to even.
 for (const [value, mode] of [[0.5, "i"], [0.6, "o"], [1.4, "o"], [1.5, "e"], [1.6, "e"]] as const) {
   for (const graph of [false, true]) for (const positional of [false, true]) {
@@ -165,9 +186,9 @@ for (const graph of [false, true]) {
   }
 }
 
-async function run(filter: string, graph = false, channels = [mono]) {
+async function run(filter: string, graph = false, channels = [mono], sampleRate = 48000) {
   const fs = Volume.fromJSON({ "/out.wav": "keep" });
-  fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 48000, channels }));
+  fs.writeFileSync("/in.wav", encodeWav({ sampleRate, channels }));
   let stderr = "";
   const result = await createFfmpegCommand().execute({
     args: ["-y", "-v", "error", "-i", "/in.wav", ...(graph

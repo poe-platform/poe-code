@@ -14,7 +14,8 @@ export function* magickFramePixels(source: Pick<RgbaImage, "width" | "height" | 
         if (border.cmyk) border = { ...border, r: border.cmyk[0]! * 255, g: border.cmyk[1]! * 255, b: border.cmyk[2]! * 255 };
     }
     const hue = !cmyk && (!!source.hueSamples || source.storedHueSamples !== undefined);
-    const highDepth = !!(source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
+    // Bevel calculations introduce quantum precision even for an 8-bit source.
+    const highDepth = !!(outer || inner || source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
     // Bevel colors carry normalized black ink after the four raster channels.
     const shade = (factor: number, lighten: boolean) => [matte.r, matte.g, matte.b].map(value =>
         Math.round((lighten ? value + (255 - value) * factor / 255 : value * factor / 255) * scale))

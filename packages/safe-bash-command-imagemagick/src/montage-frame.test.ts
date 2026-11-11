@@ -31,8 +31,10 @@ it.each([
   const actual = decodeImage(result.stdoutBytes!);
   expect([actual.width, actual.height]).toEqual([width, height]);
   if (mode.at(-1) === "Frame" && !extra.length) {
+    // Normalize quantum samples instead of the PNG decoder's high-byte preview.
+    const pixels = actual.data16 ? Uint8Array.from(actual.data16, value => Math.round(value / 257)) : actual.data;
     for (const [x, y, color] of [[2, 2, 210], [2, 5, 221], [5, 5, 189], [35, 5, 100]] as const)
-      expect(Array.from(actual.data.slice((y * width + x) * 4, (y * width + x) * 4 + 4))).toEqual([color, color, color, 255]);
+      expect(Array.from(pixels.slice((y * width + x) * 4, (y * width + x) * 4 + 4))).toEqual([color, color, color, 255]);
   }
   if (nativeAvailable) {
     const reference = spawnSync("magick", ["montage", "-font", font, ...options,

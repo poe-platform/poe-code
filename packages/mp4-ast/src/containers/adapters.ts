@@ -3038,9 +3038,14 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       });
       continue;
     }
-    const eq = rawLine.indexOf("=");
-    if (eq < 0) continue;
-    const key = rawLine.slice(0, eq);
+    let eq = 0;
+    let key = "";
+    for (; eq < rawLine.length; eq++) {
+      if (rawLine[eq] === "=") break;
+      if (rawLine[eq] === "\\" && eq + 1 < rawLine.length) eq++;
+      key += rawLine[eq];
+    }
+    if (eq === rawLine.length) continue;
     let val = "";
     for (let i = eq + 1; i < rawLine.length; i++) {
       if (rawLine[i] === "\\" && i + 1 < rawLine.length) i++;
@@ -3130,7 +3135,7 @@ export function serializeFfmetadata(doc: MediaDocument): Uint8Array {
   if (m.trackNumber !== undefined) lines.push(`${m.keySpellings?.track ?? "track"}=${escapeFfmetadata(m.trackNumber)}`);
   if (m.encoder !== undefined) lines.push(`${m.keySpellings?.encoder ?? "encoder"}=${escapeFfmetadata(m.encoder)}`);
   for (const [key, value] of Object.entries(m.custom ?? {})) {
-    lines.push(`${key}=${escapeFfmetadata(value)}`);
+    lines.push(`${escapeFfmetadata(key)}=${escapeFfmetadata(value)}`);
   }
 
   if (doc.chapters && doc.chapters.length > 0) {
@@ -3141,7 +3146,7 @@ export function serializeFfmetadata(doc: MediaDocument): Uint8Array {
       lines.push(`START=${Math.round(ch.startTimeSeconds / factor)}`);
       lines.push(`END=${Math.round(ch.endTimeSeconds / factor)}`);
       for (const [key, value] of Object.entries(ch.tags ?? { title: ch.title })) {
-        lines.push(`${key}=${escapeFfmetadata(value)}`);
+        lines.push(`${escapeFfmetadata(key)}=${escapeFfmetadata(value)}`);
       }
     }
   }

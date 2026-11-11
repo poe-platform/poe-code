@@ -25,7 +25,7 @@ function* xpmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
             char = yield { kind: "read", position: position++ };
             if (char !== 92 && char !== 34) throw new Error("Unsupported XPM string escape");
           }
-          if (char === undefined || char < 32 || value.length >= limit) throw new Error("Invalid XPM string");
+          if (char === undefined || (char < 32 && char !== 9) || value.length >= limit) throw new Error("Invalid XPM string");
           value += String.fromCharCode(char);
         }
       }

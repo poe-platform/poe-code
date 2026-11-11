@@ -9,6 +9,12 @@ it("reads XPM metadata and escaped pixel symbols", () => {
   expect(decodeImage(input).data).toEqual(Uint8Array.from([255, 0, 0, 255, 0, 0, 0, 0]));
 });
 
+it("reads a literal tab between a palette symbol and its field key", () => {
+  const input = new TextEncoder().encode('/* XPM */\nstatic char *x[] = {"2 1 2 1", "A\tc red", " \tc blue", "A "};');
+  expect(readImageMetadata(input)).toMatchObject({ format: "xpm", width: 2, height: 1 });
+  expect(decodeImage(input).data).toEqual(Uint8Array.from([255, 0, 0, 255, 0, 0, 255, 255]));
+});
+
 it.each([
   ["1 1 1 1", "a c red", "b"],
   ["2 1 1 1", "a c red", "a"],

@@ -7991,7 +7991,11 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           const lineBreak = outputFormat === "srt" || containerCodec === "subrip" ? "\r\n" : "\n";
           let data = encodeUtf8(codec === "microdvd" ? decodeMicrodvd(text).replaceAll("\n",
             outputFormat === "srt" ? "\r\n" : "\n") : text.split("|")
-            .map(line => codec === "mpl2" && line.startsWith("/") ? `<i>${line.slice(1)}</i>` : line)
+            .map(line => {
+              let markers = 0;
+              while (line[markers] === "/") markers++;
+              return "<i>".repeat(markers) + line.slice(markers) + "</i>".repeat(markers);
+            })
             .join(lineBreak).replaceAll("\\N", lineBreak));
           if (codec === "mpl2" && (outputFormat === "webvtt" || containerCodec === "webvtt" || outputFormat === "srt" || containerCodec === "subrip")) {
             // Text encoders discard initial ASCII spaces after style decoding.

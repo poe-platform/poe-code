@@ -4,6 +4,7 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 /** Directional hull smoothing with the native zero border and Q16 step size. */
 export function* despecklePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedHueSamples" | "storedEvaluateSamples">>, channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, stride = width + 2;
+    const gray = image.space === "b-w" || image.space === "grey16";
     const hue = image.space !== "cmyk" && (!!image.hueSamples || image.storedHueSamples !== undefined);
     const evaluate = !hue && (!!image.evaluateSamples || image.storedEvaluateSamples !== undefined);
     const scale = hue ? 65535 : 257;
@@ -20,7 +21,7 @@ export function* despecklePixelSteps(image: Pick<RgbaImage, "width" | "height" |
     const buffer = new Float64Array(pixels.length);
     let work = 0;
     for (let channel = 0; channel < (image.hasAlpha ? 4 : 3); channel++) {
-        if (channels && !channels[channel]) continue;
+        if (gray && (channel === 1 || channel === 2) || channels && !channels[channel]) continue;
         for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
             if (++work % 4096 === 0) yield;
             pixels[(y + 1) * stride + x + 1] = output[(y * width + x) * 4 + channel]!;
@@ -43,7 +44,10 @@ export function* despecklePixelSteps(image: Pick<RgbaImage, "width" | "height" |
         }
         for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
             if (++work % 4096 === 0) yield;
-            output[(y * width + x) * 4 + channel] = pixels[(y + 1) * stride + x + 1]!;
+            const position = (y * width + x) * 4;
+            output[position + channel] = pixels[(y + 1) * stride + x + 1]!;
+            // Gray has one color plane; R selects it and RGB storage stays neutral.
+            if (gray && channel === 0) output[position + 1] = output[position + 2] = output[position]!;
         }
     }
     for (let position = 0; position < output.length; position += 4096) {

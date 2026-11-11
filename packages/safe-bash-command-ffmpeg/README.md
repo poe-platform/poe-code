@@ -1339,7 +1339,9 @@ Single-input filters on either branch run before multiplication, for example
 floating-point precision before output conversion, including float64 output.
 Output frame boundaries are retained for
 frame selection (`aselect`), frame limits, and `framecrc`, including split branches
-where reversal buffers the other input.
+where reversal buffers the other input. Generic `threads`, `thread_type`, and
+`extra_hw_frames` options are validated and accepted without changing PCM samples;
+invalid values and unknown options preserve existing output.
 
 `amerge` input counts accept numeric expressions such as `1+1` and round to the
 nearest integer with ties to even (`1.5` and `2.5` both select two inputs).

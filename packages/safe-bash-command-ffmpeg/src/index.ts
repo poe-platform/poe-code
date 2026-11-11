@@ -2157,10 +2157,18 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "amultiply" || filters[0]?.startsWith("amultiply=") || filters[0]?.startsWith("amultiply@")) {
-        if (filters[0].includes("=")) {
-          const option = filters[0].slice("amultiply=".length).split("=", 1)[0]!.trim();
-          if (option === "enable") throw new Error("amultiply: timeline is unsupported");
-          throw new Error("amultiply: unsupported option");
+        const argument = filters[0].slice("amultiply=".length);
+        const options = argument ? argument.split(":") : [];
+        if (options.at(-1) === "") options.pop();
+        for (const option of options) {
+          const separator = option.indexOf("=");
+          if (separator < 0) throw new Error("amultiply: unexpected positional argument");
+          const key = option.slice(0, separator).trim();
+          if (key === "enable") throw new Error("amultiply: timeline is unsupported");
+          if (!["threads", "thread_type", "extra_hw_frames"].includes(key)) {
+            throw new Error("amultiply: unsupported option");
+          }
+          validateWeaveGenericOption(key, option.slice(separator + 1), "amultiply");
         }
         if (sources.length !== 2) throw new Error("amultiply requires two inputs");
         for (const source of sources) {

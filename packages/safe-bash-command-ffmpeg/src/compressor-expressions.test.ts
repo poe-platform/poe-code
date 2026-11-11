@@ -55,7 +55,7 @@ for (const mode of ["simple", "acompressor", "sidechaincompress"]) {
   for (const options of ["ratio=0b10", "ratio=0o10", "threshold=1/0", "threshold=1/", "threshold=2/1", "attack=0/1"]) {
     it(`${mode} rejects ${options} without replacing output`, async () => {
       const { result, output } = await compress(mode, options);
-      assert.equal(result.exitCode, 1);
+      assert.notEqual(result.exitCode, 0);
       assert.equal(output.toString(), "KEEP");
     });
   }

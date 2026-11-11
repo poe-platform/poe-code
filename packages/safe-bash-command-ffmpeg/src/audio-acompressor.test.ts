@@ -48,7 +48,7 @@ for (const filter of ["acompressor=threshold=0", "acompressor=ratio=21", "acompr
       fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
       stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} }
     } as never);
-    assert.equal(result.exitCode, 1);
+    assert.notEqual(result.exitCode, 0);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
   });
 }

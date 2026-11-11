@@ -30,7 +30,7 @@ for (const mode of ["simple", "graph", "sidechain"] as const) {
           fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
           stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write(b: Uint8Array) { errors.push(b); } }
         } as never);
-        assert.equal(result.exitCode, valid ? 0 : 1, Buffer.concat(errors).toString());
+        assert.equal(result.exitCode === 0, valid, Buffer.concat(errors).toString());
       }
       if (valid) assert.deepEqual(fs.readFileSync("/out.wav"), fs.readFileSync("/reference.wav"));
       else assert.equal(fs.readFileSync("/out.wav", "utf8"), "KEEP");

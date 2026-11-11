@@ -32,9 +32,10 @@ export async function compressAudio(
     const range = ranges[key];
     if (range) {
       const numeric = parseFilterExpression(value, name, {});
-      if (!value || !Number.isFinite(numeric) || numeric < range[0] || numeric > range[1]) {
+      if (!value || !Number.isFinite(numeric)) {
         throw new Error(`${name}: invalid ${key}`);
       }
+      if (numeric < range[0] || numeric > range[1]) throw new RangeError(`${name}: invalid ${key}`);
       options[key] = numeric;
     } else {
       const values = choices[key]!;

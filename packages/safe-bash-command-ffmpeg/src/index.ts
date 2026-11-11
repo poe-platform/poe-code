@@ -20307,6 +20307,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 msg === "fps: invalid expression" || msg === "fps: invalid or unsupported expression") {
               return { exitCode: err instanceof RangeError ? 222 : 234 };
             }
+            if (msg === "acompressor: unsupported option enable") return { exitCode: 176 };
+            if (msg.startsWith("acompressor: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("acompressor:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg === "apulsator: timeline is unsupported") return { exitCode: 176 };
             if (msg.startsWith("apulsator: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("apulsator:")) return { exitCode: 222 };

@@ -34,7 +34,7 @@ for (const mode of ["simple", "graph", "sidechain"]) {
         stdin: (async function* () {})(), stdout: { async write() {} },
         stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
       } as never);
-      assert.equal(result.exitCode, valid ? 0 : 1, Buffer.concat(errors).toString());
+      assert.equal(result.exitCode === 0, valid, Buffer.concat(errors).toString());
       if (valid) {
         const expected = Buffer.alloc(16);
         for (let i = 0; i < 8; i++) expected.writeInt16LE(8000, i * 2);

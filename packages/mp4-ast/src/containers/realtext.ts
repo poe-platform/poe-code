@@ -22,19 +22,23 @@ function parseRealtext(bytes: Uint8Array): MediaDocument {
   const samples: MediaSample[] = [];
   let start: number | undefined;
   let end: number | undefined;
+  let windowDuration = 60000;
   let text = "";
   const flush = () => {
     const caption = text.trim();
-    if (start !== undefined && end !== undefined && end >= start && caption) {
+    if (start !== undefined && caption) {
       const data = encodeUtf8(caption);
-      samples.push({ pts: start, dts: start, cts: 0, duration: end - start,
+      const duration = end !== undefined && end > start ? end - start : windowDuration;
+      samples.push({ pts: start, dts: start, cts: 0, duration,
         data, size: data.length, offset: 0, isKeyframe: true, sampleDescriptionIndex: 1 });
     }
     text = "";
   };
   const parser = new Parser({
     onopentag(name, attributes) {
-      if (name === "time") {
+      if (name === "window") {
+        windowDuration = timeMs(attributes.duration) ?? 60000;
+      } else if (name === "time") {
         flush();
         start = timeMs(attributes.begin);
         end = timeMs(attributes.end);

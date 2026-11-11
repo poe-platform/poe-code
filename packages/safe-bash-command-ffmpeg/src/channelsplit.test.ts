@@ -23,6 +23,7 @@ for (const [filters, expected] of [
   ] as const),
   [["-filter_complex", "[0:a]channelsplit=channel_layout=stereo[L][R]", "-map", "[L]", "/left.wav", "-map", "[R]", "/out.wav"], [["/left.wav", left], ["/out.wav", right]]],
   [["-af", "channelsplit=channel_layout=stereo:channels=FR", "/out.wav"], [["/out.wav", right]]],
+  [["-filter_complex", "channelsplit=stereo:FR", "/out.wav"], [["/out.wav", right]]],
   [["-filter_complex", "[0:a]channelsplit[L][R];[R]areverse[out]", "-map", "[out]", "/out.wav", "-map", "[L]", "/left.wav"], [["/out.wav", [...right].reverse()], ["/left.wav", left]]],
   [["-filter_complex", "[0:a]volume=0.5,channelsplit[L][R]", "-map", "[R]", "/out.wav", "-map", "[L]", "/left.wav"], [["/out.wav", right.map(sample => sample / 2)], ["/left.wav", left.map(sample => sample / 2)]]],
   [["-af", "channelsplit=stereo:FL,areverse", "/out.wav"], [["/out.wav", [...left].reverse()]]]
@@ -51,5 +52,33 @@ for (const [filters, expected] of [
       assert.equal(audio.channelData[0]!.length, 4);
       assert.deepEqual(Array.from(audio.channelData[0]!, sample => sample * 32768), samples);
     }
+  });
+}
+
+for (const filters of [
+  ["-filter_complex", "channelsplit"],
+  ["-filter_complex", "[0:a]channelsplit[L][R]", "-map", "[L]", "-map", "[R]"],
+  ["-map", "0:a", "-map", "0:a"]
+]) {
+  it(`rejects multiple audio streams in WAV: ${filters.join(" ")}`, async () => {
+    const input = encodeWav({ sampleRate: 8000,
+      channels: [left, right].map(samples => Float64Array.from(samples, sample => sample / 32768)) });
+    const volume = Volume.fromJSON({ "/in.wav": Buffer.from(input) });
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "error", "-i", "/in.wav", ...filters, "/out.wav"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(), stdout: { async write() {} },
+      stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, 234, stderr);
+    assert.ok(stderr.includes("WAVE files have exactly one stream"), stderr);
+    assert.equal(volume.readFileSync("/out.wav").length, 0);
+    assert.deepEqual(volume.readFileSync("/in.wav"), Buffer.from(input));
   });
 }

@@ -19328,6 +19328,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 183 };
             }
             try {
+              if (outPlugin?.id === "wav" && workingDoc.tracks.length !== 1) {
+                throw new Error("WAVE files have exactly one stream");
+              }
               if (!checksumOutput) validateRawAudioCodec(workingDoc, outPlugin, audioCodec);
             } catch (error) {
               if (!isStdout(outputTarget) && outputTarget !== "/dev/null" && !outputTarget.startsWith("md5:")) {

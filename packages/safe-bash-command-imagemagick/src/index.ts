@@ -12884,6 +12884,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         if (["-red-primary", "-green-primary", "-blue-primary", "-white-point", "+red-primary", "+green-primary", "+blue-primary", "+white-point"].includes(t)) {
             const chromaticity = parseMagickChromaticity(t, t.startsWith("-") ? tokens[++i] : undefined);
+            state.optionProperties = { ...state.optionProperties, [t.slice(1)]: t.startsWith("-") ? tokens[i]! : "0.0" };
             state.chromaticity = { ...state.chromaticity, ...chromaticity };
             stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, chromaticity: { ...image.chromaticity, ...chromaticity } }; });
             i++;
@@ -16435,6 +16436,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         }
         if (!operandsOnly && ["-red-primary", "-green-primary", "-blue-primary", "-white-point", "+red-primary", "+green-primary", "+blue-primary", "+white-point"].includes(token)) {
             const chromaticity = parseMagickChromaticity(token, token.startsWith("-") ? tokens[++i] : undefined);
+            state.optionProperties = { ...state.optionProperties, [token.slice(1)]: token.startsWith("-") ? tokens[i]! : "0.0" };
             state.chromaticity = { ...state.chromaticity, ...chromaticity };
             steps.push(async image => image ? { ...image, chromaticity: { ...image.chromaticity, ...chromaticity } } : undefined);
             continue;

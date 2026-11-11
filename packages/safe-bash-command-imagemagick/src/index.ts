@@ -6187,7 +6187,7 @@ function thumbnailProperties(image: ImageMetadata & { [magickInput]?: MagickForm
         "Thumb::Image::Height": String(source.originalHeight ?? image.height),
         "Thumb::Document::Pages": String(pages),
         "Thumb::URI": path.startsWith("/") ? `file://${uriPath}` : path.includes(":") ? uriPath : `./${uriPath}`,
-        ...(source.byteLen === undefined ? {} : { "Thumb::Size": String(source.blobSize ?? source.byteLen) }),
+        "Thumb::Size": String(source.blobSize ?? source.byteLen ?? 0),
         ...(source.mtimeMs === undefined ? {} : { "Thumb::MTime": String(Math.floor(source.mtimeMs / 1000)) })
     };
 }
@@ -14759,6 +14759,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const { angle: deg, applies } = parseMagickRotation(expanded);
                 if (!applies(im)) return im;
                 if (((deg % 360) + 360) % 360 >= 1e-6) im = discardDisassociatedAlpha(im);
+                const background = state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background;
+                if (operation && !im.hasAlpha && background.a < 255) {
+                    // Rotation activates background alpha with opaque source pixels.
+                    im = { ...yield* prepareInactiveAlphaOutput(im), hasAlpha: true, alphaBlend: true, inactiveAlpha: false, alphaSeparate: false };
+                }
                 const plan = operation?.plan(im);
                 if (plan) {
                     // Arbitrary rotation initializes auxiliary channels to zero on its new canvas.
@@ -19289,6 +19294,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const { angle, applies } = parseMagickRotation(expanded);
                 if (!applies(image)) return image;
                 if (((angle % 360) + 360) % 360 >= 1e-6) image = discardDisassociatedAlpha(image);
+                const background = settings.backgroundExplicit ? settings.background : image.backgroundColor ?? settings.background;
+                if (operation && !image.hasAlpha && background.a < 255) {
+                    image = { ...await transformStoredMagickPixels(image, backend,
+                        { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal),
+                        hasAlpha: true, alphaBlend: true, inactiveAlpha: false, alphaSeparate: false };
+                }
                 const plan = operation?.plan(image);
                 if (plan) {
                     const storedMetaChannels: BaseStoredRgbaImage[] = [];

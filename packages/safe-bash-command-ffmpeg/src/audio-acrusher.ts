@@ -2,6 +2,7 @@ import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterBoolean } from "./filter-boolean.js";
 import { parseFilterExpression } from "./filter-expression.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function crushAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
@@ -37,7 +38,7 @@ export async function crushAudio(
   let position = 0;
   for (const option of parts) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? names[position] : option.slice(0, separator).trim() as keyof typeof options | "enable";
+    const key = separator < 0 ? names[position] : option.slice(0, separator).trim() as keyof typeof options | "enable" | "threads" | "thread_type" | "extra_hw_frames";
     if (separator < 0) position++;
     else position = position === 0 ? 1 : 0;
     if (key === "enable") {
@@ -45,6 +46,10 @@ export async function crushAudio(
       parseFilterExpression(enable, "acrusher enable", {
         n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2
       }, undefined, new Float64Array(10), []);
+      continue;
+    }
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, option.slice(separator + 1).trim(), "acrusher");
       continue;
     }
     if (!key || !Object.hasOwn(options, key)) throw new Error(`acrusher: unsupported option ${option}`);

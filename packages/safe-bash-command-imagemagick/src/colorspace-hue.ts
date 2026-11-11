@@ -318,11 +318,24 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
         } else if (hwb && r === -1) {
             // Achromatic HWB ignores whiteness, including after channel edits.
             r = g = b = 1 - b;
+        } else if (hwb) {
+            const hue = r * 6, sector = Math.floor(hue), value = 1 - b;
+            const fraction = sector % 2 !== 0 ? 1 - (hue - sector) : hue - sector;
+            // Native retains negative chroma and defaults out-of-range sectors
+            // to red/green without wrapping or clamping the hue.
+            const middle = g + fraction * (value - g);
+            switch (sector) {
+                case 1: [r, g, b] = [middle, value, g]; break;
+                case 2: [r, g, b] = [g, value, middle]; break;
+                case 3: [r, g, b] = [g, middle, value]; break;
+                case 4: [r, b] = [middle, value]; break;
+                case 5: [r, b] = [value, middle]; break;
+                default: [r, g, b] = [value, middle, g]; break;
+            }
         } else {
             // HSL and HSV/HSB wrap hue after channel edits or interpolation overshoot.
             if (image.magickColorspace === "HSL" || hsb) r -= Math.floor(r);
-            // Edited HWB channels can sum above one; native preserves the negative chroma.
-            const hue = (r < 0 || r === 1 ? 0 : r) * 6, chroma = hwb ? 1 - g - b : (hsb ? b : 1 - Math.abs(2 * b - 1)) * g, x = chroma * (1 - Math.abs(hue % 2 - 1)), m = hwb ? g : b - chroma / (hsb ? 1 : 2);
+            const hue = (r < 0 || r === 1 ? 0 : r) * 6, chroma = (hsb ? b : 1 - Math.abs(2 * b - 1)) * g, x = chroma * (1 - Math.abs(hue % 2 - 1)), m = b - chroma / (hsb ? 1 : 2);
             [r, g, b] = hue < 1 ? [chroma, x, 0] : hue < 2 ? [x, chroma, 0] : hue < 3 ? [0, chroma, x] : hue < 4 ? [0, x, chroma] : hue < 5 ? [x, 0, chroma] : [chroma, 0, x];
             r += m; g += m; b += m;
         }

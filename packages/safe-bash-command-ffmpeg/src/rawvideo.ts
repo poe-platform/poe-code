@@ -255,6 +255,8 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
         }
         const source = native && (channels === 3 ? [34, 35] : [104, 105]).includes(native.format)
           ? new DataView(native.pixels.buffer, native.pixels.byteOffset, native.pixels.byteLength) : undefined;
+        const yuv16 = native?.format === 49 && native.colorspace === 5 && native.fullRange === 0
+          ? new DataView(native.pixels.buffer, native.pixels.byteOffset, native.pixels.byteLength) : undefined;
         const length = frame.width * frame.height * channels * 2;
         budget.checkOutputBytes(size + length);
         const bytes = new Uint8Array(length);
@@ -267,6 +269,18 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
               const sample = source.getUint16(offset + channel * 2, !littleEndian);
               view.setUint16(offset + channel * 2, sample, littleEndian);
             }
+            continue;
+          }
+          if (yuv16) {
+            // Keep negotiated YUV444P16 samples out of the 8-bit RGBA preview.
+            const planeSize = frame.width * frame.height * 2;
+            const y = (yuv16.getUint16(pixel * 2, true) * 2 - 8192) * 9539 + 8192;
+            const u = yuv16.getUint16(planeSize + pixel * 2, true) * 2 - 65536;
+            const v = yuv16.getUint16(planeSize * 2 + pixel * 2, true) * 2 - 65536;
+            view.setUint16(offset, Math.max(0, Math.min(65535, Math.floor((y + v * 13075) / 16384))), littleEndian);
+            view.setUint16(offset + 2, Math.max(0, Math.min(65535, Math.floor((y - v * 6660 - u * 3209) / 16384))), littleEndian);
+            view.setUint16(offset + 4, Math.max(0, Math.min(65535, Math.floor((y + u * 16525) / 16384))), littleEndian);
+            if (channels === 4) view.setUint16(offset + 6, 65535, littleEndian);
             continue;
           }
           if (native?.format === 8) {

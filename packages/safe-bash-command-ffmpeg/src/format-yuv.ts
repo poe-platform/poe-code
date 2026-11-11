@@ -4,23 +4,43 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 
 /** Convert to limited-range BT.601 planes before subsequent filters see RGBA. */
 export async function formatYuv(
-  frame: MediaVideoFrame, format: "yuv420p10le" | "yuv420p" | "yuv422p" | "yuv444p" | "yuva444p", signal?: AbortSignal
+  frame: MediaVideoFrame, format: "yuv420p10le" | "yuv420p" | "yuv422p" | "yuv444p" | "yuva444p" | "yuv444p16le", signal?: AbortSignal
 ): Promise<MediaVideoFrame> {
   const { width, height, data } = frame;
   const alpha = format === "yuva444p";
   const tenBit = format === "yuv420p10le";
-  const nativeFormat = alpha ? 79 : tenBit ? 62 : format === "yuv420p" ? 0 : format === "yuv422p" ? 4 : 5;
+  const sixteenBit = format === "yuv444p16le";
+  const nativeFormat = alpha ? 79 : sixteenBit ? 49 : tenBit ? 62 : format === "yuv420p" ? 0 : format === "yuv422p" ? 4 : 5;
   if (frame.native?.format === nativeFormat && frame.native.rgba === data &&
       frame.native.width === width && frame.native.height === height) return frame;
-  const hsub = (format === "yuv444p" || alpha) ? 1 : 2;
+  const hsub = (format === "yuv444p" || alpha || sixteenBit) ? 1 : 2;
   const vsub = tenBit || format === "yuv420p" ? 2 : 1;
   const chromaWidth = Math.ceil(width / hsub);
   const chromaHeight = Math.ceil(height / vsub);
   const lumaSize = width * height;
   const chromaSize = chromaWidth * chromaHeight;
-  const pixels = new Uint8Array((lumaSize * (alpha ? 2 : 1) + chromaSize * 2) * (tenBit ? 2 : 1));
+  const pixels = new Uint8Array((lumaSize * (alpha ? 2 : 1) + chromaSize * 2) * (tenBit || sixteenBit ? 2 : 1));
   const view10 = tenBit ? new DataView(pixels.buffer) : undefined;
   const source = frame.native;
+  if (sixteenBit) {
+    const packed = source && [34, 35].includes(source.format) && source.rgba === data &&
+      source.width === width && source.height === height ? source : undefined;
+    const input = packed ? new DataView(packed.pixels.buffer, packed.pixels.byteOffset, packed.pixels.byteLength) : undefined;
+    const output = new DataView(pixels.buffer);
+    for (let i = 0; i < lumaSize; i++) {
+      if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
+      const r = input ? input.getUint16(i * 6, packed!.format === 35) : data[i * 4]! * 257;
+      const g = input ? input.getUint16(i * 6 + 2, packed!.format === 35) : data[i * 4 + 1]! * 257;
+      const b = input ? input.getUint16(i * 6 + 4, packed!.format === 35) : data[i * 4 + 2]! * 257;
+      // swscale's packed 16-bit BT.601 conversion rounds before planar filtering.
+      output.setUint16(i * 2, Math.floor((8414 * r + 16519 * g + 3208 * b) / 32768 + 4096.5), true);
+      output.setUint16((lumaSize + i) * 2, Math.floor((-4865 * r - 9528 * g + 14392 * b) / 32768 + 32768.5), true);
+      output.setUint16((lumaSize * 2 + i) * 2, Math.floor((14392 * r - 12061 * g - 2332 * b) / 32768 + 32768.5), true);
+    }
+    const native = { rgba: data, pixels, width, height, format: nativeFormat, colorspace: 5, fullRange: 0 };
+    const rgba = scaleVideoPicture({ ...frame, native }, width, height)!;
+    return { ...frame, data: rgba, native: { ...native, rgba } };
+  }
   if (source && ((source.format === 4 && format === "yuv444p") || (source.format === 5 && format === "yuv422p")) &&
       source.rgba === data && source.width === width && source.height === height) {
     // Transpose negotiates 4:4:4 for asymmetric chroma; resample planes without an RGB round trip.
@@ -127,6 +147,14 @@ export async function formatYuv(
       if (view10) {
         view10.setUint16(offset * 2, Math.floor((-4857 * r - 9535 * g + 14392 * b) / (8192 * count) + 512.5), true);
         view10.setUint16((offset + chromaSize) * 2, Math.floor((14392 * r - 12052 * g - 2340 * b) / (8192 * count) + 512.5), true);
+        continue;
+      }
+      if (count === 1) {
+        // Like luma, full-resolution chroma rounds through 14-bit intermediates.
+        const u = (-4865 * r - 9528 * g + 14392 * b + 4194560) >> 9;
+        const v = (14392 * r - 12061 * g - 2332 * b + 4194560) >> 9;
+        pixels[offset] = (u + 32) >> 6;
+        pixels[offset + chromaSize] = (v + 32) >> 6;
         continue;
       }
       pixels[offset] = Math.floor((-4857 * r - 9535 * g + 14392 * b) / (32768 * count) + 128.5);

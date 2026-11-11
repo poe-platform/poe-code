@@ -4,6 +4,7 @@ import { parseFilterExpression } from "./filter-expression.js";
 import { parseFilterBoolean } from "./filter-boolean.js";
 import { deflickerCubeRoot, deflickerPower } from "./deflicker-math.js";
 import { validateWeaveGenericOption } from "./weave-generic-option.js";
+import { formatYuv } from "./format-yuv.js";
 
 type DeflickerFrame = MediaVideoFrame & { filterMetadata?: Record<string, string> };
 
@@ -48,13 +49,22 @@ export async function deflicker(
   const f = Math.fround;
   budget.allocateMemory(frames.length * 4 + size * 8);
   const luminance = new Float32Array(frames.length);
+  frames = frames.slice();
   let work = 0;
-  for (const [n, frame] of frames.entries()) {
+  for (const [n, input] of frames.entries()) {
     signal?.throwIfAborted();
     budget.checkCpu();
+    let frame = input;
+    if ((!frame.native && pixelFormat !== "gray" && pixelFormat !== "gray8") ||
+        frame.native && [34, 35].includes(frame.native.format)) {
+      const format = frame.native ? "yuv444p16le" :
+        ["rgba", "bgra", "gbrap"].includes(pixelFormat ?? "rgba") ? "yuva444p" : "yuv444p";
+      budget.allocateMemory(frame.width * frame.height * (format === "yuv444p16le" ? 10 : format === "yuva444p" ? 8 : 7));
+      frame = frames[n] = await formatYuv(frame, format, signal);
+    }
     const native = frame.native;
     if (native ? native.rgba !== frame.data || native.width !== frame.width || native.height !== frame.height ||
-      ![0, 4, 5, 8, 12, 13, 14, 29, 30, 49, 68].includes(native.format) : pixelFormat !== "gray" && pixelFormat !== "gray8") {
+      ![0, 4, 5, 8, 12, 13, 14, 29, 30, 49, 68, 79].includes(native.format) : pixelFormat !== "gray" && pixelFormat !== "gray8") {
       throw new Error("deflicker: only 8-bit or 16-bit grayscale, 8-bit planar YUV, or 10-bit/16-bit YUV444 input is supported");
     }
     const wide = native && [29, 30, 49, 68].includes(native.format);

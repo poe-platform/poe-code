@@ -40,7 +40,7 @@ function parseRealtext(bytes: Uint8Array): MediaDocument {
         windowDuration = timeMs(attributes.duration) ?? 60000;
       } else if (name === "time") {
         flush();
-        start = timeMs(attributes.begin);
+        start = timeMs(attributes.begin ?? "0");
         end = timeMs(attributes.end);
       } else if (name === "br") {
         text = text.trimEnd() + "\n";

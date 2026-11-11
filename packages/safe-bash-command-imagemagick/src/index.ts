@@ -10375,7 +10375,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         highDepth = true;
         const colorEndpoints = token.endsWith("-colors");
         const raw = tokens[++i] ?? (colorEndpoints ? "" : "0,100%");
-        let endpointColors: RgbaColor[] | undefined;
+        let endpointColors: ReturnType<typeof parseColor>[] | undefined;
         if (colorEndpoints) {
             // Ignore fields after the second endpoint, but keep commas in functional colors.
             let nesting = 0, separator = -1, end = raw.length;
@@ -10457,8 +10457,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const adjust = function* (im: RgbaImage, channels: MagickState["channels"], pixelOffset = 0, imageWidth = im.width): Generator<void, RgbaImage> {
             const cmyk = im.space === "cmyk";
             if (cmyk) im = yield* convertCmykPixels(im);
-            // Numeric levels address grayscale's single intensity through the red/gray bit.
-            const gray = !colorEndpoints && (im.space === "b-w" || im.space === "grey16");
+            // Gray endpoints retain a single intensity channel addressed by red/gray.
+            const gray = (im.space === "b-w" || im.space === "grey16") && (!endpointColors || endpointColors.every(color => color.space === "b-w"));
             const mask = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a && (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false), cmyk && channels.k];
             let pixelWork = 0;
             const out = new Uint8Array(im.data);
@@ -10525,7 +10525,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = function* (image, offset, width) {
             const result = yield* adjust(image, channels, offset, width);
             // Keep every colormap entry adjusted, including colors not used by any pixel.
-            const gray = !colorEndpoints && (image.space === "b-w" || image.space === "grey16");
+            const gray = (image.space === "b-w" || image.space === "grey16") && (!endpointColors || endpointColors.every(color => color.space === "b-w"));
             const selected = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a && image.hasAlpha];
             const paletteValue = (value: number, channel: number) => selected[channel] ? clampByteVal(levelValue(value, channel)) : value;
             const indexedColors = image.indexedColors?.map(color =>

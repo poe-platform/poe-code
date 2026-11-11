@@ -21,6 +21,7 @@ export async function fadeAudio(
   let unity = 1;
   let enable: string | undefined;
   const registers = new Float64Array(10);
+  const randomStates: BigUint64Array[] = [];
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const options: string[] = [];
   let option = "";
@@ -65,8 +66,9 @@ export async function fadeAudio(
       }
       // Thread scheduling and hardware frame reservations do not change PCM samples.
     } else if (key === "enable") {
-      parseFilterExpression(value, "afade enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10));
+      parseFilterExpression(value, "afade enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10), []);
       registers.fill(0);
+      randomStates.length = 0;
       enable = value;
     } else {
       const gain = key === "silence" || key === "unity";
@@ -151,8 +153,8 @@ export async function fadeAudio(
         PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
       };
       // FFmpeg evaluates on frame consumption and again before filter_frame.
-      parseFilterExpression(enable, "afade enable", variables, undefined, registers);
-      enabled = Math.abs(parseFilterExpression(enable, "afade enable", variables, undefined, registers)) >= 0.5;
+      parseFilterExpression(enable, "afade enable", variables, undefined, registers, randomStates);
+      enabled = Math.abs(parseFilterExpression(enable, "afade enable", variables, undefined, registers, randomStates)) >= 0.5;
     }
     // FFmpeg rescales frame PTS to whole samples, rounding ties away from zero.
     const framePts = frame?.pts ?? startSample;

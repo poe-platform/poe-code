@@ -13435,7 +13435,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t === "-set") i++;
             const raw = tokens[++i] ?? "";
             const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
-            const expanded = yield* formatMagickPropertyStringSteps(raw, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
+            const expanded = yield* formatMagickPropertyStringSteps(raw, image, () => image, { ...(image as MagickImage)[magickInput], ...(stack.length ? { fxStack: stack, sceneCount: stack.length, listIndex: 0 } : {}), optionProperties: state.optionProperties });
             const { hasOffset, ...page } = parseMagickPageGeometry(expanded);
             if (t === "-set") state.optionProperties = { ...state.optionProperties, page: expanded };
             state.page = page;
@@ -17225,7 +17225,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const page = state.page = { width: 0, height: 0, x: 0, y: 0 };
             stackStep(async (stack, backend) => {
                 const image = await stack.get(0) ?? await createStoredCanvas(1, 1, settings.background, backend, signal);
-                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], ...(stack.length ? { sceneCount: stack.length, listIndex: 0 } : {}), optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack.length ? stack : undefined);
                 const { hasOffset, ...geometry } = parseMagickPageGeometry(expanded);
                 Object.assign(page, geometry);
                 for (let index = 0; index < stack.length; index++) {

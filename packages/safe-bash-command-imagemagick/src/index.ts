@@ -14365,6 +14365,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (stack.length >= 2) {
                 const lut = stack[t === "-clut" ? 1 : stack.length - 1]!;
                 const im = stack[0]!;
+                const channelMask = im[magickInput]?.channelMask;
+                const channels = channelMask ?? createDefaultState().channels;
                 const hasAlpha = im.hasAlpha || t === "-hald-clut";
                 const { magickColorspace: ignoredColorspace, ...metadata } = im;
                 if (t === "-hald-clut") delete metadata.hueSamples;
@@ -14375,10 +14377,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     delete metadata.gamma;
                     if (lut.gamma !== undefined) metadata.gamma = lut.gamma;
                 }
-                const lookupArguments = [im.width * im.height * 4, lut, [state.channels.r, state.channels.g, state.channels.b, t === "-clut" ? (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false) && (state.channels.a || !state.channelExplicit) : state.channels.a || !state.channelExplicit, state.channels.k === true || !state.channelExplicit], !!(im.data16 || lut.data16), (t === "-clut" ? im : lut)[magickInput]?.interpolation, state.backgroundExplicit ? state.background : lut.backgroundColor ?? state.background, lut.virtualPixel, im.space === "cmyk"] as const;
+                const lookupArguments = [im.width * im.height * 4, lut, [channels.r, channels.g, channels.b, t === "-clut" ? (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false) && (channels.a || channelMask === undefined) : channels.a || channelMask === undefined, channels.k === true || channelMask === undefined], !!(im.data16 || lut.data16), (t === "-clut" ? im : lut)[magickInput]?.interpolation, state.backgroundExplicit ? state.background : lut.backgroundColor ?? state.background, lut.virtualPixel, im.space === "cmyk"] as const;
                 let result = yield* applyMagickRasterSteps({ ...metadata, ...(colorspace ? { magickColorspace: colorspace } : {}), space: cmyk ? "cmyk" : gray ? (t === "-hald-clut" ? lut : im).space : "srgb", channels: cmyk ? 4 : gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3 }, (t === "-hald-clut" ? haldClutPixelSteps(...lookupArguments, im.hasAlpha) : clutPixelSteps(...lookupArguments)), signal, { ...im, hasAlpha }, [im, lut]);
-                if (im.region) result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, im.region, !!result.data16, state.channels), signal, result, [result, im]);
-                if (im.writeMask) result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, im.writeMask, !!result.data16, false, state.channels), signal, result, [result, im, im.writeMask]);
+                if (im.region) result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, im.region, !!result.data16, channels), signal, result, [result, im]);
+                if (im.writeMask) result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, im.writeMask, !!result.data16, false, channels), signal, result, [result, im, im.writeMask]);
                 stack = [result];
             }
         }
@@ -16798,7 +16800,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if (stack.length < 2) throw new Error(`image sequence is required '${token}'`);
                     const lut = (await stack.get(token === "-clut" ? 1 : stack.length - 1))! as StoredRgbaImage;
                     const image = (await stack.get(0))! as StoredRgbaImage;
-                    const mask = [settings.channels.r, settings.channels.g, settings.channels.b, token === "-clut" ? (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false) && (settings.channels.a || !settings.channelExplicit) : settings.channels.a || !settings.channelExplicit, settings.channels.k === true || !settings.channelExplicit];
+                    const channelMask = image[magickInput]?.channelMask;
+                    const channels = channelMask ?? createDefaultState().channels;
+                    const mask = [channels.r, channels.g, channels.b, token === "-clut" ? (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false) && (channels.a || channelMask === undefined) : channels.a || channelMask === undefined, channels.k === true || channelMask === undefined];
                     const hasAlpha = image.hasAlpha || token === "-hald-clut";
                     const { magickColorspace: ignoredColorspace, ...metadata } = image;
                     if (token === "-hald-clut") delete metadata.storedHueSamples;
@@ -16811,8 +16815,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     const lookupArguments = [image.width * image.height * 4, lut, mask, !!(image.storedData16 || lut.storedData16), (token === "-clut" ? image : lut)[magickInput]?.interpolation, settings.backgroundExplicit ? settings.background : lut.backgroundColor ?? settings.background, lut.virtualPixel, image.space === "cmyk"] as const;
                     let result = await transformStoredMagickRaster({ ...metadata, ...(colorspace ? { magickColorspace: colorspace } : {}), space: cmyk ? "cmyk" : gray ? (token === "-hald-clut" ? lut : image).space : "srgb", channels: cmyk ? 4 : gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3 }, backend, (token === "-hald-clut" ? haldClutPixelSteps(...lookupArguments, image.hasAlpha) : clutPixelSteps(...lookupArguments)), signal, { ...image, hasAlpha }, [image, lut]);
-                    if (image.region) result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, image.region, !!result.storedData16, settings.channels), signal, result, [result, image]);
-                    if (image.storedWriteMask) result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!result.storedData16, false, settings.channels), signal, result, [result, image, image.storedWriteMask]);
+                    if (image.region) result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, image.region, !!result.storedData16, channels), signal, result, [result, image]);
+                    if (image.storedWriteMask) result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!result.storedData16, false, channels), signal, result, [result, image, image.storedWriteMask]);
                     await stack.set(0, result);
                     stack.length = 1;
                 } else if (token === "-separate") {

@@ -15453,6 +15453,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (limitergain < 0 || limitergain > 1) {
                               throw new RangeError("dcshift: expected limitergain between 0 and 1");
                             }
+                          } else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+                            validateWeaveGenericOption(key, value, "dcshift");
                           } else throw new Error(`dcshift: unsupported option ${key}`);
                         }
                         const commands = audioCommands.filter(command =>

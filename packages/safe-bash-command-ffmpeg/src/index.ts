@@ -12707,6 +12707,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (["extrastereo", "stereotools", "stereowiden"].includes(filterName) &&
                         (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4) ||
                           !filteredChannelMask && [3, 4, 6].includes(stretched.length) ||
+                          stretched.length === 3 && filteredChannelMask === 0xb ||
+                          stretched.length === 4 && filteredChannelMask === 0x107 ||
                           stretched.length === 6 && (filteredChannelMask === 0x3f || filteredChannelMask === 0x60f))) {
                         // Floating-point stereo negotiation keeps front gain and omits LFE.
                         // Unspecified 3/4/6-channel layouts default to 2.1/4.0/5.1.

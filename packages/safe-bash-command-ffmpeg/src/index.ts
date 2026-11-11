@@ -11796,7 +11796,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                         }
                         const last = audioTimestamps.at(-1);
-                        const tailPts = last ? last.pts + last.end - last.start : audioStartSample;
+                        const tailPts = last ? last.pts + last.end - last.start
+                          : filterName === "aecho" ? NaN : audioStartSample;
                         for (let start = inputLength; start < stretched[0]!.length; start += 2048) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           budget.allocateMemory(24);

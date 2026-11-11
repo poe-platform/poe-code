@@ -19,6 +19,7 @@ function timeMs(value: string | undefined): number | undefined {
 }
 
 function parseRealtext(bytes: Uint8Array): MediaDocument {
+  const source = decodeUtf8(bytes);
   const samples: MediaSample[] = [];
   let start: number | undefined;
   let end: number | undefined;
@@ -43,7 +44,9 @@ function parseRealtext(bytes: Uint8Array): MediaDocument {
         start = timeMs(attributes.begin ?? "0");
         end = timeMs(attributes.end);
       } else if (name === "br") {
-        text += "\n";
+        // FFmpeg recognizes only the compact spellings as dialogue breaks.
+        const tag = source.slice(parser.startIndex, parser.endIndex + 1).toLowerCase();
+        if (tag === "<br>" || tag === "<br/>") text += "\n";
       }
     },
     ontext(value) {
@@ -63,7 +66,7 @@ function parseRealtext(bytes: Uint8Array): MediaDocument {
       }
     }
   }, { recognizeSelfClosing: true, decodeEntities: false });
-  parser.end(decodeUtf8(bytes));
+  parser.end(source);
   flush();
   samples.sort((a, b) => a.pts - b.pts);
   const duration = samples.reduce((last, sample) => Math.max(last, sample.pts + sample.duration), 0);

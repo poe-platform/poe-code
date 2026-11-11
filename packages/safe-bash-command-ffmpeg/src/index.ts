@@ -14079,10 +14079,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (padding === undefined && minimum === undefined) {
                           let nextIndex = filterIndex + 1;
                           let reframe: string | undefined;
+                          let delayed = false;
                           for (; nextIndex < audioFilters.length; nextIndex++) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                             const name = audioFilters[nextIndex]!.split("=", 1)[0]!.split("@", 1)[0];
                             if (name === "asetnsamples") reframe = audioFilters[nextIndex];
+                            else if (name === "adelay" && outputDuration === undefined && outputTo === undefined && maxAudioFrames === undefined) delayed = true;
                             else if (!["anull", "acopy", "volume"].includes(name!)) break;
                           }
                           const next = audioFilters[nextIndex];
@@ -14138,9 +14140,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             // atrim keeps samples until every end condition is satisfied.
                             const end = Math.max(endSample, inputLength + endPts - paddingPts,
                               duration > 0 ? inputLength + firstPts + duration - paddingPts : -Infinity);
+                            // Delay only adds samples, so the undelayed bound is a safe upper bound.
                             // Reframing preserves a continuous sample timeline; discontinuous PTS
-                            // still allow only sample end bounds to cross asetnsamples.
-                            if (Number.isFinite(end) && (!reframe || continuous || endPts === -Infinity && duration === 0)) {
+                            // still allow only sample end bounds to cross asetnsamples or adelay.
+                            if (Number.isFinite(end) && (!reframe && !delayed || continuous || endPts === -Infinity && duration === 0)) {
                               minimum = Math.max(0, end);
                             }
                           }

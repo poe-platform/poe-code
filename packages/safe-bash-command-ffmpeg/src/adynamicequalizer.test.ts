@@ -13,7 +13,9 @@ const reference = parseWav(readFileSync(new URL("./fixtures/adynamicequalizer-li
   .tracks[0]!.decodedAudio!;
 
 for (const graph of [false, true]) {
-  for (const options of ["mode=listen:dfrequency=1000", "mode=-1", "mode=listen:dqfactor=1"]) {
+  for (const options of ["mode=listen:dfrequency=1000", "mode=-1", "mode=listen:dqfactor=1",
+    "0:1000:1:1000:1:20:200:1:0:50:listen", "0:mode=listen",
+    "10:1000:1:2000:2:10:100:3:4:60:-1"]) {
     it(`outputs the native detector band (${graph ? "graph" : "simple"}, ${options})`, async () => {
       const { fs, result, stderr } = await run(`adynamicequalizer=${options}`, graph);
       assert.equal(result.exitCode, 0, stderr);
@@ -83,12 +85,29 @@ for (const options of ["", "mode=cutbelow", "mode=0", "mode=invalid", "mode=list
   "mode=listen:dfrequency=0b1000", "mode=listen:dfrequency=0o10",
   "mode=listen:dfrequency=1/2", "mode=listen:dfrequency=1M+1", "mode=listen:dfrequency=1/0",
   "mode=listen:dqfactor=0", "mode=listen:dqfactor=1001", "mode=listen:dqfactor=0b10",
-  "mode=listen:dqfactor=1/10000", "mode=listen:dqfactor=1k+1", "mode=listen:dqfactor=0/0", "mode=listen:unknown=1", "mode=listen:dftype=lowpass"]) {
+  "mode=listen:dqfactor=1/10000", "mode=listen:dqfactor=1k+1", "mode=listen:dqfactor=0/0", "mode=listen:unknown=1", "mode=listen:dftype=lowpass",
+"-1:mode=listen", "101:mode=listen", "0:1:mode=listen", "0:1000:0:mode=listen",
+  "0:1000:1:1000:1:0:mode=listen", "0::mode=listen",
+  "0:1000:1:1000:1:20:200:1:0:50:cutbelow", "0:1000:1:1000:1:20:200:1:0:50:listen:extra"]) {
   it(`rejects unsupported or invalid options without overwriting: ${options}`, async () => {
     const { fs, result, stderr } = await run(`adynamicequalizer${options ? `=${options}` : ""}`);
     assert.equal(result.exitCode, 1);
     assert.match(stderr, /adynamicequalizer/);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "KEEP");
+  });
+}
+
+for (const options of ["mode=listen", "0:1000:1:1000:1:20:200:1:0:50:listen", "0:mode=listen"]) {
+  it(`matches the native 16 kHz impulse response (${options})`, async () => {
+    const impulse = new Float64Array(32);
+    impulse[0] = 32767 / 32768;
+    const { fs, result, stderr } = await run(`adynamicequalizer=${options}`, false,
+      encodeWav({ sampleRate: 16000, channels: [impulse] }));
+    assert.equal(result.exitCode, 0, stderr);
+    const audio = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+    assert.deepEqual(Array.from(audio.channelData[0]!, sample => sample * 32768),
+      [5263, 8162, 3825, 392, -1988, -3350, -3846, -3691, -3115, -2325, -1492, -736,
+        -129, 300, 553, 653, 638, 547, 414, 272, 140, 33, -44, -91, -111, -110, -96, -74, -49, -26, -8, 6]);
   });
 }
 

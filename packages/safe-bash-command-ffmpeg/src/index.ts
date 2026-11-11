@@ -36,6 +36,7 @@ import { authorTimecode } from "./timecode.js";
 import { parseRawVideo, serializeRawVideo, synchronizeRawVideoFrames } from "./rawvideo.js";
 import { formatYuv } from "./format-yuv.js";
 import { swapUv } from "./swapuv.js";
+import { colorcorrect } from "./colorcorrect.js";
 import { deessAudio } from "./audio-deesser.js";
 import { declickAudio } from "./audio-adeclick.js";
 import { tmix } from "./tmix.js";
@@ -4533,6 +4534,8 @@ async function applyVideoFilterChain(
       current = await colorbalance(current, argStr, budget, signal);
     } else if (name === "colorcontrast") {
       current = await colorcontrast(current, argStr, pixelFormat, budget, signal);
+    } else if (name === "colorcorrect") {
+      current = await colorcorrect(current, argStr, budget, signal);
     } else if (name === "colorchannelmixer") {
       const keys = ["rr", "rg", "rb", "ra", "gr", "gg", "gb", "ga", "br", "bg", "bb", "ba", "ar", "ag", "ab", "aa"];
       const coefficients: number[] = keys.map((_, index) => index % 5 === 0 ? 1 : 0);

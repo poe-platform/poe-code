@@ -31,7 +31,7 @@ for (const [prefix, suffix, limit, samples, measured, reset] of [
       let stderr = "";
       const chunks: Uint8Array[] = [];
       const result = await createFfmpegCommand().execute({
-        args: ["-hide_banner", "-nostats", "-v", "info", "-i", "/in.wav",
+        args: ["-hide_banner", "-nostats", "-v", "info", "-guess_layout_max", "0", "-i", "/in.wav",
           ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
           ...(limit === undefined ? [] : ["-frames:a", limit]), "-f", "s16le", "-"],
         cwd: "/", env: {}, signal: new AbortController().signal,

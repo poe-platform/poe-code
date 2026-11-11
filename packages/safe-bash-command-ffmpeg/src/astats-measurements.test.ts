@@ -13,7 +13,7 @@ async function run(options: string, metadata = false) {
   const stdout: Uint8Array[] = [];
   let stderr = "";
   const result = await createFfmpegCommand().execute({
-    args: ["-hide_banner", "-nostats", "-v", "info", "-i", "/in.wav", "-af",
+    args: ["-hide_banner", "-nostats", "-v", "info", "-guess_layout_max", "0", "-i", "/in.wav", "-af",
       `astats=${options}${metadata ? ":metadata=1,ametadata=mode=print:file=tags.txt" : ""}`, "-f", "s16le", "-"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {

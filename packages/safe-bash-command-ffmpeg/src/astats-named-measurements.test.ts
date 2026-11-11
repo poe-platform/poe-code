@@ -22,7 +22,7 @@ for (const [perChannel, overall, expected] of [
     const stdout: Uint8Array[] = [];
     let stderr = "";
     const result = await createFfmpegCommand().execute({
-      args: ["-hide_banner", "-nostats", "-v", "info", "-i", "/in.wav", "-af",
+      args: ["-hide_banner", "-nostats", "-v", "info", "-guess_layout_max", "0", "-i", "/in.wav", "-af",
         `astats=measure_perchannel=${perChannel}:measure_overall=${overall}`, "-f", "s16le", "-"],
       cwd: "/", env: {}, signal: new AbortController().signal,
       fs: {

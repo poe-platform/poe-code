@@ -13617,9 +13617,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       start = end;
                     }
                   }
-                  // astats normalizes integer PCM against its maximum positive value.
-                  let statsScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 / 32767
-                    : t.codecDescriptions[0]?.codecName === "pcm_s32le" ? 2147483648 / 2147483647 : 1;
                   const audioFilters = filter ? parseFilterChain(filter.expression).map(item => {
                     const equals = item.indexOf("=");
                     if (equals < 0 || item.slice(0, equals).split("@", 1)[0] !== "asplit") return item;
@@ -14677,7 +14674,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             if (logLevel >= 24) await writeBytes(context.stderr, encodeUtf8(message), context.signal);
                           });
                           filteredSampleFormat = "fltp";
-                          statsScale = 1;
                         } else {
                           if (filteredSampleFormat === "u8" || filteredSampleFormat === "u8p") filteredSampleFormat = "s16";
                           // Echo supports planar formats for both input and drained frames.
@@ -14685,7 +14681,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           stretched = await echoAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal, async message => {
                             if (logLevel >= 24) await writeBytes(context.stderr, encodeUtf8(message), context.signal);
                           });
-                          if (["flt", "fltp", "dbl", "dblp"].includes(filteredSampleFormat)) statsScale = 1;
                         }
                         if (!audioTimestamps) {
                           audioTimestamps = [];
@@ -14776,10 +14771,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredChannelMask = 3;
                         filteredChannelNames = undefined;
                         filteredSampleFormat = "dbl";
-                        statsScale = 1;
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
-                        statsScale = 1;
+                        filteredSampleFormat = "fltp";
                       } else if (filterName === "adynamicequalizer" || filterName === "acrusher" || filterName === "aemphasis" || filterName === "deesser" || filterName === "aexciter" || filterName === "atilt" || filterName === "aphaseshift" || filterName === "afreqshift" || filterName === "silenceremove" || filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo" || filterName === "asoftclip" || filterName === "asubboost" || filterName === "agate") {
                         if (!audioTimestamps) {
                           audioTimestamps = [];
@@ -14800,7 +14794,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (filterName === "adynamicequalizer") {
                           stretched = await listenDynamicEqualizer(stretched, origRate, trimmed, budget, context.signal, filteredSampleFormat, audioTimestamps);
                           filteredSampleFormat = stretched[0] instanceof Float64Array ? "dblp" : "fltp";
-                          statsScale = 1;
                         } else if (filterName === "acrusher") {
                           if (!autoConversionFilters && filteredSampleFormat !== "dbl") throw new Error(audioConversionDisabled);
                           const commands = audioCommands.filter(command => command.target === "acrusher" || command.target === filterTarget)
@@ -14808,14 +14801,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           audioCommands = audioCommands.filter(command => command.target !== "acrusher" && command.target !== filterTarget);
                           stretched = await crushAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal, commands);
                           filteredSampleFormat = "dbl";
-                          statsScale = 1;
                         } else if (filterName === "aemphasis") {
                           const commands = audioCommands.filter(command => command.target === "aemphasis" || command.target === filterTarget)
                             .sort((a, b) => a.sample - b.sample);
                           audioCommands = audioCommands.filter(command => command.target !== "aemphasis" && command.target !== filterTarget);
                           stretched = await emphasizeAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal, commands);
                           filteredSampleFormat = "dblp";
-                          statsScale = 1;
                         } else if (filterName === "deesser") {
                           const commands = audioCommands.filter(command => command.target === "deesser" || command.target === filterTarget)
                             .sort((a, b) => a.sample - b.sample);
@@ -14838,12 +14829,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             .sort((a, b) => a.sample - b.sample);
                           audioCommands = audioCommands.filter(command => command.target !== filterName && command.target !== filterTarget);
                           stretched = await shiftAudioPhase(stretched, origRate, trimmed, filteredSampleFormat, audioTimestamps, budget, context.signal, commands);
-                          statsScale = 1;
                         } else if (filterName === "silenceremove") {
                           const format = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dbl" : "flt";
                           stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, format, budget, context.signal);
                           filteredSampleFormat = format;
-                          statsScale = 1;
                           const commands = audioCommands.filter(command => command.target === "silenceremove" || command.target === filterTarget)
                             .sort((a, b) => a.sample - b.sample);
                           audioCommands = audioCommands.filter(command => command.target !== "silenceremove" && command.target !== filterTarget);
@@ -14921,13 +14910,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           filteredSampleFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
                           stretched = await normalizeSpeech(stretched, origRate, audioTimestamps, trimmed, filteredSampleFormat, budget, context.signal);
                         }
-                        statsScale = 1;
                       } else if (trimmed === "acompressor" || trimmed.startsWith("acompressor=")) {
                         const commands = audioCommands.filter(command => command.target === "acompressor" || command.target === filterTarget)
                           .sort((a, b) => a.sample - b.sample);
                         audioCommands = audioCommands.filter(command => command.target !== "acompressor" && command.target !== filterTarget);
                         stretched = await compressAudio(stretched, origRate, trimmed, budget, context.signal, undefined, commands);
-                        statsScale = 1;
+                        filteredSampleFormat = "dbl";
                       } else if (trimmed === "mcompand" || trimmed.startsWith("mcompand=")) {
                         stretched = await multibandCompandAudio(stretched, origRate, trimmed, budget, context.signal);
                       } else if (trimmed === "compand" || trimmed.startsWith("compand=")) {
@@ -14990,7 +14978,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           audioTimestamps.push({ start, end: Math.min(length, start + normalized.frameSize),
                             pts: frame ? frame.pts + start - frame.start : audioStartSample + start });
                         }
-                        statsScale = 1;
                       } else if (trimmed === "silencedetect" || trimmed.startsWith("silencedetect=")) {
                         // Keep the native missing-PTS sentinel exact until after subtracting endpoints.
                         const missingPts = -(1n << 63n);
@@ -15134,6 +15121,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           silenceEvents.length = 0;
                         }
                       } else if (trimmed === "astats" || trimmed.startsWith("astats=")) {
+                        // Normalize integer PCM using the format reaching this filter.
+                        const statsScale = filteredSampleFormat === "s16" || filteredSampleFormat === "s16p" ? 32768 / 32767
+                          : filteredSampleFormat === "s32" || filteredSampleFormat === "s32p" ? 2147483648 / 2147483647 : 1;
                         let perChannel: number | undefined;
                         let overall: number | undefined;
                         let reset = 0;
@@ -15397,7 +15387,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else if (key === "enable") enable = value;
                           else throw new Error(`volume: unsupported option ${key}`);
                         }
-                        if (precision !== "fixed") statsScale = 1;
                         let replayGainFactor: number | undefined;
                         if (replayGainAvailable && (replayGain === "track" || replayGain === "album")) {
                           const tags = Object.fromEntries(Object.entries({ ...doc.metadata, ...doc.metadata.custom, ...t.metadata })
@@ -15618,7 +15607,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         stretched = output;
                         filteredSampleFormat = "s32p";
-                        statsScale = 2147483648 / 2147483647;
                         t = { ...t, codecDescriptions: t.codecDescriptions.map(description => ({ ...description,
                           codecName: "pcm_s32le", bitsPerSample: 32 })) };
                       } else if (trimmed === "aloop" || trimmed.startsWith("aloop=")) {

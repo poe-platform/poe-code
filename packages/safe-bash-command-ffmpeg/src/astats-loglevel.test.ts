@@ -16,7 +16,7 @@ async function run(filter: string, level: string) {
   const stdout: Buffer[] = [];
   let stderr = "";
   const result = await createFfmpegCommand().execute({
-    args: ["-hide_banner", "-nostats", "-v", level, "-i", "/in.wav", "-af", filter, "-f", "s16le", "-"],
+    args: ["-hide_banner", "-nostats", "-v", level, "-guess_layout_max", "0", "-i", "/in.wav", "-af", filter, "-f", "s16le", "-"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
       async readFile(path: string) { return volume.readFileSync(path); },

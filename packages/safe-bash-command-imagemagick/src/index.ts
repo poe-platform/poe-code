@@ -10006,7 +10006,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (image.space === "cmyk") image = yield* copyCmykChannelsToRgb(image);
             // Threshold relabels linear RGB as sRGB before measuring intensity, without converting samples.
             if (image.magickColorspace === "RGB" || image.magickColorspace === "scRGB") image = { ...image, magickColorspace: undefined };
-            const hueSamples = image.hueSamples?.slice();
+            const hueSamples = image.hueSamples;
             const out = new Uint8Array(image.data);
             const data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
             const evaluateSamples = inks ? Float64Array.from(image.evaluateSamples ?? data16 ?? out, (sample, index) =>
@@ -10014,7 +10014,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const samples = evaluateSamples ?? data16 ?? out, quantumScale = evaluateSamples || !data16 ? 257 : 1, maximum = evaluateSamples || !data16 ? 255 : 65535;
             // Gray has one color sample; R selects all three copies in RGBA storage.
             const gray = image.space === "b-w" || image.space === "grey16";
-            const linearGray = (image.space === "b-w" || image.space === "grey16") && image.gamma === 1 && image.magickColorspace !== "Gray";
+            const linearGray = gray && image.gamma === 1 && image.magickColorspace !== "Gray";
             const activeAlpha = image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false;
             const mask = channels ? [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a && activeAlpha] : undefined;
             for (let idx = 0; idx < out.length; idx += 4) {
@@ -10024,7 +10024,6 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         if (mask[channel]) {
                             const white = samples[idx + channel]! * quantumScale > value;
                             samples[idx + channel] = white ? maximum : 0;
-                            if (hueSamples) hueSamples[idx + channel] = white ? 1 : 0;
                             out[idx + channel] = white ? 255 : 0;
                             if (data16) data16[idx + channel] = white ? 65535 : 0;
                         }
@@ -10035,19 +10034,19 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         : magickIntensity(samples[idx]!, samples[idx + 1]!, samples[idx + 2]!, state.intensity, maximum, image.magickColorspace === "RGB" || image.magickColorspace === "scRGB" || linearGray) * quantumScale;
                     const result = intensity > value ? 255 : 0;
                     samples[idx] = samples[idx + 1] = samples[idx + 2] = result ? maximum : 0;
-                    if (hueSamples) hueSamples[idx] = hueSamples[idx + 1] = hueSamples[idx + 2] = result ? 1 : 0;
                     out[idx] = out[idx + 1] = out[idx + 2] = result;
                     if (data16) data16[idx] = data16[idx + 1] = data16[idx + 2] = result ? 65535 : 0;
                     // Native default threshold assigns the intensity result to alpha too.
                     if (activeAlpha) {
                         samples[idx + 3] = result ? maximum : 0;
-                        if (hueSamples) hueSamples[idx + 3] = result ? 1 : 0;
                         out[idx + 3] = result;
                         if (data16) data16[idx + 3] = result ? 65535 : 0;
                     }
                 }
             }
-            return { ...image, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), ...(hueSamples ? { hueSamples } : {}) };
+            // Native reinterprets the thresholded working samples as sRGB, except for gray images.
+            const { hueSamples: ignoredHue, magickColorspace, ...metadata } = image;
+            return { ...metadata, ...(gray && magickColorspace ? { magickColorspace } : {}), data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}) };
         };
     } else if (token === "-colorize") {
         highDepth = true;

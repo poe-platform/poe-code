@@ -4886,7 +4886,33 @@ async function applyVideoFilterChain(
         if (separator < 0) throw new Error("separatefields: unexpected positional argument");
         const key = option.slice(0, separator).trim();
         if (key === "enable") throw new Error("separatefields: timeline is unsupported");
-        throw new Error(`separatefields: unsupported option ${key}`);
+        if (!["threads", "thread_type", "extra_hw_frames"].includes(key)) {
+          throw new Error(`separatefields: unsupported option ${key}`);
+        }
+        // Scheduling and hardware frame reservations do not change field pixels.
+        const value = option.slice(separator + 1).trim();
+        if (key === "thread_type") {
+          let position = 0;
+          do {
+            if (value[position] === "+" || value[position] === "-") position++;
+            const start = position;
+            if (value[position] === "+" || value[position] === "-") position++;
+            while (position < value.length && value[position] !== "+" && value[position] !== "-") position++;
+            const bits = parseFilterExpression(value.slice(start, position), "separatefields", { slice: 1, none: 0, all: -1 });
+            if (!Number.isInteger(bits) || bits < -2147483648 || bits > 4294967295) {
+              throw new RangeError("separatefields: invalid thread_type");
+            }
+          } while (position < value.length);
+          continue;
+        }
+        const minimum = key === "extra_hw_frames" ? -1 : 0;
+        const number = parseFilterExpression(value, "separatefields", {
+          default: minimum, min: minimum, max: 2147483647,
+          PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+        });
+        if (!Number.isFinite(number) || number < minimum || number > 2147483647) {
+          throw new RangeError(`separatefields: invalid ${key}`);
+        }
       }
       current = await separateFields(current, budget, endTimeSeconds, signal);
       timescale *= 2;

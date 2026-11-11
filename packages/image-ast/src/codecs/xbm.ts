@@ -110,6 +110,7 @@ function* xbmSteps(size: number, options?: SharpInputOptions): Generator<Step, I
       }
     } else if (part === "char") bitsPerValue = 8;
     else if (part === "short") bitsPerValue = 16;
+    else if (part === "const") throw new Error("improper image header in XBM");
     else if (part === "[" && (yield* token()) !== "]") throw new Error("Invalid XBM array declaration");
     else if (part === "{") { inBitmap = true; break; }
   }

@@ -9721,8 +9721,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             };
         }
         else if (mode === "off" || mode === "opaque" || mode === "transparent") {
-            evaluate = mode === "opaque";
+            evaluate = mode !== "transparent";
             apply = function* (im) {
+                // Off retains Copy's unblended alpha for Activate and translucent geometry.
+                if (mode === "off" && im.alphaBlend === false && (im.hasAlpha || im.inactiveAlpha))
+                    return { ...im, hasAlpha: false, inactiveAlpha: true, alphaSeparate: false };
                 let pixelWork = 0;
                 const out = new Uint8Array(im.data);
                 const evaluateSamples = im.evaluateSamples?.slice();

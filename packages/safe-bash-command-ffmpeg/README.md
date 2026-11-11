@@ -625,9 +625,10 @@ Both filters accept case-insensitive Boolean
 words (`true`/`false`, `yes`/`no`, `on`/`off`, `y`/`n`, `enable`/`disable`,
 `enabled`/`disabled`) and decimal 0/1 values, such as `phasel=True` or `c=OFF`.
 Both `extrastereo` and `stereotools` convert mono input to stereo before processing,
-with each channel receiving the mono samples at √½ gain. They also downmix explicitly
-labeled 5.1 and 5.1(side) input: front channels retain their gain, center and
-surround channels contribute at √½ gain, and LFE is omitted.
+with each channel receiving the mono samples at √½ gain. They also downmix 5.1,
+5.1(side), and 7.1 input: front channels retain their gain, center and both
+surround pairs contribute at √½ gain, and LFE is omitted. Eight-channel PCM WAV
+without a speaker mask is treated as 7.1.
 `crossfeed=strength=0.5` applies frequency-dependent headphone crossfeed to stereo audio.
 Downstream `ashowinfo` reports packed double (`dbl`) frames before output encoding.
 Mono input is converted to stereo at √½ gain per channel before crossfeed is applied.

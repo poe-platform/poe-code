@@ -12746,18 +12746,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       ].includes(filterName)) panSampleFormat = "flt";
                       if (["extrastereo", "stereotools", "stereowiden"].includes(filterName) &&
                         (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4) ||
-                          !filteredChannelMask && [3, 4, 6].includes(stretched.length) ||
+                          !filteredChannelMask && [3, 4, 6, 8].includes(stretched.length) ||
                           stretched.length === 3 && filteredChannelMask === 0xb ||
                           stretched.length === 4 && filteredChannelMask === 0x107 ||
-                          stretched.length === 6 && (filteredChannelMask === 0x3f || filteredChannelMask === 0x60f))) {
+                          stretched.length === 6 && (filteredChannelMask === 0x3f || filteredChannelMask === 0x60f) ||
+                          stretched.length === 8 && filteredChannelMask === 0x63f)) {
                         // Floating-point stereo negotiation keeps front gain and omits LFE.
-                        // Unspecified 3/4/6-channel layouts default to 2.1/4.0/5.1.
+                        // Unspecified 3/4/6/8-channel layouts default to 2.1/4.0/5.1/7.1.
                         const expression = stretched.length === 1
                           ? `stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`
                           : stretched.length === 3 ? "stereo|c0=c0|c1=c1"
                             : stretched.length === 4
                               ? `stereo|c0=c0+${Math.SQRT1_2}*c2+0.5*c3|c1=c1+${Math.SQRT1_2}*c2+0.5*c3`
-                              : `stereo|c0=c0+${Math.SQRT1_2}*c2+${Math.SQRT1_2}*c4|c1=c1+${Math.SQRT1_2}*c2+${Math.SQRT1_2}*c5`;
+                              : stretched.length === 8
+                                ? `stereo|c0=c0+${Math.SQRT1_2}*c2+${Math.SQRT1_2}*c4+${Math.SQRT1_2}*c6|c1=c1+${Math.SQRT1_2}*c2+${Math.SQRT1_2}*c5+${Math.SQRT1_2}*c7`
+                                : `stereo|c0=c0+${Math.SQRT1_2}*c2+${Math.SQRT1_2}*c4|c1=c1+${Math.SQRT1_2}*c2+${Math.SQRT1_2}*c5`;
                         const stereo = await panAudio(expression, stretched, filteredChannelMask, "flt", budget, context.signal);
                         stretched = stereo.channels;
                         filteredChannelMask = stereo.channelMask;

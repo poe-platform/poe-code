@@ -762,6 +762,8 @@ Swap stereo PCM channels with `-af 'channelmap=FR|FL'` or
 Channel maps accept input speaker names or numeric indices and allow repeated sources.
 The filter accepts `threads`, `thread_type`, and `extra_hw_frames` without changing
 the mapped PCM samples, for example `channelmap=1|0:threads=1`.
+Scheduling constants include `threads=default` or `min`, `extra_hw_frames=default`
+or `min`, and `thread_type=none`, `all`, `default`, or `slice`.
 Out-of-range scheduling values return exit status `222`; invalid scheduling
 expressions return `234`, with no PCM output.
 A single trailing `|` is accepted without adding a channel; leading, interior, or

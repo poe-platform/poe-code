@@ -4697,11 +4697,12 @@ async function applyVideoFilterChain(
         const output = { ...f, height, interlaced: false, topFieldFirst: false };
         const native = f.native;
         if (native?.rgba === f.data && native.width === f.width && native.height === f.height &&
-            [0, 4, 5, 12, 13, 14, 29, 30, 49, 68].includes(native.format)) {
+            [0, 4, 5, 12, 13, 14, 29, 30, 34, 49, 68, 104].includes(native.format)) {
           const hsub = [0, 4, 12, 13].includes(native.format) ? 2 : 1;
           const vsub = [0, 12].includes(native.format) ? 2 : 1;
-          const sampleBytes = [29, 30, 49, 68].includes(native.format) ? 2 : 1;
-          const planeCount = (native.format === 29 || native.format === 30) ? 1 : 3;
+          const sampleBytes = native.format === 34 ? 6 : native.format === 104 ? 8
+            : [29, 30, 49, 68].includes(native.format) ? 2 : 1;
+          const planeCount = [29, 30, 34, 104].includes(native.format) ? 1 : 3;
           const pixelBytes = (f.width * height + (planeCount - 1) * Math.ceil(f.width / hsub) * Math.ceil(height / vsub)) * sampleBytes;
           budget.allocateMemory(pixelBytes + f.width * height * 4 + 128);
           const pixels = new Uint8Array(pixelBytes);

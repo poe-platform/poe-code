@@ -22,9 +22,10 @@ export async function declickAudio(
     const value = key === "method" && ["add", "a"].includes(raw) ? 0
       : key === "method" && ["save", "s"].includes(raw) ? 1 : Number(raw);
     const [min, max] = ranges[key];
-    if (!raw || !Number.isFinite(value) || value < min! || value > max! || ((key === "method" || key === "hsize") && !Number.isInteger(value))) {
+    if (!raw || !Number.isFinite(value) || ((key === "method" || key === "hsize") && !Number.isInteger(value))) {
       throw new Error(`${name}: invalid ${key}`);
     }
+    if (value < min! || value > max!) throw new RangeError(`${name}: invalid ${key}`);
     options[key] = value;
   }
   const size = Math.max(100, Math.trunc(sampleRate * options.window / 1000));

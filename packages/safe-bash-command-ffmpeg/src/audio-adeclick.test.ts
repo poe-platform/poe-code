@@ -55,10 +55,20 @@ for (const [filter, references] of [
   for (const [i, expected] of references) assert.ok(Math.abs(channel[i]! * 32768 - expected) <= 1, `sample ${i}: ${channel[i]! * 32768}, expected ${expected}`);
 });
 
-for (const filter of ["adeclick=window=9", "adeclick=o=96", "adeclick=a=-1", "adeclick=t=0", "adeclick=b=11", "adeclick=m=2", "adeclick=m=0.5", "adeclick=unknown=1", "adeclick=t="]) {
+for (const [filter, exitCode] of [
+  ["adeclick=window=9", 222],
+  ["adeclick=o=96", 222],
+  ["adeclick=a=-1", 222],
+  ["adeclick=t=0", 222],
+  ["adeclick=b=11", 222],
+  ["adeclick=m=2", 222],
+  ["adeclick=m=0.5", 234],
+  ["adeclick=unknown=1", 8],
+  ["adeclick=t=", 234]
+] as const) {
   it(`rejects invalid options without overwriting output: ${filter}`, async () => {
     const { result, fs } = await run(filter);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, exitCode);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
   });
 }

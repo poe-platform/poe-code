@@ -70,10 +70,24 @@ for (const filter of [
   }
 });
 
-for (const filter of ["adeclip=w=9", "adeclip=o=96", "adeclip=a=-1", "adeclip=t=0", "adeclip=n=99", "adeclip=hsize=10000", "adeclip=n=100.5", "adeclip=m=2", "adeclip=m=0.5", "adeclip=burst=2", "adeclip=b=2", "adeclip=t=", "adeclip=unknown=1"]) {
+for (const [filter, exitCode] of [
+  ["adeclip=w=9", 222],
+  ["adeclip=o=96", 222],
+  ["adeclip=a=-1", 222],
+  ["adeclip=t=0", 222],
+  ["adeclip=n=99", 222],
+  ["adeclip=hsize=10000", 222],
+  ["adeclip=n=100.5", 234],
+  ["adeclip=m=2", 222],
+  ["adeclip=m=0.5", 234],
+  ["adeclip=burst=2", 8],
+  ["adeclip=b=2", 8],
+  ["adeclip=t=", 234],
+  ["adeclip=unknown=1", 8]
+] as const) {
   it(`rejects invalid options without overwriting output: ${filter}`, async () => {
     const { result, fs, error } = await run(filter);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, exitCode);
     assert.match(error, /adeclip: (invalid|unsupported option)/);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "KEEP");
   });

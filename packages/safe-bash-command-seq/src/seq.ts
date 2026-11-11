@@ -206,7 +206,8 @@ async function parseFormat(text: string, session: Session): Promise<Format> {
     }
     if (text[cursor] === "L") cursor++;
     const kind = text[cursor];
-    if (!kind || !"fFeEgGaA".includes(kind)) throw new UsageError("format requires one f, e, g or a conversion");
+    if (!kind) throw new UsageError(`format '${text}' ends in %`);
+    if (!"fFeEgGaA".includes(kind)) throw new UsageError(`format '${text}' has unknown %${kind} directive`);
     const width = Number(widthDigits || 0);
     const precision = precisionDigits === undefined ? (kind.toLowerCase() === "a" ? -1 : 6) : Number(precisionDigits || 0);
     session.check(width, session.limits.maxRecordBytes, "format width");
@@ -214,7 +215,7 @@ async function parseFormat(text: string, session: Session): Promise<Format> {
     result = { prefix: literal, suffix: "", flags, width, precision, kind };
     literal = ""; offset = cursor;
   }
-  if (!result) throw new UsageError("format must contain exactly one conversion");
+  if (!result) throw new UsageError(`format '${text}' has no % directive`);
   return { ...result, suffix: literal };
 }
 

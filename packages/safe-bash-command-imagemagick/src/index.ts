@@ -8132,7 +8132,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     if (lower.startsWith("plasma:")) {
         const spec = baseToken.slice(7), fractal = spec.toLowerCase() === "fractal";
         const [first, last] = fractal ? [] : spec.split("-");
-        const metadata = { width: state.sizeWidth, height: state.sizeHeight, format: "png" as const, channels: 3 as const, depth: "ushort" as const, space: "srgb" as const, density: 72, hasAlpha: false };
+        const metadata = { width: state.sizeWidth, height: state.sizeHeight, format: "png" as const, channels: 3 as const, depth: "ushort" as const, space: "srgb" as const, density: 72, hasAlpha: false, [magickInput]: { filePath: fractal ? spec : first || "white" } };
         return yield* applyMod([yield* applyMagickRasterSteps({ ...metadata, data: new Uint8Array() }, plasmaPixelSteps(metadata.width, metadata.height, parseColor(first || (fractal ? "#808080" : "white")), parseColor(last || "black"), fractal, state.seed ?? 0n))]);
     }
     if (lower.startsWith("pattern:")) {
@@ -20751,7 +20751,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   }
  }else if(lower.startsWith("plasma:")){
   const spec=baseToken.slice(7),fractal=spec.toLowerCase()==="fractal",[first,last]=fractal?[]:spec.split("-");
-  const metadata={width:state.sizeWidth,height:state.sizeHeight,format:"png" as const,channels:3 as const,depth:"ushort" as const,space:"srgb" as const,density:72,hasAlpha:false};
+  const metadata={width:state.sizeWidth,height:state.sizeHeight,format:"png" as const,channels:3 as const,depth:"ushort" as const,space:"srgb" as const,density:72,hasAlpha:false,[magickInput]:{filePath:fractal?spec:first||"white"}};
   image=await transformStoredMagickRaster({...metadata,position:0},backend,plasmaPixelSteps(metadata.width,metadata.height,parseColor(first||(fractal?"#808080":"white")),parseColor(last||"black"),fractal,state.seed??0n),signal);
  }else if(lower.startsWith("gradient:")||lower.startsWith("radial-gradient:")||lower.startsWith("pattern:")){
   if (!lower.startsWith("pattern:")) validateGradientBoundingBox(state.sizeWidth, state.sizeHeight, state.gradientBoundingBox);

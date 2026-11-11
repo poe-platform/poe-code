@@ -4821,8 +4821,12 @@ async function applyVideoFilterChain(
         return output;
       }, signal);
     } else if (name === "weave") {
+      const endTime = endTimeSeconds ?? (lastInputFrame ? lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds : 0);
       current = await weave(current, argStr, timescale, budget, signal);
+      // EOF is rounded into weave's doubled time base even when the last field is discarded.
       timescale /= 2;
+      const endTicks = endTime * timescale;
+      endTimeSeconds = Math.sign(endTicks) * Math.round(Math.abs(endTicks)) / timescale;
     } else if (name === "setfield") {
       if (positional.at(-1) === "") positional.pop();
       if (positional.slice(1).some(part => !part.includes("=")) || Object.keys(named).some(key => key !== "mode")) {
@@ -4837,6 +4841,7 @@ async function applyVideoFilterChain(
           ...(mode === 2 ? {} : { topFieldFirst: mode === 1 }) }), signal);
       }
     } else if (name === "doubleweave") {
+      if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       current = await doubleweave(current, argStr, budget, signal);
     } else if (name === "fieldorder") {
       if (Object.keys(named).some(key => key !== "order") || positional.length > 1) {
@@ -5725,7 +5730,7 @@ async function applyVideoFilterChain(
     }
     // Filters that change the final frame's timing establish a new endpoint.
     const lastOutputFrame = current.at(-1);
-    if (name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "trim" && name !== "decimate" && name !== "framestep" &&
+    if (name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "trim" && name !== "decimate" && name !== "framestep" &&
         (lastOutputFrame?.ptsSeconds !== lastInputFrame?.ptsSeconds ||
          lastOutputFrame?.durationSeconds !== lastInputFrame?.durationSeconds)) {
       endTimeSeconds = undefined;

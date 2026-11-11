@@ -3176,7 +3176,10 @@ async function applyVideoFilterChain(
         else if (key === "coupling" || key === "c") {
           coupling = parseFilterBoolean(value, "deband: invalid coupling");
         } else if (["1thr", "2thr", "3thr", "4thr", "range", "r", "direction", "d"].includes(key ?? "")) {
-          const number = parseFilterExpression(value, "deband", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
+          const number = parseFilterExpression(value, "deband", {
+            PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
+            ...(key?.endsWith("thr") ? { default: 0.02 } : {})
+          });
           if (!Number.isFinite(number)) throw new Error("deband: invalid number");
           if (key === "range" || key === "r") {
             if (number < -2147483647 || number > 2147483647) throw new Error("deband: invalid range");

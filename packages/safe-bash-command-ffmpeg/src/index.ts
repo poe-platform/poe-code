@@ -12140,6 +12140,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 doc = { ...doc, chapters: outputChapters(doc.chapters, startSeconds) };
               }
               if (audioCodec !== "copy" && !stripAudio) doc = decodeAacInput(doc);
+              const loopSourceDuration = doc.durationSeconds;
               if (inp.streamLoop && inp.streamLoop > 0) {
                 const copies = Array.from({ length: inp.streamLoop + 1 }, () => doc);
                 doc = concatMp4(copies, { limits: options.limits, budget });
@@ -12159,12 +12160,27 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const bytesPerFrame = rawTrack.samples[0]!.data.length / packetFrames;
                   const bytes = concatBytes(rawTrack.samples.map(sample => sample.data));
                   const samples: MediaTrack["samples"][number][] = [];
-                  for (let frame = Math.round(startSeconds * rawTrack.timescale);
-                    frame * bytesPerFrame < bytes.length; frame += packetFrames) {
+                  const seekFrames = Math.round(startSeconds * rawTrack.timescale);
+                  const loopFrames = Math.round(loopSourceDuration * rawTrack.timescale);
+                  const soughtLoop = audioCodec !== "copy" && inp.streamLoop !== undefined &&
+                    inp.streamLoop > 0 && seekFrames < loopFrames;
+                  const loopPreroll = soughtLoop ? Math.max(0, 2 * seekFrames - loopFrames) : 0;
+                  let cycle = 0;
+                  let boundary = loopFrames;
+                  for (let frame = seekFrames; frame * bytesPerFrame < bytes.length;) {
                     budget.checkCpu();
-                    const data = bytes.subarray(frame * bytesPerFrame, (frame + packetFrames) * bytesPerFrame);
-                    samples.push({ data, dts: frame, pts: frame, cts: 0, size: data.length,
+                    if (soughtLoop && frame >= boundary) {
+                      cycle++;
+                      boundary += loopFrames - (cycle === 1 ? loopPreroll : 0);
+                    }
+                    // A demuxer read stops at EOF, then the next loop restarts its packets.
+                    const end = soughtLoop ? Math.min(frame + packetFrames, boundary) : frame + packetFrames;
+                    const data = bytes.subarray(frame * bytesPerFrame, end * bytesPerFrame);
+                    // FFmpeg advances each loop's clock by the original post-seek duration.
+                    const cts = cycle === 0 ? 0 : -cycle * seekFrames + loopPreroll;
+                    samples.push({ data, dts: frame, pts: frame + cts, cts, size: data.length,
                       duration: data.length / bytesPerFrame, isKeyframe: true, sampleDescriptionIndex: 1 });
+                    frame = end;
                   }
                   doc = { ...doc, tracks: [{ ...rawTrack, samples }] };
                 }

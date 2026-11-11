@@ -40,3 +40,36 @@ for (const sync of [false, true]) {
     }
   }
 }
+
+for (const scenario of [
+  { name: "first frame", loop: 1, seek: true, output: ["-frames:a", "1"], expected: [300, 400, 500, 600] },
+  { name: "second frame", loop: 1, seek: true, output: ["-af", "aselect='eq(n,1)'"], expected: [100, 200, 300, 400, 500, 600] },
+  { name: "output seek", loop: 1, seek: true, output: ["-ss", "0.004"], expected: [300, 400, 500, 600] },
+  { name: "all samples", loop: 1, seek: true, output: [], expected: [300, 400, 500, 600, 100, 200, 300, 400, 500, 600] },
+  { name: "no seek", loop: 1, seek: false, output: ["-frames:a", "1"], expected: [100, 200, 300, 400, 500, 600] },
+  { name: "no loop", loop: 0, seek: true, output: ["-frames:a", "1"], expected: [300, 400, 500, 600] },
+  { name: "third frame timestamp", loop: 2, seek: true, output: ["-af", "aselect='eq(t,0.006)'"], expected: [100, 200, 300, 400, 500, 600] }
+]) {
+  it(`preserves sought WAV loop boundaries: ${scenario.name}`, async () => {
+    const volume = Volume.fromJSON({});
+    volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 1000,
+      channels: [Float64Array.from([100, 200, 300, 400, 500, 600], value => value / 32768)] }));
+    const chunks: Buffer[] = [];
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "error", "-stream_loop", String(scenario.loop),
+        ...(scenario.seek ? ["-ss", "0.002"] : []), "-i", "/in.wav", ...scenario.output, "-f", "s16le", "pipe:1"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(),
+      stdout: { async write(bytes: Uint8Array) { chunks.push(Buffer.from(bytes)); } },
+      stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, 0, stderr);
+    const bytes = Buffer.concat(chunks);
+    assert.deepEqual(Array.from({ length: bytes.length / 2 }, (_, i) => bytes.readInt16LE(i * 2)), scenario.expected);
+  });
+}

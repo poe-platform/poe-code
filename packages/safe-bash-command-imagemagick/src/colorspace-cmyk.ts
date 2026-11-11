@@ -18,7 +18,7 @@ export function* fillCmykPixels(image: RgbaImage & HueMetadata, inks: readonly n
         if (offset % 65536 === 0) yield;
         hueSamples.set(inks, offset);
         for (let channel = 0; channel < 4; channel++) {
-            const value = channel === 3 ? image.data[offset + channel]! : rgb[channel]!;
+            const value = channel === 3 ? image.evaluateSamples?.[offset + channel] ?? (image.data16 ? image.data16[offset + channel]! / 257 : image.data[offset + channel]!) : rgb[channel]!;
             evaluateSamples[offset + channel] = value;
             data16[offset + channel] = Math.round(value * 257);
             image.data[offset + channel] = Math.round(value);

@@ -7098,7 +7098,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
         }
     }
     if (cmyk) {
-        const rgb = [background.r, background.g, background.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+        const rgb = [background.r, background.g, background.b].map(value => value / 255).map(value => "space" in background && background.space === "b-w" ? value : value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
         canvas = yield* fillCmykPixels(canvas, background.cmyk ?? rgbToCmyk(rgb[0]!, rgb[1]!, rgb[2]!));
     }
     let hasAlpha = background.a < 255;
@@ -14371,6 +14371,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 canvas = { ...canvas, space: "srgb" };
                 delete canvas.magickColorspace;
             }
+            if (image.space === "cmyk" && "space" in background && background.space === "b-w")
+                canvas = yield* fillCmykPixels(canvas, rgbToCmyk(background.r / 255, background.g / 255, background.b / 255));
             // Smush composites retained alpha samples even when the channel is inactive.
             for (const [n, frame] of stack.entries()) {
                 canvas = yield* applyMagickRasterSteps(canvas, overCompositePixelSteps(canvas, { ...frame, hasAlpha: frame.hasAlpha || frame.alphaBlend === true || frame.alphaSeparate === true || frame.isPalette === true && frame.inactiveAlpha === true }, offsets[n]!.left, offsets[n]!.top, !!(canvas.data16 || frame.data16), false, channels), signal, canvas, [canvas, frame]);
@@ -16385,6 +16387,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     canvas = { ...canvas, space: "srgb" };
                     delete canvas.magickColorspace;
                 }
+                if (image.space === "cmyk" && "space" in background && background.space === "b-w") {
+                    const inks = rgbToCmyk(background.r / 255, background.g / 255, background.b / 255);
+                    canvas = await transformStoredMagickPixels(canvas, backend, { end: 0, highDepth: true, evaluate: true, apply: image => fillCmykPixels(image, inks) }, signal);
+                }
                 for (const [n, frame] of images.entries()) {
                     canvas = await transformStoredMagickRaster(canvas, backend, overCompositePixelSteps(canvas, { ...frame, hasAlpha: frame.hasAlpha || frame.alphaBlend === true || frame.alphaSeparate === true || frame.isPalette === true && frame.inactiveAlpha === true }, offsets[n]!.left, offsets[n]!.top, !!(canvas.storedData16 || frame.storedData16), false, channels), signal, canvas, [canvas, frame]);
                 }
@@ -16631,9 +16637,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                 }
                 if (append && cmyk && !nonCmyk) {
-                    const rgb = [background.r, background.g, background.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
+                    const rgb = [background.r, background.g, background.b].map(value => value / 255).map(value => "space" in background && background.space === "b-w" ? value : value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
                     const inks = background.cmyk ?? rgbToCmyk(rgb[0]!, rgb[1]!, rgb[2]!);
-                    result = await transformStoredMagickPixels(result, backend, { end: 0, apply: image => fillCmykPixels(image, inks) }, signal);
+                    result = await transformStoredMagickPixels(result, backend, { end: 0, highDepth: true, evaluate: true, apply: image => fillCmykPixels(image, inks) }, signal);
                 }
                 let cursor = 0;
                 for (let n = 0; n < stack.length; n++) {

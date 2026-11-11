@@ -838,6 +838,9 @@ The retained channel keeps its speaker layout; dropping the sink leaves an inval
 unconnected output.
 Split stereo PCM into distinct mono files with
 `-filter_complex '[0:a]channelsplit=channel_layout=stereo[L][R]' -map '[L]' left.wav -map '[R]' right.wav`.
+Partial labels are supported: `-filter_complex 'channelsplit[L]' right.wav -map '[L]' left.wav`
+routes the unlabeled right channel to the first output. Mapping both channels to
+one WAV fails with status 234 and leaves an empty output file.
 Mono and 5.1 input are remixed to stereo before selecting a stereo output channel.
 Stereo and 5.1 input are remixed to mono for `channelsplit=mono:FC`; the 5.1 mix
 uses normalized speaker weights and excludes LFE.

@@ -1840,8 +1840,8 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       // Duplicate the source and preceding filters; each branch applies its own downstream filters.
       expression = serializeFilterChain(filters.slice(0, -1)) || "anull";
     }
-    if (!outputs.length) {
-      for (let index = 0; index < outputCount; index++) {
+    if (!outputs.length || split) {
+      while (outputs.length < outputCount) {
         const label = `\0${unlabeled.length}`;
         unlabeled.push(label);
         outputs.push(label);

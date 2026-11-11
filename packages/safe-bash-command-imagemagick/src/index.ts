@@ -14478,7 +14478,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const rIm = colorspace === undefined ? first : yield* parseMagickPixelOperation(["-colorspace", colorspace], state, 0, signal)!.apply(first);
             const cmyk = rIm.space === "cmyk" && (colorspace !== undefined || stack.length <= 4 + Number(rIm.hasAlpha));
             const gray = (rIm.space === "b-w" || rIm.space === "grey16") && (colorspace !== undefined || stack.length <= (rIm.hasAlpha ? 2 : 1));
-            const sources = stack.slice(0, cmyk ? 5 : colorspace === undefined || colorspace.toLowerCase() === "srgb" ? 4 : gray ? 2 : 3);
+            const sources = stack.slice(0, cmyk ? 5 : colorspace === undefined || colorspace.toLowerCase() === "srgb" ? 4 : gray ? 2 : 3 + Number(rIm.hasAlpha));
             let result = yield* applyMagickRasterSteps(rIm, combinePixelSteps(sources, sources.some(image => !!image.data16), state.intensity, gray, cmyk, colorspace !== undefined), signal, rIm, sources);
             if (rIm.writeMask) result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, rIm.writeMask, !!result.data16, false, undefined, rIm.hasAlpha && rIm.alphaBlend !== false), signal, result, [result, rIm, rIm.writeMask]);
             if (rIm.region) result = yield* applyMagickRasterSteps(result, regionPixelSteps(result, rIm.region, !!result.data16), signal, result, [result, rIm]);
@@ -15834,7 +15834,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const cmyk = base.space === "cmyk" && (colorspace !== undefined || stack.length <= 4 + Number(base.hasAlpha));
                     const gray = (base.space === "b-w" || base.space === "grey16") && (colorspace !== undefined || stack.length <= (base.hasAlpha ? 2 : 1));
                     const sources: StoredRgbaImage[] = [first];
-                    for (let index = 1; index < Math.min(cmyk ? 5 : colorspace === undefined || colorspace.toLowerCase() === "srgb" ? 4 : gray ? 2 : 3, stack.length); index++) sources.push((await stack.get(index))!);
+                    for (let index = 1; index < Math.min(cmyk ? 5 : colorspace === undefined || colorspace.toLowerCase() === "srgb" ? 4 : gray ? 2 : 3 + Number(base.hasAlpha), stack.length); index++) sources.push((await stack.get(index))!);
                     let result = await transformStoredMagickRaster(base, backend, combinePixelSteps(sources, sources.some(image => !!image.storedData16), settings.intensity, gray, cmyk, colorspace !== undefined), signal, base, sources);
                     if (base.storedWriteMask) result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, base.storedWriteMask, !!result.storedData16, false, undefined, base.hasAlpha && base.alphaBlend !== false), signal, result, [result, base, base.storedWriteMask]);
                     if (base.region) result = await transformStoredMagickRaster(result, backend, regionPixelSteps(result, base.region, !!result.storedData16), signal, result, [result, base]);

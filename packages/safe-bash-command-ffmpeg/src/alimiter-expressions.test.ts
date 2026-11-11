@@ -54,17 +54,17 @@ for (const graph of [false, true]) {
     });
   }
 
-  for (const option of [
-    "release=0b10", "release=0o10", "limit=1/", "limit=1/0", "limit=0/0",
-    "limit=-30dB", "limit=1dB", "limit=1/32", "limit=2/1",
-    "level_in=1/128", "level_in=65/1", "level_out=1/128", "level_out=65/1",
-    "attack=1/100", "attack=81/1", "release=1/2", "release=8001/1",
-    "asc_level=-1/2", "asc_level=2/1", "level=1/1", "latency=0dB", "asc=0/1",
-    "level_in='st(0,65)'", "level_out='ld(0)'"
+  for (const [option, exitCode] of [
+    ...["release=0b10", "release=0o10", "limit=1/", "limit=1/0", "limit=0/0",
+      "level=1/1", "latency=0dB", "asc=0/1"].map(option => [option, 234] as const),
+    ...["limit=-30dB", "limit=1dB", "limit=1/32", "limit=2/1",
+      "level_in=1/128", "level_in=65/1", "level_out=1/128", "level_out=65/1",
+      "attack=1/100", "attack=81/1", "release=1/2", "release=8001/1",
+      "asc_level=-1/2", "asc_level=2/1", "level_in='st(0,65)'", "level_out='ld(0)'"].map(option => [option, 222] as const)
   ]) {
     it(`alimiter rejects ${option} without replacing output (${graph ? "graph" : "simple"})`, async () => {
       const { result, stderr, output } = await run(option, graph);
-      assert.equal(result.exitCode, 234, stderr);
+      assert.equal(result.exitCode, exitCode, stderr);
       assert.ok(stderr.includes("alimiter:"), stderr);
       assert.equal(output.toString(), "KEEP");
     });

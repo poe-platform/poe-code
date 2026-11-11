@@ -63,8 +63,14 @@ for (const [filter, length, scales, indices, expected] of [
   }
 });
 
-for (const filter of ["alimiter=limit=0", "alimiter=limit=1.1", "alimiter=attack=0", "alimiter=attack=81", "alimiter=release=0", "alimiter=release=8001", "alimiter=level_in=0", "alimiter=level_out=65", "alimiter=limit=NaN", "alimiter=limit=", "alimiter=latency=2", "alimiter=asc=2", "alimiter=unknown=1",
-  ...["asc", "level", "latency"].flatMap(key => ["1.0", "0x1", "0.0", "0x0", "1e0", ""].map(value => `alimiter=${key}=${value}`))]) {
+for (const [filter, exitCode] of [
+  ...["limit=0", "limit=1.1", "attack=0", "attack=81", "release=0", "release=8001", "level_in=0", "level_out=65"]
+    .map(option => [`alimiter=${option}`, 222] as const),
+  ["alimiter=unknown=1", 8],
+  ...["limit=NaN", "limit=", "latency=2", "asc=2",
+    ...["asc", "level", "latency"].flatMap(key => ["1.0", "0x1", "0.0", "0x0", "1e0", ""].map(value => `${key}=${value}`))]
+    .map(option => [`alimiter=${option}`, 234] as const)
+] as const) {
   it(`${filter} fails without replacing output`, async () => {
     const fs = Volume.fromJSON({ "/out.wav": "keep" });
     fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000, channels: [new Float64Array([0.25])] }));
@@ -73,7 +79,7 @@ for (const filter of ["alimiter=limit=0", "alimiter=limit=1.1", "alimiter=attack
       fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
       stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write() {} }
     } as never);
-    assert.equal(result.exitCode, 234);
+    assert.equal(result.exitCode, exitCode);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
   });
 }

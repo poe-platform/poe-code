@@ -20280,7 +20280,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   !isStdout(outputTarget) && outputTarget !== "/dev/null" && !outputTarget.startsWith("md5:")) {
                 await context.fs.writeFile(resolvePath(context.cwd, outputTarget), new Uint8Array(0), { signal: context.signal });
               }
-              return { exitCode: err instanceof CompandError ? err.exitCode : 234 };
+              return { exitCode: err instanceof AlimiterError || err instanceof CompandError ? err.exitCode : 234 };
             }
             if (msg === "asendcmd: invalid start time") return { exitCode: 234 };
             if (msg.startsWith("amix: unsupported option ")) return { exitCode: 8 };

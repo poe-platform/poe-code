@@ -4,7 +4,7 @@ import { parseFilterExpression } from "./filter-expression.js";
 import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export class AlimiterError extends Error {
-  constructor(message: string, readonly stage: "options" | "configuration") {
+  constructor(message: string, readonly stage: "options" | "configuration", readonly exitCode = 234) {
     super(message);
   }
 }
@@ -38,19 +38,24 @@ export async function limitAudio(
         validateWeaveGenericOption(key, option.slice(separator + 1).trim(), "alimiter");
         continue;
       }
-      if (!key || !Object.hasOwn(options, key)) throw new Error(`alimiter: unsupported option ${key}`);
+      if (!key) throw new Error(`alimiter: unsupported option ${key}`);
+      if (!Object.hasOwn(options, key)) throw new AlimiterError(`alimiter: unsupported option ${key}`, "options", 8);
       const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
       const boolean = key === "asc" || key === "level" || key === "latency";
       const number = !boolean ? parseFilterExpression(value, "alimiter", {}, undefined, new Float64Array(10))
         : ["1", "true", "yes", "on"].includes(value.toLowerCase()) ? 1
         : ["0", "false", "no", "off"].includes(value.toLowerCase()) ? 0 : NaN;
       const [min, max] = ranges[key];
-      if (!value || !Number.isFinite(number) || number < min! || number > max!) {
+      if (!value || !Number.isFinite(number)) {
         throw new Error(`alimiter: invalid or unsupported ${key}`);
+      }
+      if (number < min! || number > max!) {
+        throw new AlimiterError(`alimiter: invalid or unsupported ${key}`, "options", 222);
       }
       options[key] = number;
     }
   } catch (error) {
+    if (error instanceof AlimiterError) throw error;
     throw new AlimiterError((error as Error).message, "options");
   }
   const { level_in: inputGain, level_out: outputGain } = options;

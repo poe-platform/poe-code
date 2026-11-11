@@ -1,4 +1,5 @@
 import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export function parseAudioSegment(filter: string): string[] {
   const equals = filter.indexOf("=");
@@ -8,8 +9,13 @@ export function parseAudioSegment(filter: string): string[] {
   for (const [index, option] of arguments_.entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["timestamps", "samples"][index] : option.slice(0, separator).trim();
+    const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, value, "asegment");
+      continue;
+    }
     if (key !== "timestamps" && key !== "samples") throw new Error("asegment: unsupported option");
-    options.set(key, (separator < 0 ? option : option.slice(separator + 1)).trim());
+    options.set(key, value);
   }
   if (options.size !== 1) throw new Error("asegment: supply either timestamps or samples");
   const timestamps = options.has("timestamps");

@@ -66,6 +66,7 @@ export async function headphoneAudio(
       }
     }
   }
-  return { ...tracks[0]!, timescale: source.sampleRate, duration: length, samples: [], editList: undefined,
+  // Convolution preserves sample count and rate, so retain the source packet clock.
+  return { ...tracks[0]!, editList: undefined,
     decodedAudio: { ...source, channels: 2, channelMask: 3, channelData } };
 }

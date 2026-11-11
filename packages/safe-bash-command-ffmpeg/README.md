@@ -807,7 +807,7 @@ only the direct signal. Gains range from 0.015625 to 64; tap balances range from
 `[0:a][1:a][2:a]headphone=map=FL|FR:type=time[h]` renders a stereo source
 through separate stereo impulse responses for its left and right channels.
 Both `type=time` and `type=freq` use bounded direct convolution, preserve the source
-frame count and sample rate, and apply native gain (−6 dB for stereo plus `gain`).
+frame count, sample rate, and timestamps, and apply native gain (−6 dB for stereo plus `gain`).
 Use `map=FR|FL` to reverse the response assignments. All three inputs must be stereo
 PCM at the same sample rate; multichannel HRIR files and preceding filters are unsupported.
 `earwax` applies the headphone stereo filter to mono or stereo input, resampling

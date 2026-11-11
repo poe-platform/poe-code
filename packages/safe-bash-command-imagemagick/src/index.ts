@@ -12108,7 +12108,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
             continue;
         }
-        if ((t === "-channel" || t === "+channel" || t === "-color-threshold" || t === "-blue-shift" || t === "+blue-shift" || t === "-color-matrix" || t === "-ordered-dither" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold" || t === "-auto-threshold" || t === "-random-threshold" || t === "-range-threshold" || t === "-solarize" || t === "-channel-fx" || t === "-level" || t === "+level" || t === "-level-colors" || t === "+level-colors" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast" || t === "-negate" || t === "+negate" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast") && !stack.length) throw new Error(`no images found for operation '${t}'`);
+        if ((t === "-alpha" || t === "-channel" || t === "+channel" || t === "-color-threshold" || t === "-blue-shift" || t === "+blue-shift" || t === "-color-matrix" || t === "-ordered-dither" || t === "-threshold" || t === "-black-threshold" || t === "-white-threshold" || t === "-auto-threshold" || t === "-random-threshold" || t === "-range-threshold" || t === "-solarize" || t === "-channel-fx" || t === "-level" || t === "+level" || t === "-level-colors" || t === "+level-colors" || t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast" || t === "-negate" || t === "+negate" || t === "-gamma" || t === "+gamma" || t === "-brightness-contrast") && !stack.length) throw new Error(`no images found for operation '${t}'`);
         if (t === "-page") {
             const raw = tokens[++i] ?? "";
             const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
@@ -15711,7 +15711,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             continue;
         }
-        if (!operandsOnly && (token === "-color-threshold" || token === "-blue-shift" || token === "+blue-shift" || token === "-color-matrix" || token === "-brightness-contrast" || token === "-gamma" || token === "+gamma" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-negate" || token === "+negate" || token === "-threshold" || token === "-black-threshold" || token === "-white-threshold" || token === "-auto-threshold" || token === "-random-threshold" || token === "-range-threshold")) stackStep(async stack => {
+        if (!operandsOnly && (token === "-alpha" || token === "-color-threshold" || token === "-blue-shift" || token === "+blue-shift" || token === "-color-matrix" || token === "-brightness-contrast" || token === "-gamma" || token === "+gamma" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-negate" || token === "+negate" || token === "-threshold" || token === "-black-threshold" || token === "-white-threshold" || token === "-auto-threshold" || token === "-random-threshold" || token === "-range-threshold")) stackStep(async stack => {
             if (!stack.length) throw new Error(`no images found for operation '${token}'`);
             return stack;
         });

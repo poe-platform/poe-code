@@ -72,6 +72,9 @@ function formatted(coefficient: bigint, scale: number, format: Format, negativeZ
       if (binaryExponent >= 0) denominator <<= BigInt(binaryExponent);
       else numerator <<= BigInt(-binaryExponent);
       if (numerator < denominator) { numerator *= 2n; binaryExponent--; }
+      // GNU seq uses x87 long-double %La on x86_64 Linux/glibc.
+      numerator *= 8n;
+      binaryExponent -= 3;
     }
     const digits = precision < 0 ? 13 : precision;
     const factor = 16n ** BigInt(digits);
@@ -79,6 +82,7 @@ function formatted(coefficient: bigint, scale: number, format: Format, negativeZ
     let value = product / denominator;
     const remainder = product % denominator;
     if (remainder * 2n > denominator || remainder * 2n === denominator && value % 2n !== 0n) value++;
+    if (value >= 16n * factor) { value /= 16n; binaryExponent += 4; }
     const hex = value.toString(16).padStart(digits + 1, "0");
     let fraction = digits ? hex.slice(-digits) : "";
     if (precision < 0) fraction = fraction.replace(/0+$/u, "");

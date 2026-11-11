@@ -121,13 +121,14 @@ test("seq preserves operand width and accepts hexadecimal numbers and conversion
       ["seq 0x4", "1\n2\n3\n4\n"],
       ["seq 0x1p2", "1\n2\n3\n4\n"],
       ["seq 0x1.8p0 0x.8 0x2.8", "1.5\n2.0\n2.5\n"],
-      ["seq -f '%a' 1 2", "0x1p+0\n0x1p+1\n"],
+      // GNU x86_64 Linux/glibc long-double hexadecimal normalization.
+      ["seq -f '%a' 1 2", "0x8p-3\n0x8p-2\n"],
       ["seq -f '%a' -0 -0", "-0x0p+0\n"],
-      ["seq -f '%#a' -0x1 -0x1", "-0x1.p+0\n"],
-      ["seq -f '%A' 1 2", "0X1P+0\n0X1P+1\n"],
-      ["seq -f '%.2a' 0x1.8 0x1.8", "0x1.80p+0\n"],
-      ["seq -f '%.0a' 1.5 1.5", "0x2p+0\n"],
-      ["seq -f '%020a' 1 1", "0x000000000000001p+0\n"],
+      ["seq -f '%#a' -0x1 -0x1", "-0x8.p-3\n"],
+      ["seq -f '%A' 1 2", "0X8P-3\n0X8P-2\n"],
+      ["seq -f '%.2a' 0x1.8 0x1.8", "0xc.00p-3\n"],
+      ["seq -f '%.0a' 1.5 1.5", "0xcp-3\n"],
+      ["seq -f '%020a' 1 1", "0x000000000000008p-3\n"],
     ] as const) {
       const result = await instance.exec(script);
       assert.equal(result.exitCode, 0, script + result.stderr);

@@ -20559,6 +20559,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("tremolo: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("tremolo:")) return { exitCode: 222 };
             if (msg === "tremolo: invalid expression" || msg === "tremolo: invalid or unsupported expression") return { exitCode: 234 };
+            if (msg.startsWith("vibrato: unsupported option ")) return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("vibrato:")) return { exitCode: 222 };
+            if (msg === "vibrato: invalid expression" || msg === "vibrato: invalid or unsupported expression") return { exitCode: 234 };
             if (msg === "earwax: timeline is unsupported") return { exitCode: 176 };
             if (msg === "earwax: unsupported input channel layout") return { exitCode: 234 };
             if (msg.startsWith("earwax: unsupported option ")) return { exitCode: 8 };

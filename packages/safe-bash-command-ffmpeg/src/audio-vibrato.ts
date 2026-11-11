@@ -41,7 +41,7 @@ export async function vibratoAudio(
       none: 0, all: -1, min, max, default: key === "f" ? 5 : 0.5
     }, undefined, new Float64Array(10));
     if (number < min || number > max) {
-      throw new Error(`vibrato: invalid ${key}`);
+      throw new RangeError(`vibrato: invalid ${key}`);
     }
     if (key === "f") frequency = number;
     else depth = number;

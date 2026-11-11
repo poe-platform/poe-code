@@ -680,6 +680,7 @@ interface MagickState {
   tiffTile?: { width: number; height: number };
   tiffCompression?: "none" | "lzw" | "deflate" | "packbits" | "jpeg";
   interlace?: string;
+  compression?: string;
   pngInterlace?: boolean;
   gifInterlace?: boolean;
   tiffFloatingPoint?: boolean;
@@ -1619,7 +1620,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const dot = baseName.lastIndexOf(".");
   const bitDepth = String(meta.bitsPerSample ?? (meta.depth === "ushort" ? 16 : meta.depth === "bit" ? 1 : 8));
   const space = meta.magickColorspace ?? (meta.space === "b-w" || meta.space === "grey16" ? meta.gamma === 1 ? "LinearGray" : "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB");
-  const compression = ({ ppm: "Undefined", png: "Zip", jpeg: "JPEG", gif: "LZW", heic: "HEVC", heif: "HEVC", avif: "AV1" } as Partial<Record<ImageFormat, string>>)[meta.format] ?? "None";
+  const compression = context.compression ?? ({ ppm: "Undefined", png: "Zip", jpeg: "JPEG", gif: "LZW", heic: "HEVC", heif: "HEVC", avif: "AV1" } as Partial<Record<ImageFormat, string>>)[meta.format] ?? "None";
   const page = meta.virtualCanvas ?? { width: meta.width, height: meta.height, x: 0, y: 0 };
   // Native formats page dimensions as unsigned 64-bit size_t values.
   const pageWidth = page.width < 0 ? Number(BigInt.asUintN(64, BigInt(page.width))).toExponential(16) : String(page.width);
@@ -6958,6 +6959,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         for (const index of selectedInputPages(pageSpec, saved.length, onInvalidIndex)) {
             yield;
             let image: MagickImage = { ...saved[index]!, data: new Uint8Array(saved[index]!.data) };
+            if (state.compression !== undefined) image = { ...image, [magickInput]: { ...image[magickInput], compression: state.compression } };
             if (state.page !== undefined) image = { ...image, virtualCanvas: state.page };
             if (state.densityGeometry !== undefined) image = applyMagickDensity(image, state.densityGeometry);
             if (state.delay !== undefined) {
@@ -6991,6 +6993,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 im = { ...image, evaluateSamples };
             }
             im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: im.width, originalHeight: im.height, ...(im as MagickImage)[magickInput], interpolation: state.interpolation, intensity: state.intensity, virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
+            if (state.compression !== undefined) im = { ...im, [magickInput]: { ...im[magickInput], compression: state.compression } };
             if (state.qualityExplicit) im = { ...im, quality: state.quality };
             if (state.page !== undefined) im = { ...im, virtualCanvas: state.page };
             if (state.composeExplicit) im = { ...im, properties: { ...im.properties, compose: state.composeRaw } };
@@ -7047,7 +7050,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         let image: RgbaImage = { ...(yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, c, [c.r, c.g, c.b, c.a].some(value => !Number.isInteger(value)))), bitsPerSample: state.inputDepth ?? 16, endian: "lsb", hasAlpha, ...(!hasAlpha ? { inactiveAlpha: false } : {}) };
         if (c.space) image = { ...image, space: c.space, channels: hasAlpha ? 2 : 1 };
         if (c.cmyk) image = yield* fillCmykPixels(image, c.cmyk);
-        return yield* applyMod([Object.assign(image, { [magickInput]: { filePath: baseToken.slice(baseToken.indexOf(":") + 1) } })]);
+        return yield* applyMod([Object.assign(image, { [magickInput]: { filePath: baseToken.slice(baseToken.indexOf(":") + 1), compression: "Undefined" } })]);
     }
     if (lower.startsWith("gradient:") || lower.startsWith("radial-gradient:")) {
         const radial = lower.startsWith("radial-gradient:");
@@ -7078,7 +7081,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         return yield* applyMod([decodeImage(new TextEncoder().encode(createLabelSvg(text, state)), { density: state.density })]);
     }
     if (lower === "null:") {
-        return yield* applyMod([Object.assign(yield* createSolidRgbaImageSteps(1, 1, { r: 0, g: 0, b: 0, a: 0 }), { [magickInput]: { filePath: "null:" } })]);
+        return yield* applyMod([Object.assign(yield* createSolidRgbaImageSteps(1, 1, { r: 0, g: 0, b: 0, a: 0 }), { [magickInput]: { filePath: "null:", compression: "Undefined" } })]);
     }
     if (lower.startsWith("apng:")) {
         const path = baseToken.slice(5), bytes = path === "-" ? stdinBytes : files.get(path);
@@ -10480,13 +10483,14 @@ if (t === "-intent" || t === "+intent") {
             const compression = (tokens[++i] ?? "").toLowerCase();
             const method = ({ none: "none", lzw: "lzw", zip: "deflate", rle: "packbits", jpeg: "jpeg", bzip: "none" } as const)[compression as "none" | "lzw" | "zip" | "rle" | "jpeg" | "bzip"];
             if (method === undefined) throw new Error(`unsupported compression '${compression}'`);
+            state.compression = ({ none: "None", lzw: "LZW", zip: "Zip", rle: "RLE", jpeg: "JPEG", bzip: "BZip" } as const)[compression as "none" | "lzw" | "zip" | "rle" | "jpeg" | "bzip"];
             state.tiffCompression = method;
             state.miffCompression = compression === "zip" || compression === "rle" || compression === "bzip" ? compression : "none";
             state.tgaCompression = compression === "rle" ? "rle" : "none";
             state.bmpCompression = compression === "rle" ? "rle" : "none";
             state.netpbmAscii = compression === "none";
         }
-        else if (t === "+compress") { delete state.netpbmAscii; delete state.tiffCompression; delete state.bmpCompression; delete state.tgaCompression; delete state.miffCompression; }
+        else if (t === "+compress") { delete state.compression; delete state.netpbmAscii; delete state.tiffCompression; delete state.bmpCompression; delete state.tgaCompression; delete state.miffCompression; }
         else if (t === "+depth") { delete state.inputDepth; }
         else if (t === "-endian") {
             let value = tokens[++i] ?? "";
@@ -11289,6 +11293,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t === "-interpolate" || t === "+interpolate") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...image[magickInput], interpolation: state.interpolation } }; });
             if (t === "-interlace" || t === "+interlace" || state.interlace !== previousInterlace) stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace! } }; });
             if (t === "-compose" || t === "+compose") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, properties: { ...image.properties, compose: state.composeRaw } }; });
+            if (t === "-compress") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...image[magickInput], compression: state.compression! } }; });
             if (t === "-quality") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, quality: state.quality }; });
             if (t === "-gravity" || t === "+gravity") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, gravity: state.gravity }; });
             if (t === "-virtual-pixel") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, hasAlpha: image.hasAlpha || state.virtualPixel === "transparent" || state.virtualPixel === "background" && state.background.a < 255, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { ...(image as MagickImage)[magickInput], virtualPixel: state.optionProperties?.["virtual-pixel"] } }; });
@@ -14317,6 +14322,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const compose = state.composeRaw;
                 steps.push(async image => image ? { ...image, properties: { ...image.properties, compose } } : undefined);
             }
+            if (token === "-compress") {
+                const compression = state.compression!;
+                steps.push(async image => image ? { ...image, [magickInput]: { ...image[magickInput], compression } } : undefined);
+            }
             if (token === "-quality") {
                 const quality = state.quality;
                 steps.push(async image => image ? { ...image, quality } : undefined);
@@ -16978,6 +16987,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
      for (const index of selectedInputPages(pageSpec, saved.length, readOptions.onInvalidIndex)) {
          await yieldTurn(signal);
          let savedImage = (await saved.get(index))!;
+         if (state.compression !== undefined) savedImage = { ...savedImage, [magickInput]: { ...savedImage[magickInput], compression: state.compression } };
          if (state.page !== undefined) savedImage = { ...savedImage, virtualCanvas: state.page };
          if (state.densityGeometry !== undefined) savedImage = applyMagickDensity(savedImage, state.densityGeometry);
          if (state.label !== undefined) {
@@ -17077,7 +17087,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const colorStr=(baseToken.slice(baseToken.indexOf(":")+1)||"white").trim();
   const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(colorStr,true),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
   const hasAlpha=color.a<255||colorStr.startsWith("#")&&[5,9,17].includes(colorStr.length)||colorStr.toLowerCase().includes("a(");
-  image={...await createStoredCanvas(width,height,color,backend,signal,[color.r,color.g,color.b,color.a].some(value=>!Number.isInteger(value))),endian:"lsb",hasAlpha,...(!hasAlpha?{inactiveAlpha:false}:{}),...(lower==="null:"?{[magickInput]:{filePath:"null:"}}:{bitsPerSample:state.inputDepth??16,[magickInput]:{filePath:baseToken.slice(baseToken.indexOf(":")+1)}})};
+  image={...await createStoredCanvas(width,height,color,backend,signal,[color.r,color.g,color.b,color.a].some(value=>!Number.isInteger(value))),endian:"lsb",hasAlpha,...(!hasAlpha?{inactiveAlpha:false}:{}),...(lower==="null:"?{[magickInput]:{filePath:"null:",compression:"Undefined"}}:{bitsPerSample:state.inputDepth??16,[magickInput]:{filePath:baseToken.slice(baseToken.indexOf(":")+1),compression:"Undefined"}})};
   if ("space" in color && color.space) image = { ...image, space: color.space, channels: hasAlpha ? 2 : 1 };
   if ("cmyk" in color && color.cmyk) {
    const inks = color.cmyk;
@@ -17182,6 +17192,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    image = { ...metadata, storedEvaluateSamples };
   }
   image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: image.width, originalHeight: image.height, ...(image as StoredMagickImage)[magickInput], interpolation: state.interpolation, intensity: state.intensity, virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
+  if(state.compression!==undefined)image={...image,[magickInput]:{...image[magickInput],compression:state.compression}};
   if(state.qualityExplicit)image={...image,quality:state.quality};
   if(state.page!==undefined)image={...image,virtualCanvas:state.page};
   if(state.composeExplicit)image={...image,properties:{...image.properties,compose:state.composeRaw}};

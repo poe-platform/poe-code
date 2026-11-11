@@ -14693,7 +14693,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredSampleFormat = "dbl";
                         statsScale = 1;
                       } else if (trimmed === "adynamicequalizer" || trimmed.startsWith("adynamicequalizer=")) {
-                        stretched = await listenDynamicEqualizer(stretched, origRate, trimmed, budget, context.signal);
+                        stretched = await listenDynamicEqualizer(stretched, origRate, trimmed, budget, context.signal, filteredSampleFormat);
+                        filteredSampleFormat = stretched[0] instanceof Float64Array ? "dblp" : "fltp";
                         statsScale = 1;
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);

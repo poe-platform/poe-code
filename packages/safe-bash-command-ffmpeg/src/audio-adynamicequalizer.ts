@@ -4,8 +4,8 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function listenDynamicEqualizer(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  budget: MediaBudgetTracker, signal?: AbortSignal
-): Promise<Float32Array[]> {
+  budget: MediaBudgetTracker, signal?: AbortSignal, sampleFormat = "s16"
+): Promise<(Float32Array | Float64Array)[]> {
   const options = { dfrequency: 1000, dqfactor: 1 };
   const ranges = {
     threshold: [0, 100], dfrequency: [2, 1000000], dqfactor: [0.001, 1000],
@@ -15,6 +15,7 @@ export async function listenDynamicEqualizer(
   const names = [...Object.keys(ranges), "mode"];
   let positionalIndex = 0;
   let mode = 0;
+  let precision = 0;
   let dftype = 0;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const option of argument ? argument.split(":") : []) {
@@ -29,6 +30,12 @@ export async function listenDynamicEqualizer(
       dftype = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
     } else if (key === "mode") {
       mode = parseFilterExpression(value, "adynamicequalizer", { listen: -1 });
+    } else if (key === "precision") {
+      const number = parseFilterExpression(value, "adynamicequalizer", { auto: 0, float: 1, double: 2 });
+      if (!Number.isFinite(number) || number < 0 || number > 2) {
+        throw new Error("adynamicequalizer: invalid precision");
+      }
+      precision = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
     } else if (key && Object.hasOwn(ranges, key)) {
       const number = parseFilterExpression(value, "adynamicequalizer", {});
       const [min, max] = ranges[key as keyof typeof ranges];
@@ -45,9 +52,11 @@ export async function listenDynamicEqualizer(
     throw new Error("adynamicequalizer: only mode=listen is supported");
   }
 
-  // The native detector is a state-variable filter with float
-  // coefficients and state on the PCM input path. Round each float operation.
-  const f = Math.fround;
+  // Native auto precision keeps double/64-bit input; other formats use float.
+  const double = precision === 2 || (precision === 0 && ["dbl", "dblp", "s64", "s64p"].includes(sampleFormat));
+  const SampleArray = double ? Float64Array : Float32Array;
+  // Round each operation only when processing with float coefficients and state.
+  const f = double ? (value: number) => value : Math.fround;
   const frequency = f(Math.min(options.dfrequency, sampleRate * 0.5));
   const g = f(Math.tan(f(Math.PI * frequency / sampleRate)));
   const k = f(1 / f(options.dqfactor));
@@ -58,8 +67,8 @@ export async function listenDynamicEqualizer(
   const inputMix = dftype === 3 ? 1 : 0;
   const bandMix = dftype === 0 ? k : dftype === 1 ? 0 : -k;
   const lowMix = dftype === 0 ? 0 : dftype === 1 ? 1 : dftype === 2 ? -1 : -2;
-  budget.allocateMemory(channels.reduce((sum, channel) => sum + channel.length * 4, 0));
-  const output = channels.map(channel => new Float32Array(channel.length));
+  budget.allocateMemory(channels.reduce((sum, channel) => sum + channel.length * SampleArray.BYTES_PER_ELEMENT, 0));
+  const output = channels.map(channel => new SampleArray(channel.length));
   let work = 0;
   for (const [c, channel] of channels.entries()) {
     let state0 = 0;

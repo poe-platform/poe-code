@@ -3,6 +3,35 @@ import test from "node:test";
 import { textCommands } from "../../src/commands/text.js";
 import { fixture, run } from "./helpers.js";
 
+test("uniq processes help and version after preceding option validation", async () => {
+  const commands = textCommands();
+  for (const information of ["--help", "--version"]) {
+    const baseline = await run("uniq", [information], { commands });
+    assert.equal(baseline.exitCode, 0);
+    assert.ok(baseline.stdout.includes("safe-bash"));
+    for (const option of ["-f", "-s", "-w", "--skip-fields", "--skip-chars", "--check-chars"]) {
+      const invalid = await run("uniq", [option, "oops", information], { commands });
+      assert.equal(invalid.exitCode, 1, `${option} oops ${information}`);
+      assert.equal(invalid.stdout, "");
+      assert.equal(invalid.stderr, "uniq: invalid number 'oops'\n");
+      const consumed = await run("uniq", [option, information], { commands });
+      assert.equal(consumed.exitCode, 1);
+      assert.equal(consumed.stdout, "");
+      assert.equal(consumed.stderr, `uniq: invalid number '${information}'\n`);
+      const first = await run("uniq", [information, option, "oops"], { commands });
+      assert.equal(first.exitCode, 0);
+      assert.equal(first.stdout, baseline.stdout);
+      assert.equal(first.stderr, "");
+    }
+    for (const preceding of [["-f", "1"], ["--group"], ["--group=separate"], ["-D"], ["--all-repeated"]]) {
+      const result = await run("uniq", [...preceding, information, "--invalid"], { commands });
+      assert.equal(result.exitCode, 0, preceding.join(" "));
+      assert.equal(result.stdout, baseline.stdout);
+      assert.equal(result.stderr, "");
+    }
+  }
+});
+
 test("uniq resolves unique long-option prefixes independently of arguments", async () => {
   for (const [args, expected] of [
     [["--gro"], "A x\n\nB x\n\nC y\n"],

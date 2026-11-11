@@ -600,9 +600,10 @@ function uniqCount(text: string): number {
 }
 
 async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteSource): Promise<{ exitCode: number }> {
-  const longOptions = { count: "c", repeated: "d", unique: "u", "all-repeated": "all-repeated:", group: "group:", "ignore-case": "i", "skip-fields": "f", "skip-chars": "s", "check-chars": "w", "zero-terminated": "z" };
+  const longOptions = { count: "c", repeated: "d", unique: "u", "all-repeated": "all-repeated:", group: "group:", "ignore-case": "i", "skip-fields": "f", "skip-chars": "s", "check-chars": "w", "zero-terminated": "z", help: false, version: false } as const;
   let ended = false;
   let optionValue = false;
+  let informationIndex: number | undefined;
   const versionText = context.env._POSIX2_VERSION?.trimStart() ?? "";
   const versionDigits = versionText.startsWith("+") || versionText.startsWith("-") ? versionText.slice(1) : versionText;
   const posixVersion = versionDigits.length > 0 && [...versionDigits].every(character => character >= "0" && character <= "9") ? Number(versionText) : 200809;
@@ -613,7 +614,7 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
   let width = Infinity;
   let repeatedMethod = "none";
   let groupMethod: string | undefined;
-  const args = context.args.map(argument => {
+  const args = context.args.map((argument, index) => {
     if (ended) return argument;
     if (optionValue) { optionValue = false; return argument; }
     if (argument === "--") ended = true;
@@ -623,6 +624,10 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
       const matches = Object.keys(longOptions).filter(option => option.startsWith(name));
       if (matches.length > 1) throw new UsageError(`option '--${name}' is ambiguous; possibilities: ${matches.map(option => `'--${option}'`).join(" ")}`);
       if (matches.length === 1) argument = `--${matches[0]}${equals < 0 ? "" : argument.slice(equals)}`;
+    }
+    if (argument === "--help" || argument === "--version") {
+      informationIndex = index;
+      ended = true;
     }
     if (obsoleteSkip && argument.startsWith("+") && argument.length > 1 && [...argument.slice(1)].every(character => character >= "0" && character <= "9")) return `-s${argument.slice(1)}`;
     if (["--skip-fields", "--skip-chars", "--check-chars"].includes(argument)) optionValue = true;
@@ -639,7 +644,7 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
     return argument;
   });
   const operandIndices: number[] = [];
-  const parsed = options(args, "0123456789cduiDf:s:w:z", longOptions, context.env.POSIXLY_CORRECT !== undefined, index => { operandIndices.push(index); }, undefined, (option, method) => {
+  const parsed = options(informationIndex === undefined ? args : args.slice(0, informationIndex + 1), "0123456789cduiDf:s:w:z", longOptions, context.env.POSIXLY_CORRECT !== undefined, index => { operandIndices.push(index); }, undefined, (option, method) => {
     if (option >= "0" && option <= "9") {
       legacyFields = Math.min(Number.MAX_SAFE_INTEGER, legacyFields * 10 + Number(option));
       skipFields = legacyFields;
@@ -665,6 +670,10 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
       else groupMethod = matches[0]!;
     }
   });
+  if (informationIndex !== undefined) {
+    await output(context, gnuInformationSync("uniq", [args[informationIndex]!])!);
+    return { exitCode: 0 };
+  }
   // Optional-argument normalization must not rename literal operand paths.
   operandIndices.forEach((index, operand) => { parsed.operands[operand] = context.args[index]!; });
   const allRepeated = parsed.flags.has("D") || parsed.flags.has("all-repeated");

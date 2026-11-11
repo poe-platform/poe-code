@@ -65,6 +65,8 @@ export function gnuInformationSync(name: string, args: readonly string[], extern
 }
 
 export function gnuInformation(name: string, context: CommandContext): Promise<CommandResult | undefined> | undefined {
+  // Uniq validates options in order before handling help and version.
+  if (name === "uniq") return undefined;
   const posix = context.env.POSIXLY_CORRECT !== undefined;
   if (name === "echo" && posix) return undefined;
   const ext = Boolean((context as { externalInvocation?: boolean }).externalInvocation);

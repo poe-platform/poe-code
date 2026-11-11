@@ -7134,7 +7134,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         return yield* applyMod([decodeImage(new TextEncoder().encode(createLabelSvg(text, state)), { density: state.density })]);
     }
     if (lower === "null:") {
-        return yield* applyMod([Object.assign(yield* createSolidRgbaImageSteps(1, 1, { r: 0, g: 0, b: 0, a: 0 }), { [magickInput]: { filePath: "null:", compression: "Undefined" } })]);
+        return yield* applyMod([Object.assign(yield* createSolidRgbaImageSteps(1, 1, state.background), { [magickInput]: { filePath: "null:", compression: "Undefined" } })]);
     }
     if (lower.startsWith("apng:")) {
         const path = baseToken.slice(5), bytes = path === "-" ? stdinBytes : files.get(path);
@@ -17452,7 +17452,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   image=await transformStoredMagickRaster({...metadata,position:0},backend,haldInputPixelSteps(metadata.width),signal);
  }else if(lower.startsWith("xc:")||lower.startsWith("canvas:")||lower==="null:"){
   const colorStr=(baseToken.slice(baseToken.indexOf(":")+1)||"white").trim();
-  const color=lower==="null:"?{r:0,g:0,b:0,a:0}:parseColor(colorStr,true),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
+  const color: ReturnType<typeof parseColor>=lower==="null:"?state.background:parseColor(colorStr,true),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
   const hasAlpha=color.a<255||colorStr.startsWith("#")&&[5,9,17].includes(colorStr.length)||colorStr.toLowerCase().includes("a(");
   image={...await createStoredCanvas(width,height,color,backend,signal,[color.r,color.g,color.b,color.a].some(value=>!Number.isInteger(value))),endian:"lsb",hasAlpha,...(!hasAlpha?{inactiveAlpha:false}:{}),...(lower==="null:"?{[magickInput]:{filePath:"null:",compression:"Undefined"}}:{bitsPerSample:state.inputDepth??16,[magickInput]:{filePath:baseToken.slice(baseToken.indexOf(":")+1),compression:"Undefined"}})};
   if ("space" in color && color.space) image = { ...image, space: color.space, channels: hasAlpha ? 2 : 1 };

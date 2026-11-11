@@ -22,7 +22,7 @@ export function rawRasterInput(width: number, height: number, depth: number, end
     const swap = !floatingPoint && depth === 16 && endian === "lsb";
     const raw = {
         size: header.length + decodedLength,
-        pages: interlace === "partition" && layout !== 3 ? 1 : Math.floor((byteLength - offset) / frameLength),
+        pages: interlace === "partition" ? 1 : Math.floor((byteLength - offset) / frameLength),
         *read(position: number, size: number, page = 0): Generator<{ position: number; length: number; channel: number }, Uint8Array, Uint8Array> {
             const bytes = new Uint8Array(size);
             const headerLength = Math.max(0, Math.min(size, header.length - position));

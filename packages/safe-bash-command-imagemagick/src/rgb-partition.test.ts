@@ -102,6 +102,22 @@ for (const mode of ["command", "sync"] as const) {
         expect(new Uint8Array(decoded)).toEqual(rgb);
     });
 
+    it.each(["Partition", "None"].flatMap(interlace => ["", "[0]"].map(selector => ({ interlace, selector }))))(`reads the native RGB frame count for $interlace $selector (${mode})`, async ({ interlace, selector }) => {
+        const rgb = Buffer.from("010203040506111213141516212223242526", "hex");
+        const files = new Map<string, Uint8Array>();
+        if (interlace === "None") files.set("/in.bin", rgb);
+        else for (const [index, channel] of [..."RGB"].entries()) files.set(`/in.${channel}`, rgb.filter((_, i) => i % 3 === index));
+        const result = await execute([
+            "-size", "2x1", "-depth", "8", "-interlace", interlace, `rgb:/in.bin${selector}`,
+            "+interlace", "-write", "rgb:/out", "-format", "%s/%p/%n;", "info:/frames"
+        ], files);
+        expect(result.stderr).toBe("");
+        expect(result.exitCode).toBe(0);
+        const singleFrame = interlace === "Partition" || selector === "[0]";
+        expect(Buffer.from(await result.read("/out"))).toEqual(singleFrame ? rgb.subarray(0, 6) : rgb);
+        expect(new TextDecoder().decode(await result.read("/frames"))).toBe(singleFrame ? "0/0/1;" : "0/0/3;1/1/3;2/2/3;");
+    });
+
     it.each(["MSB", "LSB"])(`preserves 16-bit samples across chunk boundaries and -write resets (${mode}, %s)`, async endian => {
         const rgb = Uint8Array.from({ length: 3001 * 2 * 6 }, (_, i) => (i * 43 + 17) % 256);
         const files = new Map<string, Uint8Array>([["/in.rgb", rgb], ["/multi.name.rgb", keep]]);

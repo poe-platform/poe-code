@@ -11842,7 +11842,13 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
     // PGM measures active color channels before RGB output conversion.
     if (format === "pgm" && image.hueSamples) image = yield* parseMagickPixelOperation(["-grayscale", "Rec709Luma"], createDefaultState(), 0)!.apply(image);
     // Convert working colorspaces first; keep ordinary sRGB luma at exporter precision.
-    if ((format === "gray" || format === "graya") && (image.magickColorspace || (image.space === "b-w" || image.space === "grey16") && image.gamma === 1)) image = yield* parseMagickPixelOperation(["-colorspace", "Gray"], createDefaultState(), 0)!.apply(image);
+    if ((format === "gray" || format === "graya") && (image.region || image.writeMask || image.magickColorspace || (image.space === "b-w" || image.space === "grey16") && image.gamma === 1)) {
+        const source = image;
+        image = yield* parseMagickPixelOperation(["-colorspace", "Gray"], createDefaultState(), 0)!.apply(image);
+        // Native conversion preserves protected samples before exporting the red channel.
+        if (source.region) image = yield* applyMagickRasterSteps(image, regionPixelSteps(image, source.region, !!image.data16), undefined, image, [image, source]);
+        if (source.writeMask) image = yield* applyMagickRasterSteps(image, writeMaskPixelSteps(image, source.writeMask, !!image.data16, false, undefined, source.hasAlpha && source.alphaBlend !== false), undefined, image, [image, source, source.writeMask]);
+    }
     if (pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format) || format === "miff" || format === "mpc" || format === "tiff") image = yield* prepare16BitOutput(image);
     if ((pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && image.alphaBlend === false
         || (pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && !image.hasAlpha && (image.writeMask || image.region)) {
@@ -11907,7 +11913,13 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     // PGM measures active color channels before RGB output conversion.
     if (format === "pgm" && image.storedHueSamples !== undefined) image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-grayscale", "Rec709Luma"], createDefaultState(), 0)!, signal);
     // Convert working colorspaces first; keep ordinary sRGB luma at exporter precision.
-    if ((format === "gray" || format === "graya") && (image.magickColorspace || (image.space === "b-w" || image.space === "grey16") && image.gamma === 1)) image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "Gray"], createDefaultState(), 0)!, signal);
+    if ((format === "gray" || format === "graya") && (image.region || image.storedWriteMask || image.magickColorspace || (image.space === "b-w" || image.space === "grey16") && image.gamma === 1)) {
+        const source = image;
+        image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "Gray"], createDefaultState(), 0)!, signal);
+        // Native conversion preserves protected samples before exporting the red channel.
+        if (source.region) image = await transformStoredMagickRaster(image, backend, regionPixelSteps(image, source.region, !!image.storedData16), signal, image, [image, source]);
+        if (source.storedWriteMask) image = await transformStoredMagickRaster(image, backend, writeMaskPixelSteps(image, source.storedWriteMask, !!image.storedData16, false, undefined, source.hasAlpha && source.alphaBlend !== false), signal, image, [image, source, source.storedWriteMask]);
+    }
     if ((pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format) || format === "miff" || format === "mpc" || format === "tiff") && image.storedEvaluateSamples !== undefined) {
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepare16BitOutput }, signal);
     }

@@ -1541,6 +1541,7 @@ async function panAudio(
     };
   }
   const pcm16 = sampleFormat === "s16" || sampleFormat === "s16p";
+  const pcm32 = sampleFormat === "s32" || sampleFormat === "s32p";
   const double = sampleFormat === "dbl" || sampleFormat === "dblp";
   let clipPcm16 = false;
   if (pcm16) {
@@ -1563,7 +1564,7 @@ async function panAudio(
       for (let input = 0; input < row.length; input++) row[input] = Math.fround(row[input]!);
     }
   }
-  const SampleArray = double ? Float64Array : Float32Array;
+  const SampleArray = double || pcm32 ? Float64Array : Float32Array;
   budget.allocateMemory(gains.length * (channels[0]?.length ?? 0) * SampleArray.BYTES_PER_ELEMENT);
   const output = gains.map(() => new SampleArray(channels[0]?.length ?? 0));
   for (let sample = 0; sample < (channels[0]?.length ?? 0); sample++) {
@@ -1587,9 +1588,9 @@ async function panAudio(
         value = (value + 16384) >> 15;
         value = clipPcm16 ? Math.max(-32768, Math.min(32767, value)) : (value << 16) >> 16;
         value /= 32768;
-      } else if (sampleFormat === "s32" || sampleFormat === "s32p") {
-        // Integer pan saturates before a downstream filter can reduce the gain.
-        value = Math.max(-1, Math.min(2147483647 / 2147483648, value));
+      } else if (pcm32) {
+        // Preserve the rounded, saturated integer result, including positive zero.
+        value = Math.max(-2147483648, Math.min(2147483647, roundToEven(value * 2147483648))) / 2147483648 + 0;
       }
       output[out]![sample] = value;
     }

@@ -2970,7 +2970,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   }
   lines.push(text.slice(lineStart));
   const tags: Record<string, string> = {};
-  const custom = new Map<string, string>();
+  const custom = new Map<string, [string, string]>();
   const keySpellings: Record<string, string> = {};
   const chapters: Mp4Chapter[] = [];
   const tracks: MediaTrack[] = [];
@@ -3085,7 +3085,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
         if (key !== normalizedKey) keySpellings[normalizedKey] = key;
         else delete keySpellings[normalizedKey];
       } else {
-        custom.set(key, val);
+        custom.set(normalizedKey, [key, val]);
       }
     }
   }
@@ -3106,7 +3106,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       comment: tags.comment,
       genre: tags.genre,
       encoder: tags.encoder,
-      ...(custom.size > 0 ? { custom: Object.fromEntries(custom) } : {})
+      ...(custom.size > 0 ? { custom: Object.fromEntries(custom.values()) } : {})
     },
     chapters: chapters.length > 0 ? chapters : undefined,
     byteLength: bytes.byteLength

@@ -136,7 +136,7 @@ async function* storedFloatingHistogram(image: StoredRgbaImage & HueMetadata, st
     yield* visit(0n, 0, 0n);
     if (!size) yield "\n";
 }
-export function* sparseColorPoints(image: Pick<RgbaImage, "width" | "space" | "hasAlpha">, data: Uint8Array | Uint16Array, start = 0): Generator<string> {
+export function* sparseColorPoints(image: Pick<RgbaImage, "width" | "space" | "hasAlpha">, data: Uint8Array | Uint16Array, start = 0, precision = 6): Generator<string> {
     const highDepth = data instanceof Uint16Array, opaque = highDepth ? 65535 : 255;
     const gray = image.space === "b-w" || image.space === "grey16";
     for (let offset = 0; offset < data.length; offset += 4) {
@@ -144,18 +144,18 @@ export function* sparseColorPoints(image: Pick<RgbaImage, "width" | "space" | "h
         const pixel = start + offset / 4;
         const channels = data.subarray(offset, offset + (gray ? 1 : 3));
         const percent = highDepth && channels.some(value => value % 257 !== 0);
-        const samples = Array.from(channels, value => percent ? `${Number((value * 100 / 65535).toPrecision(6))}%` : String(value / (highDepth ? 257 : 1)));
+        const samples = Array.from(channels, value => percent ? `${Number((value * 100 / 65535).toPrecision(precision))}%` : String(value / (highDepth ? 257 : 1)));
         if (image.hasAlpha) samples.push("1");
         yield `${pixel % image.width},${Math.floor(pixel / image.width)},${gray ? "gray" : "srgb"}${image.hasAlpha ? "a" : ""}(${samples.join(",")}) `;
     }
 }
-export async function* storedSparseColor(image: StoredRgbaImage, storage: PagedStorage, signal: AbortSignal): AsyncGenerator<string> {
+export async function* storedSparseColor(image: StoredRgbaImage, storage: PagedStorage, signal: AbortSignal, precision?: number): AsyncGenerator<string> {
     const size = image.width * image.height * 4, highDepth = image.storedData16 !== undefined;
     for (let start = 0; start < size; start += 16384) {
         await yieldTurn(signal);
         const bytes = await storage.read((image.storedData16?.position ?? image.position) + start * (highDepth ? 2 : 1), Math.min(16384, size - start) * (highDepth ? 2 : 1));
         const data = highDepth ? new Uint16Array(bytes.buffer.slice(bytes.byteOffset, bytes.byteOffset + bytes.byteLength)) : bytes;
-        yield* sparseColorPoints(image, data, start / 4);
+        yield* sparseColorPoints(image, data, start / 4, precision);
     }
 }
 export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal, depth?: number): AsyncGenerator<string> {

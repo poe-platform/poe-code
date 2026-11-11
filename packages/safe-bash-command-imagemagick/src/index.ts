@@ -13925,7 +13925,7 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
                     const data = frame.data16 ?? frame.data;
                     for (let start = 0; start < data.length; start += 16384) {
                         yield;
-                        for (const point of sparseColorPoints(frame, data.subarray(start, start + 16384), start / 4)) txt += point;
+                        for (const point of sparseColorPoints(frame, data.subarray(start, start + 16384), start / 4, state.precision)) txt += point;
                     }
                 } else txt += yield* formatTxtEnumerationSteps(frame, state.inputDepth);
             }
@@ -17265,7 +17265,7 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
                 for (let index = 0; index < stack.length; index++) {
                     await yieldTurn(signal);
                     const frame = (await stack.get(index))!;
-                    if (sparse) { yield* storedSparseColor(frame, backend.storage, signal); continue; }
+                    if (sparse) { yield* storedSparseColor(frame, backend.storage, signal, state.precision); continue; }
                     if (ftxt) { yield* storedFtxt(frame, backend.storage, signal, state.ftxtFormat); continue; }
                     if (text) { yield* storedPixelEnumeration(frame, backend.storage, signal, state.inputDepth); continue; }
                     if (histogramComment) { yield* storedHistogram(frame, backend.storage, signal); continue; }

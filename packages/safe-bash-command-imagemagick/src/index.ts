@@ -11089,6 +11089,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
             continue;
         }
+        if (t === "-set" && !stack.length && !tokens[i + 1]?.toLowerCase().startsWith("option:") && !tokens[i + 1]?.toLowerCase().startsWith("connected-components:")) {
+            analysis.warnings += `magick: no image to apply a property '-set' '${tokens[i + 1] ?? ""}' at CLI arg ${i + 1}\n`;
+        }
         if (t === "-set" && tokens[i + 1]?.toLowerCase() === "delay") {
             const value = tokens[i + 2] ?? "0";
             let sceneIdx = 0;
@@ -14060,6 +14063,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }
             steps.push(async image => image ? applyMagickDensity(image, value) : undefined);
             continue;
+        }
+        if (!operandsOnly && token === "-set" && !tokens[i + 1]?.toLowerCase().startsWith("option:") && !tokens[i + 1]?.toLowerCase().startsWith("connected-components:")) {
+            const key = tokens[i + 1] ?? "", argument = i + 1;
+            stackStep(async stack => {
+                if (!stack.length) analysis.warnings += `magick: no image to apply a property '-set' '${key}' at CLI arg ${argument}\n`;
+                return stack;
+            });
         }
         if (!operandsOnly && token === "-set" && tokens[i + 1]?.toLowerCase() === "delay") {
             const value = tokens[i + 2] ?? "0", optionProperties = state.optionProperties;

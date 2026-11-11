@@ -6419,6 +6419,7 @@ async function applyVideoFilterChain(
         PREV_OUTPTS: previousOutput, PREV_OUTT: previousOutput / timescale
       })) / timescale;
     } else if (name === "gradfun") {
+      if (positional.length > 1 && positional.at(-1) === "") positional.pop();
       for (const key of Object.keys(named)) {
         if (!["strength", "radius", "enable"].includes(key)) throw new Error(`gradfun: unsupported option ${key}`);
       }

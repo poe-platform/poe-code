@@ -20,6 +20,26 @@ for (const { args, output } of [
  test(`seq option boundary: ${args.join(" ")}`, async () => {
   const values = createCommandArguments(args);
   let stdout = "", stderr = "";
+ ...["s", "sep", "separator"].flatMap(name => [
+  { args: [`--${name}=,`, "3"], output: "1,2,3\n" },
+  { args: [`--${name}`, ",", "3"], output: "1,2,3\n" },
+  { args: [`--${name}=`, "3"], output: "123\n" },
+  { args: [`--${name}`] },
+ ]),
+ ...["f", "for", "format"].flatMap(name => [
+  { args: [`--${name}=%02g`, "2"], output: "01\n02\n" },
+  { args: [`--${name}`, "%02g", "2"], output: "01\n02\n" },
+  { args: [`--${name}`] },
+ ]),
+ ...["e", "equ", "equal-width"].flatMap(name => [
+  { args: [`--${name}`, "8", "12"], output: "08\n09\n10\n11\n12\n" },
+  { args: [`--${name}=yes`, "2"] },
+  { args: [`--${name}`, "--for=%02g", "2"] },
+ ]),
+ { args: ["--zzz", "3"] },
+ { args: ["--zzz=,", "3"] },
+ { args: ["--separator-extra=,", "3"] },
+ { args: ["--=,", "3"] },
   const result = await createSeqCommand().execute({
    command: "seq", args: values.args, argumentValues: values, cwd: "/", env: {},
    fs: createMemoryFileSystem(), stdin: toByteSource(""),

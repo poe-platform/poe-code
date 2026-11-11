@@ -227,11 +227,12 @@ export function createSeqWithSettings(limits: StreamFormatLimits): CommandDefini
       if (argument.startsWith("--")) {
         const equals = argument.indexOf("=");
         const key = argument.slice(2, equals < 0 ? undefined : equals);
-        if (key === "equal-width" && equals < 0) equalWidth = true;
-        else if (key === "separator" || key === "format") {
+        const option = key ? ["equal-width", "separator", "format"].find(name => name.startsWith(key)) : undefined;
+        if (option === "equal-width" && equals < 0) equalWidth = true;
+        else if (option === "separator" || option === "format") {
           const value = equals < 0 ? args[++index] : argument.slice(equals + 1);
           if (value === undefined) throw new UsageError(`option '--${key}' requires an argument`);
-          if (key === "separator") separator = value; else formatText = value;
+          if (option === "separator") separator = value; else formatText = value;
         } else throw new UsageError(`unrecognized option '${argument}'`);
       } else {
         for (let offset = 1; offset < argument.length; offset++) {

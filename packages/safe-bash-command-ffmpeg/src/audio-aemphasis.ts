@@ -16,7 +16,7 @@ export async function emphasizeAudio(
       : key === 3 ? { col: 0, emi: 1, bsi: 2, riaa: 3, cd: 4, "50fm": 5, "75fm": 6, "50kf": 7, "75kf": 8 } : {};
     const maximum = [64, 64, 1, 8][key]!;
     const value = Object.hasOwn(constants, raw) ? constants[raw]! : parseFilterExpression(raw, "aemphasis", {
-      ...constants, min: 0, max: maximum, default: defaults[key]!,
+      ...constants, min: 0, max: maximum, default: defaults[key]!, none: 0, all: -1,
       PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
     });
     if (!Number.isFinite(value) || value < 0 || value > maximum) {

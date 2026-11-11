@@ -15,7 +15,11 @@ export async function emphasizeAudio(
   let position = 0;
   for (const option of options) {
     const separator = option.indexOf("=");
-    const name = separator < 0 ? names[position++] : option.slice(0, separator).trim();
+    const name = separator < 0 ? names[position] : option.slice(0, separator).trim();
+    // FFmpeg 7 restarts shorthand after named options, skipping the first slot
+    // when it was just visited. The named key does not select the next slot.
+    if (separator < 0) position++;
+    else position = position === 0 ? 1 : 0;
     const key = names.indexOf(name!);
     if (key < 0) throw new Error(`aemphasis: unsupported option ${name}`);
     const raw = (separator < 0 ? option : option.slice(separator + 1)).trim();

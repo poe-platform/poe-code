@@ -19,7 +19,7 @@ for (const mode of ["buffered", "sync", "command"] as const) {
         });
         expect(result.exitCode).toBe(0);
         expect("stdout" in result ? result.stdout : stdout).toBe(hasAlpha
-            ? "# ImageMagick pixel enumeration: 2,1,0,255,rgba\n0,0: (2,9,24,128)  #02091880  rgba(2,9,24,0.501961)\n1,0: (104,156,220,64)  #689CDC40  rgba(104,156,220,0.25098)\n"
-            : "# ImageMagick pixel enumeration: 2,1,0,255,rgb\n0,0: (2,9,24)  #020918  rgb(2,9,24)\n1,0: (104,156,220)  #689CDC  rgb(104,156,220)\n");
+            ? "# ImageMagick pixel enumeration: 2,1,0,255,rgba\n0,0: (2,9,24,128)  #02091880  rgba(0.604883%,3.43398%,9.3059%,0.501961)\n1,0: (104,156,220,64)  #689CDC40  rgba(40.724%,61.0496%,86.3157%,0.25098)\n"
+            : "# ImageMagick pixel enumeration: 2,1,0,255,rgb\n0,0: (2,9,24)  #020918  rgb(0.604883%,3.43398%,9.3059%)\n1,0: (104,156,220)  #689CDC  rgb(40.724%,61.0496%,86.3157%)\n");
     });
 }

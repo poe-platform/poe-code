@@ -5,11 +5,14 @@ import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
 const hex = (value: number) => value.toString(16).toUpperCase().padStart(2, "0");
-export function pixelEnumerationLine(x: number, y: number, r: number, g: number, b: number, a: number, colorspace = "srgba"): string {
+export function pixelEnumerationLine(x: number, y: number, r: number, g: number, b: number, a: number, colorspace = "srgba", working?: Float64Array): string {
     const alpha = colorspace.endsWith("a");
     const samples = colorspace.startsWith("gray") ? String(r) : `${r},${g},${b}`;
+    const channels = working && (colorspace.startsWith("gray") || colorspace === "rgb" || colorspace === "rgba") ? working.subarray(0, colorspace.startsWith("gray") ? 1 : 3) : undefined;
+    const fractional = channels?.some(value => Math.abs(value - Math.round(value)) > 1e-9);
+    const description = fractional ? Array.from(channels!, value => `${Number((value * 100 / 255).toPrecision(6))}%`).join(",") : samples;
     const name = colorspace === "srgba" && a === 255 ? histogramColorNames[(r << 16) | (g << 8) | b] : undefined;
-    return `${x},${y}: (${samples}${alpha ? `,${a}` : ""})  #${hex(r)}${hex(g)}${hex(b)}${alpha ? hex(a) : ""}  ${name ?? `${colorspace}(${samples}${alpha ? `,${Number((a / 255).toPrecision(6))}` : ""})`}`;
+    return `${x},${y}: (${samples}${alpha ? `,${a}` : ""})  #${hex(r)}${hex(g)}${hex(b)}${alpha ? hex(a) : ""}  ${name ?? `${colorspace}(${description}${alpha ? `,${Number(((channels ? working![3]! : a) / 255).toPrecision(6))}` : ""})`}`;
 }
 export function srgbDepthEnumerationLine(x: number, y: number, samples: Uint8Array | Uint16Array, hasAlpha: boolean, depth: number): string {
     const levels = 2 ** Math.min(depth, 16) - 1, maximum = depth <= 8 ? 255 : 65535;
@@ -23,10 +26,11 @@ export function srgbDepthEnumerationLine(x: number, y: number, samples: Uint8Arr
     const name = !hasAlpha || channels[3] === maximum ? histogramColorNames[(Math.round(rgb[0]! * 255 / maximum) << 16) | (Math.round(rgb[1]! * 255 / maximum) << 8) | Math.round(rgb[2]! * 255 / maximum)] : undefined;
     return `${x},${y}: (${channels.join(",")})  #${color}  ${name && !percent ? name : `srgb${hasAlpha ? "a" : ""}(${values.join(",")})`}`;
 }
-export function gray16EnumerationLine(x: number, y: number, gray: number, alpha: number | undefined): string {
-    const value = gray % 257 === 0 ? String(gray / 257) : `${Number((gray * 100 / 65535).toPrecision(6))}%`;
+export function gray16EnumerationLine(x: number, y: number, gray: number, alpha: number | undefined, working?: Float64Array): string {
+    const sample = working?.[0] ?? gray / 257;
+    const value = Math.abs(sample - Math.round(sample)) <= 1e-9 ? String(Math.round(sample)) : `${Number((sample * 100 / 255).toPrecision(6))}%`;
     const color = hex(gray).padStart(4, "0").repeat(3);
-    return `${x},${y}: (${gray}${alpha === undefined ? "" : `,${alpha}`})  #${color}${alpha === undefined ? "" : hex(alpha).padStart(4, "0")}  gray${alpha === undefined ? "" : "a"}(${value}${alpha === undefined ? "" : `,${Number((alpha / 65535).toPrecision(6))}`})`;
+    return `${x},${y}: (${gray}${alpha === undefined ? "" : `,${alpha}`})  #${color}${alpha === undefined ? "" : hex(alpha).padStart(4, "0")}  gray${alpha === undefined ? "" : "a"}(${value}${alpha === undefined ? "" : `,${Number((working ? working[3]! / 255 : alpha / 65535).toPrecision(6))}`})`;
 }
 export function histogramLine(key: number | bigint, count: number, hasAlpha: boolean): string {
     if (typeof key === "bigint") {
@@ -135,6 +139,9 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
     for (let start = 0; start < size; start += 16384) {
         await yieldTurn(signal);
         const bytes = await storage.read(image.position + start, Math.min(16384, size - start));
+        const evaluated = (colorspace.startsWith("gray") || image.magickColorspace === "RGB") && image.storedEvaluateSamples !== undefined
+            ? await storage.read(image.storedEvaluateSamples + start * 8, bytes.length * 8) : undefined;
+        const working = evaluated ? new Float64Array(evaluated.slice().buffer) : undefined;
         const original = (srgbDepth || gray16 || image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "DisplayP3" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") && image.storedData16 ? await storage.read(image.storedData16.position + start * 2, bytes.length * 2) : undefined;
         const data16 = original ? new Uint16Array(original.buffer.slice(original.byteOffset, original.byteOffset + original.byteLength)) : undefined;
         const samples = (image.magickColorspace === "HCL" || image.magickColorspace === "HCLp" || image.magickColorspace === "HSL" || image.magickColorspace === "HSI" || image.magickColorspace === "HWB" || image.magickColorspace === "LMS" || image.magickColorspace === "CAT02LMS" || image.magickColorspace === "XYZ" || image.magickColorspace === "DisplayP3" || image.magickColorspace === "xyY" || image.magickColorspace === "ProPhoto" || image.magickColorspace === "Jzazbz" || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "Rec601YCbCr" || image.magickColorspace === "YCC" || image.magickColorspace === "Rec709YCbCr" || image.magickColorspace === "Log" || image.magickColorspace === "Adobe98" || image.magickColorspace === "OHTA" || image.magickColorspace === "CMY" || image.magickColorspace === "YUV" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || image.magickColorspace === "Oklab" || image.magickColorspace === "Luv" || image.magickColorspace === "Oklch" || image.magickColorspace === "LCH" || image.magickColorspace === "LCHab" || image.magickColorspace === "LCHuv" || image.magickColorspace === "CIELab") && image.storedHueSamples !== undefined ? await storage.read(image.storedHueSamples + start * 8, bytes.length * 8) : undefined;
@@ -150,10 +157,10 @@ export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetada
                 continue;
             }
             if (gray16) {
-                yield gray16EnumerationLine(pixel % image.width, Math.floor(pixel / image.width), data16![offset]!, image.hasAlpha ? data16![offset + 3]! : undefined) + "\n";
+                yield gray16EnumerationLine(pixel % image.width, Math.floor(pixel / image.width), data16![offset]!, image.hasAlpha ? data16![offset + 3]! : undefined, working?.subarray(offset, offset + 4)) + "\n";
                 continue;
             }
-            yield pixelEnumerationLine(pixel % image.width, Math.floor(pixel / image.width), bytes[offset]!, bytes[offset + 1]!, bytes[offset + 2]!, bytes[offset + 3]!, colorspace) + "\n";
+            yield pixelEnumerationLine(pixel % image.width, Math.floor(pixel / image.width), bytes[offset]!, bytes[offset + 1]!, bytes[offset + 2]!, bytes[offset + 3]!, colorspace, working?.subarray(offset, offset + 4)) + "\n";
         }
     }
 }

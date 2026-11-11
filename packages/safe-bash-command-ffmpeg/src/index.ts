@@ -4170,10 +4170,41 @@ async function applyVideoFilterChain(
         const height = frame.height / rows;
         for (let cell = 0; cell < count; cell++) {
           budget.recordFrame(width, height);
-          budget.allocateMemory(width * height * 4);
-          const data = new Uint8Array(width * height * 4);
           const x = (cell % cols) * width;
           const y = Math.floor(cell / cols) * height;
+          const source = frame.native;
+          if (source?.rgba === frame.data && source.width === frame.width && source.height === frame.height &&
+              [0, 4, 5, 12, 13, 14, 49, 68].includes(source.format)) {
+            const hsub = [0, 4, 12, 13].includes(source.format) ? 2 : 1;
+            const vsub = [0, 12].includes(source.format) ? 2 : 1;
+            const sampleBytes = [49, 68].includes(source.format) ? 2 : 1;
+            const size = (width * height + 2 * Math.ceil(width / hsub) * Math.ceil(height / vsub)) * sampleBytes;
+            budget.allocateMemory(size + width * height * 4);
+            const pixels = new Uint8Array(size);
+            let srcOffset = 0;
+            let dstOffset = 0;
+            for (let plane = 0; plane < 3; plane++) {
+              const sx = plane === 0 ? 1 : hsub;
+              const sy = plane === 0 ? 1 : vsub;
+              const srcWidth = Math.ceil(frame.width / sx) * sampleBytes;
+              const dstWidth = Math.ceil(width / sx) * sampleBytes;
+              const dstHeight = Math.ceil(height / sy);
+              for (let row = 0; row < dstHeight; row++) {
+                if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+                const start = srcOffset + (Math.floor(y / sy) + row) * srcWidth + Math.floor(x / sx) * sampleBytes;
+                pixels.set(source.pixels.subarray(start, start + dstWidth), dstOffset + row * dstWidth);
+              }
+              srcOffset += srcWidth * Math.ceil(frame.height / sy);
+              dstOffset += dstWidth * dstHeight;
+            }
+            const native = { ...source, width, height, pixels };
+            const data = scaleVideoPicture({ ...frame, width, height, native }, width, height)!;
+            extracted.push({ ...frame, width, height, data, native: { ...native, rgba: data },
+              ptsSeconds: frame.ptsSeconds + cell * durationSeconds, durationSeconds });
+            continue;
+          }
+          budget.allocateMemory(width * height * 4);
+          const data = new Uint8Array(width * height * 4);
           for (let row = 0; row < height; row++) {
             if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
             const start = ((y + row) * frame.width + x) * 4;

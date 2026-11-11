@@ -13710,6 +13710,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
         }
         else if (t === "-hough-lines") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const spec = tokens[++i] ?? "", result: RgbaImage[] = [];
             for (const image of stack) {
                 const transform = createHoughTransform(image, spec, state.background, state.stroke, state.fill, state.strokeWidth);
@@ -16515,6 +16516,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && token === "-hough-lines") {
             const spec = tokens[++i] ?? "", settings = { ...state };
             stackStep(async (stack, backend) => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 const result = new StoredImageStack(backend.storage, signal, stack);
                 for (let index = 0; index < stack.length; index++) {
                     const image = (await stack.get(index))!;

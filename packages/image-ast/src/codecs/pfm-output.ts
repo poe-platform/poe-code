@@ -2,6 +2,7 @@ import { defaultRuntime } from "@poe-code/compression";
 import type { RgbaImage } from "../ast.js";
 import type { ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
 import { netpbmFormat, storedNetpbmFormat } from "./netpbm-format.js";
+import { netpbmComment } from "./netpbm-header.js";
 
 function halfBits(value: number): number {
     const sign = value < 0 || Object.is(value, -0) ? 0x8000 : 0;
@@ -31,7 +32,7 @@ export function encodePfmImage(image: RgbaImage, format: "pfm" | "phm" = "pfm", 
     const little = (endian ?? image.endian) === "lsb";
     const samples = image.dataFloat ?? image.data16 ?? image.data;
     const channels = image.dataFloat && image.channels === 1 ? 1 : netpbmFormat(samples) === "ppm" ? 3 : 1;
-    const header = new TextEncoder().encode(`${format === "phm" ? channels === 3 ? "PH" : "Ph" : channels === 3 ? "PF" : "Pf"}\n${image.width} ${image.height}\n${little ? "-1.0" : "1.0"}\n`);
+    const header = new TextEncoder().encode(`${format === "phm" ? channels === 3 ? "PH" : "Ph" : channels === 3 ? "PF" : "Pf"}\n${netpbmComment(image.properties?.comment)}${image.width} ${image.height}\n${little ? "-1.0" : "1.0"}\n`);
     const data = new Uint8Array(header.length + image.width * image.height * channels * (format === "phm" ? 2 : 4)); data.set(header);
     for (let y = image.height - 1; y >= 0; y--) {
         const row = pfmSamples(samples.subarray(y * image.width * 4, (y + 1) * image.width * 4), channels, format, little);
@@ -56,7 +57,7 @@ export async function storedPfmChannels(image: StoredRgbaImage, storage: ImageBy
 
 export async function* encodePfmFromStorage(image: StoredRgbaImage, storage: ImageByteStorage, signal: AbortSignal, channels: 1 | 3, format: "pfm" | "phm" = "pfm", endian?: string): AsyncGenerator<Uint8Array> {
     const little = (endian ?? image.endian) === "lsb";
-    yield new TextEncoder().encode(`${format === "phm" ? channels === 3 ? "PH" : "Ph" : channels === 3 ? "PF" : "Pf"}\n${image.width} ${image.height}\n${little ? "-1.0" : "1.0"}\n`);
+    yield new TextEncoder().encode(`${format === "phm" ? channels === 3 ? "PH" : "Ph" : channels === 3 ? "PF" : "Pf"}\n${netpbmComment(image.properties?.comment)}${image.width} ${image.height}\n${little ? "-1.0" : "1.0"}\n`);
     const sampleBytes = image.storedDataFloat ? 4 : image.storedData16 ? 2 : 1, position = image.storedDataFloat?.position ?? image.storedData16?.position ?? image.position;
     for (let y = image.height - 1; y >= 0; y--) for (let x = 0; x < image.width; x += 512) {
         await defaultRuntime.yieldTurn(signal);

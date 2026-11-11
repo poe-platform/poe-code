@@ -108,7 +108,7 @@ import { compositePixelsSteps, magickCompositeMode, magickComposeNames } from ".
 import { composite16PixelSteps } from "./composite16.js";
 import { steganoPixelSteps } from "./stegano.js";
 import { stereoPixelSteps } from "./stereo.js";
-import { warpPixelSteps, type WarpPlan, type VirtualPixelMethod } from "./warp-kernel.js";
+import { splineSamples, warpPixelSteps, type WarpPlan, type VirtualPixelMethod } from "./warp-kernel.js";
 import { distancePixelSteps, manhattanDistanceScale } from "./distance-kernel.js";
 import { morphologyIntensityPixelSteps } from "./morphology-intensity.js";
 import { morphologyDifferencePixelSteps } from "./morphology-difference.js";
@@ -3443,17 +3443,26 @@ function sampleFxImage(
   return sampleFxPixel(img.evaluateSamples ?? img.data16 ?? img.data!, idx, ch, img.evaluateSamples ? 255 : img.data16 ? 65535 : 255);
 }
 function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefined, x: number, y: number, ch: number, interpolation?: LookupInterpolation): number {
-  if (interpolation === "average9" || interpolation === "average16" || interpolation === "blend" || interpolation === "mesh" || interpolation === "catrom" || interpolation === "spline") throw new Error(`Unsupported FX interpolation: ${interpolation}`);
+  if (interpolation === "average9" || interpolation === "average16" || interpolation === "blend" || interpolation === "mesh" || interpolation === "catrom") throw new Error(`Unsupported FX interpolation: ${interpolation}`);
   if (!img) return 0;
   if (!Number.isFinite(x) || !Number.isFinite(y)) return NaN;
   const left = Math.floor(x), top = Math.floor(y), dx = x - left, dy = y - top;
   if (interpolation === "integer") return sample(img, left, top, ch);
   if (interpolation === "nearest") return sample(img, Math.floor(x + 0.5), Math.floor(y + 0.5), ch);
-  if (interpolation !== "average" && dx === 0 && dy === 0) {
+  if (interpolation !== "average" && interpolation !== "spline" && dx === 0 && dy === 0) {
     return img.hasAlpha && ch !== 3 && sample(img, x, y, 3) === 0 ? 0 : sample(img, x, y, ch);
   }
   if (ch >= 4 && ch <= 7) {
     return sampleFxPixel([0, 1, 2].map(channel => interpolateFxImage(sample, img, x, y, channel, interpolation)), 0, ch, 1);
+  }
+  if (interpolation === "spline") {
+    let value = 0;
+    for (const [px, py, weight] of splineSamples(x, y)) {
+      const opacity = img.hasAlpha && ch !== 3 ? sample(img, px, py, 3) : 1;
+      // Native spline interpolation retains premultiplied colors.
+      value += weight * opacity * sample(img, px, py, ch);
+    }
+    return value;
   }
   let value = 0, alpha = 0;
   for (let row = 0; row < 2; row++) {
@@ -4667,7 +4676,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     if (token === "-interpolative-resize") {
         const geometry = tokens[start + 1] ?? "", interpolation = state.interpolation ?? "bilinear";
         validateMagickTransformGeometry(geometry, token);
-        if (interpolation === "blend" || interpolation === "mesh" || interpolation === "catrom" || interpolation === "spline") throw new Error(`Unsupported interpolative-resize interpolation: ${interpolation}`);
+        if (interpolation === "blend" || interpolation === "mesh" || interpolation === "catrom") throw new Error(`Unsupported interpolative-resize interpolation: ${interpolation}`);
         const background = state.background, virtualPixel = state.virtualPixel ?? "edge";
         return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "virtualCanvas">) => {
             const options = magickResizeOptions(image, geometry, undefined);

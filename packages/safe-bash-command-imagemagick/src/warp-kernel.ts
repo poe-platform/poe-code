@@ -68,7 +68,7 @@ function* ellipseSamples(sx: number, sy: number, [ux, uy, vx, vy]: readonly [num
     }
 }
 
-function* splineSamples(x: number, y: number): Generator<readonly [number, number, number]> {
+export function* splineSamples(x: number, y: number): Generator<readonly [number, number, number]> {
     const left = Math.floor(x), top = Math.floor(y);
     const weights = [x - left, y - top].map(delta => {
         const alpha = 1 - delta, last = delta * delta * delta / 6, first = alpha * alpha * alpha / 6;

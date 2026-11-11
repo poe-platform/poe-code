@@ -125,7 +125,7 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
                             result[i + channel]! += pixels[offset + channel]! * weight * opacity;
                     }
                     for (let channel = 0; channel < 3; channel++) result[i + channel] = alpha ? result[i + channel]! / alpha : 0;
-                    result[i + 3] = alpha * src.data[i + 3]!;
+                    result[i + 3] = alpha * (src.hasAlpha ? src.data[i + 3]! : 255);
                 }
             } else {
                 yield* compositePixelsSteps(dst, src, result, mode, 0, 0, args, fuzz, clipToOverlay);

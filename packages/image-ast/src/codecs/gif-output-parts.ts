@@ -129,11 +129,13 @@ export function gifHeader(
   image: GifImage,
   options: GifOptions,
   layout: ReturnType<typeof gifLayout>,
-  palette: GifPalette
+  palette: GifPalette,
+  firstFrame = image.gifFrames?.[0]
 ) {
+  // Packed rasters include padding for later frames; it does not enlarge the screen.
   const { frames } = layout,
-    width = Math.max(image.virtualCanvas?.width ?? 0, layout.width),
-    frameHeight = Math.max(image.virtualCanvas?.height ?? 0, layout.frameHeight),
+    width = Math.max(image.virtualCanvas?.width ?? 0, firstFrame?.width ?? layout.width),
+    frameHeight = Math.max(image.virtualCanvas?.height ?? 0, firstFrame?.height ?? layout.frameHeight),
     loop = options.gifVersion === "87a" ? undefined : options.loop ?? image.loop ?? (frames > 1 ? 0 : undefined),
     headerSize = 13 + (options.globalPalette === false ? 0 : 768),
     out = new Uint8Array(headerSize + (loop === undefined || loop === 1 ? 0 : 19));

@@ -54,7 +54,7 @@ export async function* encodeGifFromStorage(
   }
   palette.finish();
   signal.throwIfAborted();
-  yield gifHeader(headerImage, options, layout, palette);
+  yield gifHeader(headerImage, options, layout, palette, await image.storedGifFrame?.at(0) ?? image.gifFrames?.[0]);
   for (let frame = 0; frame < layout.frames; frame++) {
     const start = frame * layout.framePixels;
     const rectangle = await image.storedGifFrame?.at(frame) ?? image.gifFrames?.[frame];

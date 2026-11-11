@@ -8,12 +8,13 @@ import { encodeIsobrlImage, encodeIsobrlFromStorage } from "./isobrl-output.js";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
 import { encodeYuvImage, encodeYuvFromStorage } from "./yuv-output.js";
 import { encodeSvgImage, encodeSvgFromStorage } from "./svg-output.js";
+import { encodeBrfImage, encodeBrfFromStorage } from "./brf-output.js";
 
 export type RawImage = RgbaImage & { rawFrames?: readonly RgbaImage[] };
 export type StoredRawImage = StoredRgbaImage & { rawFrames?: { length: number; at(index: number): Promise<StoredRgbaImage> } };
 
 export type RawCoder = "rgb" | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro" | "gray" | "graya" | "cmyk" | "cmyka" | "ycbcr" | "ycbcra";
-export type ImageFormat = "isobrl" | "isobrl6" | RasterFormat | RawCoder | "map" | "farbfeld" | "mono" | "pal" | "mpc" | "h" | "yuv";
+export type ImageFormat = "isobrl" | "isobrl6" | RasterFormat | RawCoder | "map" | "farbfeld" | "mono" | "pal" | "mpc" | "h" | "yuv" | "brf";
 export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; rawInterlace?: "line" | "plane" | "partition" | undefined; rawDefines?: Readonly<Record<string, string>> | undefined; jpegExtent?: number | undefined; webpTargetSize?: number | undefined; webpPass?: number | undefined };
 
 /** Search complete output sizes, including alpha and container overhead. */
@@ -52,6 +53,7 @@ function* cHeaderBytes(bytes: Uint8Array): Generator<Uint8Array> {
 }
 
 export function encodeImage(image: RawImage, options: OutputEncodeOptions): ReturnType<typeof encodeRaster> {
+    if (options.format === "brf") return { data: encodeBrfImage(image), format: "raw", channels: 1 };
     if (options.format === "svg") return { data: encodeSvgImage(image), format: "svg", channels: image.hasAlpha ? 4 : 3 };
     if (options.format === "jpeg" && image.quality) options = { ...options, quality: image.quality, chromaSubsampling: image.quality < 90 ? "4:2:0" : "4:4:4" };
     if (options.format === "png" && (image.resolution?.x === 0 || image.resolution?.y === 0)) options = { ...options, omitPngResolution: true };
@@ -224,6 +226,11 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
 }
 
 export async function* encodeStoredImage(image: StoredRawImage, storage: ImageByteStorage, signal: AbortSignal, options: OutputEncodeOptions): ReturnType<typeof encodeStoredRaster> {
+    if (options.format === "brf") {
+        let size = 0;
+        for await (const chunk of encodeBrfFromStorage(image, storage, signal)) { size += chunk.length; yield chunk; }
+        return { format: "raw", width: image.width, height: image.height, channels: 1, premultiplied: false, size };
+    }
     if (options.format === "svg") {
         let size = 0;
         for await (const chunk of encodeSvgFromStorage(image, storage, signal)) { size += chunk.length; yield chunk; }

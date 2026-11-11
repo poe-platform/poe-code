@@ -7815,6 +7815,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
       return "pal";
     case "mono":
       return "mono";
+    case "brf":
+      return "brf";
     case "isobrl":
       return "isobrl";
     case "isobrl6":
@@ -12219,7 +12221,7 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
         }
         if (gray) image = { ...image, space: "b-w", channels: image.hasAlpha ? 2 : 1 };
     }
-    if (format !== "otb" && format !== "pbm" && format !== "xbm" && format !== "wbmp" && format !== "isobrl" && format !== "isobrl6" && format !== "mono") return image;
+    if (format !== "otb" && format !== "pbm" && format !== "xbm" && format !== "wbmp" && format !== "isobrl" && format !== "isobrl6" && format !== "mono" && format !== "brf") return image;
     const source = image.data16 ? { ...image, data: new Uint8Array(image.data16.buffer, image.data16.byteOffset, image.data16.byteLength) } : image;
     return yield* applyMagickRasterSteps({ ...image, space: "b-w", channels: 1, hasAlpha: false }, bilevelPixelSteps(image.width * image.height, !!image.data16), undefined, { ...image, hasAlpha: false }, [source]);
 }
@@ -12316,7 +12318,7 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
         }
         if (gray) image = { ...image, space: "b-w", channels: image.hasAlpha ? 2 : 1 };
     }
-    if (format !== "otb" && format !== "pbm" && format !== "xbm" && format !== "wbmp" && format !== "isobrl" && format !== "isobrl6" && format !== "mono") return image;
+    if (format !== "otb" && format !== "pbm" && format !== "xbm" && format !== "wbmp" && format !== "isobrl" && format !== "isobrl6" && format !== "mono" && format !== "brf") return image;
     const source = image.storedData16 ? { ...image, position: image.storedData16.position } : image;
     return transformStoredMagickRaster({ ...image, space: "b-w", channels: 1, hasAlpha: false }, backend, bilevelPixelSteps(image.width * image.height, !!image.storedData16), signal, { ...image, hasAlpha: false }, [source]);
 }

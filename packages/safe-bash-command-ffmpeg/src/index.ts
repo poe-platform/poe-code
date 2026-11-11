@@ -89,6 +89,7 @@ import { correlateAudio } from "./audio-axcorrelate.js";
 import { gateAudio } from "./audio-sidechaingate.js";
 import { listenDynamicEqualizer } from "./audio-adynamicequalizer.js";
 import { tiltAudio } from "./audio-atilt.js";
+import { crushAudio } from "./audio-acrusher.js";
 import { softClipAudio } from "./audio-asoftclip.js";
 import { AlimiterError, limitAudio } from "./audio-alimiter.js";
 import { AgateError, applyAudioGate } from "./audio-agate.js";
@@ -14112,6 +14113,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         stretched = await pulsateAudio(stretched, origRate, trimmed, budget, context.signal);
                         filteredChannelMask = 3;
                         filteredChannelNames = undefined;
+                        filteredSampleFormat = "dbl";
+                        statsScale = 1;
+                      } else if (filterName === "acrusher") {
+                        if (!autoConversionFilters && filteredSampleFormat !== "dbl") throw new Error(audioConversionDisabled);
+                        stretched = await crushAudio(stretched, trimmed, budget, context.signal);
                         filteredSampleFormat = "dbl";
                         statsScale = 1;
                       } else if (trimmed === "adynamicequalizer" || trimmed.startsWith("adynamicequalizer=")) {

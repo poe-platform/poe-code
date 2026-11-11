@@ -326,7 +326,9 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
             [r, g, b] = hue < 1 ? [chroma, x, 0] : hue < 2 ? [x, chroma, 0] : hue < 3 ? [0, chroma, x] : hue < 4 ? [0, x, chroma] : hue < 5 ? [x, 0, chroma] : [chroma, 0, x];
             r += m; g += m; b += m;
         }
-        for (const [channel, sample] of [r, g, b, input[offset + 3]! / range].entries()) {
+        // Alpha is unchanged by colorspace conversion, including fractional HDRI samples.
+        const alpha = image.hueSamples ? image.hueSamples[offset + 3]! : image.evaluateSamples ? image.evaluateSamples[offset + 3]! / 255 : input[offset + 3]! / range;
+        for (const [channel, sample] of [r, g, b, alpha].entries()) {
             // Q16-HDRI stores these conversions as float quantum samples; YCbCr
             // neutral chroma must round to exactly half-range before palette classification.
             const value = target === "ProPhoto" || image.magickColorspace === "ProPhoto" ? Math.fround(sample * 65535) / 65535

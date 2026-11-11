@@ -9373,7 +9373,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         if (space === "transparent") space = "srgb";
         const linearSpace = space === "scrgb" ? "scRGB" : "RGB";
         if (space === "scrgb") space = "rgb";
-        evaluate = (paletteType && !bilevelAlpha) || imageType === undefined && (token === "-grayscale" || ["cmyk", "prophoto", "adobe98", "displayp3", "log", "rgb", "srgb", "gray", "grey", "lineargray", "rec709luma", "rec601luma", "lab", "cielab", "luv", "oklch", "lch", "lchab", "lchuv", "oklab", "ohta", "yuv", "yiq", "ydbdr", "ycbcr", "rec601ycbcr"].includes(space));
+        evaluate = (paletteType && !bilevelAlpha) || imageType === undefined && (token === "-grayscale" || ["cmyk", "prophoto", "adobe98", "displayp3", "log", "rgb", "srgb", "gray", "grey", "lineargray", "rec709luma", "rec601luma", "hsl", "lab", "cielab", "luv", "oklch", "lch", "lchab", "lchuv", "oklab", "ohta", "yuv", "yiq", "ydbdr", "ycbcr", "rec601ycbcr"].includes(space));
         const luminance = space === "lineargray" || space === "rec601luminance" || space === "rec709luminance";
         apply = function* (image) {
             image = { ...image, [magickInput]: { ...image[magickInput],
@@ -9814,7 +9814,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 // Clip-cache blending still uses source opacity before Extract disables alpha.
                 for (let offset = 0; offset < data.length; offset += 4) {
                     if (offset % 65536 === 0) yield;
-                    const alpha = im.evaluateSamples ? im.evaluateSamples[offset + 3]! / 255 : im.data16 ? im.data16[offset + 3]! / 65535 : im.data[offset + 3]! / 255;
+                    const alpha = !cmyk && im.hueSamples ? im.hueSamples[offset + 3]! : im.evaluateSamples ? im.evaluateSamples[offset + 3]! / 255 : im.data16 ? im.data16[offset + 3]! / 65535 : im.data[offset + 3]! / 255;
                     if (hueSamples) {
                         for (let channel = 0; channel < (cmyk ? 4 : 3); channel++) {
                             if (selected[channel]) hueSamples[offset + channel] = alpha;

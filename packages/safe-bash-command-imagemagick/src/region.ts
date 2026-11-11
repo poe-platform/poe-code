@@ -33,16 +33,21 @@ export function rollRegion(region: Region, image: { width: number; height: numbe
     };
 }
 
-/** Removing rows and columns keeps a rectangular region rectangular. */
+/** Removing rows and columns preserves the selection on the shortened torus. */
 export function chopRegion(region: Region, x0: number, y0: number, x1: number, y1: number): Region {
     const x = region.x - Math.max(0, Math.min(region.x, x1) - x0);
     const y = region.y - Math.max(0, Math.min(region.y, y1) - y0);
     const right = region.x + region.width;
     const bottom = region.y + region.height;
+    const wrap = region.wrap ? { width: region.wrap.width - (x1 - x0), height: region.wrap.height - (y1 - y0) } : undefined;
     return {
-        x, y,
-        width: right - Math.max(0, Math.min(right, x1) - x0) - x,
-        height: bottom - Math.max(0, Math.min(bottom, y1) - y0) - y,
+        x: wrap ? x % wrap.width : x,
+        y: wrap ? y % wrap.height : y,
+        width: right - Math.max(0, Math.min(right, x1) - x0) - x
+            - (region.wrap ? Math.max(0, Math.min(right - region.wrap.width, x1) - x0) : 0),
+        height: bottom - Math.max(0, Math.min(bottom, y1) - y0) - y
+            - (region.wrap ? Math.max(0, Math.min(bottom - region.wrap.height, y1) - y0) : 0),
+        ...(wrap ? { wrap } : {}),
     };
 }
 

@@ -4048,8 +4048,37 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "
         const reciprocal = Math.abs(length) >= 1e-12 ? 1 / length : (length < 0 ? -1 : 1) / 1e-12;
         return result((x, y) => [x, y - Math.fround(padding + amplitude * Math.sin(2 * Math.PI * x * reciprocal))], w, h + Math.trunc(padding * 2));
     }
-    const method = spec.toLowerCase().replace(/[-_]/g, ""), nums = args.trim().split(/[\s,]+/).filter(s => s.length > 0).map(Number);
+    let method = spec.toLowerCase().replace(/[-_]/g, "");
+    const nums = args.trim().split(/[\s,]+/).filter(s => s.length > 0).map(Number);
     if (nums.some(value => !Number.isFinite(value))) throw new Error("invalid list of numbers");
+    if (method === "bilinearforward") {
+        if (nums.length === 0 || nums.length % 4 !== 0) throw new Error("BilinearForward requires complete source/destination point pairs");
+        // Native falls back to affine with fewer than four control pairs.
+        if (nums.length < 16) method = "affine";
+        else {
+            const matrix = Array.from({ length: 4 }, () => Array<number>(4).fill(0)), xs = Array<number>(4).fill(0), ys = Array<number>(4).fill(0);
+            for (let p = 0; p < nums.length; p += 4) {
+                const x = nums[p]!, y = nums[p + 1]!, row = [x, y, x * y, 1];
+                for (let i = 0; i < 4; i++) {
+                    xs[i]! += row[i]! * nums[p + 2]!;
+                    ys[i]! += row[i]! * nums[p + 3]!;
+                    for (let j = 0; j < 4; j++) matrix[i]![j]! += row[i]! * row[j]!;
+                }
+            }
+            // Fit source to destination, then invert the bilinear polynomial.
+            // A destination-to-source fit is the distinct BilinearReverse method.
+            const [a, b, c, d] = solveLinearSystem(matrix, xs) as [number, number, number, number];
+            const [e, f, g, h] = solveLinearSystem(matrix, ys) as [number, number, number, number];
+            const determinant = a * f - b * e, quadratic = 2 * (c * f - b * g);
+            return result((x, y) => {
+                const dx = x + 0.5 - d, dy = y + 0.5 - h;
+                const linear = g * dx - c * dy + determinant, constant = e * dx - a * dy;
+                const sy = Math.abs(quadratic) < 1e-12 ? -constant / linear
+                    : (-linear + Math.sqrt(linear * linear - 2 * quadratic * constant)) / quadratic;
+                return [(dx - b * sy) / (a + c * sy) - 0.5, sy - 0.5];
+            });
+        }
+    }
     if (method === "polynomial") {
         const order = nums[0];
         if (order === undefined) throw new Error("Polynomial needs at least 1 argument");

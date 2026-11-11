@@ -5,6 +5,7 @@ import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
 
 export function parseUnsharpGeometry(raw: string): { width: number; height: number; amount: number; threshold: number } {
+    raw = [...raw].filter(character => !"()!%<>^@#".includes(character)).join("");
     const parts: string[] = [];
     let start = 0;
     let hasSigma = false;

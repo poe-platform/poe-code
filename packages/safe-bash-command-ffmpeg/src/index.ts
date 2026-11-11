@@ -17063,8 +17063,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else throw new Error(`extrastereo: unsupported option ${key}`);
                         }
                         if (stretched.length !== 2) throw new Error("extrastereo: stereo input required");
-                        if (filteredChannelMask && filteredChannelMask !== 3 && filteredChannelMask !== 12) {
-                          throw new Error(`extrastereo: unsupported input channel layout (mask ${filteredChannelMask})`);
+                        if (!filteredChannelMask && filteredChannelNames?.some(name => name !== "") ||
+                            filteredChannelMask && filteredChannelMask !== 3 && filteredChannelMask !== 12) {
+                          throw new Error("extrastereo: unsupported input channel layout");
                         }
                         const commands = audioCommands.filter(command => command.target === "extrastereo" || command.target === filterTarget)
                           .sort((a, b) => a.sample - b.sample);
@@ -20047,6 +20048,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "negate: invalid expression" || msg === "negate: invalid or unsupported expression") return { exitCode: 234 };
             if ((overwrite && msg === "aecho: delay is too small") ||
                 msg === "aphaser: delay is too small" ||
+                msg === "extrastereo: unsupported input channel layout" ||
                 msg === "stereotools: unsupported input channel layout" ||
                 msg.startsWith("channelsplit: unsupported input channel order ") ||
                 msg === "channelsplit: matching input channel layout required" ||

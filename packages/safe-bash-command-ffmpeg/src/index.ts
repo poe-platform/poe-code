@@ -16916,6 +16916,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let frameEnd = 0;
                         let frameIndex = 0;
                         let enabled = true;
+                        const enableRegisters = new Float64Array(10);
                         for (let i = 0; i < left.length; i++) {
                           while (commandIndex < commands.length && commands[commandIndex]!.sample <= i) {
                             const command = commands[commandIndex++]!;
@@ -16928,9 +16929,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const frameLength = timestamp ? timestamp.end - timestamp.start
                               : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                             const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + i);
-                            enabled = Math.abs(parseFilterExpression(enable, "stereotools enable", {
-                              n: frameIndex, t: pts / origRate
-                            })) >= 0.5;
+                            // FFmpeg evaluates the timeline twice per input frame, using the second result.
+                            for (let evaluation = 0; evaluation < 2; evaluation++) {
+                              enabled = Math.abs(parseFilterExpression(enable, "stereotools enable", {
+                                n: frameIndex, t: pts / origRate
+                              }, undefined, enableRegisters)) >= 0.5;
+                            }
                             frameEnd = i + frameLength;
                             frameIndex++;
                           }

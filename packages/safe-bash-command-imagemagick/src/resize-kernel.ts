@@ -274,7 +274,8 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
                         let pixels: Uint8Array | Uint16Array | Float64Array;
                         if (samples?.length) {
                             pixels = new Float64Array(samples.slice().buffer);
-                            if (hue || highDepth) pixels = pixels.map(value => value * (hue ? range : 257));
+                            // Native HDRI channels are float quantum values before filtering.
+                            if (hue || highDepth) pixels = pixels.map(value => Math.fround(value * (hue ? 65535 : 257)) / (highDepth ? 1 : 257));
                         } else {
                             const bytes = yield { kind: "read", highDepth, position, length: length * 4 };
                             if (!bytes || bytes.length !== length * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated resize pixels");

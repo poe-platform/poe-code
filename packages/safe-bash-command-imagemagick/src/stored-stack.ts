@@ -2,6 +2,7 @@ import type { StoredRgbaImage, ImageDelayReader, RgbaColor } from "@poe-code/ima
 import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
+import type { LookupInterpolation } from "./sequence-kernel.js";
 import type { MetaChannels } from "./combine-meta.js";
 
 export const magickInput = Symbol("magickInput");
@@ -24,6 +25,7 @@ export interface MagickFormatContext {
     trimPercentBackground?: number | undefined;
     trimBackgroundColor?: RgbaColor | undefined;
     precision?: number;
+    interpolation?: LookupInterpolation | undefined;
     ticksPerSecond?: number;
     delayTicks?: number;
     interlace?: string;

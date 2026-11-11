@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterBoolean } from "./filter-boolean.js";
 import { parseFilterExpression } from "./filter-expression.js";
 
 export async function normalizeAudio(
@@ -14,6 +15,7 @@ export async function normalizeAudio(
   let size = 31;
   let peak = 0.95;
   let maxGain = 10;
+  let coupling = true;
   let targetRms = 0;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   let positional = 0;
@@ -21,6 +23,10 @@ export async function normalizeAudio(
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["f", "g", "p", "m", "r"][positional++] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (key === "n" || key === "coupling") {
+      coupling = parseFilterBoolean(value, "dynaudnorm: invalid coupling");
+      continue;
+    }
     if (key === "enable") {
       enable = value;
       parseFilterExpression(enable, "dynaudnorm enable", variables, undefined, new Float64Array(10), []);
@@ -59,7 +65,8 @@ export async function normalizeAudio(
   const frameSize = Math.max(2, rounded + rounded % 2);
   const half = Math.floor(size / 2);
   const length = channels[0]?.length ?? 0;
-  budget.allocateMemory(length * channels.length * 8 + size * 4 * 8);
+  const gainChannels = coupling ? 1 : channels.length;
+  budget.allocateMemory(length * channels.length * 8 + size * (1 + 3 * gainChannels) * 8 + gainChannels * 16);
   const output = channels.map(() => new Float64Array(length));
   // Preserve FFmpeg's coefficient evaluation order for double-precision frames.
   const sigma = ((size / 2 - 1) / 3) + 1 / 3;
@@ -87,14 +94,16 @@ export async function normalizeAudio(
     }
     return maxGain * (2 / Math.sqrt(Math.PI) * Math.exp(-x * x) * sum);
   };
-  const original: number[] = [];
-  const minimum: number[] = [];
-  const smoothed: number[] = [];
-  let previous = 1;
-  const append = (gain: number) => {
+  const histories = Array.from({ length: gainChannels }, () => ({
+    original: [] as number[], minimum: [] as number[], smoothed: [] as number[], previous: 1
+  }));
+  const magnitudes = new Float64Array(gainChannels);
+  const squares = new Float64Array(gainChannels);
+  const append = (history: typeof histories[number], gain: number) => {
+    const { original, minimum, smoothed } = history;
     if (!original.length) {
-      previous = Math.min(1, gain);
-      for (let i = 0; i < half; i++) original.push(previous);
+      history.previous = Math.min(1, gain);
+      for (let i = 0; i < half; i++) original.push(history.previous);
     }
     original.push(gain);
     if (original.length === size) {
@@ -119,7 +128,6 @@ export async function normalizeAudio(
   const randomStates: BigUint64Array[] = [];
   let frameIndex = 0;
   const amplify = async () => {
-    const gain = smoothed.shift()!;
     const end = Math.min(length, written + frameSize);
     const start = written;
     let enabled = true;
@@ -132,19 +140,23 @@ export async function normalizeAudio(
       // The native activate path evaluates once per consumed normalization frame.
       enabled = Math.abs(parseFilterExpression(enable, "dynaudnorm enable", variables, undefined, registers, randomStates)) >= 0.5;
     }
-    for (; written < end; written++) {
-      const fraction = (written - start + 1) / (end - start);
-      const factor = previous * (1 - fraction) + gain * fraction;
-      for (let c = 0; c < channels.length; c++) {
-        if (++work % 4096 === 0) {
-          await yieldTurn(signal);
-          signal?.throwIfAborted();
-          budget.checkCpu();
+    for (const [h, history] of histories.entries()) {
+      const gain = history.smoothed.shift()!;
+      for (let i = written; i < end; i++) {
+        const fraction = (i - written + 1) / (end - written);
+        const factor = history.previous * (1 - fraction) + gain * fraction;
+        for (let c = coupling ? 0 : h; c < (coupling ? channels.length : h + 1); c++) {
+          if (++work % 4096 === 0) {
+            await yieldTurn(signal);
+            signal?.throwIfAborted();
+            budget.checkCpu();
+          }
+          output[c]![i] = channels[c]![i]! * (enabled ? factor : 1);
         }
-        output[c]![written] = channels[c]![written]! * (enabled ? factor : 1);
       }
+      history.previous = gain;
     }
-    previous = gain;
+    written = end;
   };
   let commandIndex = 0;
   for (let start = 0; start < length; start += frameSize) {
@@ -158,25 +170,28 @@ export async function normalizeAudio(
         if (value >= 0 && value <= 1) peak = value;
       } catch { /* Native asendcmd keeps the previous peak after a rejected command. */ }
     }
-    if (smoothed.length) await amplify();
-    let magnitude = Number.EPSILON;
-    let squares = 0;
+    if (histories[0]!.smoothed.length) await amplify();
+    magnitudes.fill(Number.EPSILON);
+    squares.fill(0);
     const end = Math.min(length, start + frameSize);
-    for (const channel of channels) {
+    for (const [c, channel] of channels.entries()) {
+      const h = coupling ? 0 : c;
       for (let i = start; i < end; i++) {
         if (++work % 4096 === 0) {
           await yieldTurn(signal);
           signal?.throwIfAborted();
           budget.checkCpu();
         }
-        magnitude = Math.max(magnitude, Math.abs(channel[i]!));
-        if (targetRms > Number.EPSILON) squares += channel[i]! * channel[i]!;
+        magnitudes[h] = Math.max(magnitudes[h]!, Math.abs(channel[i]!));
+        if (targetRms > Number.EPSILON) squares[h]! += channel[i]! * channel[i]!;
       }
     }
-    const rmsGain = targetRms > Number.EPSILON
-      ? targetRms / Math.max(Number.EPSILON, Math.sqrt(squares / ((end - start) * channels.length)))
-      : Infinity;
-    append(bound(Math.min(peak / magnitude, rmsGain)));
+    for (const [h, history] of histories.entries()) {
+      const rmsGain = targetRms > Number.EPSILON
+        ? targetRms / Math.max(Number.EPSILON, Math.sqrt(squares[h]! / ((end - start) * (coupling ? channels.length : 1))))
+        : Infinity;
+      append(history, bound(Math.min(peak / magnitudes[h]!, rmsGain)));
+    }
   }
   // At EOF FFmpeg extends the pending gain history, then feeds peak-level
   // padding frames while draining audio. Padding never appears in the output.
@@ -184,9 +199,11 @@ export async function normalizeAudio(
     await yieldTurn(signal);
     signal?.throwIfAborted();
     budget.checkCpu();
-    while (!smoothed.length) append(original[0]!);
+    while (!histories[0]!.smoothed.length) {
+      for (const history of histories) append(history, history.original[0]!);
+    }
     await amplify();
-    append(bound(peak / Math.max(Number.EPSILON, peak)));
+    for (const history of histories) append(history, bound(peak / Math.max(Number.EPSILON, peak)));
   }
   return { channels: output, frameSize };
 }

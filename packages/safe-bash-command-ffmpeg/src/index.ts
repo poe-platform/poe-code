@@ -16109,9 +16109,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             // Resampling produces floats; later filters and encoders must round
                             // these samples rather than narrow the original integer PCM.
                             const nextFilter = audioFilters[filterIndex + 1]?.trim().split("=", 1)[0]!.split("@", 1)[0];
-                            // Separate resamplers negotiate their connecting format from the input.
+                            // Separate resamplers and afade negotiate their connecting format from the input.
                             // Materialize it before the next stage consumes fractional samples.
-                            if (!autoConversionFilters || nextFilter === "aresample" ||
+                            if (!autoConversionFilters || nextFilter === "aresample" || nextFilter === "afade" ||
                                 !nextFilter && audioRate !== undefined && audioRate !== targetRate) {
                               format ??= filteredSampleFormat;
                             }

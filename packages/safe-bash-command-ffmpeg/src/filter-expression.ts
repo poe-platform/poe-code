@@ -171,9 +171,16 @@ export function parseFilterExpression(expression: string, filter: string, variab
         value = NaN;
       } else if ((filter === "astats" || filter === "tremolo" || filter === "silenceremove" || filter === "drawbox enable" || filter === "afade enable" || filter === "acrusher enable") && (name.toLowerCase() === "inf" || name.toLowerCase() === "infinity")) {
         value = Infinity;
-      } else {
-        if (!Object.hasOwn(variables, name)) throw new Error(`${filter}: invalid or unsupported expression`);
+      } else if (Object.hasOwn(variables, name)) {
         value = variables[name]!;
+      } else if (name === "PI") {
+        value = Math.PI;
+      } else if (name === "E") {
+        value = Math.E;
+      } else if (name === "PHI") {
+        value = (1 + Math.sqrt(5)) / 2;
+      } else {
+        throw new Error(`${filter}: invalid or unsupported expression`);
       }
     } else {
       const start = offset;

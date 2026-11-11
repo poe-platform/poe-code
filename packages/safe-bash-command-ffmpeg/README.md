@@ -409,18 +409,14 @@ flags: the last spelling applies to every output. Stream copy is unaffected.
 timestamp discontinuities. Waits honor cancellation and command resource limits.
 `afwtdn=sigma=0.12:levels=4:samples=1024` denoises PCM with wavelets, independently per channel, in simple or labeled audio filter chains. It supports `sigma`, `levels`, `wavet` (`sym2`, `sym4`, `rbior68`, `deb10`, `sym10`, `coif5`, `bl3`), `percent`, `profile`, `adaptive`, `samples`, and `softness`, including positional options in that order. Window history, startup delay, and final padding follow native FFmpeg.
 
-`deesser=i=0.8:m=0.5:f=0.5` reduces sibilance independently per channel. Intensity (`i`, default 0), maximum deessing (`m`, default 0.5), and frequency (`f`, default 0.5) accept values from 0 to 1. Output mode `s` selects input (`i`/`0`), processed audio (`o`/`1`, default), or removed sibilance (`e`/`2`). Positional options follow `i:m:f:s`. Generic `thread_type` scheduling flags (including `slice` and `0`) leave the audio unchanged; invalid flag names are rejected. Generic `threads` (0 to 2147483647) and `extra_hw_frames` (-1 to 2147483647) settings accept FFmpeg expressions without changing the audio. Timeline `enable` expressions select whole audio frames while keeping filter history; disabled frames pass through input in normal mode and emit silence in removed-sibilance mode.
+`deesser=i=0.8:m=0.5:f=0.5` reduces sibilance independently per channel. Intensity (`i`, default 0), maximum deessing (`m`, default 0.5), and frequency (`f`, default 0.5) accept values from 0 to 1. Output mode `s` selects input (`i`/`0`), processed audio (`o`/`1`, default), or removed sibilance (`e`/`2`). Positional options follow `i:m:f:s`. Numeric options and timeline `enable` expressions accept `PI`, `E`, and `PHI` (for example, `deesser=i=1/PI:enable=PI`). Generic `thread_type` scheduling flags (including `slice` and `0`) leave the audio unchanged; invalid flag names are rejected. Generic `threads` (0 to 2147483647) and `extra_hw_frames` (-1 to 2147483647) settings accept FFmpeg expressions without changing the audio. Timeline `enable` expressions select whole audio frames while keeping filter history; disabled frames pass through input in normal mode and emit silence in removed-sibilance mode.
 
 `adeclick` removes impulsive noise from decoded PCM using autoregressive interpolation.
-Both filters accept one trailing option separator, such as `adeclick=w=55:` or
-`adeclip=w=55:`; empty options between separators remain invalid.
 It accepts `window`/`w`, `overlap`/`o`, `arorder`/`a`, `threshold`/`t`,
 `burst`/`b`, and `method`/`m` (`add` or `save`), with native defaults.
 `adeclip` reconstructs clipped PCM peaks using the same interpolation. It accepts
 `window`/`w`, `overlap`/`o`, `arorder`/`a`, `threshold`/`t`, `hsize`/`n`, and
 `method`/`m` (`add` or `save`), with native defaults; channels are restored independently.
-Both filters accept generic `threads`, `thread_type`, and `extra_hw_frames` settings
-without changing the PCM output.
 Both filters accept arithmetic option values and the names `min`, `max`, and
 `default`, for example `adeclick=w=20+5` and `adeclip=t=default`.
 `[0:a][1:a]join=inputs=2:channel_layout=stereo:map=1.0-FL|0.0-FR[mix]`

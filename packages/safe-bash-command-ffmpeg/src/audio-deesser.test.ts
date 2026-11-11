@@ -54,6 +54,42 @@ for (const option of ["i=-1", "m=1.1", "f=NaN", "i=", "s=3", "s=0.5", "unknown=1
   assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
 });
 
+for (const graph of [false, true]) {
+  it(`deesser scheduling options preserve audio (graph=${graph})`, async () => {
+    for (const filter of ["deesser", "deesser=i=0.8:m=0.5:f=0.5:s=o"]) {
+      const baseline = await run(filter, graph, [mono.slice(0, 2048)]);
+      assert.equal(baseline.result.exitCode, 0, baseline.stderr);
+      for (const option of [
+        "threads=1", "extra_hw_frames=1", "threads=0:extra_hw_frames=-1",
+        "threads=2147483647:extra_hw_frames=2147483647",
+        "threads=default:extra_hw_frames=default", "threads=min:extra_hw_frames=min",
+        "threads=max:extra_hw_frames=max", "threads=1+1:extra_hw_frames=min+1",
+        "threads=0.5:extra_hw_frames=-0.5", "threads=1:threads=2:extra_hw_frames=1"
+      ]) {
+        const actual = await run(`${filter}${filter.includes("=") ? ":" : "="}${option}`, graph, [mono.slice(0, 2048)]);
+        assert.equal(actual.result.exitCode, 0, `${option}: ${actual.stderr}`);
+        assert.deepEqual(actual.fs.readFileSync("/out.wav"), baseline.fs.readFileSync("/out.wav"), option);
+        assert.deepEqual(actual.fs.readFileSync("/in.wav"), baseline.fs.readFileSync("/in.wav"));
+      }
+    }
+  });
+
+  it(`deesser rejects invalid scheduling options without overwriting output (graph=${graph})`, async () => {
+    for (const option of [
+      "threads=-1", "threads=-0.1", "threads=2147483648", "threads=", "threads=bogus",
+      "threads=NaN", "threads=1/0", "threads=bogus:threads=1",
+      "extra_hw_frames=-2", "extra_hw_frames=-1.1", "extra_hw_frames=2147483648",
+      "extra_hw_frames=", "extra_hw_frames=bogus", "extra_hw_frames=NaN",
+      "extra_hw_frames=1/0", "threads=1:unknown=1"
+    ]) {
+      const actual = await run(`deesser=${option}`, graph, [mono.slice(0, 384)]);
+      assert.equal(actual.result.exitCode, 1, option);
+      assert.ok(actual.stderr.includes("deesser:"), actual.stderr);
+      assert.equal(actual.fs.readFileSync("/out.wav", "utf8"), "keep", option);
+    }
+  });
+}
+
 async function run(filter: string, graph = false, channels = [mono]) {
   const fs = Volume.fromJSON({ "/out.wav": "keep" });
   fs.writeFileSync("/in.wav", encodeWav({ sampleRate: 48000, channels }));

@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 
 /*
  * Algorithm adapted from FFmpeg af_deesser.c, Copyright (c) 2018 Chris Johnson.
@@ -32,6 +33,13 @@ export async function deessAudio(
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["i", "m", "f", "s"][index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (key === "threads" || key === "extra_hw_frames") {
+      const min = key === "threads" ? 0 : -1;
+      const number = parseFilterExpression(value, "deesser", { min, max: 2147483647, default: min });
+      if (!Number.isFinite(number) || number < min || number > 2147483647) throw new Error(`deesser: invalid ${key}`);
+      // Scheduling and hardware-frame settings do not change the rendered audio.
+      continue;
+    }
     if (key !== "i" && key !== "m" && key !== "f" && key !== "s") throw new Error(`deesser: unsupported option ${key}`);
     const number = key === "s" && ["i", "o", "e"].includes(value) ? ["i", "o", "e"].indexOf(value) : Number(value);
     if (!value || !Number.isFinite(number) || number < 0 || number > (key === "s" ? 2 : 1)

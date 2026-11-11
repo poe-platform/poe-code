@@ -1859,7 +1859,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
           } else {
             const channels: number[] = [];
             const hexMaximum = (img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) > 8 ? 65535 : 255;
-            const hasAlpha = img.hasAlpha || key.startsWith("pixel:") && img.inactiveAlpha === true;
+            const hasAlpha = img.hasAlpha || key.startsWith("pixel:") && img.inactiveAlpha === true && img.alphaBlend !== false;
             for (const ch of img.space === "cmyk" ? (hasAlpha ? [0, 1, 2, 8, 3] : [0, 1, 2, 8]) : (hasAlpha ? [0, 1, 2, 3] : [0, 1, 2])) {
               ctx.vars.clear();
               if (key.startsWith("hex:")) {
@@ -1945,7 +1945,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
  // expression's references, independent of image dimensions, and retired here.
  const channels:number[]=[];
  const hexMaximum=(image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8 ? 65535 : 255;
- const hasAlpha = image.hasAlpha || key.startsWith("pixel:") && (image as StoredRgbaImage).inactiveAlpha === true;
+ const hasAlpha = image.hasAlpha || key.startsWith("pixel:") && (image as StoredRgbaImage).inactiveAlpha === true && (image as StoredRgbaImage).alphaBlend !== false;
  for(const ch of key.startsWith("fx:") ? [0] : image.space === "cmyk" ? (hasAlpha ? [0,1,2,8,3] : [0,1,2,8]) : (hasAlpha ? [0,1,2,3] : [0,1,2])){
   let value:number;
   while(true){

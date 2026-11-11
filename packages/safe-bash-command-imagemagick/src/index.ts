@@ -6951,7 +6951,7 @@ function* selectedInputPages(pageSpec: string | undefined, totalPages: number, o
 
 function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>, state: MagickState, stdinBytes?: Uint8Array, maxDecodeDimension?: number, extract?: string, registers?: ReadonlyMap<string, RgbaImage[]>, analysis?: { warnings: string }, onInvalidIndex?: (index: number) => void): Generator<void, RgbaImage[] | undefined, void> {
     if (token.slice(0, 4).toLowerCase() === "mpr:") {
-        const { baseToken, pageSpec, inlineGeom } = parseInputToken(token);
+        const { baseToken, pageSpec, inlineGeom = extract } = parseInputToken(token);
         const saved = registers?.get(baseToken.slice(4).toLowerCase());
         if (!saved) throw new Error(`unable to open image '${token}'`);
         const images: RgbaImage[] = [];
@@ -6971,7 +6971,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 const label = yield* formatMagickPropertyStringSteps(state.label, image, () => image, { filePath: baseToken });
                 image = { ...image, properties: { ...image.properties, label } };
             }
-            images.push(inlineGeom ? yield* applyInlineReadModifierSteps(image, inlineGeom, baseToken, state.kernel, state.resizeFilter, false, analysis) : image);
+            images.push(inlineGeom ? yield* applyInlineReadModifierSteps(image, inlineGeom, baseToken, state.kernel, state.resizeFilter, extract !== undefined, analysis) : image);
         }
         return images;
     }
@@ -16969,7 +16969,6 @@ async function applyStoredInlineReadModifier(image: StoredRgbaImage, inlineGeom:
 async function parseStoredCompareInput(token:string,state:MagickState,backend:CompareFileSession,signal:AbortSignal,readOptions:{onInvalidIndex?:((index:number)=>void)|undefined;analysis?:{warnings:string}|undefined;registers?:ReadonlyMap<string, StoredImageStack>|undefined;source?:ImageByteSource|null|undefined;lastPage?:boolean;maxDecodeDimension?:number;extract?:string;visit?:(image:StoredRgbaImage)=>Promise<void>}={}):Promise<StoredRgbaImage|undefined>{
  const {baseToken,pageSpec,inlineGeom=readOptions.extract}=parseInputToken(token),lower=baseToken.toLowerCase();let image:StoredRgbaImage|undefined;
  if (token.slice(0, 4).toLowerCase() === "mpr:") {
-     const { baseToken, pageSpec, inlineGeom } = parseInputToken(token);
      const saved = readOptions.registers?.get(baseToken.slice(4).toLowerCase());
      if (!saved) throw new Error(`unable to open image '${token}'`);
      for (const index of selectedInputPages(pageSpec, saved.length, readOptions.onInvalidIndex)) {
@@ -16994,7 +16993,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
                  },
              } } as StoredMagickImage;
          }
-         image = inlineGeom ? await applyStoredInlineReadModifier(savedImage, inlineGeom, baseToken, state, backend, signal, false, readOptions.analysis) : savedImage;
+         image = inlineGeom ? await applyStoredInlineReadModifier(savedImage, inlineGeom, baseToken, state, backend, signal, readOptions.extract !== undefined, readOptions.analysis) : savedImage;
          await readOptions.visit?.(image);
          if (!readOptions.visit && !readOptions.lastPage) break;
      }

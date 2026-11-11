@@ -8,7 +8,7 @@ const values = [17n, -17n, 2n ** 53n + 1n, -(2n ** 53n + 1n),
   2n ** 60n + 123n, -(2n ** 60n + 123n), 2n ** 63n - 1n, -(2n ** 63n)];
 
 for (const channels of [1, 2]) {
-  for (const filter of ["anull", "areverse", "areverse,areverse", "anull,areverse,acopy", "copy"]) {
+  for (const filter of ["anull", "asplit=1", "asplit=outputs=1,areverse", "areverse", "areverse,areverse", "anull,areverse,acopy", "copy"]) {
     it(`preserves signed PCM64 WAV samples through ${filter} (${channels} channels)`, async () => {
       const frames = 2051; // Cross WAV packet boundaries, including a partial final packet.
       const input = Buffer.alloc(44 + frames * channels * 8);

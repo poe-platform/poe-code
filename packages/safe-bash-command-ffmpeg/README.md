@@ -351,6 +351,7 @@ Input-side `-ss`, `-t`, and `-to` cut audio before filtering; output-side cuts a
 
 `mcompand` applies FFmpeg’s default five-band companding curve at 48 kHz. Custom quoted band specifications support attack/decay pairs, soft knees, transfer points, crossover frequencies, and initial volume. Crossovers must be below half the sample rate; nonzero delay and gain are rejected.
 `anull` and `acopy` pass audio through unchanged, alone or in a filter chain.
+`asplit=1` and `asplit=outputs=1` also pass audio through unchanged in `-af` chains; multiple outputs require a filter graph.
 `-noauto_conversion_filters` rejects implicit PCM output-format, sample-rate,
 channel-count and `aformat` conversions; `-auto_conversion_filters` restores the
 default. For example, PCM16 WAV with `-af anull -f s16le -` succeeds with either

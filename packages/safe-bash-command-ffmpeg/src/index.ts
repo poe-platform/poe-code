@@ -11951,9 +11951,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   // astats normalizes integer PCM against its maximum positive value.
                   let statsScale = t.codecDescriptions[0]?.codecName === "pcm_s16le" ? 32768 / 32767
                     : t.codecDescriptions[0]?.codecName === "pcm_s32le" ? 2147483648 / 2147483647 : 1;
+                  const audioFilters = filter ? parseFilterChain(filter.expression).map(item => {
+                    const equals = item.indexOf("=");
+                    if (equals < 0 || item.slice(0, equals).split("@", 1)[0] !== "asplit") return item;
+                    const argument = item.slice(equals + 1);
+                    const count = argument.startsWith("outputs=") ? argument.slice("outputs=".length) : argument;
+                    // One output is an identity, including for downstream frame bounds and PCM precision.
+                    return Number(count) === 1 ? "anull" : item;
+                  }) : [];
                   if (filter) {
                     let audioCommands: { sample: number; target: string; action: string; expression: string }[] = [];
-                    const audioFilters = parseFilterChain(filter.expression);
                     const volumeReports: string[] = [];
                     if (logLevel >= 32) {
                       // Native tears down a probe graph before processing audio frames.
@@ -16598,8 +16605,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   // Identity and reverse filters must not round signed PCM64 through
                   // JavaScript numbers. Keep the original interleaved sample bytes when
                   // the output requires no resampling, mixing, trimming or conversion.
-                  const losslessFilters = filter ? parseFilterChain(filter.expression)
-                    .map(item => item.trim().split("=", 1)[0]!.split("@", 1)[0]!) : [];
+                  const losslessFilters = audioFilters
+                    .map(item => item.trim().split("=", 1)[0]!.split("@", 1)[0]!);
                   if (inputCodec === "pcm_s64le" && audioCodec === inputCodec && outPlugin?.id === "wav" &&
                       (sampleFormat === undefined || sampleFormat === "s64") &&
                       targetRate === audio.sampleRate && audioChannels === undefined &&

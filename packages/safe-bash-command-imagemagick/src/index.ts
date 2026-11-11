@@ -7738,7 +7738,7 @@ async function writeIdentifyText(sink: ByteSink, text: string, signal?: AbortSig
         offset += read;
     }
 }
-function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal, reader?:IdentifyFileReader, output?:Pick<IdentifyFileInput,"stdout"|"stderr">, load?: ImageInputReader): Generator<IdentifyStep, ImageMagickCliResult, void> {
+function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal, reader?:IdentifyFileReader, output?:IdentifyFileInput, load?: ImageInputReader): Generator<IdentifyStep, ImageMagickCliResult, void> {
     const listRes = tryHandleMagickListOption(argv);
     if (listRes) return listRes;
     let cooperativeWork = 63;
@@ -7862,9 +7862,18 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                     if (bytes) names = yield* montageInputNames(bytes);
                 }
             }
-            for (const path of names) {
+            for (const name of names) {
                 yield;
-                targets.push({ path, originalInput: path, listIndex: 0, readState: { ...readState }, customFormat, channelSelection, density });
+                const { baseToken } = parseInputToken(name);
+                let paths: string[];
+                if (output) {
+                    paths = [baseToken];
+                    yield { async run() { paths = await mogrifyFileTargets(baseToken, output.filesystem, output.cwd, signal!); } };
+                } else paths = yield* mogrifyTargets(baseToken, files.keys());
+                for (const filename of paths) {
+                    const path = filename + name.slice(baseToken.length);
+                    targets.push({ path, originalInput: path, listIndex: 0, readState: { ...readState }, customFormat, channelSelection, density });
+                }
             }
         }
         else {
@@ -11758,11 +11767,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         if (!operandsOnly && t === "--") { operandsOnly = true; i++; continue; }
         if (operandsOnly) {
             const bytes = t.startsWith("@") ? files.get(t.slice(1)) : undefined;
-            for (const name of bytes ? yield* montageInputNames(bytes) : [t]) {
-                const loaded = yield* parseInputOperandsSteps(name, files, state, stdinBytes, undefined, state.extract, registers, analysis);
-                if (!loaded) throw new Error(`unable to open image '${name}'`);
-                for (const warning of loaded[0]?.decodeWarnings ?? []) analysis.warnings += `magick: ${warning}\n`;
-                stack.push(...loaded);
+            for (const inputName of bytes ? yield* montageInputNames(bytes) : [t]) {
+                const { baseToken } = parseInputToken(inputName);
+                for (const filename of yield* mogrifyTargets(baseToken, files.keys())) {
+                    const name = filename + inputName.slice(baseToken.length);
+                    const loaded = yield* parseInputOperandsSteps(name, files, state, stdinBytes, undefined, state.extract, registers, analysis);
+                    if (!loaded) throw new Error(`unable to open image '${name}'`);
+                    for (const warning of loaded[0]?.decodeWarnings ?? []) analysis.warnings += `magick: ${warning}\n`;
+                    stack.push(...loaded);
+                }
             }
             i++;
             continue;
@@ -14047,25 +14060,29 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t === "+flip" || t === "+flop" || t === "+auto-level" || t === "+auto-gamma" || t === "+normalize" || t === "+color-matrix" || t === "+colors" || t === "+solarize" || t === "+separate" || t === "+unique-colors" || t === "+sort-pixels" || t === "+reverse") throw new Error(`option deprecated, unable to execute '${t}'`);
             if ((t.startsWith("-") && t !== "-" && t !== "--list") || t.startsWith("+")) throw new UnrecognizedConvertOptionError(`unrecognized option '${t}'`);
             const bytes = t.startsWith("@") ? files.get(t.slice(1)) : undefined;
-            for (const name of bytes ? yield* montageInputNames(bytes) : [t]) {
-                const isLabelOperand = name.toLowerCase().startsWith("label:") || name.toLowerCase().startsWith("caption:");
-                const mergeOntoCanvas = isLabelOperand && stack.length === 1 && state.hasSize && stack[0]!.width === state.sizeWidth && stack[0]!.height === state.sizeHeight && state.background.r === 255 && state.background.g === 255 && state.background.b === 255 && state.background.a === 255;
-                const prevBg = state.background;
-                if (mergeOntoCanvas) {
-                    state.background = { r: 0, g: 0, b: 0, a: 0 };
-                }
-                const maxDecodeDim = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
-                const loaded = (yield* parseInputOperandsSteps(name, files, state, stdinBytes, maxDecodeDim, state.extract, registers, analysis));
-                if (mergeOntoCanvas) {
-                    state.background = prevBg;
-                }
-                if (!loaded) throw new Error(`unable to open image '${name}'`);
-                for (const warning of loaded[0]?.decodeWarnings ?? []) analysis.warnings += `magick: ${warning}\n`;
-                if (mergeOntoCanvas && loaded[0]) {
-                    yield* blitOverRgbaInPlaceSteps(stack[0]!, loaded[0], 0, 0);
-                    detachRgbaBuffer(loaded[0].data);
-                } else {
-                    stack.push(...loaded.map(image => state.backgroundExplicit ? { ...image, backgroundColor: state.background } : image));
+            for (const inputName of bytes ? yield* montageInputNames(bytes) : [t]) {
+                const { baseToken } = parseInputToken(inputName);
+                for (const filename of yield* mogrifyTargets(baseToken, files.keys())) {
+                    const name = filename + inputName.slice(baseToken.length);
+                    const isLabelOperand = name.toLowerCase().startsWith("label:") || name.toLowerCase().startsWith("caption:");
+                    const mergeOntoCanvas = isLabelOperand && stack.length === 1 && state.hasSize && stack[0]!.width === state.sizeWidth && stack[0]!.height === state.sizeHeight && state.background.r === 255 && state.background.g === 255 && state.background.b === 255 && state.background.a === 255;
+                    const prevBg = state.background;
+                    if (mergeOntoCanvas) {
+                        state.background = { r: 0, g: 0, b: 0, a: 0 };
+                    }
+                    const maxDecodeDim = inferMaxDecodeDimensionFromUpcomingTokens(tokens, i + 1);
+                    const loaded = (yield* parseInputOperandsSteps(name, files, state, stdinBytes, maxDecodeDim, state.extract, registers, analysis));
+                    if (mergeOntoCanvas) {
+                        state.background = prevBg;
+                    }
+                    if (!loaded) throw new Error(`unable to open image '${name}'`);
+                    for (const warning of loaded[0]?.decodeWarnings ?? []) analysis.warnings += `magick: ${warning}\n`;
+                    if (mergeOntoCanvas && loaded[0]) {
+                        yield* blitOverRgbaInPlaceSteps(stack[0]!, loaded[0], 0, 0);
+                        detachRgbaBuffer(loaded[0].data);
+                    } else {
+                        stack.push(...loaded.map(image => state.backgroundExplicit ? { ...image, backgroundColor: state.background } : image));
+                    }
                 }
             }
         }
@@ -17578,19 +17595,23 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let names: string[];
                 try { names = await readImageInputNames(token, backend.read, signal); }
                 catch (error) { throw new CompareInputFailure(error); }
-                for (const name of names) {
-                    const base = stack.length === 1 ? await stack.get(0) : undefined, lower = name.toLowerCase();
-                    const merge = !literal && (lower.startsWith("label:") || lower.startsWith("caption:")) && base && captured.hasSize && base.width === captured.sizeWidth && base.height === captured.sizeHeight && Object.values(captured.background).every(value => value === 255);
-                    const settings = merge ? { ...captured, background: { r: 0, g: 0, b: 0, a: 0 } } : captured;
-                    const loaded = await parseStoredCompareInput(name, settings, backend, signal, { analysis, registers, ...(settings.extract === undefined ? {} : { extract: settings.extract }), visit: async image => {
-                        for (const warning of image.decodeWarnings ?? []) analysis.warnings += `magick: ${warning}\n`;
-                        if (merge) {
-                            const composed = await compositeStoredMagick(base, image, backend, signal, 0, 0, "over");
-                            await stack.set(0, { ...composed, hasAlpha: base.hasAlpha, channels: base.channels });
-                        }
-                        else await stack.push(settings.backgroundExplicit ? { ...image, backgroundColor: settings.background } : image);
-                    }, ...(maxDecodeDimension === undefined ? {} : { maxDecodeDimension }) });
-                    if (!loaded) throw new Error(`unable to open image '${name}'`);
+                for (const inputName of names) {
+                    const { baseToken } = parseInputToken(inputName);
+                    for (const filename of await mogrifyFileTargets(baseToken, input.filesystem, input.cwd, signal)) {
+                        const name = filename + inputName.slice(baseToken.length);
+                        const base = stack.length === 1 ? await stack.get(0) : undefined, lower = name.toLowerCase();
+                        const merge = !literal && (lower.startsWith("label:") || lower.startsWith("caption:")) && base && captured.hasSize && base.width === captured.sizeWidth && base.height === captured.sizeHeight && Object.values(captured.background).every(value => value === 255);
+                        const settings = merge ? { ...captured, background: { r: 0, g: 0, b: 0, a: 0 } } : captured;
+                        const loaded = await parseStoredCompareInput(name, settings, backend, signal, { analysis, registers, ...(settings.extract === undefined ? {} : { extract: settings.extract }), visit: async image => {
+                            for (const warning of image.decodeWarnings ?? []) analysis.warnings += `magick: ${warning}\n`;
+                            if (merge) {
+                                const composed = await compositeStoredMagick(base, image, backend, signal, 0, 0, "over");
+                                await stack.set(0, { ...composed, hasAlpha: base.hasAlpha, channels: base.channels });
+                            }
+                            else await stack.push(settings.backgroundExplicit ? { ...image, backgroundColor: settings.background } : image);
+                        }, ...(maxDecodeDimension === undefined ? {} : { maxDecodeDimension }) });
+                        if (!loaded) throw new Error(`unable to open image '${name}'`);
+                    }
                 }
                 return stack;
             });
@@ -20830,18 +20851,20 @@ async function runBufferedImageFiles(argv: readonly string[], input: ConvertFile
         candidate = prefixMatch[2]!;
       }
       candidate = parseInputToken(candidate).baseToken;
-      let bytes: Uint8Array;
-      try {
-        bytes = await context.fs.readFile(resolvePath(context.cwd, candidate), {
-          signal: signal
-        });
-      } catch (error) {
-        if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR", "EISDIR", "EACCES", "EPERM"].includes(error.code)) throw error;
-        // Output file or pseudo-operand
-        continue;
+      for (const path of await mogrifyFileTargets(candidate, context.fs, context.cwd, signal)) {
+          let bytes: Uint8Array;
+          try {
+            bytes = await context.fs.readFile(resolvePath(context.cwd, path), {
+              signal: signal
+            });
+          } catch (error) {
+            if (!(error instanceof FsError) || !["ENOENT", "ENOTDIR", "EISDIR", "EACCES", "EPERM"].includes(error.code)) throw error;
+            // Output file or pseudo-operand
+            continue;
+          }
+          chargeInput(bytes.byteLength);
+          vfsFiles.set(path, bytes);
       }
-      chargeInput(bytes.byteLength);
-      vfsFiles.set(candidate, bytes);
     }
 
 

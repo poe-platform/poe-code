@@ -1,3 +1,4 @@
+import { bmpProfileRange } from "./bmp-profile.js";
 import { decodePngImage } from "./png.js";
 import {tiffTextProperties,tiffPhotometricNames} from "./tiff-properties.js";
 import {decodeCcittFax} from "@poe-code/pdf-ast";
@@ -219,6 +220,12 @@ export function encodePbm(img: RgbaImage, ascii = false): Uint8Array {
 }
 
 export function readBmpMetadata(bytes: Uint8Array): ImageMetadata {
+  const metadata = readBmpHeaderMetadata(bytes);
+  const profile = bmpProfileRange(new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), bytes.length);
+  return { ...metadata, ...(profile ? { icc: bytes.slice(profile.offset, profile.offset + profile.length) } : {}) };
+}
+
+export function readBmpHeaderMetadata(bytes: Uint8Array): ImageMetadata {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   if (bytes.byteLength < 18) throw new Error("Truncated BMP DIB header");
   const dibHeaderSize = view.getUint32(14, true);
@@ -262,7 +269,7 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
   if (compression === 4 || compression === 5) {
     if (dataOffset < 14 + dibHeaderSize || dataOffset >= bytes.length) throw new Error("Invalid BMP payload offset");
     const image = (compression === 4 ? decodeJpegImage : decodePngImage)(bytes.subarray(dataOffset));
-    return { ...image, format: "bmp", density: meta.density, ...(meta.resolution ? { resolution: meta.resolution } : {}) };
+    return { ...image, ...(meta.icc ? { icc: meta.icc } : {}), format: "bmp", density: meta.density, ...(meta.resolution ? { resolution: meta.resolution } : {}) };
   }
   if (dataOffset < dibHeaderSize || dataOffset >= bytes.length) throw new Error("Invalid BMP pixel offset");
   // ImageMagick tolerates offsets into the DIB, but never seeks back into it.
@@ -349,6 +356,7 @@ export function decodeBmpImage(bytes: Uint8Array): RgbaImage {
     depth: "uchar",
     density: meta.density,
     ...(meta.resolution ? { resolution: meta.resolution } : {}),
+    ...(meta.icc ? { icc: meta.icc } : {}),
     hasAlpha: meta.hasAlpha
   };
 }

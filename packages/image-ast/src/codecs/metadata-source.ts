@@ -1,3 +1,4 @@
+import { bmpProfileRange } from "./bmp-profile.js";
 import { isPsdBytes, readPsdFromSource } from "./psd-input.js";
 import { isPcxBytes, readPcxHeader } from "./pcx-input.js";
 import { isXwdBytes, readXwdHeader } from "./xwd-input.js";
@@ -36,7 +37,7 @@ import {readJpegMetadataFromSource} from "./jpeg-input-storage.js";
 import {readImageMetadata} from "./index.js";
 import {isPngBytes} from "./png.js";
 import {isJpegBytes} from "./jpeg.js";
-import {isBmpBytes,isNetpbmBytes,isTiffBytes,readBmpMetadata} from "./netpbm.js";
+import {isBmpBytes,isNetpbmBytes,isTiffBytes,readBmpHeaderMetadata} from "./netpbm.js";
 import {netpbmSequenceSteps} from "./netpbm-header.js";
 import {SourceBytes} from "./storage-source.js";
 import {UnsupportedStoredResource,rejectUnknownImage} from "./unsupported-storage.js";
@@ -74,7 +75,16 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
    ...(decoded.bitsPerSample===undefined?{}:{bitsPerSample:decoded.bitsPerSample}),density:decoded.density,...(decoded.resolution?{resolution:decoded.resolution}:{}),hasAlpha:decoded.hasAlpha,
    ...(decoded.orientation===undefined?{}:{orientation:decoded.orientation}),size:source.size};
  }
- else if(isBmpBytes(prefix))metadata={...readBmpMetadata(prefix),size:source.size};
+ else if(isBmpBytes(prefix)) {
+  metadata={...readBmpHeaderMetadata(prefix),size:source.size};
+  const profile=bmpProfileRange(new DataView(prefix.buffer),source.size);
+  if(profile) {
+   const reader=new SourceBytes(source,signal,"BMP");
+   const icc=new Uint8Array(profile.length);
+   for(let i=0;i<profile.length;i++) icc[i]=(await reader.at(profile.offset+i))!;
+   metadata={...metadata,icc};
+  }
+ }
  else if(isExrBytes(prefix))metadata=(await readExrFromSource(source,signal)).metadata;
  else if(isPfmBytes(prefix)) { metadata=(await readPfmFromSource(source,signal)).metadata; }
  else if(isRadianceBytes(prefix)) { metadata=(await readRadianceFromSource(source,signal)).metadata; }

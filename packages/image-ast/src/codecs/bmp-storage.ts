@@ -1,3 +1,4 @@
+import { bmpProfileRange } from "./bmp-profile.js";
 import { decodePngToStorage } from "./png-storage.js";
 import { decodeJpegToStorage } from "./jpeg-input-storage.js";
 import { BmpRleEncoder } from "./bmp-rle-encoder.js";
@@ -6,7 +7,7 @@ import {BmpRle,bmpRlePacketSize} from "./bmp-rle.js";
 import type {SharpInputOptions} from "../ast.js";
 import {checkLimitInputPixels} from "../limits.js";
 import type {ImageByteSource,ImageByteStorage,StoredRgbaImage} from "./png-storage.js";
-import {readBmpMetadata} from "./netpbm.js";
+import {readBmpHeaderMetadata} from "./netpbm.js";
 import {createBmpHeader,readBmpMasks,bmpMaskedChannel,packBmpPixel} from "./bmp-header.js";
 import {SourceBytes} from "./storage-source.js";
 import {Pixels,Output} from "../ops/storage-raster.js";
@@ -17,10 +18,17 @@ export async function decodeBmpToStorage(source:ImageByteSource,storage:ImageByt
  const reader=new SourceBytes(source,signal,"BMP"),header=new Uint8Array(Math.min(138,source.size));
  for(let i=0;i<header.length;i++) header[i]=(await reader.at(i))!;
  if(header[0]!==66||header[1]!==77) throw new Error("Invalid BMP signature");
- const metadata=readBmpMetadata(header),view=new DataView(header.buffer),{width,height}=metadata;
+ let metadata=readBmpHeaderMetadata(header);
+ const view=new DataView(header.buffer),{width,height}=metadata;
  if(view.getUint32(2,true)!==source.size) throw new Error("Invalid BMP file size");
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)) throw new RangeError("Invalid BMP dimensions");
  checkLimitInputPixels(width,height,options);
+ const profile=bmpProfileRange(view,source.size);
+ if(profile) {
+  const icc=new Uint8Array(profile.length);
+  for(let i=0;i<profile.length;i++) icc[i]=(await reader.at(profile.offset+i))!;
+  metadata={...metadata,icc};
+ }
  let dataOffset=view.getUint32(10,true);
  const dibHeaderSize=view.getUint32(14,true),topDown=dibHeaderSize!==12&&view.getInt32(22,true)<0,bpp=view.getUint16(dibHeaderSize===12?24:28,true),rowStride=Math.floor((width*bpp+31)/32)*4;
  const compression=dibHeaderSize>=40?view.getUint32(30,true):0;
@@ -32,7 +40,7 @@ export async function decodeBmpToStorage(source:ImageByteSource,storage:ImageByt
    return source.read(dataOffset+position,length,{signal});
   }};
   const image=await (compression===4?decodeJpegToStorage:decodePngToStorage)(payload,storage,signal,options);
-  return {...image,format:"bmp",density:metadata.density,...(metadata.resolution?{resolution:metadata.resolution}:{})};
+  return {...image,...(metadata.icc?{icc:metadata.icc}:{}),format:"bmp",density:metadata.density,...(metadata.resolution?{resolution:metadata.resolution}:{})};
  }
  if(dataOffset<dibHeaderSize||dataOffset>=source.size) throw new Error("Invalid BMP pixel offset");
  // ImageMagick tolerates offsets into the DIB, but never seeks back into it.

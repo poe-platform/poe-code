@@ -37,7 +37,7 @@ export async function pulsateAudio(
         PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, none: 0, all: -1,
         min: 0, max: values.length - 1, default: key === "mode" ? 0 : 2,
         ...Object.fromEntries(values.map((name, index) => [name, index]))
-      });
+      }, undefined, new Float64Array(10));
       if (number < 0 || number > values.length - 1) throw new RangeError(`apulsator: invalid ${key}`);
       // Native integer options validate bounds before rounding ties to even.
       const rounded = Math.round(number);
@@ -51,7 +51,7 @@ export async function pulsateAudio(
     const max = key === "hz" ? 100 : gain ? 64 : key === "bpm" ? 300 : key === "ms" ? 2000 : key === "width" ? 2 : 1;
     const number = parseFilterExpression(value, "apulsator", {
       PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, none: 0, all: -1, min, max, default: defaults[key]
-    });
+    }, undefined, new Float64Array(10));
     if (number < min || number > max) {
       throw new RangeError(`apulsator: invalid ${key}`);
     }

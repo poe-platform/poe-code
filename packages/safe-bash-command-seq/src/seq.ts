@@ -6,18 +6,18 @@ import { command, type Session, type StreamFormatLimits } from "safe-bash-text-s
 interface Decimal { readonly coefficient: bigint; readonly scale: number; readonly precision: number; readonly negativeZero: boolean; readonly width: number }
 interface Format { readonly prefix: string; readonly suffix: string; readonly flags: string; readonly width: number; readonly precision: number; readonly kind: string; readonly grouping: boolean }
 
-function decimal(text: string, session: Session): Decimal {
+function decimal(text: string, session?: Session): Decimal {
   const hexadecimal = /^([+-]?)0x(?:([\da-f]+)(?:\.([\da-f]*))?|\.([\da-f]+))(?:p([+-]?\d+))?$/iu.exec(text.trimStart());
   if (hexadecimal) {
     const digits = (hexadecimal[2] ?? "0") + (hexadecimal[3] ?? hexadecimal[4] ?? "");
     const power = Number(hexadecimal[5] ?? 0) - 4 * (hexadecimal[3] ?? hexadecimal[4] ?? "").length;
-    session.check(digits.length * 2, session.limits.maxNumericDigits, "numeric digit");
-    session.check(Math.abs(power), session.limits.maxNumericDigits, "numeric exponent");
+    session?.check(digits.length * 2, session.limits.maxNumericDigits, "numeric digit");
+    session?.check(Math.abs(power), session.limits.maxNumericDigits, "numeric exponent");
     let coefficient = BigInt("0x" + digits);
     if (hexadecimal[1] === "-") coefficient = -coefficient;
     const scale = Math.max(0, -power);
     coefficient = power >= 0 ? coefficient << BigInt(power) : coefficient * 5n ** BigInt(scale);
-    session.check(coefficient.toString().length, session.limits.maxNumericDigits + 1, "numeric digit");
+    session?.check(coefficient.toString().length, session.limits.maxNumericDigits + 1, "numeric digit");
     // GNU selects general format for hex fractions and lowercase p exponents.
     const precision = text.includes(".") || text.includes("p") ? Infinity : 0;
     return { coefficient, scale, precision, width: 0, negativeZero: coefficient === 0n && hexadecimal[1] === "-" };
@@ -27,10 +27,10 @@ function decimal(text: string, session: Session): Decimal {
   const fraction = match[3] ?? match[4] ?? "";
   const digits = (match[2] ?? "0") + fraction;
   const exponent = Number(match[5] ?? 0);
-  session.check(digits.length, session.limits.maxNumericDigits, "numeric digit");
-  session.check(Math.abs(exponent), session.limits.maxNumericDigits, "numeric exponent");
+  session?.check(digits.length, session.limits.maxNumericDigits, "numeric digit");
+  session?.check(Math.abs(exponent), session.limits.maxNumericDigits, "numeric exponent");
   const scale = fraction.length - exponent;
-  session.check(Math.max(digits.length, digits.length - scale, scale), session.limits.maxNumericDigits, "numeric digit");
+  session?.check(Math.max(digits.length, digits.length - scale, scale), session.limits.maxNumericDigits, "numeric digit");
   const coefficient = BigInt((match[1] === "-" ? "-" : "") + digits);
   return { coefficient, scale, precision: Math.max(0, scale), negativeZero: coefficient === 0n && match[1] === "-", width: Math.max(1, (match[2] ?? "").length + Math.max(0, exponent)) + (match[1] === "-" ? 1 : 0) };
 }
@@ -126,48 +126,51 @@ function formatted(coefficient: bigint, scale: number, format: Format, negativeZ
   return format.prefix + text + format.suffix;
 }
 
-const sharedFloatView = new DataView(new ArrayBuffer(8));
-function binaryDecimal(value: number): { coefficient: bigint; scale: number } {
-  if (Number.isSafeInteger(value) && !Object.is(value, -0)) {
-    return { coefficient: BigInt(value), scale: 0 };
-  }
-  const view = sharedFloatView;
-  view.setFloat64(0, value);
-  const bits = view.getBigUint64(0);
-  const exponent = Number(bits >> 52n & 2047n);
-  let coefficient = bits & ((1n << 52n) - 1n);
-  if (exponent) coefficient += 1n << 52n;
-  const power = exponent ? exponent - 1075 : -1074;
-  if (bits >> 63n) coefficient = -coefficient;
-  return power >= 0 ? { coefficient: coefficient << BigInt(power), scale: 0 }
-    : { coefficient: coefficient * 5n ** BigInt(-power), scale: -power };
+function binaryDecimal(coefficient: bigint, scale: number): { coefficient: bigint; scale: number } {
+  if (coefficient === 0n) return { coefficient, scale: 0 };
+  let numerator = coefficient < 0n ? -coefficient : coefficient;
+  let denominator = 1n;
+  if (scale < 0) numerator *= 10n ** BigInt(-scale);
+  else denominator = 10n ** BigInt(scale);
+  let exponent = numerator.toString(2).length - denominator.toString(2).length;
+  if (exponent >= 0 ? numerator < denominator << BigInt(exponent) : numerator << BigInt(-exponent) < denominator) exponent--;
+  if (scale === 0 && exponent < 64) return { coefficient, scale };
+  // GNU seq on x86_64 uses long double: round to 64 significant binary bits,
+  // ties to even, without passing operands or intermediate values through Number.
+  let power = exponent - 63;
+  if (power >= 0) denominator <<= BigInt(power);
+  else numerator <<= BigInt(-power);
+  let value = numerator / denominator;
+  const remainder = numerator % denominator;
+  if (remainder * 2n > denominator || remainder * 2n === denominator && value % 2n !== 0n) value++;
+  while (power < 0 && value % 2n === 0n) { value /= 2n; power++; }
+  if (coefficient < 0n) value = -value;
+  return power >= 0 ? { coefficient: value << BigInt(power), scale: 0 }
+    : { coefficient: value * 5n ** BigInt(-power), scale: -power };
 }
 
-async function floatingSequence(first: number, increment: number, last: number, format: Format, separator: string, session: Session): Promise<void> {
-  if (![first, increment, last].every(Number.isFinite) || increment === 0) throw new UsageError("formatted operands must fit finite binary64 with a nonzero increment");
-  if (increment > 0 ? first > last : first < last) return;
-  const render = (number: number): string => {
-    const decimal = binaryDecimal(number);
-    const text = formatted(decimal.coefficient, decimal.scale, format, Object.is(number, -0));
-    session.check(utf8ByteLength(text), session.limits.maxRecordBytes, "record");
-    return text;
-  };
-  const firstDecimal = binaryDecimal(first), incrementDecimal = binaryDecimal(increment);
-  const scale = Math.max(firstDecimal.scale, incrementDecimal.scale);
-  const firstCoefficient = firstDecimal.coefficient * 10n ** BigInt(scale - firstDecimal.scale);
-  const incrementCoefficient = incrementDecimal.coefficient * 10n ** BigInt(scale - incrementDecimal.scale);
+async function floatingSequence(first: Decimal, increment: Decimal, last: Decimal, format: Format, separator: string, session: Session): Promise<void> {
+  const firstDecimal = binaryDecimal(first.coefficient, first.scale), incrementDecimal = binaryDecimal(increment.coefficient, increment.scale), lastDecimal = binaryDecimal(last.coefficient, last.scale);
+  const scale = Math.max(firstDecimal.scale, incrementDecimal.scale, lastDecimal.scale);
+  const align = (value: { coefficient: bigint; scale: number }): bigint => value.coefficient * 10n ** BigInt(scale - value.scale);
+  const firstCoefficient = align(firstDecimal), incrementCoefficient = align(incrementDecimal), finish = align(lastDecimal);
+  if (incrementCoefficient > 0n ? firstCoefficient > finish : firstCoefficient < finish) return;
   const canBatch = session.limits.maxOutputBytes === Infinity && session.limits.maxChunkBytes >= 16384 && session.limits.maxSteps === Infinity;
   let batch = "";
   let previous = "";
-  for (let index = 0;; index++) {
+  for (let index = 0n;; index++) {
     { const s = session.step(); if (s) await s; }
-    const current = index ? (scale === 0 ? first + index * increment : Number(fixed(firstCoefficient + BigInt(index) * incrementCoefficient, scale, scale))) : first;
-    if (!Number.isFinite(current)) break;
-    const outside = increment > 0 ? current > last : current < last;
-    const text = render(current);
+    const offset = align(binaryDecimal(index * incrementCoefficient, scale));
+    const current = align(binaryDecimal(firstCoefficient + offset, scale));
+    const outside = incrementCoefficient > 0n ? current > finish : current < finish;
+    const text = formatted(current, scale, format, index === 0n && first.negativeZero);
+    session.check(utf8ByteLength(text), session.limits.maxRecordBytes, "record");
     if (outside) {
-      const numeric = text.slice(format.prefix.length, text.length - format.suffix.length).split(",").join("");
-      if (Number(numeric) !== last || text === previous) break;
+      if (text === previous) break;
+      // This is our bounded formatted output, not another user operand.
+      const numeric = decimal(text.slice(format.prefix.length, text.length - format.suffix.length).split(",").join("").trim());
+      const endpoint = binaryDecimal(numeric.coefficient, numeric.scale);
+      if (endpoint.coefficient * 10n ** BigInt(lastDecimal.scale) !== lastDecimal.coefficient * 10n ** BigInt(endpoint.scale)) break;
     }
     if (canBatch) {
       batch += (index ? separator : "") + text;
@@ -284,7 +287,7 @@ export function createSeqWithSettings(limits: StreamFormatLimits): CommandDefini
     const selectedFormat = formatText ?? (precision === Infinity || last.precision === Infinity ? "%g" : undefined);
     const format = selectedFormat === undefined ? undefined : await parseFormat(selectedFormat, session);
     if (format) {
-      await floatingSequence(Number(first.negativeZero ? "-0" : fixed(first.coefficient, first.scale, Math.max(0, first.scale))), Number(fixed(increment.coefficient, increment.scale, Math.max(0, increment.scale))), Number(fixed(last.coefficient, last.scale, Math.max(0, last.scale))), format, separator, session);
+      await floatingSequence(first, increment, last, format, separator, session);
       return;
     }
     const firstText = (first.negativeZero ? "-" : "") + fixed(current, scale, precision);

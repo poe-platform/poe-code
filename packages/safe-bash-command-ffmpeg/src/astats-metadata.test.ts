@@ -32,17 +32,22 @@ async function run(filter: string) {
   return { volume, stderr };
 }
 
-it("emits all native channel and overall astats tags on each frame", async () => {
-  const { volume } = await run("astats=metadata=1,ametadata=mode=print:file=tags.txt");
-  const expected = reference.map(frame => frame.header + "\n" + Object.entries(frame.tags).map(([key, value]) => `${key}=${value}\n`).join("")).join("");
-  assert.equal(volume.readFileSync("/tags.txt", "utf8"), expected);
-});
+for (const value of ["1", "yes", "y", "Y"]) {
+  it(`metadata=${value} emits all native channel and overall astats tags on each frame`, async () => {
+    const { volume } = await run(`astats=metadata=${value},ametadata=mode=print:file=tags.txt`);
+    const expected = reference.map(frame => frame.header + "\n" + Object.entries(frame.tags).map(([key, value]) => `${key}=${value}\n`).join("")).join("");
+    assert.equal(volume.readFileSync("/tags.txt", "utf8"), expected);
+  });
+}
 
 it("metadata injection preserves the statistics report and works without a consumer", async () => {
-  assert.equal((await run("astats=metadata=1")).stderr, (await run("astats=metadata=0")).stderr);
+  const expected = (await run("astats=metadata=0")).stderr;
+  for (const value of ["1", "yes", "y", "Y", "no", "n", "N"]) {
+    assert.equal((await run(`astats=metadata=${value}`)).stderr, expected);
+  }
 });
 
-for (const filter of ["astats", "astats=metadata=0", "astats=metadata=false"]) {
+for (const filter of ["astats", "astats=metadata=0", "astats=metadata=false", "astats=metadata=no", "astats=metadata=n", "astats=metadata=N"]) {
   it(`${filter} produces no frame tags`, async () => {
     const { volume } = await run(`${filter},ametadata=mode=print:file=tags.txt`);
     assert.equal(volume.readFileSync("/tags.txt", "utf8"), "");

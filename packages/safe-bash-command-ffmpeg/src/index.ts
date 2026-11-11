@@ -12780,8 +12780,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               }
                               reset = roundToEven(reset);
                             } else if (key === "metadata" && extra === undefined &&
-                              ["0", "1", "false", "true", "no", "yes", "off", "on"].includes(value?.toLowerCase() ?? "")) {
-                              metadata = ["1", "true", "yes", "on"].includes(value!.toLowerCase());
+                              ["0", "1", "false", "true", "no", "yes", "n", "y", "off", "on"].includes(value?.toLowerCase() ?? "")) {
+                              metadata = ["1", "true", "yes", "y", "on"].includes(value!.toLowerCase());
                             } else {
                               throw new Error(`astats: unsupported option ${option}`);
                             }

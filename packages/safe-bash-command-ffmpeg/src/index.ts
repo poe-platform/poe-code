@@ -2749,7 +2749,7 @@ async function applyVideoFilterChain(
   frames: MediaVideoFrame[],
   filterChainStr: string,
   budget: MediaBudgetTracker,
-  diagnostics: { frameDuration: number; endTimeSeconds?: number | undefined; frameRateScale?: number; frameRateKnown?: boolean; sar: number; sarWidth: number; sarHeight: number; timescale: number; pixelFormat: string | undefined; logLevel: number; write: (text: string) => Promise<void>; writeReport: (file: string, text: string) => Promise<void> },
+  diagnostics: { frameDuration: number; endTimeSeconds?: number | undefined; frameRateScale?: number; frameRateKnown?: boolean; sar: number; sarWidth: number; sarHeight: number; timescale: number; pixelFormat: string | undefined; chromaLocation: string | undefined; logLevel: number; write: (text: string) => Promise<void>; writeReport: (file: string, text: string) => Promise<void> },
   readSubtitle: (filename: string) => Promise<Uint8Array>,
   registry: ReturnType<typeof createMediaAstRegistry>,
   signal?: AbortSignal,
@@ -3254,7 +3254,7 @@ async function applyVideoFilterChain(
           }
           stats = ` checksum:${hex(b * 65536 + a)} plane_checksum:[${checksums.join(" ")}] mean:[${means.join(" ")}] stdev:[${deviations.join(" ")}]`;
         }
-        await diagnostics.write(`[showinfo] n:${n} pts:${Math.round(frame.ptsSeconds * diagnostics.timescale)} pts_time:${Number(frame.ptsSeconds.toPrecision(6))} duration:${Math.round(frame.durationSeconds * diagnostics.timescale)} duration_time:${Number(frame.durationSeconds.toPrecision(6))} fmt:${format} s:${frame.width}x${frame.height} iskey:${Number(frame.keyframe)}${stats}\n`);
+        await diagnostics.write(`[showinfo] n:${n} pts:${Math.round(frame.ptsSeconds * diagnostics.timescale)} pts_time:${Number(frame.ptsSeconds.toPrecision(6))} duration:${Math.round(frame.durationSeconds * diagnostics.timescale)} duration_time:${Number(frame.durationSeconds.toPrecision(6))} fmt:${format} cl:${diagnostics.chromaLocation ?? "unspecified"} sar:${diagnostics.sarWidth}/${diagnostics.sarHeight} s:${frame.width}x${frame.height} i:${frame.interlaced ? frame.topFieldFirst ? "T" : "B" : "P"} iskey:${Number(frame.keyframe)} type:${["?", "I", "P", "B", "S", "i", "p", "b"][frame.pictureType ?? 0] ?? "?"}${stats}\n`);
       }
     } else if (name === "zoompan") {
       const result = await zoompan(current, argStr, diagnostics.sar, budget, signal);
@@ -13070,6 +13070,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       sarHeight: description?.sarHeight || 1,
                       sar: (description?.sarWidth || 1) / (description?.sarHeight || 1),
                       pixelFormat: description?.pixFmt,
+                      chromaLocation: description?.chromaLocation,
                       logLevel,
                       write: text => writeBytes(context.stderr, encodeUtf8(text), context.signal),
                       writeReport: async (file, text) => {
@@ -13710,6 +13711,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     sarHeight: t.codecDescriptions[0]?.sarHeight || 1,
                     sar: (t.codecDescriptions[0]?.sarWidth || 1) / (t.codecDescriptions[0]?.sarHeight || 1),
                     pixelFormat: t.codecDescriptions[0]?.pixFmt,
+                    chromaLocation: t.codecDescriptions[0]?.chromaLocation,
                     logLevel,
                     write: (text: string) => writeBytes(context.stderr, encodeUtf8(text), context.signal),
                     writeReport: async (file: string, text: string) => {

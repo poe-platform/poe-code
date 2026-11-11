@@ -66,8 +66,8 @@ it("preserves native planar frame timing and statistics after NV12 conversion", 
   const result = await run(Buffer.concat([input, input]), "nv12", "2x4", ["-vf", "format=yuv420p,showinfo", "-pix_fmt", "yuv420p"]);
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.output.toString("hex"), "11589fe62d74bb0249d7901e".repeat(2));
-  assert.match(result.stderr, /n:0 pts:0 pts_time:0 duration:1 duration_time:0.25 fmt:yuv420p s:2x4 iskey:1/);
-  assert.match(result.stderr, /n:1 pts:1 pts_time:0.25 duration:1 duration_time:0.25 fmt:yuv420p s:2x4 iskey:1/);
+  assert.match(result.stderr, /n:0 pts:0 pts_time:0 duration:1 duration_time:0.25 fmt:yuv420p cl:unspecified sar:0\/1 s:2x4 i:P iskey:1 type:I/);
+  assert.match(result.stderr, /n:1 pts:1 pts_time:0.25 duration:1 duration_time:0.25 fmt:yuv420p cl:unspecified sar:0\/1 s:2x4 i:P iskey:1 type:I/);
   assert.match(result.stderr, /checksum:20C7051A plane_checksum:\[0EB0034C 01690120 013E00AE\] mean:\[106 144 87\] stdev:\[77.2 71.0 57.0\]/);
 });
 

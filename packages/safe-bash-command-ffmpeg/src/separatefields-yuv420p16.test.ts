@@ -49,7 +49,7 @@ for (const [format, filter, input, expected, statistics] of [
         for (const [index, line] of info.entries()) {
           assert.ok(line.startsWith(`[showinfo] n:${index} pts:${index} pts_time:${index / 8} `), line);
           assert.ok(line.includes(`duration:1 duration_time:${separated ? 0.125 : 0.25} `), line);
-          assert.ok(line.includes(`fmt:${format} s:2x${separated ? 2 : 4} iskey:1`), line);
+          assert.ok(line.includes(`fmt:${format} cl:unspecified sar:0/1 s:2x${separated ? 2 : 4} i:P iskey:1 type:I`), line);
           assert.ok(line.endsWith(statistics[index]!), line);
         }
       } else {

@@ -187,6 +187,17 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
         budget.checkOutputBytes(size + (frame.width * frame.height +
           2 * Math.ceil(frame.width / 2) * Math.ceil(frame.height / 2)) * 2);
         append((await formatYuv(frame, format, signal)).native!.pixels);
+      } else if (format === "yuva420p") {
+        const lumaSize = frame.width * frame.height;
+        budget.checkOutputBytes(size + 2 * lumaSize + 2 * Math.ceil(frame.width / 2) * Math.ceil(frame.height / 2));
+        append((await formatYuv(frame, "yuv420p", signal)).native!.pixels);
+        const alpha = new Uint8Array(lumaSize);
+        for (let pixel = 0; pixel < lumaSize; pixel++) {
+          if (pixel % 4096 === 0) budget.checkCpu();
+          // swscale expands packed alpha to 14 bits before rounding to 8.
+          alpha[pixel] = Math.min(255, Math.round(frame.data[pixel * 4 + 3]! * 257 / 256));
+        }
+        append(alpha);
       } else if (format === "nv12") {
         const lumaSize = frame.width * frame.height;
         const chromaSize = Math.ceil(frame.width / 2) * Math.ceil(frame.height / 2);

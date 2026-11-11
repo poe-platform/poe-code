@@ -4952,7 +4952,8 @@ async function applyVideoFilterChain(
       const dimensions = (layout || "6x5").split("x");
       const cols = Number(dimensions[0]);
       const rows = Number(dimensions[1]);
-      if (positional.some((part, index) => index > 0 && !part.includes("=")) ||
+      if (positional.some((part, index) => index > 0 && !part.includes("=") &&
+          !(part === "" && index === positional.length - 1)) ||
           dimensions.length !== 2 || !Number.isInteger(cols) || !Number.isInteger(rows) ||
           cols <= 0 || rows <= 0 || cols * rows > 4294967295) {
         throw new Error("untile: invalid layout");

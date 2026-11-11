@@ -9,6 +9,7 @@ const pixels = "275cfb3091c6659acf04a3d8396e0d4277ac4b80e116b5ea";
 for (const complex of [false, true]) {
   for (const [filter, timeBase, pts, times, hex] of [
     ["untile=2x1", "1/8", [0, 1, 2, 3, 4, 5], [0, 0.125, 0.25, 0.375, 0.5, 0.625], pixels],
+    ["untile=2x1:", "1/8", [0, 1, 2, 3, 4, 5], [0, 0.125, 0.25, 0.375, 0.5, 0.625], pixels],
     ["untile=2x1,select='eq(pts,3)'", "1/8", [3], [0.375], "396e0d42"],
     ["settb=1/1000,untile=2x1", "1/1000", [0, 125, 250, 375, 500, 625], [0, 0.125, 0.25, 0.375, 0.5, 0.625], pixels],
     ["settb=1/6,untile=2x1", "1/24", [0, 3, 8, 11, 12, 15], [0, 0.125, 0.333333, 0.458333, 0.5, 0.625], pixels]

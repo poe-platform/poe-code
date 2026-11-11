@@ -5,6 +5,9 @@ import { createFfmpegCommand } from "./index.js";
 
 for (const [options, valid] of [
   ["", true],
+  [":", true],
+  ["::", false],
+  [":2x2:", false],
   [":threads=1", true],
   [":thread_type=slice", true],
   [":extra_hw_frames=1", true],

@@ -13722,8 +13722,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const { magickColorspace: ignoredSpace, hueSamples: ignoredHue, ...metadata } = image;
                 const source = { ...metadata, properties: {}, orientation: state.orientation ?? 0, space: "srgb" as const, channels: 4 as const, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 } };
                 const { indexedColors: ignoredColors, pngPalette: ignoredPalette, pngIndices: ignoredIndices, ...direct } = source;
-                result.push(yield* applyMagickRasterSteps({ ...direct, isPalette: false, depth: "ushort", bitsPerSample: 16,
-                    [magickInput]: { ...image[magickInput], inputFormat: "" } }, transform.lines(), signal, { ...image, hasAlpha: true }));
+                const lines = yield* applyMagickRasterSteps({ ...direct, isPalette: false, depth: "ushort", bitsPerSample: 16,
+                    [magickInput]: { ...image[magickInput], inputFormat: "" } }, transform.lines(), signal, { ...image, hasAlpha: true });
+                result.push({ ...lines, delay: [0], delayTicks: 0, disposal: 0, [magickInput]: { ...(lines as MagickImage)[magickInput], delayTicks: 0 } });
                 if (state.houghAccumulator) result.push(yield* applyMagickRasterSteps(source, transform.accumulator(), signal, { width: 180, height: transform.height, hasAlpha: false }));
             }
             stack = result;
@@ -16535,8 +16536,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const { magickColorspace: ignoredSpace, storedHueSamples: ignoredHue, ...metadata } = image;
                     const source = { ...metadata, properties: {}, orientation: settings.orientation ?? 0, space: "srgb" as const, channels: 4 as const, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 } };
                     const { indexedColors: ignoredColors, pngPalette: ignoredPalette, storedPngIndices: ignoredIndices, ...direct } = source;
-                    await result.push(await transformStoredMagickRaster({ ...direct, isPalette: false, depth: "ushort", bitsPerSample: 16,
-                        [magickInput]: { ...image[magickInput], inputFormat: "" } }, backend, transform.lines(), signal, { ...image, hasAlpha: true }));
+                    const { storedDelay: ignoredDelay, ...lines } = await transformStoredMagickRaster({ ...direct, isPalette: false, depth: "ushort", bitsPerSample: 16,
+                        [magickInput]: { ...image[magickInput], inputFormat: "" } }, backend, transform.lines(), signal, { ...image, hasAlpha: true });
+                    await result.push({ ...lines, delay: [0], delayTicks: 0, disposal: 0, [magickInput]: { ...lines[magickInput], delayTicks: 0 } });
                     if (settings.houghAccumulator) await result.push(await transformStoredMagickRaster(source, backend, transform.accumulator(), signal, { width: 180, height: transform.height, hasAlpha: false }));
                 }
                 return result;

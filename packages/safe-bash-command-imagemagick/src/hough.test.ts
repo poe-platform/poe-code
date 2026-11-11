@@ -3,7 +3,24 @@ import fixtures from "./hough-fixtures.json" with { type: "json" };
 import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli, runConvertCliSync, runMogrifyCliSync } from "./index.js";
+import { createMagickCommand, runConvertCli, runConvertCliSync, runMogrifyCliSync } from "./index.js";
+
+for (const mode of ["command", "buffered", "retained", "sync"]) {
+    it(`resets animation metadata on rendered Hough frames without changing the source via ${mode}`, async () => {
+        const args = ["-size", "3x2", "xc:black", "-set", "delay", "7", "-set", "dispose", "Previous",
+            "(", "+clone", "-background", "black", "-hough-lines", "1x1+3", ")", "-format", "%T|%D;", "info:"];
+        const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+        let stdout = "", stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args, cwd: "/", env: {}, fs: filesystem,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+        }) : mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect({ stdout, stderr, ...result }).toMatchObject({ exitCode: 0, stdout: "7|Previous;0|Undefined;", stderr: "" });
+    });
+}
 
 for (const mode of ["buffered", "retained", "sync"] as const) {
     it.each([false, true].flatMap(blank => [false, true].map(accumulator => ({ blank, accumulator }))))(`renders native Hough lines via ${mode}, blank=$blank accumulator=$accumulator`, async ({ blank, accumulator: includeAccumulator }) => {

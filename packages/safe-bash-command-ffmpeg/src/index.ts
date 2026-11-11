@@ -4988,10 +4988,10 @@ async function applyVideoFilterChain(
           const y = Math.floor(cell / cols) * height;
           const source = frame.native;
           if (source?.rgba === frame.data && source.width === frame.width && source.height === frame.height &&
-              [0, 4, 5, 12, 13, 14, 29, 30, 49, 68].includes(source.format)) {
-            const hsub = [0, 4, 12, 13].includes(source.format) ? 2 : 1;
-            const vsub = [0, 12].includes(source.format) ? 2 : 1;
-            const sampleBytes = [29, 30, 49, 68].includes(source.format) ? 2 : 1;
+              [0, 4, 5, 12, 13, 14, 29, 30, 49, 62, 68].includes(source.format)) {
+            const hsub = [0, 4, 12, 13, 62].includes(source.format) ? 2 : 1;
+            const vsub = [0, 12, 62].includes(source.format) ? 2 : 1;
+            const sampleBytes = [29, 30, 49, 62, 68].includes(source.format) ? 2 : 1;
             const chromaPlanes = [29, 30].includes(source.format) ? 0 : 2;
             const size = (width * height + chromaPlanes * Math.ceil(width / hsub) * Math.ceil(height / vsub)) * sampleBytes;
             budget.allocateMemory(size + width * height * 4);

@@ -2,7 +2,7 @@ import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 // Shared by convert frames and montage's 15-pixel matte with 3-pixel bevels.
-export function* magickFramePixels(source: Pick<RgbaImage, "width" | "height" | "data16" | "space" | "hasAlpha" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">>, width: number, height: number,
+export function* magickFramePixels(source: Pick<RgbaImage, "width" | "height" | "data16" | "space" | "hasAlpha" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples" | "storedEvaluateSamples">>, width: number, height: number,
     border: RgbaColor & { cmyk?: readonly number[] }, matte: RgbaColor & { cmyk?: readonly number[] }, frameX: number, frameY: number, outer: number, inner: number, compositeSource = true, channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     if (outer < 0 || inner < 0 || outer + inner > Math.min(frameX, frameY)) throw new Error("frame is less than image size");
     // Native grayscale channel aliases leave the blue matte component in the gray channel.
@@ -14,6 +14,7 @@ export function* magickFramePixels(source: Pick<RgbaImage, "width" | "height" | 
         if (border.cmyk) border = { ...border, r: border.cmyk[0]! * 255, g: border.cmyk[1]! * 255, b: border.cmyk[2]! * 255 };
     }
     const hue = !cmyk && (!!source.hueSamples || source.storedHueSamples !== undefined);
+    const evaluate = !cmyk && !hue && (!!source.evaluateSamples || source.storedEvaluateSamples !== undefined);
     // Bevel calculations introduce quantum precision even for an 8-bit source.
     const highDepth = !!(outer || inner || source.data16 || source.storedData16), scale = highDepth ? 257 : 1, maximum = 255 * scale;
     // Bevel colors carry normalized black ink after the four raster channels.
@@ -31,6 +32,7 @@ export function* magickFramePixels(source: Pick<RgbaImage, "width" | "height" | 
         const count = Math.min(512, width - left), data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
         const inks = cmyk ? new Float64Array(count * 4) : undefined;
         const hueSamples = hue ? new Float64Array(count * 4) : undefined;
+        const evaluateSamples = !cmyk && !hue ? new Float64Array(count * 4) : undefined;
         for (let i = 0; i < count; i++) {
             const x = left + i;
             let color = flat;
@@ -49,14 +51,15 @@ export function* magickFramePixels(source: Pick<RgbaImage, "width" | "height" | 
             for (let channel = 0; channel < 4; channel++) {
                 data[i * 4 + channel] = color[channel]!;
                 if (hueSamples) hueSamples[i * 4 + channel] = color[channel]! / maximum;
+                if (evaluateSamples) evaluateSamples[i * 4 + channel] = color[channel]! / scale;
             }
             inks?.set([color[0]! / maximum, color[1]! / maximum, color[2]! / maximum, color[4] ?? (color === interior ? borderBlack : matteBlack)], i * 4);
         }
         const sy = y - frameY - insetY, first = Math.max(left, frameX + insetX), end = Math.min(left + count, frameX + insetX + source.width);
         if (compositeSource && sy >= 0 && sy < source.height && end > first) {
-            const bytes = yield { kind: "read", position: (sy * source.width + first - frameX - insetX) * 4, length: (end - first) * 4, highDepth, hue };
+            const bytes = yield { kind: "read", position: (sy * source.width + first - frameX - insetX) * 4, length: (end - first) * 4, highDepth, hue, evaluate };
             if (!bytes) throw new Error("Missing montage frame pixels");
-            const samples = hue ? new Float64Array(bytes.slice().buffer).map(value => value * maximum) : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+            const samples = hue || evaluate ? new Float64Array(bytes.slice().buffer).map(value => value * maximum / (hue ? 1 : 255)) : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
             const sourceHue = cmyk ? yield { kind: "read", hue: true, position: (sy * source.width + first - frameX - insetX) * 4, length: (end - first) * 4 } : undefined;
             const sourceInks = sourceHue?.length ? new Float64Array(sourceHue.slice().buffer) : undefined;
             for (let x = first; x < end; x++) {
@@ -67,6 +70,8 @@ export function* magickFramePixels(source: Pick<RgbaImage, "width" | "height" | 
                     const value = c === 3 ? outAlpha * maximum : outAlpha ? (samples[src + c]! * alpha + interior[c]! * border.a / 255 * (1 - alpha)) / outAlpha : 0;
                     data[dst + c] = Math.round(value);
                     if (hueSamples) hueSamples[dst + c] = Math.fround(value * 65535 / maximum) / 65535;
+                    // Preserve fractional Q16-HDRI blends until the output depth is known.
+                    if (evaluateSamples) evaluateSamples[dst + c] = Math.fround(value * 65535 / maximum) / 257;
                 }
                 if (inks && sourceInks) for (let c = 0; c < 4; c++) inks[dst + c] = outAlpha
                     ? (sourceInks[src + c]! * alpha + (c === 3 ? borderBlack : interior[c]! / maximum) * border.a / 255 * (1 - alpha)) / outAlpha : 0;
@@ -84,6 +89,7 @@ export function* magickFramePixels(source: Pick<RgbaImage, "width" | "height" | 
             yield { kind: "write", evaluate: true, position: (y * width + left) * 4, data: new Uint8Array(samples.buffer) };
         }
         if (hueSamples) yield { kind: "write", position: (y * width + left) * 4, data: new Uint8Array(hueSamples.buffer), hue: true };
+        if (evaluateSamples) yield { kind: "write", position: (y * width + left) * 4, data: new Uint8Array(evaluateSamples.buffer), evaluate: true };
         yield { kind: "write", position: (y * width + left) * 4, data: new Uint8Array(data.buffer), highDepth };
     }
 }

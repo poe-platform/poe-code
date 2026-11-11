@@ -277,7 +277,21 @@ export function createJoinCommand(factory: TableTextCommandsOptions = {}): Comma
         catch (error) {
           // GNU can open directories; their read error follows both operand opens.
           if (isFsError(error) && error.code === "EISDIR") directory = true;
-          else if (isFsError(error) && error.code === "ENOENT") throw new PublicDiagnostic(`${file}: No such file or directory`);
+          else if (isFsError(error)) {
+            const reasons: Partial<Record<typeof error.code, string>> = {
+              ENOENT: "No such file or directory", ENOTDIR: "Not a directory",
+              EACCES: "Permission denied", EPERM: "Operation not permitted",
+              ELOOP: "Too many levels of symbolic links", EIO: "Input/output error",
+              ENAMETOOLONG: "File name too long",
+            };
+            const reason = reasons[error.code];
+            if (!reason) throw error;
+            const quoted = quoteShellOperand(file, utf8);
+            const needsQuotes = quoted !== `'${file}'` || !file || "#~".includes(file[0]!)
+              || file === "{" || file === "}"
+              || [...file].some(character => " \"'`$&*():;<=>?[\\^|!".includes(character));
+            throw new PublicDiagnostic(`${needsQuotes ? quoted : file}: ${reason}`);
+          }
           else throw error;
         }
       }

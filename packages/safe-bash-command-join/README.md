@@ -1,6 +1,6 @@
 # join
 
-Run `join` against your Safe Bash virtual filesystem, with streaming I/O and configurable resource limits. Missing and extra file operands produce GNU-style diagnostics and a `--help` hint, with exit status 1 and no stdout. Enable only the commands your application needs.
+Run `join` against your Safe Bash virtual filesystem, with streaming I/O and configurable resource limits. Missing and extra file operands produce GNU-style diagnostics and a `--help` hint, with exit status 1 and no stdout. File-open errors quote operands when needed and report reasons such as `Not a directory`, without backend paths or operation names. Enable only the commands your application needs.
 
 ```ts
 import { Shell, createMemoryFileSystem } from "@poe-platform/safe-bash";

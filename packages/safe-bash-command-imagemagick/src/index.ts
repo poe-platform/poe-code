@@ -4366,7 +4366,7 @@ function* applyMagickShadowSteps(image: RgbaImage, geometry: string, color: Rgba
     if ((image.space === "b-w" || image.space === "grey16") && (color.r !== color.g || color.g !== color.b))
         image = { ...image, space: "srgb", channels: 4 };
     const writeMask = image.region ? yield* createSolidRgbaImageSteps(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }) : image.writeMask;
-    return { ...yield* applyMagickRasterSteps(image, shadowPixelSteps(image, layout, color, alpha), signal, layout), isPalette: false, alphaBlend: true, alphaSeparate: false, region: undefined, writeMask, virtualCanvas: layout.virtualCanvas };
+    return { ...yield* applyMagickRasterSteps(image, shadowPixelSteps(image, layout, color, alpha), signal, layout), isPalette: false, alphaBlend: true, alphaSeparate: false, inactiveAlpha: false, region: undefined, writeMask, virtualCanvas: layout.virtualCanvas };
 }
 
 function magickSepiaTone(intensity: number, threshold: number, gray: boolean): [number, number, number] {
@@ -15741,7 +15741,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b))
                     image = { ...image, space: "srgb", channels: 4 };
                 const storedWriteMask = image.region ? await createStoredCanvas(layout.width, layout.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : image.storedWriteMask;
-                return { ...await transformStoredMagickRaster(image, backend, shadowPixelSteps(image, layout, backgroundExplicit ? background : image.backgroundColor ?? background, alpha), signal, layout), isPalette: false, alphaBlend: true, alphaSeparate: false, region: undefined, storedWriteMask, virtualCanvas: layout.virtualCanvas };
+                return { ...await transformStoredMagickRaster(image, backend, shadowPixelSteps(image, layout, backgroundExplicit ? background : image.backgroundColor ?? background, alpha), signal, layout), isPalette: false, alphaBlend: true, alphaSeparate: false, inactiveAlpha: false, region: undefined, storedWriteMask, virtualCanvas: layout.virtualCanvas };
             });
         } else if (!operandsOnly && token === "-statistic") {
             stackStep(async stack => {

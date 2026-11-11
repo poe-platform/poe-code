@@ -8,7 +8,7 @@ import { validateWeaveGenericOption } from "./weave-generic-option.js";
 import { parseHlsDuration } from "safe-bash-command-ffprobe/media";
 
 export async function acrossfadeAudio(
-  first: MediaTrack, second: MediaTrack, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal, simultaneousEof = false
+  first: MediaTrack, second: MediaTrack, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal, simultaneousEof = false, sampleFormat?: string
 ): Promise<MediaTrack> {
   const a = first.decodedAudio;
   const b = second.decodedAudio;
@@ -97,9 +97,9 @@ export async function acrossfadeAudio(
   budget.allocateMemory(length * a.channels * 8);
   const channelData = a.channelData.map(() => new Float64Array(length));
   // FFmpeg negotiates the first input's precision and converts the second before fading.
-  const pcm16 = ["pcm_s16le", "pcm_s16be"].includes(first.codecDescriptions[0]?.codecName ?? "");
-  const pcm32 = ["pcm_s24le", "pcm_s24be", "pcm_s32le", "pcm_s32be"].includes(first.codecDescriptions[0]?.codecName ?? "");
-  const float32 = ["pcm_f32le", "pcm_f32be"].includes(first.codecDescriptions[0]?.codecName ?? "");
+  const pcm16 = sampleFormat === "s16" || sampleFormat === undefined && ["pcm_s16le", "pcm_s16be"].includes(first.codecDescriptions[0]?.codecName ?? "");
+  const pcm32 = sampleFormat === "s32" || sampleFormat === undefined && ["pcm_s24le", "pcm_s24be", "pcm_s32le", "pcm_s32be"].includes(first.codecDescriptions[0]?.codecName ?? "");
+  const float32 = sampleFormat === "flt" || sampleFormat === undefined && ["pcm_f32le", "pcm_f32be"].includes(first.codecDescriptions[0]?.codecName ?? "");
   const secondPcm32 = ["pcm_s32le", "pcm_s32be", "pcm_s24le", "pcm_s24be"]
     .includes(second.codecDescriptions[0]?.codecName ?? "");
   // Speaker order follows the WAV mask: FL, FR, FC, LFE, BL, BR, ..., BC, SL, SR.
@@ -251,6 +251,11 @@ export async function acrossfadeAudio(
     emitted = end;
   }
   appendFrame(bLength - Math.max(emitted, samples));
-  return { ...first, timescale: a.sampleRate, duration: length, samples: frames, editList: undefined,
+  const codecName = sampleFormat === "s16" ? "pcm_s16le" : sampleFormat === "s32" ? "pcm_s32le"
+    : sampleFormat === "flt" ? "pcm_f32le" : sampleFormat === "dbl" ? "pcm_f64le" : undefined;
+  return { ...first,
+    codecDescriptions: codecName === undefined ? first.codecDescriptions : first.codecDescriptions.map(description => ({
+      ...description, codecName, bitsPerSample: pcm16 ? 16 : sampleFormat === "dbl" ? 64 : 32
+    })), timescale: a.sampleRate, duration: length, samples: frames, editList: undefined,
     decodedAudio: { ...a, channelData } };
 }

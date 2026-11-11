@@ -1792,7 +1792,7 @@ function audioConcatInputs(filter: string): number | undefined {
 const audioDelayTails = new WeakMap<MediaTrack, Set<string>>();
 
 // Resolve audio graph inputs and transitions before the PCM filter evaluator runs.
-async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], outputMaps: Set<string>, mappedLabels: Set<string>, filterAudio: (track: MediaTrack, expression: string) => Promise<MediaTrack>, mixCommands: { target: string; action: string; expression: string }[], budget: MediaBudgetTracker, signal?: AbortSignal) {
+async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], outputMaps: Set<string>, mappedLabels: Set<string>, filterAudio: (track: MediaTrack, expression: string) => Promise<MediaTrack>, mixCommands: { target: string; action: string; expression: string }[], budget: MediaBudgetTracker, signal?: AbortSignal, outputSampleFormat?: string) {
   const nodes = new Map<string, { inputs: string[]; expression: string; asplit?: boolean }>();
   const inputTrack = (label: string): MediaTrack => {
     const [input, selector, ordinal, ...extra] = label.split(":");
@@ -2266,7 +2266,13 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         const [a, b] = splitInputs;
         const simultaneousEof = a!.inputs !== undefined && a!.inputs === b!.inputs && !b!.buffered &&
           (a!.buffered || !a!.scheduled && !b!.scheduled);
-        const track = await acrossfadeAudio(sources[0]!.track, sources[1]!.track, filters[0]!, budget, signal, simultaneousEof);
+        // acrossfade cannot consume u8. A supported second input fixes its format;
+        // otherwise the encoder selects it, falling back to S16 for u8 output.
+        const format = pcmSampleFormat(sources[0]!.track.codecDescriptions[0]?.codecName) === "u8"
+          ? [...sources.map(source => pcmSampleFormat(source.track.codecDescriptions[0]?.codecName)), outputSampleFormat]
+            .find(format => format !== undefined && ["s16", "s32", "flt", "dbl"].includes(format)) ?? "s16"
+          : undefined;
+        const track = await acrossfadeAudio(sources[0]!.track, sources[1]!.track, filters[0]!, budget, signal, simultaneousEof, format);
         return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "amerge" || filters[0]?.startsWith("amerge=")) {
@@ -11870,6 +11876,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat))
               : registry.findByFilename(outputTarget);
 
+            const segmentPlugin = outputFormat === "segment"
+              ? segmentFormat === undefined ? registry.findByFilename(outputTarget)
+                : (registry.findById(segmentFormat) ?? registry.findByFormatName(segmentFormat))
+              : undefined;
+            const audioOutputPlugin = outputFormat === "segment" ? segmentPlugin : outPlugin;
+            const outputAudioFormat = sampleFormat ?? pcmSampleFormat(audioCodec ??
+              (audioOutputPlugin?.supportedAudioCodecs.includes(`pcm_${audioOutputPlugin.id}`)
+                ? `pcm_${audioOutputPlugin.id}` : ["wav", "w64", "null"].includes(outputFormat ?? audioOutputPlugin?.id ?? "") ? "pcm_s16le" : undefined));
+
             // Load all inputs and apply per-input slicing / looping
             const loadedDocs: MediaDocument[] = [];
             const inputStarts: (number | undefined)[] = [];
@@ -12857,7 +12872,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   loadedDocs.some((_, index) => filterComplex?.includes(`[${index}:a`));
                 if (audioGraph) {
                   if (afFilters.length) throw new Error("Cannot combine simple and complex audio filters");
-                  const { outputs, sinks } = await resolveAudioGraph(filterComplex, loadedDocs, maps, audioOutputMaps, mappedAudioLabels, filterAudio, mixCommands, budget, context.signal);
+                  const { outputs, sinks } = await resolveAudioGraph(filterComplex, loadedDocs, maps, audioOutputMaps, mappedAudioLabels, filterAudio, mixCommands, budget, context.signal, outputAudioFormat);
                   audioSinks = sinks;
                   workingDoc = await muxMp4Cooperatively(
                     [{ ...loadedDocs[0]!, tracks: outputs.map(output => output.track) }],
@@ -13324,10 +13339,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               };
             }
 
-            const segmentPlugin = outputFormat === "segment"
-              ? segmentFormat === undefined ? registry.findByFilename(outputTarget)
-                : (registry.findById(segmentFormat) ?? registry.findByFormatName(segmentFormat))
-              : undefined;
             const audioSegment = segmentPlugin?.id === "wav" ||
               segmentPlugin?.supportedAudioCodecs.includes(`pcm_${segmentPlugin.id}`);
             // Keep decoded PCM frame timing separate from encoded packet payloads.
@@ -13352,7 +13363,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     : { expression };
                   if (filter?.expression.includes(";")) {
                     const graph = await resolveAudioGraph(filter.expression, [{ ...workingDoc, tracks: [t] }],
-                      [], new Set(), new Set(), filterAudio, mixCommands, budget, context.signal);
+                      [], new Set(), new Set(), filterAudio, mixCommands, budget, context.signal, outputAudioFormat);
                     if (graph.outputs.length !== 1 || graph.sinks.length) {
                       throw new Error("Simple audio filter graph requires one input and one output");
                     }

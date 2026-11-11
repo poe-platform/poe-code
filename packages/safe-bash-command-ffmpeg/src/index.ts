@@ -12127,7 +12127,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const count = timestamp ? timestamp.end - timestamp.start
                             : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                           const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
-                          while (next < pending.length && pending[next]!.time <= pts / origRate) {
+                          // FFmpeg rounds frame PTS to microseconds before dispatching commands.
+                          const seconds = Math.sign(pts) * Math.round(Math.abs(pts) * 1_000_000 / origRate) / 1_000_000;
+                          while (next < pending.length && pending[next]!.time <= seconds) {
                             const command = pending[next++]!;
                             if (command.target === "amix" || command.target.startsWith("amix@")) mixCommands.push(command);
                             // A downstream sender sees this frame after the receiver has processed it.

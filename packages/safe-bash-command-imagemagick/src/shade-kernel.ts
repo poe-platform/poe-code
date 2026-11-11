@@ -14,7 +14,7 @@ export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha] : [true, true, true, image.hasAlpha];
     const gray = method === "white" ? 255 : method === "gray" ? 128 : 0;
     const fill = (method === "background" || method.endsWith("-tile") ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255]).map(value => value * quantum / 255);
-    const blocks = new Map<number, Uint8Array | Uint16Array>();
+    const blocks = new Map<number, Uint8Array | Uint16Array | Float64Array>();
     function* sample(x: number, y: number): Generator<ConvolveRequest, ArrayLike<number>, Uint8Array | undefined> {
         const index = virtualPixelIndex(x, y, width, height, method);
         if (index < 0) return fill;
@@ -22,9 +22,13 @@ export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
         let data = blocks.get(start);
         if (!data) {
             const length = Math.min(1024, width * height - start) * 4;
-            const bytes = yield { kind: "read", highDepth, position: start * 4, length };
-            if (!bytes || bytes.length !== length * (highDepth ? 2 : 1)) throw new Error("Truncated shade pixels");
-            data = highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, length) : bytes;
+            const working = yield { kind: "read", evaluate: true, position: start * 4, length };
+            if (working?.length) data = new Float64Array(working.slice().buffer).map(value => value * quantum / 255);
+            else {
+                const bytes = yield { kind: "read", highDepth, position: start * 4, length };
+                if (!bytes || bytes.length !== length * (highDepth ? 2 : 1)) throw new Error("Truncated shade pixels");
+                data = highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, length) : bytes;
+            }
             if (blocks.size >= 16) blocks.delete(blocks.keys().next().value!);
             blocks.set(start, data);
         }
@@ -32,7 +36,7 @@ export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
     }
     for (let start = 0; start < width * height; start += 1024) {
         yield;
-        const count = Math.min(1024, width * height - start), data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
+        const count = Math.min(1024, width * height - start), data = new Float64Array(count * 4);
         for (let i = 0; i < count; i++) {
             yield;
             const x = (start + i) % width, y = Math.floor((start + i) / width);
@@ -46,8 +50,13 @@ export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
             }
             const shade = quantum * Math.max(0, (nx * lightX + ny * lightY + 2 * lightZ) / Math.sqrt(nx * nx + ny * ny + 4));
             const center = yield* sample(x, y);
-            for (let c = 0; c < 4; c++) data[i * 4 + c] = mask[c] ? Math.max(0, Math.min(quantum, Math.round(shade))) : center[c]!;
+            // Retain Q16-HDRI samples for subsequent operations and write-mask blending.
+            for (let c = 0; c < 4; c++) data[i * 4 + c] = mask[c] ? Math.fround(shade * 65535 / quantum) / 257 : center[c]! * 255 / quantum;
         }
-        yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(data.buffer, data.byteOffset, data.byteLength) };
+        const encoded = highDepth
+            ? Uint16Array.from(data, value => Math.max(0, Math.min(65535, Math.round(value * 257))))
+            : Uint8Array.from(data, value => Math.max(0, Math.min(255, Math.round(value))));
+        yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(encoded.buffer) };
+        yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(data.buffer) };
     }
 }

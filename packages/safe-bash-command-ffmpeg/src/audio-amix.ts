@@ -68,14 +68,30 @@ export async function mixAudio(
     } catch { /* FFmpeg reports a declined command without aborting the graph. */ }
   }
   while (weights.length < count) weights.push(weights[weights.length - 1]!);
+  const resampledEnds: (number[] | undefined)[] = [];
   for (const [index, input] of inputs.entries()) {
     if (input.sampleRate === a.sampleRate) continue;
     const length = Math.ceil(input.channelData[0]!.length * a.sampleRate / input.sampleRate);
     budget.checkSamples(length);
     budget.checkDuration(length / a.sampleRate);
     budget.allocateMemory(length * input.channels * Float32Array.BYTES_PER_ELEMENT);
+    const ends: number[] = [];
+    const track = tracks[index]!;
+    const frameSize = 2 ** Math.floor(Math.log2(Math.max(1, Math.floor(input.sampleRate / 10))));
+    for (let end = 0, packetIndex = 0; end < input.channelData[0]!.length; packetIndex++) {
+      if (packetIndex % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+      const packet = track.samples[packetIndex];
+      end += packet ? Math.max(0, Math.round(packet.duration * input.sampleRate / track.timescale)
+        - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : frameSize;
+      budget.allocateMemory(16);
+      ends.push(Math.min(end, input.channelData[0]!.length));
+    }
+    const outputEnds: number[] = [];
+    budget.allocateMemory(8); // The resampler may append a separate flush frame.
     inputs[index] = { ...input, sampleRate: a.sampleRate,
-      channelData: await resampleAudio(input.channelData, length, input.sampleRate, a.sampleRate, budget, signal) };
+      channelData: await resampleAudio(input.channelData, length, input.sampleRate, a.sampleRate, budget, signal,
+        undefined, undefined, undefined, undefined, undefined, undefined, undefined, { ends, outputEnds }) };
+    resampledEnds[index] = outputEnds;
   }
   const lengths = inputs.map(input => input.channelData[0]!.length);
   const length = duration === "first" ? lengths[0]! : duration === "shortest" ? Math.min(...lengths) : Math.max(...lengths);
@@ -100,6 +116,12 @@ export async function mixAudio(
     for (const [index, track] of tracks.entries()) {
       if (start >= lengths[index]!) continue;
       while (frameEnds[index]! <= start) {
+        // Implicit resampling buffers input and emits a separate tail at EOF.
+        const ends = resampledEnds[index];
+        if (ends) {
+          frameEnds[index] = ends[packetIndices[index]!++] ?? lengths[index]!;
+          continue;
+        }
         const packet = track.samples[packetIndices[index]!++];
         if (index === 0 && packet) {
           nextPts = Math.round(packet.pts * a.sampleRate / track.timescale);

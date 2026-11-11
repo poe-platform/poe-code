@@ -20,3 +20,25 @@ it("uses the subtitle track timescale when writing centisecond lyrics", () => {
     samples: track.samples.map(s => ({ ...s, pts: s.pts * 10, duration: s.duration * 10 })) }] };
   assert.equal(new TextDecoder().decode(lrcAst().serialize(scaled)), "\n[01:01.24]First\n[01:01.24]Second\n");
 });
+
+for (const [start, expected] of [
+  ["00:01.004", "00:01.00"],
+  ["00:01.005", "00:01.01"],
+  ["00:01.006", "00:01.01"],
+  ["00:01.015", "00:01.02"],
+  ["00:01.999", "00:02.00"],
+  ["00:59.995", "01:00.00"]
+]) {
+  for (const timescale of [1000, 90000]) {
+    it(`rounds WebVTT ${start} to LRC ${expected} at timescale ${timescale}`, () => {
+      const doc = parseSubtitleDocument(new TextEncoder().encode(
+        `WEBVTT\n\n${start} --> 01:01.000\nhello\n\n`
+      ), "webvtt");
+      const track = doc.tracks[0]!;
+      const scaled = { ...doc, tracks: [{ ...track, timescale,
+        samples: track.samples.map(sample => ({ ...sample, pts: sample.pts * timescale / track.timescale })) }] };
+      const output = new TextDecoder().decode(lrcAst().serialize(scaled));
+      assert.deepEqual(output.split("\n").filter(line => line.endsWith("hello")), [`[${expected}]hello`]);
+    });
+  }
+}

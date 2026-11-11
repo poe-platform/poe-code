@@ -57,7 +57,8 @@ export function lrcAst(): MediaAstPlugin {
       }
       lines.push("\n");
       for (const sample of track?.samples ?? []) {
-        const time = Math.round(sample.pts / track!.timescale * 100);
+        // Scale the integer timestamp before division to preserve half-centisecond ties.
+        const time = Math.round(sample.pts * 100 / track!.timescale);
         const minutes = String(Math.floor(time / 6000)).padStart(2, "0");
         const seconds = String(Math.floor(time / 100) % 60).padStart(2, "0");
         const fraction = String(time % 100).padStart(2, "0");

@@ -1640,7 +1640,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   fmt: string,
   meta: ImageMetadata & { magickUnits?: MagickState["units"] } & Pick<RgbaImage, "readMask" | "writeMask" | "region" | "gravity"> & Pick<StoredRgbaImage, "storedWriteMask">,
   getImage: () => RgbaImage,
-  context: MagickFormatContext & { analysis?: { warnings: string; errors?: string; boundsWarning?: boolean; unknownPropertyWarning?: boolean }; optionProperties?: Record<string, string> | undefined; fxStack?: readonly RgbaImage[] } = {},
+  context: MagickFormatContext & { analysis?: { warnings: string; errors?: string; readError?: boolean; boundsWarning?: boolean; unknownPropertyWarning?: boolean }; optionProperties?: Record<string, string> | undefined; fxStack?: readonly RgbaImage[] } = {},
   resolvePixels?: (property:string)=>Generator<Step,string,void>
 ): Generator<void|Step, string, void> {
   const filePath = context.filePath ?? "";
@@ -1827,6 +1827,8 @@ function* formatMagickPropertyStringSteps<Step=never>(
         pixels ??= yield* magickPixelPropertiesSteps(img, undefined, statistics, false, undefined, context.channelSelection, context.precision);
         parts.push(pixels[key]!);
       } else if (key.startsWith("fx:") || key.startsWith("pixel:") || key.startsWith("hex:")) {
+        // Native FX properties stay empty after an identify read exception.
+        if (context.analysis?.readError) continue;
         try {
           // Expand only bracket properties from the expression's source. FX uses
           // percent for remainder, and substituted values must stay literal.
@@ -1963,7 +1965,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
  return formatRgbPixel(channels, context.precision);
 }
 
-async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext & { analysis?: { warnings: string; errors?: string; boundsWarning?: boolean; unknownPropertyWarning?: boolean }; optionProperties?: Record<string, string> | undefined },getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal,stack?:StoredImageStack):Promise<string>{
+async function formatRetainedIdentify(format:string,metadata:ImageMetadata,context:MagickFormatContext & { analysis?: { warnings: string; errors?: string; readError?: boolean; boundsWarning?: boolean; unknownPropertyWarning?: boolean }; optionProperties?: Record<string, string> | undefined },getRaster:()=>Promise<IdentifyRaster>,signal?:AbortSignal,stack?:StoredImageStack):Promise<string>{
  let raster:IdentifyRaster|undefined,properties:Record<string,string>|undefined,hull:Record<string,string>|undefined;
  const statistics:Record<string,number>={};
  function* resolve(property:string):Generator<IdentifyStep,string,void>{
@@ -7889,7 +7891,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         }
     };
     let exitCode = 0;
-    const analysis = { warnings: "", errors: "" };
+    const analysis = { warnings: "", errors: "", readError: false };
     for (let targetIndex = 0; targetIndex < targets.length; targetIndex++) {
         const target = targets[targetIndex]!;
         const { customFormat, channelSelection, density, readState } = target;
@@ -7931,6 +7933,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                     const bytes = baseInPath === "-" ? stdinBytes : files.get(baseInPath);
                     if (!bytes && !inspection) {
                         errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
+                        analysis.readError = true;
                         exitCode = 1;
                     }
                     else {
@@ -7941,6 +7944,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
                         let offset = 0, zeroScene = 0;
                         for (const page of selectedInputPages(parsed.pageSpec, metadata.pages ?? 1, index => {
                             errParts.push(`identify: invalid image index ${index} '${inPath}'\n`);
+                            analysis.readError = true;
                             exitCode = 1;
                         }, metadata.format)) {
                             yield;
@@ -7954,6 +7958,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             }
             catch (err) {
                 errParts.push(`identify: improper image header '${inPath}': ${(err as Error).message}\n`);
+                analysis.readError = true;
                 exitCode = 1;
                 yield* flush();
                 continue;
@@ -7972,6 +7977,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         }
         catch (err) {
             errParts.push(`identify: improper image header '${inPath}': ${(err as Error).message}\n`);
+            analysis.readError = true;
             exitCode = 1;
             yield* flush();
             continue;
@@ -7987,6 +7993,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         const byteLength = bytes?.byteLength;
         if (!bytes&&!inspected&&!inlineImage) {
             errParts.push(`identify: unable to open image '${inPath}': No such file or directory\n`);
+            analysis.readError = true;
             exitCode = 1;
             yield* flush();
             continue;
@@ -8108,6 +8115,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         }
         catch (err) {
             errParts.push(`identify: improper image header '${inPath}': ${(err as Error).message}\n`);
+            analysis.readError = true;
             exitCode = 1;
         }
         yield* flush();

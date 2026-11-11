@@ -70,7 +70,8 @@ export function* rotationalBlurPixelSteps(image: Pick<RgbaImage, "width" | "heig
                         // Native gray is half the quantum range; round only the final blurred pixel.
                         const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 127.5 : 0;
                         const samples = (virtualPixel === "background" || virtualPixel?.endsWith("-tile")) ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
-                        pixel = [...samples.map(value => value * 257), 0];
+                        // Native constant virtual pixels set CMYK black ink to the same gray quantum.
+                        pixel = [...samples.map(value => value * 257), gray * 257];
                     }
                 }
                 pixel ??= yield* readSamples((y * width + x) * 4, 4);

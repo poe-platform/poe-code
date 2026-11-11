@@ -55,3 +55,32 @@ it("keeps both input images readable without inverse Fourier", async () => {
     expect(await runMagickCli(["a.ppm", "b.ppm", "-format", "%z:%[fx:r];", "info:"], { filesystem: fs, cwd: "/" }))
         .toEqual({ exitCode: 0, stdout: "8:0.258824;8:0.0666667;", stderr: "" });
 });
+
+for (const mode of ["command", "retained", "buffered", "sync"] as const) {
+    for (const operator of ["-ift", "+ift"]) {
+        it.each([
+            { inputs: [], expected: "" },
+            { inputs: ["xc:blue"], expected: "0000ff" },
+            { inputs: ["xc:blue", "xc:white"], expected: "0000ffffffff" },
+        ])(`${mode}: ${operator} preserves trailing images $inputs`, async ({ inputs, expected }) => {
+            const argv = ["xc:red", "xc:lime", ...inputs, operator, "+append", "-depth", "8", "rgb:-"];
+            const fs = new MemoryFileSystem();
+            const files = new Map<string, Uint8Array>();
+            const args = createCommandArguments(argv);
+            const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
+            const result = mode === "command" ? { ...await createMagickCommand().execute({
+                command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
+                signal: new AbortController().signal, stdin: (async function* () {})(),
+                stdout: { async write(bytes) { stdout.push(bytes); } },
+                stderr: { async write(bytes) { stderr.push(bytes); } }
+            }), stdoutBytes: Buffer.concat(stdout), stderr: Buffer.concat(stderr).toString() }
+                : mode === "sync" ? runMagickCliSync(argv, files)
+                : await runMagickCli(argv, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+            expect.soft(result.exitCode).toBe(inputs.length ? 0 : 1);
+            expect.soft(Buffer.from(result.stdoutBytes ?? []).toString("hex")).toBe(expected);
+            expect.soft(result.stderr).toContain("delegate library support not built-in `red' (FFTW)");
+            if (inputs.length) expect.soft(result.stderr).not.toContain("no images");
+            else expect.soft(result.stderr).toContain("no images found for operation '+append'");
+        });
+    }
+}

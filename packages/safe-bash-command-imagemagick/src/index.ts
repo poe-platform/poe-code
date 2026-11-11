@@ -13149,9 +13149,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-ift" || t === "+ift") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             if (stack.length < 2) throw new Error(`image sequence is required '${t}'`);
-            // Fourier delegates are unavailable; native replaces the list with no images.
+            // Fourier delegates are unavailable; native consumes only the first pair.
             analysis.warnings += `magick: delegate library support not built-in \`${(stack[0] as MagickImage)[magickInput]?.filePath ?? ""}' (FFTW)\n`;
-            stack = [];
+            stack = stack.slice(2);
         }
         else if (t === "-complex") {
             const argument = tokens[++i], image = stack[0];
@@ -15328,12 +15328,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (token === "-ift" || token === "+ift")) {
-            stackStep(async (stack, backend) => {
+            stackStep(async (stack) => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 if (stack.length < 2) throw new Error(`image sequence is required '${token}'`);
                 const image = (await stack.get(0))!;
                 analysis.warnings += `magick: delegate library support not built-in \`${image[magickInput]?.filePath ?? ""}' (FFTW)\n`;
-                return new StoredImageStack(backend.storage, signal, stack);
+                await stack.remove([0, 1]);
+                return stack;
             });
             continue;
         }

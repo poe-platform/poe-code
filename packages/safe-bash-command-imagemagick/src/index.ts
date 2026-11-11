@@ -7617,6 +7617,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         // Native WebP frames have scene zero; keep the decode index for frame timing.
         const source: MagickFormatContext = {
             filePath: cleanToken, byteLen: rawBytes.byteLength,
+            ...(img.format === "farbfeld" ? { inputFormat: lower.startsWith("farbfeld:") ? "FARBFELD" : "FF" } : {}),
             originalWidth: inputMeta?.width ?? img.width, originalHeight: inputMeta?.height ?? img.height, sceneCount: totalPages, sceneIdx: pageIdx, ...(img.format === "webp" ? { outputScene: 0 } : {})
         };
         img = Object.assign(img, { [magickInput]: source });
@@ -18720,6 +18721,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
 
  }
  async function finish(image:StoredRgbaImage):Promise<StoredRgbaImage>{
+  if (image.format === "farbfeld") image = { ...image, [magickInput]: { ...image[magickInput], inputFormat: lower.startsWith("farbfeld:") ? "FARBFELD" : "FF" } };
   if (readOptions.inputFormat !== undefined) image = { ...image, [magickInput]: { ...image[magickInput], inputFormat: readOptions.inputFormat } };
   if (image.format === "webp") image = { ...image, [magickInput]: { ...image[magickInput], outputScene: 0 } };
   // Match buffered EXR input: the implicit opaque alpha is an active channel.

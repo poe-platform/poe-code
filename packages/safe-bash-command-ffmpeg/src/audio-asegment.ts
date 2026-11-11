@@ -16,16 +16,32 @@ export function parseAudioSegment(filter: string): string[] {
   const values = options.get(timestamps ? "timestamps" : "samples")!.split("|");
   const points: number[] = [];
   let previous = 0;
+  let previousSample = 0n;
   for (const value of values) {
     const relative = value.startsWith("+");
     const raw = relative ? value.slice(1) : value;
-    // Native sample counts consume a decimal integer prefix, not an expression.
-    const point = timestamps ? parseHlsDuration(raw) : Number.parseInt(raw, 10);
-    const absolute = point + (relative ? previous : 0);
-    if (!raw || !Number.isFinite(absolute) || (!timestamps && !Number.isSafeInteger(absolute))) {
+    let absolute: number;
+    if (timestamps) {
+      const point = parseHlsDuration(raw);
+      absolute = point + (relative ? previous : 0);
+      previous = point;
+    } else {
+      // Native sample counts consume a decimal integer prefix, not an expression.
+      const integer = raw.trimStart().match(/^[+-]?\d+/)?.[0];
+      if (!integer) throw new Error("asegment: invalid split point");
+      const point = BigInt(integer);
+      const sample = point + (relative ? previousSample : 0n);
+      if (point < -9223372036854775808n || point > 9223372036854775807n ||
+          sample < -9223372036854775808n || sample > 9223372036854775807n) {
+        throw new Error("asegment: invalid split point");
+      }
+      previousSample = point;
+      // The bounded in-memory input cannot reach an unsafe integer index.
+      absolute = Number(sample > BigInt(Number.MAX_SAFE_INTEGER) ? BigInt(Number.MAX_SAFE_INTEGER) : sample);
+    }
+    if (!raw || !Number.isFinite(absolute)) {
       throw new Error("asegment: invalid split point");
     }
-    previous = point;
     // Once a segment ends, subsequent points cannot rewind the input.
     points.push(Math.max(points.at(-1) ?? (timestamps ? -Infinity : 0), absolute));
   }

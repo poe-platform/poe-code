@@ -1,10 +1,12 @@
-import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
+import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import { convolvePixelSteps, type ConvolveRequest } from "./convolve-kernel.js";
+import { virtualPixelIndex } from "./virtual-pixel.js";
+import type { VirtualPixelMethod } from "./warp-kernel.js";
 
 type Image = Pick<RgbaImage, "width" | "height" | "hasAlpha"> & Partial<Pick<RgbaImage, "space" | "hueSamples"> & Pick<StoredRgbaImage, "storedHueSamples">>;
 
 /** Edge detection and auto-leveling, retaining HDRI values between operations. */
-export function* adaptiveEdgePixelSteps(image: Image, radius: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* adaptiveEdgePixelSteps(image: Image, radius: number, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const half = radius > 0 ? Math.ceil(radius) : 2;
     if (!Number.isFinite(half) || half >= 5000) throw new Error("Adaptive filter radius exceeds 5000");
     const width = half * 2 + 1, weights = Array<number>(width * width).fill(-1);
@@ -12,7 +14,7 @@ export function* adaptiveEdgePixelSteps(image: Image, radius: number): Generator
     let low = Infinity, high = -Infinity;
     // Recompute the convolution after finding its range, without retaining a whole image.
     for (let pass = 0; pass < 2; pass++) {
-        const steps = convolvePixelSteps(image, { weights, width, height: width, x: half, y: half }, 0);
+        const steps = convolvePixelSteps(image, { weights, width, height: width, x: half, y: half }, 0, undefined, undefined, virtualPixel, background);
         let next = steps.next();
         while (!next.done) {
             const request = next.value;
@@ -46,7 +48,7 @@ export function* adaptiveEdgePixelSteps(image: Image, radius: number): Generator
 }
 
 /** Select a blur or sharpening radius from the leveled, blurred edge intensity at each pixel. */
-export function* adaptivePixelSteps(image: Image & Partial<Pick<RgbaImage, "evaluateSamples">> & Partial<Pick<StoredRgbaImage, "storedEvaluateSamples">>, geometry: { width?: number; height?: number }, sharpen: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* adaptivePixelSteps(image: Image & Partial<Pick<RgbaImage, "evaluateSamples">> & Partial<Pick<StoredRgbaImage, "storedEvaluateSamples">>, geometry: { width?: number; height?: number }, sharpen: boolean, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, radius = geometry.width ?? 0, sigma = geometry.height ?? 1;
     let half = radius > 0 ? Math.ceil(radius) : 1;
     if (radius <= 0) {
@@ -76,8 +78,8 @@ export function* adaptivePixelSteps(image: Image & Partial<Pick<RgbaImage, "eval
         kernels.push(kernel);
     }
     let low = Infinity, high = -Infinity;
-    for (let position = 0; position < width * height * 4; position += 4096) {
-        const length = Math.min(4096, width * height * 4 - position);
+    for (let position = 0; position < width * height * 4; position += 2048) {
+        const length = Math.min(2048, width * height * 4 - position);
         const bytes = yield { kind: "read", image: 1, evaluate: true, position, length };
         if (!bytes || bytes.length !== length * 8) throw new Error("Truncated adaptive filter edges");
         const samples = new Float64Array(bytes.slice().buffer);
@@ -87,22 +89,31 @@ export function* adaptivePixelSteps(image: Image & Partial<Pick<RgbaImage, "eval
     }
     const hue = image.space !== "cmyk" && (!!image.hueSamples || image.storedHueSamples !== undefined);
     const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined;
+    const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 127.5 : 0;
+    const fill = virtualPixel === "background" || virtualPixel.endsWith("-tile")
+        ? [background?.r ?? 255, background?.g ?? 255, background?.b ?? 255, background?.a ?? 255]
+        : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
+    const blocks = new Map<number, Float64Array>();
+    function* sample(index: number): Generator<ConvolveRequest, ArrayLike<number>, Uint8Array | undefined> {
+        if (index < 0) return fill;
+        const start = Math.floor(index / 512) * 512;
+        let samples = blocks.get(start);
+        if (!samples) {
+            const length = Math.min(512, width * height - start) * 4;
+            const bytes = yield { kind: "read", hue, evaluate: !hue && evaluate, highDepth: !hue && !evaluate, position: start * 4, length };
+            if (!bytes || bytes.length !== length * (hue || evaluate ? 8 : 2)) throw new Error("Truncated adaptive filter pixels");
+            samples = hue ? new Float64Array(bytes.slice().buffer).map(value => value * 255) : evaluate ? new Float64Array(bytes.slice().buffer) : Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257);
+            if (blocks.size >= 16) blocks.delete(blocks.keys().next().value!);
+            blocks.set(start, samples);
+        }
+        return samples.subarray((index - start) * 4, (index - start + 1) * 4);
+    }
     for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 256) {
         yield;
         const count = Math.min(256, width - left), position = (y * width + left) * 4;
         const edgeBytes = yield { kind: "read", image: 1, evaluate: true, position, length: count * 4 };
         if (!edgeBytes || edgeBytes.length !== count * 32) throw new Error("Truncated adaptive filter edges");
         const edges = new Float64Array(edgeBytes.slice().buffer);
-        const rows = new Map<number, Float64Array>();
-        const first = Math.max(0, left - half), last = Math.min(width - 1, left + count - 1 + half);
-        for (let ky = -half; ky <= half; ky++) {
-            const sy = Math.max(0, Math.min(height - 1, y + ky));
-            if (rows.has(sy)) continue;
-            const length = (last - first + 1) * 4;
-            const bytes = yield { kind: "read", hue, evaluate: !hue && evaluate, highDepth: !hue && !evaluate, position: (sy * width + first) * 4, length };
-            if (!bytes || bytes.length !== length * (hue || evaluate ? 8 : 2)) throw new Error("Truncated adaptive filter pixels");
-            rows.set(sy, hue ? new Float64Array(bytes.slice().buffer).map(value => value * 255) : evaluate ? new Float64Array(bytes.slice().buffer) : Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257));
-        }
         const output = new Float64Array(count * 4);
         for (let x = 0; x < count; x++) {
             yield;
@@ -115,12 +126,11 @@ export function* adaptivePixelSteps(image: Image & Partial<Pick<RgbaImage, "eval
             let gamma = 0, alphaGamma = 0, k = 0;
             for (let ky = -h; ky <= h; ky++) {
                 yield;
-                const row = rows.get(Math.max(0, Math.min(height - 1, y + ky)))!;
                 for (let kx = -h; kx <= h; kx++) {
-                    const offset = (Math.max(0, Math.min(width - 1, left + x + kx)) - first) * 4;
-                    const weight = kernel[k++]!, alpha = image.hasAlpha ? row[offset + 3]! / 255 : 1;
-                    for (let c = 0; c < 3; c++) sums[c]! += weight * alpha * row[offset + c]!;
-                    sums[3]! += weight * row[offset + 3]!;
+                    const pixel = yield* sample(virtualPixelIndex(left + x + kx, y + ky, width, height, virtualPixel));
+                    const weight = kernel[k++]!, alpha = image.hasAlpha ? pixel[3]! / 255 : 1;
+                    for (let c = 0; c < 3; c++) sums[c]! += weight * alpha * pixel[c]!;
+                    sums[3]! += weight * pixel[3]!;
                     gamma += weight; alphaGamma += weight * alpha;
                 }
             }

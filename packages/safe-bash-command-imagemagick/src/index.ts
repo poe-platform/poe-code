@@ -76,7 +76,7 @@ import { meanShiftPixelSteps, parseMeanShiftGeometry } from "./mean-shift-kernel
 import { kmeansPixelSteps, parseKmeansGeometry } from "./kmeans.js";
 import { motionBlurPixelSteps } from "./motion-blur-kernel.js";
 import { rotationalBlurPixelSteps } from "./rotational-blur-kernel.js";
-import { bilateralBlurPixelSteps } from "./bilateral-blur-kernel.js";
+import { bilateralBlurPixelSteps, parseBilateralGeometry } from "./bilateral-blur-kernel.js";
 import { paintPixelSteps } from "./paint-kernel.js";
 import { kuwaharaPixelSteps } from "./kuwahara-kernel.js";
 import { blurPixelSteps, parseUnsharpGeometry } from "./blur-kernel.js";
@@ -2848,7 +2848,7 @@ function normalizeMagickWarpGeometry(raw: string): string {
 }
 
 function validateMagickTransformGeometry(raw: string, option: string): void {
-    let value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal", "-density", "-delay", "-loop", "-blue-shift", "-sharpen"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
+    let value = (["-wave", "-swirl", "-implode", "-spread", "-charcoal", "-density", "-delay", "-loop", "-blue-shift", "-sharpen", "-bilateral-blur"].includes(option) ? raw.replaceAll("/", "x").replaceAll(",", "x") : raw).trim();
     if (["-swirl", "-implode", "-wave", "-spread"].includes(option)) value = value.replaceAll("(", "").replaceAll(")", "");
     if (option === "-roll") value = value.replaceAll(" ", "").replaceAll("(", "").replaceAll(")", "");
     const forcedRegionResize = (option === "-liquid-rescale" || option === "-adaptive-resize") && value.includes("!");
@@ -14674,7 +14674,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
-                const geometry = parseMagickGeometry(expanded);
+                const geometry = parseBilateralGeometry(expanded);
                 return yield* applyMagickRasterSteps(im, bilateralBlurPixelSteps(im, geometry, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.intensity), signal, { ...im, hasAlpha: im.hasAlpha || state.virtualPixel === "transparent" || (state.virtualPixel === "background" || state.virtualPixel?.endsWith("-tile") === true) && state.background.a < 255 });
             });
         }
@@ -18802,7 +18802,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 validateMagickTransformGeometry(expanded, token);
-                const geometry = parseMagickGeometry(expanded);
+                const geometry = parseBilateralGeometry(expanded);
                 return transformStoredMagickRaster(image, backend, bilateralBlurPixelSteps(image, geometry, background, virtualPixel, channels, intensity), signal, { ...image, hasAlpha: image.hasAlpha || virtualPixel === "transparent" || (virtualPixel === "background" || virtualPixel?.endsWith("-tile") === true) && background.a < 255 });
             });
         } else if (!operandsOnly && token === "-paint") {

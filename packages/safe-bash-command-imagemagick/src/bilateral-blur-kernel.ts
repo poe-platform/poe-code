@@ -4,6 +4,30 @@ import type { VirtualPixelMethod } from "./warp-kernel.js";
 import { magickIntensity } from "./intensity.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 
+export function parseBilateralGeometry(raw: string): { width?: number; height?: number; x: number; y: number; hasOffset: boolean; hasYOffset: boolean } {
+    const value = [...raw].filter(character => character.trim() !== "" && !"()!%<>^@#".includes(character)).join("");
+    const parts: string[] = [];
+    let start = 0;
+    for (let i = 0; i < value.length; i++) {
+        const separator = ",/xX".includes(value[i]!);
+        const offset = (value[i] === "+" || value[i] === "-") && value[i - 1]?.toLowerCase() !== "e";
+        if (!separator && !offset) continue;
+        if (offset && i === start && parts.length >= 2) continue;
+        parts.push(value.slice(start, i));
+        // Only the first separator may be x; a later x terminates native parsing.
+        if ((value[i] === "x" || value[i] === "X") && parts.length > 1) {
+            start = value.length;
+            break;
+        }
+        if (offset && parts.length === 1) parts.push("");
+        start = separator ? i + 1 : i;
+    }
+    if (start < value.length) parts.push(value.slice(start));
+    const [width, height, x, y] = parts.map(part => part === "" ? undefined : Number(part));
+    return { ...(width !== undefined ? { width } : {}), ...(height !== undefined ? { height } : {}),
+        x: x ?? 0, y: y ?? 0, hasOffset: x !== undefined, hasYOffset: y !== undefined };
+}
+
 /** Native bilateral weights use byte-rounded intensity, not RGB distance. */
 export function* bilateralBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples" | "storedEvaluateSamples">> & { magickColorspace?: string | undefined }, geometry: { width?: number; height?: number; x: number; y: number; hasOffset: boolean; hasYOffset: boolean }, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, intensity = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const w = geometry.width ?? 0, h = geometry.height ?? w;

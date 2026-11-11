@@ -28,6 +28,29 @@ for (const graph of [false, true]) {
   }
 }
 
+// FFmpeg 7.0.2: 16 kHz PCM16 impulse (32767 followed by 31 zeros), mode=listen:dftype=SHAPE.
+for (const [shapes, expected] of [
+  [["bandpass", "0", "0.5", ""], [5263, 8162, 3825, 392, -1988, -3350, -3846, -3691, -3115, -2325, -1492, -736, -129, 300, 553, 653, 638, 547, 414, 272, 140, 33, -44, -91, -111, -110, -96, -74, -49, -26, -8, 6]],
+  [["lowpass", "1"], [1047, 3717, 6102, 6940, 6623, 5561, 4130, 2630, 1276, 194, -565, -1008, -1180, -1146, -977, -737, -480, -244, -53, 84, 166, 200, 198, 171, 131, 87, 46, 12, -12, -27, -34, -34]],
+  [["highpass", "2", "1.5", "2.5"], [-6310, -11880, -9927, -7332, -4634, -2211, -283, 1061, 1838, 2131, 2057, 1744, 1309, 846, 424, 83, -159, -303, -362, -356, -306, -233, -154, -81, -20, 23, 50, 61, 61, 54, 41, 28]],
+  [["peak", "3"], [25411, -15597, -16028, -14273, -11257, -7772, -4413, -1569, 562, 1937, 2622, 2752, 2489, 1992, 1400, 820, 321, -59, -309, -439, -472, -433, -352, -252, -152, -64, 3, 49, 73, 81, 75, 62]],
+] as const) {
+  for (const shape of shapes) {
+    for (const graph of [false, true]) {
+      it(`matches native detector shape ${shape || "default"} (${graph ? "graph" : "simple"})`, async () => {
+        const impulse = new Float64Array(32);
+        impulse[0] = 32767 / 32768;
+        const { fs, result, stderr } = await run(`adynamicequalizer=mode=listen${shape ? `:dftype=${shape}` : ""}`, graph,
+          encodeWav({ sampleRate: 16000, channels: [impulse] }));
+        assert.equal(result.exitCode, 0, stderr);
+        const audio = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+        assert.equal(audio.sampleRate, 16000);
+        assert.deepEqual(Array.from(audio.channelData[0]!, sample => sample * 32768), expected);
+      });
+    }
+  }
+}
+
 // Compare decoded PCM so WAV container metadata cannot hide detector differences.
 for (const graph of [false, true]) {
   for (const [expression, literal] of [
@@ -85,7 +108,8 @@ for (const options of ["", "mode=cutbelow", "mode=0", "mode=invalid", "mode=list
   "mode=listen:dfrequency=0b1000", "mode=listen:dfrequency=0o10",
   "mode=listen:dfrequency=1/2", "mode=listen:dfrequency=1M+1", "mode=listen:dfrequency=1/0",
   "mode=listen:dqfactor=0", "mode=listen:dqfactor=1001", "mode=listen:dqfactor=0b10",
-  "mode=listen:dqfactor=1/10000", "mode=listen:dqfactor=1k+1", "mode=listen:dqfactor=0/0", "mode=listen:unknown=1", "mode=listen:dftype=lowpass",
+  "mode=listen:dqfactor=1/10000", "mode=listen:dqfactor=1k+1", "mode=listen:dqfactor=0/0", "mode=listen:unknown=1", "mode=listen:dftype=invalid", "mode=listen:dftype=-1", "mode=listen:dftype=4",
+  "mode=listen:dftype=NaN", "mode=listen:dftype=", "mode=listen:dftype=1/0",
 "-1:mode=listen", "101:mode=listen", "0:1:mode=listen", "0:1000:0:mode=listen",
   "0:1000:1:1000:1:0:mode=listen", "0::mode=listen",
   "0:1000:1:1000:1:20:200:1:0:50:cutbelow", "0:1000:1:1000:1:20:200:1:0:50:listen:extra"]) {

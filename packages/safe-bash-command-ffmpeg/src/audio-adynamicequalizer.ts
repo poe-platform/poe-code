@@ -15,12 +15,19 @@ export async function listenDynamicEqualizer(
   const names = [...Object.keys(ranges), "mode"];
   let positionalIndex = 0;
   let mode = 0;
+  let dftype = 0;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const option of argument ? argument.split(":") : []) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? names[positionalIndex++] : option.slice(0, separator).trim();
     const value = option.slice(separator + 1).trim();
-    if (key === "mode") {
+    if (key === "dftype") {
+      const number = parseFilterExpression(value, "adynamicequalizer", { bandpass: 0, lowpass: 1, highpass: 2, peak: 3 });
+      if (!Number.isFinite(number) || number < 0 || number > 3) {
+        throw new Error("adynamicequalizer: invalid dftype");
+      }
+      dftype = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
+    } else if (key === "mode") {
       mode = parseFilterExpression(value, "adynamicequalizer", { listen: -1 });
     } else if (key && Object.hasOwn(ranges, key)) {
       const number = parseFilterExpression(value, "adynamicequalizer", {});
@@ -38,7 +45,7 @@ export async function listenDynamicEqualizer(
     throw new Error("adynamicequalizer: only mode=listen is supported");
   }
 
-  // The native detector is a state-variable band-pass filter with float
+  // The native detector is a state-variable filter with float
   // coefficients and state on the PCM input path. Round each float operation.
   const f = Math.fround;
   const frequency = f(Math.min(options.dfrequency, sampleRate * 0.5));
@@ -47,6 +54,10 @@ export async function listenDynamicEqualizer(
   const a0 = f(1 / f(1 + f(g * f(g + k))));
   const a1 = f(g * a0);
   const a2 = f(g * a1);
+  // Native highpass omits the direct input; peak mixes it with -k*band - 2*low.
+  const inputMix = dftype === 3 ? 1 : 0;
+  const bandMix = dftype === 0 ? k : dftype === 1 ? 0 : -k;
+  const lowMix = dftype === 0 ? 0 : dftype === 1 ? 1 : dftype === 2 ? -1 : -2;
   budget.allocateMemory(channels.reduce((sum, channel) => sum + channel.length * 4, 0));
   const output = channels.map(channel => new Float32Array(channel.length));
   let work = 0;
@@ -64,7 +75,7 @@ export async function listenDynamicEqualizer(
       const low = f(f(state1 + f(a1 * state0)) + f(a2 * delta));
       state0 = f(f(2 * band) - state0);
       state1 = f(f(2 * low) - state1);
-      output[c]![i] = f(k * band);
+      output[c]![i] = f(f(f(inputMix * f(channel[i]!)) + f(bandMix * band)) + f(lowMix * low));
     }
   }
   return output;

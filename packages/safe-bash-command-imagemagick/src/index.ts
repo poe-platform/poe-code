@@ -2661,6 +2661,17 @@ function parseMagickBorderGeometry(raw: string): MagickGeometry {
     return geometry.height === undefined && raw.toLowerCase().includes("x") ? { ...geometry, height: 0 } : geometry;
 }
 
+function resolveMagickBorderDimensions(geometry: MagickGeometry, image: Pick<RgbaImage, "width" | "height">) {
+    // Native copies the unchanged height to both border axes for scalar
+    // percentages with offsets, rather than applying the percentage.
+    if (geometry.isPercent && geometry.hasOffset && geometry.height === undefined) {
+        return { width: image.height, height: image.height };
+    }
+    const width = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? 0));
+    const height = Math.max(0, Math.round(geometry.isPercent ? image.height * (geometry.percentY ?? 100) / 100 : geometry.height ?? width));
+    return { width, height };
+}
+
 function parseMagickRollGeometry(raw: string): MagickGeometry {
     raw = raw.replaceAll(" ", "").replaceAll("(", "").replaceAll(")", "");
     // Roll ignores geometry modifiers wherever they occur between offsets.
@@ -13306,8 +13317,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             let sceneIdx = 0;
             stack = (yield* mapMagickImagesSteps(stack, function* (im) {
                 const g = geometry ?? parseMagickBorderGeometry(yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties }));
-                const bw = Math.max(0, Math.round(g.isPercent ? im.width * (g.percentX ?? 100) / 100 : g.width ?? 0));
-                const bh = Math.max(0, Math.round(g.isPercent ? im.height * (g.percentY ?? 100) / 100 : g.height ?? bw));
+                const { width: bw, height: bh } = resolveMagickBorderDimensions(g, im);
                 const width = im.width + bw * 2, height = im.height + bh * 2;
                 const readMask = im.readMask ? yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
                 // Native decoration creates a zero-valued write-mask channel.
@@ -17644,8 +17654,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const source = image;
                 const geometry = parsed ?? parseMagickBorderGeometry(await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image: source, storage: backend.storage }), signal, images));
-                const left = Math.max(0, Math.round(geometry.isPercent ? image.width * (geometry.percentX ?? 100) / 100 : geometry.width ?? 0));
-                const top = Math.max(0, Math.round(geometry.isPercent ? image.height * (geometry.percentY ?? 100) / 100 : geometry.height ?? left));
+                const { width: left, height: top } = resolveMagickBorderDimensions(geometry, image);
                 const width = image.width + left * 2, height = image.height + top * 2;
                 const readMask = image.readMask ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
                 // Native decoration creates a zero-valued write-mask channel.

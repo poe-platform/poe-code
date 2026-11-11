@@ -2,13 +2,18 @@ import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
-import { createMagickCommand, runMagickCli } from "./index.js";
+import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js";
 
-for (const mode of ["map", "retained", "command"] as const) {
+for (const mode of ["map", "retained", "command", "sync"] as const) {
     for (const operation of ["-border", "-shave"]) {
         it.each([
             ["20x25%", 2, 2], ["20x0%", 2, 0], ["0x25%", 0, 2], ["2x2", 2, 2],
             ["20%", 2, 2], ["15x19%", 2, 2],
+            ...(operation === "-border" ? [
+                ["1%+1+1", 8, 8], ["1%+0+0", 8, 8], ["2%+1+1", 8, 8],
+                ["200%+1+1", 8, 8], ["1%+1", 8, 8], ["1+1+1%", 8, 8],
+                ["1%", 0, 0], ["1x1%+1+1", 0, 0],
+            ] as const : []),
         ] as const)(`${operation} %s resolves each axis (${mode})`, async (geometry, horizontal, vertical) => {
             const pixels = Uint8Array.from({ length: 320 }, (_, i) => i % 4 === 3 ? 255 : Math.floor(i / 4) + 1);
             const bytes = await sharp(pixels, { raw: { width: 10, height: 8, channels: 4 } }).png().toBuffer();
@@ -21,9 +26,9 @@ for (const mode of ["map", "retained", "command"] as const) {
                 command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,
                 signal: new AbortController().signal, stdin: (async function* () {})(),
                 stdout: { async write() {} }, stderr: { async write(chunk) { stderr += new TextDecoder().decode(chunk); } }
-            }) : await runMagickCli(argv, mode === "map" ? files : { filesystem: fs, cwd: "/" }).then(result => { stderr = result.stderr; return result; });
+            }) : mode === "sync" ? runMagickCliSync(argv, files) : await runMagickCli(argv, mode === "map" ? files : { filesystem: fs, cwd: "/" }).then(result => { stderr = result.stderr; return result; });
             expect({ exitCode: result.exitCode, stderr }).toEqual({ exitCode: 0, stderr: "" });
-            const output = decodeImage(mode === "map" ? files.get("/output.png")! : await fs.readFile("/output.png"));
+            const output = decodeImage((mode === "map" || mode === "sync") ? files.get("/output.png")! : await fs.readFile("/output.png"));
             const direction = operation === "-border" ? 1 : -1;
             const width = 10 + direction * horizontal * 2, height = 8 + direction * vertical * 2;
             expect([output.width, output.height]).toEqual([width, height]);

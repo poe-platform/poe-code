@@ -4032,6 +4032,46 @@ async function applyVideoFilterChain(
         return { ...frame, width, height, data };
       }, signal);
       pixelFormat = diagnostics.pixelFormat = "gray";
+    } else if (name === "colorchannelmixer") {
+      const keys = ["rr", "rg", "rb", "ra", "gr", "gg", "gb", "ga", "br", "bg", "bb", "ba", "ar", "ag", "ab", "aa"];
+      const coefficients: number[] = keys.map((_, index) => index % 5 === 0 ? 1 : 0);
+      for (const [index, option] of (argStr ? positional : []).entries()) {
+        const separator = option.indexOf("=");
+        const key = separator < 0 ? keys[index] : option.slice(0, separator).trim();
+        const channel = key === undefined ? -1 : keys.indexOf(key);
+        if (channel < 0) throw new Error(`colorchannelmixer: unsupported option ${key ?? option}`);
+        const value = parseFilterExpression(separator < 0 ? option : option.slice(separator + 1), "colorchannelmixer", {
+          default: channel % 5 === 0 ? 1 : 0, min: -2, max: 2
+        });
+        if (!Number.isFinite(value) || value < -2 || value > 2) {
+          throw new RangeError(`colorchannelmixer: ${key} must be between -2 and 2`);
+        }
+        coefficients[channel] = value;
+      }
+      budget.allocateMemory(16 * 256 * Int16Array.BYTES_PER_ELEMENT);
+      const contributions = new Int16Array(16 * 256);
+      for (let channel = 0; channel < 16; channel++) {
+        for (let value = 0; value < 256; value++) {
+          // Native FFmpeg rounds each contribution to nearest even before summing.
+          contributions[channel * 256 + value] = roundToEven(coefficients[channel]! * value);
+        }
+      }
+      current = await mapWork(current, async frame => {
+        budget.allocateMemory(frame.data.byteLength);
+        const data = new Uint8Array(frame.data.length);
+        for (let offset = 0; offset < data.length; offset += 4) {
+          if (offset % 65536 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          for (let channel = 0; channel < 4; channel++) {
+            const row = channel * 1024;
+            const value = contributions[row + frame.data[offset]!]! +
+              contributions[row + 256 + frame.data[offset + 1]!]! +
+              contributions[row + 512 + frame.data[offset + 2]!]! +
+              contributions[row + 768 + frame.data[offset + 3]!]!;
+            data[offset + channel] = Math.max(0, Math.min(255, value));
+          }
+        }
+        return { ...frame, data };
+      }, signal);
     } else if (name === "hue") {
       if (positional.length !== 1 || Object.keys(named).length !== 1 || named.s === undefined ||
           parseFilterExpression(named.s, "hue saturation", {}) !== 0) {

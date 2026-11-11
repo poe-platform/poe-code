@@ -333,7 +333,7 @@ function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly
     const a = round(parseInt(s.slice(13, 17), 16) / 257);
     return { r, g, b, a };
   }
-  const fnMatch = /^(s?rgba?|gr[ae]ya?|cmyka?|lab|cielab)\(\s*([^)]+)\s*\)$/i.exec(s);
+  const fnMatch = /^(s?rgba?|gr[ae]ya?|cmyka?|hwba?|lab|cielab)\(\s*([^)]+)\s*\)$/i.exec(s);
   if (fnMatch) {
     const kind = fnMatch[1]!.toLowerCase();
     const parts = fnMatch[2]!.split(/[\s,]+/).filter(Boolean);
@@ -351,6 +351,23 @@ function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly
       while (!step.done) step = conversion.next();
       const [r, g, b] = step.value.evaluateSamples!.slice(0, 3).map(value => round(Math.max(0, Math.min(255, value))));
       return { r: r!, g: g!, b: b!, a: 255 };
+    }
+    if (kind === "hwb" || kind === "hwba") {
+      const components = parts.map(part => parseFloat(part) * (part.endsWith("%") ? 255 / 100 : 1));
+      const hue = (((components[0] ?? 0) % 360 + 360) % 360) / 60;
+      const white = (components[1] ?? 0) / 255, black = (components[2] ?? 0) / 255;
+      // ImageMagick does not normalize whiteness + blackness above one.
+      const chroma = 1 - white - black, x = chroma * (1 - Math.abs(hue % 2 - 1));
+      const [r, g, b] = hue < 1 ? [chroma, x, 0] : hue < 2 ? [x, chroma, 0]
+        : hue < 3 ? [0, chroma, x] : hue < 4 ? [0, x, chroma]
+        : hue < 5 ? [x, 0, chroma] : [chroma, 0, x];
+      const alpha = kind === "hwba" ? components[3] ?? 1 : 1;
+      return {
+        r: round(Math.max(0, Math.min(255, (r + white) * 255))),
+        g: round(Math.max(0, Math.min(255, (g + white) * 255))),
+        b: round(Math.max(0, Math.min(255, (b + white) * 255))),
+        a: round(Math.max(0, Math.min(255, alpha * 255))),
+      };
     }
     const parseChanByte = (p: string | undefined, def = 0) => {
       if (!p) return def;

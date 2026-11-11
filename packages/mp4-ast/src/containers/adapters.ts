@@ -356,11 +356,12 @@ export function serializeY4m(doc: MediaDocument): Uint8Array {
     }
   }
   const interlace = codec?.fieldOrder === "tt" ? "t" : codec?.fieldOrder === "bb" ? "b" : "p";
-  const range = codec?.colorRange === "pc" ? " XCOLORRANGE=FULL" : codec?.colorRange === "tv" ? " XCOLORRANGE=LIMITED" : "";
   const sourceFormat = frames[0]?.native?.format;
   const preserveNative = sourceFormat !== undefined && [0, 4, 5, 8, 49, 68].includes(sourceFormat) &&
     frames.every(frame => frame.native?.format === sourceFormat && frame.native.rgba === frame.data &&
       frame.native.width === width && frame.native.height === height);
+  const range = preserveNative && sourceFormat === 8 && frames[0]?.native?.fullRange || codec?.colorRange === "pc"
+    ? " XCOLORRANGE=FULL" : codec?.colorRange === "tv" ? " XCOLORRANGE=LIMITED" : "";
   const chroma = preserveNative && sourceFormat === 49 ? "444p16"
     : preserveNative && sourceFormat === 68 ? "444p10"
     : preserveNative && sourceFormat === 8 ? "mono"

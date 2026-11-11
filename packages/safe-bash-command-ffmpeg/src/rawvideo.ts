@@ -63,8 +63,8 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
       rgba[pixel * 4 + 3] = pixelFormat === "ya8" ? data[pixel * 2 + 1]! : 255;
     }
     frames.push({ width, height, data: rgba, offset: index * frameBytes,
-      ...(rgb16 || yuv || gray16 ? { native: { rgba, pixels: data, width, height,
-        format: pixelFormat === "rgb48be" ? 34 : pixelFormat === "rgba64be" ? 104 : gray16 ? (pixelFormat === "gray16le" ? 30 : 29) : pixelFormat === "yuv444p" ? 5 : pixelFormat === "yuv422p" ? 4 : 0, colorspace: 5, fullRange: rgb16 || gray16 ? 1 : 0 } } : {}),
+      ...(rgb16 || yuv || gray16 || gray ? { native: { rgba, pixels: data, width, height,
+        format: pixelFormat === "rgb48be" ? 34 : pixelFormat === "rgba64be" ? 104 : gray ? 8 : gray16 ? (pixelFormat === "gray16le" ? 30 : 29) : pixelFormat === "yuv444p" ? 5 : pixelFormat === "yuv422p" ? 4 : 0, colorspace: 5, fullRange: rgb16 || gray16 || gray ? 1 : 0 } } : {}),
       ptsSeconds: index / timescale,
       durationSeconds: 1 / timescale, keyframe: true, pictureType: 1 });
   }

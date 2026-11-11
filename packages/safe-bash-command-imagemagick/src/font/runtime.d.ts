@@ -6,7 +6,7 @@ interface FontRuntime {
     _font_open(pointer: number, length: number, size: number, xdpi: number, ydpi: number): number;
     _font_metrics(): number;
     _font_glyph(code: number): number;
-    _font_kerning(left: number, right: number): number;
+    _font_kerning(left: number, right: number, unfitted?: number): number;
     _font_close(): void;
 }
 export default function createFontRuntime(): FontRuntime;

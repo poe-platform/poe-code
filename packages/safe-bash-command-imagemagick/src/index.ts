@@ -8,6 +8,7 @@ import { discardDisassociatedAlpha } from "./alpha-state.js";
 import { cropReadMaskSteps, cropStoredReadMask } from "./crop-read-mask.js";
 import { decodeMagickImage as decodeImage } from "./image-raster.js";
 import { renderFontCaption, wrapFontCaption } from "./font/caption.js";
+import { measureFontLabel } from "./font/label.js";
 import { defaultCaptionFont } from "./font/default.js";
 import { polaroidPixels } from "./polaroid-caption.js";
 import { complexPixelSteps, parseComplexOperator } from "./complex.js";
@@ -693,6 +694,7 @@ interface MagickState {
   caption?: string;
   filenameLiteral?: boolean;
   optionProperties?: Record<string, string>;
+  sizeGeometry?: string;
   sizeWidth: number;
   sizeHeight: number;
   captionHeight?: number;
@@ -5509,9 +5511,12 @@ function* createSolidRgbaImageSteps(width: number, height: number, color: RgbaCo
 }
 
 function createFontLabel(text: string, state: MagickState, font: Uint8Array, wrap: boolean, signal?: AbortSignal): RgbaImage {
-    const caption = renderFontCaption(font, text, state.hasSize ? state.sizeWidth : 0, state.pointsize, state.density,
+    const geometry = state.sizeGeometry === undefined ? undefined : parseMagickGeometry(state.sizeGeometry);
+    const label = wrap ? undefined : measureFontLabel(font, text, geometry?.width ? state.sizeWidth : 0, geometry?.height ? state.sizeHeight : 0,
+        state.pointsize, state.density, state.strokeWidth, signal);
+    const caption = renderFontCaption(font, text, label?.width ?? (state.hasSize ? state.sizeWidth : 0), label?.pointsize ?? state.pointsize, state.density,
         state.fill, state.background, state.strokeWidth, signal,
-        { wrap, gravity: state.gravity, ...(state.hasSize ? { height: wrap ? state.captionHeight ?? state.sizeHeight : state.sizeHeight } : {}) });
+        { wrap, gravity: state.gravity, ...(label ? { height: label.height } : state.hasSize ? { height: state.captionHeight ?? state.sizeHeight } : {}) });
     return { width: caption.width, height: caption.height, data: Uint8Array.from(caption.pixels, Math.round),
         data16: Uint16Array.from(caption.pixels, value => Math.round(value * 257)), evaluateSamples: caption.pixels,
         format: "png", channels: 4, depth: "ushort", space: "srgb", density: state.density,
@@ -7619,8 +7624,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         const text = baseToken.slice(baseToken.indexOf(":") + 1);
         const font = state.font === undefined ? defaultCaptionFont : files.get(state.font);
         if (!font) throw new Error(`unable to read font '${state.font}'`);
-        const image = state.font !== undefined || lower.startsWith("caption:") ? createFontLabel(text, state, font, lower.startsWith("caption:"))
-            : decodeImage(new TextEncoder().encode(createLabelSvg(text, state)), { density: state.density });
+        const image = createFontLabel(text, state, font, lower.startsWith("caption:"));
         const kind = lower.startsWith("caption:") ? "caption" : "label";
         const properties = { ...image.properties, [kind]: text };
         if (kind === "caption") {
@@ -11591,7 +11595,7 @@ if (t === "-intent" || t === "+intent") {
         }
         else if (t === "+tile-offset") { delete state.tileOffset; }
         else if (t === "-size") {
-            const g = parseMagickGeometry(tokens[++i] ?? "1x1");
+            const g = parseMagickGeometry(state.sizeGeometry = tokens[++i] ?? "1x1");
             state.sizeWidth = Math.max(1, Math.round(g.width ?? 1));
             state.sizeHeight = Math.max(1, Math.round(g.height ?? state.sizeWidth));
             state.captionHeight = g.height ? state.sizeHeight : 0;
@@ -11602,6 +11606,7 @@ if (t === "-intent" || t === "+intent") {
             state.sizeWidth = 1;
             state.sizeHeight = 1;
             state.hasSize = false;
+            delete state.sizeGeometry;
             delete state.captionHeight;
             delete state.inputOffset;
         }
@@ -19089,7 +19094,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    return source.read(0, source.size, { signal });
   });
   if (!font) throw new Error(`unable to read font '${state.font}'`);
-  if (state.font !== undefined || kind === "caption") {
+  {
    const { data16, evaluateSamples, ...raster } = createFontLabel(text, state, font, kind === "caption", signal);
    image = await backend.retain(raster);
    if (data16) {
@@ -19101,7 +19106,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
     image.storedEvaluateSamples = backend.storage.allocate(evaluateSamples.byteLength);
     await backend.storage.write(image.storedEvaluateSamples, new Uint8Array(evaluateSamples.buffer));
    }
-  } else image = await decodeStoredMagickSvg(createLabelSvg(text,state),state.density,backend,signal);
+  }
   const properties = { ...image.properties, [kind]: text };
   if (kind === "caption") properties["caption:lines"] = String(wrapFontCaption(font, text, image.width, state.pointsize, state.density, state.strokeWidth, signal, !state.hasSize || state.captionHeight === 0).length);
   image = Object.assign(image, { properties, [magickInput]: { filePath: text, inputFormat: kind.toUpperCase() } });
@@ -19467,7 +19472,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             } else {
                 try { validateMagickTransformGeometry(value, t); }
                 catch (error) { return { exitCode: 2, stdout: "", stderr: `compare: ${(error as Error).message}\n` }; }
-                const geometry = parseMagickGeometry(value);
+                const geometry = parseMagickGeometry(state.sizeGeometry = value);
                 state.sizeWidth = Math.max(1, Math.round(geometry.width ?? 1));
                 state.sizeHeight = Math.max(1, Math.round(geometry.height ?? state.sizeWidth));
                 state.captionHeight = geometry.height ? state.sizeHeight : 0;
@@ -19479,6 +19484,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             state.sizeWidth = 1;
             state.sizeHeight = 1;
             state.hasSize = false;
+            delete state.sizeGeometry;
             delete state.captionHeight;
             delete state.inputOffset;
         }

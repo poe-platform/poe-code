@@ -1,10 +1,11 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
+#include FT_BBOX_H
 #include <stdlib.h>
 
 static FT_Library library;
 static FT_Face face;
-static int values[8];
+static int values[11];
 
 int font_open(unsigned char *bytes, int length, double size, int xdpi, int ydpi) {
   if (FT_Init_FreeType(&library) || FT_New_Memory_Face(library, bytes, length, 0, &face)) return 1;
@@ -14,6 +15,7 @@ int *font_metrics(void) {
   values[0] = face->size->metrics.ascender;
   values[1] = face->size->metrics.descender;
   values[2] = face->size->metrics.height;
+  values[3] = face->underline_position * face->size->metrics.x_ppem * 64 / face->units_per_EM;
   return values;
 }
 int *font_glyph(unsigned int code) {
@@ -28,11 +30,16 @@ int *font_glyph(unsigned int code) {
   values[5] = glyph->bitmap_top;
   values[6] = glyph->advance.x;
   values[7] = id;
+  FT_BBox bounds = {0};
+  FT_Outline_Get_BBox(&glyph->outline, &bounds);
+  values[8] = bounds.xMin;
+  values[9] = bounds.xMax;
+  values[10] = glyph->linearHoriAdvance;
   return values;
 }
-int font_kerning(unsigned int left, unsigned int right) {
+int font_kerning(unsigned int left, unsigned int right, int unfitted) {
   FT_Vector delta = {0, 0};
-  FT_Get_Kerning(face, left, right, FT_KERNING_DEFAULT, &delta);
+  FT_Get_Kerning(face, left, right, unfitted ? FT_KERNING_UNFITTED : FT_KERNING_DEFAULT, &delta);
   return delta.x;
 }
 void font_close(void) {

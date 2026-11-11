@@ -25,7 +25,7 @@ assert.ok(run(compiler, ["--version"]).startsWith("emcc (Emscripten gcc/clang-li
 run("tar", ["-xf", archive, "-C", output]);
 const source = join(output, "freetype-2.14.1"), artifact = join(output, "runtime.js");
 run(compiler, ["-O2", "-DFT2_BUILD_LIBRARY", '-DFT_CONFIG_MODULES_H="ftmodule.h"', "-I" + join(root, "scripts/font"), "-I" + join(source, "include"), join(root, "scripts/font/font.c"),
-    ...["cff/cff.c", "psaux/psaux.c", "pshinter/pshinter.c", "base/ftbase.c", "base/ftinit.c", "base/ftsystem.c", "base/ftdebug.c", "truetype/truetype.c", "sfnt/sfnt.c", "autofit/autofit.c", "smooth/smooth.c", "psnames/psnames.c", "base/ftbitmap.c", "base/ftglyph.c", "base/ftmm.c", "gzip/ftgzip.c"].map(path => join(source, "src", path)),
+    ...["cff/cff.c", "psaux/psaux.c", "pshinter/pshinter.c", "base/ftbase.c", "base/ftinit.c", "base/ftsystem.c", "base/ftdebug.c", "truetype/truetype.c", "sfnt/sfnt.c", "autofit/autofit.c", "smooth/smooth.c", "psnames/psnames.c", "base/ftbbox.c", "base/ftbitmap.c", "base/ftglyph.c", "base/ftmm.c", "gzip/ftgzip.c"].map(path => join(source, "src", path)),
     "-sWASM=0", "-sWASM_ASYNC_COMPILATION=0", "-sMODULARIZE=1", "-sEXPORT_ES6=1", "-sENVIRONMENT=web", "-sFILESYSTEM=0",
     "-sALLOW_MEMORY_GROWTH=1", "-sINITIAL_MEMORY=4194304", "-sMAXIMUM_MEMORY=67108864", "-sSTACK_SIZE=262144", "-sMALLOC=emmalloc", "-sABORTING_MALLOC=0",
     '-sEXPORTED_FUNCTIONS=["_malloc","_free","_font_open","_font_metrics","_font_glyph","_font_kerning","_font_close"]', '-sEXPORTED_RUNTIME_METHODS=["HEAPU8","HEAP32"]', "-o", artifact]);

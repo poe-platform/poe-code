@@ -1,6 +1,6 @@
 `src/font/runtime.js` is FreeType 2.14.1 compiled to synchronous JavaScript with
 Emscripten 4.0.13. It includes the TrueType, CFF, SFNT, autofit and grayscale raster
-modules, with no host file I/O. Each caption owns its font instance and a heap
+modules, with no host file I/O. Each text render owns its font instance and a heap
 bounded to 64 MiB. The build removes Emscripten's unnecessary `async` factory
 modifier after parsing and checking for top-level awaits. License notices are
 embedded in the generated artifact and retained beside it.

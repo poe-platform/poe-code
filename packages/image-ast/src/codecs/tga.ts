@@ -16,7 +16,7 @@ export function readTgaMetadata(bytes: Uint8Array): ImageMetadata {
   if (!isTgaBytes(bytes)) throw new Error("Unsupported TGA header");
   const hasAlpha = bytes[16] === 32 || (bytes[16] === 16 && (bytes[17]! & 15) === 1), grayscale = bytes[16] === 8;
   return { format: "tga", width: bytes[12]! + bytes[13]! * 256, height: bytes[14]! + bytes[15]! * 256,
-    channels: grayscale ? 1 : hasAlpha ? 4 : 3, hasAlpha, depth: "uchar", space: grayscale ? "b-w" : "srgb", density: 72, size: bytes.length };
+    channels: grayscale ? 1 : hasAlpha ? 4 : 3, hasAlpha, depth: "uchar", space: grayscale ? "b-w" : "srgb", density: 72, orientation: 1, size: bytes.length };
 }
 
 /** Byte requests and bounded pixel spans share the same packet and origin handling. */

@@ -1269,7 +1269,7 @@ function* applyMagickSequenceSteps(stack: readonly RgbaImage[], opRaw: string | 
     return result;
 }
 
-function parseMagickConvolveKernel(spec: string, normalize = true, reverse = false): ConvolveKernel {
+function parseMagickConvolveKernel(spec: string, normalize = true, reverse = false, scale?: string): ConvolveKernel {
     const afterColon = spec.includes(":") ? spec.slice(spec.indexOf(":") + 1) : spec;
     const kernel = afterColon.trim().split(/[\s,]+/).filter(s => s.length > 0).map(Number).filter(Number.isFinite);
     const sum = kernel.reduce((total, weight) => total + weight, 0);
@@ -1278,7 +1278,21 @@ function parseMagickConvolveKernel(spec: string, normalize = true, reverse = fal
     const height = geometry.height ?? width;
     const x = geometry.hasOffset ? geometry.x : Math.floor((width - 1) / 2);
     const y = geometry.hasOffset ? geometry.y : Math.floor((height - 1) / 2);
-    const weights = !normalize || sum === 0 ? kernel : kernel.map(weight => weight / sum);
+    let weights = !normalize || sum === 0 ? kernel : kernel.map(weight => weight / sum);
+    if (scale !== undefined) {
+        const values = [...scale].filter(c => c.trim() !== "" && !"!^%()".includes(c)).join("")
+            .replaceAll("X", "x").replaceAll(",", "x").replaceAll("/", "x").split("x");
+        const factor = Number.parseFloat(values[0]!);
+        const multiplier = Number.isNaN(factor) ? 1 : factor / (scale.includes("%") ? 100 : 1);
+        const positive = kernel.reduce((total, weight) => total + Math.max(0, weight), 0);
+        const negative = kernel.reduce((total, weight) => total - Math.min(0, weight), 0);
+        const divisor = scale.includes("!") ? Math.abs(sum) >= 1e-12 ? Math.abs(sum) : positive : 1;
+        const positiveDivisor = scale.includes("^") ? positive || 1 : divisor;
+        const negativeDivisor = scale.includes("^") ? negative || 1 : divisor;
+        weights = weights.map(weight => weight * multiplier / (weight >= 0 ? positiveDivisor : negativeDivisor));
+        if (values[1] !== undefined && weights[y * width + x] !== undefined)
+            weights[y * width + x]! += (Number.parseFloat(values[1]) || 0) / (scale.includes("%") ? 100 : 1);
+    }
     return { weights: reverse ? weights.reverse() : weights, width, height,
         x: reverse ? width - 1 - x : x, y: reverse ? height - 1 - y : y };
 }
@@ -14094,10 +14108,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
         }
         else if (t === "-convolve") {
-            const kernel = parseMagickConvolveKernel(tokens[++i] ?? "1");
+            const spec = tokens[++i] ?? "1";
             const channels = state.channelExplicit ? state.channels : undefined;
-            const { virtualPixel, background } = state;
+            const { virtualPixel, background, optionProperties } = state;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                const kernel = parseMagickConvolveKernel(spec, true, false, im.properties?.["artifact:convolve:scale"] ?? optionProperties?.["convolve:scale"]);
                 return kernel.weights.length ? yield* applyMagickRasterSteps(im, convolvePixelSteps(im, kernel, 0, undefined, channels, virtualPixel, background), signal) : im;
             });
         }
@@ -14998,8 +15013,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             if (method.split(":")[0] === "convolve" || method.split(":")[0] === "correlate") {
                 const { iterations } = parseMagickMorphologyMethod(method);
-                const kernel = parseMagickConvolveKernel(kernelSpec, false, method.split(":")[0] === "convolve");
+                const { optionProperties } = state;
                 stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                    const kernel = parseMagickConvolveKernel(kernelSpec, false, method.split(":")[0] === "convolve", im.properties?.["artifact:convolve:scale"] ?? optionProperties?.["convolve:scale"]);
                     for (let pass = 0; kernel.weights.length && pass < iterations; pass++)
                         im = yield* applyMagickRasterSteps(im, convolvePixelSteps(im, kernel, 0), signal);
                     return im;
@@ -18522,8 +18538,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             if (tokens[i + 1] && !tokens[i + 1]!.startsWith("-") && !tokens[i + 1]!.startsWith("+")) spec = tokens[++i]!;
             if (method.split(":")[0] === "convolve" || method.split(":")[0] === "correlate") {
                 const { iterations } = parseMagickMorphologyMethod(method);
-                const kernel = parseMagickConvolveKernel(spec, false, method.split(":")[0] === "convolve");
+                const { optionProperties } = state;
                 steps.push(async (image, backend) => {
+                    const kernel = parseMagickConvolveKernel(spec, false, method.split(":")[0] === "convolve", image?.properties?.["artifact:convolve:scale"] ?? optionProperties?.["convolve:scale"]);
                     for (let pass = 0; image && kernel.weights.length && pass < iterations; pass++)
                         image = await transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal);
                     return image;
@@ -18641,10 +18658,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && token === "-convolve") {
             const spec = tokens[++i] ?? "1";
-            const kernel = parseMagickConvolveKernel(spec);
             const channels = state.channelExplicit ? state.channels : undefined;
-            const { virtualPixel, background } = state;
-            steps.push(async (image, backend) => image && kernel.weights.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0, undefined, channels, virtualPixel, background), signal) : image);
+            const { virtualPixel, background, optionProperties } = state;
+            steps.push(async (image, backend) => {
+                if (!image) return image;
+                const kernel = parseMagickConvolveKernel(spec, true, false, image.properties?.["artifact:convolve:scale"] ?? optionProperties?.["convolve:scale"]);
+                return kernel.weights.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0, undefined, channels, virtualPixel, background), signal) : image;
+            });
         } else if (!operandsOnly && token === "-copy") {
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);

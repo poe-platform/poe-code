@@ -12487,6 +12487,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             start = end;
                           }
                         }
+                        // A sample time base follows the new rate; other time bases retain
+                        // their ticks and round rescaled PTS before downstream filters see it.
+                        if (audioTimeBase === 1 / origRate) audioTimeBase = undefined;
+                        if (audioTimeBase !== undefined) {
+                          const samplesPerTick = audioTimeBase * rate;
+                          for (const frame of audioTimestamps) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            delete frame.exactPts;
+                            frame.pts = Math.sign(frame.pts) * Math.round(Math.abs(frame.pts) / samplesPerTick) * samplesPerTick;
+                          }
+                        }
                         // Reinterpret the same PCM at the new rate, including subsequent filters.
                         origRate = rate;
                       } else if (trimmed === "asetnsamples" || trimmed.startsWith("asetnsamples=")) {

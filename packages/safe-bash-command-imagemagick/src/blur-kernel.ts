@@ -135,8 +135,17 @@ export function* blurPixelSteps(image: Pick<RgbaImage, "space" | "hueSamples"> &
                             row[x * stride + 3] = alpha;
                         }
                     }
-                    // Q16-HDRI stores float quantum samples between separable passes.
-                    if (evaluate && !gaussian) for (let i = 0; i < row.length; i++) row[i] = Math.fround(row[i]! * (i % stride === 3 ? 65535 : 257)) / (i % stride === 3 ? 65535 : 257);
+                    // Q16-HDRI stores straight colors between passes, with unselected alpha unchanged.
+                    if (evaluate && !gaussian) for (let x = 0; x < count; x++) {
+                        const alpha = row[x * stride + 3]!;
+                        const storedAlpha = mask && !mask[3] ? samples[(left + x - first) * stride + 3]! / 255 : Math.fround(alpha * 65535) / 65535;
+                        for (let c = 0; c < stride; c++) if (c !== 3) {
+                            const divisor = Math.abs(alpha) < 1e-12 ? (alpha < 0 ? -1e-12 : 1e-12) : alpha;
+                            const color = row[x * stride + c]! / divisor;
+                            row[x * stride + c] = Math.fround(color * 257) / 257 * storedAlpha;
+                        }
+                        row[x * stride + 3] = storedAlpha;
+                    }
                     if (rows.size >= 32) rows.delete(rows.keys().next().value!);
                     rows.set(sy, row);
                 }
@@ -149,7 +158,8 @@ export function* blurPixelSteps(image: Pick<RgbaImage, "space" | "hueSamples"> &
                 const alpha = sums[x * stride + 3]!;
                 for (let c = 0; c < stride; c++) {
                     const index = x * stride + c;
-                    let value = c === 3 ? alpha * 255 : alpha > 0 ? sums[index]! / alpha : 0;
+                    const divisor = Math.abs(alpha) < 1e-12 ? (alpha < 0 ? -1e-12 : 1e-12) : alpha;
+                    let value = c === 3 ? alpha * 255 : sums[index]! / divisor;
                     if (region && !regionContains(region, left + x, y)) {
                         const sourceAlpha = original![x * stride + 3]! / 255;
                         value = c === 3 ? original![index]! : original![index]! * sourceAlpha + sums[index]! * (1 - sourceAlpha);

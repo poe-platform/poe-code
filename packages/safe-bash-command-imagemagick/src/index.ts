@@ -12743,6 +12743,10 @@ if (t === "-intent" || t === "+intent") {
                 state.scene = Number(v);
                 if (!Number.isSafeInteger(state.scene)) throw new Error("invalid scene number");
             }
+            if (k === "option:background") {
+                state.background = parseColor(v, true);
+                state.backgroundExplicit = true;
+            }
             if (k === "option:magnify:method") state.magnifyMethod = parseMagnifyMethod(v);
             if (k === "option:filter") applyMagickReadSetting(["-filter", v], state, 0);
             if (k === "option:deskew:auto-crop") state.deskewAutoCrop = v.toLowerCase();
@@ -12974,6 +12978,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     return unit === undefined ? image : applyMagickUnits(image, unit, false);
                 }
                 if (expandedKey.toLowerCase() === "colorspace") return yield* setColorspacePixels(image, expanded);
+                if (expandedKey.toLowerCase() === "background") return { ...image, backgroundColor: parseColor(expanded, true) };
                 if (expandedKey.toLowerCase() === "type") return setMagickType(image, expanded);
                 if (expandedKey.toLowerCase() === "dispose") {
                     const disposal = parseMagickDisposal(expanded);
@@ -13142,7 +13147,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 });
             }
             if (t === "-mattecolor") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, matteColor: state.matteColor }; });
-            if (t === "-background") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, backgroundColor: state.background }; });
+            if (t === "-background" || (t === "-set" && tokens[setting - 1]?.toLowerCase() === "option:background")) stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, backgroundColor: state.background }; });
             if (t === "-interpolate" || t === "+interpolate") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...image[magickInput], interpolation: state.interpolation } }; });
             if (t === "-interlace" || t === "+interlace" || state.interlace !== previousInterlace) stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace! } }; });
             if (t === "-compose" || t === "+compose") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, properties: { ...image.properties, compose: state.composeRaw } }; });
@@ -16537,6 +16542,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     return unit === undefined ? image : applyMagickUnits(image, unit, false);
                 }
                 if (expandedKey.toLowerCase() === "colorspace") return transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: image => setColorspacePixels(image, expanded) }, signal);
+                if (expandedKey.toLowerCase() === "background") return { ...image, backgroundColor: parseColor(expanded, true) };
                 if (expandedKey.toLowerCase() === "type") return setMagickType(image, expanded);
                 if (expandedKey.toLowerCase() === "dispose") {
                     const disposal = parseMagickDisposal(expanded);
@@ -16663,7 +16669,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const matteColor = state.matteColor;
                 steps.push(async image => image ? { ...image, matteColor } : undefined);
             }
-            if (token === "-background") {
+            if (token === "-background" || (token === "-set" && tokens[setting - 1]?.toLowerCase() === "option:background")) {
                 const backgroundColor = state.background;
                 steps.push(async image => image ? { ...image, backgroundColor } : undefined);
             }

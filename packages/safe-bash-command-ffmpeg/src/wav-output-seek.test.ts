@@ -17,11 +17,14 @@ for (const mode of ["async", "sync", "segment"]) {
         const args = ["-y", "-v", "error", "-i", "/in.wav",
           ...(seek === undefined ? [] : ["-ss", seek]), "-c:a", codec,
           ...(mode === "segment" ? ["-f", "segment", "-segment_time", "1", "-segment_list", "/list.csv", "/part%02d.wav"] : ["/out.wav"])];
+        const asyncSeek = codec !== "copy" && seek !== undefined;
         if (mode === "sync") {
           assert.equal(evalSyncFfmpeg(args, undefined,
             path => volume.readFileSync(path) as Buffer,
-            (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), "");
-        } else {
+            (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), asyncSeek ? undefined : "");
+          if (asyncSeek) assert.equal(volume.existsSync("/out.wav"), false);
+        }
+        if (mode !== "sync" || asyncSeek) {
           let stderr = "";
           const result = await createFfmpegCommand().execute({
             args, cwd: "/", env: {}, signal: new AbortController().signal,

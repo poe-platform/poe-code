@@ -623,7 +623,7 @@ function parseMagickSketchGeometry(raw: string): { width?: number; height?: numb
 }
 
 function parseDelay(value: string, ticksPerSecond = 100, current?: number): { milliseconds: number; ticksPerSecond: number; delayTicks: number } {
-  const geometry = [...value].filter(character => !"%!^<>@()".includes(character)).join("")
+  const geometry = [...value].filter(character => !"%!^<>@()#".includes(character)).join("")
     .replaceAll("X", "x").replaceAll("/", "x").replaceAll(",", "x");
   const fields: string[] = [];
   let start = 0;

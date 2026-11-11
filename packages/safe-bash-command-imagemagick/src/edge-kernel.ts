@@ -1,3 +1,4 @@
+import { createMagickRandom } from "./random.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
@@ -5,7 +6,7 @@ import type { Region } from "./region.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { HueMetadata } from "./colorspace-hue.js";
 
-export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">> & HueMetadata & { region?: Region | undefined }, radius: number, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, retainUnclamped = false, alphaSource = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">> & HueMetadata & { region?: Region | undefined }, radius: number, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, retainUnclamped = false, seed?: bigint, alphaSource = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
     const hue = !cmyk && !!image.magickColorspace && (image.hueSamples !== undefined || image.storedHueSamples !== undefined);
     const highDepth = !!(image.data16 || image.storedData16), maximum = highDepth ? 65535 : 255;
@@ -53,13 +54,27 @@ export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "has
         for (let i = 3; i < length; i += 4) result[i] = alpha[i]!;
         return result;
     }
+    const random = virtualPixel === "random" ? createMagickRandom(seed) : undefined;
+    const randomPixels = new Map<number, number>();
     for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 1024) {
         yield;
+        if (random && left === 0) {
+            // Native reads one padded rectangle per output row. Reuse its random
+            // border pixels for overlapping neighborhoods and storage spans.
+            randomPixels.clear();
+            for (let sy = y - half; sy <= y + half; sy++) for (let sx = -half; sx < width + half; sx++) {
+                if (sx >= 0 && sx < width && sy >= 0 && sy < height) continue;
+                yield;
+                randomPixels.set((sy - y + half) * (width + 2 * half) + sx + half,
+                    virtualPixelIndex(sx, sy, width, height, virtualPixel, random));
+            }
+        }
         const count = Math.min(1024, width - left), sums = new Float64Array(count * stride);
         const first = left - half, length = (count + 2 * half) * stride;
         for (let ky = -half; ky <= half; ky++) {
             yield;
-            const map = (x: number) => virtualPixelIndex(x, y + ky, width, height, virtualPixel);
+            const map = (x: number) => randomPixels.get((ky + half) * (width + 2 * half) + x + half)
+                ?? virtualPixelIndex(x, y + ky, width, height, virtualPixel, random);
             const samples = new Float64Array(length);
             for (let x = 0; x < length / stride;) {
                 yield;
@@ -70,7 +85,7 @@ export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "has
                     continue;
                 }
                 let run = 1;
-                const direction = map(first + x + 1) - sx;
+                const direction = x + 1 < length / stride ? map(first + x + 1) - sx : 0;
                 if (direction >= -1 && direction <= 1) {
                     while (x + run < length / stride && map(first + x + run) === sx + run * direction && sx + run * direction >= 0) run++;
                 }

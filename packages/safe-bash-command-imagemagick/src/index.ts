@@ -14336,13 +14336,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 validateMagickTransformGeometry(expanded, "-edge");
                 const radius = Number.parseFloat(expanded.replaceAll("(", "").replaceAll(")", ""));
                 if (!Number.isFinite(radius)) throw new Error(`invalid argument for option '-edge': ${expanded}`);
-                const result = yield* applyMagickRasterSteps(im, edgePixelSteps(im, radius, state.channelExplicit ? state.channels : undefined, state.virtualPixel, state.background), signal);
+                const result = yield* applyMagickRasterSteps(im, edgePixelSteps(im, radius, state.channelExplicit ? state.channels : undefined, state.virtualPixel, state.background, false, state.seed), signal);
                 if (im.metaChannels?.length) {
                     result.metaChannels = [];
                     for (const [index, plane] of im.metaChannels.entries()) {
                         const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index);
                         result.metaChannels.push(selected ? yield* applyMagickRasterSteps(plane,
-                            edgePixelSteps({ ...plane, hasAlpha: im.hasAlpha }, radius, undefined, state.virtualPixel, { r: 0, g: 0, b: 0, a: state.background.a }, false, im.hasAlpha), signal, plane, [plane, im]) : plane);
+                            edgePixelSteps({ ...plane, hasAlpha: im.hasAlpha }, radius, undefined, state.virtualPixel, { r: 0, g: 0, b: 0, a: state.background.a }, false, state.seed, im.hasAlpha), signal, plane, [plane, im]) : plane);
                     }
                 }
                 return result;
@@ -18722,7 +18722,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const argument = tokens[++i] ?? "", optionProperties = state.optionProperties;
+            const argument = tokens[++i] ?? "", optionProperties = state.optionProperties, seed = state.seed;
             const channels = state.channelExplicit ? state.channels : undefined, virtualPixel = state.virtualPixel, background = state.background;
             const metaChannels = !state.channelExplicit || state.channelDefault ? "all" : state.channels.meta ?? [];
             steps.push(async (image, backend) => {
@@ -18731,13 +18731,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 validateMagickTransformGeometry(expanded, "-edge");
                 const radius = Number.parseFloat(expanded.replaceAll("(", "").replaceAll(")", ""));
                 if (!Number.isFinite(radius)) throw new Error(`invalid argument for option '-edge': ${expanded}`);
-                const result = await transformStoredMagickRaster(image, backend, edgePixelSteps(image, radius, channels, virtualPixel, background), signal);
+                const result = await transformStoredMagickRaster(image, backend, edgePixelSteps(image, radius, channels, virtualPixel, background, false, seed), signal);
                 if (image.storedMetaChannels?.length) {
                     result.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries()) {
                         const selected = metaChannels === "all" || metaChannels.includes(index);
                         result.storedMetaChannels.push(selected ? await transformStoredMagickRaster(plane, backend,
-                            edgePixelSteps({ ...plane, hasAlpha: image.hasAlpha }, radius, undefined, virtualPixel, { r: 0, g: 0, b: 0, a: background.a }, false, image.hasAlpha), signal, plane, [plane, image]) : plane);
+                            edgePixelSteps({ ...plane, hasAlpha: image.hasAlpha }, radius, undefined, virtualPixel, { r: 0, g: 0, b: 0, a: background.a }, false, seed, image.hasAlpha), signal, plane, [plane, image]) : plane);
                     }
                 }
                 return result;

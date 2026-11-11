@@ -9,6 +9,7 @@ export async function lagfun(
 ): Promise<MediaVideoFrame[]> {
   let decay = Math.fround(0.95);
   let planes = 15;
+  let enable: string | undefined;
   const update = (key: string | undefined, expression: string): void => {
     if (key !== "decay" && key !== "planes") throw new Error(`lagfun: unsupported option ${key}`);
     if (key === "planes") {
@@ -47,14 +48,16 @@ export async function lagfun(
     const separator = part.indexOf("=");
     const key = separator < 0 ? ["decay", "planes"][position++] : part.slice(0, separator).trim();
     if (separator >= 0) position = position === 0 ? 1 : 0;
+    if (key === "enable") { enable = part.slice(separator + 1).trim(); continue; }
     update(key, separator < 0 ? part : part.slice(separator + 1));
   }
 
   const output: MediaVideoFrame[] = [];
   const history: Float32Array[] = [];
+  const registers = new Float64Array(10);
   let work = 0;
   let nextCommand = 0;
-  for (const frame of frames) {
+  for (const [n, frame] of frames.entries()) {
     signal?.throwIfAborted();
     budget.checkCpu();
     while (nextCommand < commands.length && commands[nextCommand]!.time <= frame.ptsSeconds) {
@@ -73,6 +76,13 @@ export async function lagfun(
     const planar = native && [0, 4, 5, 12, 13, 14, 79].includes(native.format) ? native : undefined;
     if (!gray && !planar && !["rgb24", "bgr24", "gbrp"].includes(pixelFormat ?? "")) {
       throw new Error("lagfun: only 8-bit or 16-bit grayscale, 8-bit planar YUV and RGB input is supported");
+    }
+    let enabled = true;
+    if (enable !== undefined) {
+      const variables = { n, t: frame.ptsSeconds, w: frame.width, h: frame.height, pos: frame.offset ?? NaN };
+      // FFmpeg evaluates the timeline twice per frame, retaining expression registers.
+      parseFilterExpression(enable, "lagfun enable", variables, undefined, registers);
+      enabled = Math.abs(parseFilterExpression(enable, "lagfun enable", variables, undefined, registers)) >= 0.5;
     }
     const planeCount = gray ? 1 : planar?.format === 79 ? 4 : 3;
     if (!(planes & ((1 << planeCount) - 1))) {

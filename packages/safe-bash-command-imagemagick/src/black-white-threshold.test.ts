@@ -45,6 +45,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
 for (const mode of ["buffered", "retained", "sync"] as const) {
     it.each([
         ["40%,70%,90%,50%", [0, 0, 0, 160], [100, 150, 200, 255]],
+        ["(40,70,90,50%)", [0, 0, 0, 160], [100, 150, 200, 255]],
         ["40x70x90x50%", [0, 0, 200, 0], [100, 150, 255, 160]],
         ["50%", [0, 150, 200, 0], [100, 255, 255, 160]],
         ["40,70,90,50%", [100, 150, 200, 160], [255, 255, 255, 255]],
@@ -93,7 +94,7 @@ it.each([
 
 for (const mode of ["command", "buffered", "retained", "sync"] as const) {
     for (const operator of ["-black-threshold", "-white-threshold"]) {
-        it.each(["50%", "50%!", "50% ", "5 0%"])(`${mode} ${operator} parses percentage geometry %j`, async threshold => {
+        it.each(["50%", "50%!", "50% ", "5 0%", "(50%)", "((50%))", "( 50% )", "(32768)"])(`${mode} ${operator} parses percentage geometry %j`, async threshold => {
             const pixels = [37, 120, 203, 30, 100, 120, 203, 30, 200, 120, 203, 30];
             const input = encodeImage({ width: 3, height: 1, data: Uint8Array.from(pixels), format: "png", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: true }, { format: "png" }).data;
             const files = new Map([["input.png", input]]);

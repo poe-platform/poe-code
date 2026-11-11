@@ -1656,7 +1656,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
   const defaultResolution = (resolution ? 72 : meta.density ?? 72) / (resolutionUnit === "cm" || resolutionUnit === "meter" ? 2.54 : 1);
   const hasAlphaChannel = meta.hasAlpha || meta.inactiveAlpha;
   const short: Record<string, string> = {
-    w: String(meta.width), h: String(meta.height), m: meta.format.toUpperCase(),
+    w: String(meta.width), h: String(meta.height), m: context.inputFormat ?? meta.format.toUpperCase(),
     A: meta.hasAlpha ? "Blend" : "Undefined",
     W: pageWidth, H: pageHeight,
     G: `${context.originalWidth ?? meta.width}x${context.originalHeight ?? meta.height}`,
@@ -7316,7 +7316,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         const c1 = parseColor(c1Str || "#ffffff", true);
         const c2 = parseColor(separator < 0 ? "#000000" : c2Str || "#ffffff", true);
         const image = yield* createGradientImageSteps(state.sizeWidth, state.sizeHeight, c1, c2, radial, state.gradientDirection, state.gradientAngle, state.gradientVector, state.gradientBoundingBox, state.gradientCenter, state.gradientRadii, state.gradientExtent);
-        return yield* applyMod([Object.assign(image, { [magickInput]: { filePath: c1Str } })]);
+        return yield* applyMod([Object.assign(image, { [magickInput]: { filePath: c1Str, inputFormat: baseToken.slice(0, baseToken.indexOf(":")).toUpperCase() } })]);
     }
     if (lower.startsWith("plasma:")) {
         const spec = baseToken.slice(7), fractal = spec.toLowerCase() === "fractal";
@@ -7326,7 +7326,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     }
     if (lower.startsWith("pattern:")) {
         const pattern = builtinPattern(baseToken.slice(8));
-        return yield* applyMod([(yield* createPatternImageSteps(state.hasSize ? state.sizeWidth : pattern.width, state.hasSize ? state.sizeHeight : pattern.height, pattern))]);
+        return yield* applyMod([Object.assign(yield* createPatternImageSteps(state.hasSize ? state.sizeWidth : pattern.width, state.hasSize ? state.sizeHeight : pattern.height, pattern), { [magickInput]: { inputFormat: "PATTERN" } })]);
     }
     if (lower === "rose:" || lower === "logo:" || lower === "wizard:" || lower === "granite:") {
         return yield* applyMod([(yield* createRoseImageSteps())]);
@@ -18014,7 +18014,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    if(storedHueSamples!==undefined&&hueSamples)await backend.storage.write(storedHueSamples+start*32,new Uint8Array(hueSamples.buffer));
   }
   image={position,width,height,...(storedData16?{storedData16}:{}),...(storedEvaluateSamples===undefined?{}:{storedEvaluateSamples}),...(storedHueSamples===undefined?{}:{storedHueSamples}),format:"png",channels:a.space?(a.a<255||b.a<255?2:1):4,depth:checker?"uchar":"ushort",space:a.cmyk?"cmyk":a.space??"srgb",density:72,hasAlpha:checker||a.a<255||b.a<255};
-  if (!checker) image = Object.assign(image, { [magickInput]: { filePath: first } });
+  image = Object.assign(image, { [magickInput]: { ...(!checker ? { filePath: first } : {}), inputFormat: baseToken.slice(0, baseToken.indexOf(":")).toUpperCase() } });
  }else if(lower.startsWith("label:")||lower.startsWith("caption:")){
   image=await decodeStoredMagickSvg(createLabelSvg(baseToken.slice(baseToken.indexOf(":")+1),state),state.density,backend,signal);
  }else{

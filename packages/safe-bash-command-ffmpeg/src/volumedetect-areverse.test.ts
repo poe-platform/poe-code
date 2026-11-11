@@ -37,9 +37,9 @@ for (const [filter, samples, measured] of [
     }
     assert.deepEqual(Buffer.concat(chunks), expected);
     assert.equal(stderr, measured === 2400
-      ? "n_samples: 2400\nmean_volume: -13.8 dB\nmax_volume: -6.0 dB\nhistogram_6db: 400\n"
+      ? "n_samples: 0\nn_samples: 2400\nmean_volume: -13.8 dB\nmax_volume: -6.0 dB\nhistogram_6db: 400\n"
       : measured === 352
-        ? "n_samples: 352\nmean_volume: -6.0 dB\nmax_volume: -6.0 dB\n"
-        : `n_samples: ${measured}\nmean_volume: -91.0 dB\nmax_volume: -91.0 dB\n${measured >= 1000 ? `histogram_91db: ${measured}\n` : ""}`);
+        ? "n_samples: 0\nn_samples: 352\nmean_volume: -6.0 dB\nmax_volume: -6.0 dB\n"
+        : `n_samples: 0\nn_samples: ${measured}\nmean_volume: -91.0 dB\nmax_volume: -91.0 dB\n${measured >= 1000 ? `histogram_91db: ${measured}\n` : ""}`);
   });
 }

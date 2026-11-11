@@ -11933,6 +11933,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   if (filter) {
                     let audioCommands: { sample: number; target: string; action: string; expression: string }[] = [];
                     const audioFilters = parseFilterChain(filter.expression);
+                    const volumeReports: string[] = [];
+                    if (logLevel >= 32) {
+                      // Native tears down a probe graph before processing audio frames.
+                      for (const item of audioFilters) {
+                        if (item.trim().split("=", 1)[0]!.split("@", 1)[0] === "volumedetect") {
+                          await writeBytes(context.stderr, encodeUtf8("n_samples: 0\n"), context.signal);
+                        }
+                      }
+                    }
                     const silenceEvents: { frame: number; filter: number; text: string }[] = [];
                     for (const [filterIndex, item] of audioFilters.entries()) {
                       if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -13093,7 +13102,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             sum += histogram[db]!;
                           }
                         }
-                        if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(report), context.signal);
+                        if (logLevel >= 32) volumeReports.push(report);
                       } else if (trimmed === "volume" || trimmed.startsWith("volume=")) {
                         const argument = trimmed === "volume" ? "1" : trimmed.slice("volume=".length).trim();
                         let volSpec = "1";
@@ -16107,6 +16116,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else {
                         throw new Error(`Unsupported audio filter: ${trimmed}`);
                       }
+                    }
+                    for (const report of volumeReports) {
+                      await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                     }
                   }
 

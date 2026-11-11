@@ -31,7 +31,7 @@ for (const option of ["-v", "-loglevel"]) {
         } as never);
         assert.equal(result.exitCode, 0, stderr);
         assert.equal(stderr, reports && filter === "volumedetect"
-          ? "n_samples: 4\nmean_volume: -12.0 dB\nmax_volume: -12.0 dB\n"
+          ? "n_samples: 0\nn_samples: 4\nmean_volume: -12.0 dB\nmax_volume: -12.0 dB\n"
           : "");
         const output = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
         assert.equal(output.sampleRate, 8000);

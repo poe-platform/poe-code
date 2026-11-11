@@ -32,7 +32,7 @@ for (const filter of ["volumedetect", "volumedetect,volume=2", "anull"]) {
       }
       assert.deepEqual(Buffer.concat(stdout), expected);
       assert.equal(stderr, level === "info" && filter !== "anull"
-        ? "n_samples: 2400\nmean_volume: -91.0 dB\nmax_volume: -91.0 dB\nhistogram_91db: 2400\n" : "");
+        ? "n_samples: 0\nn_samples: 2400\nmean_volume: -91.0 dB\nmax_volume: -91.0 dB\nhistogram_91db: 2400\n" : "");
     });
   }
 }

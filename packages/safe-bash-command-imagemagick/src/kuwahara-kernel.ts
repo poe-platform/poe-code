@@ -1,14 +1,15 @@
 import { regionContains, type Region } from "./region.js";
 import type { LookupInterpolation } from "./sequence-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
-import type { RgbaColor } from "@poe-code/image-ast/portable";
+import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import { catromSamples, splineSamples, type VirtualPixelMethod } from "./warp-kernel.js";
 
 /** Native Kuwahara: rank-three blur, minimum luma variance, quadrant-center interpolation. */
-export function* kuwaharaPixelSteps(image: { width: number; height: number; alphaBlend?: boolean | undefined; region?: Region | undefined }, geometry: { width?: number; height?: number }, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, interpolation: LookupInterpolation = "bilinear", writeMask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* kuwaharaPixelSteps(image: Pick<RgbaImage, "width" | "height" | "alphaBlend" | "data16" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & { region?: Region | undefined }, geometry: { width?: number; height?: number }, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, interpolation: LookupInterpolation = "bilinear", writeMask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
     if (!Number.isFinite(radius) || radius < 0 || radius >= 5000 || !Number.isFinite(sigma)) throw new Error("Kuwahara radius or sigma exceeds limit");
+    const evaluate = !!image.evaluateSamples || image.storedEvaluateSamples !== undefined, highDepth = !!(image.data16 || image.storedData16);
     const quadrant = Math.floor(radius) + 1, mask = channels ? [channels.r, channels.g, channels.b, channels.a] : undefined;
     let half = radius > 0 ? Math.max(1, Math.floor(radius)) : 0;
     if (sigma === 0) half = 0;
@@ -33,7 +34,7 @@ export function* kuwaharaPixelSteps(image: { width: number; height: number; alph
     const gray = method === "white" ? 255 : method === "gray" ? 128 : 0;
     const fill = (method === "background" || method?.endsWith("-tile")) ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255];
     const maskBlocks = new Map<number, Uint16Array>();
-    const blocks = new Map<number, Uint8Array>(), horizontal = new Map<number, number[]>(), blurred = new Map<number, number[]>();
+    const blocks = new Map<number, Float64Array>(), horizontal = new Map<number, number[]>(), blurred = new Map<number, number[]>();
     function* sample(x: number, y: number, stage: number): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
         if (x < 0 || y < 0 || x >= width || y >= height) {
             const index = virtualPixelIndex(x, y, width, height, method);
@@ -43,16 +44,18 @@ export function* kuwaharaPixelSteps(image: { width: number; height: number; alph
         }
         const position = y * width + x;
         if (stage === 0) {
-            const start = Math.floor(position / 1024) * 1024;
-            let bytes = blocks.get(start);
-            if (!bytes) {
-                const length = Math.min(1024, width * height - start) * 4;
-                bytes = yield { kind: "read", position: start * 4, length };
-                if (!bytes || bytes.length !== length) throw new Error("Truncated Kuwahara pixels");
+            const start = Math.floor(position / 512) * 512;
+            let samples = blocks.get(start);
+            if (!samples) {
+                const length = Math.min(512, width * height - start) * 4;
+                const bytes = yield { kind: "read", evaluate, highDepth, position: start * 4, length };
+                if (!bytes || bytes.length !== length * (evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated Kuwahara pixels");
+                samples = Float64Array.from(evaluate ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes,
+                    value => value * (evaluate || !highDepth ? 257 : 1));
                 if (blocks.size >= 64) blocks.delete(blocks.keys().next().value!);
-                blocks.set(start, bytes);
+                blocks.set(start, samples);
             }
-            return Array.from(bytes.subarray((position - start) * 4, (position - start + 1) * 4), value => value * 257);
+            return Array.from(samples.subarray((position - start) * 4, (position - start + 1) * 4));
         }
         const cache = stage === 1 ? horizontal : blurred;
         const cached = cache.get(position);
@@ -96,8 +99,8 @@ export function* kuwaharaPixelSteps(image: { width: number; height: number; alph
         cache.set(position, pixel);
         return pixel;
     }
-    for (let start = 0; start < width * height; start += 1024) {
-        const count = Math.min(1024, width * height - start), data = new Uint8Array(count * 4);
+    for (let start = 0; start < width * height; start += 512) {
+        const count = Math.min(512, width * height - start), samples = new Float64Array(count * 4);
         for (let i = 0; i < count; i++) {
             yield;
             const x = (start + i) % width, y = Math.floor((start + i) / width);
@@ -153,8 +156,10 @@ export function* kuwaharaPixelSteps(image: { width: number; height: number; alph
             }
             if (interpolation === "bilinear" || interpolation === "background" || interpolation === "blend" || interpolation === "mesh")
                 for (let c = 0; c < 4; c++) if (c !== 3 && (!mask || mask[c] || interpolation === "blend")) sums[c] = sums[3]! > 0 ? sums[c]! / sums[3]! : 0;
-            for (let c = 0; c < 4; c++) data[i * 4 + c] = Math.max(0, Math.min(255, Math.round(c === 3 ? sums[3]! * 255 : sums[c]! / 257)));
+            for (let c = 0; c < 4; c++) samples[i * 4 + c] = Math.fround(c === 3 ? sums[3]! * 65535 : sums[c]!) / 257;
         }
-        yield { kind: "write", position: start * 4, data };
+        const data = Uint16Array.from(samples, value => Math.max(0, Math.min(65535, Math.round(value * 257))));
+        yield { kind: "write", highDepth: true, position: start * 4, data: new Uint8Array(data.buffer) };
+        yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(samples.buffer) };
     }
 }

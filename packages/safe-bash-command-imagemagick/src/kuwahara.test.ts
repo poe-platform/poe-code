@@ -24,7 +24,7 @@ it(`Kuwahara ${fixture.name} (${mode})`, async () => {
     const input = await sharp(pixels, { raw: { width: 8, height: 8, channels: 4 } }).removeAlpha().png().toBuffer();
     const files = new Map([["/in.png", input]]), fs = new MemoryFileSystem();
     await fs.writeFile("/in.png", input);
-    const args = ["/in.png", ...fixture.settings, "-kuwahara", "2x1", "+channel", "/out.png"];
+    const args = ["/in.png", ...fixture.settings, "-kuwahara", "2x1", "+channel", "-depth", "8", "/out.png"];
     const result = mode === "command" ? await createMagickCommand().execute({
         command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
         stdin: (async function* () {})(), signal: new AbortController().signal,
@@ -58,7 +58,7 @@ for (const fixture of [
     });
     const input = await sharp(pixels, { raw: { width: 5, height: 3, channels: 4 } }).png().toBuffer();
     const files = new Map([["/in.png", input]]);
-    const result = await runMagickCli(["/in.png", "-kuwahara", fixture.geometry, "/out.png"], files);
+    const result = await runMagickCli(["/in.png", "-kuwahara", fixture.geometry, "-depth", "8", "/out.png"], files);
     expect(result).toMatchObject({ exitCode: 0 });
     expect(Buffer.from(decodeImage(files.get("/out.png")!).data).toString("hex")).toBe(fixture.expected);
 });
@@ -76,8 +76,13 @@ it("bounds raster transfers across chunk boundaries", () => {
             expect(request.length).toBeLessThanOrEqual(4096);
             next = steps.next(pixels.subarray(request.position, request.position + request.length));
         } else {
-            expect(request.data.length).toBeLessThanOrEqual(4096);
-            output.set(request.data, request.position);
+            expect(request.data.length).toBeLessThanOrEqual(16384);
+            if (request.evaluate) {
+                expect(Array.from(new Float64Array(request.data.slice().buffer))).toEqual(Array.from(pixels.subarray(request.position, request.position + request.data.length / 8)));
+            } else {
+                expect(request.highDepth).toBe(true);
+                output.set(Uint8Array.from(new Uint16Array(request.data.slice().buffer), value => value / 257), request.position);
+            }
             next = steps.next();
         }
     }

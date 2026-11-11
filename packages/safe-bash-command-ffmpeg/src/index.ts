@@ -3363,8 +3363,21 @@ async function applyVideoFilterChain(
       }, signal);
     } else if (name === "hflip" || name === "vflip") {
       if (positional.at(-1) === "") positional.pop();
-      if (argStr && positional.some(part => part.slice(0, part.indexOf("=")).trim() !== "enable" || !part.includes("="))) {
-        throw new Error(`${name}: unsupported option`);
+      for (const part of argStr ? positional : []) {
+        const separator = part.indexOf("=");
+        const key = part.slice(0, separator).trim();
+        if (separator < 0 || !["enable", "threads", "thread_type", "extra_hw_frames"].includes(key)) {
+          throw new Error(`${name}: unsupported option`);
+        }
+        if (key === "enable") continue;
+        const value = parseFilterExpression(part.slice(separator + 1).trim(), name,
+          key === "thread_type" ? { slice: 1 } : {});
+        if (key === "thread_type"
+          ? !Number.isInteger(value) || value < -2147483648 || value > 4294967295
+          : value < (key === "extra_hw_frames" ? -1 : 0) || value > 2147483647) {
+          throw new RangeError(`${name}: ${key} is out of range`);
+        }
+        // Scheduling and hardware frame reservations do not change software pixels.
       }
       const registers = new Float64Array(10);
       let enable = named.enable;

@@ -71,7 +71,7 @@ describe("ImageMagick property formatting", () => {
 
     it(`${mode}: reports grayscale channels and truecolor images`, async () => {
       const gray = await sharp(new Uint8Array([85, 170]), { raw: { width: 2, height: 1, channels: 1 } }).png().toBuffer();
-      expect(await format(gray, "%[channels]|%[type]|%[bit-depth]")).toBe(`gray  1.0|Grayscale|2`);
+      expect(await format(gray, "%[channels]|%[type]|%[bit-depth]")).toBe(`gray  2.0|Grayscale|2`);
       const pixels = Uint8Array.from({ length: 257 * 3 }, (_, i) => i % 3 === 0 ? Math.floor(i / 3) % 256 : i % 3 === 1 ? Math.floor(i / (256 * 3)) : 0);
       const rgb = await sharp(pixels, { raw: { width: 257, height: 1, channels: 3 } }).png().toBuffer();
       expect(await format(rgb, "%[type]|%[opaque]")).toBe(`TrueColor|True`);

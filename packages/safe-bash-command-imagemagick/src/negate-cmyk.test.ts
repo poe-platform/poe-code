@@ -35,7 +35,7 @@ for (const mode of ["magick", "convert", "buffered", "retained", "sync"] as cons
         const files = new Map([["ink.pam", source], ["out", new TextEncoder().encode("KEEP")]]);
         const fs = new MemoryFileSystem();
         for (const [name, bytes] of files) await fs.writeFile("/" + name, bytes);
-        const args = ["ink.pam", ...operations, "+channel", "-format", format, "info:out"];
+        const args = ["ink.pam", ...operations, "+channel", "-interpolate", "integer", "-format", format, "info:out"];
         let stdout = "", stderr = "";
         const result = mode === "magick" || mode === "convert" ? { ...await (mode === "magick" ? createMagickCommand() : createConvertCommand()).execute({
             command: mode, args: createCommandArguments(args).args, cwd: "/", env: {}, fs,

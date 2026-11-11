@@ -9,10 +9,11 @@ export async function compressAudio(
   commands: readonly { sample: number; expression: string }[] = []
 ): Promise<Float64Array[]> {
   const name = sidechain ? "sidechaincompress" : "acompressor";
-  const options: Record<string, string | number> = {
+  const defaults: Record<string, string> = {
     level_in: "1", mode: "downward", threshold: "0.125", ratio: "2", attack: "20", release: "250",
     makeup: "1", knee: "2.82843", link: "average", detection: "rms", level_sc: "1", mix: "1"
   };
+  const options: Record<string, string | number> = { ...defaults };
   const ranges: Record<string, readonly [number, number]> = {
     level_in: [0.015625, 64], threshold: [0.000976563, 1], ratio: [1, 20],
     attack: [0.01, 2000], release: [0.01, 9000], makeup: [1, 64], knee: [1, 8],
@@ -36,7 +37,10 @@ export async function compressAudio(
     if (!key || !Object.hasOwn(options, key)) throw new Error(`${name}: unsupported option ${key}`);
     const range = ranges[key];
     if (range) {
-      const numeric = parseFilterExpression(value, name, {});
+      const numeric = parseFilterExpression(value, name, {
+        E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2,
+        min: range[0], max: range[1], default: Number(defaults[key]), none: 0, all: -1
+      });
       if (!value || !Number.isFinite(numeric)) {
         throw new Error(`${name}: invalid ${key}`);
       }

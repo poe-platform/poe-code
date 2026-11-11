@@ -468,8 +468,10 @@ average/maximum channel linking, upward/downward modes, input gain, makeup and w
 Both compressor filters accept `threads`, `thread_type`, and `extra_hw_frames`
 without changing PCM samples.
 Both `acompressor` and `sidechaincompress` accept numeric expressions such as
-`threshold=1/4` and `ratio=2*2`, including positional options. Invalid expressions
-and out-of-range results fail without replacing existing output.
+`threshold=1/4` and `ratio=2*2`, including positional options, math constants
+(`PI`, `E`, `PHI`), and option constants (`min`, `max`, `default`, `none`, `all`).
+For example, `level_in=PI/4:ratio=max` uses a gain of π/4 and a ratio of 20.
+Invalid expressions and out-of-range results fail without replacing existing output.
 
 `axcorrelate` computes per-channel cross-correlation from two PCM inputs with compatible
 channel layouts, resampling the second input to the first input’s sample rate and

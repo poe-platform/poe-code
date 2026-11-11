@@ -28,8 +28,8 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
             stdout: { async write(bytes) { chunks.push(bytes.slice()); } },
             stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
         }) : mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
-        expect(result.exitCode, "stderr" in result ? result.stderr : stderr).toBe(0);
-        const output = "stdoutBytes" in result ? result.stdoutBytes! : Buffer.concat(chunks);
+        expect(result.exitCode, "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr).toBe(0);
+        const output = "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : Buffer.concat(chunks);
         expect(Buffer.from(output).toString("hex")).toBe(expected);
     });
 }

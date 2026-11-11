@@ -13886,7 +13886,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (image.metaChannels) rotated.metaChannels = yield* mapSteps(image.metaChannels, function* (plane) {
                     return yield* applyMagickRasterSteps(plane, warpPixelSteps(plane, plan, { r: 0, g: 0, b: 0, a: 255 }, "background", state.kernel, state.resizeFilter), signal, plan);
                 });
-                // Deskew initializes the retained read-mask channel to zero on its new canvas.
+                // Deskew initializes retained mask channels to zero on its new canvas.
+                if (image.region || image.writeMask) {
+                    rotated.region = undefined;
+                    rotated.writeMask = yield* createSolidRgbaImageSteps(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 });
+                }
                 if (image.readMask) rotated.readMask = yield* createSolidRgbaImageSteps(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 });
                 if (!["1", "true", "yes", "on"].includes(state.deskewAutoCrop ?? "")) return rotated;
                 const median = yield* applyMagickRasterSteps(rotated, morphologyPixelSteps(rotated, magickMedianRows("3"), "median", undefined, "background", background), signal);
@@ -17813,7 +17817,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     for (const plane of image.storedMetaChannels) rotated.storedMetaChannels.push(await transformStoredMagickRaster(plane, backend,
                         warpPixelSteps(plane, plan, { r: 0, g: 0, b: 0, a: 255 }, "background", kernel, filter), signal, plan));
                 }
-                // Deskew initializes the retained read-mask channel to zero on its new canvas.
+                // Deskew initializes retained mask channels to zero on its new canvas.
+                if (image.region || image.storedWriteMask) {
+                    rotated.region = undefined;
+                    rotated.storedWriteMask = await createStoredCanvas(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
+                }
                 if (image.readMask) rotated.readMask = await createStoredCanvas(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                 if (!["1", "true", "yes", "on"].includes(autoCrop ?? "")) return rotated;
                 const median = await transformStoredMagickRaster(rotated, backend, morphologyPixelSteps(rotated, magickMedianRows("3"), "median", undefined, "background", color), signal);

@@ -15516,7 +15516,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const context = { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex, optionProperties: state.optionProperties };
                 const method = yield* formatMagickPropertyStringSteps(statType, im, () => im, context);
                 validateMagickStatistic(method);
-                const geometry = parseMagickStatisticGeometry(t === "-median" || t === "-mode" ? geom : yield* formatMagickPropertyStringSteps(geom, im, () => im, context));
+                const geometry = parseMagickStatisticGeometry(t === "-median" || t === "-mode" || t === "-noise" ? geom : yield* formatMagickPropertyStringSteps(geom, im, () => im, context));
                 argumentsByImage.push({ method, geometry });
             }
             let sceneIdx = 0;
@@ -19062,7 +19062,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const context = { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties };
                 const method = await formatRetainedIdentify(statType, image, context, async () => ({ image: image!, storage: backend.storage }), signal, images);
                 validateMagickStatistic(method);
-                const geometry = parseMagickStatisticGeometry(token === "-median" || token === "-mode" ? geom : await formatRetainedIdentify(geom, image, context, async () => ({ image: image!, storage: backend.storage }), signal, images));
+                const geometry = parseMagickStatisticGeometry(token === "-median" || token === "-mode" || token === "-noise" ? geom : await formatRetainedIdentify(geom, image, context, async () => ({ image: image!, storage: backend.storage }), signal, images));
                 if (virtualPixel === "transparent" && (!channels || channels[3])) image = { ...image, hasAlpha: true };
                 const plan = magickMorphologyPlan(method, geometry, true);
                 let selectedChannels = !image.hasAlpha && image.inactiveAlpha && !image.alphaSeparate

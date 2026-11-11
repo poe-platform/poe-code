@@ -87,7 +87,8 @@ export async function gateAudio(
       // Downstream filters must receive the gate's program frames, including a
       // final frame shortened when either input ends.
       budget.allocateMemory(96);
-      frames.push({ data: new Uint8Array(0), size: 0, pts, dts: pts, cts: 0,
+      // The gate's output clock starts at zero, independent of input timestamps.
+      frames.push({ data: new Uint8Array(0), size: 0, pts: i, dts: i, cts: 0,
         duration: nextFrame - i, isKeyframe: true, sampleDescriptionIndex: 1 });
       frame++;
     }

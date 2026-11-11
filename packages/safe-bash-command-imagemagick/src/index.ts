@@ -7,7 +7,7 @@ import { readExifTextProperties } from "./exif-text.js";
 import { discardDisassociatedAlpha } from "./alpha-state.js";
 import { cropReadMaskSteps, cropStoredReadMask } from "./crop-read-mask.js";
 import { decodeMagickImage as decodeImage } from "./image-raster.js";
-import { renderFontCaption } from "./font/caption.js";
+import { renderFontCaption, wrapFontCaption } from "./font/caption.js";
 import { defaultCaptionFont } from "./font/default.js";
 import { polaroidPixels } from "./polaroid-caption.js";
 import { complexPixelSteps, parseComplexOperator } from "./complex.js";
@@ -7606,7 +7606,15 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     }
     if (lower.startsWith("label:") || lower.startsWith("caption:")) {
         const text = baseToken.slice(baseToken.indexOf(":") + 1);
-        return yield* applyMod([Object.assign(decodeImage(new TextEncoder().encode(createLabelSvg(text, state)), { density: state.density }), { [magickInput]: { inputFormat: baseToken.slice(0, baseToken.indexOf(":")).toUpperCase() } })]);
+        const image = decodeImage(new TextEncoder().encode(createLabelSvg(text, state)), { density: state.density });
+        const kind = lower.startsWith("caption:") ? "caption" : "label";
+        const properties = { ...image.properties, [kind]: text };
+        if (kind === "caption") {
+            const font = state.font === undefined ? defaultCaptionFont : files.get(state.font);
+            if (!font) throw new Error(`unable to read font '${state.font}'`);
+            properties["caption:lines"] = String(wrapFontCaption(font, text, image.width, state.pointsize, state.density, state.strokeWidth).length);
+        }
+        return yield* applyMod([Object.assign(image, { properties, [magickInput]: { filePath: text, inputFormat: kind.toUpperCase() } })]);
     }
     if (lower === "null:") {
         return yield* applyMod([Object.assign(yield* createSolidRgbaImageSteps(1, 1, state.background), { [magickInput]: { filePath: "null:", compression: "Undefined" } })]);
@@ -19061,8 +19069,18 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   image={position,width,height,...(storedData16?{storedData16}:{}),...(storedEvaluateSamples===undefined?{}:{storedEvaluateSamples}),...(storedHueSamples===undefined?{}:{storedHueSamples}),format:"png",channels:a.space?(a.a<255||b.a<255?2:1):4,depth:checker?"uchar":"ushort",space:a.cmyk?"cmyk":a.space??"srgb",density:72,hasAlpha:checker||a.a<255||b.a<255};
   image = Object.assign(image, { [magickInput]: { ...(!checker ? { filePath: first } : {}), inputFormat: baseToken.slice(0, baseToken.indexOf(":")).toUpperCase() } });
  }else if(lower.startsWith("label:")||lower.startsWith("caption:")){
-  image=await decodeStoredMagickSvg(createLabelSvg(baseToken.slice(baseToken.indexOf(":")+1),state),state.density,backend,signal);
-  image = Object.assign(image, { [magickInput]: { inputFormat: baseToken.slice(0, baseToken.indexOf(":")).toUpperCase() } });
+  const text = baseToken.slice(baseToken.indexOf(":") + 1), kind = lower.startsWith("caption:") ? "caption" : "label";
+  image=await decodeStoredMagickSvg(createLabelSvg(text,state),state.density,backend,signal);
+  const properties = { ...image.properties, [kind]: text };
+  if (kind === "caption") {
+   const font = state.font === undefined ? defaultCaptionFont : await backend.read(state.font, async source => {
+    if (source.size > 16 * 1024 * 1024) throw new Error("font exceeds memory limit");
+    return source.read(0, source.size, { signal });
+   });
+   if (!font) throw new Error(`unable to read font '${state.font}'`);
+   properties["caption:lines"] = String(wrapFontCaption(font, text, image.width, state.pointsize, state.density, state.strokeWidth, signal).length);
+  }
+  image = Object.assign(image, { properties, [magickInput]: { filePath: text, inputFormat: kind.toUpperCase() } });
  }else{
   const generated=await drainSteps(parseInputOperandSteps(baseToken,new Map(),state),signal);
   if(generated)image=await backend.retain(generated);

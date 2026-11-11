@@ -1,6 +1,41 @@
 import type { RgbaColor } from "@poe-code/image-ast/portable";
 import createFontRuntime from "./runtime.js";
 
+export function wrapFontCaption(bytes: Uint8Array, text: string, width: number, pointsize: number, density: number, strokeWidth: number, signal?: AbortSignal): string[] {
+    if (bytes.length > 16 * 1024 * 1024) throw new Error("font exceeds memory limit");
+    signal?.throwIfAborted();
+    const runtime = createFontRuntime();
+    const pointer = runtime._malloc(bytes.length);
+    if (!pointer) throw new Error("font exceeds memory limit");
+    try {
+        runtime.HEAPU8.set(bytes, pointer);
+        if (runtime._font_open(pointer, bytes.length, pointsize, density, density)) throw new Error("unable to read font");
+        // Native caption wrapping measures the current prefix, including stroke width.
+        const lines: string[] = [];
+        let line = "", advance = 0, previous = 0, lastSpace = -1;
+        for (const char of text) {
+            if (char === "\n") { lines.push(line); line = ""; advance = previous = 0; lastSpace = -1; continue; }
+            signal?.throwIfAborted();
+            const address = runtime._font_glyph(char.codePointAt(0)!);
+            if (!address) throw new Error("unable to render font glyph");
+            const at = address / 4, id = runtime.HEAP32[at + 7]!;
+            const advanceWidth = runtime.HEAP32[at + 6]! / 64;
+            advance += runtime._font_kerning(previous, id) / 64 + advanceWidth;
+            if (char === " " || char === "\t") lastSpace = line.length;
+            if (Math.floor(advance + strokeWidth + 0.5) > width) {
+                if (lastSpace >= 0) {
+                    lines.push(line.slice(0, lastSpace));
+                    line = line.slice(lastSpace + 1) + char;
+                } else if (line) { lines.push(line); line = char; }
+                else line = char;
+                advance = previous = 0; lastSpace = -1;
+            } else { line += char; previous = id; }
+        }
+        lines.push(line);
+        return lines;
+    } finally { runtime._font_close(); runtime._free(pointer); }
+}
+
 export function renderFontCaption(bytes: Uint8Array, text: string, width: number, pointsize: number, density: number, fill: RgbaColor, background: RgbaColor, strokeWidth: number, signal?: AbortSignal) {
     if (bytes.length > 16 * 1024 * 1024) throw new Error("font exceeds memory limit");
     signal?.throwIfAborted();
@@ -21,24 +56,7 @@ export function renderFontCaption(bytes: Uint8Array, text: string, width: number
             return { width: values[at]!, height: values[at + 1]!, pitch: values[at + 2]!, bitmap: values[at + 3]!,
                 left: values[at + 4]!, top: values[at + 5]!, advance: values[at + 6]! / 64, id: values[at + 7]! };
         };
-        // Native caption wrapping measures the current prefix, including stroke width.
-        const lines: string[] = [];
-        let line = "", advance = 0, previous = 0, lastSpace = -1;
-        for (const char of text) {
-            if (char === "\n") { lines.push(line); line = ""; advance = previous = 0; lastSpace = -1; continue; }
-            const values = glyph(char), id = values.id;
-            advance += runtime._font_kerning(previous, id) / 64 + values.advance;
-            if (char === " " || char === "\t") lastSpace = line.length;
-            if (Math.floor(advance + strokeWidth + 0.5) > width) {
-                if (lastSpace >= 0) {
-                    lines.push(line.slice(0, lastSpace));
-                    line = line.slice(lastSpace + 1) + char;
-                } else if (line) { lines.push(line); line = char; }
-                else line = char;
-                advance = previous = 0; lastSpace = -1;
-            } else { line += char; previous = id; }
-        }
-        lines.push(line);
+        const lines = wrapFontCaption(bytes, text, width, pointsize, density, strokeWidth, signal);
         const height = Math.floor(lines.length * lineHeight + 0.5);
         if (!Number.isSafeInteger(width * height) || width * height > 2 ** 20) throw new Error("font caption exceeds pixel limit");
         const pixels = new Float64Array(width * height * 4);

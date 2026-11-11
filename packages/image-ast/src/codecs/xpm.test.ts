@@ -3,6 +3,19 @@ import { decodeImage, readImageMetadata } from "./index.js";
 
 const xpm = (...lines: string[]): Uint8Array => new TextEncoder().encode(`/* XPM */\n/* ignored "comment" */\nstatic char *x[] = {${lines.map(line => JSON.stringify(line)).join(",")}};`);
 
+it.each([
+  ["s red", [255, 0, 0, 255]],
+  ["s None", [0, 0, 0, 0]],
+  ...["c", "g", "g4", "m"].flatMap(key => [
+    [`s blue ${key} red`, [255, 0, 0, 255]] as const,
+    [`${key} red s blue`, [255, 0, 0, 255]] as const
+  ])
+] as const)("uses symbolic colors only as a fallback: %s", (fields, pixels) => {
+  const input = xpm("1 1 1 1", `A ${fields}`, "A");
+  expect(decodeImage(input).data).toEqual(Uint8Array.from(pixels));
+  expect(readImageMetadata(input).hasAlpha).toBe(fields === "s None");
+});
+
 it("reads XPM metadata and escaped pixel symbols", () => {
   const input = xpm("2 1 2 1", '\\ c #f00', '" c None', '\\"');
   expect(readImageMetadata(input)).toMatchObject({ format: "xpm", width: 2, height: 1, hasAlpha: true });

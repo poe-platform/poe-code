@@ -1088,11 +1088,11 @@ function parseAloop(argument: string) {
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (!key || !Object.hasOwn(values, key)) throw new Error(`aloop: unsupported option ${key}`);
     const number = key === "time" ? parseHlsDuration(value) : parseFilterExpression(value, "aloop", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
-    if (!value || !Number.isFinite(number) ||
-      (key !== "time" && number > (key === "start" ? 2 ** 63 : 2147483647)) ||
+    if (!value || !Number.isFinite(number)) throw new Error(`aloop: invalid ${key}`);
+    if ((key !== "time" && number > (key === "start" ? 2 ** 63 : 2147483647)) ||
       number < (key === "start" || key === "loop" ? -1 : 0) ||
       (key === "time" && number > (2 ** 63 - 1) / 1_000_000)) {
-      throw new Error(`aloop: invalid ${key}`);
+      throw new RangeError(`aloop: invalid ${key}`);
     }
     values[key] = key === "time" ? number : roundToEven(number);
   }
@@ -20031,6 +20031,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("apad: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("apad:")) return { exitCode: 222 };
             if (msg.startsWith("apad: invalid ") || msg === "apad: pad_len and whole_len are mutually exclusive") return { exitCode: 234 };
+            if (msg === "aloop: unsupported option enable") return { exitCode: 176 };
+            if (msg.startsWith("aloop: unsupported option ")) return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("aloop:")) return { exitCode: 222 };
             if (msg === "loop: invalid expression" || msg === "loop: invalid or unsupported expression") return { exitCode: 234 };
             if (msg.startsWith("apad packet_size:") || msg === "aloop: invalid expression" || msg === "aloop: invalid or unsupported expression" ||
                 msg === "dcshift: too many positional options" ||

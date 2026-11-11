@@ -36,7 +36,7 @@ for (const mode of ["command", "buffered", "sync"] as const) {
                 signal: new AbortController().signal, stdin: (async function* () {})(),
                 stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
             });
-        expect(result.exitCode, stderr || ("stderr" in result ? result.stderr : "")).toBe(0);
+        expect(result.exitCode, stderr || ("stderr" in result && typeof result.stderr === "string" ? result.stderr : "")).toBe(0);
         const output = mode === "command" ? await fs.readFile("/work/out") : files.get("out")!;
         expect(new TextDecoder().decode(output)).toBe(expected);
         const pixels = mode === "command" ? await fs.readFile("/work/pixels") : files.get("pixels")!;

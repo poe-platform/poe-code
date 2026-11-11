@@ -7382,12 +7382,12 @@ function parseInputToken(token:string):{baseToken:string;pageSpec?:string;inline
  return {baseToken,...(pageSpec===undefined?{}:{pageSpec}),...(inlineGeom===undefined?{}:{inlineGeom})};
 }
 
-function haldInputMetadata(token: string): Omit<RgbaImage, "data"> {
+function haldInputMetadata(token: string, inputDepth: number = 16): Omit<RgbaImage, "data"> {
     const parsed = Number.parseInt(token.slice(5), 10);
     const level = Number.isNaN(parsed) || parsed < 2 ? 8 : parsed;
     const width = level ** 3;
     if (!Number.isSafeInteger(width * width * 8) || width * width * 8 > 0x7fffffff) throw new Error("Hald image dimensions exceed resource limits");
-    return { width, height: width, format: "png", channels: 3, depth: 255 % (level * level - 1) === 0 ? "uchar" : "ushort", space: "srgb", density: 72, hasAlpha: false };
+    return { width, height: width, format: "png", channels: 3, depth: 255 % (level * level - 1) === 0 ? "uchar" : "ushort", bitsPerSample: inputDepth, space: "srgb", density: 72, hasAlpha: false };
 }
 
 function* haldInputPixelSteps(width: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
@@ -7587,7 +7587,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         return yield* applyMod([Object.assign(decodeImage(bytes), { [magickInput]: { filePath: path, byteLen: input.length } })]);
     }
     if (lower.startsWith("hald:")) {
-        const metadata = haldInputMetadata(baseToken);
+        const metadata = haldInputMetadata(baseToken, state.inputDepth);
         return yield* applyMod([yield* applyMagickRasterSteps({ ...metadata, data: new Uint8Array() }, haldInputPixelSteps(metadata.width))]);
     }
     if (lower.startsWith("xc:") || lower.startsWith("canvas:")) {
@@ -19048,7 +19048,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   }
   return readOptions.source===null?undefined:readOptions.source?consume([readOptions.source]):backend.read(path,source=>consume([source]));
  }else if(lower.startsWith("hald:")){
-  const metadata=haldInputMetadata(baseToken);
+  const metadata=haldInputMetadata(baseToken, state.inputDepth);
   image=await transformStoredMagickRaster({...metadata,position:0},backend,haldInputPixelSteps(metadata.width),signal);
  }else if(lower.startsWith("xc:")||lower.startsWith("canvas:")||lower==="null:"){
   const colorStr=(baseToken.slice(baseToken.indexOf(":")+1)||"white").trim();

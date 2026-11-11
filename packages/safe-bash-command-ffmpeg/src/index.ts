@@ -15243,7 +15243,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             enable = value;
                             parseFilterExpression(enable, "dcshift enable", { n: 0, t: 0 });
                           } else if (key === "shift") {
-                            shift = parseFilterExpression(value, "dcshift", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
+                            shift = parseFilterExpression(value, "dcshift", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, min: -1, max: 1, default: 0, none: 0, all: -1 });
                             if (shift < -1 || shift > 1) {
                               throw new RangeError("dcshift: expected shift between -1 and 1");
                             }

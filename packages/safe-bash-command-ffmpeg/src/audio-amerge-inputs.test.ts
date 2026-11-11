@@ -74,17 +74,17 @@ for (const { name, inputs, expected, mask } of [
   });
 }
 
-for (const [graph, count] of [
-  ["[0:a][1:a]amerge=inputs=1[out]", 2],
-  ["[0:a][1:a][2:a]amerge[out]", 3],
-  ["[0:a][1:a]amerge=inputs=3[out]", 2],
-  ["amerge=inputs=4[out]", 3],
-  ["[0:a]amerge=inputs=0[out]", 1],
-  ["[0:a]amerge=inputs=65[out]", 1]
+for (const [graph, count, exitCode] of [
+  ["[0:a][1:a]amerge=inputs=1[out]", 2, 1],
+  ["[0:a][1:a][2:a]amerge[out]", 3, 1],
+  ["[0:a][1:a]amerge=inputs=3[out]", 2, 1],
+  ["amerge=inputs=4[out]", 3, 1],
+  ["[0:a]amerge=inputs=0[out]", 1, 222],
+  ["[0:a]amerge=inputs=65[out]", 1, 222]
 ] as const) {
   it(`amerge validates pads without replacing output: ${graph}`, async () => {
     const result = await run(graph, Array.from({ length: count }, () => ({ values: [8000] })));
-    assert.equal(result.exitCode, 1, result.stderr);
+    assert.equal(result.exitCode, exitCode, result.stderr);
     assert.equal(result.output.toString(), "keep");
   });
 }

@@ -1724,10 +1724,11 @@ function parseAmergeInputs(filter: string): number {
   for (const [index, option] of options.entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? (index === 0 ? "inputs" : undefined) : option.slice(0, separator).trim();
+    if (key === "enable") throw new Error("amerge: timeline is unsupported");
     if (key !== "inputs") throw new Error("amerge: unsupported option");
     const value = parseFilterExpression(separator < 0 ? option : option.slice(separator + 1),
       "amerge", { E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2, min: 1, max: 64, default: 2 });
-    if (value < 1 || value > 64) throw new Error("amerge: inputs out of range");
+    if (value < 1 || value > 64) throw new RangeError("amerge: inputs out of range");
     // AVOption integers validate each assignment before rounding, with ties to even.
     const lower = Math.floor(value);
     count = value - lower === 0.5 ? lower + lower % 2 : Math.round(value);
@@ -19771,6 +19772,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               return { exitCode: msg === "separatefields: height must be even" ? 183 : 234 };
             }
+            if (msg === "amerge: timeline is unsupported") return { exitCode: 176 };
+            if (msg === "amerge: unsupported option") return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("amerge:")) return { exitCode: 222 };
+            if (msg === "amerge: invalid expression" || msg === "amerge: invalid or unsupported expression") return { exitCode: 234 };
             if (err instanceof AgateError) return { exitCode: err.exitCode };
             if (msg === "silencedetect: unsupported option enable") return { exitCode: 176 };
             if (msg.startsWith("silencedetect: unsupported option ")) return { exitCode: 8 };

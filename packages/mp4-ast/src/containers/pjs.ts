@@ -8,13 +8,15 @@ function readLine(line: string): { start: number; end: number; text: string } | 
   if (first < 1 || second < first + 2) return undefined;
   const startText = line.slice(0, first).trimStart();
   const endText = line.slice(first + 1, second).trim();
-  const quoted = line.slice(second + 1).trim();
-  if (!startText || !endText || quoted.length < 2 || !quoted.startsWith('"') || !quoted.endsWith('"')) return undefined;
+  const quoted = line.slice(second + 1).trimStart();
+  if (!startText || !endText || !quoted.startsWith('"')) return undefined;
   if (![...startText, ...endText].every(c => c >= "0" && c <= "9")) return undefined;
   const start = Number(startText);
   const end = Number(endText);
   if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || end < start) return undefined;
-  return { start, end, text: quoted.slice(1, -1) };
+  let textEnd = 1;
+  while (textEnd < quoted.length && quoted[textEnd] !== '"' && quoted[textEnd] !== "\r" && quoted[textEnd] !== "\n") textEnd++;
+  return { start, end, text: quoted.slice(1, textEnd) };
 }
 
 function parsePjs(bytes: Uint8Array): MediaDocument {

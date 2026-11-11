@@ -35,15 +35,19 @@ for (const sync of [false, true]) {
       });
     }
     for (const [dialogue, expected] of [
-      ["First|Second", "First\r\nSecond"],
-      ["|A", "\r\nA"],
-      ["A|", "A\r\n"],
-      ["A||B", "A\r\n\r\nB"],
-      ["First", "First"],
-      ["First, second", "First, second"]
+      ['"First|Second"', "First\r\nSecond"],
+      ['"|A"', "\r\nA"],
+      ['"A|"', "A\r\n"],
+      ['"A||B"', "A\r\n\r\nB"],
+      ['"First"', "First"],
+      ['"First, second"', "First, second"],
+      ['"A"B"', "A"],
+      ['"Alpha" trailing', "Alpha"],
+      ['"Alpha', "Alpha"],
+      ['"Alpha\r', "Alpha"]
     ]) {
-      it(`${sync ? "sync" : "async"} ${forced ? "forced" : "detected"} PJS to SRT matches native dialogue ${dialogue}`, async () => {
-        const volume = Volume.fromJSON({ "/input.pjs": `10,20,"${dialogue}"\n`, "/out.srt": "KEEP" });
+      it(`${sync ? "sync" : "async"} ${forced ? "forced" : "detected"} PJS to SRT matches native dialogue ${JSON.stringify(dialogue)}`, async () => {
+        const volume = Volume.fromJSON({ "/input.pjs": `10,20,${dialogue}\n30,40,"Beta"\n`, "/out.srt": "KEEP" });
         const args = ["-v", "error", "-y", ...(forced ? ["-f", "pjs"] : []), "-i", "/input.pjs", "-c:s", "srt", "/out.srt"];
         if (sync) {
           assert.equal(evalSyncFfmpeg(args, undefined,
@@ -62,9 +66,10 @@ for (const sync of [false, true]) {
             stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
           } as never);
           assert.equal(result.exitCode, 0, stderr);
+          assert.equal(stderr, "");
         }
         assert.equal(volume.readFileSync("/out.srt", "utf8"),
-          `1\n00:00:01,000 --> 00:00:02,000\n${expected}\n\n`);
+          `1\n00:00:01,000 --> 00:00:02,000\n${expected}\n\n2\n00:00:03,000 --> 00:00:04,000\nBeta\n\n`);
       });
     }
   }

@@ -16265,8 +16265,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const positionalKeys = ["level_in", "level_out", "balance_in", "balance_out", "softclip",
                           "mutel", "muter", "phasel", "phaser", "mode", "slev", "sbal", "mlev", "mpan",
                           "base", "delay", "sclevel", "phase", "bmode_in", "bmode_out"];
+                        const options = argument ? argument.split(":") : [];
+                        if (options.at(-1) === "") options.pop();
                         let sawNamed = false;
-                        for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+                        for (const [index, option] of options.entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? positionalKeys[index] : option.slice(0, separator).trim();
                           if (separator < 0 && (sawNamed || key === undefined)) {

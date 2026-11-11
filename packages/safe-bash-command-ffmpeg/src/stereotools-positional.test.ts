@@ -9,6 +9,8 @@ const left = [4096, 8192, -2000, 0];
 const right = [1024, -4096, 3000, 1000];
 for (const [positional, named] of [
   ["1:1:0:0:0:0:1", "muter=1"],
+  ["1:1:0:0:0:0:1:", "muter=1"],
+  ["1:1:muter=1:", "muter=1"],
   ["1:1:0:0:0:1", "mutel=1"],
   ["2:0.5", "level_in=2:level_out=0.5"],
   ["1:1:0:0:0:0:0:1:1:lr>rl", "phasel=1:phaser=1:mode=lr>rl"],
@@ -56,6 +58,11 @@ for (const expression of [
   "1:1:0:0:0:0:2",
   "65",
   "level_in=1:1",
+  "muter=1::",
+  "muter=1::phasel=1",
+  "muter=1:1:",
+  "mode=:",
+  "unknown=1:",
   "1:1:0:0:0:0:0:0:0:0:1:0:1:0:0:0:1:0:0:0:0"
 ]) {
   it(`rejects invalid stereotools positional arguments without replacing output: ${expression}`, async () => {

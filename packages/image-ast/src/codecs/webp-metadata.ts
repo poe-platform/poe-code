@@ -25,6 +25,7 @@ export function* webpMetadataSteps(size:number):Generator<MetadataRead,ImageMeta
   let hasAlpha = false;
   let density = 72;
   let orientation: number | undefined;
+  let icc: Uint8Array | undefined;
   const delay: number[] = [];
   let loop: number | undefined;
 
@@ -64,6 +65,11 @@ export function* webpMetadataSteps(size:number):Generator<MetadataRead,ImageMeta
       if (chunkSize < 24) throw new Error("Invalid WebP frame");
       const frame = yield { position: dataStart, length: 16 };
       delay.push(frame[12]! | (frame[13]! << 8) | (frame[14]! << 16));
+    } else if (fourcc === "ICCP") {
+      icc = new Uint8Array(chunkSize);
+      for (let offset = 0; offset < chunkSize; offset += 4096) {
+        icc.set(yield { position: dataStart + offset, length: Math.min(4096, chunkSize - offset) }, offset);
+      }
     } else if (fourcc === "EXIF") {
       const exif = yield* exifMetadataSteps(chunkSize,dataStart);
       if (exif.orientation !== undefined) orientation = exif.orientation;
@@ -86,6 +92,7 @@ export function* webpMetadataSteps(size:number):Generator<MetadataRead,ImageMeta
     density,
     hasAlpha,
     ...(orientation !== undefined ? { orientation } : {}),
+    ...(icc === undefined ? {} : { icc }),
     ...(delay.length ? { pages: delay.length, delay, loop: loop ?? 0 } : {}),
     size
   };

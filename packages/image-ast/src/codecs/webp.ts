@@ -366,6 +366,7 @@ export function decodeWebpImage(bytes: Uint8Array, options?: { readonly page?: n
     const decoded = decodeWebpImage(encoded);
     if (decoded.width !== frame.width || decoded.height !== frame.height) throw new Error("Invalid WebP frame dimensions");
     return { ...decoded, density: meta.density, ...(meta.orientation === undefined ? {} : { orientation: meta.orientation }),
+      ...(meta.icc === undefined ? {} : { icc: meta.icc }),
       delay: meta.delay!, loop: meta.loop!, disposal: frame.disposal,
       virtualCanvas: { width: meta.width, height: meta.height, x: frame.x, y: frame.y } };
   }
@@ -405,6 +406,7 @@ export function decodeWebpImage(bytes: Uint8Array, options?: { readonly page?: n
               depth: "uchar",
               density: meta.density,
               hasAlpha: meta.hasAlpha,
+              ...(meta.icc === undefined ? {} : { icc: meta.icc }),
               ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {})
             };
           }
@@ -425,6 +427,7 @@ export function decodeWebpImage(bytes: Uint8Array, options?: { readonly page?: n
             depth: "uchar",
             density: meta.density,
             hasAlpha: meta.hasAlpha,
+            ...(meta.icc === undefined ? {} : { icc: meta.icc }),
             ...(meta.orientation !== undefined ? { orientation: meta.orientation } : {})
           };
         }

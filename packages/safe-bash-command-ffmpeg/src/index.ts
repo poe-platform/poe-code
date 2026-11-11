@@ -1727,8 +1727,9 @@ async function panAudio(
         names.join("+") !== "DL+DR") {
       throw new Error(`pan: unsupported output channel layout ${layout}`);
     }
-    // Back-only input cannot be rematrixed to stereo; same-layout routing remains valid.
-    if (inputMask === 0x30 && names.join("+") === "FL+FR") {
+    // Stereo rematrixing needs front speakers or a stereo-downmix input layout.
+    if (!inputNames.some(name => name === "FL" || name === "FR" || name === "FC") &&
+        inputMask !== 0x60000000 && names.join("+") === "FL+FR") {
       throw new Error("pan: unsupported input channel layout");
     }
     if (inputNames.length > 1 && inputNames.includes("FL") !== inputNames.includes("FR")) {

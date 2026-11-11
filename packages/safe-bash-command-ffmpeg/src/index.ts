@@ -2286,6 +2286,7 @@ async function applyVideoFilterChain(
   let pending: AsyncIterable<typeof current[number]> | undefined;
   let pendingBounded = false;
   let frameRateKnown = true;
+  let frameDuration = current[0]!.durationSeconds;
   let videoCommands: { time: number; target: string; action: string; expression: string }[] = [];
 
   for (const filterSpec of parseFilterChain(filterChainStr)) {
@@ -2302,6 +2303,7 @@ async function applyVideoFilterChain(
       for await (const frame of pending) current.push(frame);
       pending = undefined;
     }
+    frameDuration = current[0]?.durationSeconds ?? frameDuration;
     const lastInputFrame = pending ? undefined : current.at(-1);
     const argStr = eqIdx >= 0 ? filterSpec.slice(eqIdx + 1).trim() : "";
     const positional = argStr.split(":");
@@ -2662,6 +2664,24 @@ async function applyVideoFilterChain(
         throw new Error("showinfo: checksum must be a boolean");
       }
       if (diagnostics.logLevel < 32) continue;
+      const [timeBase, frameRate] = [1 / timescale, frameRateKnown ? 1 / frameDuration : 0].map(ratio => {
+        // Link timing is stored in seconds; recover its reduced rational form.
+        let value = ratio;
+        let numerator = 1, denominator = 0, previousNumerator = 0, previousDenominator = 1;
+        while (Number.isFinite(value)) {
+          const whole = Math.floor(value);
+          const nextNumerator = whole * numerator + previousNumerator;
+          const nextDenominator = whole * denominator + previousDenominator;
+          if (nextNumerator > 2147483647 || nextDenominator > 2147483647) break;
+          [previousNumerator, numerator] = [numerator, nextNumerator];
+          [previousDenominator, denominator] = [denominator, nextDenominator];
+          if (Math.abs(numerator / denominator - ratio) <= ratio * 1e-12) break;
+          value = 1 / (value - whole);
+        }
+        return `${numerator}/${denominator}`;
+      });
+      await diagnostics.write(`[showinfo] config in time_base: ${timeBase}, frame_rate: ${frameRate}\n` +
+        "[showinfo] config out time_base: 0/0, frame_rate: 0/0\n");
       const checksumEnabled = !["0", "false", "no", "off"].includes(option ?? "");
       for (const [n, frame] of current.entries()) {
         budget.checkCpu();

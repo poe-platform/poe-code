@@ -82,7 +82,7 @@ for (const [filter, ticks] of [
   it(`${filter} rounds incoming ticks to the new clock`, async () => {
     const result = await run(`${filter},showinfo=checksum=0`);
     assert.equal(result.exitCode, 0, result.stderr);
-    const actual = result.stderr.split("\n").filter(line => line.startsWith("[showinfo]"))
+    const actual = result.stderr.split("\n").filter(line => line.startsWith("[showinfo] n:"))
       .map(line => Number(line.split(" ").find(field => field.startsWith("pts:"))!.slice(4)));
     assert.deepEqual(actual, ticks);
   });
@@ -108,7 +108,7 @@ for (const filter of ["settb=1/2,fps=4", "select='lt(n,3)',settb=1/1000,fps=4"])
 it("settb rescales frame durations as well as PTS", async () => {
   const result = await run("settb=1/1000,showinfo=checksum=0");
   assert.equal(result.exitCode, 0, result.stderr);
-  const lines = result.stderr.split("\n").filter(line => line.startsWith("[showinfo]"));
+  const lines = result.stderr.split("\n").filter(line => line.startsWith("[showinfo] n:"));
   assert.equal(lines.length, 8);
   for (const line of lines) assert.ok(line.includes("duration:250 duration_time:0.25"), line);
 });

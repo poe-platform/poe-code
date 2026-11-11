@@ -57,7 +57,7 @@ export function inverseRealSpectrum(real: Float64Array, imaginary: Float64Array,
   splitRadix(imaginary, real, cosine, 0, -1, half, 0);
 }
 
-function splitRadix(input: Float64Array, out: Float64Array, cosine: Float32Array,
+export function splitRadix(input: Float64Array, out: Float64Array, cosine: Float32Array,
   start: number, step: number, n: number, offset: number): void {
   const mask = input.length / 2 - 1;
   if (n === 4) {

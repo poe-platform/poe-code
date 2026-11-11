@@ -1299,7 +1299,14 @@ function parseMagickConvolveBias(value: string | undefined): number {
 
 function parseMagickConvolveKernel(spec: string, normalize = true, reverse = false, scale?: string): ConvolveKernel {
     const afterColon = spec.includes(":") ? spec.slice(spec.indexOf(":") + 1) : spec;
-    const kernel = afterColon.trim().split(/[\s,]+/).filter(s => s.length > 0).map(Number).filter(Number.isFinite);
+    const kernel = afterColon.trim().split(/[\s,]+/).filter(s => s.length > 0).flatMap(token => {
+        const weight = Number(token);
+        return Number.isFinite(weight) || token === "-" || token.toLowerCase() === "nan" ? [weight] : [];
+    });
+    // Keep the existing no-op for kernels without numeric coefficients.
+    if (!kernel.some(Number.isFinite)) kernel.length = 0;
+    // Morphology skips omitted taps; standalone normalization propagates NaN.
+    if (!normalize) for (let i = 0; i < kernel.length; i++) if (Number.isNaN(kernel[i])) kernel[i] = 0;
     const sum = kernel.reduce((total, weight) => total + weight, 0);
     const geometry = parseMagickGeometry(spec.includes(":") ? spec.slice(0, spec.indexOf(":")) : "");
     const width = geometry.width ?? Math.max(1, Math.round(Math.sqrt(kernel.length)));

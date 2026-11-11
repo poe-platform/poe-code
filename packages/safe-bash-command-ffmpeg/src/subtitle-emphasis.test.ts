@@ -27,7 +27,8 @@ for (const sync of [false, true]) {
           const serialize = (extension: string, expected: boolean) =>
             (extension === "vtt" ? "WEBVTT\n\n" : "") + examples.map((cue, index) => {
               const timing = extension === "vtt" ? "00:00.000 --> 00:01.000" : `${index + 1}\n00:00:00,000 --> 00:00:01,000`;
-              return `${timing}\n${cue[expected ? 1 : 0]}\n`;
+              const text = cue[expected ? 1 : 0]!;
+              return `${timing}\n${expected && input === "vtt" && extension === "srt" ? text.replaceAll("\n", "\r\n") : text}\n`;
             }).join("\n") + (extension === "srt" ? "\n" : "");
           const source = serialize(input, false);
           const volume = Volume.fromJSON({ [`/in.${input}`]: source });

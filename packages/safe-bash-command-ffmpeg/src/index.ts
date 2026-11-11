@@ -7754,6 +7754,11 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
               const end = text.indexOf(">", position + 1);
               if (end < 0) break;
               let tag = text.slice(position + 1, end);
+              // TTML carries plain cue text; discard markup before decoding entities.
+              if (codec === "webvtt" && outputFormat === "ttml") {
+                position = end + 1;
+                continue;
+              }
               if (codec === "subrip" && ["B", "/B", "I", "/I", "U", "/U"].includes(tag)) tag = tag.toLowerCase();
               if (codec === "subrip" && (webvtt || outputFormat === "ass" || containerCodec === "ass")
                 && ["br", "br/", "br /"].includes(tag.toLowerCase())) {

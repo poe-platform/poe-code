@@ -11324,17 +11324,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }, filename => readInput(resolvePath(context.cwd, filename)), registry, context.signal);
                     return { track: { ...source.track, decodedVideoFrames: frames }, frames };
                   }
-                  const parts = label.split(":");
-                  if (parts.length > 3 || parts[1] !== "v" ||
-                      !parts[0] || ![...parts[0]].every(char => char >= "0" && char <= "9") ||
-                      (parts[2] !== undefined && (!parts[2] || ![...parts[2]].every(char => char >= "0" && char <= "9")))) {
+                  const [input, selector, ordinal, ...extra] = label.split(":");
+                  const numeric = selector === "v" ? [input, ordinal ?? "0"] : [input, selector ?? "0"];
+                  if (extra.length > 0 || (selector !== "v" && ordinal !== undefined) ||
+                      !numeric.every(value => value !== undefined && value.length > 0 &&
+                        [...value].every(char => char >= "0" && char <= "9") && Number.isSafeInteger(Number(value)))) {
                     throw new Error(`${filter}: invalid input label ${label}`);
                   }
-                  const inputIndex = Number(parts[0]);
-                  const streamIndex = Number(parts[2] ?? 0);
-                  const doc = loadedDocs[inputIndex];
-                  const track = doc?.tracks.filter(t => t.type === "video")[streamIndex];
-                  if (!doc || !track) throw new Error(`${filter}: input ${inputIndex}:v:${streamIndex} is unavailable`);
+                  const doc = loadedDocs[Number(input)];
+                  const track = selector === undefined || selector === "v"
+                    ? doc?.tracks.filter(t => t.type === "video")[Number(ordinal ?? "0")]
+                    : doc?.tracks[Number(selector)];
+                  if (!doc || !track || track.type !== "video") throw new Error(`${filter}: input ${label} is unavailable`);
                   usedTracks.add(track);
                   return { track, frames: await ensureDecodedFrames(track, doc.timescale, budget, context.signal) };
                 };

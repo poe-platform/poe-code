@@ -8229,14 +8229,14 @@ function parseAudioChannels(option: string, value: string | undefined): [string,
   return [specifier, channels];
 }
 
-function audioChannelsForStream(options: readonly [string, number | undefined][], trackIndex: number, audioIndex: number): number | undefined {
-  let channels: number | undefined;
+function audioOptionForStream(options: readonly [string, number | undefined][], trackIndex: number, audioIndex: number): number | undefined {
+  let result: number | undefined;
   for (const [specifier, value] of options) {
     const [selector, index] = specifier.split(":");
     if (selector === "a" ? index && Number(index) !== audioIndex : selector && Number(selector) !== trackIndex) continue;
-    channels = value;
+    result = value;
   }
-  return channels;
+  return result;
 }
 
 function parseTimestampScale(option: string, value: string | undefined): [string, number] {
@@ -8590,7 +8590,7 @@ export function evalSyncFfmpeg(
     let audioCodec: string | undefined;
     let audioBitrate: number | undefined;
     let subtitleCodec: string | undefined;
-    let audioRate: number | undefined;
+    let audioRateOptions: [string, number | undefined][] = [];
     let audioChannelOptions: [string, number | undefined][] = [];
     let stripAudio = false;
     let stripVideo = false;
@@ -8749,9 +8749,10 @@ export function evalSyncFfmpeg(
         if (!Number.isSafeInteger(val) || val < 0) return undefined;
         if (args.slice(i + 1).includes("-i")) pendingStartNumber = val;
         else outputStartNumber = val;
-      } else if (arg === "-ar" || (arg === "-sample_rate" && args.slice(i + 1).includes("-i"))) {
-        audioRate = parseInt(args[++i] ?? "0", 10) || undefined;
+      } else if (arg === "-ar" || arg.startsWith("-ar:") || (arg === "-sample_rate" && args.slice(i + 1).includes("-i"))) {
+        const audioRate = parseInt(args[++i] ?? "0", 10) || undefined;
         if (audioRate !== undefined && audioRate < 0) return undefined;
+        audioRateOptions.push([arg.startsWith("-ar:") ? arg.slice(4) : "", audioRate]);
       } else if (arg === "-sample_rate") {
         // This demuxer option is accepted after input without changing the output rate.
         if (args[++i] === undefined) return undefined;
@@ -8881,7 +8882,7 @@ export function evalSyncFfmpeg(
         inputs.push({
           path: args[++i] ?? "",
           format: pendingFormat,
-          sampleRate: audioRate,
+          sampleRate: audioRateOptions.at(-1)?.[1],
           // The raw demuxer uses the last -ac value regardless of stream selector.
           channels: audioChannelOptions.at(-1)?.[1],
           skipInitialBytes: pendingSkipInitialBytes,
@@ -8905,7 +8906,7 @@ export function evalSyncFfmpeg(
           fps: pendingFps,
           startNumber: pendingStartNumber,
         });
-        audioRate = undefined; audioChannelOptions = [];
+        audioRateOptions = []; audioChannelOptions = [];
         pendingTimestampScales = [];
         pendingDisplayTransforms = [];
         pendingTimestampOffset = 0;
@@ -9269,7 +9270,7 @@ export function evalSyncFfmpeg(
     if (fileSize !== undefined && (audioCodec !== "copy" ||
       (outputFormat ? registry.findByFormatName(outputFormat) : registry.findByFilename(outputTarget))?.id !== "wav")) return undefined;
     // Output resampling and channel mixing require the async audio filter path.
-    if (audioRate !== undefined || audioChannelOptions.length) return undefined;
+    if (audioRateOptions.length || audioChannelOptions.length) return undefined;
     if (outputDuration === undefined && outputTo !== undefined && outputTo <= (outputSs ?? 0)) return undefined;
     if (outputFormat === "segment" || outputFormat === "tee" || outputTarget.startsWith("tee:")) return undefined;
     const isNullMux = outputFormat === "null";
@@ -9880,7 +9881,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let subtitleCodec: string | undefined;
         let kaiserBeta = 9;
         let filterType: "cubic" | "kaiser" | "blackman_nuttall" = "kaiser";
-        let audioRate: number | undefined;
+        let audioRateOptions: [string, number | undefined][] = [];
         let audioChannelOptions: [string, number | undefined][] = [];
         let rematrixMaxval: number | undefined;
         let resampler: "swr" | "soxr" = "swr";
@@ -10642,12 +10643,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 8 };
             }
             filterType = raw === "0" ? "cubic" : raw;
-          } else if (arg === "-ar" || (arg === "-sample_rate" && args.slice(i + 1).includes("-i"))) {
-            audioRate = parseInt(args[++i] ?? "0", 10) || undefined;
+          } else if (arg === "-ar" || arg.startsWith("-ar:") || (arg === "-sample_rate" && args.slice(i + 1).includes("-i"))) {
+            const audioRate = parseInt(args[++i] ?? "0", 10) || undefined;
             if (audioRate !== undefined && audioRate < 0) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: sample rate must be nonnegative\n"), context.signal);
               return { exitCode: 1 };
             }
+            audioRateOptions.push([arg.startsWith("-ar:") ? arg.slice(4) : "", audioRate]);
           } else if (arg === "-sample_rate") {
             // This demuxer option is accepted after input without changing the output rate.
             if (args[++i] === undefined) throw new Error("Missing argument for option sample_rate");
@@ -11067,7 +11069,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               dumpAttachments: pendingDumpAttachments,
               path,
               format: pendingFormat,
-              sampleRate: audioRate,
+              sampleRate: audioRateOptions.at(-1)?.[1],
               // The raw demuxer uses the last -ac value regardless of stream selector.
               channels: audioChannelOptions.at(-1)?.[1],
               subtitleFrameRate: pendingSubtitleFrameRate,
@@ -11105,7 +11107,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingDumpAttachments = [];
             pendingGuessLayoutMax = undefined;
             pendingChannelLayout = undefined;
-            audioRate = undefined;
+            audioRateOptions = [];
             audioChannelOptions = [];
             pendingFormat = undefined;
             pendingSafe = undefined;
@@ -13883,7 +13885,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const ordinal = index === undefined ? undefined : audioOrdinal++;
                   const audioCodec = ordinal === undefined ? defaultAudioCodec : indexedAudioCodecs.get(ordinal) ?? defaultAudioCodec;
                   const sink = index !== undefined && index >= workingDoc.tracks.length - audioSinks.length;
-                  let audioChannels = index === undefined ? undefined : audioChannelsForStream(audioChannelOptions, index, ordinal!);
+                  const audioRate = index === undefined ? undefined : audioOptionForStream(audioRateOptions, index, ordinal!);
+                  let audioChannels = index === undefined ? undefined : audioOptionForStream(audioChannelOptions, index, ordinal!);
                   if (audioChannels !== undefined && audioChannels <= 0) audioChannels = undefined;
                   let filter = expression === undefined
                     ? afFilters.filter(filter => filter.ordinal === undefined || filter.ordinal === ordinal).at(-1)
@@ -19737,7 +19740,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   };
             }
 
-            if ((!autoConversionFilters || audioRate !== undefined || audioChannelOptions.length > 0 || rematrixVolume !== 1 || afFilters.length > 0 || maxAudioFrames !== undefined || outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined || (audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms")) && audioCodec !== "copy") {
+            if ((!autoConversionFilters || audioRateOptions.length > 0 || audioChannelOptions.length > 0 || rematrixVolume !== 1 || afFilters.length > 0 || maxAudioFrames !== undefined || outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined || (audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms")) && audioCodec !== "copy") {
               workingDoc = { ...workingDoc, tracks: await mapWork(workingDoc.tracks,
                 (track, index) => filterAudio(track, undefined, index), context.signal) };
             }

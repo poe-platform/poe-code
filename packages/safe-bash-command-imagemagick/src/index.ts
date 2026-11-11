@@ -7091,7 +7091,8 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
                 if (x <= Math.min(shape.x, shape.x1) - mid - 0.5 || x > Math.max(shape.x, shape.x1) + mid + 0.5 ||
                     y <= Math.min(shape.y, shape.y1) - mid - 0.5 || y > Math.max(shape.y, shape.y1) + mid + 0.5) continue;
                 coverage = distance <= Math.abs(mid - 0.25) ? 1 : Math.max(0, mid + 0.75 - distance) ** 2;
-                if (shape.antialias === false) coverage = coverage >= 0.5 ? 1 : 0;
+                // ImageMagick thresholds stroke coverage at one third without antialiasing.
+                if (shape.antialias === false) coverage = coverage >= 1 / 3 ? 1 : 0;
                 let fillCoverage = Math.max(0, 1 - distance) ** 2;
                 if (shape.antialias === false) fillCoverage = fillCoverage >= 0.5 ? 1 : 0;
                 if (fillCoverage > 0 && shape.fill.a > 0) {

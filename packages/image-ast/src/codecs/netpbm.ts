@@ -51,6 +51,7 @@ export function readNetpbmMetadata(bytes: Uint8Array): ImageMetadata {
     space: hdr.cmyk ? "cmyk" : hdr.channels >= 3 ? "srgb" : "b-w",
     channels: hdr.channels,
     depth: hdr.format === "pbm" ? "bit" : hdr.maxval > 255 ? "ushort" : "uchar",
+    bitsPerSample: Math.ceil(Math.log2(hdr.maxval + 1)),
     density: 72,
     hasAlpha: hdr.hasAlpha,
     size: bytes.byteLength,
@@ -147,6 +148,7 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
     ...(evaluateSamples ? {evaluateSamples} : {}),
     channels,
     depth: format === "pbm" ? "bit" : maxval > 255 ? "ushort" : "uchar",
+    bitsPerSample: Math.ceil(Math.log2(maxval + 1)),
     density: 72,
     hasAlpha
   };

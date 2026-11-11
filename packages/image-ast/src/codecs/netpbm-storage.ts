@@ -18,7 +18,7 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
  checkLimitInputPixels(width,height,options);
  if(magic==="P6"&&source.size-dataOffset<width*height*3*(maxval>255?2:1)) throw new Error("Truncated PPM raster");
  if(magic==="P7"&&source.size-dataOffset<width*height*channels*(maxval>255?2:1)) throw new Error("Truncated PAM raster");
- const metadata:StoredRgbaImage={...(properties?{properties}:{}),width,height,position:0,format,space:cmyk?"cmyk":channels>=3?"srgb":"b-w",channels,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",density:72,hasAlpha};
+ const metadata:StoredRgbaImage={...(properties?{properties}:{}),width,height,position:0,format,space:cmyk?"cmyk":channels>=3?"srgb":"b-w",channels,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",bitsPerSample:Math.ceil(Math.log2(maxval+1)),density:72,hasAlpha};
  // Native byte-depth binary rasters use the stored byte, even below maxval 255.
  const sampleMax=(magic==="P5"||magic==="P6"||magic==="P7")&&maxval>=128&&maxval<=255?255:maxval;
  const output=new Output(metadata,width,height,storage,signal);let position=dataOffset;

@@ -213,28 +213,40 @@ export async function acrossfadeAudio(
   }
   const frames: MediaSample[] = [];
   let pts = 0;
-  function appendFrame(count: number): void {
+  function appendFrame(count: number, tags?: MediaSample["tags"]): void {
     count = Math.min(count, length - pts);
     if (count <= 0) return;
     budget.allocateMemory(96);
     frames.push({ data: new Uint8Array(0), size: 0, dts: pts, pts, cts: 0,
-      duration: count, isKeyframe: true, sampleDescriptionIndex: 1 });
+      duration: count, isKeyframe: true, sampleDescriptionIndex: 1, ...(tags ? { tags } : {}) });
     pts += count;
   }
   // Filter-produced frames arrive individually; release only the excess over
   // the retained fade window each time. Demuxed packets are already queued.
   if (first.samples[0]?.size === 0) {
     let received = 0;
+    let sourceIndex = 0;
+    let sourceStart = 0;
     for (let n = 0; n < first.samples.length && received < aLength; n++) {
       if (n % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
       const packet = first.samples[n]!;
       received = Math.min(aLength, received + Math.max(0,
         Math.round(packet.duration * a.sampleRate / first.timescale)
         - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)));
-      appendFrame(received - samples - pts);
+      // A released frame inherits the first buffered frame it consumes, which
+      // can precede the newly received packet and span several input frames.
+      while (sourceIndex < n) {
+        const source = first.samples[sourceIndex]!;
+        const end = sourceStart + Math.max(0, Math.round(source.duration * a.sampleRate / first.timescale)
+          - (source.skipSamples ?? 0) - (source.discardPadding ?? 0));
+        if (end > pts) break;
+        sourceStart = end;
+        sourceIndex++;
+      }
+      appendFrame(received - samples - pts, first.samples[sourceIndex]?.tags);
     }
   }
-  appendFrame(aLength - samples - pts);
+  appendFrame(aLength - samples - pts, first.samples[0]?.tags);
   // Emit one transition frame, or two fades when overlap is disabled.
   appendFrame(samples);
   if (!overlap) appendFrame(samples);
@@ -250,7 +262,7 @@ export async function acrossfadeAudio(
     start = Math.min(b.channelData[0]!.length, start + count);
     if (ratio !== 1 && start <= filterLength) continue;
     const end = Math.min(bLength, Math.max(0, Math.ceil((start - (ratio === 1 ? 0 : filterLength / 2)) * ratio)));
-    appendFrame(end - Math.max(emitted, samples));
+    appendFrame(end - Math.max(emitted, samples), packet?.tags);
     emitted = end;
   }
   appendFrame(bLength - Math.max(emitted, samples));

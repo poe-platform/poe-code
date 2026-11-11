@@ -16536,7 +16536,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               none: 0, all: -1,
                               ...(key === "thread_type" ? { slice: 1 }
                                 : key === "threads" ? { min: 0, default: 0 } : { min: -1, default: -1 })
-                            });
+                            }, undefined, new Float64Array(10));
                             if (key === "thread_type"
                               ? !Number.isInteger(number) || number < -2147483648 || number > 4294967295
                               : number < (key === "extra_hw_frames" ? -1 : 0) || number > 2147483647) {

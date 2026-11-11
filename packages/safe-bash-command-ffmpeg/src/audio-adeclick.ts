@@ -16,7 +16,9 @@ export async function declickAudio(
   const aliases = { w: "window", o: "overlap", a: "arorder", t: "threshold", b: "burst", n: "hsize", m: "method" } as const;
   const ranges = { window: [10, 100], overlap: [50, 95], arorder: [0, 25], threshold: [1, 100], burst: [0, 10], hsize: [100, 9999], method: [0, 1] };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [i, part] of (argument ? argument.split(":") : []).entries()) {
+  const parts = argument ? argument.split(":") : [];
+  if (argument.endsWith(":")) parts.pop();
+  for (const [i, part] of parts.entries()) {
     const separator = part.indexOf("=");
     const option = separator < 0 ? names[i] : part.slice(0, separator).trim();
     const raw = (separator < 0 ? part : part.slice(separator + 1)).trim();

@@ -9708,8 +9708,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = image => applyMagickSolarizeSteps(image, threshold, channels, signal);
     } else if (token === "-ordered-dither") {
         highDepth = true;
-        const options = parseOrderedDither(tokens[++i] ?? ""), channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-        apply = image => applyMagickRasterSteps({ ...image, isPalette: false }, orderedDitherPixelSteps(image, options, [channels.r, channels.g, channels.b, channels.a]), signal);
+        const options = parseOrderedDither(tokens[++i] ?? ""), channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
+        apply = image => applyMagickRasterSteps({ ...image, isPalette: false }, orderedDitherPixelSteps(image, options, [channels.r, channels.g, channels.b, channels.a, channels.k]), signal);
     } else if (token === "-posterize") {
         highDepth = true;
         const levels = parsePosterizeLevels(tokens[++i] ?? "");
@@ -16416,8 +16416,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             const value = tokens[++i] ?? "", optionProperties = state.optionProperties;
             const options = value.includes("%[") ? undefined : parseOrderedDither(value);
-            const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-            const mask = [channels.r, channels.g, channels.b, channels.a];
+            const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
+            const mask = [channels.r, channels.g, channels.b, channels.a, channels.k];
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expandedOptions = options ?? parseOrderedDither(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal));

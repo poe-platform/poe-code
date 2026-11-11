@@ -75,14 +75,15 @@ export function parseOrderedDither(argument: string) {
         throw new Error(`invalid ordered-dither levels '${argument}'`);
     // Native uses the first count as a default, then overrides channels with
     // subsequent counts, in selected-channel order. Zero and one leave it alone.
-    const levels = Array.from({ length: 4 }, (_, channel) => {
+    const levels = Array.from({ length: 5 }, (_, channel) => {
         const value = supplied[channel + 1] ?? supplied[0] ?? 2;
         return value >= 1 ? value - 1 : value;
     });
     return { map, levels };
 }
 
-export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">> & HueMetadata & { alphaSeparate?: boolean | undefined; alphaBlend?: boolean | undefined }, { map, levels }: ReturnType<typeof parseOrderedDither>, channels: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">> & HueMetadata & { alphaSeparate?: boolean | undefined; alphaBlend?: boolean | undefined }, { map, levels }: ReturnType<typeof parseOrderedDither>, channels: readonly (boolean | undefined)[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const cmyk = image.space === "cmyk";
     const gray = image.space === "b-w" || image.space === "grey16";
     const highDepth = !!(image.data16 || image.storedData16), maximum = highDepth ? 65535 : 255;
     for (let y = 0; y < image.height; y++) for (let left = 0; left < image.width; left += 1024) {
@@ -91,7 +92,7 @@ export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "heigh
         const input = (yield { kind: "read", highDepth, position, length: count * 4 })!;
         const bytes = new Uint8Array(input);
         const data = highDepth ? new Uint16Array(bytes.buffer) : bytes;
-        const hueBytes = image.magickColorspace && (image.hueSamples || image.storedHueSamples !== undefined)
+        const hueBytes = (cmyk || image.magickColorspace) && (image.hueSamples || image.storedHueSamples !== undefined)
             ? (yield { kind: "read", hue: true, position, length: count * 4 })! : undefined;
         const hue = hueBytes ? new Float64Array(new Uint8Array(hueBytes).buffer) : undefined;
         const floats = (yield { kind: "read", evaluate: true, position, length: count * 4 })!;
@@ -99,21 +100,33 @@ export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "heigh
         for (let x = 0; x < count; x++) {
             const threshold = map.values[(y % map.height) * map.width + (left + x) % map.width]!;
             let selected = 0;
-            for (let channel = 0; channel < 4; channel++) {
-                if (!channels[channel] || (channel === 3 && !(image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false)) || (gray && (channel === 1 || channel === 2))) continue;
+            // CMYK visits black before alpha; alpha remains in the RGBA backing.
+            for (let channel = 0; channel < (cmyk ? 5 : 4); channel++) {
+                const alpha = channel === (cmyk ? 4 : 3);
+                const offset = x * 4 + (alpha ? 3 : channel);
+                if (!channels[cmyk && channel === 3 ? 4 : alpha ? 3 : channel] || (alpha && !(image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false)) || (gray && (channel === 1 || channel === 2))) continue;
                 const intervals = levels[selected++]!;
                 if (intervals === 0) continue;
-                const sample = hue ? Math.max(0, Math.min(1, hue[x * 4 + channel]!)) : samples[x * 4 + channel]! / 255;
+                const working = hue && !(cmyk && alpha);
+                const sample = working ? Math.max(0, Math.min(1, hue[offset]!)) : samples[offset]! / 255;
                 const scaled = Math.floor(sample * (intervals * (map.divisor - 1) + 1));
                 const level = Math.floor(scaled / (map.divisor - 1)) + (scaled % (map.divisor - 1) >= threshold ? 1 : 0);
                 // Native HDRI keeps fractional Q16 levels until encoding.
-                samples[x * 4 + channel] = Math.fround(Math.min(65535, level * 65535 / intervals)) / 257;
-                data[x * 4 + channel] = Math.round(samples[x * 4 + channel]! * maximum / 255);
-                if (hue) hue[x * 4 + channel] = Math.min(1, level / intervals);
+                const value = Math.fround(Math.min(65535, level * 65535 / intervals));
+                if (working) hue[offset] = cmyk ? value / 65535 : Math.min(1, level / intervals);
+                if (!cmyk || alpha) {
+                    samples[offset] = value / 257;
+                    data[offset] = Math.round(samples[offset]! * maximum / 255);
+                }
                 if (gray && channel === 0) {
                     data[x * 4 + 1] = data[x * 4 + 2] = data[x * 4]!;
                     samples[x * 4 + 1] = samples[x * 4 + 2] = samples[x * 4]!;
                 }
+            }
+            if (cmyk && hue) for (let channel = 0; channel < 3; channel++) {
+                const offset = x * 4 + channel;
+                samples[offset] = Math.fround((1 - hue[offset]!) * (1 - hue[x * 4 + 3]!) * 65535) / 257;
+                data[offset] = Math.round(samples[offset]! * maximum / 255);
             }
         }
         yield { kind: "write", highDepth, position, data: bytes };

@@ -5997,15 +5997,16 @@ async function applyVideoFilterChain(
         PREV_INPTS: previousInput, PREV_INT: previousInput / timescale,
         PREV_OUTPTS: previousOutput, PREV_OUTT: previousOutput / timescale
       })) / timescale;
-    } else if (name === "drawbox") {
+    } else if (name === "drawbox" || name === "drawgrid") {
+      const grid = name === "drawgrid";
       const values = positional.map(part => part === "" || part.includes("=") ? undefined : part);
       for (const key of Object.keys(named)) {
-        if (!["x", "y", "w", "width", "h", "height", "c", "color", "t", "thickness", "replace", "box_source", "enable"].includes(key)) {
-          throw new Error(`drawbox: unsupported option ${key}`);
+        if (!["x", "y", "w", "width", "h", "height", "c", "color", "t", "thickness", "replace", "enable", ...(grid ? [] : ["box_source"])].includes(key)) {
+          throw new Error(`${name}: unsupported option ${key}`);
         }
       }
-      if (positional.some((part, index) => index > 7 && !part.includes("="))) {
-        throw new Error("drawbox: too many positional options");
+      if (positional.some((part, index) => index > (grid ? 6 : 7) && !part.includes("="))) {
+        throw new Error(`${name}: too many positional options`);
       }
       const boxSource = named.box_source ?? values[7];
       if (boxSource !== undefined && boxSource !== "side_data_detection_bboxes") {
@@ -6013,7 +6014,7 @@ async function applyVideoFilterChain(
       }
       const replaceOption = named.replace ?? values[6] ?? "0";
       if (!["0", "1", "false", "true", "no", "yes", "off", "on"].includes(replaceOption)) {
-        throw new Error("drawbox: invalid replace boolean");
+        throw new Error(`${name}: invalid replace boolean`);
       }
       const color = named.color ?? named.c ?? values[4] ?? "black";
       const invert = color === "invert";
@@ -6029,7 +6030,7 @@ async function applyVideoFilterChain(
       // Native packed-RGB drawbox blends with single-precision arithmetic.
       const alpha = Math.fround(col[3] / 255);
       const inverseAlpha = Math.fround(1 - alpha);
-      const thicknessOption = named.t ?? named.thickness ?? values[5] ?? "3";
+      const thicknessOption = named.t ?? named.thickness ?? values[5] ?? (grid ? "1" : "3");
       const replace = ["1", "true", "yes", "on"].includes(replaceOption);
       current = await mapWork(current, async (f, n) => {
         let work = 0;
@@ -6040,17 +6041,17 @@ async function applyVideoFilterChain(
         };
         // Match FFmpeg's six passes so geometry can refer to later expressions.
         for (let pass = 0; pass < 6; pass++) {
-          variables.x = parseFilterExpression(named.x ?? values[0] ?? "0", "drawbox", variables);
-          variables.y = parseFilterExpression(named.y ?? values[1] ?? "0", "drawbox", variables);
-          variables.w = parseFilterExpression(named.w ?? named.width ?? values[2] ?? "0", "drawbox", variables);
-          variables.h = parseFilterExpression(named.h ?? named.height ?? values[3] ?? "0", "drawbox", variables);
+          variables.x = parseFilterExpression(named.x ?? values[0] ?? "0", name, variables);
+          variables.y = parseFilterExpression(named.y ?? values[1] ?? "0", name, variables);
+          variables.w = parseFilterExpression(named.w ?? named.width ?? values[2] ?? "0", name, variables);
+          variables.h = parseFilterExpression(named.h ?? named.height ?? values[3] ?? "0", name, variables);
           variables.t = thicknessOption === "fill" ? 2147483647
-            : parseFilterExpression(thicknessOption, "drawbox", variables);
+            : parseFilterExpression(thicknessOption, name, variables);
         }
         if (![variables.x, variables.y, variables.w, variables.h, variables.t].every(Number.isFinite)) {
-          throw new Error("drawbox: invalid or unsupported expression");
+          throw new Error(`${name}: invalid or unsupported expression`);
         }
-        if (named.enable !== undefined && Math.abs(parseFilterExpression(named.enable, "drawbox enable", {
+        if (named.enable !== undefined && Math.abs(parseFilterExpression(named.enable, `${name} enable`, {
           n, t: f.ptsSeconds, w: f.width, h: f.height
         })) < 0.5) return f;
         // Decoded frames carry no detection bounding-box side data.
@@ -6071,13 +6072,16 @@ async function applyVideoFilterChain(
         const chromaSize = chromaWidth * Math.ceil(f.height / (1 << vsub));
         const lumaSize = f.width * f.height;
         const nextData = new Uint8Array(planar ? planar.pixels : f.data);
-        for (let y = Math.max(0, by); y < Math.min(f.height, by + bh); y++) {
+        for (let y = grid ? 0 : Math.max(0, by); y < (grid ? f.height : Math.min(f.height, by + bh)); y++) {
           if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
-          for (let x = Math.max(0, bx); x < Math.min(f.width, bx + bw); x++) {
+          for (let x = grid ? 0 : Math.max(0, bx); x < (grid ? f.width : Math.min(f.width, bx + bw)); x++) {
             if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); }
 
-            if (Math.min(x - bx, y - by, bx + bw - 1 - x, by + bh - 1 - y) >= thickness) continue;
+            if (grid) {
+              // Normalize negative remainders so lines repeat on both sides of the origin.
+              if (((x - bx) % bw + bw) % bw >= thickness && ((y - by) % bh + bh) % bh >= thickness) continue;
+            } else if (Math.min(x - bx, y - by, bx + bw - 1 - x, by + bh - 1 - y) >= thickness) continue;
             if (invert) {
               if (planar) {
                 const index = y * f.width + x;

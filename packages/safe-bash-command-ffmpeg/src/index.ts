@@ -34,6 +34,7 @@ import { measureAstats, parseAstatsMeasurements } from "./audio-astats.js";
 import { measureReplayGain } from "./audio-replaygain.js";
 import { colorcontrast } from "./colorcontrast.js";
 import { parseFilterExpression } from "./filter-expression.js";
+import { parseFilterFloat } from "./filter-float.js";
 import { autoConvertConcatTrack } from "./concat-auto-convert.js";
 import { filterBitstream } from "./bitstream.js";
 import { mergeVp9Superframes } from "./vp9-superframe.js";
@@ -13847,6 +13848,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let key: string | undefined;
                         let metadataValue: string | undefined;
                         let comparison = "same_str";
+                        let expression: string | undefined;
                         let file: string | undefined;
                         let enable: string | undefined;
                         let sawNamed = false;
@@ -13862,6 +13864,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else if (name === "value") metadataValue = value;
                           else if (name === "file") file = value;
                           else if (name === "function") comparison = value;
+                          else if (name === "expr") expression = value;
                           else if (name === "enable") {
                             enable = value;
                             parseFilterExpression(enable, "ametadata enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 });
@@ -13871,6 +13874,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else throw new Error(`ametadata: unsupported option ${name}`);
                         }
                         if (mode !== "print" && mode !== "add" && mode !== "modify" && mode !== "delete" && mode !== "select") throw new Error("ametadata: only mode=add, mode=modify, mode=delete, mode=select and mode=print are supported");
+                        const registers = comparison === "expr" ? new Float64Array(10) : undefined;
+                        const randomStates = comparison === "expr" ? [] as BigUint64Array[] : undefined;
+                        if (comparison === "expr") {
+                          if (expression === undefined) throw new Error("ametadata: expr option not set");
+                          parseFilterExpression(expression, "ametadata expr", { VALUE1: 0, VALUE2: 0, FRAMEVAL: 0, USERVAL: 0 }, undefined, new Float64Array(10), []);
+                        }
                         const lookupKey = key?.toLowerCase();
                         if (mode === "add" || mode === "modify") {
                           if (!key || metadataValue === undefined) throw new Error(`ametadata: mode=${mode} requires key and value`);
@@ -13894,12 +13903,29 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           continue;
                         }
-                        if (!["same_str", "starts_with", "ends_with", "less", "greater", "equal"].includes(comparison)) throw new Error(`ametadata: unsupported function ${comparison}`);
+                        if (!["same_str", "starts_with", "ends_with", "less", "greater", "equal", "expr"].includes(comparison)) throw new Error(`ametadata: unsupported function ${comparison}`);
+                        const numericValue = (value: string): number | undefined => {
+                          const text = value.trimStart().toLowerCase();
+                          const unsigned = text[0] === "+" || text[0] === "-" ? text.slice(1) : text;
+                          if (unsigned.startsWith("nan")) return NaN;
+                          if (unsigned.startsWith("inf")) return text[0] === "-" ? -Infinity : Infinity;
+                          const parsed = parseFilterFloat(value);
+                          return Number.isNaN(parsed) ? undefined : parsed;
+                        };
                         const matchesValue = (value: string): boolean => {
                           if (metadataValue === undefined) return true;
                           if (comparison === "starts_with") return value.startsWith(metadataValue);
                           if (comparison === "ends_with") return value.endsWith(metadataValue);
                           if (comparison === "same_str") return value === metadataValue;
+                          if (comparison === "expr") {
+                            const value1 = numericValue(value);
+                            const value2 = numericValue(metadataValue);
+                            if (value1 === undefined || value2 === undefined) return false;
+                            // Native metadata comparison returns an integer, truncating fractional results.
+                            return Math.trunc(parseFilterExpression(expression!, "ametadata expr", {
+                              VALUE1: value1, VALUE2: value2, FRAMEVAL: value1, USERVAL: value2
+                            }, undefined, registers, randomStates)) !== 0;
+                          }
                           // FFmpeg parses floats and treats differences below FLT_EPSILON as equal.
                           const actual = Math.fround(Number.parseFloat(value));
                           const expected = Math.fround(Number.parseFloat(metadataValue));
@@ -13922,11 +13948,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const end = Math.min(inputLength, start + count);
                             const frame = audioMetadata[n];
                             const tag = frame && Array.from(frame.tags).find(([name]) => name.toLowerCase() === lookupKey);
-                            const matches = tag && matchesValue(tag[1]);
                             const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "ametadata enable", {
                               n, t: (timestamp?.pts ?? frame?.pts ?? audioStartSample + start) / origRate, pos: NaN, w: 0, h: 0
                             })) >= 0.5;
-                            if (!enabled || (frame && matches)) {
+                            if (!enabled || (frame && tag && matchesValue(tag[1]))) {
                               budget.allocateMemory(64);
                               audioMetadata[selected.length] = frame ?? { pts: timestamp?.pts ?? audioStartSample + start, tags: new Map<string, string>() };
                               ranges.push({ start, end });

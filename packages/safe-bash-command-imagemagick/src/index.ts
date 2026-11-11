@@ -6174,7 +6174,8 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha"|"isP
 
 function thumbnailProperties(image: ImageMetadata & { [magickInput]?: MagickFormatContext }, pages = image[magickInput]?.sceneCount ?? 1): ImageMetadata["properties"] {
     const source = image[magickInput];
-    if (!source?.filePath) return image.properties;
+    const properties = updateMagickProperty(image.properties, "Software", "https://imagemagick.org");
+    if (!source?.filePath) return properties;
     const path = source.filePath;
     const uriPath = Array.from(new TextEncoder().encode(path), byte => {
         const char = String.fromCharCode(byte);
@@ -6182,7 +6183,7 @@ function thumbnailProperties(image: ImageMetadata & { [magickInput]?: MagickForm
             ? char : `%${byte.toString(16).toUpperCase().padStart(2, "0")}`;
     }).join("");
     return {
-        ...image.properties,
+        ...properties,
         "Thumb::Image::Width": String(source.originalWidth ?? image.width),
         "Thumb::Image::Height": String(source.originalHeight ?? image.height),
         "Thumb::Document::Pages": String(pages),

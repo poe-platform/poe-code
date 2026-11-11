@@ -87,7 +87,7 @@ import { parseMagickPoly, polyPixelSteps } from "./poly-kernel.js";
 import { type LookupInterpolation, type ChannelAssignment, clutPixelSteps, haldClutPixelSteps, channelFxPixelSteps, combinePixelSteps, sequenceCanvas, evaluateSequencePixelSteps } from "./sequence-kernel.js";
 import { IntegerTable } from "@poe-code/safe-fs/storage";
 import { withImageInputs } from "./image-input.js";
-import { srgbDepthEnumerationLine, gray16EnumerationLine, pixelEnumerationLine, histogramLine, floatingHistogramKey, floatingHistogramLine, storedPixelEnumeration, storedHistogram, sparseColorPoints, storedSparseColor, encodeText } from "./text-output.js";
+import { cmykEnumerationLine, srgbDepthEnumerationLine, gray16EnumerationLine, pixelEnumerationLine, histogramLine, floatingHistogramKey, floatingHistogramLine, storedPixelEnumeration, storedHistogram, sparseColorPoints, storedSparseColor, encodeText } from "./text-output.js";
 import { StoredImageStack, magickInput, type MagickFormatContext, type StoredMagickImage } from "./stored-stack.js";
 import { remapColorOrder, remapStoredImage } from "./remap.js";
 import { drawReplacePixelSteps } from "./draw-replace.js";
@@ -2001,6 +2001,19 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
 }
 
 function* formatTxtEnumerationSteps(img: RgbaImage, depth?: number): Generator<void, string, void> {
+    if (img.space === "cmyk") {
+        const maximum = (depth ?? img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) <= 8 ? 255 : 65535;
+        const lines = [`# ImageMagick pixel enumeration: ${img.width},${img.height},0,${maximum},cmyk${img.hasAlpha ? "a" : ""}`];
+        const backing = img.data16 ?? img.data, scale = img.data16 ? 65535 : 255;
+        for (let offset = 0; offset < img.data.length; offset += 4) {
+            if (offset % 65536 === 0) yield;
+            const pixel = offset / 4;
+            const inks = img.hueSamples?.subarray(offset, offset + 4) ?? rgbToCmyk(backing[offset]! / scale, backing[offset + 1]! / scale, backing[offset + 2]! / scale);
+            const alpha = img.hasAlpha ? img.evaluateSamples ? img.evaluateSamples[offset + 3]! / 255 : backing[offset + 3]! / scale : undefined;
+            lines.push(cmykEnumerationLine(pixel % img.width, Math.floor(pixel / img.width), inks, alpha, maximum));
+        }
+        return lines.join("\n") + "\n";
+    }
     const maximum = ["HCL", "HCLp", "HSI", "HSL", "HSB", "HSV", "HWB", "XYZ", "CIELab"].includes(img.magickColorspace ?? "") && (depth ?? img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) <= 8 ? 255 : 65535;
     const colorspace = `${img.space === "b-w" || img.space === "grey16" ? "gray" : img.magickColorspace === "RGB" ? "rgb" : "srgb"}${img.hasAlpha ? "a" : ""}`;
     const srgbDepth = depth !== undefined && img.space === "srgb" && !img.magickColorspace;

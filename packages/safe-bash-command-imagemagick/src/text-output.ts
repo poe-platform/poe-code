@@ -1,3 +1,4 @@
+import { rgbToCmyk } from "./colorspace-cmyk.js";
 import { histogramColorNames } from "./histogram-color-names.js";
 import { hueTextPixel, type HueMetadata } from "./colorspace-hue.js";
 import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
@@ -25,6 +26,14 @@ export function srgbDepthEnumerationLine(x: number, y: number, samples: Uint8Arr
     if (hasAlpha) values.push(String(Number((channels[3]! / maximum).toPrecision(6))));
     const name = !hasAlpha || channels[3] === maximum ? histogramColorNames[(Math.round(rgb[0]! * 255 / maximum) << 16) | (Math.round(rgb[1]! * 255 / maximum) << 8) | Math.round(rgb[2]! * 255 / maximum)] : undefined;
     return `${x},${y}: (${channels.join(",")})  #${color}  ${name && !percent ? name : `srgb${hasAlpha ? "a" : ""}(${values.join(",")})`}`;
+}
+export function cmykEnumerationLine(x: number, y: number, inks: ArrayLike<number>, alpha: number | undefined, maximum: number): string {
+    const samples = Array.from(inks);
+    if (alpha !== undefined) samples.push(alpha);
+    const channels = samples.map(value => Math.round(Math.max(0, Math.min(1, value)) * maximum));
+    const color = channels.map(value => hex(value).padStart(maximum === 255 ? 2 : 4, "0")).join("");
+    const values = samples.map((value, channel) => Number((value * (channel === 4 ? 1 : 255)).toPrecision(6)));
+    return `${x},${y}: (${channels.join(",")})  #${color}  cmyk${alpha === undefined ? "" : "a"}(${values.join(",")})`;
 }
 export function gray16EnumerationLine(x: number, y: number, gray: number, alpha: number | undefined, working?: Float64Array): string {
     const sample = working?.[0] ?? gray / 257;
@@ -130,6 +139,29 @@ export async function* storedSparseColor(image: StoredRgbaImage, storage: PagedS
     }
 }
 export async function* storedPixelEnumeration(image: StoredRgbaImage & HueMetadata, storage: PagedStorage, signal: AbortSignal, depth?: number): AsyncGenerator<string> {
+    if (image.space === "cmyk") {
+        const maximum = (depth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) <= 8 ? 255 : 65535;
+        yield `# ImageMagick pixel enumeration: ${image.width},${image.height},0,${maximum},cmyk${image.hasAlpha ? "a" : ""}\n`;
+        const size = image.width * image.height * 4;
+        for (let start = 0; start < size; start += 16384) {
+            await yieldTurn(signal);
+            const bytes = await storage.read(image.position + start, Math.min(16384, size - start));
+            const original = image.storedData16 ? await storage.read(image.storedData16.position + start * 2, bytes.length * 2) : undefined;
+            const backing = original ? new Uint16Array(original.slice().buffer) : bytes;
+            const scale = original ? 65535 : 255;
+            const storedInks = image.storedHueSamples === undefined ? undefined : await storage.read(image.storedHueSamples + start * 8, bytes.length * 8);
+            const inks = storedInks ? new Float64Array(storedInks.slice().buffer) : undefined;
+            const evaluated = image.storedEvaluateSamples === undefined ? undefined : await storage.read(image.storedEvaluateSamples + start * 8, bytes.length * 8);
+            const samples = evaluated ? new Float64Array(evaluated.slice().buffer) : undefined;
+            for (let offset = 0; offset < bytes.length; offset += 4) {
+                const pixel = (start + offset) / 4;
+                const channels = inks?.subarray(offset, offset + 4) ?? rgbToCmyk(backing[offset]! / scale, backing[offset + 1]! / scale, backing[offset + 2]! / scale);
+                const alpha = image.hasAlpha ? samples ? samples[offset + 3]! / 255 : backing[offset + 3]! / scale : undefined;
+                yield cmykEnumerationLine(pixel % image.width, Math.floor(pixel / image.width), channels, alpha, maximum) + "\n";
+            }
+        }
+        return;
+    }
     const maximum = ["HCL", "HCLp", "HSI", "HSL", "HSB", "HSV", "HWB", "XYZ", "CIELab"].includes(image.magickColorspace ?? "") && (depth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) <= 8 ? 255 : 65535;
     const srgbDepth = depth !== undefined && image.space === "srgb" && !image.magickColorspace;
     const colorspace = `${image.space === "b-w" || image.space === "grey16" ? "gray" : image.magickColorspace === "RGB" ? "rgb" : "srgb"}${image.hasAlpha ? "a" : ""}`;

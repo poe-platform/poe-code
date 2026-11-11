@@ -244,7 +244,7 @@ export function createWebpAnimation(
     header.set(image.icc, 38);
   }
   header.set([65, 78, 73, 77], 30 + iccLength); view.setUint32(34 + iccLength, 6, true);
-  view.setUint16(42 + iccLength, options?.loop ?? image.loop ?? 0, true);
+  view.setUint16(42 + iccLength, Math.min(65535, options?.loop ?? image.loop ?? 0), true);
   return {
     header, tail, height, pages,
     frame(delay: number) {

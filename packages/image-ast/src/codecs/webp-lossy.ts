@@ -48,7 +48,7 @@ export function assembleLossyWebp(
   }
   if (animated) {
     const anim = new Uint8Array(6);
-    new DataView(anim.buffer).setUint16(4, options?.loop ?? image.loop ?? 0, true);
+    new DataView(anim.buffer).setUint16(4, Math.min(65535, options?.loop ?? image.loop ?? 0), true);
     parts.unshift(chunk("ANIM", anim));
   }
   if (image.icc) parts.unshift(chunk("ICCP", image.icc));

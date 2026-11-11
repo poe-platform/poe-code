@@ -1,7 +1,7 @@
 import { audioSpeakerMasks, parseAudioChannelCount, parseAudioChannelLayout } from "./audio-channel-layout.js";
 import type { MediaBudgetTracker, MediaSample, MediaTrack } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
-import { resampleAudio } from "./audio-resample.js";
+import { convertAudioSampleFormat, resampleAudio } from "./audio-resample.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
@@ -53,15 +53,43 @@ export async function joinAudio(
     return track.decodedAudio;
   });
   const sampleRate = audio[0]!.sampleRate;
-  for (let index = 1; index < audio.length; index++) {
-    const input = audio[index]!;
-    if (input.sampleRate === sampleRate) continue;
-    const length = Math.ceil(input.channelData[0]!.length * sampleRate / input.sampleRate);
-    budget.checkSamples(length);
-    budget.checkDuration(length / sampleRate);
-    budget.allocateMemory(length * input.channels * Float32Array.BYTES_PER_ELEMENT);
-    audio[index] = { ...input, sampleRate,
-      channelData: await resampleAudio(input.channelData, length, input.sampleRate, sampleRate, budget, signal) };
+  const formats = tracks.map(track => {
+    const codec = track.codecDescriptions[0]?.codecName ?? "";
+    return codec === "pcm_u8" ? "u8" : codec.startsWith("pcm_s16") ? "s16"
+      : codec.startsWith("pcm_s24") || codec.startsWith("pcm_s32") ? "s32"
+        : codec.startsWith("pcm_f32") ? "flt" : "dbl";
+  });
+  let format = formats[0]!;
+  for (const following of filters.slice(1)) {
+    const separator = following.indexOf("=");
+    const name = (separator < 0 ? following : following.slice(0, separator)).split("@", 1)[0]!.trim();
+    if (name !== "volume") continue;
+    // Floating-point volume negotiates its precision downstream of join.
+    let precision = "float";
+    const argument = separator < 0 ? "" : following.slice(separator + 1);
+    for (const [index, option] of argument.split(":").entries()) {
+      const equals = option.indexOf("=");
+      const key = equals < 0 ? ["volume", "precision"][index] : option.slice(0, equals).trim();
+      if (key === "precision") precision = (equals < 0 ? option : option.slice(equals + 1)).trim();
+    }
+    if (precision !== "fixed" && precision !== "0") format = "dbl";
+    break;
+  }
+  for (let index = 0; index < audio.length; index++) {
+    let input = audio[index]!;
+    let sourceFormat = formats[index]!;
+    if (input.sampleRate !== sampleRate) {
+      const length = Math.ceil(input.channelData[0]!.length * sampleRate / input.sampleRate);
+      budget.checkSamples(length);
+      budget.checkDuration(length / sampleRate);
+      budget.allocateMemory(length * input.channels * Float32Array.BYTES_PER_ELEMENT);
+      input = { ...input, sampleRate,
+        channelData: await resampleAudio(input.channelData, length, input.sampleRate, sampleRate, budget, signal) };
+      sourceFormat = "flt";
+    }
+    // Integer inputs discard low bits; floating inputs round to the negotiated format.
+    audio[index] = sourceFormat === format ? input : { ...input,
+      channelData: await convertAudioSampleFormat(input.channelData, sourceFormat, format, budget, signal) };
   }
   const inputNames = audio.map((input, index) => {
     const layout = tracks[index]!.codecDescriptions[0]?.channelLayout;
@@ -114,22 +142,6 @@ export async function joinAudio(
   budget.checkDuration(length / sampleRate);
   budget.allocateMemory(length * outputNames.length * 8);
   const channelData = outputNames.map(() => new Float64Array(length));
-  let pcm16 = ["pcm_s16le", "pcm_s16be"].includes(tracks[0]!.codecDescriptions[0]?.codecName ?? "");
-  for (const following of filters.slice(1)) {
-    const separator = following.indexOf("=");
-    const name = (separator < 0 ? following : following.slice(0, separator)).split("@", 1)[0]!.trim();
-    if (name !== "volume") continue;
-    // Floating-point volume constrains join's planar format; fixed volume retains PCM16.
-    let precision = "float";
-    const argument = separator < 0 ? "" : following.slice(separator + 1);
-    for (const [index, option] of argument.split(":").entries()) {
-      const equals = option.indexOf("=");
-      const key = equals < 0 ? ["volume", "precision"][index] : option.slice(0, equals).trim();
-      if (key === "precision") precision = (equals < 0 ? option : option.slice(equals + 1)).trim();
-    }
-    pcm16 &&= precision === "fixed" || precision === "0";
-    break;
-  }
   for (let start = 0; start < length; start += 4096) {
     await yieldTurn(signal);
     signal?.throwIfAborted();
@@ -137,15 +149,7 @@ export async function joinAudio(
     for (const [index, name] of outputNames.entries()) {
       const source = selected.get(name)!;
       const end = Math.min(start + 4096, length);
-      if (pcm16) {
-        // join negotiates the first connected input's format before downstream filters.
-        for (let i = start; i < end; i++) {
-          const value = source[i]! * 32768;
-          const lower = Math.floor(value);
-          const rounded = value - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(value);
-          channelData[index]![i] = Math.max(-32768, Math.min(32767, rounded)) / 32768;
-        }
-      } else channelData[index]!.set(source.subarray(start, end), start);
+      channelData[index]!.set(source.subarray(start, end), start);
     }
   }
   // join consumes the other inputs in frames sized by its first input.

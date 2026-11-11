@@ -39,7 +39,7 @@ for (const space of ["HSB", "HSV"]) for (const retained of [false, true]) {
         for (const output of ["txt:-", "histogram:-"]) {
             const text = await runConvertCli(["in.png", "-colorspace", space, output], input);
             expect(text.exitCode, text.stderr).toBe(0);
-            expect(text.stdout).toContain(`${space.toLowerCase()}a(210.001,66.6667%,37.6471%,0.501961)`);
+            expect(text.stdout).toContain(`${space.toLowerCase()}a(${output === "histogram:-" ? "210" : "210.001"},66.6667%,37.6471%,0.501961)`);
             expect(text.stdout).not.toContain("srgb");
         }
         const written = await runConvertCli(["in.png", "-colorspace", space, "-write", "written.png", "-format", "%[colorspace]", "info:"], input);

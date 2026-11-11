@@ -22,8 +22,8 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
                     stderr: { async write(bytes) { errors.push(bytes.slice()); } }
                 }) : await runConvertCli(argv, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
             expect(result.exitCode).toBe(0);
-            expect(mode === "command" ? Buffer.concat(errors).toString() : result.stderr).toBe("");
-            const stdout = mode === "command" ? Buffer.concat(chunks).toString() : result.stdout!;
+            expect("stderr" in result ? result.stderr : Buffer.concat(errors).toString()).toBe("");
+            const stdout = "stdout" in result && typeof result.stdout === "string" ? result.stdout : Buffer.concat(chunks).toString();
             outputs.push(stdout);
             const rows = stdout.trim().split("\n");
             expect(rows.map(row => Number(row.slice(0, row.indexOf(":"))))).toEqual(colorspace === "XYZ" ? [1, 2] : [2, 1]);

@@ -53,6 +53,7 @@ import { atadenoise } from "./atadenoise.js";
 import { prewitt } from "./prewitt.js";
 import { avgblur } from "./avgblur.js";
 import { doubleweave } from "./doubleweave.js";
+import { fieldmatch } from "./fieldmatch.js";
 import { padTinterlace } from "./tinterlace-pad.js";
 import { weave } from "./weave.js";
 import { validateWeaveGenericOption } from "./weave-generic-option.js";
@@ -5698,6 +5699,8 @@ async function applyVideoFilterChain(
         }
         return output;
       }, signal);
+    } else if (name === "fieldmatch") {
+      current = await fieldmatch(current, argStr, budget, signal);
     } else if (name === "weave") {
       const endTime = endTimeSeconds ?? (lastInputFrame ? lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds : 0);
       current = await weave(current, argStr, timescale, budget, signal);

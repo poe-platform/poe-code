@@ -57,6 +57,12 @@ for (const [values, amplitude] of [
 for (const [filter, metadata, amplitude] of [
   ["volume=replaygain=track:replaygain_preamp=3:replaygain_noclip=0", undefined, 12000],
   ["volume=2:replaygain=track", {}, 24000],
+  ["volume=replaygain=default", tags, 12000],
+  ["volume=replaygain=min", tags, 12000],
+  ["volume=replaygain=max", tags, 3000],
+  ["volume=replaygain=track:replaygain_preamp=min", tags, 6],
+  ["volume=replaygain=track:replaygain_preamp=max", tags, 12000],
+  ["volume=replaygain=track:replaygain_preamp=default", tags, 6000],
   ["volume=replaygain=ignore", tags, 12000],
   ["volume=replaygain=drop", tags, 12000],
   ["volume=2:replaygain=track", tags, 6000],

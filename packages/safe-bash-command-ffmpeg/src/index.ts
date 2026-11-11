@@ -14228,7 +14228,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               const key = separator < 0 ? ["volume", "precision"][index] : option.slice(0, separator).trim();
                               if (key === "precision") precision = (separator < 0 ? option : option.slice(separator + 1)).trim();
                             }
-                            const mode = parseFilterExpression(precision, "volume", { fixed: 0, float: 1, double: 2 });
+                            const mode = parseFilterExpression(precision, "volume", { fixed: 0, float: 1, double: 2, min: 0, max: 2, default: 1 });
                             if (!Number.isFinite(mode) || mode < 0 || mode > 2) throw new Error("volume: invalid precision");
                             const requested = roundToEven(mode) === 1 ? ["fltp"]
                               : roundToEven(mode) === 2 ? ["dblp"] : ["s16p", "s32p"];
@@ -15617,7 +15617,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else if (key === "precision" || key === "eval" || key === "replaygain") {
                             const names = key === "precision" ? ["fixed", "float", "double"]
                               : key === "eval" ? ["once", "frame"] : ["drop", "ignore", "track", "album"];
-                            const number = parseFilterExpression(value, "volume", Object.fromEntries(names.map((name, i) => [name, i])));
+                            const number = parseFilterExpression(value, "volume", {
+                              ...Object.fromEntries(names.map((name, i) => [name, i])),
+                              min: 0, max: names.length - 1, default: key === "precision" ? 1 : 0
+                            });
                             if (!Number.isFinite(number) || number < 0 || number > names.length - 1) {
                               throw new Error(`volume: invalid ${key}`);
                             }
@@ -15627,16 +15630,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             else replayGain = mode;
                           }
                           else if (key === "replaygain_preamp") {
-                            replayGainPreamp = parseFilterExpression(value, "volume", {});
+                            replayGainPreamp = parseFilterExpression(value, "volume", { min: -60, max: 60, default: 0 });
                             if (!value || !Number.isFinite(replayGainPreamp) || Math.abs(replayGainPreamp) > 60) {
                               throw new Error("volume: invalid replaygain_preamp");
                             }
                           } else if (key === "replaygain_noclip") {
                             const noClip = value.toLowerCase();
-                            if (!["0", "1", "false", "true", "no", "yes", "off", "on"].includes(noClip)) {
+                            if (!["0", "1", "false", "true", "no", "yes", "off", "on", "y", "n", "enable", "disable", "enabled", "disabled"].includes(noClip)) {
                               throw new Error("volume: invalid replaygain_noclip");
                             }
-                            replayGainNoClip = ["1", "true", "yes", "on"].includes(noClip);
+                            replayGainNoClip = ["1", "true", "yes", "on", "y", "enable", "enabled"].includes(noClip);
                           }
                           else if (key === "enable") enable = value;
                           else throw new Error(`volume: unsupported option ${key}`);

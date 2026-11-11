@@ -67,7 +67,7 @@ it("bounds raster transfers across chunk boundaries", () => {
     const width = 2053, pixels = new Uint8Array(width * 4);
     for (let i = 0; i < width; i++) pixels.set([64, 96, 128, 255], i * 4);
     const output = new Uint8Array(pixels.length);
-    const steps = kuwaharaPixelSteps({ width, height: 1 }, { width: 1, height: 1 }, { r: 0, g: 0, b: 0, a: 255 }, "tile");
+    const steps = kuwaharaPixelSteps({ width, height: 1, space: "srgb" }, { width: 1, height: 1 }, { r: 0, g: 0, b: 0, a: 255 }, "tile");
     let next = steps.next();
     while (!next.done) {
         const request = next.value;
@@ -90,7 +90,7 @@ it("bounds raster transfers across chunk boundaries", () => {
 });
 
 it.each([-1, 5000, Infinity, NaN])("rejects unsupported radius %s before reading pixels", radius => {
-    const steps = kuwaharaPixelSteps({ width: 1, height: 1 }, { width: radius }, { r: 0, g: 0, b: 0, a: 255 });
+    const steps = kuwaharaPixelSteps({ width: 1, height: 1, space: "srgb" }, { width: radius }, { r: 0, g: 0, b: 0, a: 255 });
     expect(() => steps.next()).toThrow("Kuwahara radius or sigma exceeds limit");
 });
 

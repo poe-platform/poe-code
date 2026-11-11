@@ -4,7 +4,7 @@ import type { HueMetadata } from "./colorspace-hue.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Separable à trous hat transform with native noise thresholds and reflected edges. */
-export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "space" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & HueMetadata & { region?: Region | undefined; hasAlpha?: boolean; alphaBlend?: boolean | undefined }, geometry: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "space" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & HueMetadata & { region?: Region | undefined; hasAlpha?: boolean; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined }, geometry: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const normalized = geometry.replaceAll("%", "").replaceAll("(", "").replaceAll(")", "")
         .replaceAll(",", "x").replaceAll("/", "x").replaceAll("X", "x");
     const fields: string[] = [];
@@ -28,6 +28,7 @@ export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "heig
     const hue = image.hueSamples !== undefined || image.storedHueSamples !== undefined;
     const evaluate = !hue && (image.evaluateSamples !== undefined || image.storedEvaluateSamples !== undefined);
     const cmyk = image.space === "cmyk";
+    const clearAlpha = !image.hasAlpha && image.alphaSeparate === true && image.alphaBlend === false;
     const highDepth = !!(image.data16 || image.storedData16), quantumScale = hue ? 65535 : highDepth ? 1 : 257;
     const output = new Float64Array(size * 4);
     for (let start = 0; start < size; start += 1024) {
@@ -112,6 +113,9 @@ export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "heig
     for (let position = 0; position < output.length; position += 4096) {
         yield;
         const samples = output.slice(position, position + 4096);
+        // Native allocates fresh opacity for disassociated alpha; CMYK stores
+        // black in the fourth working channel, so clear its RGBA opacity below.
+        if (clearAlpha && !cmyk) for (let i = 3; i < samples.length; i += 4) samples[i] = 0;
         if (hue) {
             yield { kind: "write", hue: true, position, data: new Uint8Array(samples.buffer) };
             const rgba = Float64Array.from(samples, value => value * 255);
@@ -121,7 +125,7 @@ export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "heig
                 const original = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
                 for (let i = 0; i < samples.length; i += 4) {
                     for (let channel = 0; channel < 3; channel++) rgba[i + channel] = (1 - samples[i + channel]!) * (1 - samples[i + 3]!) * 255;
-                    rgba[i + 3] = original[i + 3]! / (highDepth ? 257 : 1);
+                    rgba[i + 3] = clearAlpha ? 0 : original[i + 3]! / (highDepth ? 257 : 1);
                 }
                 yield { kind: "write", evaluate: true, position, data: new Uint8Array(rgba.buffer) };
             }

@@ -5,6 +5,33 @@ import { formatMetricNum } from "./compare-kernel.js";
 // Native YCCMap is a float ramp rounded to six decimals, then stored as float.
 const yccMap = Float32Array.from({ length: 1389 }, (_, index) => Math.round(Math.fround(index / 1388) * 1e6) / 1e6);
 
+// ImageMagick's EncodeGamma uses a Chebyshev approximation of x^(5/12).
+// Math.pow can land on the other side of a Q16-HDRI rounding boundary.
+const gammaCoefficients = [1.1758200232996903, 0.1666576309488906,
+    -0.008315489493904213, 0.0007518797678042028,
+    -0.0000832401785193918, 0.000010229209410070008,
+    -1.3400466409860246e-06, 1.8333422241635375e-07, -2.587859676134886e-08];
+const gammaPowers = [1, 1.3348398541700343678, 1.7817974362806785482,
+    2.3784142300054420538, 3.1748021039363991669, 4.2378523774371812394,
+    5.6568542494923805819, 7.5509945014535482244, 1.0079368399158985525e1,
+    1.3454342644059433809e1, 1.7959392772949968275e1, 2.3972913230026907883e1];
+
+function encodeGamma(value: number): number {
+    if (value <= 0.0031306684425005883) return value * 12.92;
+    if (!Number.isFinite(value)) return value;
+    const exponent = Math.floor(Math.log2(value));
+    const x = 2 * (value / 2 ** exponent) - 3;
+    let previous = 1, term = x, sum = gammaCoefficients[0]! + gammaCoefficients[1]! * x;
+    for (let index = 2; index < gammaCoefficients.length; index++) {
+        const next = 2 * x * term - previous;
+        sum += gammaCoefficients[index]! * next;
+        previous = term;
+        term = next;
+    }
+    const quotient = Math.floor(exponent / 12);
+    return 1.055 * (gammaPowers[exponent - 12 * quotient]! * sum * 2 ** (5 * quotient)) - 0.055;
+}
+
 export interface HueMetadata {
     magickColorspace?: "HCL" | "HCLp" | "HSI" | "HSL" | "HSB" | "HSV" | "HWB" | "DisplayP3" | "XYZ" | "CAT02LMS" | "LMS" | "xyY" | "ProPhoto" | "Jzazbz" | "CIELab" | "YPbPr" | "YCbCr" | "Rec601YCbCr" | "YCC" | "Rec709YCbCr" | "Log" | "Adobe98" | "OHTA" | "CMY" | "YUV" | "YIQ" | "YDbDr" | "Luv" | "LCH" | "LCHab" | "LCHuv" | "Oklab" | "Oklch" | "RGB" | "Gray";
     // Preserve native HDRI precision for expressions; codecs use the integer planes.
@@ -283,10 +310,7 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
             ];
             // ImageMagick shifts out-of-gamut linear channels together before encoding.
             const minimum = Math.min(0, ...linear);
-            [r, g, b] = linear.map(sample => {
-                const value = sample - minimum;
-                return value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055;
-            }) as [number, number, number];
+            [r, g, b] = linear.map(sample => encodeGamma(sample - minimum)) as [number, number, number];
             if (image.magickColorspace === "Jzazbz") [g, b] = [b, g];
         } else if (target === "HSI") {
             const intensity = (r + g + b) / 3;

@@ -20926,6 +20926,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("tblend: unknown option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("tblend:")) return { exitCode: 222 };
             if (msg === "tblend: invalid expression" || msg === "tblend: invalid or unsupported expression") return { exitCode: 234 };
+            if (msg.startsWith("lagfun: unsupported option ")) return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("lagfun:")) return { exitCode: 222 };
+            if (msg === "lagfun: invalid expression" || msg === "lagfun: invalid or unsupported expression") return { exitCode: 234 };
             if (msg.startsWith("tmix: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("tmix:")) return { exitCode: 222 };
             if (msg === "tmix: invalid expression" || msg === "tmix: invalid or unsupported expression" ||

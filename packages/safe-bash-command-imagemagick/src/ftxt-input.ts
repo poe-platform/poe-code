@@ -47,7 +47,11 @@ export function* ftxtInput(width: number, height: number, size: number, format =
                     const end = delimiter ? record.indexOf(delimiter, cursor) : record.length;
                     if (end < 0) throw new Error("invalid FTXT pixel");
                     const value = record.slice(cursor, end).trim();
-                    if (token.field === "c") values = value.split(separator).map(sample => sample.trim() ? Number(sample) : NaN);
+                    if (token.field === "c") values = value.split(separator).map(value => {
+                        const sample = value.trim(), percent = sample.endsWith("%");
+                        const number = percent ? sample.slice(0, -1).trim() : sample;
+                        return number ? Number(number) * (percent ? 65535 / 100 : 1) : NaN;
+                    });
                     else if (!value || Number(value) !== (token.field === "x" ? pixel % width : Math.floor(pixel / width))) throw new Error("invalid FTXT pixel");
                     cursor = end;
                 }

@@ -10276,8 +10276,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     data16[offset + 3] = 65535;
                 }
             }
-            const { hueSamples: ignoredHue, evaluateSamples: ignoredEvaluate, ...metadata } = image;
-            return { ...metadata, data: out, ...(data16 ? { data16 } : {}), hasAlpha: false, channels: 3, isPalette: false };
+            const { hueSamples: ignoredHue, evaluateSamples: ignoredEvaluate, magickColorspace: ignoredColorspace, pngPalette: ignoredPalette, pngIndices: ignoredIndices, ...metadata } = image;
+            return { ...metadata, data: out, ...(data16 ? { data16 } : {}), hasAlpha: false, channels: 3,
+                space: "srgb", isPalette: true, indexedColors: [0xff000000, 0xffffffff] };
         };
     }
     else if (token === "-black-threshold" || token === "-white-threshold") {

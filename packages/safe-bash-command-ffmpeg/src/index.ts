@@ -14100,12 +14100,31 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (key === "sample_rates" || key === "r") {
                             let targetRate = origRate;
                             let bestDifference = Infinity;
+                            // The sink's rate participates in negotiation until a downstream
+                            // filter introduces a separate rate constraint or conversion.
+                            let preferredRate = audioRate;
+                            for (let nextIndex = filterIndex + 1; preferredRate !== undefined && nextIndex < audioFilters.length; nextIndex++) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              const next = audioFilters[nextIndex]!.trim();
+                              const name = next.split("=", 1)[0]!.split("@", 1)[0];
+                              if (name === "aresample" || name === "asetrate") preferredRate = undefined;
+                              if (name !== "aformat") continue;
+                              const argument = next.includes("=") ? next.slice(next.indexOf("=") + 1) : "";
+                              for (const [index, option] of argument.split(":").entries()) {
+                                const separator = option.indexOf("=");
+                                const key = separator < 0 ? ["sample_fmts", "sample_rates", "channel_layouts"][index] : option.slice(0, separator).trim();
+                                if (key === "sample_rates" || key === "r") {
+                                  const rates = (separator < 0 ? option : option.slice(separator + 1)).split("|").map(Number);
+                                  if (!rates.includes(preferredRate!)) preferredRate = undefined;
+                                }
+                              }
+                            }
                             for (const raw of value ? value.split("|") : []) {
                               const rate = Number(raw);
                               if (!Number.isInteger(rate) || rate < 1 || rate > 2147483647) {
                                 throw new Error("aformat: invalid sample rate");
                               }
-                              const difference = Math.abs(rate - origRate);
+                              const difference = rate === preferredRate ? -1 : Math.abs(rate - origRate);
                               if (difference < bestDifference) {
                                 targetRate = rate;
                                 bestDifference = difference;

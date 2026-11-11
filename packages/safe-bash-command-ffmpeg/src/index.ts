@@ -12752,8 +12752,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         statsScale = 1;
                       } else if (trimmed === "silencedetect" || trimmed.startsWith("silencedetect=")) {
-                        // FFmpeg keeps six decimal places, with extra precision below one second.
-                        const formatTime = (time: number): string => {
+                        // Keep the native missing-PTS sentinel exact until after subtracting endpoints.
+                        const missingPts = -(1n << 63n);
+                        const formatTime = (pts: bigint): string => {
+                          if (pts === missingPts) return "NOPTS";
+                          const time = Number(pts) * timeBase;
                           const exponent = time === 0 ? 0 : Math.floor(Math.log10(Math.abs(time)));
                           let text = time.toFixed(exponent < 0 ? 5 - exponent : 6);
                           while (text.endsWith("0")) text = text.slice(0, -1);
@@ -12798,12 +12801,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const channels = stretched.length;
                         const timeBase = audioTimeBase ?? 1 / origRate;
                         const samplesPerTick = timeBase * origRate;
-                        const toTicks = (samples: number) => Math.sign(samples) * Math.round(Math.abs(samples) / samplesPerTick);
+                        const toTicks = (samples: number) => Number.isFinite(samples)
+                          ? BigInt(Math.sign(samples) * Math.round(Math.abs(samples) / samplesPerTick)) : missingPts;
                         const counts = new Array<number>(mono ? channels : 1).fill(0);
-                        const starts = new Array<number | undefined>(counts.length).fill(undefined);
+                        const starts = new Array<bigint | undefined>(counts.length).fill(undefined);
                         const minimum = Math.round(duration * origRate) * (mono ? 1 : channels);
                         const length = measuredEnd;
-                        let frameEndPts = 0;
+                        let frameEndPts = 0n;
                         for (let frameStart = 0, n = 0; frameStart < length; n++) {
                           const timestamp = audioTimestamps?.[n];
                           const packet = t.samples[n];
@@ -12814,7 +12818,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const metadata = audioMetadata[n] ?? { pts: timestamp?.pts ?? audioStartSample + frameStart, tags: new Map<string, string>() };
                           audioMetadata[n] = metadata;
                           const framePts = toTicks(timestamp?.pts ?? audioStartSample + frameStart);
-                          frameEndPts = framePts + toTicks(frameEnd - frameStart);
+                          frameEndPts = BigInt.asIntN(64, framePts + toTicks(frameEnd - frameStart));
                           for (let frame = frameStart; frame < frameEnd; frame++) {
                             for (let channel = 0; channel < channels; channel++) {
                               if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
@@ -12825,20 +12829,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 counts[slot]!++;
                                 if (starts[slot] === undefined && counts[slot]! >= minimum) {
                                   // Native rescales the complete offset, which can reach into an earlier frame.
-                                  const start = framePts + toTicks(frame - frameStart + 1 - minimum / (mono ? 1 : channels));
-                                  starts[slot] = start;
+                                  const start = BigInt.asIntN(64, framePts + toTicks(frame - frameStart + 1 - minimum / (mono ? 1 : channels)));
+                                  starts[slot] = start === missingPts ? undefined : start;
                                   budget.allocateMemory(128);
-                                  metadata.tags.set(`lavfi.silence_start${suffix}`, formatTime(start * timeBase));
-                                  logSilence(n, `${prefix}silence_start: ${formatTime(start * timeBase)}\n`);
+                                  metadata.tags.set(`lavfi.silence_start${suffix}`, formatTime(start));
+                                  logSilence(n, `${prefix}silence_start: ${formatTime(start)}\n`);
                                 }
                               } else {
                                 const start = starts[slot];
                                 if (start !== undefined) {
-                                  const end = framePts + toTicks(frame - frameStart);
+                                  const end = BigInt.asIntN(64, framePts + toTicks(frame - frameStart));
                                   budget.allocateMemory(256);
-                                  metadata.tags.set(`lavfi.silence_end${suffix}`, formatTime(end * timeBase));
-                                  metadata.tags.set(`lavfi.silence_duration${suffix}`, formatTime((end - start) * timeBase));
-                                  logSilence(n, `${prefix}silence_end: ${formatTime(end * timeBase)} | silence_duration: ${formatTime((end - start) * timeBase)}\n`);
+                                  metadata.tags.set(`lavfi.silence_end${suffix}`, formatTime(end));
+                                  metadata.tags.set(`lavfi.silence_duration${suffix}`, formatTime(BigInt.asIntN(64, end - start)));
+                                  logSilence(n, `${prefix}silence_end: ${formatTime(end)} | silence_duration: ${formatTime(BigInt.asIntN(64, end - start))}\n`);
                                 }
                                 counts[slot] = 0;
                                 starts[slot] = undefined;
@@ -12851,7 +12855,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (start === undefined) continue;
                           const end = frameEndPts;
                           const prefix = mono ? `channel: ${slot} | ` : "";
-                          logSilence(Number.POSITIVE_INFINITY, `${prefix}silence_end: ${formatTime(end * timeBase)} | silence_duration: ${formatTime((end - start) * timeBase)}\n`);
+                          logSilence(Number.POSITIVE_INFINITY, `${prefix}silence_end: ${formatTime(end)} | silence_duration: ${formatTime(BigInt.asIntN(64, end - start))}\n`);
                         }
                         // Adjacent detectors process each frame in graph order, then flush in reverse.
                         if (audioFilters[filterIndex + 1]?.trim().split("=", 1)[0]!.split("@", 1)[0] !== "silencedetect") {

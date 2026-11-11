@@ -46,3 +46,40 @@ for (const [filter, length, hash] of [
     assert.deepEqual(volume.readFileSync("/in.y4m"), input);
   });
 }
+
+// Native FFmpeg 7.0.2 reports a full encoder tick for the final partial sheet.
+for (const [layout, timeBase, width, checksums] of [
+  ["2x2", "1/1", 4, ["0x04c00194", "0x08d1012d"]],
+  ["2x1", "1/2", 4, ["0x00a40052", "0x02d40142", "0x041d012d"]]
+] as const) {
+  it(`preserves partial tile=${layout} framecrc duration, timestamps and pixels`, async () => {
+    const input = Buffer.from([10, 11, 30, 31, 60, 61, 100, 101, 150, 151]);
+    const volume = Volume.fromJSON({ "/in.gray": input });
+    let stdout = "", stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "error", "-f", "rawvideo", "-pixel_format", "gray", "-video_size", "2x1",
+        "-framerate", "4", "-i", "/in.gray", "-vf", `tile=${layout}`, "-fps_mode", "passthrough",
+        "-pix_fmt", "gray", "-bitexact", "-f", "framecrc", "pipe:1"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(),
+      stdout: { async write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } },
+      stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, 0, stderr);
+    assert.equal(stderr, "");
+    const height = layout === "2x2" ? 2 : 1;
+    assert.equal(stdout, [
+      `#tb 0: ${timeBase}`, "#media_type 0: video", "#codec_id 0: rawvideo",
+      `#dimensions 0: ${width}x${height}`, "#sar 0: 0/1",
+      ...checksums.map((checksum, index) =>
+        `0, ${String(index).padStart(10)}, ${String(index).padStart(10)},        1, ${String(width * height).padStart(8)}, ${checksum}`),
+      ""
+    ].join("\n"));
+    assert.deepEqual(volume.readFileSync("/in.gray"), input);
+  });
+}

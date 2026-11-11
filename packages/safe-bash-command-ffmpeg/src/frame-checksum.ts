@@ -291,7 +291,9 @@ export function serializeFrameChecksum(
           packet === track.samples.at(-1) && packet.duration === 0 && "data" in packet &&
           (packet.data.length === 0 || packet.data.length === 2 && packet.data[0] === 0 && packet.data[1] === 0)) continue;
       const sampleCount = Math.round(packet.duration * rate / track.timescale);
-      const duration = Math.round(packet.duration * clockRate / track.timescale);
+      // Encoded video packets occupy at least one tick, including partial tile sheets.
+      const durationTicks = Math.round(packet.duration * clockRate / track.timescale);
+      const duration = "frame" in packet ? Math.max(1, durationTicks) : durationTicks;
       const bytes = "frame" in packet ? videoBytes(packet.frame, track.codecDescriptions[0]?.pixFmt ?? "rgba", budget)
         : track.type !== "audio" || decodedAudioPackets ? packet.data : payload.subarray(offset, offset + (copy ? packet.data.length : Math.min(payload.length - offset, Math.round(sampleCount * bytesPerFrame))));
       const size = bytes.length;

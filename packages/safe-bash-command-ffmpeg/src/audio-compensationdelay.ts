@@ -41,7 +41,7 @@ export async function compensateAudioDelay(
     const max = [10, 100, 100, 1, 1, 50][key]!;
     const value = parseFilterExpression(raw, "compensationdelay", { min, max, default: defaults[key]! });
     if (value < min || value > max) {
-      throw new Error("compensationdelay: invalid option");
+      throw new RangeError("compensationdelay: invalid option");
     }
     values[key] = value;
     if (key < 3 || key === 5) {

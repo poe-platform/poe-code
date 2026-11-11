@@ -5389,7 +5389,7 @@ async function applyVideoFilterChain(
       const color = parseColorRgba(options.color ?? "black");
       const first = current[0];
       const last = current.at(-1);
-      const duration = first?.durationSeconds ?? 0;
+      const duration = frameDuration * frameRateScale;
       for (const [index, key] of ["start_duration", "stop_duration"].entries()) {
         const value = options[key] === undefined ? 0 : parseHlsDuration(options[key]!);
         if (!Number.isFinite(value) || value < 0) throw new Error(`tpad: invalid ${key}`);
@@ -5397,12 +5397,13 @@ async function applyVideoFilterChain(
       }
       if (!first || !last) continue;
       if (!frameRateKnown || !(duration > 0)) throw new Error("tpad: a known frame rate is required");
+      const end = endTimeSeconds ?? last.ptsSeconds + last.durationSeconds;
       const start = counts[0]!;
       const stop = counts[1]!;
       const count = start + current.length + Math.max(0, stop);
       if (!Number.isSafeInteger(count) || count > 4294967295) throw new Error("tpad: output frame count is too large");
       budget.checkSamples(count);
-      budget.checkDuration(last.ptsSeconds + last.durationSeconds + (start + Math.max(0, stop)) * duration);
+      budget.checkDuration(end + (start + Math.max(0, stop)) * duration);
       budget.allocateMemory(count * 128);
       const padded: typeof current = [];
       for (const [side, length] of [start, stop].entries()) {
@@ -5428,7 +5429,7 @@ async function applyVideoFilterChain(
             yield* padded;
             for (let index = 0; ; index++) {
               if (index % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-              const ptsSeconds = last.ptsSeconds + last.durationSeconds + (start + index) * duration;
+              const ptsSeconds = end + (start + index) * duration;
               budget.checkSamples(count + index + 1);
               budget.checkDuration(ptsSeconds + duration);
               budget.recordFrame(picture.width, picture.height);
@@ -5442,11 +5443,13 @@ async function applyVideoFilterChain(
           if (index % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
           budget.recordFrame(picture.width, picture.height);
           padded.push({ ...picture, durationSeconds: duration,
-            ptsSeconds: side === 0 ? index * duration : last.ptsSeconds + last.durationSeconds + (start + index) * duration });
+            ptsSeconds: side === 0 ? index * duration : end + (start + index) * duration });
         }
       }
       current = padded;
-      endTimeSeconds = current.at(-1)!.ptsSeconds + duration;
+      frameDuration = current[0]!.durationSeconds;
+      frameRateScale = duration / frameDuration;
+      endTimeSeconds = end + (start + Math.max(0, stop)) * duration;
     } else if (name === "loop") {
       const values = { loop: 0, size: 0, start: 0, time: Infinity };
       const options = argStr ? argStr.split(":") : [];

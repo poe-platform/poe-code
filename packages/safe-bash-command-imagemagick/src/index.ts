@@ -5691,7 +5691,8 @@ function magickExtentLayout(img: Pick<RgbaImage, "width" | "height" | "virtualCa
     }
     // Offset-only geometry starts with the page rectangle; x explicitly resets its width.
     const width = g.hasOffset && (geometry.startsWith("+") || geometry.startsWith("-")) ? img.virtualCanvas?.width || img.width : img.width;
-    const height = g.hasOffset && g.height === undefined ? img.virtualCanvas?.height || img.height : img.height;
+    // A bare scalar inherits the page height; an explicitly empty axis does not.
+    const height = g.height === undefined && (g.hasOffset || !geometry.toLowerCase().includes("x")) ? img.virtualCanvas?.height || img.height : img.height;
     // Zero extent axes and an omitted percentage width keep the input dimension.
     const targetW = Math.max(1, Math.round(g.aspectRatio !== undefined ? Math.min(img.width, img.height * g.aspectRatio) : g.isPercent ? img.width * (g.width || 100) / 100 : g.width || g.areaLimit || width));
     const targetH = Math.max(1, Math.round(g.aspectRatio !== undefined ? Math.min(img.height, img.width / g.aspectRatio) : g.isPercent ? img.height * (g.percentY || 100) / 100 : g.height || height));

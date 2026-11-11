@@ -1,5 +1,6 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { declickWindow } from "./audio-declick-window.js";
 
 export async function declickAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
@@ -33,6 +34,7 @@ export async function declickAudio(
   const burst = Math.trunc(size * options.burst / 1000);
   const length = channels[0]?.length ?? 0;
   budget.allocateMemory(channels.length * length * 8 + size * 40 + (order + 1) * 32 + (declip ? options.hsize * 4 : 0));
+  const window = options.method ? undefined : declickWindow(size, hop, budget);
   const histogram = new Uint32Array(declip ? options.hsize : 0);
   const output = channels.map(() => new Float64Array(length));
   const frame = new Float64Array(size), repaired = new Float64Array(size);
@@ -145,9 +147,7 @@ export async function declickAudio(
         for (let i = 0; i < hop && start + i < length; i++) output[c]![start + i] = repaired[skip + i]!;
       } else {
         for (let i = 0; i < size && start + i < length; i++) {
-          // Convolution of rectangles of lengths hop and size-hop.
-          const weight = Math.max(0, Math.min(i + 1, hop, size - hop, size - 1 - i)) / (size - hop);
-          output[c]![start + i] = output[c]![start + i]! + repaired[i]! * weight;
+          output[c]![start + i] = output[c]![start + i]! + repaired[i]! * window![i]!;
         }
       }
     }

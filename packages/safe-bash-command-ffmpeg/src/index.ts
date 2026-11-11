@@ -2172,23 +2172,27 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           throw new Error("amultiply requires matching layouts or mono/stereo inputs");
         }
         // Split outputs share their inputs array. Reversal drains the shared
-        // source, queuing the other branch before multiplication starts.
+        // source, queuing the other branch before multiplication starts. Frames
+        // regrouped after the split still have to be requested individually.
         const paths = node.inputs.map(label => {
-          const path = new Map<string[], boolean>();
+          const path = new Map<string[], { buffered: boolean; regrouped: boolean }>();
           let buffered = false;
+          let regrouped = false;
           let upstream = nodes.get(label);
           while (upstream) {
             budget.checkCpu();
-            path.set(upstream.inputs, buffered);
-            buffered ||= parseFilterChain(upstream.expression)
-              .some(filter => filter.split("=", 1)[0]!.split("@", 1)[0] === "areverse");
+            path.set(upstream.inputs, { buffered, regrouped });
+            const names = parseFilterChain(upstream.expression)
+              .map(filter => filter.split("=", 1)[0]!.split("@", 1)[0]);
+            buffered ||= names.includes("areverse");
+            regrouped ||= names.includes("asetnsamples");
             if (upstream.inputs.length !== 1) break;
             upstream = nodes.get(upstream.inputs[0]!);
           }
           return path;
         });
         const queued = paths.map(path => paths.some(other => other !== path &&
-          Array.from(path).some(([inputs, buffered]) => !buffered && other.get(inputs) === true)));
+          Array.from(path).some(([inputs, state]) => !state.buffered && !state.regrouped && other.get(inputs)?.buffered)));
         let multiplier = b.channelData;
         let multiplierEnds: number[] | undefined;
         if (a.sampleRate !== b.sampleRate) {

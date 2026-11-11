@@ -300,7 +300,8 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                 const wDst = dStr !== undefined ? Math.max(0, (parseFloat(dStr) || 0) / 100) : Math.max(0, 1 - wSrc);
                 const effSa = sa * wSrc;
                 const effDa = da * wDst;
-                const alpha = effSa + effDa;
+                // ImageMagick caps opacity before unpremultiplying the weighted color sum.
+                const alpha = Math.min(1, effSa + effDa);
                 out[dIdx] = alpha === 0 ? 0 : clampByteVal((sr * effSa + dr * effDa) / alpha);
                 out[dIdx + 1] = alpha === 0 ? 0 : clampByteVal((sg * effSa + dg * effDa) / alpha);
                 out[dIdx + 2] = alpha === 0 ? 0 : clampByteVal((sb * effSa + db * effDa) / alpha);

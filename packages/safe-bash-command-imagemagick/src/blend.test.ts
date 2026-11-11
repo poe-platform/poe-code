@@ -8,6 +8,8 @@ const cases = [
   { sourceAlpha: 128, destinationAlpha: 102, amount: "50", expected: [125, 55, 125, 115] },
   { sourceAlpha: 128, destinationAlpha: 102, amount: "25x75", expected: [80, 76, 170, 109] },
   { sourceAlpha: 255, destinationAlpha: 255, amount: "50", expected: [115, 60, 135, 255] },
+  { sourceAlpha: 255, destinationAlpha: 255, amount: "100x100", expected: [230, 120, 255, 255] },
+  { sourceAlpha: 255, destinationAlpha: 255, amount: "80x80", expected: [184, 96, 216, 255] },
   { sourceAlpha: 128, destinationAlpha: 128, amount: "50", expected: [115, 60, 135, 128] },
   { sourceAlpha: 0, destinationAlpha: 102, amount: "50", expected: [30, 100, 220, 51] },
   { sourceAlpha: 128, destinationAlpha: 0, amount: "50", expected: [200, 20, 50, 64] },

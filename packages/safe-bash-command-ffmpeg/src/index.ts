@@ -3929,19 +3929,15 @@ async function applyVideoFilterChain(
       if (positional.filter(value => !value.includes("=")).length > 2 || Object.keys(named).some(key => key !== "n" && key !== "log" && key !== "threads")) {
         throw new Error("thumbnail: expected batch size n and log level");
       }
-<<<<<<< HEAD
-      const value = parseFilterExpression(named.n ?? (positional[0]?.includes("=") ? "100" : positional[0] || "100"), "thumbnail", {
-        min: 2, max: 2147483647, default: 100,
-        PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
-      });
-=======
       if (named.threads !== undefined) {
         const threads = parseFilterExpression(named.threads, "thumbnail: threads", { default: 0, min: 0, max: 2147483647 });
         if (threads < 0 || threads > 2147483647) throw new RangeError("thumbnail: threads is out of range");
         // Scheduling does not change the selected frame in this serial implementation.
       }
-      const count = Number(named.n ?? (positional[0]?.includes("=") ? 100 : positional[0] || 100));
->>>>>>> 6be15ae362 (fix(ffmpeg): accept thumbnail filter threads option)
+      const value = parseFilterExpression(named.n ?? (positional[0]?.includes("=") ? "100" : positional[0] || "100"), "thumbnail", {
+        min: 2, max: 2147483647, default: 100,
+        PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+      });
       const log = named.log ?? (positional[1]?.includes("=") ? undefined : positional[1]) ?? "info";
       const levels: Record<string, number> = { quiet: -8, info: 32, verbose: 40 };
       const level = levels[log] ?? Number(log);

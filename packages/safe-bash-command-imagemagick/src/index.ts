@@ -333,7 +333,7 @@ function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly
     const a = round(parseInt(s.slice(13, 17), 16) / 257);
     return { r, g, b, a };
   }
-  const fnMatch = /^(s?rgba?|gr[ae]ya?|cmyka?|hwba?|lab|cielab)\(\s*([^)]+)\s*\)$/i.exec(s);
+  const fnMatch = /^(s?rgba?|gr[ae]ya?|cmyka?|hs[bv]a?|hwba?|lab|cielab)\(\s*([^)]+)\s*\)$/i.exec(s);
   if (fnMatch) {
     const kind = fnMatch[1]!.toLowerCase();
     const parts = fnMatch[2]!.split(/[\s,]+/).filter(Boolean);
@@ -367,6 +367,21 @@ function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly
         g: round(Math.max(0, Math.min(255, (g + white) * 255))),
         b: round(Math.max(0, Math.min(255, (b + white) * 255))),
         a: round(Math.max(0, Math.min(255, alpha * 255))),
+      };
+    }
+    if (kind === "hsb" || kind === "hsv" || kind === "hsba" || kind === "hsva") {
+      const components = parts.map(part => part.endsWith("%") ? Number(part.slice(0, -1)) / 100 * 255 : Number(part));
+      if (components.length < 3 || components.length > 4 || components.some(value => !Number.isFinite(value))) return baseParseColor(s);
+      const hue = ((components[0]! % 360) + 360) % 360 / 60;
+      const saturation = components[1]! / 255, value = components[2]! / 255;
+      const chroma = saturation * value, x = chroma * (1 - Math.abs(hue % 2 - 1)), m = value - chroma;
+      const [r, g, b] = hue < 1 ? [chroma, x, 0] : hue < 2 ? [x, chroma, 0] : hue < 3 ? [0, chroma, x]
+        : hue < 4 ? [0, x, chroma] : hue < 5 ? [x, 0, chroma] : [chroma, 0, x];
+      return {
+        r: round(Math.max(0, Math.min(255, (r + m) * 255))),
+        g: round(Math.max(0, Math.min(255, (g + m) * 255))),
+        b: round(Math.max(0, Math.min(255, (b + m) * 255))),
+        a: kind.endsWith("a") ? round(Math.max(0, Math.min(255, (components[3] ?? 1) * 255))) : 255,
       };
     }
     const parseChanByte = (p: string | undefined, def = 0) => {

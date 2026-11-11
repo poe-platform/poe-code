@@ -3262,6 +3262,7 @@ async function applyVideoFilterChain(
       } catch (err) {
         throw new Error(`pad: ${err instanceof Error ? err.message : String(err)}`, { cause: err });
       }
+      const gray16 = Math.round((0.299 * col[0] + 0.587 * col[1] + 0.114 * col[2]) * 257);
       if (pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "gray16be" || pixelFormat === "gray16le" || pixelFormat === "ya8") {
         // Pad uses full-range BT.601 luma for grayscale frames.
         const gray = Math.round(0.299 * col[0] + 0.587 * col[1] + 0.114 * col[2]);
@@ -3281,7 +3282,8 @@ async function applyVideoFilterChain(
           for (let pixel = 0; pixel < pw * ph; pixel++) {
             if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
             for (let channel = 0; channel < channels; channel++) {
-              view.setUint16(pixel * stride + channel * 2, col[channel]! * 257, source.format === 30);
+              // Draw grayscale luma at full precision before any 8-bit rounding.
+              view.setUint16(pixel * stride + channel * 2, channels === 1 ? gray16 : col[channel]! * 257, source.format === 30);
             }
           }
           for (let row = 0; row < f.height; row++) {

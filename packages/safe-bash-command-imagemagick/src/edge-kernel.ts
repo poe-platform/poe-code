@@ -5,7 +5,7 @@ import type { Region } from "./region.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { HueMetadata } from "./colorspace-hue.js";
 
-export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">> & HueMetadata & { region?: Region | undefined }, radius: number, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, retainUnclamped = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space"> & Partial<Pick<StoredRgbaImage, "storedData16">> & HueMetadata & { region?: Region | undefined }, radius: number, channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, retainUnclamped = false, alphaSource = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
     const hue = !cmyk && !!image.magickColorspace && (image.hueSamples !== undefined || image.storedHueSamples !== undefined);
     const highDepth = !!(image.data16 || image.storedData16), maximum = highDepth ? 65535 : 255;
@@ -21,7 +21,7 @@ export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "has
         : [gray, gray, gray, virtualPixel === "transparent" ? 0 : maximum];
     // Native constant virtual pixels fill the black ink channel too.
     if (cmyk) fill.push(gray);
-    function* read(position: number, length: number): Generator<ConvolveRequest | undefined, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
+    function* readPixels(position: number, length: number): Generator<ConvolveRequest | undefined, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
         if (!cmyk && !image.hueSamples && image.storedHueSamples === undefined) {
             const working = yield { kind: "read", evaluate: true, position, length };
             if (working?.length) {
@@ -42,6 +42,16 @@ export function* edgePixelSteps(image: Pick<RgbaImage, "width" | "height" | "has
             rgba[i * 4 + 3]!, inks[i * 4 + 3]! * maximum,
         ], i * stride);
         return samples;
+    }
+    function* read(position: number, length: number): Generator<ConvolveRequest | undefined, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
+        const samples = yield* readPixels(position, length);
+        if (!alphaSource) return samples;
+        const bytes = yield { kind: "read", image: 1, highDepth, position, length };
+        if (!bytes || bytes.length !== length * (highDepth ? 2 : 1)) throw new Error("Truncated edge alpha samples");
+        const alpha = highDepth ? new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2) : bytes;
+        const result = new Float64Array(samples);
+        for (let i = 3; i < length; i += 4) result[i] = alpha[i]!;
+        return result;
     }
     for (let y = 0; y < height; y++) for (let left = 0; left < width; left += 1024) {
         yield;

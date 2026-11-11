@@ -2696,7 +2696,7 @@ function parseMagickRaiseGeometry(raw: string, option: string): MagickGeometry {
     if (comma >= 0 && ![...raw.slice(0, comma)].some(c => "xX:".includes(c))) {
         throw new Error(`invalid geometry: ${raw}`);
     }
-    raw = raw.split(",", 1)[0]!.replaceAll("#", "").replaceAll(":", "x");
+    raw = raw.split(",", 1)[0]!.replaceAll("(", "").replaceAll(")", "").replaceAll("#", "").replaceAll(":", "x");
     const geometry = parseMagickGeometry(raw);
     if (!geometry.isPercent && normalizeMagickOffsets(raw).toLowerCase().includes("x")) {
         return { ...geometry, width: geometry.width ?? 0, height: geometry.height ?? 0 };

@@ -106,7 +106,8 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "da
             if (index >= 0) {
                 x = index % width; y = Math.floor(index / width);
             } else {
-                const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 128 : 0;
+                // Native virtual gray is the Q16 midpoint, including for 8-bit inputs.
+                const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 32768 / 257 : 0;
                 return (virtualPixel === "background" || virtualPixel?.endsWith("-tile"))
                     ? [background.r * scale, background.g * scale, background.b * scale, background.a * scale, 0]
                     : [gray * scale, gray * scale, gray * scale, virtualPixel === "transparent" ? 0 : maximum, 0];

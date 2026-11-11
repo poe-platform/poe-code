@@ -13067,7 +13067,40 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "replaygain" || trimmed === "replaygain=") {
                         const report = await measureReplayGain(stretched, origRate, budget, context.signal);
                         if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(report), context.signal);
-                      } else if (trimmed === "volumedetect" || trimmed === "volumedetect=") {
+                      } else if (filterName === "volumedetect") {
+                        const argument = trimmed.slice("volumedetect".length + 1);
+                        const options = argument ? argument.split(":") : [];
+                        if (options.at(-1) === "") options.pop();
+                        for (const option of options) {
+                          const separator = option.indexOf("=");
+                          const key = option.slice(0, separator).trim();
+                          if (separator < 0) throw new Error("volumedetect: unexpected positional argument");
+                          if (key === "enable") throw new Error("volumedetect: timeline is unsupported");
+                          if (!["threads", "thread_type", "extra_hw_frames"].includes(key)) {
+                            throw new Error(`volumedetect: unsupported option ${key}`);
+                          }
+                          if (key === "thread_type") {
+                            // Scheduling flags do not affect PCM, but each set/clear term must be valid.
+                            const flags = option.slice(separator + 1).trim();
+                            let position = 0;
+                            do {
+                              if (flags[position] === "+" || flags[position] === "-") position++;
+                              const start = position;
+                              if (flags[position] === "+" || flags[position] === "-") position++;
+                              while (position < flags.length && flags[position] !== "+" && flags[position] !== "-") position++;
+                              const bits = parseFilterExpression(flags.slice(start, position), "volumedetect", { slice: 1, none: 0, all: -1 });
+                              if (!Number.isInteger(bits) || bits < -2147483648 || bits > 4294967295) {
+                                throw new RangeError("volumedetect: invalid thread_type");
+                              }
+                            } while (position < flags.length);
+                            continue;
+                          }
+                          const value = parseFilterExpression(option.slice(separator + 1), "volumedetect",
+                            key === "threads" ? { min: 0, default: 0 } : { min: -1, default: -1 });
+                          if (value < (key === "extra_hw_frames" ? -1 : 0) || value > 2147483647) {
+                            throw new RangeError(`volumedetect: invalid ${key}`);
+                          }
+                        }
                         let count = 0;
                         let sumSquares = 0;
                         let peak = 0;
@@ -17748,6 +17781,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "reverse: timeline is unsupported") return { exitCode: 176 };
             if (msg.startsWith("reverse: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("reverse:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (msg === "volumedetect: timeline is unsupported") return { exitCode: 176 };
+            if (msg.startsWith("volumedetect: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("volumedetect:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg === "areverse: timeline is unsupported") return { exitCode: 176 };
             if (msg.startsWith("areverse: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("areverse:")) return { exitCode: err instanceof RangeError ? 222 : 234 };

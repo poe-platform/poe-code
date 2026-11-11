@@ -13462,7 +13462,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let audioMetadata: { pts: number; tags: Map<string, string> }[] = [];
                   let audioTimestamps: { start: number; end: number; pts: number; exactPts?: bigint | undefined; pos?: number | undefined }[] | undefined;
                   // Silence events and frame tags retain input PTS, including after seeking and reframing.
-                  if (!sink && (outputCut || (index !== undefined && (audioSegment || frameChecksumOutput)) || (filter && parseFilterChain(filter.expression)
+                  if (!sink && (t.samples.some(sample => "exactPts" in sample) || outputCut || (index !== undefined && (audioSegment || frameChecksumOutput)) || (filter && parseFilterChain(filter.expression)
                     .some(item => ["areverse", "silencedetect"].includes(item.trim().split("=", 1)[0]!.split("@", 1)[0]!))))) {
                     if (index !== undefined && audioSegment) segmentAudioPackets = [];
                     audioTimestamps = [];
@@ -13476,7 +13476,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       const end = Math.min(length, start + count);
                       budget.allocateMemory(32);
                       const pts = packet ? packet.pts * origRate / t.timescale + (packet.skipSamples ?? 0) : audioStartSample + start;
-                      audioTimestamps.push({ start, end, pts, pos: packet?.offset });
+                      audioTimestamps.push({ start, end, pts, pos: packet?.offset,
+                        exactPts: packet && "exactPts" in packet && typeof packet.exactPts === "bigint"
+                          && origRate === t.timescale ? packet.exactPts : undefined });
                       start = end;
                     }
                   }

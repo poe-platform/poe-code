@@ -5,16 +5,18 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { createHash } from "node:crypto";
 import { createFfmpegCommand } from "./index.js";
 
-async function mix(graph: string) {
+async function mix(graph: string, missingPtsFixture = false) {
   const volume = Volume.fromJSON({ "/out.pcm": "keep" });
   for (const [path, value] of [["/a.wav", 12000], ["/b.wav", -4000]] as const) {
-    const channel = new Float64Array(path === "/a.wav" ? 2048 : 733).fill(value / 32768);
-    volume.writeFileSync(path, encodeWav({ sampleRate: 8000,
+    const channel = missingPtsFixture
+      ? Float64Array.from(path === "/a.wav" ? [8000, 0, 0, 0, 0, 0, 0, 0] : [0, 0, 2000, 0], value => value / 32768)
+      : new Float64Array(path === "/a.wav" ? 2048 : 733).fill(value / 32768);
+    volume.writeFileSync(path, encodeWav({ sampleRate: missingPtsFixture ? 1000 : 8000,
       channels: [channel] }));
   }
   const errors: Uint8Array[] = [];
   const result = await createFfmpegCommand().execute({
-    args: ["-y", "-v", "error", "-i", "/a.wav", "-i", "/b.wav",
+    args: ["-y", "-v", "info", "-i", "/a.wav", "-i", "/b.wav",
       "-filter_complex", graph, "-map", "[o]", "-f", "s16le", "/out.pcm"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
@@ -96,4 +98,24 @@ for (const [branch, inputs, hex, timestamps] of [
       }
     }
   });
+}
+
+// Native FFmpeg 7.0.2: rescaling missing first-input PTS yields INT64_MIN + 1.
+for (const [input, expression, timestamps] of [
+  [0, "NAN", Array(4).fill("-9223372036854775807")],
+  [0, "PTS", ["0", "2", "4", "6"]],
+  [1, "NAN", ["0", "4"]]
+] as const) {
+  for (const select of [false, true]) {
+    it(`matches amix PCM and timestamps with input ${input} asetpts=${expression}, selection=${select}`, async () => {
+      const sources = input === 0 ? "[x][1:a]" : "[0:a][x]";
+      const { result, volume, error } = await mix(
+        `[${input}:a]asetnsamples=n=2:p=0,asetpts=${expression}[x];${sources}amix=normalize=0,ashowinfo${select ? ",aselect='isnan(pts)'" : ""}[o]`, true);
+      assert.equal(result.exitCode, 0, error);
+      assert.equal((volume.readFileSync("/out.pcm") as Buffer).toString("hex"),
+        select ? "" : "401f0000d00700000000000000000000");
+      assert.deepEqual(error.split("\n").filter(line => line.startsWith("[ashowinfo]"))
+        .map(line => line.split(" pts:")[1]!.split(" ")[0]), timestamps);
+    });
+  }
 }

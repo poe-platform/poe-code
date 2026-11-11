@@ -14667,6 +14667,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const selected = channels ? [channels.r, channels.g, channels.b, channels.a, channels.k === true] : undefined;
                 let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(maxW, maxH, background, highDepth),
                     space: colorspace.space, ...(colorspace.magickColorspace === undefined ? {} : { magickColorspace: colorspace.magickColorspace }) };
+                if ((canvas.space === "b-w" || canvas.space === "grey16") && (background.r !== background.g || background.g !== background.b)) {
+                    canvas = { ...canvas, space: "srgb" };
+                    delete canvas.magickColorspace;
+                }
                 if (colorspace.metaChannels?.length) {
                     canvas.metaChannels = [];
                     for (const plane of colorspace.metaChannels)
@@ -16821,6 +16825,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!append) {
                     const first = (await stack.get(0))! as StoredRgbaImage;
                     result = { ...result, space: first.space, ...(first.magickColorspace === undefined ? {} : { magickColorspace: first.magickColorspace }) };
+                    if ((result.space === "b-w" || result.space === "grey16") && (background.r !== background.g || background.g !== background.b)) {
+                        result = { ...result, space: "srgb" };
+                        delete result.magickColorspace;
+                    }
                     if (first.storedMetaChannels?.length) {
                         result.storedMetaChannels = [];
                         for (const plane of first.storedMetaChannels)

@@ -7053,6 +7053,14 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
         }
     }
     const cmyk = stack.every(image => image.space === "cmyk");
+    if (!cmyk && stack.every(image => image.magickColorspace === stack[0]!.magickColorspace && image.hueSamples !== undefined && image.space !== "cmyk")) {
+        canvas.hueSamples = new Float64Array(canvas.data.length);
+        const color = [background.r, background.g, background.b, background.a].map(value => value / 255);
+        for (let offset = 0; offset < canvas.data.length; offset += 4) {
+            if (offset % 16384 === 0) yield;
+            canvas.hueSamples.set(color, offset);
+        }
+    }
     if (cmyk) {
         const rgb = [background.r, background.g, background.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
         canvas = yield* fillCmykPixels(canvas, rgbToCmyk(rgb[0]!, rgb[1]!, rgb[2]!));
@@ -7087,6 +7095,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
                         canvas.data[alpha] = 255;
                         if (canvas.data16) canvas.data16[alpha] = 65535;
                         if (canvas.evaluateSamples) canvas.evaluateSamples[alpha] = 255;
+                        if (canvas.hueSamples && !cmyk) canvas.hueSamples[alpha] = 1;
                     }
                 }
             }
@@ -16491,7 +16500,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         ...(image.readMask ? { readMask: await createStoredCanvas(image.width, image.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) } : {}) } as StoredRgbaImage);
                     return stack;
                 }
-                let width = 0, height = 0, highDepth = false, cmyk = false, nonCmyk = false, gray = true, evaluate = false, sameColorspace = true;
+                let width = 0, height = 0, highDepth = false, cmyk = false, nonCmyk = false, gray = true, evaluate = false, sameColorspace = true, hue = true;
                 const firstFrame = (await stack.get(0))! as StoredRgbaImage;
                 const firstColorspace = firstFrame.magickColorspace;
                 if (mosaic) {
@@ -16507,6 +16516,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     sameColorspace &&= (frame as StoredRgbaImage).magickColorspace === firstColorspace;
                     cmyk ||= frame.space === "cmyk"; nonCmyk ||= frame.space !== "cmyk"; highDepth ||= !!frame.storedData16;
                     evaluate ||= frame.storedEvaluateSamples !== undefined;
+                    hue &&= frame.storedHueSamples !== undefined;
                     if (merge) {
                         const x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
                         const left = n ? Math.min(originX, x) : x, top = n ? Math.min(originY, y) : y;
@@ -16561,6 +16571,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             await backend.storage.write(result.storedEvaluateSamples + offset * 8, new Uint8Array(samples.buffer));
                         }
                     }
+                    if (hue && sameColorspace && !cmyk) {
+                        result.storedHueSamples = backend.storage.allocate(width * height * 32);
+                        const color = [background.r, background.g, background.b, background.a].map(value => value / 255);
+                        for (let offset = 0; offset < width * height * 4; offset += 2048) {
+                            await yieldTurn(signal);
+                            const samples = new Float64Array(Math.min(2048, width * height * 4 - offset));
+                            for (let i = 0; i < samples.length; i += 4) samples.set(color, i);
+                            await backend.storage.write(result.storedHueSamples + offset * 8, new Uint8Array(samples.buffer));
+                        }
+                    }
                 }
                 if (append && cmyk && !nonCmyk) {
                     const rgb = [background.r, background.g, background.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
@@ -16582,7 +16602,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const offset = resolveGravityOffset(vertical ? width - frame.width : 0, vertical ? 0 : height - frame.height, frame.gravity ?? settings.gravity);
                     if (append) {
                         const left = vertical ? offset.left : cursor, top = vertical ? cursor : offset.top;
-                        const chunkPixels = result.storedEvaluateSamples === undefined ? 4096 : 512;
+                        const chunkPixels = result.storedEvaluateSamples === undefined && result.storedHueSamples === undefined ? 4096 : 512;
                         for (let y = 0; y < frame.height; y++) {
                             for (let x = 0; x < frame.width; x += chunkPixels) {
                                 await yieldTurn(signal);
@@ -16610,6 +16630,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                                 }
                                 if (result.storedHueSamples !== undefined) {
                                     const bytes = await backend.storage.read(frame.storedHueSamples! + (y * frame.width + x) * 32, pixels.length * 8);
+                                    if (!cmyk && !frame.hasAlpha && frame.alphaBlend !== true) {
+                                        const samples = new Float64Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 8);
+                                        for (let i = 3; i < samples.length; i += 4) samples[i] = 1;
+                                    }
                                     await backend.storage.write(result.storedHueSamples + ((top + y) * width + left + x) * 32, bytes);
                                 }
                             }

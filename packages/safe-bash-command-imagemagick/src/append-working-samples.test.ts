@@ -57,3 +57,33 @@ it.each([8, 16])(`${mode} ${direction}: copies mixed working and integer samples
     const bytes = mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
     expect(Buffer.from(bytes).toString("hex")).toBe(expected);
 });
+
+// Native ImageMagick Q16-HDRI: fractional colorspace samples survive append.
+for (const mode of ["command", "retained", "buffered", "sync"] as const)
+for (const direction of ["-append", "+append"])
+for (const space of ["HSL", "Lab"])
+for (const clone of [false, true])
+for (const width of [1, 513])
+for (const info of [false, true])
+it(`${mode} ${direction}: preserves fractional ${space} samples (clone=${clone}, width=${width}, info=${info})`, async () => {
+    const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
+    const argv = ["-size", `${width}x1`, "xc:#b2346680", ...(clone ? [] : ["xc:#34a295c0"]), "-colorspace", space,
+        ...(clone ? ["+clone"] : []), direction, ...(info ? ["-format", "%[fx:u.r]|%[fx:u.g]|%[fx:u.b]", "info:/out"]
+            : ["-colorspace", "sRGB", "-depth", "16", "-endian", "MSB", "rgba:/out"])];
+    const argumentValues = createCommandArguments(argv);
+    let stderr = "";
+    const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs,
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write() {} }, stderr: { async write(chunk) { stderr += new TextDecoder().decode(chunk); } }
+    }) : mode === "sync" ? runMagickCliSync(argv, files)
+        : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+    expect(result.exitCode).toBe(0);
+    expect("stderr" in result ? result.stderr : stderr).toBe("");
+    const first = space === "HSL" ? "b2b2343466668080" : "b2b5342a66648080";
+    const second = clone ? first : space === "HSL" ? "3434a2a29595c0c0" : "3437a2a29594c0c0";
+    const bytes = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
+    expect(Buffer.from(bytes).toString(info ? "utf8" : "hex")).toBe(info
+        ? space === "HSL" ? "0.933862|0.547826|0.45098" : "0.425812|0.713431|0.501191"
+        : first.repeat(width) + second.repeat(width));
+});

@@ -14647,8 +14647,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geometry = tokens[++i] ?? "";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(geometry, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
-                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, waveletDenoisePixelSteps(im, expanded), signal);
-            }, undefined, true);
+                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, waveletDenoisePixelSteps(im, expanded, im.writeMask), signal, im, im.writeMask ? [im, im.writeMask] : [im]);
+            }, "unmasked", true);
         }
         else if (t === "-clahe") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
@@ -18804,8 +18804,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
-                return transformStoredMagickRaster({ ...image, isPalette: false }, backend, waveletDenoisePixelSteps(image, expanded), signal);
-            }, { handlesRegion: true }));
+                return transformStoredMagickRaster({ ...image, isPalette: false }, backend, waveletDenoisePixelSteps(image, expanded, image.storedWriteMask), signal, image, image.storedWriteMask ? [image, image.storedWriteMask] : [image]);
+            }, { maskAlpha: "unmasked" as const, handlesRegion: true }));
         } else if (!operandsOnly && token === "-clahe") {
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);

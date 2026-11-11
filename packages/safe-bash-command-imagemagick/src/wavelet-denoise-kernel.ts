@@ -4,7 +4,7 @@ import type { HueMetadata } from "./colorspace-hue.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Separable à trous hat transform with native noise thresholds and reflected edges. */
-export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "space" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & HueMetadata & { region?: Region | undefined; hasAlpha?: boolean; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined }, geometry: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "space" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples">> & HueMetadata & { region?: Region | undefined; hasAlpha?: boolean; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined }, geometry: string, writeMask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const normalized = geometry.replaceAll("%", "").replaceAll("(", "").replaceAll(")", "")
         .replaceAll(",", "x").replaceAll("/", "x").replaceAll("X", "x");
     const fields: string[] = [];
@@ -39,7 +39,7 @@ export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "heig
         const samples = hue || evaluate ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
         output.set(evaluate && highDepth ? samples.map(value => value * 257) : samples, start * 4);
     }
-    const alpha = cmyk && image.region ? new Float64Array(size) : undefined;
+    const alpha = cmyk && (image.region || writeMask) ? new Float64Array(size) : undefined;
     if (alpha) for (let start = 0; start < size; start += 1024) {
         const count = Math.min(1024, size - start);
         const bytes = yield { kind: "read", highDepth, position: start * 4, length: count * 4 };
@@ -47,7 +47,21 @@ export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "heig
         const samples = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
         for (let i = 0; i < count; i++) alpha[start + i] = samples[i * 4 + 3]! / (highDepth ? 65535 : 255);
     }
-    const masked = image.region ? Float64Array.from(output) : undefined;
+    const protection = writeMask ? new Float64Array(size) : undefined;
+    if (writeMask && protection) for (let y = 0; y < height; y++) for (let x = 0; x < width; x += 1024) {
+        yield;
+        const count = Math.min(1024, width - x), maskX = Math.min(x, writeMask.width - 1);
+        const maskCount = Math.min(count, writeMask.width - maskX);
+        const position = (Math.min(y, writeMask.height - 1) * writeMask.width + maskX) * 4;
+        const working = yield { kind: "read", image: 1, evaluate: true, position, length: maskCount * 4 };
+        const pixels = working?.length ? new Float64Array(working.slice().buffer)
+            : Float64Array.from(new Uint16Array((yield { kind: "read", image: 1, highDepth: true, position, length: maskCount * 4 })!.slice().buffer), value => value / 257);
+        for (let i = 0; i < count; i++) {
+            const offset = Math.min(i, maskCount - 1) * 4;
+            protection[y * width + x + i] = (0.212656 * pixels[offset]! + 0.715158 * pixels[offset + 1]! + 0.072186 * pixels[offset + 2]!) / 255;
+        }
+    }
+    const masked = image.region || writeMask ? Float64Array.from(output) : undefined;
     if ((threshold !== 0 || masked) && levels > 0) {
         const planes = new Float32Array(size * 4), row = new Float32Array(Math.max(width, height));
         for (let channel = 0; channel < 3; channel++) {
@@ -91,14 +105,15 @@ export function* waveletDenoisePixelSteps(image: Pick<RgbaImage, "width" | "heig
                 if (i % 1024 === 0) yield;
                 const value = Math.fround(planes[i]! + planes[low + i]!) / quantumScale;
                 if (masked) {
-                    const region = image.region!, x = i % width, y = Math.floor(i / width);
-                    if (!regionContains(region, x, y)) {
+                    const amount = protection?.[i] ?? (regionContains(image.region!, i % width, Math.floor(i / width)) ? 0 : 1);
+                    if (amount !== 0) {
                         // Native synchronizes the write mask after each RGB channel,
                         // compositing every color against the preceding channel's result.
                         const opacity = image.hasAlpha || image.alphaBlend !== false ? alpha?.[i] ?? output[i * 4 + 3]! / (hue ? 1 : highDepth ? 65535 : 255) : 1;
+                        const sourceAlpha = amount * opacity;
                         for (let color = 0; color < 3; color++) {
                             const original = masked[i * 4 + color]!;
-                            masked[i * 4 + color] = original * opacity + (color === channel ? value : original) * opacity * (1 - opacity);
+                            masked[i * 4 + color] = Math.fround((original * sourceAlpha + (color === channel ? value : original) * opacity * (1 - sourceAlpha)) * quantumScale) / quantumScale;
                         }
                     } else masked[i * 4 + channel] = value;
                 } else output[i * 4 + channel] = value;

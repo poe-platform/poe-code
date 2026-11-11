@@ -29,7 +29,7 @@ export async function crushAudio(
     const value = parseFilterExpression(expression, "acrusher", {
       PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2, min: min!, max: max!, default: defaults[key], none: 0, all: -1,
       ...(key === "mode" ? { lin: 0, log: 1 } : {})
-    });
+    }, undefined, new Float64Array(10));
     if (!Number.isFinite(value) || value < min! || value > max!) throw new RangeError(`acrusher: invalid ${key}`);
     options[key] = key === "mode" ? (value > 0.5 ? 1 : 0) : value;
   };

@@ -17,7 +17,7 @@ it("replaces prior FLAC comment blocks case-insensitively", () => {
     .toEqual({ Artist: "Bob;Chloé", ROLE: "Voice" });
 });
 
-it("retains custom Vorbis key spelling while encoding normalized audio tags", () => {
-  expect(parseComments(encodeComments({ artist: "Alice;Bob", role: "Voice;Music", Artist: "Chloé" })).comments)
-    .toEqual(["ARTIST=Alice;Bob", "role=Voice;Music", "Artist=Chloé"]);
+it("retains Vorbis key spelling while encoding normalized audio aliases", () => {
+  expect(parseComments(encodeComments({ title: "Song", artist: "Alice;Bob", role: "Voice;Music", Artist: "Chloé", track: "2", disc: "1", albumArtist: "Band" })).comments)
+    .toEqual(["title=Song", "artist=Alice;Bob", "role=Voice;Music", "Artist=Chloé", "TRACKNUMBER=2", "DISCNUMBER=1", "ALBUMARTIST=Band"]);
 });

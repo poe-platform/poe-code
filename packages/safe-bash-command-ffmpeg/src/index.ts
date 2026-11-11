@@ -8403,6 +8403,7 @@ export function evalSyncFfmpeg(
     const chapterMetadataMaps: [string, string][] = [];
     const chapterMetadata: [number, string, string][] = [];
     const metadata: Record<string, string> = {};
+    const metadataKeySpellings: Record<string, string> = {};
     const streamMetadata: [string, "language" | "handlerName" | "timecode" | "title" | "comment" | "stereo_mode", string][] = [];
     const streamDispositions: [string, string][] = [];
     let defaultMode = "passthrough";
@@ -8952,7 +8953,10 @@ export function evalSyncFfmpeg(
             chapterMetadata.push([arg === "-metadata:c" ? 0 : Number(arg.slice("-metadata:c:".length)), kv.slice(0, eq), v]);
           } else if ((k === "language" || k === "handler_name" || k === "timecode" || k === "title" || k === "comment" || k === "stereo_mode") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
             streamMetadata.push([arg.slice("-metadata:s:".length), k === "handler_name" ? "handlerName" : k, v]);
-          } else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
+          } else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) {
+            metadata[k] = v;
+            metadataKeySpellings[k] = kv.slice(0, eq).trim();
+          }
         }
       } else if (["-color_primaries", "-color_trc", "-colorspace", "-color_range"].includes(arg.split(":")[0]!)) {
         outputColors.push(parseOutputColorOption(arg, args[++i]));
@@ -9126,6 +9130,7 @@ export function evalSyncFfmpeg(
     const sourceMetadata = suppressGlobalMetadata ? {} : mapGlobalMetadata(loadedDocs, metadataSources);
     let metaTags: Mp4MetadataTags = {
       ...sourceMetadata,
+      keySpellings: { ...sourceMetadata.keySpellings, ...metadataKeySpellings },
       description: metadata.description ?? sourceMetadata.description,
       compilation: metadata.compilation ?? sourceMetadata.compilation,
       custom: writeBext || useMetadataTags || outPlugin?.id === "aiff" || outPlugin?.id === "mpegts" ? { ...sourceMetadata.custom, ...metadata } : sourceMetadata.custom,
@@ -9751,6 +9756,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         const chapterMetadataMaps: [string, string][] = [];
         const chapterMetadata: [number, string, string][] = [];
         const metadata: Record<string, string> = {};
+        const metadataKeySpellings: Record<string, string> = {};
         const streamMetadata: [string, "language" | "handlerName" | "timecode" | "title" | "comment" | "stereo_mode", string][] = [];
         const attachmentFiles: string[] = [];
         const attachmentMetadata: [string, string, string][] = [];
@@ -11291,7 +11297,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 chapterMetadata.push([arg === "-metadata:c" ? 0 : Number(arg.slice("-metadata:c:".length)), kv.slice(0, eq), v]);
               } else if ((k === "language" || k === "handler_name" || k === "timecode" || k === "title" || k === "comment" || k === "stereo_mode") && (arg === "-metadata:s" || arg.startsWith("-metadata:s:"))) {
                 streamMetadata.push([arg.slice("-metadata:s:".length), k === "handler_name" ? "handlerName" : k, v]);
-              } else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) metadata[k] = v;
+              } else if (arg !== "-metadata:s" && !arg.startsWith("-metadata:s:")) {
+                metadata[k] = v;
+                metadataKeySpellings[k] = kv.slice(0, eq).trim();
+              }
             }
           } else if (["-color_primaries", "-color_trc", "-colorspace", "-color_range"].includes(arg.split(":")[0]!)) {
             try {
@@ -18843,6 +18852,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             // Apply `-metadata` tags
             let metaTags: Mp4MetadataTags = {
               ...sourceMetadata,
+              keySpellings: { ...sourceMetadata.keySpellings, ...metadataKeySpellings },
               description: metadata.description ?? sourceMetadata.description,
               compilation: metadata.compilation ?? sourceMetadata.compilation,
               custom: writeBext || useMetadataTags || outPlugin?.id === "aiff" || outPlugin?.id === "mpegts" ? { ...sourceMetadata.custom, ...metadata } : sourceMetadata.custom,

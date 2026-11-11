@@ -1875,7 +1875,7 @@ export function flacAst(): MediaAstPlugin {
       const metadata = options?.metadata ?? doc.metadata;
       const tags = Object.fromEntries(Object.entries({ ...metadata.custom, ...metadata })
         .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== "")
-        .map(([key, value]) => [key === "album_artist" ? "albumArtist" : key, value]));
+        .map(([key, value]) => [key === "album_artist" ? "albumArtist" : metadata.keySpellings?.[key] ?? key, value]));
       const parsed = parseAudio(bytes);
       const pictures = doc.tracks.filter(track => track.type === "video" && track.disposition?.attached_pic === 1).map(track => {
         const codec = track.codecDescriptions[0]?.codecName;

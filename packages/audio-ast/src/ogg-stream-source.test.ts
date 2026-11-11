@@ -19,7 +19,7 @@ const source=(bytes:Uint8Array)=>({size:bytes.length,async read(offset:number,le
 for(const codec of ['opus','vorbis'] as const)it(`preserves ${codec} timing and raw comment names through packet sources`,async()=>{
   expect(api.probeOggStreamSource).toBeTypeOf('function');
   const f=fixture(codec),result=await api.probeOggStreamSource({head:source(f.head),comments:source(f.comments),granule:f.granule,size:f.size});
-  expect(result).toEqual(api.parseAudio(f.bytes).streams[0]);expect(result.tags!.TITLE).toBe('a;b');
+  expect(result).toEqual(api.parseAudio(f.bytes).streams[0]);expect(result.tags!.title).toBe('a;b');
 });
 it('exposes large comment spans without reading vendor or values',async()=>{
   expect(api.probeOggStreamSource).toBeTypeOf('function');
@@ -76,7 +76,7 @@ it('decodes multi-chunk UTF-8 comments in explicit collecting mode',async()=>{
   const f=fixture('vorbis'),value='é😀x'.repeat(12000),tags=encodeComments({title:value}),comments=new Uint8Array(7+tags.length+1);
   comments.set([3,...encoder.encode('vorbis')]);comments.set(tags,7);comments[comments.length-1]=1;
   let largest=0;const result=await api.probeOggStreamSource({head:source(f.head),comments:{size:comments.length,async read(offset,length){largest=Math.max(largest,length);return comments.subarray(offset,offset+length);}},granule:44100n,size:comments.length});
-  expect(result.tags).toEqual({TITLE:value});expect(result.duration).toBe(1);expect(largest).toBeLessThanOrEqual(16384);
+  expect(result.tags).toEqual({title:value});expect(result.duration).toBe(1);expect(largest).toBeLessThanOrEqual(16384);
 });
 it('rejects missing packets, invalid sizes, short ranges and oversized responses',async()=>{
   const f=fixture('opus'),input={head:source(f.head),comments:source(f.comments),granule:f.granule,size:f.size};

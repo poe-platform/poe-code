@@ -20,7 +20,7 @@ it("reports comment spans without reading vendor, comment, picture or frame payl
   const spans: { block: number; offset: number; length: number }[] = []; let total = 0;
   const result = await probeFlacSource({ size: bytes.length, async read(offset, length) { total += length; expect(length).toBeLessThanOrEqual(34); return bytes.slice(offset, offset + length); } }, { async onComment(span) { spans.push(span); } });
   expect(total).toBeLessThan(200); expect(result.tags).toEqual({}); expect(result.streams[0]).toMatchObject({ sampleRate: 48000, channels: 2, samples: 96000 });
-  expect(spans).toHaveLength(1); expect(new TextDecoder().decode(bytes.subarray(spans[0]!.offset, spans[0]!.offset + spans[0]!.length))).toBe("TITLE=" + "x".repeat(200000));
+  expect(spans).toHaveLength(1); expect(new TextDecoder().decode(bytes.subarray(spans[0]!.offset, spans[0]!.offset + spans[0]!.length))).toBe("title=" + "x".repeat(200000));
 });
 for (const block of [
   { type: 0, bytes: new Uint8Array(34) }, { type: 3, bytes: new Uint8Array(17) }, { type: 127, bytes: new Uint8Array() },

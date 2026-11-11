@@ -44,7 +44,8 @@ export function encodeComments(tags: AudioTags, vendor = "poe-code/audio-ast"): 
     v = encoder.encode(vendor),
     comments: Uint8Array[] = [];
   for (const [name, value] of Object.entries(tags)) {
-    const key = Object.keys(names).find((key) => names[key] === name) ?? name;
+    const canonical = Object.keys(names).find((key) => names[key] === name);
+    const key = canonical?.toLowerCase() === name ? name : canonical ?? name;
     if (
       key.includes("=") ||
       Array.from(key).some((c) => c.charCodeAt(0) < 32 || c.charCodeAt(0) > 125)

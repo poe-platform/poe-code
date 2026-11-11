@@ -124,8 +124,9 @@ export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "heigh
                 if (intervals === 0) continue;
                 const working = hue && !(cmyk && alpha);
                 const sample = working ? Math.max(0, Math.min(1, hue[offset]!)) : samples[offset]! / 255;
-                const scaled = Math.floor(sample * (intervals * (map.divisor - 1) + 1));
-                const level = Math.floor(scaled / (map.divisor - 1)) + (scaled % (map.divisor - 1) >= threshold ? 1 : 0);
+                // Native signed integer conversion and division truncate toward zero.
+                const scaled = Math.trunc(sample * (intervals * (map.divisor - 1) + 1));
+                const level = Math.trunc(scaled / (map.divisor - 1)) + (scaled % (map.divisor - 1) >= threshold ? 1 : 0);
                 // Native HDRI keeps fractional and over-range Q16 levels until encoding.
                 const value = Math.fround(level * 65535 / intervals);
                 if (working) hue[offset] = cmyk ? value / 65535 : Math.min(1, level / intervals);

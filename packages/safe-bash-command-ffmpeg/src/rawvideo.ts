@@ -191,6 +191,23 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
           }
           append(bytes);
         } else append(pixels);
+      } else if (format === "yuyv422" || format === "uyvy422") {
+        const lumaSize = frame.width * frame.height;
+        const chromaWidth = Math.ceil(frame.width / 2);
+        const chromaSize = chromaWidth * frame.height;
+        budget.checkOutputBytes(size + chromaSize * 4);
+        const pixels = (await formatYuv(frame, "yuv422p", signal)).native!.pixels;
+        const bytes = new Uint8Array(chromaSize * 4);
+        const lumaOffset = format === "yuyv422" ? 0 : 1;
+        for (let index = 0; index < chromaSize; index++) {
+          if (index % 4096 === 0) budget.checkCpu();
+          const luma = Math.floor(index / chromaWidth) * frame.width + index % chromaWidth * 2;
+          bytes[index * 4 + lumaOffset] = pixels[luma]!;
+          bytes[index * 4 + lumaOffset + 2] = pixels[luma + 1]!;
+          bytes[index * 4 + 1 - lumaOffset] = pixels[lumaSize + index]!;
+          bytes[index * 4 + 3 - lumaOffset] = pixels[lumaSize + chromaSize + index]!;
+        }
+        append(bytes);
       } else if (format === "yuv420p10le") {
         budget.checkOutputBytes(size + (frame.width * frame.height +
           2 * Math.ceil(frame.width / 2) * Math.ceil(frame.height / 2)) * 2);

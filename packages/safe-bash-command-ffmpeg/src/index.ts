@@ -13755,6 +13755,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || action === "level" && ["afreqshift", "aphaseshift"].some(name => target === name || target?.startsWith(`${name}@`))
                             || action === "wet" && (target === "asubboost" || target?.startsWith("asubboost@"))
                             || ["mm", "cm", "m", "dry", "wet", "temp", "enable"].includes(action!) && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
+                            || ["p", "peak"].includes(action!) && (target === "dynaudnorm" || target?.startsWith("dynaudnorm@"))
                             || action === "limit" && (target === "alimiter" || target?.startsWith("alimiter@"))
                             || action === "makeup" && ["agate", "acompressor"].some(name => target === name || target?.startsWith(`${name}@`))
                             || target === "atilt" || target?.startsWith("atilt@")
@@ -14894,9 +14895,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         });
                       } else if (trimmed === "dynaudnorm" || trimmed.startsWith("dynaudnorm=")) {
                         filteredSampleFormat = "dblp";
+                        const commands = audioCommands.filter(command => command.target === "dynaudnorm" || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        audioCommands = audioCommands.filter(command => command.target !== "dynaudnorm" && command.target !== filterTarget);
                         const normalized = await normalizeAudio(stretched, origRate, trimmed, budget, context.signal, async message => {
                           if (logLevel >= 24) await writeBytes(context.stderr, encodeUtf8(message), context.signal);
-                        }, audioTimestamps, audioStartSample);
+                        }, audioTimestamps, audioStartSample, commands);
                         stretched = normalized.channels;
                         const length = stretched[0]?.length ?? 0;
                         budget.allocateMemory(Math.ceil(length / normalized.frameSize) * 24);

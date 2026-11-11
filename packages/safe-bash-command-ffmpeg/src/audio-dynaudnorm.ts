@@ -5,7 +5,8 @@ import { parseFilterExpression } from "./filter-expression.js";
 export async function normalizeAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker,
   signal: AbortSignal | undefined, warn: (message: string) => Promise<void>,
-  frames?: readonly { start: number; end: number; pts: number; pos?: number | undefined }[], startSample = 0
+  frames?: readonly { start: number; end: number; pts: number; pos?: number | undefined }[], startSample = 0,
+  commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<{ channels: Float64Array[]; frameSize: number }> {
   let enable: string | undefined;
   const variables = { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 };
@@ -142,7 +143,18 @@ export async function normalizeAudio(
     }
     previous = gain;
   };
+  let commandIndex = 0;
   for (let start = 0; start < length; start += frameSize) {
+    // Commands arrive before the packet completes this normalization frame,
+    // including any samples buffered from the previous packet.
+    while (commandIndex < commands.length && commands[commandIndex]!.sample < Math.min(length, start + frameSize)) {
+      const command = commands[commandIndex++]!;
+      if (command.action !== "p" && command.action !== "peak") continue;
+      try {
+        const value = parseFilterExpression(command.expression, "dynaudnorm", { min: 0, max: 1, default: 0.95 });
+        if (value >= 0 && value <= 1) peak = value;
+      } catch { /* Native asendcmd keeps the previous peak after a rejected command. */ }
+    }
     if (smoothed.length) await amplify();
     let magnitude = Number.EPSILON;
     let squares = 0;

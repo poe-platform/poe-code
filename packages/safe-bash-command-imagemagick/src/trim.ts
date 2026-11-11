@@ -166,13 +166,14 @@ export function* formatTrimBoundsSteps<Step = never>(
     background?: RgbaColor
 ): Generator<Step | void, string, void> {
     const first = yield* load(0, 4);
-    const steps = trimBounds(image.width, image.height, image.hasAlpha || image.inactiveAlpha === true, fuzz, first.evaluateSamples ? 1 : first.data16 ? 257 : 1, image.magickColorspace, edges, percentBackground, background, image.space === "cmyk");
+    const unclampedHue = (image.magickColorspace === "HWB" || image.magickColorspace === "Oklch") && first.hueSamples !== undefined;
+    const steps = trimBounds(image.width, image.height, image.hasAlpha || image.inactiveAlpha === true, fuzz, unclampedHue ? 1 / 255 : first.evaluateSamples ? 1 : first.data16 ? 257 : 1, image.magickColorspace, edges, percentBackground, background, image.space === "cmyk");
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { yield; next = steps.next(); }
         else {
             const chunk = yield* load(next.value.position, next.value.length);
-            next = steps.next({ samples: chunk.evaluateSamples ?? chunk.data16 ?? chunk.data, inks: chunk.hueSamples });
+            next = steps.next({ samples: unclampedHue ? chunk.hueSamples! : chunk.evaluateSamples ?? chunk.data16 ?? chunk.data, inks: chunk.hueSamples });
         }
     }
     if ((next.value.warning || next.value.width === 0 || next.value.height === 0) && analysis && !analysis.boundsWarning) {
@@ -199,8 +200,10 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
         if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
         return image;
     }
-    const pixels = image.evaluateSamples ?? image.data16 ?? image.data;
-    const steps = trimBounds(image.width, image.height, image.hasAlpha || image.inactiveAlpha === true, fuzz, image.evaluateSamples ? 1 : image.data16 ? 257 : 1, image.magickColorspace, edges, percentBackground, background, image.space === "cmyk");
+    // HWB neutral hue is -1 and Oklch hue is in radians; preserve values outside [0, 1].
+    const unclampedHue = (image.magickColorspace === "HWB" || image.magickColorspace === "Oklch") && image.hueSamples !== undefined;
+    const pixels = unclampedHue ? image.hueSamples! : image.evaluateSamples ?? image.data16 ?? image.data;
+    const steps = trimBounds(image.width, image.height, image.hasAlpha || image.inactiveAlpha === true, fuzz, unclampedHue ? 1 / 255 : image.evaluateSamples ? 1 : image.data16 ? 257 : 1, image.magickColorspace, edges, percentBackground, background, image.space === "cmyk");
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { yield; next = steps.next(); }
@@ -257,9 +260,10 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
         if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
         return image;
     }
-    const sampleBytes = image.storedEvaluateSamples !== undefined ? 8 : image.storedData16 ? 2 : 1;
-    const position = image.storedEvaluateSamples ?? image.storedData16?.position ?? image.position;
-    const steps = trimBounds(image.width, image.height, image.hasAlpha || image.inactiveAlpha === true, fuzz, sampleBytes === 2 ? 257 : 1, image.magickColorspace, edges, percentBackground, background, image.space === "cmyk");
+    const unclampedHue = (image.magickColorspace === "HWB" || image.magickColorspace === "Oklch") && image.storedHueSamples !== undefined;
+    const sampleBytes = unclampedHue || image.storedEvaluateSamples !== undefined ? 8 : image.storedData16 ? 2 : 1;
+    const position = unclampedHue ? image.storedHueSamples! : image.storedEvaluateSamples ?? image.storedData16?.position ?? image.position;
+    const steps = trimBounds(image.width, image.height, image.hasAlpha || image.inactiveAlpha === true, fuzz, unclampedHue ? 1 / 255 : sampleBytes === 2 ? 257 : 1, image.magickColorspace, edges, percentBackground, background, image.space === "cmyk");
     let next = steps.next();
     while (!next.done) {
         if (!next.value) { await yieldTurn(signal); next = steps.next(); }

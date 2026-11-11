@@ -8,13 +8,13 @@ export function isQoiBytes(bytes: Uint8Array): boolean {
   return bytes[0] === 113 && bytes[1] === 111 && bytes[2] === 105 && bytes[3] === 102;
 }
 
-export function readQoiMetadata(bytes: Uint8Array): ImageMetadata {
+export function readQoiMetadata(bytes: Uint8Array): ImageMetadata & { magickColorspace?: "RGB" } {
   if (!isQoiBytes(bytes) || bytes.length < 14) throw new Error("Invalid QOI header");
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const width = view.getUint32(4), height = view.getUint32(8), channels = bytes[12];
   if (!width || !height || !Number.isSafeInteger(width * height * 4)) throw new Error("Invalid QOI dimensions");
   if ((channels !== 3 && channels !== 4) || bytes[13]! > 1) throw new Error("Invalid QOI header");
-  return { format: "qoi", width, height, channels, space: "srgb", depth: "uchar", hasAlpha: channels === 4, density: 72, size: bytes.length };
+  return { format: "qoi", width, height, channels, space: "srgb", ...(bytes[13] === 1 ? { magickColorspace: "RGB" as const, gamma: 1 } : {}), depth: "uchar", hasAlpha: channels === 4, density: 72, size: bytes.length };
 }
 
 // Share opcode handling across buffered and retained sources, emitting bounded pixel blocks.

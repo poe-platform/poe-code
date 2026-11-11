@@ -41,3 +41,26 @@ it("decodes runs across bounded storage blocks", async () => {
   expect(data).toEqual(decodeQoiImage(input).data);
   expect(Array.from(data.subarray(-4))).toEqual([0, 0, 0, 255]);
 });
+
+for (const flag of [0, 1]) {
+  it(`preserves QOI colorspace flag ${flag} in metadata and both decoders`, async () => {
+    const input = fixture("fe804020");
+    input[13] = flag;
+    const expected = flag === 1 ? { magickColorspace: "RGB", gamma: 1 } : { space: "srgb" };
+    expect(readQoiMetadata(input)).toMatchObject(expected);
+    const decoded = decodeQoiImage(input);
+    expect(decoded).toMatchObject(expected);
+    expect([...decoded.data]).toEqual([128, 64, 32, 255]);
+    const data = new Uint8Array(4);
+    const stored = await decodeQoiToStorage({
+      size: input.length,
+      async read(offset, length) { return input.subarray(offset, offset + length); }
+    }, {
+      allocate() { return 0; },
+      async read(offset, length) { return data.subarray(offset, offset + length); },
+      async write(offset, bytes) { data.set(bytes, offset); }
+    }, new AbortController().signal);
+    expect(stored).toMatchObject(expected);
+    expect(data).toEqual(decoded.data);
+  });
+}

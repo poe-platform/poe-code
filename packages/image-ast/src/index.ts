@@ -1,3 +1,4 @@
+export { resolveMagickPageGeometry } from "./magick-page-geometry.js";
 export {tryImageFile,type StoredImageFileInput} from "./image-file.js";
 export {readSvgMetadataFromSource} from "./codecs/svg-metadata-source.js";
 export {decodeSvgToStorage,decodeSvgSourceToStorage} from "./codecs/svg-storage.js";

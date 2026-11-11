@@ -1,3 +1,4 @@
+import { resolveMagickPageGeometry } from "../magick-page-geometry.js";
 import { miffBzipRaster } from "./miff-bzip-input.js";
 import { createByteCodec } from "@poe-code/compression";
 import type { ImageMetadata, RgbaImage, SharpInputOptions } from "../ast.js";
@@ -81,7 +82,7 @@ function* miffFrameHeader(size: number): Generator<MiffRead, MiffHeader, Uint8Ar
     let virtualCanvas: ImageMetadata["virtualCanvas"];
     const page = fields.get("page");
     if (page !== undefined) {
-        const [size, ...offsets] = page.replaceAll("+", " +").replaceAll("-", " -").split(" ");
+        const [size, ...offsets] = resolveMagickPageGeometry(page).replaceAll("+", " +").replaceAll("-", " -").split(" ");
         const dimensions = size!.split("x").map(Number), [pageWidth, pageHeight] = dimensions;
         const [x = 0, y = 0] = offsets.map(Number);
         if (dimensions.length !== 2 || offsets.length > 2 || dimensions.some(value => !Number.isSafeInteger(value) || value < 0)

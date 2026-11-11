@@ -11,6 +11,21 @@ export async function emphasizeAudio(
   const names = ["level_in", "level_out", "mode", "type"];
   const defaults = [1, 1, 0, 4];
   const values = [...defaults];
+  function parseOption(key: number, raw: string): number {
+    const constants: Record<string, number> = key === 2 ? { reproduction: 0, production: 1 }
+      : key === 3 ? { col: 0, emi: 1, bsi: 2, riaa: 3, cd: 4, "50fm": 5, "75fm": 6, "50kf": 7, "75kf": 8 } : {};
+    const maximum = [64, 64, 1, 8][key]!;
+    const value = Object.hasOwn(constants, raw) ? constants[raw]! : parseFilterExpression(raw, "aemphasis", {
+      ...constants, min: 0, max: maximum, default: defaults[key]!,
+      PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+    });
+    if (!Number.isFinite(value) || value < 0 || value > maximum) {
+      throw new RangeError(`aemphasis: invalid ${names[key]}`);
+    }
+    // Native integer options round exact halves to even.
+    const lower = Math.floor(value);
+    return key < 2 ? value : value - lower === 0.5 ? lower + lower % 2 : Math.round(value);
+  }
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const options = argument ? argument.split(":") : [];
   if (options.at(-1) === "") options.pop();
@@ -46,79 +61,10 @@ export async function emphasizeAudio(
     }
     const key = names.indexOf(name!);
     if (key < 0) throw new Error(`aemphasis: unsupported option ${name}`);
-    const constants: Record<string, number> = key === 2 ? { reproduction: 0, production: 1 }
-      : key === 3 ? { col: 0, emi: 1, bsi: 2, riaa: 3, cd: 4, "50fm": 5, "75fm": 6, "50kf": 7, "75kf": 8 } : {};
-    const maximum = [64, 64, 1, 8][key]!;
-    const value = Object.hasOwn(constants, raw) ? constants[raw]! : parseFilterExpression(raw, "aemphasis", {
-      ...constants, min: 0, max: maximum, default: defaults[key]!
-    });
-    if (!Number.isFinite(value) || value < 0 || value > maximum) {
-      throw new RangeError(`aemphasis: invalid ${name}`);
-    }
-    // Native integer options round exact halves to even.
-    const lower = Math.floor(value);
-    values[key] = key < 2 ? value : value - lower === 0.5 ? lower + lower % 2 : Math.round(value);
+    values[key] = parseOption(key, raw);
   }
-  const [initialLevelIn, initialLevelOut, mode, type] = values;
-  const useLowPass = type! < 7;
-  let a0, a1, a2, b1, b2;
-  if (!useLowPass) {
-    // FM-KF uses a high shelf without the low-pass or 1 kHz normalization.
-    const tau = type === 7 ? 0.000050 : 0.000075;
-    const frequency = 1 / (2 * Math.PI * tau);
-    const nyquist = sampleRate * 0.5;
-    const gain = Math.sqrt(1 + nyquist * nyquist / (frequency * frequency));
-    const corner = Math.sqrt((gain - 1) * frequency * frequency);
-    const q = Math.pow(sampleRate / (type === 7 ? 4750 : 3269) + 19.5, -0.25);
-    const amplitude = Math.sqrt(mode === 0 ? 1 / gain : gain);
-    const omega = corner * 2 * Math.PI / sampleRate;
-    const alpha = Math.sin(omega) / (2 * q);
-    const cosine = Math.cos(omega);
-    const term = 2 * Math.sqrt(amplitude) * alpha;
-    const inverse = 1 / (amplitude + 1 - (amplitude - 1) * cosine + term);
-    a0 = amplitude * (amplitude + 1 + (amplitude - 1) * cosine + term) * inverse;
-    a1 = -2 * amplitude * (amplitude - 1 + (amplitude + 1) * cosine) * inverse;
-    a2 = amplitude * (amplitude + 1 + (amplitude - 1) * cosine - term) * inverse;
-    b1 = 2 * (amplitude - 1 - (amplitude + 1) * cosine) * inverse;
-    b2 = (amplitude + 1 - (amplitude - 1) * cosine - term) * inverse;
-  } else {
-    // Analog corner frequencies in radians/second, in native type order:
-    // Columbia, EMI, BSI, RIAA, CD, 50us FM, 75us FM.
-    const [i, j, k] = ([
-      [100 * 2 * Math.PI, 500 * 2 * Math.PI, 1590 * 2 * Math.PI],
-      [70 * 2 * Math.PI, 500 * 2 * Math.PI, 2500 * 2 * Math.PI],
-      [50 * 2 * Math.PI, 353 * 2 * Math.PI, 3180 * 2 * Math.PI],
-      [1 / 0.003180, 1 / 0.000318, 1 / 0.000075],
-      [1 / 0.000050, 1 / 0.000015, 1 / 0.0000001],
-      [1 / 0.000050, 1 / (0.000050 / 20), 1 / (0.000050 / 50)],
-      [1 / 0.000075, 1 / (0.000075 / 20), 1 / (0.000075 / 50)]
-    ] as const)[type!]!;
-    const t = 1 / sampleRate;
-    if (mode === 0) {
-      const g = 1 / (4 + 2 * i * t + 2 * k * t + i * k * t * t);
-      a0 = (2 * t + j * t * t) * g;
-      a1 = 2 * j * t * t * g;
-      a2 = (-2 * t + j * t * t) * g;
-      b1 = (-8 + 2 * i * k * t * t) * g;
-      b2 = (4 - 2 * i * t - 2 * k * t + i * k * t * t) * g;
-    } else {
-      const g = 1 / (2 * t + j * t * t);
-      a0 = (4 + 2 * i * t + 2 * k * t + i * k * t * t) * g;
-      a1 = (-8 + 2 * i * k * t * t) * g;
-      a2 = (4 - 2 * i * t - 2 * k * t + i * k * t * t) * g;
-      b1 = 2 * j * t * t * g;
-      b2 = (-2 * t + j * t * t) * g;
-    }
-    // Normalize the emphasis stage to unity gain at 1 kHz.
-    const zr = Math.cos(1000 * 2 * Math.PI / sampleRate);
-    const zi = -Math.sin(1000 * 2 * Math.PI / sampleRate);
-    // Preserve native division order: its reciprocal rounds separately.
-    const gain = 1 / (Math.hypot(a0 + a1 * zr + a2 * (zr * zr - zi * zi), a1 * zi + 2 * a2 * zr * zi)
-      / Math.hypot(1 + b1 * zr + b2 * (zr * zr - zi * zi), b1 * zi + 2 * b2 * zr * zi));
-    a0 *= gain;
-    a1 *= gain;
-    a2 *= gain;
-  }
+  const [initialLevelIn, initialLevelOut, initialMode, initialType] = values;
+  const initialCoefficients = emphasisCoefficients(sampleRate, initialMode!, initialType!);
 
   // Native non-KF filtering first applies a low-pass stage at 0.45 * rate,
   // capped at 21 kHz, with Q = 0.707.
@@ -158,6 +104,8 @@ export async function emphasizeAudio(
     let frameIndex = 0;
     let low1 = 0, low2 = 0, emphasis1 = 0, emphasis2 = 0;
     let levelIn = initialLevelIn!, levelOut = initialLevelOut!;
+    let mode = initialMode!, type = initialType!;
+    let { useLowPass, a0, a1, a2, b1, b2 } = initialCoefficients;
     let commandIndex = 0;
     for (let sample = 0; sample < channel.length; sample++) {
       if (sample % 4096 === 0) {
@@ -168,13 +116,18 @@ export async function emphasizeAudio(
       while (commandIndex < commands.length && commands[commandIndex]!.sample <= sample) {
         const command = commands[commandIndex++]!;
         try {
-          const value = parseFilterExpression(command.expression, "aemphasis", {
-            min: 0, max: 64, default: 1, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
-          });
-          if (!Number.isFinite(value) || value < 0 || value > 64) continue;
-          if (command.action === "level_in") levelIn = value;
-          else if (command.action === "level_out") levelOut = value;
-        } catch { /* Native retains the current gain after a rejected command. */ }
+          const key = names.indexOf(command.action);
+          if (key < 0) continue;
+          const value = parseOption(key, command.expression);
+          if (key === 0) levelIn = value;
+          else if (key === 1) levelOut = value;
+          else {
+            if (key === 2) mode = value;
+            else type = value;
+            // Reconfigure at the addressed frame while retaining each stage's history.
+            ({ useLowPass, a0, a1, a2, b1, b2 } = emphasisCoefficients(sampleRate, mode, type));
+          }
+        } catch { /* Native retains the current settings after a rejected command. */ }
       }
       while (frameIndex < frames.length && sample >= frames[frameIndex]!.end) frameIndex++;
       if (!enabled[frameIndex]) {
@@ -195,4 +148,68 @@ export async function emphasizeAudio(
     }
   }
   return output;
+}
+
+function emphasisCoefficients(sampleRate: number, mode: number, type: number) {
+  const useLowPass = type < 7;
+  let a0, a1, a2, b1, b2;
+  if (!useLowPass) {
+    // FM-KF uses a high shelf without the low-pass or 1 kHz normalization.
+    const tau = type === 7 ? 0.000050 : 0.000075;
+    const frequency = 1 / (2 * Math.PI * tau);
+    const nyquist = sampleRate * 0.5;
+    const gain = Math.sqrt(1 + nyquist * nyquist / (frequency * frequency));
+    const corner = Math.sqrt((gain - 1) * frequency * frequency);
+    const q = Math.pow(sampleRate / (type === 7 ? 4750 : 3269) + 19.5, -0.25);
+    const amplitude = Math.sqrt(mode === 0 ? 1 / gain : gain);
+    const omega = corner * 2 * Math.PI / sampleRate;
+    const alpha = Math.sin(omega) / (2 * q);
+    const cosine = Math.cos(omega);
+    const term = 2 * Math.sqrt(amplitude) * alpha;
+    const inverse = 1 / (amplitude + 1 - (amplitude - 1) * cosine + term);
+    a0 = amplitude * (amplitude + 1 + (amplitude - 1) * cosine + term) * inverse;
+    a1 = -2 * amplitude * (amplitude - 1 + (amplitude + 1) * cosine) * inverse;
+    a2 = amplitude * (amplitude + 1 + (amplitude - 1) * cosine - term) * inverse;
+    b1 = 2 * (amplitude - 1 - (amplitude + 1) * cosine) * inverse;
+    b2 = (amplitude + 1 - (amplitude - 1) * cosine - term) * inverse;
+  } else {
+    // Analog corner frequencies in radians/second, in native type order:
+    // Columbia, EMI, BSI, RIAA, CD, 50us FM, 75us FM.
+    const [i, j, k] = ([
+      [100 * 2 * Math.PI, 500 * 2 * Math.PI, 1590 * 2 * Math.PI],
+      [70 * 2 * Math.PI, 500 * 2 * Math.PI, 2500 * 2 * Math.PI],
+      [50 * 2 * Math.PI, 353 * 2 * Math.PI, 3180 * 2 * Math.PI],
+      [1 / 0.003180, 1 / 0.000318, 1 / 0.000075],
+      [1 / 0.000050, 1 / 0.000015, 1 / 0.0000001],
+      [1 / 0.000050, 1 / (0.000050 / 20), 1 / (0.000050 / 50)],
+      [1 / 0.000075, 1 / (0.000075 / 20), 1 / (0.000075 / 50)]
+    ] as const)[type]!;
+    const t = 1 / sampleRate;
+    if (mode === 0) {
+      const g = 1 / (4 + 2 * i * t + 2 * k * t + i * k * t * t);
+      a0 = (2 * t + j * t * t) * g;
+      a1 = 2 * j * t * t * g;
+      a2 = (-2 * t + j * t * t) * g;
+      b1 = (-8 + 2 * i * k * t * t) * g;
+      b2 = (4 - 2 * i * t - 2 * k * t + i * k * t * t) * g;
+    } else {
+      const g = 1 / (2 * t + j * t * t);
+      a0 = (4 + 2 * i * t + 2 * k * t + i * k * t * t) * g;
+      a1 = (-8 + 2 * i * k * t * t) * g;
+      a2 = (4 - 2 * i * t - 2 * k * t + i * k * t * t) * g;
+      b1 = 2 * j * t * t * g;
+      b2 = (-2 * t + j * t * t) * g;
+    }
+    // Normalize the emphasis stage to unity gain at 1 kHz.
+    const zr = Math.cos(1000 * 2 * Math.PI / sampleRate);
+    const zi = -Math.sin(1000 * 2 * Math.PI / sampleRate);
+    // Preserve native division order: its reciprocal rounds separately.
+    const gain = 1 / (Math.hypot(a0 + a1 * zr + a2 * (zr * zr - zi * zi), a1 * zi + 2 * a2 * zr * zi)
+      / Math.hypot(1 + b1 * zr + b2 * (zr * zr - zi * zi), b1 * zi + 2 * b2 * zr * zi));
+    a0 *= gain;
+    a1 *= gain;
+    a2 *= gain;
+  }
+
+  return { useLowPass, a0, a1, a2, b1, b2 };
 }

@@ -13571,7 +13571,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || action === "volume" && (target === "volume" || target?.startsWith("volume@"))
                             || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))
                             || ["i", "c"].includes(action!) && (target === "crystalizer" || target?.startsWith("crystalizer@"))
-                            || ["level_in", "level_out", "enable"].includes(action!) && (target === "aemphasis" || target?.startsWith("aemphasis@"))
+                            || ["level_in", "level_out", "mode", "type", "enable"].includes(action!) && (target === "aemphasis" || target?.startsWith("aemphasis@"))
                             || action === "level_out" && (target === "crossfeed" || target?.startsWith("crossfeed@"))
                             || target === "stereowiden" || target?.startsWith("stereowiden@")
                             || target === "stereotools" || target?.startsWith("stereotools@")

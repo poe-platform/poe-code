@@ -1,4 +1,5 @@
 import { isPsdBytes, readPsdFromSource } from "./psd-input.js";
+import { isPcxBytes, readPcxHeader } from "./pcx-input.js";
 import { isXwdBytes, readXwdHeader } from "./xwd-input.js";
 import { isQoiBytes, readQoiMetadata } from "./qoi-input.js";
 import { isMiffBytes } from "./miff-input.js";
@@ -52,6 +53,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  const prefix=new Uint8Array(borrowed);let metadata:RetainedImageMetadata;
  if(await detectHeifFormatFromSource(source,signal))metadata=await readHeifMetadataFromSource(source,signal);
  else if(isXbmBytes(prefix))metadata=await readXbmFromSource(source,undefined,signal,options);
+ else if(isPcxBytes(prefix))metadata=readPcxHeader(prefix,source.size).metadata;
  else if(isXwdBytes(prefix))metadata=readXwdHeader(prefix,source.size).metadata;
  else if(isQoiBytes(prefix))metadata={...readQoiMetadata(prefix),size:source.size};
  else if(isPsdBytes(prefix))metadata=(await readPsdFromSource(source,signal,options)).metadata;

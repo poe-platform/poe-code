@@ -3482,8 +3482,9 @@ function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefin
       const weight = meshWeights?.[row * 2 + column] ?? (interpolation === "average" ? 0.25 : (column ? dx : 1 - dx) * (row ? dy : 1 - dy));
       if (weight === 0) continue;
       const opacity = img.hasAlpha && ch !== 3 ? sample(img, left + column, top + row, 3) : 1;
-      value += weight * opacity * sample(img, left + column, top + row, ch);
-      alpha += weight * opacity;
+      // Average counts every neighbor equally, but excludes fully transparent colors.
+      value += weight * (interpolation === "average" ? Number(opacity > 0) : opacity) * sample(img, left + column, top + row, ch);
+      alpha += weight * (interpolation === "average" ? 1 : opacity);
     }
   }
   return alpha === 0 ? 0 : value / alpha;

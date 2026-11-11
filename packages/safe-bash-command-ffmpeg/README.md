@@ -275,8 +275,8 @@ Numbered image output applies `-r` after video filters using CFR frame selection
 
 `waveform` renders each decoded RGB frame as a 256-row red-component waveform monitor, preserving width and timing. It supports the default column, mirrored, intensity-0.04 mode; waveform options are not supported.
 Explicit `-f` raw audio output writes headerless `s8`, `u8`, `u16le/be`, `u24le/be`, `u32le/be`, `s16le/be`, `s24le/be`,
-`s32le/be`, `f32le/be`, `f64le/be`, `mulaw`, and `alaw` samples, for example
-`ffmpeg -i input.wav -f s16le output.pcm`. Explicit encoders and copied audio must match
+`s32le/be`, `f32le/be`, `f64le/be`, `mulaw`, `alaw`, and `vidc` samples, for example
+`ffmpeg -i input.wav -f s16le output.pcm`. VIDC output uses μ-law encoding by default, matching native FFmpeg; `-f vidc pipe:1` writes the bytes to stdout. Explicit encoders and copied audio must match
 the output format’s PCM codec; mismatches fail before writing sample data.
 Use `-f framehash -format_version 1 -` for version 1 per-packet audio or video hashes;
 AC-3 elementary input is detected by its frame headers or selected with `-f ac3`. `-c:a copy -f framemd5 -` hashes the original compressed frames on the native 90 kHz packet clock; AC-3 decoding and encoding are not supported.

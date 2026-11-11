@@ -3326,6 +3326,7 @@ export function dashAst(): MediaAstPlugin {
 }
 
 export function allMediaAsts(): MediaAstPlugin[] {
+  const rawAudio = rawAudioAsts();
   return [
     mp4Ast(),
     movAst(),
@@ -3348,7 +3349,15 @@ export function allMediaAsts(): MediaAstPlugin[] {
     nistSphereAst(),
     cafAst(),
     aiffAst(),
-    ...rawAudioAsts(),
+    ...rawAudio,
+    // FFmpeg's VIDC muxer defaults to pcm_mulaw, independently of its VIDC decoder.
+    {
+      ...rawAudio.find(plugin => plugin.id === "mulaw")!,
+      id: "vidc",
+      formatName: "vidc",
+      formatLongName: "PCM Archimedes VIDC",
+      canDemux: false
+    },
     mp3Ast(),
     flacAst(),
     wavpackAst(),

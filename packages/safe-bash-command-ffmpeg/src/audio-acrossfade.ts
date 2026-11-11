@@ -13,14 +13,14 @@ export async function acrossfadeAudio(
   const a = first.decodedAudio;
   const b = second.decodedAudio;
   if (!a || !b) throw new Error("acrossfade requires decoded PCM audio");
-  const layoutA = a.channelMask || (a.channels === 1 ? 4 : a.channels === 2 ? 3 : a.channels === 4 ? 0x107 : a.channels === 6 ? 0x3f : undefined);
-  const layoutB = b.channelMask || (b.channels === 1 ? 4 : b.channels === 2 ? 3 : b.channels === 4 ? 0x107 : b.channels === 6 ? 0x3f : undefined);
-  const remix = a.channels !== b.channels && Math.min(a.channels, b.channels) <= 2 &&
-    [a, b].every((audio, index) => {
-      const layout = index === 0 ? layoutA : layoutB;
-      return audio.channels === 1 && layout === 4 || audio.channels === 2 && layout === 3 ||
-        audio.channels === 4 && layout === 0x107 || audio.channels === 6 && (layout === 0x3f || layout === 0x60f);
-    });
+  const defaultLayouts = [0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f];
+  const layoutA = a.channelMask || defaultLayouts[a.channels];
+  const layoutB = b.channelMask || defaultLayouts[b.channels];
+  const remix = layoutA !== layoutB && [a, b].every((audio, index) => {
+    const layout = index === 0 ? layoutA : layoutB;
+    return layout !== undefined && (layout === defaultLayouts[audio.channels] ||
+      audio.channels === 6 && layout === 0x60f);
+  });
   if (!remix && (a.channels !== b.channels || layoutA !== layoutB)) {
     throw new Error("acrossfade requires matching channel layouts");
   }
@@ -101,6 +101,67 @@ export async function acrossfadeAudio(
   const pcm32 = ["pcm_s24le", "pcm_s24be", "pcm_s32le", "pcm_s32be"].includes(first.codecDescriptions[0]?.codecName ?? "");
   const secondPcm32 = ["pcm_s32le", "pcm_s32be", "pcm_s24le", "pcm_s24be"]
     .includes(second.codecDescriptions[0]?.codecName ?? "");
+  // Speaker order follows the WAV mask: FL, FR, FC, LFE, BL, BR, ..., BC, SL, SR.
+  // Build once, then use the same routing for every sample in the second input.
+  let matrix: number[][] | undefined;
+  if (remix) {
+    const speakers = Array.from({ length: 11 }, (_, bit) => 1 << bit);
+    const inputs = speakers.filter(speaker => layoutB! & speaker);
+    const outputs = speakers.filter(speaker => layoutA! & speaker);
+    matrix = outputs.map(output => inputs.map(input => output === input ? 1 : 0));
+    const add = (output: number, input: number, gain: number): void => {
+      const row = outputs.indexOf(output), column = inputs.indexOf(input);
+      if (row >= 0 && column >= 0) matrix![row]![column]! += gain;
+    };
+    const missing = layoutB! & ~layoutA!;
+    if (missing & 4) {
+      add(1, 4, Math.SQRT1_2);
+      add(2, 4, Math.SQRT1_2);
+    }
+    if (missing & 3) {
+      add(4, 1, Math.SQRT1_2);
+      add(4, 2, Math.SQRT1_2);
+    }
+    if (missing & 256) {
+      if (layoutA! & 16) { add(16, 256, Math.SQRT1_2); add(32, 256, Math.SQRT1_2); }
+      else if (layoutA! & 512) { add(512, 256, Math.SQRT1_2); add(1024, 256, Math.SQRT1_2); }
+      else if (layoutA! & 1) { add(1, 256, 0.5); add(2, 256, 0.5); }
+      else add(4, 256, 0.5);
+    }
+    for (const [left, right, otherLeft, otherRight] of [[16, 32, 512, 1024], [512, 1024, 16, 32]] as const) {
+      if (!(missing & left)) continue;
+      // Back speakers prefer back center; side speakers prefer back left/right.
+      if (layoutA! & 256 && (left === 16 || !(layoutA! & otherLeft))) {
+        add(256, left, Math.SQRT1_2); add(256, right, Math.SQRT1_2);
+      } else if (layoutA! & otherLeft) {
+        const gain = layoutB! & otherLeft ? Math.SQRT1_2 : 1;
+        add(otherLeft, left, gain); add(otherRight, right, gain);
+      } else if (layoutA! & 1) {
+        add(1, left, Math.SQRT1_2); add(2, right, Math.SQRT1_2);
+      } else { add(4, left, 0.5); add(4, right, 0.5); }
+    }
+    // LFE is silent when absent from the output. Integer rematrixing normalizes
+    // every row by the largest row sum, then carries Q15 rounding error forward.
+    if (pcm16 || pcm32) {
+      const peak = Math.max(1, ...matrix.map(row => row.reduce((sum, gain) => sum + gain, 0)));
+      matrix = matrix.map(row => {
+        // SWR's generic mixer rounds independently for rows with >2 inputs;
+        // its specialized 5.1/7.1-to-stereo paths retain error diffusion.
+        const diffuse = row.filter(gain => gain !== 0).length <= 2 ||
+          layoutA === 3 && (b.channels === 6 || b.channels === 8);
+        let remainder = 0;
+        return row.map(gain => {
+          if (!pcm16) return gain / peak;
+          const target = gain / peak * 32768 + (diffuse ? remainder : 0);
+          const rounded = Math.fround(target);
+          const floor = Math.floor(rounded);
+          const coefficient = rounded - floor === 0.5 ? floor + Math.abs(floor % 2) : Math.round(rounded);
+          remainder += target - coefficient;
+          return gain === 0 ? 0 : coefficient / 32768;
+        });
+      });
+    }
+  }
   for (let i = 0; i < length; i++) {
     if (i % 4096 === 0) {
       await yieldTurn(signal);
@@ -121,40 +182,8 @@ export async function acrossfadeAudio(
       let secondSample = 0;
       if (secondIndex >= 0) {
         if (!remix) secondSample = secondChannels[channel]![secondIndex]!;
-        else if (a.channels === 4 || a.channels === 6) {
-          // Mono occupies front center; stereo occupies FL/FR. Other speakers are silent.
-          secondSample = b.channels === 1
-            ? channel === 2 ? secondChannels[0]![secondIndex]! : 0
-            : channel < 2 ? secondChannels[channel]![secondIndex]! : 0;
-        } else if (b.channels === 4) {
-          const center = secondChannels[2]![secondIndex]!;
-          const back = secondChannels[3]![secondIndex]!;
-          if (a.channels === 1) {
-            const front = secondChannels[0]![secondIndex]! + secondChannels[1]![secondIndex]!;
-            secondSample = pcm16 ? (front * 7951 + center * 11244 + back * 5622) / 32768
-              : front * Math.SQRT1_2 + center + back / 2;
-          } else {
-            const front = secondChannels[channel]![secondIndex]!;
-            secondSample = pcm16 ? (front * 14847 + center * 10498 + back * 7423) / 32768
-              : front + center * Math.SQRT1_2 + back / 2;
-          }
-        } else if (b.channels === 6) {
-          const center = secondChannels[2]![secondIndex]!;
-          if (a.channels === 1) {
-            const front = secondChannels[0]![secondIndex]! + secondChannels[1]![secondIndex]!;
-            const surround = secondChannels[4]![secondIndex]! + secondChannels[5]![secondIndex]!;
-            secondSample = pcm16 ? (front * 6786 + center * 9598 + surround * 4799) / 32768
-              : front * Math.SQRT1_2 + center + surround / 2;
-          } else {
-            const front = secondChannels[channel]![secondIndex]!;
-            const surround = secondChannels[channel + 4]![secondIndex]!;
-            // S16 stereo rematrixing distributes Q15 rounding between center and surrounds.
-            secondSample = pcm16 ? (front * 13573 + center * 9597 + surround * 9598) / 32768
-              : front + (center + surround) * Math.SQRT1_2;
-          }
-        } else secondSample = b.channels === 1
-          ? secondChannels[0]![secondIndex]! * (pcm16 ? 23170 / 32768 : Math.SQRT1_2)
-          : (secondChannels[0]![secondIndex]! + secondChannels[1]![secondIndex]!) / 2;
+        else secondSample = matrix![channel]!.reduce((sum, gain, input) =>
+          sum + gain * secondChannels[input]![secondIndex]!, 0);
       }
       // Integer narrowing discards low bits, including for negative samples.
       if (pcm16 && secondPcm32 && ratio === 1 && !remix) {

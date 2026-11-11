@@ -4542,6 +4542,9 @@ async function applyVideoFilterChain(
       const overlap = integerOption("overlap", 2147483647);
       const initPadding = integerOption("init_padding", 2147483647);
       const step = perTile - Math.min(overlap, perTile - 1);
+      // The sheet rate is independent of initial padding and partial sheets at EOF.
+      const durationSeconds = frameDuration * step;
+      if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       const tiledFrames: MediaVideoFrame[] = [];
       let consumed = 0;
       for (let base = initPadding < perTile ? -initPadding : 0; base < current.length; base += step) {
@@ -4638,7 +4641,7 @@ async function applyVideoFilterChain(
           height: outH,
           data: canvas,
           ptsSeconds: newFrames[0]?.ptsSeconds ?? 0,
-          durationSeconds: newFrames.reduce((s, x) => s + x.durationSeconds, 0),
+          durationSeconds,
           keyframe: true
         };
         if (native && pixels) {
@@ -5859,7 +5862,7 @@ async function applyVideoFilterChain(
     }
     // Filters that change the final frame's timing establish a new endpoint.
     const lastOutputFrame = current.at(-1);
-    if (name !== "loop" && name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "thumbnail" && name !== "trim" && name !== "decimate" && name !== "framestep" &&
+    if (name !== "loop" && name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "thumbnail" && name !== "trim" && name !== "decimate" && name !== "framestep" && name !== "tile" &&
         (lastOutputFrame?.ptsSeconds !== lastInputFrame?.ptsSeconds ||
          lastOutputFrame?.durationSeconds !== lastInputFrame?.durationSeconds)) {
       endTimeSeconds = undefined;

@@ -46,3 +46,43 @@ for (const mode of ["sync", "buffered", "retained"] as const) {
     expect(mode === "retained" ? await filesystem.readFile("/out.raw") : files.get("/out.raw")).toEqual(original);
   });
 }
+
+for (const mode of ["sync", "buffered", "retained", "command"] as const) {
+  it.each([
+    { width: 8, height: 1, hex: "0000080100", exitCode: 1 },
+    { width: 16, height: 2, hex: "0000100200000000", exitCode: 1 },
+    { width: 8, height: 4, hex: "0000080400000000", exitCode: 0 },
+    { width: 16, height: 8, hex: "0000100800000000000000000000000000000000", exitCode: 0 },
+    { width: 8, height: 3, hex: "00000803000000", exitCode: 1 },
+    { width: 1, height: 1, hex: "0000010100", exitCode: 0 },
+    // Native checks total file size, including trailing bytes, rather than raster size.
+    { width: 8, height: 1, hex: "0000080100000000", exitCode: 0 }
+  ])(`matches native WBMP file-size admission for $width x $height, $hex (${mode})`, async ({ width, height, hex, exitCode }) => {
+    const input = Buffer.from(hex, "hex");
+    const files = new Map<string, Uint8Array>([["/target.wbmp", input]]), filesystem = new MemoryFileSystem();
+    await filesystem.writeFile("/target.wbmp", input);
+    const args = ["/target.wbmp", "-depth", "8", "gray:-"];
+    let actualExitCode: number, stderr: string, stdout: Uint8Array;
+    if (mode === "command") {
+      const argumentValues = createCommandArguments(args), chunks: Uint8Array[] = [];
+      stderr = "";
+      const result = await createMagickCommand().execute({
+        command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs: filesystem,
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write(bytes) { chunks.push(bytes.slice()); } },
+        stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+      });
+      actualExitCode = result.exitCode;
+      stdout = Buffer.concat(chunks);
+    } else {
+      const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+      actualExitCode = result.exitCode;
+      stderr = result.stderr;
+      stdout = result.stdoutBytes ?? new TextEncoder().encode(result.stdout);
+    }
+    expect(actualExitCode).toBe(exitCode);
+    expect(Array.from(stdout)).toEqual(Array(exitCode ? 0 : width * height).fill(0));
+    if (exitCode) expect(stderr).toContain("insufficient image data in file");
+    else expect(stderr).toBe("");
+  });
+}

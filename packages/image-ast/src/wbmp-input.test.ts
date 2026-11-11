@@ -2,6 +2,7 @@ import { expect, it, vi } from "vitest";
 import { decodeImage, readImageMetadata } from "./codecs/index.js";
 import { decodeImageToStorage } from "./codecs/source-decode.js";
 import { readImageMetadataFromSource } from "./codecs/metadata-source.js";
+import { decodeWbmpToStorage } from "./codecs/wbmp-input.js";
 
 const source = (bytes: Uint8Array) => ({ size: bytes.length, async read(offset: number, length: number) {
   expect(length).toBeLessThanOrEqual(4096);
@@ -56,7 +57,7 @@ it("checks pixel limits and cancellation before allocating storage", async () =>
 
 it("rejects short retained source reads", async () => {
   const input = Uint8Array.from([0, 0, 8, 100, ...new Array<number>(100).fill(255)]);
-  await expect(decodeImageToStorage({ size: input.length, async read(offset, length) {
+  await expect(decodeWbmpToStorage({ size: input.length, async read(offset, length) {
     return input.subarray(offset, offset + length - (length > 54 ? 1 : 0));
   } }, { allocate() { return 0; }, async read() { return new Uint8Array(); }, async write() {} }, signal())).rejects.toThrow("Truncated WBMP source");
 });

@@ -5,6 +5,8 @@ import type { FileSystem } from "@poe-code/safe-fs/contracts";
 export async function decodeFileImage(source: ImageByteSource, storage: ImageByteStorage, filesystem: FileSystem, cwd: string, signal: AbortSignal, options: SharpInputOptions): Promise<StoredRgbaImage> {
     try {
         const image = await decodeImageToStorage(source, storage, signal, { ...options, hdrPreserveScanlineOrder: true });
+        // Native WBMP admission compares each dimension with the entire file size.
+        if (image.format === "wbmp" && (image.width > source.size || image.height > source.size)) throw new Error("insufficient image data in file");
         // ImageMagick imports WebP milliseconds as centisecond ticks.
         if (image.format === "webp" && image.delay) return { ...image, delay: image.delay.map(delay => Math.round(delay / 10) * 10) };
         if (image.format === "exr" && image.storedDataFloat) {
@@ -48,6 +50,8 @@ function roundExrSamples(samples: Float32Array, data: Uint8Array, data16?: Uint1
 
 export function decodeMagickImage(bytes: Uint8Array, options?: SharpInputOptions): RgbaImage {
     const image = decodeImage(bytes, options);
+    // Native WBMP admission compares each dimension with the entire file size.
+    if (image.format === "wbmp" && (image.width > bytes.length || image.height > bytes.length)) throw new Error("insufficient image data in file");
     if (image.format === "webp" && image.delay) return { ...image, delay: image.delay.map(delay => Math.round(delay / 10) * 10) };
     if (image.format === "exr" && image.dataFloat) roundExrSamples(image.dataFloat, image.data, image.data16);
     return image;

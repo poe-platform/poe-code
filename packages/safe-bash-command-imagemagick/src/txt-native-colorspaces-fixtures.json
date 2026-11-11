@@ -1,0 +1,135 @@
+[
+  {
+    "space": "HSV",
+    "depth": 8,
+    "text": "# ImageMagick pixel enumeration: 1,1,0,255,hsv\n0,0: (146,184,195)  #92B8C3  hsv(206.118,72.1569%,76.4706%)\n",
+    "exitCode": 0,
+    "stdout": "HSV/hsv(206.118,72.1569%,76.4706%)"
+  },
+  {
+    "space": "HSV",
+    "depth": 16,
+    "text": "# ImageMagick pixel enumeration: 1,1,0,65535,hsva\n0,0: (37570,47387,50115,24248)  #92C2B91BC3C35EB8  hsva(206.383,72.3077%,76.4706%,0.370006)\n",
+    "exitCode": 0,
+    "stdout": "HSV/hsva(206.381,72.3079%,76.4706%,0.370001)"
+  },
+  {
+    "space": "HSB",
+    "depth": 8,
+    "text": "# ImageMagick pixel enumeration: 1,1,0,255,hsb\n0,0: (146,184,195)  #92B8C3  hsb(206.118,72.1569%,76.4706%)\n",
+    "exitCode": 0,
+    "stdout": "HSB/hsb(206.118,72.1569%,76.4706%)"
+  },
+  {
+    "space": "HSB",
+    "depth": 16,
+    "text": "# ImageMagick pixel enumeration: 1,1,0,65535,hsba\n0,0: (37570,47387,50115,24248)  #92C2B91BC3C35EB8  hsba(206.383,72.3077%,76.4706%,0.370006)\n",
+    "exitCode": 0,
+    "stdout": "HSB/hsba(206.381,72.3079%,76.4706%,0.370001)"
+  },
+  {
+    "space": "HWB",
+    "depth": 8,
+    "text": "# ImageMagick pixel enumeration: 1,1,0,255,hwb\n0,0: (146,54,60)  #92363C  hwb(146,54,60)\n",
+    "exitCode": 0,
+    "stdout": "HWB/hwb(146,54,60)"
+  },
+  {
+    "space": "HWB",
+    "depth": 16,
+    "text": "# ImageMagick pixel enumeration: 1,1,0,65535,hwba\n0,0: (37570,13878,15420,24248)  #92C236363C3C5EB8  hwba(146.188,54,60,0.370006)\n",
+    "exitCode": 0,
+    "stdout": "HWB/hwba(146.187,54,60,0.370001)"
+  },
+  {
+    "space": "YCbCr",
+    "depth": 8,
+    "text": "# ImageMagick pixel enumeration: 1,1,0,255,ycbcr\n0,0: (116,172,83)  #74AC53  ycbcr(116,172,83)\n",
+    "exitCode": 0,
+    "stdout": "YCbCr/ycbcr(116,172,83)"
+  },
+  {
+    "space": "YCbCr",
+    "depth": 16,
+    "text": "# ImageMagick pixel enumeration: 1,1,0,65535,ycbcra\n0,0: (29936,44160,21320,24248)  #74F0AC8053485EB8  ycbcra(116.481,171.83,82.9587,0.370006)\n",
+    "exitCode": 0,
+    "stdout": "YCbCr/ycbcra(116.482,171.829,82.9572,0.370001)"
+  },
+  {
+    "space": "DisplayP3",
+    "depth": 8,
+    "text": "# ImageMagick pixel enumeration: 1,1,0,255,displayp3\n0,0: (76,131,190)  #4C83BE  displayp3(76,131,190)\n",
+    "exitCode": 0,
+    "stdout": "DisplayP3/displayp3(76,131,190)"
+  },
+  {
+    "space": "DisplayP3",
+    "depth": 16,
+    "text": "# ImageMagick pixel enumeration: 1,1,0,65535,displayp3a\n0,0: (19496,33737,48812,24248)  #4C2883C9BEAC5EB8  displayp3a(29.7494%,51.4792%,74.4816%,0.370006)\n",
+    "exitCode": 0,
+    "stdout": "DisplayP3/displayp3a(29.749%,51.4794%,74.4823%,0.370001)"
+  },
+  {
+    "space": "CMY",
+    "depth": 8,
+    "text": "# ImageMagick pixel enumeration: 1,1,0,255,cmy\n0,0: (201,122,60)  #C97A3C  cmy(201,122,60)\n",
+    "exitCode": 0,
+    "stdout": "CMY/cmy(201,122,60)"
+  },
+  {
+    "space": "CMY",
+    "depth": 16,
+    "text": "# ImageMagick pixel enumeration: 1,1,0,65535,cmya\n0,0: (51657,31354,15420,24248)  #C9C97A7A3C3C5EB8  cmya(201,122,60,0.370006)\n",
+    "exitCode": 0,
+    "stdout": "CMY/cmya(201,122,60,0.370001)"
+  },
+  {
+    "space": "Luv",
+    "depth": 8,
+    "text": "# ImageMagick pixel enumeration: 1,1,0,255,luv\n0,0: (136,76,78)  #884C4E  luv(136,76,78)\n",
+    "exitCode": 0,
+    "stdout": "Luv/luv(136,76,78)"
+  },
+  {
+    "space": "Luv",
+    "depth": 16,
+    "text": "# ImageMagick pixel enumeration: 1,1,0,65535,luva\n0,0: (35055,19428,20010,24248)  #88EF4BE44E2A5EB8  luva(136.402,75.594,77.8586,0.370006)\n",
+    "exitCode": 0,
+    "stdout": "Luv/luva(136.401,75.5953,77.8599,0.370001)"
+  },
+  {
+    "space": "HSL",
+    "depth": 8,
+    "text": "# ImageMagick pixel enumeration: 1,1,0,255,hsl\n0,0: (146,144,125)  #92907D  hsl(206.118,56.4706%,49.0196%)\n",
+    "exitCode": 0,
+    "stdout": "HSL/hsl(206.118,56.4706%,49.0196%)"
+  },
+  {
+    "space": "HSL",
+    "depth": 16,
+    "text": "# ImageMagick pixel enumeration: 1,1,0,65535,hsla\n0,0: (37570,37110,31997,24248)  #92C290F67CFD5EB8  hsla(206.383,56.6265%,48.8235%,0.370006)\n",
+    "exitCode": 0,
+    "stdout": "HSL/hsla(206.381,56.6262%,48.8243%,0.370001)"
+  },
+  {
+    "space": "XYZ",
+    "depth": 8,
+    "text": "# ImageMagick pixel enumeration: 1,1,0,255,xyz\n0,0: (50,55,140)  #32378C  xyz(19.6078,21.5686,54.902)\n",
+    "exitCode": 0,
+    "stdout": "XYZ/xyz(19.6078,21.5686,54.902)"
+  },
+  {
+    "space": "XYZ",
+    "depth": 16,
+    "text": "# ImageMagick pixel enumeration: 1,1,0,65535,xyza\n0,0: (12949,14089,35872,24248)  #329537098C205EB8  xyza(19.7584,21.4987,54.7376,0.370006)\n",
+    "exitCode": 0,
+    "stdout": "XYZ/xyza(19.7589,21.4984,54.7372,0.370001)"
+  },
+  {
+    "space": "OHTA",
+    "depth": 8,
+    "text": "# ImageMagick pixel enumeration: 1,1,0,255,ohta\n0,0: (127,57,132)  #7F3984  ohta(127,57,132)\n",
+    "exitCode": 1,
+    "stdout": ""
+  }
+]

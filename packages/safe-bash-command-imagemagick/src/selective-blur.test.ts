@@ -123,3 +123,28 @@ it("keeps filesystem reads bounded across raster blocks", async () => {
     expect(retained.exitCode).toBe(0);
     expect(retained.stdoutBytes).toEqual(buffered.stdoutBytes);
 });
+
+for (const mode of ["command", "buffered", "sync"] as const)
+it.each(["2x3+100%", "%[option:radius]x3+100%", "%[fx:w]x3+100%"])(`expands selective blur geometry %s (${mode})`, async geometry => {
+    const args = ["xc:#406070", "xc:#809080", "+append", "-set", "option:radius", "2", "-selective-blur", geometry, "-depth", "8", "rgb:-"];
+    let output: Uint8Array;
+    if (mode === "command") {
+        const chunks: Uint8Array[] = [], errors: Uint8Array[] = [];
+        const result = await createMagickCommand().execute({
+            command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: new MemoryFileSystem(),
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { write: async chunk => { chunks.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk); } },
+            stderr: { write: async chunk => { errors.push(typeof chunk === "string" ? Buffer.from(chunk) : chunk); } }
+        });
+        expect(Buffer.concat(errors).toString()).toBe("");
+        expect(result.exitCode).toBe(0);
+        output = Buffer.concat(chunks);
+    } else {
+        const result = mode === "sync" ? runMagickCliSync(args, new Map()) : await runMagickCli(args, new Map());
+        expect(result.stderr).toBe("");
+        expect(result.exitCode).toBe(0);
+        output = result.stdoutBytes!;
+    }
+    // Complete RGB8 output from ImageMagick 7.1.2-35 Q16-HDRI.
+    expect(Buffer.from(output).toString("hex")).toBe("597376677d7a");
+});

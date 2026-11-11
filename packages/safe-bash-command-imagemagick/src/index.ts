@@ -10831,6 +10831,7 @@ if (t === "-intent" || t === "+intent") {
             else if (method === "checkertile") method = "checker-tile";
             else if (method === "horizontaltileedge") method = "horizontal-tile-edge";
             else if (method === "verticaltileedge") method = "vertical-tile-edge";
+            else if (method === "none") method = "transparent";
             if (method !== "edge" && method !== "background" && method !== "transparent" && method !== "black" && method !== "white" && method !== "gray" && method !== "tile" && method !== "mirror" && method !== "horizontal-tile" && method !== "vertical-tile" && method !== "checker-tile" && method !== "horizontal-tile-edge" && method !== "vertical-tile-edge") throw new Error(`Unsupported virtual-pixel method: ${method}`);
             state.virtualPixel = method;
         }

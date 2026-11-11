@@ -9498,7 +9498,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const working = image.hueSamples !== undefined || image.magickColorspace === "RGB" && (!state.dither || levels < 2 || Math.trunc(levels) > 16);
             let output = yield* applyMagickRasterSteps({ ...image, isPalette: true }, posterizePixelSteps(image, levels, state.dither, state.diffusionAmount ?? 1, channels, signal, !working), signal);
             if (!working) return output;
-            if (image.magickColorspace !== "RGB") output = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(output);
+            if (image.magickColorspace !== "RGB") {
+                output = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(output);
+                // Palette conversion bounds every channel before quantization and later arithmetic.
+                output = yield* parseMagickPixelOperation(["-clamp"], { ...state, channelExplicit: false }, 0, signal)!.apply(output);
+            }
             output = yield* applyMagickRasterSteps(output, quantizePixelSteps(output.data.length, Math.min(65536, Math.max(2, Math.trunc(levels)) ** 3), false, 0, output.hasAlpha, false, undefined, undefined, true), signal);
             if (image.magickColorspace !== "RGB" || !output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;
             const { indexedColors: ignoredColors, ...pixels } = output;
@@ -15947,7 +15951,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const working = image.storedHueSamples !== undefined || image.magickColorspace === "RGB" && (!dither || expandedLevels < 2 || Math.trunc(expandedLevels) > 16);
                 let output = await transformStoredMagickRaster({ ...image, isPalette: true }, backend, posterizePixelSteps(image, expandedLevels, dither, diffusionAmount, channels, signal, !working), signal);
                 if (!working) return output;
-                if (image.magickColorspace !== "RGB") output = await transformStoredMagickPixels(output, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!, signal);
+                if (image.magickColorspace !== "RGB") {
+                    output = await transformStoredMagickPixels(output, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!, signal);
+                    // Palette conversion bounds every channel before quantization and later arithmetic.
+                    output = await transformStoredMagickPixels(output, backend, parseMagickPixelOperation(["-clamp"], { ...state, channelExplicit: false }, 0, signal)!, signal);
+                }
                 output = await transformStoredMagickRaster(output, backend, quantizePixelSteps(output.width * output.height * 4, Math.min(65536, Math.max(2, Math.trunc(expandedLevels)) ** 3), false, 0, output.hasAlpha, false, undefined, undefined, true), signal);
                 if (image.magickColorspace !== "RGB" || !output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;
                 const { indexedColors: ignoredColors, ...pixels } = output;

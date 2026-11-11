@@ -1185,6 +1185,9 @@ Timed `start_mode` and `stop_mode` commands also switch between `any` and `all` 
 Scheduled `enable` commands such as `asendcmd=c='0.004 silenceremove@trim enable 0',silenceremove@trim=stop_periods=-1:window=0`
 replace the timeline expression at the first frame at or after the requested time.
 Disabled frames retain their samples; later commands can resume trimming.
+Timeline gates `enable=random(0)` and `enable='randomi(0,0,1)'` use FFmpeg 7’s deterministic random sequence,
+evaluated once per input frame with independent state for each filter and execution.
+Replacing `enable` resets its registers and random sequence; rejected updates preserve both.
 Invalid runtime values or enable expressions leave the previous setting active. Commands for non-runtime options such as `stop_duration`
 leave the audio settings unchanged; processing and later valid commands continue.
 Invalid options return native exit codes: `8` for unknown keys, `234` for malformed

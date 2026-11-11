@@ -50,6 +50,52 @@ for (const [sampleRate, filter, expected] of [
   }
 }
 
+// Complete interleaved stereo PCM from native FFmpeg 7.0.2.
+for (const [mode, type, expected] of [
+  ["production", "cd", [1743, 0, 91, -872, -1211, -45, 575, 606, -345, -288, 135, 173, -5, -68, -71, 3,
+    3590, 560, 67, -26, -2316, -307, 1062, 120, -624, -60, 224, 8, 19, 22, -159, -36]],
+  ["production", "riaa", [6096, 0, -7724, -3051, 2715, 3866, 364, -1359, -2201, -182, 2886, 1102, -3033, -1444, 2660, 1518,
+    9970, 501, -13828, -1214, 4278, 9, 1402, 685, -4789, -1000, 5884, 1062, -6065, -969, 5201, 801]],
+  ["reproduction", "cd", [330, 0, 343, -165, 67, -171, 140, -34, 43, -70, 44, -21, 34, -22, 6, -17,
+    683, 96, 680, 91, 149, 23, 274, 34, 93, 15, 86, 9, 70, 11, 11, 0]]
+] as const) {
+  for (const filter of [
+    `aemphasis=mode=${mode}:type=${type}`,
+    `aemphasis=1:1:${mode === "production" ? 1 : 0}:${type === "cd" ? 4 : 3}`
+  ]) {
+    for (const complex of [false, true]) {
+      it(`matches complete native stereo PCM for ${filter} (${complex ? "graph" : "simple"})`, async () => {
+        const input = Buffer.alloc(64);
+        input.writeInt16LE(1001, 0);
+        input.writeInt16LE(-501, 6);
+        input.writeInt16LE(2001, 32);
+        input.writeInt16LE(301, 34);
+        const volume = Volume.fromJSON({ "/in.raw": input });
+        const chunks: Buffer[] = [];
+        let stderr = "";
+        const result = await createFfmpegCommand().execute({
+          args: ["-hide_banner", "-nostats", "-v", "error", "-f", "s16le", "-ar", "48000", "-ac", "2", "-i", "/in.raw",
+            ...(complex ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+            "-f", "s16le", "pipe:1"],
+          cwd: "/", env: {}, signal: new AbortController().signal,
+          fs: {
+            async readFile(path: string) { return volume.readFileSync(path); },
+            async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+            async stat(path: string) { return volume.statSync(path); }
+          },
+          stdin: (async function* () {})(),
+          stdout: { async write(bytes: Uint8Array) { chunks.push(Buffer.from(bytes)); } },
+          stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+        } as never);
+        assert.equal(result.exitCode, 0, stderr);
+        const pcm = Buffer.concat(chunks);
+        assert.equal(pcm.length, input.length);
+        assert.deepEqual(Array.from({ length: pcm.length / 2 }, (_, i) => pcm.readInt16LE(i * 2)), expected);
+      });
+    }
+  }
+}
+
 for (const [filter, expectedHash] of [
   ["aemphasis", "f1f7e2ae983eaf987985d5d216c45b3b8a6f379a9eb4c952e043ab57e68ca70f"],
   ["aemphasis=type=riaa", "4cb7445d5977ca66413eb4614374279e409b5893e12feea3b49506c0986f4bba"]
@@ -85,7 +131,7 @@ for (const [argument, exitCode] of [
   ["thread_type=0.5", 222], ["thread_type=invalid", 234],
   ["level_in=-1", 222], ["level_out=65", 222], ["level_in=invalid", 234],
   ["unknown=1", 8], ["type=invalid", 234],
-  ["mode=production", 8], ["type=50fm", 8]
+  ["mode=2", 222], ["type=50fm", 8]
 ] as const) {
   it(`rejects aemphasis=${argument} without replacing output`, async () => {
     const volume = Volume.fromJSON({ "/in.raw": Buffer.alloc(16), "/out.raw": "existing" });

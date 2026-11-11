@@ -51,21 +51,30 @@ export async function emphasizeAudio(
     values[key] = key < 2 ? value : value - lower === 0.5 ? lower + lower % 2 : Math.round(value);
   }
   const [initialLevelIn, initialLevelOut, mode, type] = values;
-  if (mode !== 0) throw new Error("aemphasis: unsupported mode (only reproduction is supported)");
   if (type !== 3 && type !== 4) throw new Error("aemphasis: unsupported type (only cd and riaa are supported)");
 
   // Bilinear transform of the CD (50/15 microsecond) or RIAA
-  // (3180/318/75 microsecond) reproduction curve.
+  // (3180/318/75 microsecond) reproduction curve, inverted for production.
   const i = 1 / (type === 4 ? 0.000050 : 0.003180);
   const j = 1 / (type === 4 ? 0.000015 : 0.000318);
   const k = 1 / (type === 4 ? 0.0000001 : 0.000075);
   const t = 1 / sampleRate;
-  const g = 1 / (4 + 2 * i * t + 2 * k * t + i * k * t * t);
-  let a0 = (2 * t + j * t * t) * g;
-  let a1 = 2 * j * t * t * g;
-  let a2 = (-2 * t + j * t * t) * g;
-  const b1 = (-8 + 2 * i * k * t * t) * g;
-  const b2 = (4 - 2 * i * t - 2 * k * t + i * k * t * t) * g;
+  let a0, a1, a2, b1, b2;
+  if (mode === 0) {
+    const g = 1 / (4 + 2 * i * t + 2 * k * t + i * k * t * t);
+    a0 = (2 * t + j * t * t) * g;
+    a1 = 2 * j * t * t * g;
+    a2 = (-2 * t + j * t * t) * g;
+    b1 = (-8 + 2 * i * k * t * t) * g;
+    b2 = (4 - 2 * i * t - 2 * k * t + i * k * t * t) * g;
+  } else {
+    const g = 1 / (2 * t + j * t * t);
+    a0 = (4 + 2 * i * t + 2 * k * t + i * k * t * t) * g;
+    a1 = (-8 + 2 * i * k * t * t) * g;
+    a2 = (4 - 2 * i * t - 2 * k * t + i * k * t * t) * g;
+    b1 = 2 * j * t * t * g;
+    b2 = (-2 * t + j * t * t) * g;
+  }
   // Normalize the emphasis stage to unity gain at 1 kHz.
   const zr = Math.cos(1000 * 2 * Math.PI / sampleRate);
   const zi = -Math.sin(1000 * 2 * Math.PI / sampleRate);
@@ -75,7 +84,7 @@ export async function emphasizeAudio(
   a1 *= gain;
   a2 *= gain;
 
-  // Native reproduction first applies a low-pass stage at 0.45 * rate,
+  // Native CD/RIAA filtering first applies a low-pass stage at 0.45 * rate,
   // capped at 21 kHz, with Q = 0.707.
   const omega = 2 * Math.PI * Math.min(0.45 * sampleRate, 21000) / sampleRate;
   const alpha = Math.sin(omega) / (2 * 0.707);

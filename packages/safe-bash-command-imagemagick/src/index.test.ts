@@ -761,11 +761,11 @@ describe("safe-bash-command-imagemagick", () => {
 
     const txtRes = await runMagickCli(["-size", "2x2", "xc:#123456", "txt:-"], files);
     expect(txtRes.stdout).toContain("# ImageMagick pixel enumeration: 2,2");
-    expect(txtRes.stdout.toUpperCase()).toContain("#123456");
+    expect(txtRes.stdout.toUpperCase()).toContain("#121234345656");
 
     const histRes = await runMagickCli(["-size", "4x4", "xc:#abcdef", "-format", "%c", "histogram:info:-"], files);
     expect(histRes.stdout).toContain("16:");
-    expect(histRes.stdout.toUpperCase()).toContain("#ABCDEF");
+    expect(histRes.stdout.toUpperCase()).toContain("#ABABCDCDEFEF");
   });
 
   it("matches native ImageMagick 7 differential behavior for gravity offsets, 16-bit/CMYK/X11 colors, -level/+level gamma, -fx HSL/Rec709, -duplicate, and 22 -compose blend modes", async () => {

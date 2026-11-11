@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { encodeImage } from "@poe-code/image-ast";
+import { decodeImage, encodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli } from "./index.js";
 
@@ -21,12 +21,7 @@ for (const retained of [false, true]) {
         expect(text.startsWith("/* XPM */")).toBe(true);
         const strings = text.split("\n").filter(line => line.startsWith('"')).map(line => line.slice(1, line.lastIndexOf('"')));
         expect(strings[0]).toBe("13 5 3 1 ");
-        const palette = new Map(strings.slice(1, 4).map(line => [line[0], line.slice(4)]));
-        const decoded = strings.slice(4).flatMap(row => [...row].flatMap(key => {
-          const color = palette.get(key)!;
-          return color === "None" ? [0, 0, 0, 0] : [Number.parseInt(color.slice(1, 3), 16), Number.parseInt(color.slice(3, 5), 16), Number.parseInt(color.slice(5, 7), 16), 255];
-        }));
-        expect(Uint8Array.from(decoded)).toEqual(data);
+        expect(decodeImage(bytes).data).toEqual(data);
       });
     }
   }

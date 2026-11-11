@@ -1,6 +1,7 @@
 import type { RgbaImage } from "../ast.js";
 import type { ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
 import { defaultRuntime } from "@poe-code/compression";
+import { XPM_COLOR_NAMES } from "./xpm-colors.js";
 
 // ImageMagick's 92 XPM symbols exclude C string quotes, escapes and question marks.
 const symbols = " .XoO+@#$%&*=-;:>,<1234567890qwertyuipasdfghjklzxcvbnmMNBVCZASDFGHJKLPIUYTREWQ!~^/()_`'][{}|";
@@ -30,7 +31,7 @@ function* xpmChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "in
     for (let i = 0; i < cpp; i++) { key += symbols[remaining % symbols.length]; remaining = Math.floor(remaining / symbols.length); }
     palette.set(value, key);
     const rgb = indexed ? image.indexedColors![value]! & 0xffffff : value;
-    yield encoder.encode(`"${key} c ${rgb === -1 ? "None" : `#${rgb.toString(16).padStart(6, "0")}`}",\n`);
+    yield encoder.encode(`"${key} c ${rgb === -1 ? "None" : XPM_COLOR_NAMES.get(rgb) ?? `#${rgb.toString(16).padStart(6, "0").toUpperCase()}`}",\n`);
   }
   yield encoder.encode("/* pixels */\n");
   for (let offset = 0; offset < image.width * image.height * stride; offset += 4096) {

@@ -21,7 +21,7 @@ it("uses multi-character keys across bounded pixel chunks", async () => {
     expect(row.length).toBe(2200);
     for (let x = 0; x < 1100; x++) {
       const i = y * 1100 + x;
-      expect(palette.get(row.slice(x * 2, x * 2 + 2))).toBe(`#${(i % 256).toString(16).padStart(2, "0")}${Math.floor(i / 256).toString(16).padStart(2, "0")}0c`);
+      expect(palette.get(row.slice(x * 2, x * 2 + 2))).toBe(`#${(i % 256).toString(16).padStart(2, "0")}${Math.floor(i / 256).toString(16).padStart(2, "0")}0c`.toUpperCase());
     }
   }
 });

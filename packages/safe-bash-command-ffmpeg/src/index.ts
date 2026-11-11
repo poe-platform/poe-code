@@ -17429,6 +17429,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           validateWeaveGenericOption(key, option.slice(separator + 1), "earwax");
                         }
+                        if (!filteredChannelMask && filteredChannelNames?.some(name => name !== "")) {
+                          throw new Error("earwax: unsupported input channel layout");
+                        }
                         if (stretched.length === 2 && filteredChannelMask &&
                             filteredChannelMask !== 3 && filteredChannelMask !== 0x60000000) {
                           if (!autoConversionFilters) throw new Error(audioConversionDisabled);

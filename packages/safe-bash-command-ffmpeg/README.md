@@ -747,7 +747,7 @@ PCM at the same sample rate; multichannel HRIR files and preceding filters are u
 other input rates to 44100 Hz and converting mono to stereo with native gain.
 Two-channel `FC+LFE` input mixes center into both stereo channels and omits LFE;
 `stereo` and `downmix` preserve their channel pairing. Unsupported two-channel
-speaker layouts such as `FL+FC` return exit status `234` without audio.
+speaker layouts such as `FL+FC` or reversed `FR+FL` return exit status `234` without audio.
 An empty option list (`earwax=` or `earwax@stage=`) applies the same filter.
 Generic `threads`, `thread_type`, and `extra_hw_frames` options are validated and
 accepted without changing the PCM output.

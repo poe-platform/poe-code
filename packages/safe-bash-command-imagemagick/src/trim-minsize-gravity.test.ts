@@ -19,6 +19,11 @@ const gravities = [
     { gravity: "SouthEast", left: 2, top: 1 },
 ];
 const cases = [
+    ...["gravity", "option:gravity"].flatMap(key => [
+        { gravity: "Center", key, minimum: "3x2", width: 3, height: 2, left: 1, top: 1 },
+        { gravity: "NorthWest", key, minimum: "3x2", width: 3, height: 2, left: 0, top: 0 },
+    ]),
+    { gravity: "Center", key: "artifact:gravity", minimum: "3x2", width: 3, height: 2, left: 2, top: 1 },
     ...gravities.map(test => ({ ...test, minimum: "3x2", width: 3, height: 2 })),
     ...gravities.map(test => ({ ...test, minimum: undefined, width: 1, height: 1, left: 2, top: 1 })),
     { gravity: "Center", minimum: "3x2", width: 3, height: 2, left: 1, top: 1, page: true },
@@ -36,7 +41,7 @@ const cases = [
 ];
 
 for (const mode of ["command", "buffered", "retained", "sync"] as const) {
-    it.each(cases)(`${mode}: trims minimum $minimum at $gravity ($background, page=$page, percent=$percent)`, async test => {
+    it.each(cases)(`${mode}: trims minimum $minimum at $gravity ($key, $background, page=$page, percent=$percent)`, async test => {
         const background = "background" in test ? test.background : undefined;
         const page = "page" in test && test.page;
         const percent = "percent" in test && test.percent;
@@ -44,7 +49,7 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
         const fs = new MemoryFileSystem();
         const argv = [
             "-size", "5x3", `xc:${background ?? "none"}`, "-fill", "red", "-draw", "point 2,1",
-            ...(test.gravity ? ["-gravity", test.gravity] : []),
+            ...(test.gravity ? "key" in test && typeof test.key === "string" ? ["-set", test.key, test.gravity] : ["-gravity", test.gravity] : []),
             ...(page ? ["-repage", "11x9+3+4"] : []),
             ...(test.minimum ? ["-define", `trim:minSize=${test.minimum}`] : []),
             ...(percent ? ["-define", "trim:percent-background=50"] : []),

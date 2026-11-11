@@ -94,7 +94,7 @@ export function encodeImage(image: RawImage, options: OutputEncodeOptions): Retu
 function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channels: readonly number[]): Uint8Array {
     const format = options.format;
     const requestedDepth = options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8);
-    const depth = options.tiffFloatDepth ?? (requestedDepth === 32 || requestedDepth === 64 || requestedDepth === 1 || requestedDepth === 2 || requestedDepth === 4 || requestedDepth === 10 || requestedDepth === 12 ? requestedDepth : requestedDepth > 8 ? 16 : 8);
+    const depth = options.tiffFloatDepth ?? (requestedDepth === 32 || requestedDepth === 64 || requestedDepth === 1 || requestedDepth === 2 || requestedDepth === 4 || requestedDepth >= 8 && requestedDepth <= 16 ? requestedDepth : requestedDepth > 8 ? 16 : 8);
     const pixels = image.width * image.height;
     const rowSamples = image.width * (options.rawInterlace ? 1 : channels.length);
     const rowBytes = Math.ceil(rowSamples * depth / 8);
@@ -153,11 +153,12 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
                     view.setUint16(offset, half, little);
                 }
             } else if (depth < 8) data[offset] = data[offset]! | (quantum << (8 - depth - rowBit % 8));
-            else if (depth === 10 || depth === 12) {
+            else if (depth > 8 && depth < 16) {
                 // Packed raw samples are MSB-first; zero padding ends each row.
                 const packed = quantum << (24 - depth - rowBit % 8);
                 data[offset] = data[offset]! | (packed >>> 16);
                 data[offset + 1] = data[offset + 1]! | ((packed >>> 8) & 255);
+                if (depth + rowBit % 8 > 16) data[offset + 2] = data[offset + 2]! | (packed & 255);
             }
             else if (depth === 16) view.setUint16(offset, quantum, little);
             else if (depth === 32) view.setUint32(offset, quantum, little);
@@ -232,7 +233,7 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
             const workingColorspace = options.format === "farbfeld" || options.format.startsWith("cmyk") && image.space === "cmyk";
             const pixels = image.width * image.height;
             const depth = options.tiffFloatDepth ?? options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8);
-            const packed = depth === 1 || depth === 2 || depth === 4 || depth === 10 || depth === 12;
+            const packed = depth === 1 || depth === 2 || depth === 4 || depth > 8 && depth < 16;
             const workingPosition = options.format === "farbfeld" || options.format === "gray" && (depth === 10 || depth === 12) ? image.storedEvaluateSamples : undefined;
             const chunkPixels = workingColorspace || workingPosition !== undefined ? 512 : image.storedData16 ? 2048 : 4096;
             const spanPixels = options.rawInterlace === "line" ? image.width : pixels;

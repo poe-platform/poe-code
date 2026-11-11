@@ -5,7 +5,7 @@ import { magickIntensity } from "./intensity.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 
 /** Directional surface normals from a 3x3 intensity neighborhood. */
-export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { magickColorspace?: string | undefined }, spec: string, argument: number, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, intensity = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { magickColorspace?: string | undefined }, spec: string, argument: number, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, intensity = "rec709luma", meta = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const geometry = [...spec.toLowerCase()].filter(character => character.trim() && !"()!%<>^@#".includes(character)).join("")
         .replaceAll(",", "x").replaceAll("/", "x").replaceAll(":", "x");
     const fields: string[] = [];
@@ -58,7 +58,7 @@ export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
     for (let start = 0; start < width * height; start += 1024) {
         yield;
         const count = Math.min(1024, width * height - start), data = new Float64Array(count * 4);
-        const inks = cmyk ? new Float64Array(count * 4) : undefined;
+        const inks = cmyk && !meta ? new Float64Array(count * 4) : undefined;
         const alphaBytes = cmyk ? yield { kind: "read", highDepth: true, position: start * 4, length: count * 4 } : undefined;
         const alpha = alphaBytes ? new Uint16Array(alphaBytes.slice().buffer) : undefined;
         for (let i = 0; i < count; i++) {
@@ -75,7 +75,7 @@ export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
             const shade = quantum * Math.max(0, (nx * lightX + ny * lightY + 2 * lightZ) / Math.sqrt(nx * nx + ny * ny + 4));
             const center = yield* sample(x, y);
             // Retain Q16-HDRI samples for subsequent operations and write-mask blending.
-            for (let c = 0; c < 4; c++) data[i * 4 + c] = mask[c] ? Math.fround(shade * 65535 / quantum) / 257 : center[c]! * 255 / quantum;
+            for (let c = 0; c < 4; c++) data[i * 4 + c] = meta ? c === 3 ? 255 : Math.fround(shade * 65535 / quantum) / 257 : mask[c] ? Math.fround(shade * 65535 / quantum) / 257 : center[c]! * 255 / quantum;
             if (inks) {
                 for (let c = 0; c < 4; c++) inks[i * 4 + c] = (c === 3 ? !channels || channels.k : mask[c])
                     ? Math.fround(shade * 65535 / quantum) / 65535 : center[c]! / quantum;
@@ -84,7 +84,7 @@ export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
             }
         }
         if (inks) yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(inks.buffer) };
-        else if (hue) yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(data.map(value => value / 255).buffer) };
+        else if (hue && !meta) yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(data.map(value => value / 255).buffer) };
         const encoded = highDepth
             ? Uint16Array.from(data, value => Math.max(0, Math.min(65535, Math.round(value * 257))))
             : Uint8Array.from(data, value => Math.max(0, Math.min(255, Math.round(value))));

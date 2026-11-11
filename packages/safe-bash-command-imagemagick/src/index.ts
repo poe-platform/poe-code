@@ -9749,8 +9749,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             "threshold", "thresholdblack", "thresholdwhite", "rms", "rootmeansquare", "uniformnoise", "impulsenoise", "gaussiannoise", "laplaciannoise", "multiplicativenoise", "poissonnoise"].includes(operation)) {
             throw new Error(`unrecognized evaluate operator '-evaluate' '${operationRaw}'`);
         }
-        const isPct = value.trim().endsWith("%");
-        const operand = (isPct ? value.trim().slice(0, -1) : value).trim();
+        const operand = value.trim().endsWith("%") ? value.trim().slice(0, -1) : value.trim();
+        const isPct = value.trim().endsWith("%") && operand === operand.trimEnd();
         const unsigned = (operand.startsWith("+") || operand.startsWith("-") ? operand.slice(1) : operand).toLowerCase();
         const hexadecimal = unsigned.startsWith("0x");
         const number = hexadecimal ? Number(unsigned) * (operand.startsWith("-") ? -1 : 1) : Number(operand);

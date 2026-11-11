@@ -6,6 +6,10 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 // ImageMagick 7.1.2-35 Q16-HDRI: deprecated options fail with 1, unknown options with 11.
 for (const mode of ["buffered", "sync", "retained", "command"] as const) {
     it.each([
+        { options: ["+print", "hello"], exitCode: 1, error: "option deprecated, unable to execute '+print' at CLI arg 2" },
+        { options: ["-format", "X", "+identify"], exitCode: 1, error: "option deprecated, unable to execute '+identify' at CLI arg 4" },
+        { options: ["(", "+print", "hello", ")"], exitCode: 1, error: "option deprecated, unable to execute '+print' at CLI arg 3" },
+        { options: ["(", "-format", "X", "+identify", ")"], exitCode: 1, error: "option deprecated, unable to execute '+identify' at CLI arg 5" },
         { options: ["+roll", "+1+1"], exitCode: 1, error: "option deprecated, unable to execute '+roll' at CLI arg 2" },
         { options: ["+chop", "1x1"], exitCode: 1, error: "option deprecated, unable to execute '+chop' at CLI arg 2" },
         { options: ["+splice", "1x1"], exitCode: 1, error: "option deprecated, unable to execute '+splice' at CLI arg 2" },
@@ -64,4 +68,22 @@ it.each(["+reverse", "-reverse"])("matches the native info output for %s", async
     expect(result.exitCode).toBe(option === "+reverse" ? 1 : 0);
     expect(stdout).toBe(option === "+reverse" ? "" : "1");
     expect(stderr).toBe(option === "+reverse" ? "magick: option deprecated, unable to execute '+reverse'\n" : "");
+});
+
+it.each([
+    { options: ["+print", "hello"], exitCode: 1, stdout: "", error: "option deprecated, unable to execute '+print' at CLI arg 2" },
+    { options: ["-format", "X", "+identify"], exitCode: 1, stdout: "", error: "option deprecated, unable to execute '+identify' at CLI arg 4" },
+    { options: ["-madeup"], exitCode: 11, stdout: "", error: "unrecognized option '-madeup'" }
+])("matches native output with a null destination for $options", async ({ options, exitCode, stdout, error }) => {
+    const argumentValues = createCommandArguments(["xc:red", ...options, "null:"]);
+    let actualStdout = "", stderr = "";
+    const result = await createMagickCommand().execute({
+        command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs: new MemoryFileSystem(),
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write(bytes) { actualStdout += new TextDecoder().decode(bytes); } },
+        stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+    });
+    expect(result.exitCode).toBe(exitCode);
+    expect(actualStdout).toBe(stdout);
+    expect(stderr).toBe(error ? `magick: ${error}\n` : "");
 });

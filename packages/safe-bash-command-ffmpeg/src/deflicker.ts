@@ -18,7 +18,9 @@ export async function deflicker(
   let mode = 0;
   let bypass = false;
   let position = 0;
-  for (const option of (argument.endsWith(":") ? argument.slice(0, -1) : argument).split(":").filter(Boolean)) {
+  const options = argument ? argument.split(":") : [];
+  if (options.at(-1) === "") options.pop();
+  for (const option of options) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["size", "mode", "bypass"][position++] : option.slice(0, separator);
     // FFmpeg restarts shorthand after named options, skipping the first slot if just visited.

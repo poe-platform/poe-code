@@ -9,6 +9,10 @@ for (const [option, status, hex] of [
   ["size=130", 222, ""],
   ["m=bad", 234, ""],
   ["q=1", 8, ""],
+  ["size=4::m=gm", 234, ""],
+  ["size=4:m=gm::", 234, ""],
+  ["size=4:m=gm:", 0, "169fff004993dc3d76b62b6bab2161a12797ff1695ff0481a8fa489ae93a8bdc"],
+  ["size=4:m=gm", 0, "169fff004993dc3d76b62b6bab2161a12797ff1695ff0481a8fa489ae93a8bdc"],
   ["s=2", 0, "138bff0052a4f64497e93789ac2161a21d70c31085f40473a7f94799e93a8bdc"]
 ] as const) {
   it(`matches native deflicker=${option} status and raw frame bytes`, async () => {

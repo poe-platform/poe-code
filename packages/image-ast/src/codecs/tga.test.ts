@@ -76,6 +76,19 @@ for (const retained of [false, true]) {
     expect(image.data).toEqual(Uint8Array.from([3, 2, 1, 255, 6, 5, 4, 255, 3, 2, 1, 255, 3, 2, 1, 255]));
   });
 
+  for (const rle of [false, true]) {
+    it(`reads bottom-right-origin grayscale pixels (${retained}, rle=${rle})`, async () => {
+      const bytes = tga(2, 2, rle ? [0x82, 30, 0, 90] : [30, 30, 30, 90], rle, 0x10);
+      bytes[2] = rle ? 11 : 3;
+      bytes[16] = 8;
+      const image = await decode(bytes);
+      expect(image).toMatchObject({ channels: 1, space: "b-w", hasAlpha: false });
+      expect(image.data).toEqual(Uint8Array.from([90, 90, 90, 255, 30, 30, 30, 255, 30, 30, 30, 255, 30, 30, 30, 255]));
+      await expect(decode(bytes.subarray(0, bytes.length - 1))).rejects.toThrow("Truncated TGA pixels");
+      await expect(decode(bytes, 3)).rejects.toThrow("pixel limit");
+    });
+  }
+
   for (const [name, bytes] of [
     ["raw pixels", tga(1, 1, [1, 2])],
     ["RLE header", tga(1, 1, [], true)],

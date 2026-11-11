@@ -18,7 +18,7 @@ import { encodeExrImage } from "./exr-output.js";
 import { encodePfmImage } from "./pfm-output.js";
 import { isPhmBytes, readPhmHeader, decodePhmImage } from "./phm.js";
 import { isPfmBytes, readPfmHeader, decodePfmImage } from "./pfm.js";
-import { encodeTgaImage } from "./tga-output.js";
+import { encodeTgaImage, tgaChannels } from "./tga-output.js";
 import { isTgaBytes, readTgaMetadata, decodeTgaImage } from "./tga.js";
 import { isTxtBytes, readTxtImage } from "./txt.js";
 import {encodeIcoImage} from "./ico-output.js";
@@ -506,7 +506,7 @@ export function encodeImage(
     case "xwd": return { data: encodeXwdImage(img), format: "xwd", channels: 3 };
     case "pcx": return { data: encodePcxImage(img, options), format: "pcx", channels: 3 };
     case "xpm": return { data: encodeXpmImage(img, options.outputFilename), format: "xpm", channels: img.hasAlpha ? 4 : 3 };
-    case "tga": return { data: encodeTgaImage(img, options), format: "tga", channels: img.hasAlpha ? 4 : 3 };
+    case "tga": return { data: encodeTgaImage(img, options), format: "tga", channels: tgaChannels(img) };
     case "ico":
     case "cur": return { data: encodeIcoImage(img), format: fmt, channels: 4 };
     case "mng": return { data: encodeMngImage(img, options), format: "mng", channels: 4 };

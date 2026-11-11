@@ -2,7 +2,11 @@ import type { OutputEncodeOptions, RgbaImage } from "../ast.js";
 import type { ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
 import { defaultRuntime } from "@poe-code/compression";
 
-function tgaHeader(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "orientation" | "properties">, rle: boolean): Uint8Array {
+export function tgaChannels(image: Pick<RgbaImage, "hasAlpha" | "space" | "channels">): 1 | 3 | 4 {
+  return image.hasAlpha ? 4 : image.space === "b-w" || image.space === "grey16" || image.channels === 1 || image.channels === 2 ? 1 : 3;
+}
+
+function tgaHeader(image: Pick<RgbaImage, "width" | "height" | "orientation" | "properties">, channels: 1 | 3 | 4, rle: boolean): Uint8Array {
   if (![image.width, image.height].every(value => Number.isInteger(value) && value > 0 && value <= 65535)) throw new RangeError("Invalid TGA dimensions");
   // Keep a surrogate pair at the byte limit intact before UTF-8 truncation.
   const comment = (image.properties?.comment ?? "").slice(0, 256).split("\0", 1)[0];
@@ -10,18 +14,18 @@ function tgaHeader(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "ori
   const header = new Uint8Array(18 + id.length), view = new DataView(header.buffer);
   header[0] = id.length;
   header.set(id, 18);
-  header[2] = rle ? 10 : 2;
+  header[2] = (channels === 1 ? 3 : 2) + (rle ? 8 : 0);
   view.setUint16(12, image.width, true);
   view.setUint16(14, image.height, true);
-  header[16] = image.hasAlpha ? 32 : 24;
+  header[16] = channels * 8;
   const orientation = image.orientation ?? 0;
   const origin = orientation === 0 || orientation === 1 ? 0x20 : orientation === 2 ? 0x30 : orientation === 3 ? 0x10 : 0;
-  header[17] = origin | (image.hasAlpha ? 8 : 0);
+  header[17] = origin | (channels === 4 ? 8 : 0);
   return header;
 }
 
-/** Pack a bounded span in BGR(A) order; packets never cross a row. */
-function tgaSpan(data: Uint8Array, stride: 3 | 4, rle: boolean, palette?: ReadonlyMap<number, number>): Uint8Array {
+/** Pack a bounded span in grayscale or BGR(A) order; packets never cross a row. */
+function tgaSpan(data: Uint8Array, stride: 1 | 3 | 4, rle: boolean, palette?: ReadonlyMap<number, number>): Uint8Array {
   const count = data.length / 4;
   const output = new Uint8Array(count * (palette ? 1 : stride) + (rle ? count : 0));
   let offset = 0;
@@ -36,8 +40,10 @@ function tgaSpan(data: Uint8Array, stride: 3 | 4, rle: boolean, palette?: Readon
       output[offset++] = palette.get(color)!;
       return;
     }
-    output[offset++] = data[index * 4 + 2]!;
-    output[offset++] = data[index * 4 + 1]!;
+    if (stride !== 1) {
+      output[offset++] = data[index * 4 + 2]!;
+      output[offset++] = data[index * 4 + 1]!;
+    }
     output[offset++] = data[index * 4]!;
     if (stride === 4) output[offset++] = data[index * 4 + 3]!;
   };
@@ -60,8 +66,8 @@ function tgaSpan(data: Uint8Array, stride: 3 | 4, rle: boolean, palette?: Readon
 
 /** Scan palette sources before emitting the header, retaining at most 256 colors. */
 function* tgaChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "channels" | "isPalette" | "orientation" | "properties">, options: OutputEncodeOptions): Generator<number | Uint8Array, void, Uint8Array> {
-  const channels = image.hasAlpha ? 4 : 3, rle = options.tgaCompression === "rle", header = tgaHeader(image, rle);
-  let palette = image.isPalette ? new Map<number, number>() : undefined;
+  const channels = tgaChannels(image), rle = options.tgaCompression === "rle", header = tgaHeader(image, channels, rle);
+  let palette = image.isPalette && channels !== 1 ? new Map<number, number>() : undefined;
   for (let offset = 0; palette && offset < image.width * image.height * 4; offset += Math.min(1024, image.width - offset / 4 % image.width) * 4) {
     const data = yield offset;
     for (let i = 0; i < data.length; i += 4) {

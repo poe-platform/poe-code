@@ -47,7 +47,7 @@ export function* localThresholdPixelSteps(image: Pick<RgbaImage, "width" | "heig
     const fill = (method === "background" || method?.endsWith("-tile"))
         ? [background.r, background.g, background.b, background.a].map(value => value * maximum / 255)
         : [gray, gray, gray, method === "transparent" ? 0 : maximum];
-    if (cmyk) fill.push(0);
+    if (cmyk) fill.push(gray);
     function* sample(x: number, y: number): Generator<ConvolveRequest | undefined, ArrayLike<number>, Uint8Array | undefined> {
         if (x < 0 || y < 0 || x >= width || y >= height) {
             const index = virtualPixelIndex(x, y, width, height, method);

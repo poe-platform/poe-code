@@ -13051,7 +13051,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     result.metaChannels = [];
                     for (const [index, plane] of image.metaChannels.entries()) {
                         const selected = !imageSettings.channelExplicit || imageSettings.channelDefault || imageSettings.channels.meta?.includes(index);
-                        result.metaChannels.push(selected ? yield* metaOperation.apply(plane) : plane);
+                        let output = selected ? yield* metaOperation.apply(plane) : plane;
+                        if (selected && t === "-solarize") {
+                            if (image.writeMask) output = yield* applyMagickRasterSteps(output, writeMaskPixelSteps(output, image.writeMask, true), signal, output, [output, plane, image.writeMask]);
+                            if (image.region) output = yield* applyMagickRasterSteps(output, regionPixelSteps(output, image.region, true), signal, output, [output, plane]);
+                        }
+                        result.metaChannels.push(output);
                     }
                 }
                 return result;
@@ -16899,7 +16904,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     result.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries()) {
                         const selected = !imageSettings.channelExplicit || imageSettings.channelDefault || imageSettings.channels.meta?.includes(index);
-                        result.storedMetaChannels.push(selected ? await transformStoredMagickPixels(plane, backend, metaOperation, signal) : plane);
+                        let output = selected ? await transformStoredMagickPixels(plane, backend, metaOperation, signal) : plane;
+                        if (selected && token === "-solarize") {
+                            if (image.storedWriteMask) output = await transformStoredMagickRaster(output, backend, writeMaskPixelSteps(output, image.storedWriteMask, true), signal, output, [output, plane, image.storedWriteMask]);
+                            if (image.region) output = await transformStoredMagickRaster(output, backend, regionPixelSteps(output, image.region, true), signal, output, [output, plane]);
+                        }
+                        result.storedMetaChannels.push(output);
                     }
                 }
                 return result;

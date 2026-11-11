@@ -8461,7 +8461,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             else if (arg === "-reset_timestamps") resetTimestamps = enabled;
             else if (arg === "-write_empty_segments") writeEmptySegments = enabled;
             else atomicWriting = enabled;
-          } else if (["-enc_time_base", "-enc_time_base:v", "-enc_time_base:v:0", "-enc_time_base:V", "-enc_time_base:V:0", "-enc_time_base:0"].includes(arg)) {
+          } else if (["-enc_time_base", "-enc_time_base:v", "-enc_time_base:v:0", "-enc_time_base:V", "-enc_time_base:V:0", "-enc_time_base:0", "-enc_time_base:a", "-enc_time_base:a:0"].includes(arg)) {
             const value = args[++i] ?? "";
             const parts = value.split(value.includes(":") ? ":" : "/");
             const numerator = Number(parts[0]);
@@ -8472,7 +8472,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid value for -enc_time_base: ${value}\n`), context.signal);
               return { exitCode: 234 };
             }
-            encoderTimeBase = timeBase === 0 ? undefined : timeBase;
+            if (!arg.startsWith("-enc_time_base:a")) encoderTimeBase = timeBase === 0 ? undefined : timeBase;
           } else if (arg === "-vsync") {
             const value = args[++i] ?? "";
             const mode = value.toLowerCase();

@@ -1769,6 +1769,9 @@ function audioConcatInputs(filter: string): number | undefined {
   return values.n;
 }
 
+// Delay tails are execution metadata, not part of the media container.
+const audioDelayTails = new WeakMap<MediaTrack, Set<string>>();
+
 // Resolve audio graph inputs and transitions before the PCM filter evaluator runs.
 async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], outputMaps: Set<string>, mappedLabels: Set<string>, filterAudio: (track: MediaTrack, expression: string) => Promise<MediaTrack>, mixCommands: { target: string; action: string; expression: string }[], budget: MediaBudgetTracker, signal?: AbortSignal) {
   const nodes = new Map<string, { inputs: string[]; expression: string; asplit?: boolean }>();
@@ -1892,7 +1895,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     const node = nodes.get(label);
     if (node) {
       visiting.add(label);
-      const sources = [];
+      const sources: { track: MediaTrack; expression: string }[] = [];
       for (const input of node.inputs) sources.push(await resolve(input, new Set(visiting)));
       const filters = parseFilterChain(node.expression);
       const first = filters[0]!;
@@ -2216,21 +2219,33 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
             source.track = await filterAudio(source.track, source.expression);
           }
         }
-        // Split outputs share their input list. Reversing the first branch drains
-        // the split, so a pass-through second branch has already reached EOF.
-        // Buffering/reframing the second branch still schedules its EOF separately.
+        // Draining a first-branch tail also drains the split's other output.
+        // A delay without a tail schedules EOF separately until upstream drains.
         const splitInputs = node.inputs.map((input, inputIndex) => {
           let branch = nodes.get(input);
+          let buffered = false;
+          let scheduled = false;
           while (branch && !branch.asplit && branch.inputs.length === 1 &&
             parseFilterChain(branch.expression).every(filter => {
               const name = filter.split("=", 1)[0]!.split("@", 1)[0]!;
-              return ["anull", "acopy"].includes(name) || inputIndex === 0 && name === "areverse";
+              if (name === "adelay") {
+                scheduled = true;
+                buffered ||= audioDelayTails.get(sources[inputIndex]!.track)?.has(filter) ?? false;
+                return true;
+              }
+              if (inputIndex === 0 && name === "areverse") {
+                buffered = true;
+                return true;
+              }
+              return ["anull", "acopy"].includes(name);
             })) {
             branch = nodes.get(branch.inputs[0]!);
           }
-          return branch?.asplit ? branch.inputs : undefined;
+          return { inputs: branch?.asplit ? branch.inputs : undefined, buffered, scheduled };
         });
-        const simultaneousEof = splitInputs[0] !== undefined && splitInputs[0] === splitInputs[1];
+        const [a, b] = splitInputs;
+        const simultaneousEof = a!.inputs !== undefined && a!.inputs === b!.inputs && !b!.buffered &&
+          (a!.buffered || !a!.scheduled && !b!.scheduled);
         const track = await acrossfadeAudio(sources[0]!.track, sources[1]!.track, filters[0]!, budget, signal, simultaneousEof);
         return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
@@ -13350,6 +13365,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let replayGainAvailable = true;
                   let audioStartSample = 0;
                   let audioInitialFrameUnavailable = false;
+                  const delayTails = new Set<string>();
                   let audioMetadata: { pts: number; tags: Map<string, string> }[] = [];
                   let audioTimestamps: { start: number; end: number; pts: number; exactPts?: bigint | undefined; pos?: number | undefined }[] | undefined;
                   // Silence events and frame tags retain input PTS, including after seeking and reframing.
@@ -16377,6 +16393,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const padding = Math.min(...offsets);
                         let tail = Math.max(0, ...offsets) - padding;
                         for (const update of updates) tail = Math.max(tail, ...update.offsets);
+                        if (tail > 0) delayTails.add(item.trim());
                         const length = inputLength + padding + tail;
                         budget.checkDuration(length / origRate);
                         budget.allocateMemory((length * stretched.length + offsets.reduce((sum, offset) => sum + offset - padding, 0)) * Float64Array.BYTES_PER_ELEMENT);
@@ -18115,12 +18132,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       samples.push({ data: new Uint8Array(0), size: 0, pts: frame.pts, dts: frame.pts, cts: 0,
                         duration: frame.end - frame.start, isKeyframe: true, sampleDescriptionIndex: 1 });
                     }
-                    return { ...t, timescale: origRate, duration: length, samples, editList: undefined,
+                    const result = { ...t, timescale: origRate, duration: length, samples, editList: undefined,
                       codecDescriptions: t.codecDescriptions.map(description => ({ ...description,
                         sampleRate: origRate, channels: stretched.length,
                         channelLayout: filteredChannelNames?.join("+") })),
                       decodedAudio: { ...audio, sampleRate: origRate, channels: stretched.length,
                         channelMask: filteredChannelMask, channelData: stretched } };
+                    if (delayTails.size) audioDelayTails.set(result, delayTails);
+                    return result;
                   }
 
                   if (!autoConversionFilters) {

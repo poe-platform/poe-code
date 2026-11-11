@@ -14,7 +14,7 @@ for (const filter of [undefined, "anull", "aformat=sample_fmts=s16p", "aformat=s
     it(`matches stereo-to-mono PCM rounding for ${filter ?? "-ac 1"} to ${format}`, async () => {
       const volume = Volume.fromJSON({});
       volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000,
-        channels: [0, 1].map(channel => Float32Array.from(pairs, pair => pair[channel]! / 32768))
+        channels: [0, 1].map(channel => Float64Array.from(pairs, pair => pair[channel]! / 32768))
       }, { bitsPerSample: 16 }));
       const chunks: Uint8Array[] = [];
       let stderr = "";

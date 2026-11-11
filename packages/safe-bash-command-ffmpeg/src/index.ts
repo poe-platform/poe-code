@@ -18302,7 +18302,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const monoStereo = origCh === 1 && (targetCh === 2 || targetCh === 3);
                   const pcm16Output = audioCodec === "pcm_s16le" || audioCodec === undefined &&
                     ["wav", "s16le"].includes((outputFormat === "segment" ? segmentPlugin?.id : outPlugin?.id) ?? "");
-                  const pcm16StereoMono = origCh === 2 && !centerLfe && targetCh === 1 && targetRate === origRate &&
+                  const stereoMono = origCh === 2 && !centerLfe && targetCh === 1;
+                  const pcm16StereoMono = stereoMono && targetRate === origRate &&
                     (filteredSampleFormat === "s16" || filteredSampleFormat === "s16p") && pcm16Output;
                   const pcm16MonoStereo = monoStereo && !filter && targetRate === origRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
@@ -18315,19 +18316,26 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const sevenOneDownmix = origCh === 8 && channelMask === 0x63f && [1, 2, 6].includes(targetCh);
                   // Use the requested mix gains and renormalize every contributing speaker.
                   const centerMatrix = (matrixMaxval === undefined && mixLevel === undefined && surroundLevel === undefined && lfeLevel === undefined) || !(centerDownmix || surroundMono || surroundStereo ||
-                    sevenOneDownmix && targetCh <= 2) ? undefined : Array.from({ length: targetCh }, (_, output) => {
+                    sevenOneDownmix && targetCh <= 2 || stereoMono && matrixMaxval !== undefined) ? undefined : Array.from({ length: targetCh }, (_, output) => {
                     const row = Array.from({ length: origCh }, (_, input) => input === 2 ? (mixLevel ?? Math.SQRT1_2)
                       : input === 3 ? (lfeLevel ?? 0) * Math.SQRT1_2 : input < 2 ? targetCh === 1 ? 0.5 : input === output ? 1 : 0
                         : targetCh === 1 ? (surroundLevel ?? Math.SQRT1_2) / 2 : input % 2 === output ? (surroundLevel ?? Math.SQRT1_2) : 0);
                     // Mono coefficients use equal-power front gains before normalization.
                     const scale = matrixMaxval !== undefined && targetCh === 1 ? Math.SQRT2 : 1;
                     const normalization = Math.max(1 / scale, row.reduce((sum, gain) => sum + Math.abs(gain), 0) / (matrixMaxval || 1));
+                    let roundingError = 0;
                     return row.map(gain => {
                       const normalized = gain / normalization;
                       // PCM16 rematrixing uses Q15 coefficients, including resampler gain options.
-                      return (matrixMaxval !== undefined || surroundLevel !== undefined || lfeLevel !== undefined) && pcm16Output && targetRate === origRate &&
-                        t.codecDescriptions[0]?.codecName === "pcm_s16le"
-                        ? Math.round(normalized * 32768) / 32768 : normalized;
+                      if ((matrixMaxval !== undefined || surroundLevel !== undefined || lfeLevel !== undefined) && pcm16Output && targetRate === origRate &&
+                          t.codecDescriptions[0]?.codecName === "pcm_s16le") {
+                        const coefficient = normalized * 32768 + roundingError;
+                        const rounded = Math.round(coefficient);
+                        // Carry stereo coefficient rounding into the other channel.
+                        if (stereoMono) roundingError = coefficient - rounded;
+                        return rounded / 32768;
+                      }
+                      return normalized;
                     });
                   });
                   const pcm16SevenOne = sevenOneDownmix && targetCh !== 1 && !filter && targetRate === origRate &&
@@ -18451,7 +18459,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           sum + stretched[speaker]![srcIdx]! * gain, 0);
                         const remixSample = remixMatrix?.[c]?.reduce((sum, gain, speaker) =>
                           sum + stretched[speaker]![srcIdx]! * gain, 0);
-                        const scaled = (remixSample ?? centerSample ?? (sevenOneSample === undefined ? mixed : pcm16SevenOne
+                        let matrixSample = remixSample ?? centerSample;
+                        if (matrixSample !== undefined && pcm16StereoMono) matrixSample = Math.floor(matrixSample * 32768 + 0.5) / 32768;
+                        const scaled = (matrixSample ?? (sevenOneSample === undefined ? mixed : pcm16SevenOne
                           ? Math.floor(sevenOneSample + 0.5) / 32768 : sevenOneSample)) * volFactor;
                         dst[i] = pcm16Output && !Number.isFinite(scaled) ? 0 : scaled;
                       }

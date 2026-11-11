@@ -12419,7 +12419,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (words[0] === "[enter]") words.shift();
                           const [target, action, expression] = words;
                           const supported = action === "enable" && ["tremolo", "vibrato"].some(name => target === name || target?.startsWith(`${name}@`))
-                            || (action === "start_threshold" || action === "stop_threshold") && (target === "silenceremove" || target?.startsWith("silenceremove@"))
+                            || target === "silenceremove" || target?.startsWith("silenceremove@")
                             || action === "tempo" && (target === "atempo" || target?.startsWith("atempo@"))
                             || action === "volume" && (target === "volume" || target?.startsWith("volume@"))
                             || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))

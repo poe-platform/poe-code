@@ -15425,7 +15425,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     yield;
                 const chosen = sourcePool[idx];
                 if (chosen)
-                    stack.push({ ...chosen, data: new Uint8Array(chosen.data) });
+                    stack.push({ ...chosen, data: new Uint8Array(chosen.data), [magickInput]: { ...chosen[magickInput], blobSize: 0 } });
             }
         }
         else if (t === "-duplicate" || t === "+duplicate") {
@@ -15450,7 +15450,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         yield;
                     const chosen = sourcePool[idx];
                     if (chosen)
-                        stack.push({ ...chosen, data: new Uint8Array(chosen.data) });
+                        stack.push({ ...chosen, data: new Uint8Array(chosen.data), [magickInput]: { ...chosen[magickInput], blobSize: 0 } });
                 }
             }
         }
@@ -16551,7 +16551,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const source = token.endsWith("clone") ? parents.at(-1) ?? stack : stack;
                     const length = source.length;
                     if (token.endsWith("clone") && length === 0) throw new Error(`UnableToCloneImage ${token}`);
-                    for (let repeat = 0; repeat < count; repeat++) for (const index of parseMagickIndexSpec(spec, length, token.endsWith("duplicate") ? "duplicate" : "clone")) { await yieldTurn(signal); await stack.push((await source.get(index))!); }
+                    for (let repeat = 0; repeat < count; repeat++) for (const index of parseMagickIndexSpec(spec, length, token.endsWith("duplicate") ? "duplicate" : "clone")) {
+                        await yieldTurn(signal);
+                        const chosen = (await source.get(index))!;
+                        await stack.push({ ...chosen, [magickInput]: { ...chosen[magickInput], blobSize: 0 } });
+                    }
                 } else if (token.endsWith("delete")) {
                     if (stack.length === 0) throw new Error(`no images found for operation '${token}'`);
                     await stack.remove(parseMagickIndexSpec(spec, stack.length, "delete"));

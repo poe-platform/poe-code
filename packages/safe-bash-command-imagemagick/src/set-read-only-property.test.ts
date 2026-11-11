@@ -5,6 +5,31 @@ import { createCommandArguments } from "safe-bash-contracts";
 import { createMagickCommand, runConvertCli } from "./index.js";
 
 for (const mode of ["buffered", "retained", "command"]) {
+  for (const [key, expected] of [["k", "24"], ["w", "6"], ["h", "4"], ["n", "1"], ["t", "in"], ["custom:key", "77"]] as const) {
+    it(`preserves computed ${key} through ${mode}`, async () => {
+      const fixture = new Uint8Array([...new TextEncoder().encode("P6\n6 4\n255\n"), ...Array.from({ length: 72 }, (_, i) => i)]);
+      const files = new Map([["/in.ppm", fixture]]);
+      const fs = new MemoryFileSystem();
+      await fs.writeFile("/in.ppm", fixture);
+      const args = ["/in.ppm", "-set", key, "77", "-format", `%[${key}]`, "info:"];
+      let stdout = "", stderr = "";
+      if (mode === "command") {
+        expect(await createMagickCommand().execute({
+          command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+          stdin: (async function* () {})(), signal: new AbortController().signal,
+          stdout: { write: async bytes => { stdout += new TextDecoder().decode(bytes); } },
+          stderr: { write: async bytes => { stderr += new TextDecoder().decode(bytes); } }
+        })).toMatchObject({ exitCode: 0 });
+      } else {
+        const result = await runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        stdout = result.stdout;
+        stderr = result.stderr;
+      }
+      expect(stdout).toBe(expected);
+      expect(stderr).toBe(key === "custom:key" ? "" : `magick: attempt to set read-only property '${key}'\n`);
+    });
+  }
   for (const key of ["width", "height", "size", "HEIGHT", "%[note]"]) {
     it(`warns without storing read-only ${key} through ${mode}`, async () => {
       const fixture = spawnSync("magick", ["-size", "3x2", "xc:#c8591e", "-set", "note", "width", "-set", "comment", "hello", "png:-"]);

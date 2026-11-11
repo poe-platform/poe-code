@@ -2021,7 +2021,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
     } else if (token === "%D") {
       const disposal = (meta as RgbaImage).disposal;
       parts.push(["Undefined", "None", "Background", "Previous"][(typeof disposal === "number" ? disposal : disposal?.[context.sceneIdx ?? 0]) ?? 0] ?? "Undefined");
-    } else if (token === "%k" || token.toLowerCase() === "%[colors]") {
+    } else if (token === "%k" || token === "%[k]" || token.toLowerCase() === "%[colors]") {
       if (resolvePixels) {
         short.k ??= yield* resolvePixels("colors");
       } else {
@@ -13370,7 +13370,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 yield;
                 const { key: expandedKey, value: expanded } = properties[sceneIdx++]!;
-                if (["width", "height", "size"].includes(expandedKey.toLowerCase())) {
+                if (["width", "height", "size", "k", "w", "h", "n", "t"].includes(expandedKey.toLowerCase())) {
                     analysis.warnings += `magick: attempt to set read-only property '${expandedKey}'\n`;
                     return image;
                 }
@@ -17173,7 +17173,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const context = { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties };
                 const expandedKey = await formatRetainedIdentify(key, image, context, async () => ({ image, storage: backend.storage }), signal, images);
                 const expanded = await formatRetainedIdentify(value, image, context, async () => ({ image, storage: backend.storage }), signal, images);
-                if (["width", "height", "size"].includes(expandedKey.toLowerCase())) {
+                if (["width", "height", "size", "k", "w", "h", "n", "t"].includes(expandedKey.toLowerCase())) {
                     analysis.warnings += `magick: attempt to set read-only property '${expandedKey}'\n`;
                     return image;
                 }

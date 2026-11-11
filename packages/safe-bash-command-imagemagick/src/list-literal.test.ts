@@ -17,8 +17,8 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
         { args: ["identify", "--format", "-list", "xc:red"], stdout: "-list" },
         { args: ["xc:red", "-print", "list", "null:"], stdout: "list" },
         { args: ["-list", "Metric"], stdout: metrics },
-        { args: ["-format", "-format", "-list", "Metric"], stdout: metrics },
-        { args: ["-format", "--", "-list", "Metric"], stdout: metrics }
+        { args: ["identify", "-format", "-format", "-list", "Metric"], stdout: metrics },
+        { args: ["identify", "-format", "--", "-list", "Metric"], stdout: metrics }
     ])(`${mode} respects option argument positions: $args`, async ({ args, stdout }) => {
         const fs = new MemoryFileSystem();
         const expected = { exitCode: 0, stdout, stderr: "" };

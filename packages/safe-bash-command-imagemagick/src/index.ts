@@ -11343,7 +11343,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
             continue;
         }
-        if (t === "-list" || t === "--list") {
+        if (t === "-list") {
             if (i + 1 >= tokens.length) throw new Error(`missing argument '${t}'`);
             const result = tryHandleMagickListOption(tokens.slice(i, i + 2))!;
             if (result.exitCode) throw new Error(result.stderr.slice("magick: ".length).trimEnd());
@@ -13712,7 +13712,7 @@ function* runConvertCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     return combineConvertOutput(result, analysis);
 }
 function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = createConvertAnalysis()): Generator<void, ImageMagickCliResult, void> {
-    const listRes = argv.length === 2 && (argv[0] === "-list" || argv[0] === "--list") ? tryHandleMagickListOption(argv) : undefined;
+    const listRes = argv.length <= 2 && argv[0] === "-list" ? tryHandleMagickListOption(argv) : undefined;
     if (listRes) return listRes;
     const optionArgs = argv.slice(0, argv.indexOf("--") < 0 ? argv.length : argv.indexOf("--"));
     if (argv.length === 0 || optionArgs.includes("--help") || optionArgs.includes("-help") || optionArgs.includes("-h")) {
@@ -14260,7 +14260,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
     if (!input.filesystem.capabilities || !input.filesystem.open || !input.filesystem.removeFileConditional) return;
     const outSpec = argv.at(-1) ?? "";
     const optionArgs = argv.slice(0, argv.indexOf("--") < 0 ? argv.length : argv.indexOf("--"));
-    if (!outSpec || argv.length === 2 && (argv[0] === "-list" || argv[0] === "--list") || optionArgs.some(token => ["--help", "-help", "-h", "--version", "-version"].includes(token))) {
+    if (!outSpec || argv.length <= 2 && argv[0] === "-list" || optionArgs.some(token => ["--help", "-help", "-h", "--version", "-version"].includes(token))) {
         await probeImageArguments(argv, input, stdinBytes, signal);
         return drainSteps(runConvertCliSteps(argv, new Map(), stdinBytes, signal), signal);
     }
@@ -14287,7 +14287,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         }
         if (token === "") continue;
-        if (!operandsOnly && (token === "-list" || token === "--list")) {
+        if (!operandsOnly && token === "-list") {
             const value = tokens[++i];
             stackStep(async stack => {
                 if (value === undefined) throw new Error(`missing argument '${token}'`);

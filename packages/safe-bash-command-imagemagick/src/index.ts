@@ -5395,7 +5395,7 @@ function createLabelSvg(text: string, state: MagickState): string {
   return svg;
 }
 
-function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha">,geomStr:string,kernel:ResizeKernel | undefined): (Omit<Parameters<typeof resizeImageSteps>[1], "kernel"> & { kernel: ResizeKernel }) | undefined {
+function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha"|"isPalette">,geomStr:string,kernel:ResizeKernel | undefined): (Omit<Parameters<typeof resizeImageSteps>[1], "kernel"> & { kernel: ResizeKernel }) | undefined {
     const g = parseMagickGeometry(geomStr);
     if (geomStr.includes(":")) {
         const dimensions = parseMagickGeometry(geomStr.replace(":", "x"));
@@ -5500,7 +5500,7 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha">,geo
         height: targetH,
         fit: "fill",
         position: "center",
-        kernel: kernel ?? (img.hasAlpha || targetW * targetH > srcW * srcH ? "mitchell" : "lanczos3"),
+        kernel: kernel ?? (img.isPalette || img.hasAlpha || targetW * targetH > srcW * srcH ? "mitchell" : "lanczos3"),
         background: { r: 0, g: 0, b: 0, a: 0 },
         withoutEnlargement: false,
         withoutReduction: false

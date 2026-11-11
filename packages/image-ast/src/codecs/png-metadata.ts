@@ -308,7 +308,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
     ...(xmp === undefined ? {} : {xmp}),
     ...(decodeWarnings.length ? {decodeWarnings} : {}),
     format: "png",
-    ...(colorType === 3 ? {isPalette: true} : {}),
+    ...(colorType === 3 || colorType === 0 && bitDepth <= 8 ? {isPalette: true} : {}),
     width,
     height,
     space,

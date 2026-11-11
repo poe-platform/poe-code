@@ -1,7 +1,7 @@
 /** Radial gradients use half the directional endpoint as their default center. */
 export function gradientCenter(width: number, height: number, direction?: string, center?: { x: number; y?: number }, vector?: string): { x: number; y: number } {
     let x = (width - 1) / 2, y = (height - 1) / 2;
-    switch (direction) {
+    switch (direction?.replaceAll("-", "")) {
         case "north": case "west": case "northwest": x = 0; y = 0; break;
         case "east": case "northeast": y = 0; break;
         case "south": case "southwest": x = 0; break;

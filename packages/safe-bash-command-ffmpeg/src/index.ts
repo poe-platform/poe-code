@@ -1892,6 +1892,10 @@ function audioConcatInputs(filter: string): number | undefined {
     if (!option) continue;
     const equal = option.indexOf("=");
     const key = equal < 0 ? ["n", "v", "a", "unsafe"][index] : option.slice(0, equal);
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, option.slice(equal + 1), "concat");
+      continue;
+    }
     if (key === "unsafe") {
       parseFilterBoolean(equal < 0 ? option : option.slice(equal + 1), "concat: invalid unsafe boolean");
       continue;

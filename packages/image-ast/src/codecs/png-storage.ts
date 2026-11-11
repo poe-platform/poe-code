@@ -2,7 +2,7 @@ import { ADAM7_PASSES } from "./png-pixels.js";
 import { PngPalette } from "./png-palette.js";
 import { GifPalette } from "./gif-output-parts.js";
 import {pngMetadataSteps} from "./png-metadata.js";
-import {PNG_SIGNATURE, validPngTransparencyLength, pngCrc32, makeChunk, gammaChunk, canvasChunk, iccChunk, xmpChunk, textChunks} from "./png-chunks.js";
+import {PNG_SIGNATURE, validPngTransparencyLength, pngCrc32, makeChunk, gammaChunk, chromaticityChunk, canvasChunk, iccChunk, xmpChunk, textChunks} from "./png-chunks.js";
 import {buildExifApp1Segment} from "./exif.js";
 import {createByteCodec, defaultRuntime} from "@poe-code/compression";
 import {checkLimitInputPixels} from "../limits.js";
@@ -278,6 +278,7 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   yield new Uint8Array(PNG_SIGNATURE);
   signal.throwIfAborted(); yield makeChunk("IHDR",header);
   if (image.gamma !== undefined) yield gammaChunk(image.gamma);
+  if (image.chromaticity !== undefined) yield chromaticityChunk(image.chromaticity);
   if (image.icc) {
     const chunk = iccChunk(image.icc);
     for (let offset = 0; offset < chunk.length; offset += 4096) {signal.throwIfAborted(); yield chunk.subarray(offset, offset + 4096);}

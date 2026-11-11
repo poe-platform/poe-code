@@ -15,6 +15,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
   let interlace = 0;
   let density = 72;
   let gamma: number | undefined;
+  let chromaticity: Partial<Record<keyof NonNullable<ImageMetadata["chromaticity"]>, readonly [number, number]>> | undefined;
   let resolution: ImageMetadata["resolution"];
   let hasPhys = false;
   let hasTrns = false;
@@ -70,6 +71,13 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
       bitDepth = chunk[8]!;
       colorType = chunk[9]!;
       interlace = chunk[12]!;
+    } else if (type === "cHRM" && len === 32 && !hasIdat && !palette && !chromaticity) {
+      const chunk = yield {position:dataStart,length:32};
+      const view = new DataView(chunk.buffer,chunk.byteOffset,32);
+      chromaticity = {};
+      for (const [index, key] of (["white-point", "red-primary", "green-primary", "blue-primary"] as const).entries()) {
+        chromaticity[key] = [view.getUint32(index * 8) / 100000, view.getUint32(index * 8 + 4) / 100000];
+      }
     } else if (type === "gAMA" && len === 4) {
       const chunk = yield {position:dataStart,length:4};
       const value = new DataView(chunk.buffer,chunk.byteOffset,4).getUint32(0);
@@ -309,6 +317,7 @@ export function* pngMetadataSteps(size:number):Generator<MetadataRead,ImageMetad
     bitsPerSample: bitDepth,
     density,
     ...(gamma === undefined ? {} : {gamma}),
+    ...(chromaticity === undefined ? {} : {chromaticity}),
     ...(backgroundColor === undefined ? {} : {backgroundColor}),
     ...(resolution === undefined ? {} : {resolution}),
     hasAlpha,

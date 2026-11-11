@@ -1,3 +1,4 @@
+import type {ImageMetadata} from "../ast.js";
 import {ByteCodecError, createByteCodec, transformBytes} from "@poe-code/compression";
 export const PNG_SIGNATURE = new Uint8Array([137, 80, 78, 71, 13, 10, 26, 10]);
 
@@ -97,6 +98,13 @@ export function decodePngIcc(compressed: Uint8Array): Uint8Array {
       format = "raw";
     } finally { codec.close(); }
   }
+}
+
+export function chromaticityChunk(chromaticity: NonNullable<ImageMetadata["chromaticity"]>): Uint8Array {
+  const coordinates = [...(chromaticity["white-point"] ?? [0.3127, 0.329]), ...(chromaticity["red-primary"] ?? [0.64, 0.33]), ...(chromaticity["green-primary"] ?? [0.3, 0.6]), ...(chromaticity["blue-primary"] ?? [0.15, 0.06])];
+  const bytes = new Uint8Array(32), view = new DataView(bytes.buffer);
+  coordinates.forEach((value, index) => view.setUint32(index * 4, Math.round(value * 100000)));
+  return makeChunk("cHRM", bytes);
 }
 
 export function gammaChunk(gamma: number): Uint8Array {

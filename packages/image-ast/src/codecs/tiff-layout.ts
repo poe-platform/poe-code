@@ -4,8 +4,8 @@ export function tiffChannels(img: Pick<RgbaImage,"space"|"hasAlpha">): 1 | 2 | 3
 }
 export function createTiffLayout(
   img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"space"|"hasAlpha"|"properties"|"virtualCanvas"|"metaChannels"> & { storedMetaChannels?: readonly unknown[] | undefined },
-  options?: Pick<OutputEncodeOptions, "tiffBig" | "tiffIntegerDepth" | "tiffSigned" | "tiffFloatDepth" | "tiffPlanar" | "tiffAlpha" | "density" | "orientation" | "tiffCompression" | "quality" | "tiffEndian" | "tiffFillOrder" | "tiffRowsPerStrip" | "tiffTile">,
-  offset = 0, hasNext = false, stripSizes?: readonly number[]
+  options?: Pick<OutputEncodeOptions, "tiffBig" | "tiffScene" | "tiffIntegerDepth" | "tiffSigned" | "tiffFloatDepth" | "tiffPlanar" | "tiffAlpha" | "density" | "orientation" | "tiffCompression" | "quality" | "tiffEndian" | "tiffFillOrder" | "tiffRowsPerStrip" | "tiffTile">,
+  offset = 0, hasNext = false, stripSizes?: readonly number[], pageIndex = 0, pageCount = 1
 ) {
   const { width, height } = img;
   const big = options?.tiffBig === true;
@@ -42,12 +42,12 @@ export function createTiffLayout(
     ? [[Math.round(Math.max(0, img.virtualCanvas.x) * denominator), Math.round(x * denominator)], [Math.round(Math.max(0, img.virtualCanvas.y) * denominator), Math.round(y * denominator)]] : undefined;
   const positionSize = positions ? 16 : 0;
   const orientation = options?.orientation ?? img.orientation ?? 1;
-  // Keep the single-page layout byte-compatible. Later pages start with their
-  // directory so the preceding page can link to them without reading ahead.
+  // The first page stores pixels before its directory. Later pages start with
+  // their directory so the preceding page can link to them without reading ahead.
   const padding = (alignment - pixelBytes % alignment) % alignment;
   const comment = img.properties?.comment === undefined ? undefined : new TextEncoder().encode(img.properties.comment + "\0");
   const commentSize = comment ? Math.ceil(comment.length / alignment) * alignment : 0;
-  const numEntries = (options?.tiffFillOrder === "lsb" ? 1 : 0) + (extras ? 15 : 14) - (hasResolution ? 0 : 3) + (positions ? 2 : 0) + (comment ? 1 : 0) + (jpeg ? 1 : 0) + (tile ? 1 : 0) + (options?.tiffFloatDepth || options?.tiffIntegerDepth || options?.tiffSigned ? 1 : 0);
+  const numEntries = (options?.tiffFillOrder === "lsb" ? 1 : 0) + (extras ? 16 : 15) - (hasResolution ? 0 : 3) + (positions ? 2 : 0) + (comment ? 1 : 0) + (jpeg ? 1 : 0) + (tile ? 1 : 0) + (options?.tiffFloatDepth || options?.tiffIntegerDepth || options?.tiffSigned ? 1 : 0);
   const tableSize = Math.ceil((countBytes + numEntries * entryBytes + offsetBytes) / alignment) * alignment;
   const directorySize = tableSize + bpsSize + extrasSize + 16 + commentSize + stripArraySize + positionSize;
   const pixelOffset = offset === 0 ? (big ? 16 : 8) : offset + directorySize;
@@ -94,6 +94,7 @@ export function createTiffLayout(
     entries.push([287, 5, 1, positionOffset + 8]); // YPosition
   }
   if (hasResolution) entries.push([296, 3, 1, resolution?.unit === "meter" || resolution?.unit === "cm" ? 3 : resolution?.unit === "unknown" ? 1 : 2]); // ResolutionUnit
+  entries.push([297, 3, 2, 0]); // PageNumber
   if (tile) {
     entries.push([322, 4, 1, tile.width]);
     entries.push([323, 4, 1, tile.height]);
@@ -125,6 +126,10 @@ export function createTiffLayout(
       view.setUint32(p+4,count,littleEndian);
       if(type === 3 && count === 1) view.setUint16(valueAt,val,littleEndian);
       else view.setUint32(valueAt,val,littleEndian);
+    }
+    if (tag === 297) {
+      view.setUint16(valueAt, (options?.tiffScene ?? 0) + pageIndex, littleEndian);
+      view.setUint16(valueAt + 2, pageCount, littleEndian);
     }
     if (tag === 338) {
       const at = extrasSize ? extrasOffset - ifdOffset : valueAt;

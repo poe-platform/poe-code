@@ -119,7 +119,7 @@ export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:Image
   }
   }
  }
- const {header,directory,padding,end:nextEnd}=createTiffLayout(page,options,end,index+1<count,stripSizes);
+ const {header,directory,padding,end:nextEnd}=createTiffLayout(page,options,end,index+1<count,stripSizes,index,count);
  end=nextEnd;
  yield index===0 ? header : directory;
  if(encodedBytes === undefined) {

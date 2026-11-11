@@ -659,6 +659,7 @@ export function encodeImage(
       const orientation = options.orientation ?? img.orientation;
       const data = encodeTiffImage(img, {
         ...(options.tiffBig === undefined ? {} : {tiffBig: options.tiffBig}),
+        ...(options.tiffScene === undefined ? {} : {tiffScene: options.tiffScene}),
         ...(options.tiffIntegerDepth === undefined ? {} : {tiffIntegerDepth: options.tiffIntegerDepth}),
         ...(options.tiffSigned === undefined ? {} : {tiffSigned: options.tiffSigned}),
         ...(options.tiffFloatDepth === undefined ? {} : {tiffFloatDepth: options.tiffFloatDepth}),

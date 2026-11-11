@@ -16,11 +16,25 @@ export async function echoAudio(
   let position = 0;
   for (const option of parts) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? names[position] : option.slice(0, separator).trim() as keyof typeof options;
+    const key = separator < 0 ? names[position] : option.slice(0, separator).trim();
+    const value = separator < 0 ? option : option.slice(separator + 1);
     if (separator < 0) position++;
     else position = position === 0 ? 1 : 0;
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      const minimum = key === "extra_hw_frames" ? -1 : 0;
+      const number = parseFilterExpression(value, "aecho", key === "thread_type" ? { slice: 1 } : {
+        min: minimum, max: 2147483647, default: minimum
+      });
+      if (key === "thread_type"
+        ? !Number.isInteger(number) || number < -2147483648 || number > 4294967295
+        : number < minimum || number > 2147483647) {
+        throw new RangeError(`aecho: invalid ${key}`);
+      }
+      // Scheduling and hardware frame reservations do not change PCM samples.
+      continue;
+    }
     if (!key || !Object.hasOwn(options, key)) throw new Error(`aecho: unsupported option ${key}`);
-    options[key] = separator < 0 ? option : option.slice(separator + 1);
+    options[key as keyof typeof options] = value;
   }
   const gains = [options.in_gain, options.out_gain].map((value, index) => {
     const gain = parseFilterExpression(value, "aecho", { min: 0, max: 1, default: index === 0 ? 0.6 : 0.3 });

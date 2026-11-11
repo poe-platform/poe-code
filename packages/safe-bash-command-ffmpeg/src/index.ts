@@ -16763,8 +16763,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "adelay: invalid all option" || msg.startsWith("adelay: invalid delay ")) return { exitCode: 234 };
             if (msg === "aecho: unsupported option enable") return { exitCode: 176 };
             if (msg.startsWith("aecho: unsupported option ")) return { exitCode: 8 };
-            if (msg === "aecho: invalid gain") return { exitCode: 222 };
-            if (msg === "aecho: delays and decays must have matching entries") return { exitCode: 234 };
+            if (msg === "aecho: invalid gain" || (err instanceof RangeError && msg.startsWith("aecho:"))) return { exitCode: 222 };
+            if (msg === "aecho: delays and decays must have matching entries" ||
+                msg === "aecho: invalid expression" || msg === "aecho: invalid or unsupported expression") return { exitCode: 234 };
             if (msg.startsWith("chorus: unsupported option ")) return { exitCode: 8 };
             if (msg === "chorus: invalid gain") return { exitCode: 222 };
             if (msg === "chorus: delays, decays, speeds and depths must have matching entries") return { exitCode: 234 };

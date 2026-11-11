@@ -104,3 +104,48 @@ it("enforces the frame pixel budget on the complete canvas before allocating it"
   assert.ok(result.stderr.includes("maxPixelsPerFrame"), result.stderr);
   assert.equal(result.stdout.length, 0);
 });
+
+for (const [filter, expected] of [
+  ["xstack=inputs=3:layout=0_0|w0_0|w0+w1_0", "0a0b6465c8c914156e6fd2d31e1f6e6fd2d3"],
+  ["xstack=inputs=3:grid=3x1", "0a0b6465c8c914156e6fd2d31e1f6e6fd2d3"],
+  ["xstack=grid=3x1", "0a0b6465c8c914156e6fd2d31e1f6e6fd2d3"],
+  ["xstack=inputs=3:grid=1x3", "0a0b6465c8c914156e6fd2d31e1f6e6fd2d3"],
+  ["xstack=inputs=3:layout=w1+w2_0|w2_0|0_0", "c8c964650a0bd2d36e6f1415d2d36e6f1e1f"],
+  ["xstack=inputs=3:grid=3x1:shortest=1", "0a0b6465c8c914156e6fd2d3"],
+  ["hstack=inputs=3", "0a0b6465c8c914156e6fd2d31e1f6e6fd2d3"],
+  ["xstack=inputs=3", null],
+  ["xstack=inputs=3:layout=0_0|w0_0", null],
+  ["xstack=inputs=3:grid=0x3", null],
+  ["xstack=inputs=3:grid=3x1x1", null]
+] as const) {
+  it(`handles three rawvideo inputs with ${filter}`, async () => {
+    const volume = Volume.fromJSON({
+      "/a.gray": Buffer.from([10, 11, 20, 21, 30, 31]),
+      "/b.gray": Buffer.from([100, 101, 110, 111]),
+      "/c.gray": Buffer.from([200, 201, 210, 211])
+    });
+    const stdout: Uint8Array[] = [];
+    const stderr: Uint8Array[] = [];
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "error", ...["a", "b", "c"].flatMap(name => [
+        "-f", "rawvideo", "-pix_fmt", "gray", "-s", "2x1", "-framerate", "2", "-i", `/${name}.gray`
+      ]), "-filter_complex", `[0:v][1:v][2:v]${filter}[out]`, "-map", "[out]",
+      "-fps_mode", "passthrough", "-pix_fmt", "gray", "-bitexact", "-f", "rawvideo", "pipe:1"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(),
+      stdout: { async write(bytes: Uint8Array) { stdout.push(bytes); } },
+      stderr: { async write(bytes: Uint8Array) { stderr.push(bytes); } }
+    } as never);
+    if (expected === null) {
+      assert.notEqual(result.exitCode, 0);
+      assert.equal(Buffer.concat(stdout).length, 0);
+    } else {
+      assert.equal(result.exitCode, 0, Buffer.concat(stderr).toString());
+      assert.equal(Buffer.concat(stdout).toString("hex"), expected);
+    }
+  });
+}

@@ -11164,6 +11164,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 vfFilters.push(...downstream);
                 const options = (spec.startsWith("=") ? spec.slice(1) : "").split(":");
                 const xoptions: Record<string, string> = {};
+                let gridColumns = 0;
+                let gridInputs = 0;
                 if (xstack) {
                   const keys = ["inputs", "layout", "grid", "shortest", "fill"];
                   for (const [index, option] of options.entries()) {
@@ -11178,12 +11180,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     if (!key || !keys.includes(key)) throw new Error(`xstack: unsupported option ${option}`);
                     xoptions[key] = value;
                   }
-                  if (xoptions.inputs !== undefined && xoptions.inputs !== "2") {
-                    throw new Error("xstack: only two direct inputs are supported");
-                  }
                   if (xoptions.layout && xoptions.grid) throw new Error("xstack: layout and grid are mutually exclusive");
-                  if (xoptions.grid && !["1x2", "2x1"].includes(xoptions.grid)) {
-                    throw new Error("xstack: grid must contain two inputs");
+                  if (xoptions.grid) {
+                    const dimensions = xoptions.grid.split("x");
+                    if (dimensions.length !== 2 || dimensions.some(value =>
+                      !value || ![...value].every(char => char >= "0" && char <= "9") ||
+                      !Number.isSafeInteger(Number(value)) || Number(value) < 1)) {
+                      throw new Error("xstack: invalid grid dimensions");
+                    }
+                    gridColumns = Number(dimensions[0]);
+                    gridInputs = gridColumns * Number(dimensions[1]);
                   }
                   if (xoptions.shortest !== undefined && !["0", "1", "true", "false", "yes", "no", "on", "off"].includes(xoptions.shortest)) {
                     throw new Error("xstack: invalid shortest option");
@@ -11200,7 +11206,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }
                 const inputOption = options.find(option => option.trim().startsWith("inputs="))
                   ?.split("=")[1]?.trim() ?? (options[0]?.includes("=") ? undefined : options[0]?.trim());
-                const inputCount = framepack || xstack ? 2 : Number(inputOption || 2);
+                const inputCount = framepack ? 2 : xstack ? gridInputs || Number(xoptions.inputs ?? 2) : Number(inputOption || 2);
                 if (!Number.isInteger(inputCount) || inputCount < 2 || inputCount > loadedDocs.length) {
                   throw new Error(`${filter}: inputs must specify at least two available inputs`);
                 }
@@ -11310,10 +11316,32 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const duration = Math.min(endTime, Number.isFinite(nextTimestamp) ? nextTimestamp
                     : Math.max(...frames.map(frame => frame.ptsSeconds + frame.durationSeconds))) - timestamp;
                   let placements: { x: number; y: number }[];
-                  if (xstack) {
-                    const layout = xoptions.layout || (xoptions.grid === "1x2" ? "0_0|0_h0" : "0_0|w0_0");
+                  if (xstack && gridColumns) {
+                    let x = 0;
+                    let y = 0;
+                    let rowWidth = 0;
+                    placements = frames.map((frame, index) => {
+                      const rowStart = index - index % gridColumns;
+                      if (frame.height !== frames[rowStart]!.height) {
+                        throw new Error("xstack: grid inputs in each row must have matching heights");
+                      }
+                      const position = { x, y };
+                      x += frame.width;
+                      if ((index + 1) % gridColumns === 0) {
+                        if (rowStart > 0 && x !== rowWidth) {
+                          throw new Error("xstack: grid rows must have matching widths");
+                        }
+                        rowWidth = x;
+                        x = 0;
+                        y += frame.height;
+                      }
+                      return position;
+                    });
+                  } else if (xstack) {
+                    if (!xoptions.layout && inputCount !== 2) throw new Error("xstack: layout or grid is required for more than two inputs");
+                    const layout = xoptions.layout || "0_0|w0_0";
                     const entries = layout.split("|");
-                    if (entries.length !== frames.length) throw new Error("xstack: layout must contain two positions");
+                    if (entries.length !== frames.length) throw new Error("xstack: layout must contain one position per input");
                     placements = entries.map(entry => {
                       const coordinates = entry.split("_");
                       if (coordinates.length !== 2) throw new Error("xstack: each position needs x and y coordinates");

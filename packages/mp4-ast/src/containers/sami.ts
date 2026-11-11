@@ -4,13 +4,21 @@ import { buildProbeResultFromDoc } from "../mp4.js";
 import type { MediaAstPlugin, MediaDocument, MediaSample } from "../types.js";
 
 function parseSami(bytes: Uint8Array): MediaDocument {
+  const source = decodeUtf8(bytes);
   const samples: MediaSample[] = [];
+  const decodeErrors: string[] = [];
+  let suppressed = false;
   let start: number | undefined;
   let paragraph = false;
   let text = "";
   const flush = (end?: number) => {
+    if (start !== undefined && suppressed) {
+      decodeErrors.push("Error decoding subtitles: Operation not permitted");
+      text = "";
+    }
+    suppressed = false;
     const caption = text.trim();
-    if (start !== undefined && caption && !caption.startsWith("&nbsp;")) {
+    if (start !== undefined && caption) {
       const data = encodeUtf8(caption);
       // FFmpeg's subtitle decoder uses UINT32_MAX for an unspecified end time.
       samples.push({ pts: start, dts: start, cts: 0, duration: end === undefined ? 0xffffffff : Math.max(0, end - start),
@@ -29,6 +37,10 @@ function parseSami(bytes: Uint8Array): MediaDocument {
         start = next;
         paragraph = false;
       } else if (name === "p") {
+        // The literal marker immediately after any paragraph suppresses this SYNC.
+        let offset = parser.endIndex + 1;
+        while (offset < source.length && " \t\r\n\f\v".includes(source[offset]!)) offset++;
+        if (source.startsWith("&nbsp;", offset)) suppressed = true;
         if (text) text = text.trimEnd() + "\n";
         paragraph = true;
       } else if (name === "br" && paragraph) {
@@ -49,12 +61,12 @@ function parseSami(bytes: Uint8Array): MediaDocument {
       }
     }
   }, { decodeEntities: false });
-  parser.end(decodeUtf8(bytes));
+  parser.end(source);
   flush();
   const duration = samples.reduce((end, sample) => Math.max(end, sample.pts + sample.duration), 0);
   return { containerFormat: "sami", timescale: 1000, duration, durationSeconds: duration / 1000,
     tracks: [{ id: 1, type: "subtitle", handlerType: "sbtl", timescale: 1000, duration,
-      language: "und", enabled: true, codecDescriptions: [{ formatFourCC: "text", codecName: "text" }], samples }],
+      language: "und", enabled: true, codecDescriptions: [{ formatFourCC: "text", codecName: "text" }], samples, decodeErrors }],
     metadata: {}, byteLength: bytes.length };
 }
 

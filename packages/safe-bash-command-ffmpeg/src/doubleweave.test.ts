@@ -160,3 +160,28 @@ it("enforces doubled frame limits before replacing output", async () => {
   assert.ok(result.stderr.includes("maxPixelsPerFrame"), result.stderr);
   assert.equal(result.output.toString(), "KEEP");
 });
+
+for (const [value, field] of [
+  ["0.75", "bottom"], ["1/2", "top"], ["max", "bottom"],
+  ["default", "top"], ["min", "top"], ["bottom-top", "bottom"],
+  ["1/4", "top"], ["1-1/4", "bottom"], ["PI/4", "bottom"]
+] as const) {
+  it(`evaluates first_field=${value} with native integer rounding`, async () => {
+    const input = fixture().input;
+    const expected = await run(input, "doubleweave=" + field);
+    assert.equal(expected.exitCode, 0, expected.stderr);
+    for (const option of [value, `first_field=${value}`]) {
+      const result = await run(input, `doubleweave=${option}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.output, expected.output);
+    }
+  });
+}
+
+for (const value of ["-0.1", "1.1", "1/0", "0/0", "unknown", "2:first_field=top"]) {
+  it(`rejects invalid first_field=${value} before replacing output`, async () => {
+    const result = await run(fixture().input, `doubleweave=first_field=${value}`);
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(result.output.toString(), "KEEP");
+  });
+}

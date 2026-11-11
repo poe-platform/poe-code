@@ -1,23 +1,28 @@
 import { scaleVideoPicture, type MediaBudgetTracker, type MediaVideoFrame } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
+import { parseFilterExpression } from "./filter-expression.js";
 
 export async function doubleweave(
   frames: MediaVideoFrame[], argument: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaVideoFrame[]> {
   const options = argument ? argument.split(":") : [];
   if (options.at(-1) === "") options.pop();
-  let field = "top";
+  let field = 0;
   for (const [index, option] of options.entries()) {
     const separator = option.indexOf("=");
     if (separator < 0 ? index !== 0 : option.slice(0, separator).trim() !== "first_field") {
       throw new Error("doubleweave: unsupported option");
     }
-    field = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    field = parseFilterExpression((separator < 0 ? option : option.slice(separator + 1)).trim(), "doubleweave", {
+      top: 0, t: 0, bottom: 1, b: 1, default: 0, min: 0, max: 1,
+      PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+    });
+    if (!Number.isFinite(field) || field < 0 || field > 1) {
+      throw new Error("doubleweave: first_field must be top or bottom");
+    }
   }
-  if (!["top", "t", "0", "bottom", "b", "1"].includes(field)) {
-    throw new Error("doubleweave: first_field must be top or bottom");
-  }
-  const topFieldFirst = ["top", "t", "0"].includes(field);
+  // Integer AVOptions round ties to even: 0.5 selects the top field.
+  const topFieldFirst = field <= 0.5;
   const output: MediaVideoFrame[] = [];
   let work = 0;
   for (let index = 0; index + 1 < frames.length; index++) {

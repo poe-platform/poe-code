@@ -16872,6 +16872,39 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             mode = roundToEven(nextMode);
                           } else if (key === "mutel" || key === "muter" || key === "phasel" || key === "phaser" || key === "softclip") {
                             flags[key] = parseFilterBoolean(value, `stereotools: invalid ${key}`);
+                          } else if (key === "sclevel") {
+                            const number = parseFilterExpression(value, "stereotools", { min: 1, max: 100, default: 1 });
+                            if (!Number.isFinite(number) || number < 1 || number > 100) {
+                              throw new RangeError("stereotools: sclevel must be in the range [1, 100]");
+                            }
+                            sclevel = number;
+                          } else if (key === "mpan" || key === "sbal" || key === "balance_in" || key === "balance_out") {
+                            const valueNumber = parseFilterExpression(value, "stereotools", { min: -1, max: 1, default: 0 });
+                            if (!Number.isFinite(valueNumber) || valueNumber < -1 || valueNumber > 1) {
+                              throw new RangeError(`stereotools: ${key} must be in the range [-1, 1]`);
+                            }
+                            balance[key] = valueNumber;
+                          } else if (key === "bmode_in" || key === "bmode_out") {
+                            const balanceMode = parseFilterExpression(value, "stereotools", {
+                              balance: 0, amplitude: 1, power: 2, default: 0, min: 0, max: 2,
+                              PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+                            });
+                            if (!Number.isFinite(balanceMode) || balanceMode < 0 || balanceMode > 2) {
+                              throw new RangeError(`stereotools: invalid ${key}`);
+                            }
+                            balanceModes[key] = roundToEven(balanceMode);
+                          } else if (key === "base") {
+                            const number = parseFilterExpression(value, "stereotools", { min: -1, max: 1, default: 0 });
+                            if (!Number.isFinite(number) || number < -1 || number > 1) {
+                              throw new RangeError("stereotools: base must be in the range [-1, 1]");
+                            }
+                            base = number;
+                          } else if (key === "phase") {
+                            const number = parseFilterExpression(value, "stereotools", { min: 0, max: 360, default: 0 });
+                            if (!Number.isFinite(number) || number < 0 || number > 360) {
+                              throw new RangeError("stereotools: phase must be in the range [0, 360]");
+                            }
+                            phase = number;
                           } else return false;
                           return true;
                         };
@@ -16891,37 +16924,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           else position = position === 0 ? 1 : 0;
                           const value = option.slice(separator + 1).trim();
                           if (applyMixOption(key!, value)) continue;
-                          if (key === "sclevel") {
-                            sclevel = parseFilterExpression(value, "stereotools", { min: 1, max: 100, default: 1 });
-                            if (!Number.isFinite(sclevel) || sclevel < 1 || sclevel > 100) {
-                              throw new RangeError("stereotools: sclevel must be in the range [1, 100]");
-                            }
-                          } else if (key === "mpan" || key === "sbal" || key === "balance_in" || key === "balance_out") {
-                            const valueNumber = parseFilterExpression(value, "stereotools", { min: -1, max: 1, default: 0 });
-                            if (!Number.isFinite(valueNumber) || valueNumber < -1 || valueNumber > 1) {
-                              throw new RangeError(`stereotools: ${key} must be in the range [-1, 1]`);
-                            }
-                            balance[key] = valueNumber;
-                          } else if (key === "bmode_in" || key === "bmode_out") {
-                            const balanceMode = parseFilterExpression(value, "stereotools", {
-                              balance: 0, amplitude: 1, power: 2, default: 0, min: 0, max: 2,
-                              PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
-                            });
-                            if (!Number.isFinite(balanceMode) || balanceMode < 0 || balanceMode > 2) {
-                              throw new RangeError(`stereotools: invalid ${key}`);
-                            }
-                            balanceModes[key] = roundToEven(balanceMode);
-                          } else if (key === "base") {
-                            base = parseFilterExpression(value, "stereotools", { min: -1, max: 1, default: 0 });
-                            if (!Number.isFinite(base) || base < -1 || base > 1) {
-                              throw new RangeError("stereotools: base must be in the range [-1, 1]");
-                            }
-                          } else if (key === "phase") {
-                            phase = parseFilterExpression(value, "stereotools", { min: 0, max: 360, default: 0 });
-                            if (!Number.isFinite(phase) || phase < 0 || phase > 360) {
-                              throw new RangeError("stereotools: phase must be in the range [0, 360]");
-                            }
-                          } else if (key === "delay") {
+                          if (key === "delay") {
                             delay = parseFilterExpression(value, "stereotools", { min: -20, max: 20, default: 0 });
                             if (!Number.isFinite(delay) || delay < -20 || delay > 20) {
                               throw new RangeError("stereotools: delay must be in the range [-20, 20]");
@@ -16969,22 +16972,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           return [left, right];
                         };
-                        const [inputLeft, inputRight] = balanceGains(balance.balance_in, balanceModes.bmode_in);
-                        const [outputLeftGain, outputRightGain] = balanceGains(balance.balance_out, balanceModes.bmode_out);
-                        const width = base < 0 ? base / 2 : base;
                         budget.allocateMemory(stretched[0]!.length * 2 * Float64Array.BYTES_PER_ELEMENT);
                         const left = new Float64Array(stretched[0]!.length);
                         const right = new Float64Array(left.length);
-                        const clipScale = 1 / Math.atan(sclevel);
                         // Native FFmpeg rounds the interleaved delay down to an even sample count.
                         const delayFrames = Math.floor(origRate * (Math.abs(delay) / 1000) / 2);
                         budget.allocateMemory(delayFrames * 8);
-                        const phaseCos = Math.cos(phase / 180 * Math.PI);
-                        const phaseSin = Math.sin(phase / 180 * Math.PI);
-                        const midLeft = 1 - Math.max(0, balance.mpan);
-                        const midRight = 1 + Math.min(0, balance.mpan);
-                        const sideLeft = 1 - Math.max(0, balance.sbal);
-                        const sideRight = 1 + Math.min(0, balance.sbal);
                         const delayed = new Float64Array(delayFrames);
                         let delayPosition = 0;
                         const commands = audioCommands.filter(command => command.target === "stereotools" || command.target === filterTarget)
@@ -16995,8 +16988,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let frameIndex = 0;
                         let enabled = true;
                         const enableRegisters = new Float64Array(10);
-                        for (let i = 0; i < left.length; i++) {
-                          while (commandIndex < commands.length && commands[commandIndex]!.sample <= i) {
+                        for (let start = 0; start < left.length;) {
+                          while (commandIndex < commands.length && commands[commandIndex]!.sample <= start) {
                             const command = commands[commandIndex++]!;
                             try {
                               if (command.action === "enable") {
@@ -17006,82 +16999,96 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               } else applyMixOption(command.action, command.expression);
                             } catch { /* Rejected runtime updates leave the previous option unchanged. */ }
                           }
-                          if (i >= frameEnd) {
-                            const packet = t.samples[frameIndex];
-                            const timestamp = audioTimestamps?.[frameIndex];
-                            const frameLength = timestamp ? timestamp.end - timestamp.start
-                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
-                            const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + i);
-                            const pos = audioTimestamps ? timestamp?.pos : packet?.offset;
-                            // FFmpeg evaluates the timeline twice per input frame, using the second result.
-                            for (let evaluation = 0; evaluation < 2; evaluation++) {
-                              enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "stereotools enable", {
-                                n: frameIndex, t: pts / origRate, w: 0, h: 0,
-                                pos: pos === undefined || pos < 0 ? NaN : pos
-                              }, undefined, enableRegisters)) >= 0.5;
+                          const [inputLeft, inputRight] = balanceGains(balance.balance_in, balanceModes.bmode_in);
+                          const [outputLeftGain, outputRightGain] = balanceGains(balance.balance_out, balanceModes.bmode_out);
+                          const width = base < 0 ? base / 2 : base;
+                          const clipScale = 1 / Math.atan(sclevel);
+                          const phaseCos = Math.cos(phase / 180 * Math.PI);
+                          const phaseSin = Math.sin(phase / 180 * Math.PI);
+                          const midLeft = 1 - Math.max(0, balance.mpan);
+                          const midRight = 1 + Math.min(0, balance.mpan);
+                          const sideLeft = 1 - Math.max(0, balance.sbal);
+                          const sideRight = 1 + Math.min(0, balance.sbal);
+                          const end = Math.min(left.length, commands[commandIndex]?.sample ?? left.length);
+                          for (let i = start; i < end; i++) {
+                            if (i >= frameEnd) {
+                              const packet = t.samples[frameIndex];
+                              const timestamp = audioTimestamps?.[frameIndex];
+                              const frameLength = timestamp ? timestamp.end - timestamp.start
+                                : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                              const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + i);
+                              const pos = audioTimestamps ? timestamp?.pos : packet?.offset;
+                              // FFmpeg evaluates the timeline twice per input frame, using the second result.
+                              for (let evaluation = 0; evaluation < 2; evaluation++) {
+                                enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "stereotools enable", {
+                                  n: frameIndex, t: pts / origRate, w: 0, h: 0,
+                                  pos: pos === undefined || pos < 0 ? NaN : pos
+                                }, undefined, enableRegisters)) >= 0.5;
+                              }
+                              frameEnd = i + frameLength;
+                              frameIndex++;
                             }
-                            frameEnd = i + frameLength;
-                            frameIndex++;
-                          }
 
-                          if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                          let l = stretched[0]![i]! * levels.level_in * inputLeft;
-                          let r = stretched[1]![i]! * levels.level_in * inputRight;
-                          if (flags.softclip) {
-                            l = clipScale * Math.atan(l * sclevel);
-                            r = clipScale * Math.atan(r * sclevel);
-                          }
-                          let outputLeft = l;
-                          let outputRight = r;
-                          switch (mode) {
-                            case 0:
-                            case 6: {
-                              const mid = (l + r) / 2 * levels.mlev;
-                              const side = (mode === 6 ? r - l : l - r) / 2 * levels.slev;
-                              outputLeft = mid * midLeft + side * sideLeft;
-                              outputRight = mid * midRight - side * sideRight;
-                              break;
+                            if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            let l = stretched[0]![i]! * levels.level_in * inputLeft;
+                            let r = stretched[1]![i]! * levels.level_in * inputRight;
+                            if (flags.softclip) {
+                              l = clipScale * Math.atan(l * sclevel);
+                              r = clipScale * Math.atan(r * sclevel);
                             }
-                            case 1:
-                              outputLeft = (l * sideLeft + r * sideRight) / 2 * levels.mlev;
-                              outputRight = (l * sideLeft - r * sideRight) / 2 * levels.slev;
-                              break;
-                            case 2:
-                            case 7:
-                            case 8:
-                            case 9:
-                              outputLeft = l * levels.mlev * midLeft + r * levels.slev * sideLeft;
-                              outputRight = l * levels.mlev * midRight - r * levels.slev * sideRight;
-                              if (mode === 7) outputRight = outputLeft;
-                              if (mode === 8) outputLeft = outputRight;
-                              if (mode === 9) [outputLeft, outputRight] = [outputRight, outputLeft];
-                              break;
-                            case 3: outputRight = l; break;
-                            case 4: outputLeft = r; break;
-                            case 5: outputLeft = outputRight = (l + r) / 2; break;
-                            case 10: outputLeft = outputRight = (l - r) / 2; break;
+                            let outputLeft = l;
+                            let outputRight = r;
+                            switch (mode) {
+                              case 0:
+                              case 6: {
+                                const mid = (l + r) / 2 * levels.mlev;
+                                const side = (mode === 6 ? r - l : l - r) / 2 * levels.slev;
+                                outputLeft = mid * midLeft + side * sideLeft;
+                                outputRight = mid * midRight - side * sideRight;
+                                break;
+                              }
+                              case 1:
+                                outputLeft = (l * sideLeft + r * sideRight) / 2 * levels.mlev;
+                                outputRight = (l * sideLeft - r * sideRight) / 2 * levels.slev;
+                                break;
+                              case 2:
+                              case 7:
+                              case 8:
+                              case 9:
+                                outputLeft = l * levels.mlev * midLeft + r * levels.slev * sideLeft;
+                                outputRight = l * levels.mlev * midRight - r * levels.slev * sideRight;
+                                if (mode === 7) outputRight = outputLeft;
+                                if (mode === 8) outputLeft = outputRight;
+                                if (mode === 9) [outputLeft, outputRight] = [outputRight, outputLeft];
+                                break;
+                              case 3: outputRight = l; break;
+                              case 4: outputLeft = r; break;
+                              case 5: outputLeft = outputRight = (l + r) / 2; break;
+                              case 10: outputLeft = outputRight = (l - r) / 2; break;
+                            }
+                            outputLeft *= (flags.mutel ? 0 : 1) * (flags.phasel ? -1 : 1);
+                            outputRight *= (flags.muter ? 0 : 1) * (flags.phaser ? -1 : 1);
+                            if (delayFrames > 0) {
+                              const slot = delayPosition++ % delayFrames;
+                              const previous = delayed[slot]!;
+                              delayed[slot] = delay < 0 ? outputLeft : outputRight;
+                              if (delay < 0) outputLeft = previous;
+                              else outputRight = previous;
+                            }
+                            // Disabled frames still feed processed samples into the delay history.
+                            if (!enabled) {
+                              left[i] = stretched[0]![i]!;
+                              right[i] = stretched[1]![i]!;
+                              continue;
+                            }
+                            // Width follows mute, phase inversion and delay, before output rotation/gain.
+                            const wideLeft = outputLeft + width * outputLeft - width * outputRight;
+                            outputRight = outputRight + width * outputRight - width * outputLeft;
+                            outputLeft = wideLeft;
+                            left[i] = (outputLeft * phaseCos - outputRight * phaseSin) * outputLeftGain * levels.level_out;
+                            right[i] = (outputLeft * phaseSin + outputRight * phaseCos) * outputRightGain * levels.level_out;
                           }
-                          outputLeft *= (flags.mutel ? 0 : 1) * (flags.phasel ? -1 : 1);
-                          outputRight *= (flags.muter ? 0 : 1) * (flags.phaser ? -1 : 1);
-                          if (delayFrames > 0) {
-                            const slot = delayPosition++ % delayFrames;
-                            const previous = delayed[slot]!;
-                            delayed[slot] = delay < 0 ? outputLeft : outputRight;
-                            if (delay < 0) outputLeft = previous;
-                            else outputRight = previous;
-                          }
-                          // Disabled frames still feed processed samples into the delay history.
-                          if (!enabled) {
-                            left[i] = stretched[0]![i]!;
-                            right[i] = stretched[1]![i]!;
-                            continue;
-                          }
-                          // Width follows mute, phase inversion and delay, before output rotation/gain.
-                          const wideLeft = outputLeft + width * outputLeft - width * outputRight;
-                          outputRight = outputRight + width * outputRight - width * outputLeft;
-                          outputLeft = wideLeft;
-                          left[i] = (outputLeft * phaseCos - outputRight * phaseSin) * outputLeftGain * levels.level_out;
-                          right[i] = (outputLeft * phaseSin + outputRight * phaseCos) * outputRightGain * levels.level_out;
+                          start = end;
                         }
                         stretched = [left, right];
                       } else if (trimmed.startsWith("channelmap=")) {

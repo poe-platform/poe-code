@@ -17,7 +17,7 @@ for (const mode of ["sync", "buffered", "retained"] as const) {
         const bytes = mode === "retained" ? await filesystem.readFile("/p.xpm") : files.get("/p.xpm")!;
         const strings = new TextDecoder().decode(bytes).split("\n").filter(line => line.startsWith('"')).map(line => line.slice(1, line.lastIndexOf('"')));
         const cpp = colors <= 92 ? 1 : 2;
-        expect(strings[0]).toBe(`${colors} 1 ${colors} ${cpp}`);
+        expect(strings[0]).toBe(`${colors} 1 ${colors} ${cpp} `);
         expect(strings[colors + 1]).toHaveLength(colors * cpp);
         expect(new Set(strings.slice(1, colors + 1).map(line => line.slice(0, cpp))).size).toBe(colors);
         expect(decodeImage(bytes)).toMatchObject({ width: colors, height: 1 });

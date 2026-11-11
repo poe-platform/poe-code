@@ -20,7 +20,7 @@ for (const retained of [false, true]) {
         const text = new TextDecoder().decode(bytes);
         expect(text.startsWith("/* XPM */")).toBe(true);
         const strings = text.split("\n").filter(line => line.startsWith('"')).map(line => line.slice(1, line.lastIndexOf('"')));
-        expect(strings[0]).toBe("13 5 3 1");
+        expect(strings[0]).toBe("13 5 3 1 ");
         const palette = new Map(strings.slice(1, 4).map(line => [line[0], line.slice(4)]));
         const decoded = strings.slice(4).flatMap(row => [...row].flatMap(key => {
           const color = palette.get(key)!;

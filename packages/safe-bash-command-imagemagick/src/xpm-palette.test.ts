@@ -27,7 +27,7 @@ for (const mode of ["sync", "map", "filesystem"]) for (const write of [false, tr
         expect(result.exitCode).toBe(0);
         const path = write ? "/app-icon.bin" : "/app-icon.xpm";
         const bytes = mode === "filesystem" ? await filesystem.readFile(path) : files.get(path)!;
-        expect(new TextDecoder().decode(bytes).split("\n")[2]).toBe(`"32 16 ${colors} 2",`);
+        expect(new TextDecoder().decode(bytes).split("\n")[3]).toBe(`"32 16 ${colors} 2 ",`);
         const pixels = decodeImage(bytes).data;
         expect([...pixels.slice(0, 4)]).toEqual(alpha ? [0, 0, 0, 0] : [4, 0, 8, 255]);
         expect(createHash("sha256").update(pixels).digest("hex")).toBe(hash);

@@ -23,7 +23,7 @@ function* xpmChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "in
   const name = Array.from(encoder.encode(stem), (byte, index) =>
     (byte >= 65 && byte <= 90) || (byte >= 97 && byte <= 122) || (index > 0 && byte >= 48 && byte <= 57)
       ? String.fromCharCode(byte) : "_").join("") || "_";
-  yield encoder.encode(`/* XPM */\nstatic char *${name}[] = {\n"${image.width} ${image.height} ${palette.size} ${cpp}",\n`);
+  yield encoder.encode(`/* XPM */\nstatic char *${name}[] = {\n/* columns rows colors chars-per-pixel */\n"${image.width} ${image.height} ${palette.size} ${cpp} ",\n`);
   let index = 0;
   for (const value of palette.keys()) {
     let key = "", remaining = index++;
@@ -32,6 +32,7 @@ function* xpmChunks(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "in
     const rgb = indexed ? image.indexedColors![value]! & 0xffffff : value;
     yield encoder.encode(`"${key} c ${rgb === -1 ? "None" : `#${rgb.toString(16).padStart(6, "0")}`}",\n`);
   }
+  yield encoder.encode("/* pixels */\n");
   for (let offset = 0; offset < image.width * image.height * stride; offset += 4096) {
     const data = yield offset;
     let text = "";

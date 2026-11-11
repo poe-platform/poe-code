@@ -13,7 +13,7 @@ it("uses multi-character keys across bounded pixel chunks", async () => {
   }, new AbortController().signal)) chunks.push(chunk);
   expect(Buffer.concat(chunks)).toEqual(Buffer.from(expected));
   const strings = new TextDecoder().decode(expected).split("\n").filter(line => line.startsWith('"')).map(line => line.slice(1, line.lastIndexOf('"')));
-  expect(strings[0]).toBe("1100 2 2200 2");
+  expect(strings[0]).toBe("1100 2 2200 2 ");
   const palette = new Map(strings.slice(1, 2201).map(line => [line.slice(0, 2), line.slice(5)]));
   expect(palette.size).toBe(2200);
   for (let y = 0; y < 2; y++) {
@@ -31,6 +31,6 @@ it.each([63, 64, 65, 70, 90, 92, 93, 100])("preserves pixels with native XPM sym
     data: Uint8Array.from(Array.from({ length: colors }, (_, i) => [3 * i % 256, i, 255 - i, 255]).flat()),
     format: "raw", space: "srgb", channels: 4, depth: "uchar", hasAlpha: false, density: 72 };
   const bytes = encodeXpmImage(image);
-  expect(new TextDecoder().decode(bytes).split("\n")[2]).toBe(`"${colors} 1 ${colors} ${colors <= 92 ? 1 : 2}",`);
+  expect(new TextDecoder().decode(bytes).split("\n")[3]).toBe(`"${colors} 1 ${colors} ${colors <= 92 ? 1 : 2} ",`);
   expect(readXpmImage(bytes).data).toEqual(image.data);
 });

@@ -23,7 +23,9 @@ export function parseAudioChannelLayout(layout: string): string[] {
   if (layout === "downmix") return ["DL", "DR"];
   if (layout === "2.1") return ["FL", "FR", "LFE"];
   if (layout === "3.0") return ["FL", "FR", "FC"];
+  if (layout === "4.0") return ["FL", "FR", "FC", "BC"];
   if (layout === "quad") return ["FL", "FR", "BL", "BR"];
+  if (layout === "5.0") return ["FL", "FR", "FC", "BL", "BR"];
   if (layout === "5.1" || layout === "6c") return ["FL", "FR", "FC", "LFE", "BL", "BR"];
   if (layout === "5.1(side)") return ["FL", "FR", "FC", "LFE", "SL", "SR"];
   if (layout === "7.1") return ["FL", "FR", "FC", "LFE", "BL", "BR", "SL", "SR"];

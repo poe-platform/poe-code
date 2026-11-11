@@ -1,3 +1,4 @@
+import { colorlevels } from "./colorlevels.js";
 import { colorbalance } from "./colorbalance.js";
 import { edgedetect } from "./edgedetect.js";
 import { scharr } from "./scharr.js";
@@ -4632,6 +4633,8 @@ async function applyVideoFilterChain(
         }
         return { ...frame, data };
       }, signal);
+    } else if (name === "colorlevels") {
+      current = await colorlevels(current, argStr, pixelFormat, budget, signal);
     } else if (name === "colorchannelmixer") {
       const keys = ["rr", "rg", "rb", "ra", "gr", "gg", "gb", "ga", "br", "bg", "bb", "ba", "ar", "ag", "ab", "aa"];
       const coefficients: number[] = keys.map((_, index) => index % 5 === 0 ? 1 : 0);

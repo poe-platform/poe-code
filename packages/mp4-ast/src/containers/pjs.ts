@@ -21,9 +21,13 @@ function parsePjs(bytes: Uint8Array): MediaDocument {
   const timescale = 10;
   let duration = 0;
   const samples: MediaSample[] = [];
+  const seen = new Set<string>();
   for (const line of decodeUtf8(bytes).split("\n")) {
     const cue = readLine(line.endsWith("\r") ? line.slice(0, -1) : line);
     if (!cue) continue;
+    const key = `${cue.start},${cue.end},${cue.text}`;
+    if (seen.has(key)) continue;
+    seen.add(key);
     const data = encodeUtf8(cue.text);
     samples.push({ pts: cue.start, dts: cue.start, cts: 0,
       duration: cue.end - cue.start, data, size: data.length, offset: 0,

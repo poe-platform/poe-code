@@ -3982,6 +3982,61 @@ async function applyVideoFilterChain(
         }
         return { ...f, data };
       }, signal);
+    } else if (name === "unpremultiply") {
+      let planes = 15;
+      let inplace = false;
+      let enable: string | undefined;
+      for (const [index, part] of positional.entries()) {
+        if (!part) continue;
+        const separator = part.indexOf("=");
+        const key = separator < 0 ? ["planes", "inplace"][index] : part.slice(0, separator).trim();
+        const value = separator < 0 ? part : part.slice(separator + 1).trim();
+        if (key === "planes") {
+          const number = parseFilterExpression(value, "unpremultiply", { default: 15, min: 0, max: 15 });
+          if (!Number.isFinite(number) || number < 0 || number > 15) {
+            throw new Error("unpremultiply: planes must be in the range [0, 15]");
+          }
+          planes = roundToEven(number);
+        } else if (key === "inplace") {
+          inplace = parseFilterBoolean(value, "unpremultiply: invalid inplace boolean");
+        } else if (key === "enable") {
+          enable = value;
+        } else {
+          throw new Error(`unpremultiply: unsupported option ${key}`);
+        }
+      }
+      if (!inplace) throw new Error("unpremultiply: single-input filtering requires inplace=1");
+      if (pixelFormat !== "rgba" && pixelFormat !== "bgra" && pixelFormat !== "gbrap") {
+        throw new Error("unpremultiply: inplace filtering requires 8-bit RGBA, BGRA, or GBRAP input");
+      }
+      const planar = pixelFormat === "gbrap";
+      const registers = new Float64Array(10);
+      current = await mapWork(current, async (f, n) => {
+        const variables = { n, t: f.ptsSeconds, w: f.width, h: f.height, pos: f.offset ?? NaN, NAN: NaN, INF: Infinity };
+        if (enable !== undefined) parseFilterExpression(enable, "unpremultiply enable", variables, undefined, registers);
+        const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "unpremultiply enable", variables, undefined, registers)) >= 0.5;
+        budget.allocateMemory(f.data.byteLength);
+        const data = f.data.slice();
+        for (let i = 0; i < data.length; i += 4) {
+          if (i % 65536 === 0) {
+            await yieldTurn(signal);
+            signal?.throwIfAborted();
+            budget.checkCpu();
+          }
+          // FFmpeg negotiates GBRAP before filtering, even on disabled frames.
+          const alpha = planar ? data[i + 3]! : Math.min(255, Math.round(data[i + 3]! * 257 / 256));
+          data[i + 3] = alpha;
+          if (!enabled || alpha === 0) continue;
+          for (let channel = 0; channel < 3; channel++) {
+            // Plane bits are G, B, R, A; the alpha plane itself is copied.
+            if (planes & (1 << ((channel + 2) % 3))) {
+              data[i + channel] = Math.min(255, Math.floor(data[i + channel]! * 255 / alpha));
+            }
+          }
+        }
+        return { ...f, data };
+      }, signal);
+      pixelFormat = diagnostics.pixelFormat = "gbrap";
     } else if (name === "swapuv") {
       if (argStr) throw new Error("swapuv: unsupported option");
       current = await mapWork(current, frame => swapUv(frame, budget, signal), signal);

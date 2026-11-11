@@ -1,6 +1,6 @@
 import { spawnSync } from "node:child_process";
 import { expect, it } from "vitest";
-import { encodeImage } from "@poe-code/image-ast";
+import { decodeImage, encodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
@@ -48,3 +48,27 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
 }
 
 }
+
+it.each([
+  { width: 62, color: "black", pixel: [0, 0, 0, 255], payload: "fd" },
+  { width: 63, color: "black", pixel: [0, 0, 0, 255], payload: "fdc0" },
+  { width: 128, color: "black", pixel: [0, 0, 0, 255], payload: "fdfdc3" },
+  { width: 1, color: "#010101", pixel: [1, 1, 1, 255], payload: "7f" },
+  { width: 1, color: "#030503", pixel: [3, 5, 3, 255], payload: "a566" },
+  { width: 1, color: "#804020", pixel: [128, 64, 32, 255], payload: "fe804020" },
+])("writes compact QOI for $width pixels of $color", async ({ width, color, pixel, payload }) => {
+  const chunks: Uint8Array[] = [];
+  let stderr = "";
+  const result = await createMagickCommand().execute({
+    command: "magick", args: createCommandArguments(["-size", `${width}x1`, `xc:${color}`, "qoi:-"]).args,
+    fs: new MemoryFileSystem(), cwd: "/", env: {},
+    stdin: (async function* () {})(), signal: new AbortController().signal,
+    stdout: { write: async bytes => { chunks.push(bytes.slice()); } },
+    stderr: { write: async bytes => { stderr += new TextDecoder().decode(bytes); } }
+  });
+  expect(result.exitCode, stderr).toBe(0);
+  const output = Buffer.concat(chunks);
+  expect(output.subarray(14, -8).toString("hex")).toBe(payload);
+  expect(output.length).toBe(22 + payload.length / 2);
+  expect(decodeImage(output).data).toEqual(Uint8Array.from(Array.from({ length: width }, () => pixel).flat()));
+});

@@ -13329,7 +13329,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     const maskPlan = warpOperation.plan(mask, expanded)!;
                     output.readMask = yield* applyMagickRasterSteps(mask, maskPlan.steps, signal, maskPlan);
                 }
-                if ((t === "-swirl" || t === "-spread") && image.region) {
+                if ((t === "-swirl" || t === "-implode" || t === "-spread") && image.region) {
                     // Clip this edit with the original rectangle, then displace its mask.
                     output = yield* applyMagickRasterSteps(output, regionPixelSteps(output, image.region, !!(output.data16 || image.data16), state.channels), signal, output, [output, image]);
                     const mask = yield* applyMagickRasterSteps({ width: image.width, height: image.height, data: image.data,
@@ -16711,7 +16711,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const maskPlan = warpOperation.plan(mask, expanded)!;
                     output.readMask = await transformStoredMagickRaster(mask, backend, maskPlan.steps, signal, maskPlan);
                 }
-                if ((token === "-swirl" || token === "-spread") && image.region) {
+                if ((token === "-swirl" || token === "-implode" || token === "-spread") && image.region) {
                     // Clip this edit with the original rectangle, then displace its mask.
                     output = await transformStoredMagickRaster(output, backend, regionPixelSteps(output, image.region, !!(output.storedData16 || image.storedData16), maskChannels), signal, output, [output, image]);
                     const mask = await transformStoredMagickRaster({ width: image.width, height: image.height, position: image.position,

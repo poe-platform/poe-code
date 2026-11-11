@@ -2968,6 +2968,85 @@ async function applyVideoFilterChain(
         const { native: ignoredNative, ...frame } = f;
         return { ...frame, width, height, data };
       }, signal);
+    } else if (name === "smartblur") {
+      if (pixelFormat !== "gray" && pixelFormat !== "gray8") throw new Error("smartblur: requires 8-bit grayscale input");
+      let radius = 1, strength = 1, threshold = 0;
+      for (const [index, option] of (argStr ? positional : []).entries()) {
+        const separator = option.indexOf("=");
+        const key = separator < 0 ? ["lr", "ls", "lt"][index] : option.slice(0, separator);
+        const value = separator < 0 ? option : option.slice(separator + 1);
+        if (key === "enable") continue;
+        const number = parseFilterExpression(value, "smartblur", {});
+        if (key === "lr" || key === "luma_radius") radius = Math.fround(number);
+        else if (key === "ls" || key === "luma_strength") strength = Math.fround(number);
+        else if (key === "lt" || key === "luma_threshold") threshold = number;
+        else throw new Error(`smartblur: unsupported option ${key ?? option}`);
+      }
+      if (!Number.isFinite(radius) || radius < Math.fround(0.1) || radius > 5 ||
+          !Number.isFinite(strength) || strength < -1 || strength > 1 ||
+          !Number.isInteger(threshold) || threshold < -30 || threshold > 30) throw new Error("smartblur: invalid luma options");
+      const length = Math.floor(radius * 3 + 0.5) | 1;
+      const middle = (length - 1) / 2;
+      const gaussian = Array.from({ length }, (_, i) => Math.exp(-((i - middle) ** 2) / (2 * radius * radius)));
+      const total = gaussian.reduce((sum, value) => sum + value, 0);
+      const kernel = gaussian.map((value, i) => value / total * strength + (i === middle ? 1 - strength : 0));
+      current = await mapWork(current, async (frame, n) => {
+        if (!strength || length === 1 || (named.enable !== undefined &&
+            Math.abs(parseFilterExpression(named.enable, "smartblur enable", { n, t: frame.ptsSeconds, w: frame.width, h: frame.height })) < 0.5)) return frame;
+        budget.allocateMemory(frame.data.byteLength * 2 + (frame.width + frame.height) * length * 8);
+        // Clamp edges before quantizing coefficients, carrying rounding error
+        // between taps as swscale does (14-bit horizontal, 12-bit vertical).
+        const coefficients = (size: number, scale: number) => Array.from({ length: size }, (_, position) => {
+          const start = Math.max(0, position - middle);
+          const weights = new Array<number>(Math.min(length, size - start)).fill(0);
+          for (let tap = 0; tap < length; tap++) weights[Math.max(0, Math.min(size - 1, position + tap - middle)) - start]! += kernel[tap]!;
+          let error = 0;
+          return { start, weights: weights.map(value => {
+            const exact = value * scale + error;
+            const rounded = Math.round(exact);
+            error = exact - rounded;
+            return rounded;
+          }) };
+        });
+        const horizontal = coefficients(frame.width, 16384), vertical = coefficients(frame.height, 4096);
+        const intermediate = new Int32Array(frame.width * frame.height);
+        const data = new Uint8Array(frame.data.length);
+        for (let y = 0; y < frame.height; y++) {
+          if (y % 16 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          for (let x = 0; x < frame.width; x++) {
+            const { start, weights } = horizontal[x]!;
+            let sum = 0;
+            for (let tap = 0; tap < weights.length; tap++) sum += frame.data[(y * frame.width + start + tap) * 4]! * weights[tap]!;
+            intermediate[y * frame.width + x] = Math.min(32767, Math.floor(sum / 128));
+          }
+        }
+        for (let y = 0; y < frame.height; y++) {
+          if (y % 16 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          const { start, weights } = vertical[y]!;
+          for (let x = 0; x < frame.width; x++) {
+            // Match the native x86 fast scaler: truncate each product,
+            // then compensate for the number of vertical taps before rounding.
+            let sum = 4 + Math.floor(length / 2);
+            for (let tap = 0; tap < weights.length; tap++) sum += Math.floor(intermediate[(start + tap) * frame.width + x]! * weights[tap]! / 65536);
+            let value = Math.max(0, Math.min(255, Math.floor(sum / 8)));
+            const offset = (y * frame.width + x) * 4;
+            const original = frame.data[offset]!;
+            const difference = original - value;
+            const magnitude = Math.abs(difference);
+            if (threshold > 0) {
+              if (magnitude > 2 * threshold) value = original;
+              else if (magnitude > threshold) value = original - Math.sign(difference) * threshold;
+            } else if (threshold < 0) {
+              if (magnitude <= -threshold) value = original;
+              else if (magnitude <= -2 * threshold) value -= Math.sign(difference) * threshold;
+            }
+            data[offset] = data[offset + 1] = data[offset + 2] = value;
+            data[offset + 3] = 255;
+          }
+        }
+        const { native: ignoredNative, ...rest } = frame;
+        return { ...rest, data };
+      }, signal);
     } else if (name === "boxblur") {
       if (pixelFormat !== "gray" && pixelFormat !== "gray8") throw new Error("boxblur: requires 8-bit grayscale input");
       let radiusExpression = "2", power = 2;
@@ -13812,8 +13891,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           } else throw new Error(`silencedetect: unsupported option ${key}`);
                         }
                         // Native s16 detection truncates and wraps noise to signed 16-bit PCM.
-                        if (panSampleFormat === "s16") noise = (noise * 32767 << 16 >> 16) / 32768;
-                        else if (panSampleFormat === "s32") {
+                        if (panSampleFormat === "s16" || panSampleFormat === "s16p") noise = (noise * 32767 << 16 >> 16) / 32768;
+                        else if (panSampleFormat === "s32" || panSampleFormat === "s32p") {
                           // Native s32 conversion truncates, returning INT32_MIN on overflow.
                           const threshold = Math.trunc(noise * 2147483647);
                           noise = threshold > 2147483647 ? -1 : threshold / 2147483648;

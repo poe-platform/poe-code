@@ -15897,6 +15897,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               : `stereo|FL<FL+${Math.SQRT1_2}*FC+${Math.SQRT1_2}*BL+${Math.SQRT1_2}*SL|FR<FR+${Math.SQRT1_2}*FC+${Math.SQRT1_2}*BR+${Math.SQRT1_2}*SR`,
                             stretched, filteredChannelMask, panSampleFormat, budget, context.signal);
                             stretched = stereo.channels;
+                          } else if (["flt", "fltp", "dbl", "dblp"].includes(panSampleFormat)) {
+                            // SWR's multichannel stereo matrix stores float coefficients even for double samples.
+                            const gain = mono ? Math.SQRT1_2 : Math.fround(Math.SQRT1_2);
+                            const expression = mono
+                              ? `stereo|c0=${gain}*c0|c1=${gain}*c0`
+                              : quad ? `stereo|c0=c0+${gain}*c2|c1=c1+${gain}*c3`
+                              : `stereo|c0=c0+${gain}*c2+${gain}*c4|c1=c1+${gain}*c2+${gain}*c5`;
+                            stretched = (await panAudio(expression, stretched, filteredChannelMask,
+                              panSampleFormat, budget, context.signal)).channels;
                           } else {
                             const pcm16 = t.codecDescriptions[0]?.codecName === "pcm_s16le";
                             budget.allocateMemory(stretched[0]!.length * 2 * 8);
@@ -15938,9 +15947,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             throw new Error(`channelsplit: unsupported input channel layout (mask ${filteredChannelMask})`);
                           }
                           if (!autoConversionFilters) throw new Error(audioConversionDisabled);
-                          const mixed = await panAudio(stereo ? "mono|c0=0.5*c0+0.5*c1"
+                          const floating = ["flt", "fltp", "dbl", "dblp"].includes(panSampleFormat);
+                          // Native center/surround mix levels are float options; the mono matrix combines them in double.
+                          const center = floating ? Math.SQRT2 * Math.fround(Math.SQRT1_2) : 1;
+                          const surround = floating ? Math.SQRT1_2 * Math.fround(Math.SQRT1_2) : 0.5;
+                          const mixed = await panAudio(stereo
+                            ? `mono|c0=${floating ? Math.SQRT1_2 : 0.5}*c0+${floating ? Math.SQRT1_2 : 0.5}*c1`
                             : quad ? `mono|c0<c0+c1+${Math.SQRT1_2}*c2+${Math.SQRT1_2}*c3`
-                            : `mono|c0<${Math.SQRT1_2}*c0+${Math.SQRT1_2}*c1+c2+0.5*c4+0.5*c5`,
+                            : `mono|c0${floating ? "=" : "<"}${Math.SQRT1_2}*c0+${Math.SQRT1_2}*c1+${center}*c2+${surround}*c4+${surround}*c5`,
                             stretched, filteredChannelMask, panSampleFormat, budget, context.signal);
                           stretched = mixed.channels;
                           filteredChannelMask = mixed.channelMask;

@@ -216,7 +216,7 @@ Read default RGB FTXT records with `magick -size 2x1 ftxt:rgb.dat out.png`. Each
 
 Write portable half-float maps with `magick input.png output.phm` (or `phm:out.bin` / `phm:-`); output uses big-endian binary16 RGB or grayscale samples in bottom-to-top order, without alpha. Read portable half-float maps with `magick input.phm output.png`; RGB and grayscale inputs support both byte orders and retain the original row order.
 
-Read uncompressed, unsigned 8-bit FITS primary images with two axes and unscaled samples; FITS bottom-to-top rows are converted to raster order. Read three-plane, 8-bit RGB PCX images, including RLE compression, padded scanlines, and independent horizontal and vertical DPI. Read RGB and RGBA QOI images with lossless 8-bit samples, including colors under fully transparent pixels.
+Read uncompressed, unsigned 8-bit FITS primary images with two axes and unscaled samples; FITS bottom-to-top rows are converted to raster order. Read three-plane, 8-bit RGB PCX images, including RLE compression, padded scanlines, and independent horizontal and vertical DPI. Read RGB and RGBA QOI images with lossless 8-bit samples, including colors under fully transparent pixels. QOI input reads the first complete image and ignores bytes after its valid end marker.
 
 `-alpha discrete` makes output opaque while retaining stored opacity for subsequent `-alpha extract` or `-alpha activate`, including 16-bit samples. `%[channels]` counts the retained alpha channel after `discrete` or `deactivate`; `off` removes it from the reported channels. `-colors` and `-cycle` use retained alpha when selecting palette colors after `discrete` or `deactivate`; `-colors` also retains the reduced palette's opacity for later activation.
 

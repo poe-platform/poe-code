@@ -64,3 +64,24 @@ for (const flag of [0, 1]) {
     expect(data).toEqual(decoded.data);
   });
 }
+for (const retained of [false, true]) {
+  for (const suffix of [Buffer.from([10]), fixture("feffffff")]) {
+    it(`reads the first QOI with trailing bytes (retained=${retained}, suffix=${suffix.length})`, async () => {
+      const input = Buffer.concat([fixture("fe804020"), suffix]);
+      const data = new Uint8Array(4);
+      if (retained) {
+        await decodeQoiToStorage({ size: input.length, async read(offset, length) { return input.subarray(offset, offset + length); } }, {
+          allocate() { return 0; },
+          async read(offset, length) { return data.subarray(offset, offset + length); },
+          async write(offset, bytes) { data.set(bytes, offset); }
+        }, new AbortController().signal);
+      } else data.set(decodeQoiImage(input).data);
+      expect(Array.from(data)).toEqual([128, 64, 32, 255]);
+    });
+  }
+}
+it("does not skip an invalid end marker to find a valid marker later", () => {
+  const input = Buffer.concat([fixture("fe804020"), fixture("feffffff")]);
+  input[18] = 1;
+  expect(() => decodeQoiImage(input)).toThrow("Invalid QOI end marker");
+});

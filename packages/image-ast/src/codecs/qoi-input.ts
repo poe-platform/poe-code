@@ -59,7 +59,6 @@ function* qoiPixels(count: number, size: number): Generator<number | Uint8Array,
     }
     yield pixels;
   }
-  if (offset !== size - 8) throw new Error("Invalid QOI end marker");
   for (let i = 0; i < 8; i++) if ((yield offset++) !== (i === 7 ? 1 : 0)) throw new Error("Invalid QOI end marker");
 }
 

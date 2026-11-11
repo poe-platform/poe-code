@@ -10896,8 +10896,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     const saturation = chroma === 0 ? 0 : chroma / (lightness <= 0.5 ? 2 * lightness : 2 - 2 * lightness);
                     return [hue / 6 * 255, saturation * 255, lightness * 255, color.a, 0];
                 }
-                // Native compares CMY against the endpoint components and K against its separate black value.
-                return cmyk && color.cmyk ? [...color.cmyk.slice(0, 3).map(value => value * 255), color.a, color.cmyk[3]! * 255]
+                // Native uses CMY endpoint components directly, including against sRGB samples; K is separate.
+                return color.cmyk ? [...color.cmyk.slice(0, 3).map(value => value * 255), color.a, color.cmyk[3]! * 255]
                     : [color.r, color.g, color.b, color.a, 0];
             });
             const out = new Uint8Array(image.data.length);

@@ -9375,6 +9375,8 @@ export function evalSyncFfmpeg(
       if (audioCodec !== "copy" && !stripAudio) doc = decodeAacInput(doc);
       if (audioCodec === "copy" && (startSeconds !== undefined || outputSs !== undefined) &&
           doc.tracks.some(track => track.codecDescriptions[0]?.codecName === `pcm_${doc.containerFormat}`)) return undefined;
+      if ((inp.streamLoop === -1 || (inp.streamLoop ?? 0) > 0) &&
+          ["srt", "webvtt"].includes(doc.containerFormat)) return undefined;
       if (inp.streamLoop && inp.streamLoop > 0) {
         doc = loopInputMedia(doc, inp.streamLoop, inp.accurateSeek === false || audioCodec === "copy" || isStdin(inp.path) ? undefined : startSeconds, budget);
       }
@@ -12604,7 +12606,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               if (audioCodec !== "copy" && !stripAudio) doc = decodeAacInput(doc);
               const loopSourceDuration = doc.durationSeconds;
-              if (inp.streamLoop && inp.streamLoop > 0) {
+              const subtitleLoopFailure = (inp.streamLoop === -1 || (inp.streamLoop ?? 0) > 0) &&
+                ["srt", "webvtt"].includes(doc.containerFormat);
+              if (subtitleLoopFailure) {
+                // Standalone subtitle demuxers cannot seek to their unknown start time.
+                // Finish writing the first pass before returning the restart failure.
+                demuxExitCode = 222;
+                if (logLevel >= 16) await writeBytes(context.stderr,
+                  encodeUtf8("ffmpeg: Task finished with error code: -34 (Numerical result out of range)\n"), context.signal);
+              } else if (inp.streamLoop && inp.streamLoop > 0) {
                 doc = loopInputMedia(doc, inp.streamLoop, inp.accurateSeek === false || audioCodec === "copy" || isStdin(inp.path) ? undefined : startSeconds, budget);
               }
               if (
@@ -12673,7 +12683,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }, subtitleCodec === "copy");
                 if (videoCodec === "copy" && !copyPriorStart && startSeconds !== undefined) doc = discardOutputPreroll(doc, { video: videoCodec }, copyInitialNonKeyframes);
               }
-              if (inp.streamLoop === -1) {
+              if (inp.streamLoop === -1 && !subtitleLoopFailure) {
                 doc = loopToOutputEnd(doc, outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration, budget);
               }
               if (subtitleCodec !== "copy") doc = validateSubtitleText(doc, exitOnError, inp.subtitleCharencModes);

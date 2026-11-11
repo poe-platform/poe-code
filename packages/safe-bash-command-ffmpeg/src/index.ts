@@ -16423,8 +16423,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             case 5: outputLeft = outputRight = (l + r) / 2; break;
                             case 10: outputLeft = outputRight = (l - r) / 2; break;
                           }
-                          outputLeft = flags.mutel ? 0 : outputLeft * (flags.phasel ? -1 : 1);
-                          outputRight = flags.muter ? 0 : outputRight * (flags.phaser ? -1 : 1);
+                          outputLeft *= (flags.mutel ? 0 : 1) * (flags.phasel ? -1 : 1);
+                          outputRight *= (flags.muter ? 0 : 1) * (flags.phaser ? -1 : 1);
                           if (delayFrames > 0) {
                             const slot = delayPosition++ % delayFrames;
                             const previous = delayed[slot]!;

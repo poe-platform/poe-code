@@ -10224,12 +10224,13 @@ function* prepareGifFrames(stack: readonly MagickImage[], dither: MagickState["d
     let fw = 0, fh = 0;
     for (const frame of stack) { fw = Math.max(fw, frame.width); fh = Math.max(fh, frame.height); }
     const first = stack[0]!;
-    if (format === "webp") {
+    const coalesce = format === "webp" && stack.some(frame => frame.width !== first.width || frame.height !== first.height);
+    if (coalesce) {
         fw = first.virtualCanvas?.width || first.width;
         fh = first.virtualCanvas?.height || first.height;
     }
-    // WebP encodes displayed canvases, so apply frame placement and disposal before packing.
-    let canvas = format === "webp" ? { ...yield* createSolidRgbaImageSteps(fw, fh,
+    // Like ImageMagick, coalesce differently sized inputs; equal-sized frames retain their own alpha.
+    let canvas = coalesce ? { ...yield* createSolidRgbaImageSteps(fw, fh,
         { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: first.hasAlpha ? 0 : 255 }), hasAlpha: first.hasAlpha } : undefined;
     let hasAlpha = first.hasAlpha;
     const size = fw * fh * 4;
@@ -10251,8 +10252,8 @@ function* prepareGifFrames(stack: readonly MagickImage[], dither: MagickState["d
                 canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, clear, x, y, "source", undefined, false, 0, true), undefined, canvas, [canvas, clear]);
             }
             outputFrame = { ...outputFrame, width: fw, height: fh, data: displayed.data, hasAlpha: displayed.hasAlpha };
-            hasAlpha ||= displayed.hasAlpha;
         }
+        hasAlpha ||= outputFrame.hasAlpha;
         disposals.push(typeof outputFrame.disposal === "number" ? outputFrame.disposal : 0);
         const delay = outputFrame.delay?.[(stack[idx] as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0;
         const duration = format === "webp" && delay >= 0 && delay < 10 ? 100 : delay;
@@ -10288,16 +10289,18 @@ async function prepareStoredGifFrames(stack: StoredImageStack, backend: CompareF
     const first = await prepareStoredMagickOutput((await stack.get(0))!, "gif", backend, signal, dither, diffusionAmount);
     let hasAlpha = first.hasAlpha;
     let width = first.width, height = first.height;
+    let coalesce = false;
     for (let index = 1; index < stack.length; index++) {
         const frame = (await stack.get(index))!;
         width = Math.max(width, frame.width); height = Math.max(height, frame.height);
+        coalesce ||= format === "webp" && (frame.width !== first.width || frame.height !== first.height);
         hasAlpha ||= frame.hasAlpha;
     }
-    if (format === "webp") {
+    if (coalesce) {
         width = first.virtualCanvas?.width || first.width;
         height = first.virtualCanvas?.height || first.height;
     }
-    let canvas = format === "webp" ? { ...await createStoredCanvas(width, height,
+    let canvas = coalesce ? { ...await createStoredCanvas(width, height,
         { ...(first.backgroundColor ?? { r: 255, g: 255, b: 255 }), a: first.hasAlpha ? 0 : 255 }, backend, signal), hasAlpha: first.hasAlpha } : undefined;
     const size = width * height * 4, position = backend.storage.allocate(size * stack.length);
     const delaysPosition = format === "webp" ? backend.storage.allocate(stack.length * 8) : undefined;

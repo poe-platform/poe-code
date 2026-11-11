@@ -27,8 +27,8 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
                 stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
             }) : mode === "sync" ? runMagickCliSync(argv, files)
                 : await runMagickCli(argv, mode === "retained" ? { filesystem, cwd: "/" } : files);
-            stdout = "stdout" in result ? result.stdout : stdout;
-            stderr = "stderr" in result ? result.stderr : stderr;
+            stdout = "stdout" in result && typeof result.stdout === "string" ? result.stdout : stdout;
+            stderr = "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr;
             expect(result.exitCode, stderr).toBe(expected === undefined ? 1 : 0);
             expect(stdout).toBe(output === "info:" ? expected ?? "" : "");
             if (expected === undefined) expect(stderr).toContain(`invalid argument for option '-border': ${geometry}`);

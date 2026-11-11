@@ -808,7 +808,28 @@ describe("multi-input stacks", () => {
 });
 
 describe("asendcmd", () => {
-  for (const command of ["", "invalid volume@v volume 0.5", "0 volume@v unsupported 1", "0 [leave] volume@v volume 1"]) {
+  for (const action of ["no_such_filter volume 2", "volume@v bad_command 2", "volume bad_command 2", "volume@missing volume 2"]) {
+    for (const laterCommand of [false, true]) {
+      for (const complex of [false, true]) {
+        it(`continues after ${action} (later command=${laterCommand}, complex=${complex})`, async () => {
+          const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000,
+            channels: [new Float64Array(32).fill(1000 / 32768)] }) });
+          const filter = `asetnsamples=n=8:p=0,asendcmd=c='0.001 ${action}${laterCommand ? ";0.002 volume@v volume 3" : ""}',volume@v=1`;
+          const result = await runCmd(createFfmpegCommand(), ["-v", "error", "-i", "/in.wav",
+            ...(complex ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+            "-f", "s16le", "/out.pcm"], vfs);
+          assert.equal(result.exitCode, 0, result.stderr);
+          // Native FFmpeg keeps the first two frames unchanged and delivers the later command.
+          const output = vfs.store.get("/out.pcm")!;
+          assert.equal(output.length, 64);
+          const samples = new DataView(output.buffer, output.byteOffset, output.byteLength);
+          assert.deepEqual(Array.from({ length: 32 }, (_, i) => samples.getInt16(i * 2, true)),
+            Array.from({ length: 32 }, (_, i) => laterCommand && i >= 16 ? 3000 : 1000));
+        });
+      }
+    }
+  }
+  for (const command of ["", "; ;", "invalid volume@v volume 0.5", "-1 no_such_filter volume 2", "0 volume@v", "0 no_such_filter volume 2 extra", "0 [leave] volume@v volume 1"]) {
     it(`rejects unsupported schedule ${command} without replacing output`, async () => {
       const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(8)] }), "/out.wav": "keep" });
       const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", "-af",

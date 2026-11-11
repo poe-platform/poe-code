@@ -12027,7 +12027,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         intervals.push(commands.slice(start, end < 0 ? commands.length : end));
                         start = end < 0 ? commands.length : end + 1;
                       }
-                      const scheduled = intervals.filter(command => command.trim()).map(command => {
+                      const entries = intervals.filter(command => command.trim());
+                      if (!entries.length) throw new Error("asendcmd: commands are required");
+                      const scheduled = entries.flatMap(command => {
                         const words = Array.from(command, char => char.trim() ? char : " ").join("").split(" ").filter(Boolean);
                         const time = Number(words.shift());
                         if (words[0] === "[enter]") words.shift();
@@ -12053,12 +12055,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           || target === "aexciter" || target?.startsWith("aexciter@")
                           || ["unity", "silence", "curve", "c", "nb_samples", "ns", "duration", "d", "type", "t", "start_sample", "ss", "start_time", "st", "enable"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
                           || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
-                        if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                          throw new Error("asendcmd: expected TIME silenceremove[@NAME] start_threshold|stop_threshold|start_mode|stop_mode|enable VALUE or TIME tremolo[@NAME] enable EXPR or TIME vibrato[@NAME] enable EXPR or TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback|crossfeed|drymix|enable EXPR or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME crystalizer[@NAME] i|c VALUE or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] mm|cm|m|dry|wet|temp|enable VALUE or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays|enable VALUE or TIME alimiter[@NAME] limit LIMIT or TIME agate[@NAME] makeup GAIN or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN or TIME aphaser[@NAME] COMMAND ARG or TIME aexciter[@NAME] level_in|level_out|amount|drive|blend|freq|ceil|listen VALUE or TIME atilt[@NAME] freq|slope|width|order|level VALUE or TIME amix[@NAME] weights|normalize VALUE");
+                        if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !expression) {
+                          throw new Error("asendcmd: expected TIME [enter] TARGET COMMAND ARG");
                         }
-                        return { time, target, action: action!, expression };
+                        // Unmatched targets and declined actions do not invalidate the schedule.
+                        return supported ? [{ time, target, action: action!, expression }] : [];
                       });
-                      if (!scheduled.length) throw new Error("asendcmd: commands are required");
                       budget.allocateMemory(scheduled.length * 64);
                       scheduled.sort((a, b) => a.time - b.time);
                       return [{ sender, scheduled: scheduled.map(command => ({ ...command,

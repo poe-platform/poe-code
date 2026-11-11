@@ -16,8 +16,9 @@ export async function headphoneAudio(
     options[key] = separator < 0 ? option : option.slice(separator + 1);
   }
   const mapping = options.map?.split("|");
-  if (!mapping || mapping.length !== 2 || new Set(mapping).size !== 2 || mapping.some(name => !["FL", "FR"].includes(name))) {
-    throw new Error("headphone: map must assign FL and FR");
+  const mono = mapping?.length === 1 && mapping[0] === "FC";
+  if (!mapping || (!mono && (mapping.length !== 2 || new Set(mapping).size !== 2 || mapping.some(name => !["FL", "FR"].includes(name))))) {
+    throw new Error("headphone: map must assign FC or FL and FR");
   }
   for (const key of ["gain", "lfe"]) {
     const value = Number(options[key]);
@@ -29,11 +30,13 @@ export async function headphoneAudio(
   const size = Number(options.size);
   if (!Number.isInteger(size) || size < 1024 || size > 96000) throw new Error("headphone: invalid frame size");
   if (!["stereo", "0"].includes(options.hrir!)) throw new Error("headphone: only separate stereo impulse responses are supported");
-  if (tracks.length !== 3) throw new Error("headphone requires a source and two stereo impulse responses");
-  const audio = tracks.map(track => {
+  if (tracks.length !== mapping.length + 1) throw new Error("headphone requires one stereo impulse response per mapped source channel");
+  const audio = tracks.map((track, index) => {
     const decoded = track.decodedAudio;
-    if (!decoded || decoded.channels !== 2 || (decoded.channelMask !== undefined && decoded.channelMask !== 3)) {
-      throw new Error("headphone requires decoded stereo PCM inputs");
+    const channels = index === 0 && mono ? 1 : 2;
+    const mask = channels === 1 ? 4 : 3;
+    if (!decoded || decoded.channels !== channels || (decoded.channelMask !== undefined && decoded.channelMask !== mask)) {
+      throw new Error("headphone requires a source matching the map and stereo PCM impulse responses");
     }
     return decoded;
   });
@@ -59,7 +62,7 @@ export async function headphoneAudio(
   // Both processing modes implement the same causal convolution; keep only the source duration.
   let work = 0;
   for (const [response, name] of mapping.entries()) {
-    const input = source.channelData[name === "FL" ? 0 : 1]!;
+    const input = source.channelData[name === "FR" ? 1 : 0]!;
     for (let ear = 0; ear < 2; ear++) {
       const impulse = audio[response + 1]!.channelData[ear]!;
       const output = channelData[ear]!;

@@ -806,9 +806,12 @@ only the direct signal. Gains range from 0.015625 to 64; tap balances range from
 `enable`/`disable`, and `enabled`/`disabled`, in named or positional form.
 `[0:a][1:a][2:a]headphone=map=FL|FR:type=time[h]` renders a stereo source
 through separate stereo impulse responses for its left and right channels.
+`[0:a][1:a]headphone=map=FC:type=time[h]` renders a mono center source through
+one stereo impulse response. Both forms produce stereo output.
 Both `type=time` and `type=freq` use bounded direct convolution, preserve the source
-frame count, sample rate, and timestamps, and apply native gain (−6 dB for stereo plus `gain`).
-Use `map=FR|FL` to reverse the response assignments. All three inputs must be stereo
+frame count, sample rate, and timestamps, and apply native gain
+(−3 dB for mono or −6 dB for stereo plus `gain`).
+Use `map=FR|FL` to reverse the stereo response assignments. All inputs must be
 PCM; impulse responses are resampled to the source sample rate. Filters on the source and
 on either impulse-response branch apply independently before convolution;
 multichannel HRIR files are unsupported.

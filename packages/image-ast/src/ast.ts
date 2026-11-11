@@ -59,6 +59,8 @@ export type ColorInput =
     };
 
 export interface RgbaImage {
+  /** Additional grayscale sample planes, following color and alpha. */
+  metaChannels?: RgbaImage[] | undefined;
   readonly endian?: "lsb" | "msb";
   readonly quality?: number;
   readonly decodeWarnings?: readonly string[];

@@ -256,9 +256,10 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  const palette=photometric===3,paletteSize=2**bits;
  if(palette&&(colorMap.count!==paletteSize*3||![8,16].includes(bits)))throw new Error("Invalid or unsupported TIFF ColorMap");
  const cmyk=photometric===5;
- const hasAlpha=(cmyk?samples===5:samples===2||samples===4)&&(extraSample===undefined||extraSample===1||extraSample===2);
- const metadata:StoredRgbaImage={...(xPosition||yPosition?{virtualCanvas:{width,height,x:Math.round(xPosition*xRes),y:Math.round(yPosition*yRes)}}:{}),...(pages>1?{pages}:{}),...(properties?{properties}:{}),width,height,position:combined,format:"tiff",space:!palette&&samples<3?bits===16?"grey16":"b-w":bits===16?"rgb16":"srgb",channels:!palette&&samples<3?hasAlpha?2:1:hasAlpha?4:3,depth:bits===16?"ushort":"uchar",bitsPerSample:bits,density:Math.max(1,Math.round(xRes*(resUnit===3?2.54:1))),...(hasResolution?{resolution:{x:xRes,y:yRes,unit:resUnit===3?"cm" as const:resUnit===1?"unknown" as const:"inch" as const}}:{}),hasAlpha,orientation};
- const raster=new Raster(combined,total,storage,signal),output=new Output(metadata,width,height,storage,signal);
+ const colorSamples=cmyk?4:photometric===0||photometric===1||palette?1:3;
+ const hasAlpha=samples>colorSamples&&(extraSample===undefined||extraSample===1||extraSample===2);
+ const metadata:StoredRgbaImage={...(xPosition||yPosition?{virtualCanvas:{width,height,x:Math.round(xPosition*xRes),y:Math.round(yPosition*yRes)}}:{}),...(pages>1?{pages}:{}),...(properties?{properties}:{}),width,height,position:combined,format:"tiff",space:!palette&&colorSamples===1?bits===16?"grey16":"b-w":bits===16?"rgb16":"srgb",channels:!palette&&colorSamples===1?hasAlpha?2:1:hasAlpha?4:3,depth:bits===16?"ushort":"uchar",bitsPerSample:bits,density:Math.max(1,Math.round(xRes*(resUnit===3?2.54:1))),...(hasResolution?{resolution:{x:xRes,y:yRes,unit:resUnit===3?"cm" as const:resUnit===1?"unknown" as const:"inch" as const}}:{}),hasAlpha,orientation};
+ const raster=new Raster(combined,total,storage,signal);
  const sampleBuffer=new Uint8Array(8),sampleView=new DataView(sampleBuffer.buffer);
  const readSample=async(at:number,high:boolean)=>{
   if(high)return (await raster.at(at+(le?1:0)))*256+await raster.at(at+(le?0:1));
@@ -269,6 +270,11 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
   if(sampleFormat!==3)return Math.round(Math.fround(sampleView.getUint32(0,le)/65537)/257);
   return readTiffFloat8(sampleView,0,bits,le);
  };
+ const images:StoredRgbaImage[]=[];
+ // Decode the color image first, then each additional grayscale plane.
+ for(let channel=colorSamples+Number(hasAlpha)-1;channel<samples;channel++) {
+ const meta=channel>=colorSamples+Number(hasAlpha);
+ const output=new Output(meta?{...metadata,space:bits===16?"grey16":"b-w",channels:1,hasAlpha:false}:metadata,width,height,storage,signal);
  const storedData16=bits===16&&sampleFormat!==3?{position:allocate(width*height*8),length:width*height*4}:undefined;
  for(const high of storedData16?[false,true]:[false]) {
   const max=high?65535:255,buffer=new Uint16Array(2048);
@@ -279,7 +285,8 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
    if(used===buffer.length){await write(storedData16!.position+offset,new Uint8Array(buffer.buffer));offset+=used*2;used=0;await defaultRuntime.yieldTurn(signal);}
   };
   for(let i=0;i<width*height;i++){const base=i*pixelBytes,channelStep=planar?planeBytes:sampleBytes,r=await readSample(base,high);
-   const alpha=hasAlpha||(!cmyk&&extraSample===undefined&&samples>=4)?await readSample(base+channelStep*(cmyk?4:samples<3?1:3),high):max;
+   if(meta){const value=await readSample(base+channelStep*channel,high);await pixel(value,value,value,max);continue;}
+   const alpha=hasAlpha?await readSample(base+channelStep*colorSamples,high):max;
    const straight=(value:number)=>hasAlpha&&extraSample===1?Math.min(max,Math.round(value*max/Math.max(alpha,Number.EPSILON))):value;
    if(palette){
     const index=await readSample(base,bits===16);
@@ -291,12 +298,15 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
     const rgb=(ink:number)=>Math.round((max-straight(ink))*(max-black)/max);
     await pixel(rgb(r),rgb(await readSample(base+channelStep,high)),rgb(await readSample(base+channelStep*2,high)),alpha);
    }
-   else if(samples<3){const gray=straight(photometric===0?max-r:r);await pixel(gray,gray,gray,alpha);}
+   else if(colorSamples===1){const gray=straight(photometric===0?max-r:r);await pixel(gray,gray,gray,alpha);}
    else if(photometric===6&&compression!==6&&compression!==7){const rgb=tiffYCbCrToRgb(r,await readSample(base+channelStep,high),await readSample(base+channelStep*2,high),max);await pixel(straight(rgb[0]),straight(rgb[1]),straight(rgb[2]),alpha);}
    else if(photometric===8){const rgb=tiffLabToRgb(r,await readSample(base+channelStep,high),await readSample(base+channelStep*2,high),max);await pixel(straight(rgb[0]),straight(rgb[1]),straight(rgb[2]),alpha);}
    else await pixel(straight(r),straight(await readSample(base+channelStep,high)),straight(await readSample(base+channelStep*2,high)),alpha);
   }
   if(high&&used)await write(storedData16!.position+offset,new Uint8Array(buffer.buffer,0,used*2));
  }
- return {...await output.finish(),...(storedData16?{storedData16}:{})};
+ images.push({...await output.finish(),...(storedData16?{storedData16}:{})});
+ }
+ const [image,...storedMetaChannels]=images;
+ return {...image!,...(storedMetaChannels.length?{storedMetaChannels}:{})};
 }

@@ -3,7 +3,7 @@ export function tiffChannels(img: Pick<RgbaImage,"space"|"hasAlpha">): 1 | 2 | 3
   return img.space === "b-w" || img.space === "grey16" ? img.hasAlpha ? 2 : 1 : img.hasAlpha ? 4 : 3;
 }
 export function createTiffLayout(
-  img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"space"|"hasAlpha"|"properties"|"virtualCanvas">,
+  img: Pick<RgbaImage,"width"|"height"|"density"|"resolution"|"orientation"|"space"|"hasAlpha"|"properties"|"virtualCanvas"|"metaChannels"> & { storedMetaChannels?: readonly unknown[] | undefined },
   options?: Pick<OutputEncodeOptions, "tiffBig" | "tiffIntegerDepth" | "tiffSigned" | "tiffFloatDepth" | "tiffPlanar" | "tiffAlpha" | "density" | "orientation" | "tiffCompression" | "quality" | "tiffEndian" | "tiffRowsPerStrip" | "tiffTile">,
   offset = 0, hasNext = false, stripSizes?: readonly number[]
 ) {
@@ -17,7 +17,11 @@ export function createTiffLayout(
   if (jpeg && options?.tiffFloatDepth) throw new Error("Floating-point TIFF does not support JPEG compression");
   if (jpeg && (bits !== 8 || options?.tiffSigned)) throw new Error("Integer TIFF with JPEG compression requires unsigned 8-bit samples");
   if (jpeg && options?.tiffPlanar) throw new Error("Planar TIFF does not support JPEG compression");
-  const channels = jpeg ? 3 : tiffChannels(img), hasAlpha = !jpeg && img.hasAlpha;
+  const metaCount = jpeg ? 0 : (img.metaChannels ?? img.storedMetaChannels)?.length ?? 0;
+  const channels = jpeg ? 3 : tiffChannels(img) + metaCount, hasAlpha = !jpeg && img.hasAlpha;
+  const extras = (hasAlpha ? 1 : 0) + metaCount;
+  const bpsSize = Math.ceil(Math.max(8, channels * 2) / alignment) * alignment;
+  const extrasSize = extras * 2 > offsetBytes ? Math.ceil(extras * 2 / alignment) * alignment : 0;
   const rowsPerStrip = options?.tiffRowsPerStrip ?? height;
   if (!Number.isSafeInteger(rowsPerStrip) || rowsPerStrip <= 0 || rowsPerStrip > 0xffffffff) throw new RangeError("Invalid TIFF rows per strip");
   const tile = options?.tiffTile;
@@ -42,13 +46,14 @@ export function createTiffLayout(
   const padding = (alignment - pixelBytes % alignment) % alignment;
   const comment = img.properties?.comment === undefined ? undefined : new TextEncoder().encode(img.properties.comment + "\0");
   const commentSize = comment ? Math.ceil(comment.length / alignment) * alignment : 0;
-  const numEntries = (hasAlpha ? 15 : 14) - (hasResolution ? 0 : 3) + (positions ? 2 : 0) + (comment ? 1 : 0) + (jpeg ? 1 : 0) + (tile ? 1 : 0) + (options?.tiffFloatDepth || options?.tiffIntegerDepth || options?.tiffSigned ? 1 : 0);
+  const numEntries = (extras ? 15 : 14) - (hasResolution ? 0 : 3) + (positions ? 2 : 0) + (comment ? 1 : 0) + (jpeg ? 1 : 0) + (tile ? 1 : 0) + (options?.tiffFloatDepth || options?.tiffIntegerDepth || options?.tiffSigned ? 1 : 0);
   const tableSize = Math.ceil((countBytes + numEntries * entryBytes + offsetBytes) / alignment) * alignment;
-  const directorySize = tableSize + 24 + commentSize + stripArraySize + positionSize;
+  const directorySize = tableSize + bpsSize + extrasSize + 16 + commentSize + stripArraySize + positionSize;
   const pixelOffset = offset === 0 ? (big ? 16 : 8) : offset + directorySize;
   const ifdOffset = offset === 0 ? pixelOffset + pixelBytes + padding : offset;
   const bpsOffset = ifdOffset + tableSize;
-  const xResOffset = bpsOffset + 8;
+  const extrasOffset = bpsOffset + bpsSize;
+  const xResOffset = extrasOffset + extrasSize;
   const yResOffset = xResOffset + 8;
   const positionOffset = yResOffset + 8 + commentSize + stripArraySize;
   // BigTIFF offsets stay within the exact integer range used by backing storage.
@@ -73,7 +78,7 @@ export function createTiffLayout(
   entries.push([257, 4, 1, height]); // ImageLength
   entries.push([258, 3, channels, channels === 1 ? bits : channels === 2 ? bits * 0x10001 : bpsOffset]); // BitsPerSample
   entries.push([259, 3, 1, ({ none: 1, lzw: 5, deflate: 8, packbits: 32773, jpeg: 7 })[options?.tiffCompression ?? "none"]]);
-  entries.push([262, 3, 1, jpeg ? 6 : channels < 3 ? 1 : 2]); // YCbCr, BlackIsZero or RGB
+  entries.push([262, 3, 1, jpeg ? 6 : tiffChannels(img) < 3 ? 1 : 2]); // YCbCr, BlackIsZero or RGB
   if (!tile) entries.push([273, big ? 16 : 4, stripCount, stripCount === 1 ? pixelOffset : yResOffset + 8 + commentSize]); // StripOffsets
   entries.push([274, 3, 1, orientation]); // Orientation
   entries.push([277, 3, 1, channels]); // SamplesPerPixel
@@ -96,7 +101,7 @@ export function createTiffLayout(
   if (jpeg) entries.push([530, 3, 2, 0x00010001]); // YCbCrSubSampling
   if (options?.tiffFloatDepth) entries.push([339, 3, 1, 3]); // IEEE floating point
   else if (options?.tiffIntegerDepth || options?.tiffSigned) entries.push([339, 3, 1, options?.tiffSigned ? 2 : 1]);
-  if (hasAlpha) entries.push([338, 3, 1, options?.tiffAlpha === "associated" ? 1 : options?.tiffAlpha === "unspecified" ? 0 : 2]); // ExtraSamples
+  if (extras) entries.push([338, 3, extras, extrasOffset]); // ExtraSamples
   if (comment) {
     entries.push([270, 2, comment.length, comment.length <= offsetBytes ? 0 : yResOffset + 8]);
 
@@ -107,7 +112,8 @@ export function createTiffLayout(
     if (big) {
       view.setBigUint64(p+4,BigInt(count),littleEndian);
       if (type === 3) {
-        for (let i = 0; i < count; i++) view.setUint16(valueAt + i * 2, tag === 258 ? bits : count === 1 ? val : 1, littleEndian);
+        if (count * 2 > offsetBytes) view.setBigUint64(valueAt, BigInt(val), littleEndian);
+        else for (let i = 0; i < count; i++) view.setUint16(valueAt + i * 2, tag === 258 ? bits : count === 1 ? val : 1, littleEndian);
       } else if (type === 4) view.setUint32(valueAt,val,littleEndian);
       else if (type === 5) {
         view.setUint32(valueAt, tag < 286 ? Math.round((tag === 282 ? x : y) * denominator) : positions![tag - 286]![0]!, littleEndian);
@@ -117,6 +123,10 @@ export function createTiffLayout(
       view.setUint32(p+4,count,littleEndian);
       if(type === 3 && count === 1) view.setUint16(valueAt,val,littleEndian);
       else view.setUint32(valueAt,val,littleEndian);
+    }
+    if (tag === 338) {
+      const at = extrasSize ? extrasOffset - ifdOffset : valueAt;
+      for (let i = 0; i < extras; i++) view.setUint16(at + i * 2, i === 0 && hasAlpha ? options?.tiffAlpha === "associated" ? 1 : options?.tiffAlpha === "unspecified" ? 0 : 2 : 0, littleEndian);
     }
     if(tag === 270 && comment) directory.set(comment,comment.length <= offsetBytes ? valueAt : yResOffset+8-ifdOffset);
   });
@@ -139,10 +149,7 @@ export function createTiffLayout(
   if (hasNext && end > limit) throw new RangeError(big ? "TIFF layout exceeds safe BigTIFF offsets" : "TIFF layout exceeds classic TIFF offsets");
   if (big) view.setBigUint64(countBytes + numEntries * entryBytes, BigInt(hasNext ? end : 0), littleEndian);
   else view.setUint32(countBytes + numEntries * entryBytes, hasNext ? end : 0, littleEndian);
-  view.setUint16(bpsOffset-ifdOffset, bits, littleEndian);
-  view.setUint16(bpsOffset-ifdOffset + 2, bits, littleEndian);
-  view.setUint16(bpsOffset-ifdOffset + 4, bits, littleEndian);
-  view.setUint16(bpsOffset-ifdOffset + 6, bits, littleEndian);
+  for (let i = 0; i < Math.max(4, channels); i++) view.setUint16(bpsOffset-ifdOffset + i * 2, bits, littleEndian);
   view.setUint32(xResOffset-ifdOffset, Math.round(x * denominator), littleEndian);
   view.setUint32(xResOffset-ifdOffset + 4, denominator, littleEndian);
   view.setUint32(yResOffset-ifdOffset, Math.round(y * denominator), littleEndian);
@@ -156,9 +163,9 @@ export function createTiffLayout(
 }
 
 /** ImageMagick associates every sample, including the alpha sample itself. */
-export function associateTiffSamples(bytes: Uint8Array, channels: number): void {
+export function associateTiffSamples(bytes: Uint8Array, channels: number, alphaChannel = channels - 1): void {
   for (let offset = 0; offset < bytes.length; offset += channels) {
-    const alpha = bytes[offset + channels - 1]! / 255;
+    const alpha = bytes[offset + alphaChannel]! / 255;
     for (let channel = 0; channel < channels; channel++) bytes[offset + channel] = Math.round(bytes[offset + channel]! * alpha);
   }
 }

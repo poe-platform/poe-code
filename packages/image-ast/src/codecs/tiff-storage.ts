@@ -4,7 +4,7 @@ import type {ImageByteStorage,StoredRgbaImage} from "./png-storage.js";
 import {BackingArena} from "./backing-arena.js";
 import {createTiffCompressor} from "./tiff-compression.js";
 import {encodeJpegFromStorage} from "./jpeg-storage.js";
-import {tiffSamplePlane,associateTiffSamples,createTiffLayout} from "./tiff-layout.js";
+import {tiffChannels,tiffSamplePlane,associateTiffSamples,createTiffLayout} from "./tiff-layout.js";
 import {defaultRuntime} from "@poe-code/compression";
 export type StoredTiffEncodeOptions=NonNullable<Parameters<typeof createTiffLayout>[1]>;
 /** Pull-driven TIFF output with owned chunks and a strip directory. */
@@ -26,13 +26,21 @@ export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:Image
   const size=Math.min(4096,end-offset),bytes=await storage.read(position+offset,size,{signal});signal.throwIfAborted();
   if(!(bytes instanceof Uint8Array)||bytes.length!==size) throw new Error("Truncated TIFF backing storage");
   const output=new Uint8Array(size/4*channels);
-  if(channels===4) output.set(bytes);
-  else for(let src=0,dst=0;src<size;src+=4) {
+  const baseChannels = options.tiffCompression === "jpeg" ? 3 : tiffChannels(page);
+  for(let src=0,dst=0;src<size;src+=4) {
    output[dst++]=bytes[src]!;
-   if(channels===2) output[dst++]=bytes[src+3]!;
-   if(channels===3) { output[dst++]=bytes[src+1]!;output[dst++]=bytes[src+2]!; }
+   if(baseChannels>=3) { output[dst++]=bytes[src+1]!;output[dst++]=bytes[src+2]!; }
+   if(baseChannels===2 || baseChannels===4) output[dst]=bytes[src+3]!;
+   dst=(src/4+1)*channels;
   }
-  if (page.hasAlpha && options.tiffAlpha === "associated" && channels !== 3) associateTiffSamples(output, channels);
+  for (const [channel, meta] of (page.storedMetaChannels ?? []).entries()) {
+   if (baseChannels + channel >= channels) break;
+   const samples = await storage.read(meta.position+offset,size,{signal});
+   signal.throwIfAborted();
+   if(samples.length!==size) throw new Error("Truncated TIFF backing storage");
+   for(let src=0;src<size;src+=4) output[src/4*channels+baseChannels+channel]=samples[src]!;
+  }
+  if (page.hasAlpha && options.tiffAlpha === "associated" && options.tiffCompression !== "jpeg") associateTiffSamples(output, channels, baseChannels - 1);
   yield output;
  }
  }
@@ -48,7 +56,7 @@ export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:Image
   const stripHeight=options.tiffTile ? rows : Math.min(rows,height-row),start=encodedBytes;
   let block={...page,height:stripHeight,position:position+row*width*4};
   let blockStorage:ImageByteStorage=storage;
-  if(options.tiffTile) {
+  if(options.tiffTile && options.tiffCompression === "jpeg") {
    tileBacking.reset();const tilePosition=tileBacking.allocate(columns*stripHeight*4);
    for(let y=0;y<stripHeight;y++) {
     await defaultRuntime.yieldTurn(signal);
@@ -66,12 +74,16 @@ export async function* encodeTiffFromStorage(image:StoredRgbaImage,storage:Image
   }
   async function* blockPixels() {
    if(!options.tiffTile) {yield* pixels(row*width*4,(row+stripHeight)*width*4);return;}
-   for(let at=0;at<columns*stripHeight*4;at+=4096) {
-    signal.throwIfAborted();
-    const bytes=await blockStorage.read(block.position+at,Math.min(4096,columns*stripHeight*4-at),{signal}),raw=new Uint8Array(bytes.length/4*channels);
-    for(let src=0,dst=0;src<bytes.length;src+=4) {raw[dst++]=bytes[src]!;if(channels===2)raw[dst++]=bytes[src+3]!;if(channels>=3){raw[dst++]=bytes[src+1]!;raw[dst++]=bytes[src+2]!;}if(channels===4)raw[dst++]=bytes[src+3]!;}
-    if (page.hasAlpha && options.tiffAlpha === "associated" && channels !== 3) associateTiffSamples(raw, channels);
-    yield raw;
+   for(let y=0;y<stripHeight;y++) {
+    for(let x=0;x<columns;x+=1024) {
+     const size=Math.min(1024,columns-x),valid=row+y<height ? Math.max(0,Math.min(size,width-left-x)) : 0;
+     const raw=new Uint8Array(size*channels);
+     if(valid) {
+      const start=((row+y)*width+left+x)*4;
+      for await(const bytes of pixels(start,start+valid*4)) raw.set(bytes);
+     }
+     yield raw;
+    }
    }
   }
   async function* encode() {

@@ -13,7 +13,7 @@ import {tiffLabToRgb} from "./tiff-lab.js";
 import {tiffYCbCrToRgb} from "./tiff-ycbcr.js";
 import {readTiffFloat8} from "./tiff-float.js";
 import {createTiffCompressor} from "./tiff-compression.js";
-import {tiffSamplePlane,associateTiffSamples,createTiffLayout} from "./tiff-layout.js";
+import {tiffChannels,tiffSamplePlane,associateTiffSamples,createTiffLayout} from "./tiff-layout.js";
 import {createBmpHeader,readBmpHeader,readBmpMasks,bmpMaskedChannel,packBmpPixel} from "./bmp-header.js";
 import {netpbmComment,parseNetpbmSequence} from "./netpbm-header.js";
 import { transformBytes } from "@poe-code/compression";
@@ -445,8 +445,10 @@ export function encodeTiffImage(img:RgbaImage,options?:Parameters<typeof createT
    try {
     for(let offset=0;offset<block.data.length;offset+=4096) {
      const size=Math.min(4096,block.data.length-offset),raw=new Uint8Array(size/4*channels);
-     for(let src=offset,dst=0;src<offset+size;src+=4) {raw[dst++]=block.data[src]!;if(channels===2)raw[dst++]=block.data[src+3]!;if(channels>=3){raw[dst++]=block.data[src+1]!;raw[dst++]=block.data[src+2]!;}if(channels===4)raw[dst++]=block.data[src+3]!;}
-     if (page.hasAlpha && options?.tiffAlpha === "associated") associateTiffSamples(raw, channels);
+     for(let src=offset,dst=0;src<offset+size;src+=4) {raw[dst++]=block.data[src]!;if(tiffChannels(page)>=3){raw[dst++]=block.data[src+1]!;raw[dst++]=block.data[src+2]!;}if(page.hasAlpha)raw[dst++]=block.data[src+3]!;
+      const pixel = src / 4, x = left + pixel % columns, y = row + Math.floor(pixel / columns);
+      for (const meta of page.metaChannels ?? []) raw[dst++] = x < page.width && y < page.height ? meta.data[(y * page.width + x) * 4]! : 0;}
+     if (page.hasAlpha && options?.tiffAlpha === "associated") associateTiffSamples(raw, channels, tiffChannels(page) - 1);
      chunks.push(...compressor.push(encodeTiffIntegerSamples(encodeTiffFloatSamples(options?.tiffPlanar ? tiffSamplePlane(raw, channels, plane) : raw, options?.tiffFloatDepth, options?.tiffEndian !== "msb"), options?.tiffFloatDepth ? undefined : options?.tiffIntegerDepth, options?.tiffEndian !== "msb")));
     }
     chunks.push(...compressor.push(new Uint8Array(),true));
@@ -853,7 +855,8 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
   const paletteSize = 2 ** bitsPerSample;
   if (palette && (colorMap.length !== paletteSize * 3 || ![8, 16].includes(bitsPerSample))) throw new Error("Invalid or unsupported TIFF ColorMap");
   const cmyk = photometric === 5;
-  const hasAlpha = (cmyk ? samplesPerPixel === 5 : samplesPerPixel === 2 || samplesPerPixel === 4) && (extraSample === undefined || extraSample === 1 || extraSample === 2);
+  const colorSamples = cmyk ? 4 : photometric === 0 || photometric === 1 || palette ? 1 : 3;
+  const hasAlpha = samplesPerPixel > colorSamples && (extraSample === undefined || extraSample === 1 || extraSample === 2);
   const rgba = new Uint8Array(width * height * 4);
   const data16 = bitsPerSample === 16 && sampleFormat !== 3 ? new Uint16Array(rgba.length) : undefined;
   for (const target of data16 ? [rgba, data16] : [rgba]) {
@@ -877,14 +880,14 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
         const rgb = tiffLabToRgb(readSample(i, 0, high), readSample(i, 1, high), readSample(i, 2, high), max);
         target.set(rgb, i * 4);
         target[i * 4 + 3] = hasAlpha ? readSample(i, 3, high) : max;
-      } else if (samplesPerPixel === 1) {
+      } else if (colorSamples === 1 && !hasAlpha) {
         let g = readSample(i, 0, high);
         if (photometric === 0) g = max - g;
         target[i * 4] = g;
         target[i * 4 + 1] = g;
         target[i * 4 + 2] = g;
         target[i * 4 + 3] = max;
-      } else if (samplesPerPixel === 2) {
+      } else if (colorSamples === 1) {
         let g = readSample(i, 0, high);
         if (photometric === 0) g = max - g;
         target[i * 4] = g;
@@ -895,7 +898,7 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
         target[i * 4] = readSample(i, 0, high);
         target[i * 4 + 1] = readSample(i, 1, high);
         target[i * 4 + 2] = readSample(i, 2, high);
-        target[i * 4 + 3] = hasAlpha || (extraSample === undefined && samplesPerPixel >= 4) ? readSample(i, 3, high) : max;
+        target[i * 4 + 3] = hasAlpha ? readSample(i, 3, high) : max;
       }
       if (!cmyk && hasAlpha && extraSample === 1) {
         const alpha = target[i * 4 + 3]!;
@@ -903,24 +906,38 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
       }
     }
   }
+  const metaChannels: RgbaImage[] = [];
+  for (let channel = colorSamples + Number(hasAlpha); channel < samplesPerPixel; channel++) {
+    const data = new Uint8Array(rgba.length);
+    const plane16 = data16 ? new Uint16Array(rgba.length) : undefined;
+    for (const target of plane16 ? [data, plane16] : [data]) {
+      const high = target === plane16;
+      for (let i = 0; i < width * height; i++) {
+        const value = readSample(i, channel, high);
+        target.set([value, value, value, high ? 65535 : 255], i * 4);
+      }
+    }
+    metaChannels.push({ width, height, data, ...(plane16 ? { data16: plane16 } : {}), format: "tiff", space: plane16 ? "grey16" : "b-w", channels: 1, hasAlpha: false, depth: plane16 ? "ushort" : "uchar", density: 72 });
+  }
   const density = resUnit === 3 ? Math.max(1, Math.round(xRes * 2.54)) : Math.max(1, Math.round(xRes));
   return {
     width,
     height,
     data: rgba,
+    ...(metaChannels.length ? { metaChannels } : {}),
     ...(data16 ? {data16} : {}),
     format: "tiff",
     ...(xPosition || yPosition ? {virtualCanvas: {width, height, x: Math.round(xPosition * xRes), y: Math.round(yPosition * yRes)}} : {}),
     ...(pages > 1 ? {pages} : {}),
     space:
-      !palette && samplesPerPixel < 3
+      !palette && colorSamples === 1
         ? bitsPerSample === 16
           ? "grey16"
           : "b-w"
         : bitsPerSample === 16
           ? "rgb16"
           : "srgb",
-    channels: !palette && samplesPerPixel < 3 ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3,
+    channels: !palette && colorSamples === 1 ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3,
     depth: bitsPerSample === 16 ? "ushort" : "uchar",
     bitsPerSample,
     density,

@@ -1871,7 +1871,7 @@ function* formatMagickPropertyStringSteps<Step=never>(
               if (img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HSI" || img.magickColorspace === "HWB" || img.magickColorspace === "LMS" || img.magickColorspace === "CAT02LMS" || img.magickColorspace === "XYZ" || img.magickColorspace === "DisplayP3" || img.magickColorspace === "xyY" || img.magickColorspace === "ProPhoto" || img.magickColorspace === "Jzazbz" || (img.magickColorspace === "YPbPr" || img.magickColorspace === "YCbCr") || img.magickColorspace === "Rec601YCbCr" || img.magickColorspace === "YCC" || img.magickColorspace === "Rec709YCbCr" || img.magickColorspace === "Log" || img.magickColorspace === "Adobe98" || img.magickColorspace === "OHTA" || img.magickColorspace === "CMY" || img.magickColorspace === "YUV" || img.magickColorspace === "YIQ" || img.magickColorspace === "YDbDr" || img.magickColorspace === "Oklab" || img.magickColorspace === "Luv" || img.magickColorspace === "Oklch" || img.magickColorspace === "LCH" || img.magickColorspace === "LCHab" || img.magickColorspace === "LCHuv" || img.magickColorspace === "CIELab") { parts.push(formatHuePixel(channels, img.magickColorspace, hasAlpha)); continue; }
               if (img.space === "cmyk") { parts.push(formatCmykPixel(channels, hasAlpha, context.precision)); continue; }
               if (img.space === "b-w" || img.space === "grey16") {
-                parts.push(formatGrayPixel(channels, context.precision));
+                parts.push(formatGrayPixel(channels, img.magickColorspace ?? (img.gamma === 1 ? "LinearGray" : "Gray"), context.precision));
                 continue;
               }
               parts.push(formatRgbPixel(channels, context.precision));
@@ -1905,12 +1905,13 @@ function formatRgbPixel(channels: readonly number[], precision?: number): string
   return channels[3] === undefined ? `srgb(${color})` : `srgba(${color},${formatMetricNum(channels[3])})`;
 }
 
-function formatGrayPixel(channels: readonly number[], precision?: number): string {
+function formatGrayPixel(channels: readonly number[], colorspace: string, precision?: number): string {
+  const name = colorspace === "LinearGray" ? "lineargray" : "gray";
   const value = channels[0]!;
   const gray = Math.abs(value - Math.round(value)) > 1e-9
     ? `${formatSignificantMetric(value * 100 / 255, precision)}%`
     : String(Math.round(value));
-  return channels[3] === undefined ? `gray(${gray})` : `graya(${gray},${formatMetricNum(channels[3])})`;
+  return channels[3] === undefined ? `${name}(${gray})` : `${name}a(${gray},${formatMetricNum(channels[3])})`;
 }
 
 class FxPixelDemand { constructor(readonly position:number, readonly image = 0){} }
@@ -1961,7 +1962,7 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
  if(key.startsWith("hex:"))return channels.map(value=>value.toString(16).toUpperCase().padStart(hexMaximum === 65535 ? 4 : 2,"0")).join("");
  if(((image as StoredRgbaImage).magickColorspace === "HCL" || (image as StoredRgbaImage).magickColorspace === "HCLp" || (image as StoredRgbaImage).magickColorspace === "HSL" || (image as StoredRgbaImage).magickColorspace === "HSB" || (image as StoredRgbaImage).magickColorspace === "HSV" || (image as StoredRgbaImage).magickColorspace === "HSI" || (image as StoredRgbaImage).magickColorspace === "HWB" || (image as StoredRgbaImage).magickColorspace === "LMS" || (image as StoredRgbaImage).magickColorspace === "CAT02LMS" || (image as StoredRgbaImage).magickColorspace === "XYZ" || (image as StoredRgbaImage).magickColorspace === "DisplayP3" || (image as StoredRgbaImage).magickColorspace === "xyY" || (image as StoredRgbaImage).magickColorspace === "ProPhoto" || (image as StoredRgbaImage).magickColorspace === "Jzazbz" || ((image as StoredRgbaImage).magickColorspace === "YPbPr" || (image as StoredRgbaImage).magickColorspace === "YCbCr") || (image as StoredRgbaImage).magickColorspace === "Rec601YCbCr" || (image as StoredRgbaImage).magickColorspace === "YCC" || (image as StoredRgbaImage).magickColorspace === "Rec709YCbCr" || (image as StoredRgbaImage).magickColorspace === "Log" || (image as StoredRgbaImage).magickColorspace === "Adobe98" || (image as StoredRgbaImage).magickColorspace === "OHTA" || (image as StoredRgbaImage).magickColorspace === "CMY" || (image as StoredRgbaImage).magickColorspace === "YUV" || (image as StoredRgbaImage).magickColorspace === "YIQ" || (image as StoredRgbaImage).magickColorspace === "YDbDr" || (image as StoredRgbaImage).magickColorspace === "Oklab" || (image as StoredRgbaImage).magickColorspace === "Luv" || (image as StoredRgbaImage).magickColorspace === "Oklch" || (image as StoredRgbaImage).magickColorspace === "LCH" || (image as StoredRgbaImage).magickColorspace === "LCHab" || (image as StoredRgbaImage).magickColorspace === "LCHuv" || (image as StoredRgbaImage).magickColorspace === "CIELab"))return formatHuePixel(channels, (image as StoredRgbaImage).magickColorspace as "DisplayP3" | "HCL" | "HCLp" | "HSI" | "HSL" | "HSB" | "HSV" | "HWB" | "XYZ" | "CAT02LMS" | "LMS" | "xyY" | "ProPhoto" | "Jzazbz" | "CIELab" | "YPbPr" | "YCbCr" | "YCC" | "Rec709YCbCr" | "Log" | "OHTA" | "CMY" | "YUV" | "YIQ" | "YDbDr" | "Luv" | "Oklch" | "Oklab", hasAlpha);
  if(image.space === "cmyk")return formatCmykPixel(channels,hasAlpha,context.precision);
- if(image.space === "b-w" || image.space === "grey16")return formatGrayPixel(channels, context.precision);
+ if(image.space === "b-w" || image.space === "grey16")return formatGrayPixel(channels, (image as StoredRgbaImage).magickColorspace ?? (image.gamma === 1 ? "LinearGray" : "Gray"), context.precision);
  return formatRgbPixel(channels, context.precision);
 }
 

@@ -37,3 +37,32 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         expect(Buffer.from(output).toString("hex")).toBe(hex);
     });
 }
+
+// Native ImageMagick Q16-HDRI: magick 'xc:#3685c3' -colorspace LinearGray -depth 8 txt:-
+const linearGrayTxt = "# ImageMagick pixel enumeration: 1,1,0,255,lineargray\n0,0: (55)  #373737  lineargray(55)\n";
+for (const mode of ["command", "retained", "buffered", "sync"] as const) {
+    it.each([
+        { input: ["xc:#3685c3", "-colorspace", "LinearGray"], expected: "LinearGray/lineargray(21.4979%)" },
+        { input: ["xc:#3685c380", "-colorspace", "LinearGray"], expected: "LinearGray/lineargraya(21.4979%,0.501961)" },
+        { input: ["xc:#3685c3", "-colorspace", "Gray"], expected: "Gray/gray(47.3238%)" },
+        { input: ["xc:#3685c380", "-colorspace", "Gray"], expected: "Gray/graya(47.3238%,0.501961)" },
+        { input: ["in.txt"], expected: "LinearGray/lineargray(55)" },
+    ])(`${mode}: formats $expected`, async ({ input, expected }) => {
+        const argv = [...input, "-format", "%[colorspace]/%[pixel:p{0,0}]", "info:"];
+        const files = new Map([["in.txt", new TextEncoder().encode(linearGrayTxt)]]);
+        const fs = new MemoryFileSystem();
+        await fs.writeFile("/in.txt", files.get("in.txt")!);
+        let stdout = "", stderr = "";
+        const parsed = createCommandArguments(argv);
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: parsed.args, argumentValues: parsed, cwd: "/", env: {}, fs,
+            stdin: (async function* () {})(), signal: new AbortController().signal,
+            stdout: { async write(chunk) { stdout += new TextDecoder().decode(chunk); } },
+            stderr: { async write(chunk) { stderr += new TextDecoder().decode(chunk); } },
+        }) : mode === "sync" ? runMagickCliSync(argv, files)
+            : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        if ("stdout" in result) stdout = String(result.stdout);
+        if ("stderr" in result) stderr = String(result.stderr);
+        expect({ exitCode: result.exitCode, stdout, stderr }).toEqual({ exitCode: 0, stdout: expected, stderr: "" });
+    });
+}

@@ -14046,7 +14046,7 @@ async function tryConvertFiles(argv: readonly string[], input: ConvertFileInput,
         return result ? combineConvertOutput(result, analysis) : undefined;
     } catch (error) {
         signal.throwIfAborted();
-        if (!(error instanceof RangeError) || error.message !== "Invalid WebP frame duration") throw error;
+        if (!(error instanceof RangeError) || !["Invalid WebP frame duration", "Invalid WebP loop count"].includes(error.message)) throw error;
         return combineConvertOutput({ exitCode: 1, stdout: "", stderr: `magick: ${error.message}\n` }, analysis);
     }
 }

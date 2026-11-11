@@ -19,6 +19,7 @@ export function assembleLossyWebp(
   };
   const parts: Uint8Array[] = [];
   const animated = frames.length > 1;
+  if (animated && (options?.loop ?? image.loop ?? 0) < 0) throw new RangeError("Invalid WebP loop count");
   const density = options?.density ?? image.density ?? 72;
   const orientation = options?.orientation ?? image.orientation ?? 1;
   const exif = image.exif !== undefined || (options?.synthesizeExif !== false && (density !== 72 || orientation !== 1))

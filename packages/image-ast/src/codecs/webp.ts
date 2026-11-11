@@ -215,6 +215,7 @@ export function createWebpAnimation(
     throw new RangeError("Invalid WebP page height");
   const pages = image.height / height;
   if (pages === 1) return undefined;
+  if ((options?.loop ?? image.loop ?? 0) < 0) throw new RangeError("Invalid WebP loop count");
   const frameImage = { width: image.width, height, density: 72, orientation: 1 };
   const sample = createWebpEncoder(frameImage, hasAlpha);
   const frameSize = new DataView(sample.header.buffer).getUint32(4, true) - 4;

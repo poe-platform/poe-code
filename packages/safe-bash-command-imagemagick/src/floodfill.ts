@@ -12,6 +12,8 @@ export function matchesAlphaFloodfill(r: number, g: number, b: number, a: number
 }
 
 export async function floodfillStoredImage(image: StoredRgbaImage & HueMetadata, storage: ImageByteStorage, seedX: number, seedY: number, target: (RgbaColor & { cmyk?: readonly number[] }) | undefined, replacement: RgbaColor, fuzz: number, signal: AbortSignal, alphaOnly = false, channels?: readonly boolean[], fillToBorder = false): Promise<StoredRgbaImage & HueMetadata> {
+    if (!alphaOnly && (image.space === "b-w" || image.space === "grey16"))
+        image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
     const count = image.width * image.height, source = { position: image.storedData16?.position ?? image.position, length: count * (image.storedData16 ? 8 : 4) }, cache = new RasterBackingCache(storage, signal);
     const inks = image.space === "cmyk" && image.storedHueSamples !== undefined ? { position: image.storedHueSamples, length: count * 32 } : undefined;
     const readPixel = async (index: number): Promise<readonly number[]> => {

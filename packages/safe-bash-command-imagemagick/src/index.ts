@@ -1126,6 +1126,8 @@ function* applyMagickFloodfillSteps(
   const sx = Math.round(g.x);
   const sy = Math.round(g.y);
   if (sx < 0 || sy < 0 || sx >= w || sy >= h) return img;
+  if (!alphaOnly && (img.space === "b-w" || img.space === "grey16"))
+    img = { ...img, space: "srgb", channels: img.hasAlpha ? 4 : 3 };
   if (img.space === "cmyk") img = yield* convertCmykPixels(img);
   const inks = img.space === "cmyk" ? img.hueSamples : undefined;
   const out = new Uint8Array(img.data);

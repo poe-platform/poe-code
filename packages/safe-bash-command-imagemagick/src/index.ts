@@ -12939,10 +12939,11 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const count = quantization.count = colors ?? parseMagickColorCount(yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }));
                 const colorspace = state.quantizeColorspace;
+                const nativeRgb = !colorspace && ["DisplayP3", "Adobe98", "ProPhoto"].includes(image.magickColorspace ?? "");
                 if (colorspace && colorspace !== "gray") image = yield* parseMagickPixelOperation(["-colorspace", colorspace === "cmyk" ? "sRGB" : colorspace], state, 0, signal)!.apply(image);
                 else if (image.space === "cmyk") image = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(image);
-                else if (image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray") image = yield* convertHuePixels(image, "sRGB");
-                const working = colorspace === "cmyk" ? "cmyk" : colorspace && colorspace !== "gray" && image.hueSamples ? "hue" : undefined;
+                else if (!nativeRgb && image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray") image = yield* convertHuePixels(image, "sRGB");
+                const working = colorspace === "cmyk" ? "cmyk" : (colorspace || nativeRgb) && colorspace !== "gray" && image.hueSamples ? "hue" : undefined;
                 const { hueSamples: ignoredHue, ...pixels } = image;
                 const output = yield* applyMagickRasterSteps({ ...pixels, isPalette: true }, quantizePixelSteps(image.data.length, count, state.quantizeColorspace === "gray", state.treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, state.dither ? { width: image.width, height: image.height, method: state.dither, diffusionAmount: state.diffusionAmount ?? 1 } : undefined, true, working), signal, image, [image]);
                 if (working === "cmyk") return { ...output, space: "cmyk", channels: 4 };
@@ -16408,10 +16409,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const source = image;
                 const count = quantization.count = colors ?? parseMagickColorCount(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image: source, storage: backend.storage }), signal));
+                const nativeRgb = !colorspace && ["DisplayP3", "Adobe98", "ProPhoto"].includes(image.magickColorspace ?? "");
                 if (conversion) image = await transformStoredMagickPixels(image, backend, conversion, signal);
                 else if (image.space === "cmyk") image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!, signal);
-                else if (image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray") image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);
-                const working = colorspace === "cmyk" ? "cmyk" : colorspace && colorspace !== "gray" && image.storedHueSamples !== undefined ? "hue" : undefined;
+                else if (!nativeRgb && image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray") image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);
+                const working = colorspace === "cmyk" ? "cmyk" : (colorspace || nativeRgb) && colorspace !== "gray" && image.storedHueSamples !== undefined ? "hue" : undefined;
                 const output = await transformStoredMagickRaster({ ...image, isPalette: true }, backend, quantizePixelSteps(image.width * image.height * 4, count, colorspace === "gray", treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true, working), signal);
                 if (working === "cmyk") return { ...output, space: "cmyk", channels: 4 };
                 if (working) return output;

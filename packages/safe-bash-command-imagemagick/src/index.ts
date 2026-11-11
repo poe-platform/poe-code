@@ -13455,9 +13455,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         const previousBorderColor = state.borderColor;
         const previousInterlace = state.interlace;
         let setting: number | undefined;
-        if ((t === "-interlace" || t === "-attenuate") && tokens[i + 1]?.includes("%")) {
+        if ((t === "-interlace" || t === "-attenuate" || t === "-tile-offset") && tokens[i + 1]?.includes("%")) {
             const image = stack[0] ?? (yield* createSolidRgbaImageSteps(1, 1, state.background));
-            const expanded = yield* formatMagickPropertyStringSteps(tokens[i + 1]!, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
+            const expanded = yield* formatMagickPropertyStringSteps(tokens[i + 1]!, image, () => image, { ...(image as MagickImage)[magickInput], ...(t === "-tile-offset" ? { fxStack: stack, sceneCount: stack.length, listIndex: 0 } : {}), optionProperties: state.optionProperties });
             applyMagickReadSetting([t, expanded], state, 0);
             setting = i + 1;
         } else setting = applyMagickReadSetting(tokens, state, i);
@@ -17266,7 +17266,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         const previousBorderColor = state.borderColor;
         const previousInterlace = state.interlace;
         // Resolve property-dependent settings sequentially before capturing later settings.
-        if (!operandsOnly && (token === "-interlace" || token === "-attenuate") && tokens[i + 1]?.includes("%")) return;
+        if (!operandsOnly && (token === "-interlace" || token === "-attenuate" || token === "-tile-offset") && tokens[i + 1]?.includes("%")) return;
         const setting = operandsOnly ? undefined : applyMagickReadSetting(tokens, state, i);
         if (setting !== undefined) {
             i = setting;

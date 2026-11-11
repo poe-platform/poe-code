@@ -2441,7 +2441,7 @@ function parseMagickStatisticGeometry(raw: string): string {
     if (value.startsWith("+") || value.startsWith("-") || !Number.isFinite(Number.parseFloat(value)) || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
         throw new Error(`invalid argument for option '-statistic': ${raw}`);
     }
-    return value;
+    return value.replaceAll("#", "");
 }
 
 function validateMagickSpliceGeometry(raw: string): void {

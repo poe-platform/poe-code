@@ -671,7 +671,7 @@ interface MagickState {
   gradientVector?: string;
   gradientRadii?: string;
   gradientExtent?: string;
-  gradientCenter?: { x: number; y: number };
+  gradientCenter?: { x: number; y?: number };
   ftxtFormat?: string;
   comment?: string;
   label?: string;
@@ -2163,7 +2163,7 @@ function writeGradientPixel(data: Uint8Array, samples: Uint16Array, evaluateSamp
     samples[offset + 3] = Math.round(alpha * 257);
     data[offset + 3] = clampByteVal(samples[offset + 3]! / 257);
 }
-function* createGradientImageSteps(width: number, height: number, c1: ReturnType<typeof parseColor>, c2: ReturnType<typeof parseColor>, radial: boolean, direction?: string, angle?: number, vector?: string, box?: MagickGeometry, center?: { x: number; y: number }, radii?: string, extent?: string): Generator<void, RgbaImage, void> {
+function* createGradientImageSteps(width: number, height: number, c1: ReturnType<typeof parseColor>, c2: ReturnType<typeof parseColor>, radial: boolean, direction?: string, angle?: number, vector?: string, box?: MagickGeometry, center?: { x: number; y?: number }, radii?: string, extent?: string): Generator<void, RgbaImage, void> {
     let work = 0;
     const w = Math.max(1, Math.round(width));
     const h = Math.max(1, Math.round(height));
@@ -2195,7 +2195,7 @@ function* createGradientImageSteps(width: number, height: number, c1: ReturnType
             u32.fill(tmp32[0]!, i * span, (i + 1) * span);
         }
     } else {
-        const { x: cx, y: cy } = center ?? gradientCenter(w, h, direction);
+        const { x: cx, y: cy } = gradientCenter(w, h, direction, center, vector);
         const projection = gradientProjection(w, h, direction, angle);
         for (let y = 0; y < h; y++) {
             if (++work % 16384 === 0)
@@ -11681,7 +11681,7 @@ if (t === "-intent" || t === "+intent") {
             if (filterKey === "gradient:vector") state.gradientVector = filterValue ?? "";
             if (filterKey === "gradient:center") {
               const coordinates = (filterValue ?? "").replaceAll(",", " ").split(" ").filter(Boolean).map(Number);
-              if (coordinates.length === 2 && coordinates.every(Number.isFinite)) state.gradientCenter = { x: coordinates[0]!, y: coordinates[1]! };
+              if ((coordinates.length === 1 || coordinates.length === 2) && coordinates.every(Number.isFinite)) state.gradientCenter = { x: coordinates[0]!, ...(coordinates.length === 2 ? { y: coordinates[1]! } : {}) };
             }
             if (filterKey === "gradient:direction") state.gradientDirection = filterValue ?? "south";
             if (filterKey === "gradient:angle") state.gradientAngle = Number.parseFloat(filterValue ?? "") || 0;
@@ -18695,7 +18695,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const storedEvaluateSamples=checker?undefined:backend.storage.allocate(width*height*32);
   const spec=baseToken.slice(baseToken.indexOf(":")+1),separator=spec.indexOf("-"),first=separator<0?spec:spec.slice(0,separator),last=separator<0?"":spec.slice(separator+1),a=parseColor(checker?"white":first||"#ffffff",true),b=parseColor(checker||separator<0?"#000000":last||"#ffffff",true);
   const storedHueSamples=a.cmyk?backend.storage.allocate(width*height*32):undefined;
-  const {x:cx,y:cy}=state.gradientCenter??gradientCenter(width,height,state.gradientDirection),axes=gradientRadii(width,height,state.gradientExtent,state.gradientRadii),box=state.gradientBoundingBox;
+  const {x:cx,y:cy}=gradientCenter(width,height,state.gradientDirection,state.gradientCenter,state.gradientVector),axes=gradientRadii(width,height,state.gradientExtent,state.gradientRadii),box=state.gradientBoundingBox;
   const projection=gradientProjection(width,height,state.gradientDirection??(state.gradientExtent===undefined?undefined:"southeast"),state.gradientAngle);
   const vectorFactor=gradientVector(width,height,(radial&&state.gradientCenter)?undefined:radial||state.gradientAngle===undefined?state.gradientVector:undefined,radial,axes);
   for(let start=0;start<width*height;start+=4096){

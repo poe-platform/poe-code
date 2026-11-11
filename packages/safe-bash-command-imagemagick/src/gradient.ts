@@ -1,11 +1,19 @@
 /** Radial gradients use half the directional endpoint as their default center. */
-export function gradientCenter(width: number, height: number, direction?: string): { x: number; y: number } {
+export function gradientCenter(width: number, height: number, direction?: string, center?: { x: number; y?: number }, vector?: string): { x: number; y: number } {
+    let x = (width - 1) / 2, y = (height - 1) / 2;
     switch (direction) {
-        case "north": case "west": case "northwest": return { x: 0, y: 0 };
-        case "east": case "northeast": return { x: (width - 1) / 2, y: 0 };
-        case "south": case "southwest": return { x: 0, y: (height - 1) / 2 };
-        default: return { x: (width - 1) / 2, y: (height - 1) / 2 };
+        case "north": case "west": case "northwest": x = 0; y = 0; break;
+        case "east": case "northeast": y = 0; break;
+        case "south": case "southwest": x = 0; break;
     }
+    if (vector !== undefined) {
+        const coordinates = vector.replaceAll(",", " ").split(" ").filter(Boolean).map(Number);
+        if (coordinates.length === 4 && coordinates.every(Number.isFinite)) {
+            x = coordinates[2]! / 2;
+            y = coordinates[3]! / 2;
+        }
+    }
+    return { x: center?.x ?? x, y: center?.y ?? y };
 }
 
 /** Linear projection matching ImageMagick's gradient endpoints. */

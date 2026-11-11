@@ -270,12 +270,12 @@ it("supports synchronous conversion and mogrify option operands", async () => {
 });
 
 for (const retained of [false, true])
-it.each(["", "bad", "1001x5+35+3", "5x1001+35+3"])(`rejects invalid or unbounded geometry %s without replacing output (retained=${retained})`, async geometry => {
+it.each(["", "bad", "1001x5+35+3", "5x1001+35+3", "3x3+64+1junk"])(`rejects invalid or unbounded geometry %s without replacing output (retained=${retained})`, async geometry => {
     const files = new Map([["/in.png", input], ["/out.png", input]]), fs = new MemoryFileSystem();
     await fs.writeFile("/in.png", input); await fs.writeFile("/out.png", input);
     const result = await runMagickCli(["/in.png", "-bilateral-blur", geometry, "/out.png"], retained ? { filesystem: fs, cwd: "/" } : files);
     expect(result.exitCode).toBe(1);
-    expect(result.stderr).toContain(geometry.includes("1001") ? "window exceeds limit" : "Invalid bilateral-blur geometry");
+    expect(result.stderr).toContain(geometry.includes("1001") ? "window exceeds limit" : "bilateral-blur");
     expect(Buffer.from(retained ? await fs.readFile("/out.png") : files.get("/out.png")!)).toEqual(input);
 });
 
@@ -310,4 +310,26 @@ it("bounds reads, writes and cooperative work across raster chunks", () => {
     }
     expect(pauses).toBeGreaterThan(width * 25);
     expect(output).toEqual(pixels);
+});
+
+for (const mode of ["command", "buffered", "retained", "sync"] as const)
+for (const geometry of ["3x3+64+1junk", "3x3+64+1"])
+it(`validates complete bilateral geometry ${geometry} (${mode})`, async () => {
+    const source = Buffer.concat([Buffer.from("P6\n2 1\n255\n"), Buffer.from("0a141e5a6e82", "hex")]);
+    const files = new Map([["/in.ppm", source]]), fs = new MemoryFileSystem();
+    await fs.writeFile("/in.ppm", source);
+    const args = ["/in.ppm", "-bilateral-blur", geometry, "-depth", "8", "rgb:-"];
+    const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
+    const result = mode === "command" ? await createMagickCommand().execute({
+        command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { write: async chunk => { stdout.push(chunk); } },
+        stderr: { write: async chunk => { stderr.push(chunk); } },
+    }) : mode === "sync" ? runMagickCliSync(args, files)
+        : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+    const invalid = geometry.endsWith("junk");
+    expect(result.exitCode).toBe(invalid ? 1 : 0);
+    const output = mode === "command" ? Buffer.concat(stdout) : Buffer.from("stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : []);
+    expect(output.toString("hex")).toBe(invalid ? "" : "14202b506275");
+    if (invalid) expect(mode === "command" ? Buffer.concat(stderr).toString() : "stderr" in result ? result.stderr : "").toContain("bilateral-blur");
 });

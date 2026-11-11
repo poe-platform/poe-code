@@ -17682,6 +17682,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           options[key] = value;
                         }
+                        if ((!filteredChannelMask && filteredChannelNames?.some(name => name !== "")) ||
+                            (filteredChannelMask && ![3, 12, 0x60000000].includes(filteredChannelMask))) {
+                          throw new Error("stereowiden: unsupported input channel layout");
+                        }
+                        if (filteredChannelMask === 12) {
+                          if (!autoConversionFilters) throw new Error(audioConversionDisabled);
+                          // FC+LFE contributes only center, at the native stereo center gain.
+                          const stereo = await panAudio(`stereo|FL=${Math.SQRT1_2}*FC|FR=${Math.SQRT1_2}*FC`,
+                            stretched, filteredChannelMask, "flt", budget, context.signal);
+                          stretched = stereo.channels;
+                        }
+                        filteredChannelMask = 3;
+                        filteredChannelNames = undefined;
                         // Match native float arithmetic and lrintf's ties-to-even rounding.
                         const delay = roundToEven(Math.fround(Math.fround(origRate * Math.fround(options.delay)) / 1000));
                         let feedback = Math.fround(options.feedback);
@@ -20054,6 +20067,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 msg === "channelsplit: matching input channel layout required" ||
                 msg === "haas: unsupported input channel layout" ||
                 msg === "crossfeed: unsupported input channel layout" ||
+                msg === "stereowiden: unsupported input channel layout" ||
                 msg === "Padded dimensions cannot be smaller than input dimensions" ||
                 msg === "separatefields: height must be even" ||
                 msg === "negate: Requested components not available" || msg.startsWith("fps: frame rate:") ||

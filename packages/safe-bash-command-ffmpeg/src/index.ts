@@ -12510,7 +12510,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     visiting.add(label);
                     const source = await resolve(branch.input, visiting);
                     const description = source.track.codecDescriptions[0];
-                    const frames = await applyVideoFilterChain(source.frames, branch.expression, budget, {
+                    const diagnostics: Parameters<typeof applyVideoFilterChain>[3] = {
                       frameDuration: source.frames[0]?.durationSeconds ?? 1 / source.track.timescale,
                       timescale: source.track.timescale,
                       sarWidth: description?.sarWidth ?? 1,
@@ -12523,8 +12523,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         if (file === "-") await writeBytes(context.stdout, encodeUtf8(text), context.signal);
                         else await writeFileOutput(context, encodeUtf8(text), data => context.fs.writeFile(resolvePath(context.cwd, file), data, { signal: context.signal }));
                       }
-                    }, filename => readInput(resolvePath(context.cwd, filename)), registry, context.signal);
-                    return { track: { ...source.track, decodedVideoFrames: frames }, frames };
+                    };
+                    const frames = await applyVideoFilterChain(source.frames, branch.expression, budget, diagnostics,
+                      filename => readInput(resolvePath(context.cwd, filename)), registry, context.signal);
+                    return { track: { ...source.track, decodedVideoFrames: frames,
+                      codecDescriptions: source.track.codecDescriptions.map(description => ({
+                        ...description, pixFmt: diagnostics.pixelFormat
+                      }))
+                    }, frames };
                   }
                   const [input, selector, ordinal, ...extra] = label.split(":");
                   const numeric = selector === "v" ? [input, ordinal ?? "0"] : [input, selector ?? "0"];
@@ -12564,6 +12570,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   inputs.push(frames);
                 }
                 if (pads) throw new Error(`${filter}: unsupported input labels ${pads}`);
+                if (fill && inputTracks.every(track => ["gray", "gray8"].includes(track.codecDescriptions[0]?.pixFmt ?? ""))) {
+                  // xstack draws in the input format, before the output pixel conversion.
+                  const gray = Math.round(0.299 * fill[0]! + 0.587 * fill[1]! + 0.114 * fill[2]!);
+                  fill[0] = fill[1] = fill[2] = gray;
+                  fill[3] = 255;
+                }
                 const shortestOption = xstack ? xoptions.shortest : options.filter((option) => option.trim().startsWith("shortest=")).at(-1)
                   ?.split("=")[1]?.trim() ?? options[1]?.trim();
                 const stopAtShortest = framepack || ["1", "true", "yes", "on"].includes(shortestOption?.toLowerCase() ?? "0");

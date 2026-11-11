@@ -9,7 +9,9 @@ export async function freezedetect<T extends MediaVideoFrame & { filterMetadata?
 ): Promise<T[]> {
   let noise = 0.001;
   let minimumDuration = 2;
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  const options = argument ? argument.split(":") : [];
+  if (options.at(-1) === "") options.pop();
+  for (const [index, option] of options.entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["n", "d"][index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();

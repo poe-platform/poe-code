@@ -39,7 +39,7 @@ for (const retained of [false, true]) {
                 const value = Reflect.get(target, key, target);
                 return typeof value === "function" ? value.bind(target) : value;
             } });
-            const result = await runConvertCli(["-size", "1x1", `xc:${color}`, option, space, "out.png"], retained ? { filesystem, cwd: "/" } : files);
+            const result = await runConvertCli(["-size", "1x1", `xc:${color}`, option, space, "-depth", "8", "out.png"], retained ? { filesystem, cwd: "/" } : files);
             expect(result.exitCode).toBe(0);
             const output = retained ? await fs.readFile("/out.png") : files.get("out.png")!;
             expect([...decodeImage(output).data]).toEqual([gray, gray, gray, alpha]);

@@ -14643,23 +14643,16 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     overlay = tiled;
                 }
                 const pos = gravityAdjustBox(base.width, base.height, overlay.width, overlay.height, gx, gy, state.gravity);
-                let composed: RgbaImage;
-                if (state.composeRaw.toLowerCase() === "over" && !base.data16 && !overlay.data16 && !base.evaluateSamples && !overlay.evaluateSamples) {
-                    yield* blitOverRgbaInPlaceSteps(base, overlay, pos.x, pos.y);
-                    detachRgbaBuffer(overlay.data);
-                    composed = base;
-                } else {
-                    composed = (yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, pos.x, pos.y, state.composeArgs, signal, state.alphaFuzz));
-                    if (maskedCopy) {
-                        // Native channel copies apply the mask to the completed canvas.
-                        const masked = yield* applyMagickCompositeLayerSteps(composed, mask!, "CopyAlpha", 0, 0, undefined, signal);
-                        detachRgbaBuffer(composed.data);
-                        composed = yield* applyMagickCompositeLayerSteps(base, masked, "Over", 0, 0, undefined, signal);
-                        detachRgbaBuffer(masked.data); detachRgbaBuffer(mask!.data);
-                    }
-                    if (composed !== base) detachRgbaBuffer(base.data);
-                    if (composed !== overlay) detachRgbaBuffer(overlay.data);
+                let composed = (yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, pos.x, pos.y, state.composeArgs, signal, state.alphaFuzz));
+                if (maskedCopy) {
+                    // Native channel copies apply the mask to the completed canvas.
+                    const masked = yield* applyMagickCompositeLayerSteps(composed, mask!, "CopyAlpha", 0, 0, undefined, signal);
+                    detachRgbaBuffer(composed.data);
+                    composed = yield* applyMagickCompositeLayerSteps(base, masked, "Over", 0, 0, undefined, signal);
+                    detachRgbaBuffer(masked.data); detachRgbaBuffer(mask!.data);
                 }
+                if (composed !== base) detachRgbaBuffer(base.data);
+                if (composed !== overlay) detachRgbaBuffer(overlay.data);
                 stack = [composed];
             } else {
                 throw new Error("image sequence is required '-composite'");

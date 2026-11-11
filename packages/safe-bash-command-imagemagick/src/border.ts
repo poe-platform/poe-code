@@ -15,11 +15,11 @@ export function* borderPixels(image: Pick<RgbaImage, "width" | "height" | "hasAl
         const count = Math.min(512, width - x);
         const data = highDepth ? new Uint16Array(count * 4) : new Uint8Array(count * 4);
         const inks = cmyk ? new Float64Array(count * 4) : undefined;
-        const samples = hue || evaluate || cmyk ? new Float64Array(count * 4) : undefined;
+        const samples = new Float64Array(count * 4);
         for (let pixel = 0; pixel < count; pixel++) {
             data.set(background, pixel * 4);
             inks?.set(backgroundInks, pixel * 4);
-            samples?.set([color.r, color.g, color.b, color.a], pixel * 4);
+            samples.set([color.r, color.g, color.b, color.a], pixel * 4);
         }
         const first = Math.max(x, left), end = Math.min(x + count, left + image.width), sy = y - top;
         if (sy >= 0 && sy < image.height && first < end) {
@@ -39,8 +39,8 @@ export function* borderPixels(image: Pick<RgbaImage, "width" | "height" | "hasAl
                     data[dst + channel] = Math.round(value);
                     if (inks && sourceInks) inks[dst + channel] = combined
                         ? (sourceInks[src + channel]! * alpha + backgroundInks[channel]! * behind) / combined : backgroundInks[channel]!;
-                    // Retain Q16-HDRI palette means for the following warp/interpolation.
-                    if (samples) samples[dst + channel] = Math.fround(value * 65535 / maximum) / 257;
+                    // Blending creates fractional Q16-HDRI samples even from 8-bit inputs.
+                    samples[dst + channel] = Math.fround(value * 65535 / maximum) / 257;
                 }
             }
         }
@@ -49,11 +49,11 @@ export function* borderPixels(image: Pick<RgbaImage, "width" | "height" | "hasAl
                 const offset = pixel * 4;
                 const value = (1 - inks[offset + channel]!) * (1 - inks[offset + 3]!) * 255;
                 data[offset + channel] = Math.round(value * maximum / 255);
-                samples![offset + channel] = value;
+                samples[offset + channel] = value;
             }
             yield { kind: "write", hue: true, position: (y * width + x) * 4, data: new Uint8Array(inks.buffer) };
         }
-        if (samples) yield { kind: "write", position: (y * width + x) * 4, data: new Uint8Array((hue ? samples.map(value => value / 255) : samples).buffer), evaluate: evaluate || cmyk, hue };
+        yield { kind: "write", position: (y * width + x) * 4, data: new Uint8Array((hue ? samples.map(value => value / 255) : samples).buffer), evaluate: !hue, hue };
         yield { kind: "write", position: (y * width + x) * 4, data: new Uint8Array(data.buffer), highDepth };
     }
 }

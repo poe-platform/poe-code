@@ -1142,7 +1142,7 @@ function* applyMagickFloodfillSteps(
   };
 
   const startIdx = sy * w + sx;
-  if (!matchesRef(startIdx)) return img;
+  if (!matchesRef(startIdx)) return replacement.a < 255 ? { ...img, hasAlpha: true } : img;
 
   const visited = new Uint8Array(w * h);
   const queue = new Int32Array(w * h);

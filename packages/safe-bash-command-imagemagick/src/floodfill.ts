@@ -22,7 +22,7 @@ export async function floodfillStoredImage(image: StoredRgbaImage, storage: Imag
     const r = target ? target.r : seed[0]!, g = target ? target.g : seed[1]!, b = target ? target.b : seed[2]!;
     const a = (fillToBorder || !alphaOnly) && target ? target.a : seed[3]!;
     const matches = (pixel: readonly number[]) => fillToBorder !== matchesAlphaFloodfill(pixel[0]!, pixel[1]!, pixel[2]!, pixel[3]!, r, g, b, a, fuzz, target ? 0 : fuzz);
-    if (!matches(seed)) return image;
+    if (!matches(seed)) return replacement.a < 255 ? { ...image, hasAlpha: true } : image;
     const visited = await cache.allocate(count), stack = await cache.allocate(count * 4);
     let tail = 1;
     await cache.setUint32(stack, 0, start);

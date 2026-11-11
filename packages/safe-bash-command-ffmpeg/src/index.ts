@@ -18391,6 +18391,38 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                   }
 
+                  const filterRate = origRate;
+                  const targetRate = audioRate ?? origRate;
+                  const resampleFrameLimit = !outputCut && maxAudioFrames !== undefined && audioRate !== undefined && audioRate !== origRate
+                    && resampler === "swr" && !loudnormResampling && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms"
+                    ? { count: maxAudioFrames, ends: audioTimestamps?.map(frame => frame.end) ??
+                      t.samples.map(sample => (sample.dts + sample.duration - (t.samples[0]?.dts ?? 0)) * origRate / t.timescale) }
+                    : undefined;
+                  if (targetRate !== origRate) {
+                    const outputEnds: number[] = [];
+                    // Flushing retains the final sample when the converted duration is fractional.
+                    const targetSamples = Math.max(0, Math.ceil((stretched[0]?.length ?? 0) * targetRate / origRate));
+                    stretched = resampler === "soxr"
+                      ? await resampleSoxr(stretched, origRate, targetRate, budget, context.signal, resampleCutoff)
+                      : loudnormResampling
+                      ? await resampleLoudnorm(stretched, origRate, targetRate, budget, context.signal)
+                      : await resampleAudio(stretched, targetSamples, origRate, targetRate, budget, context.signal, filterType, kaiserBeta, filterSize, resampleCutoff, phaseShift, linearInterp, exactRational,
+                        resampleFrameLimit ? { ...resampleFrameLimit, outputEnds }
+                          : audioTimestamps ? { ends: audioTimestamps.map(frame => frame.end), outputEnds } : undefined);
+                    if (audioTimestamps) {
+                      const firstPts = Math.round((audioTimestamps[0]?.pts ?? audioStartSample) * targetRate / origRate);
+                      // Converted frames include the resampler's delayed flush before output cuts.
+                      if (!outputEnds.length && stretched[0]?.length) outputEnds.push(stretched[0].length);
+                      budget.allocateMemory(outputEnds.length * 24);
+                      audioTimestamps = outputEnds.map((end, i) => {
+                        const start = outputEnds[i - 1] ?? 0;
+                        return { start, end, pts: firstPts + start };
+                      });
+                    }
+                    audioStartSample = Math.round(audioStartSample * targetRate / origRate);
+                    origRate = targetRate;
+                  }
+
                   if (outputCut) {
                     const start = outputSs === undefined ? 0 : Math.max(0, Math.round(outputSs * origRate) - audioStartSample);
                     const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
@@ -18437,11 +18469,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                   }
 
-                  const resampleFrameLimit = maxAudioFrames !== undefined && audioRate !== undefined && audioRate !== origRate
-                    && resampler === "swr" && !loudnormResampling && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms"
-                    ? { count: maxAudioFrames, ends: audioTimestamps?.map(frame => frame.end) ??
-                      t.samples.map(sample => (sample.dts + sample.duration - (t.samples[0]?.dts ?? 0)) * origRate / t.timescale) }
-                    : undefined;
                   if (maxAudioFrames !== undefined && !resampleFrameLimit) {
                     let inputFrames = maxAudioFrames;
                     if ((audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms") && maxAudioFrames > 0) {
@@ -18495,7 +18522,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
 
                   const origCh = stretched.length;
-                  const targetRate = audioRate ?? origRate;
                   const targetCh = audioChannels !== undefined && audioChannels < 0 ? origCh : audioChannels ??
                     ((audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms") ? Math.min(origCh, 2) : origCh);
                   // Nine channels have no default speaker layout for automatic rematrixing.
@@ -18531,15 +18557,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const pcm16Output = audioCodec === "pcm_s16le" || audioCodec === undefined &&
                     ["wav", "s16le"].includes((outputFormat === "segment" ? segmentPlugin?.id : outPlugin?.id) ?? "");
                   const stereoMono = origCh === 2 && !centerLfe && targetCh === 1;
-                  const pcm16StereoMono = stereoMono && targetRate === origRate &&
+                  const pcm16StereoMono = stereoMono && targetRate === filterRate &&
                     (filteredSampleFormat === "s16" || filteredSampleFormat === "s16p") && pcm16Output;
-                  const pcm16MonoStereo = monoStereo && !filter && targetRate === origRate &&
+                  const pcm16MonoStereo = monoStereo && !filter && targetRate === filterRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
-                  const pcm16CenterDownmix = centerDownmix && !filter && targetRate === origRate &&
+                  const pcm16CenterDownmix = centerDownmix && !filter && targetRate === filterRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
-                  const pcm16QuadDownmix = quadDownmix && targetCh === 2 && !filter && targetRate === origRate &&
+                  const pcm16QuadDownmix = quadDownmix && targetCh === 2 && !filter && targetRate === filterRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
-                  const pcm16SurroundStereo = surroundStereo && !filter && targetRate === origRate &&
+                  const pcm16SurroundStereo = surroundStereo && !filter && targetRate === filterRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   const sevenOneDownmix = origCh === 8 && channelMask === 0x63f && [1, 2, 6].includes(targetCh);
                   // Use the requested mix gains and renormalize every contributing speaker.
@@ -18555,7 +18581,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     return row.map(gain => {
                       const normalized = gain / normalization;
                       // PCM16 rematrixing uses Q15 coefficients, including resampler gain options.
-                      if ((matrixMaxval !== undefined || surroundLevel !== undefined || lfeLevel !== undefined) && pcm16Output && targetRate === origRate &&
+                      if ((matrixMaxval !== undefined || surroundLevel !== undefined || lfeLevel !== undefined) && pcm16Output && targetRate === filterRate &&
                           t.codecDescriptions[0]?.codecName === "pcm_s16le") {
                         const coefficient = normalized * 32768 + roundingError;
                         const rounded = Math.round(coefficient);
@@ -18566,7 +18592,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       return normalized;
                     });
                   });
-                  const pcm16SevenOne = sevenOneDownmix && targetCh !== 1 && !filter && targetRate === origRate &&
+                  const pcm16SevenOne = sevenOneDownmix && targetCh !== 1 && !filter && targetRate === filterRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   // Normalize against the loudest row, including the extra surround pair.
                   // The PCM16 stereo mixer distributes Q15 rounding between center and surrounds.
@@ -18612,14 +18638,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     for (const row of remixMatrix) for (let input = 0; input < row.length; input++) row[input]! *= gain;
                   }
 
-                  // Flushing retains the final sample when the converted duration is fractional.
-                  let targetSamples = Math.max(0, Math.ceil((stretched[0]?.length ?? 0) * targetRate / origRate));
-                  if (targetRate !== origRate) stretched = resampler === "soxr"
-                    ? await resampleSoxr(stretched, origRate, targetRate, budget, context.signal, resampleCutoff)
-                    : loudnormResampling
-                    ? await resampleLoudnorm(stretched, origRate, targetRate, budget, context.signal)
-                    : await resampleAudio(stretched, targetSamples, origRate, targetRate, budget, context.signal, filterType, kaiserBeta, filterSize, resampleCutoff, phaseShift, linearInterp, exactRational, resampleFrameLimit);
-                  if (targetRate !== origRate && (resampler === "soxr" || !loudnormResampling)) targetSamples = stretched[0]?.length ?? 0;
+                  const targetSamples = stretched[0]?.length ?? 0;
                   const newChannelData: (Float32Array | Float64Array)[] = [];
                   const ChannelArray = stretched.some(channel => channel instanceof Float64Array) ? Float64Array : Float32Array;
                   for (let c = 0; c < targetCh; c++) {
@@ -18664,7 +18683,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             : front;
                         // Mono to stereo (or 2.1) uses equal-power FL/FR gains.
                         // The s16 mixer uses a Q15 coefficient and rounds half upward.
-                        const mixed = quadToFour && !filter && targetRate === origRate &&
+                        const mixed = quadToFour && !filter && targetRate === filterRate &&
                           t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output
                           ? c < 2 ? Math.floor(front * 23170 + 0.5) / 32768
                             : Math.floor((stretched[2]![srcIdx]! + stretched[3]![srcIdx]!) * 16384 + 0.5) / 32768
@@ -18699,17 +18718,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
                   const samples: (typeof t.samples)[number][] = [];
                   if ((segmentAudioPackets || frameChecksumOutput || outPlugin?.id === "s16le") && audioTimestamps) {
-                    const ratio = targetRate / origRate;
-                    const cutoff = Math.min((resampleCutoff || 0.97) * ratio, 1);
-                    const filterLength = filterSize <= cutoff ? 1 : 2 * Math.ceil(filterSize / 2 / cutoff);
-                    // swresample emits one packet per input frame, holding the
-                    // right half of its filter until more input arrives or EOF.
-                    const delay = targetRate === origRate ? 0 : filterLength / 2;
                     let start = 0;
                     for (const frame of audioTimestamps) {
                       if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                      if (delay && frame.end <= filterLength) continue;
-                      const end = Math.min(targetSamples, Math.max(0, Math.ceil((frame.end - delay) * ratio)));
+                      const end = Math.min(targetSamples, frame.end);
                       if (end <= start) continue;
                       budget.allocateMemory(16);
                       segmentAudioPackets?.push({ pts: start, isKeyframe: true });
@@ -18717,7 +18729,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // Format conversion rounds near-INT64_MIN timestamps back to
                         // NOPTS; packed PCM without conversion retains its finite PTS.
                         const pts = filteredSampleFormat.endsWith("p") && frame.exactPts !== undefined && frame.pts === -(2 ** 63) ? NaN
-                          : Math.round((frame.pts - frame.start) * ratio) + start;
+                          : Math.round(frame.pts - frame.start) + start;
                         budget.allocateMemory(48);
                         samples.push({ dts: pts, pts, cts: 0,
                           duration: end - start, isKeyframe: true, size: 0, sampleDescriptionIndex: 1, data: new Uint8Array(0) });
@@ -18787,7 +18799,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
 
                   if (encoderTimeBaseModes.get(index) === "filter") {
-                    encoderTimeBases.set(index, targetRate !== origRate ? 1 / targetRate : audioTimeBase ?? 1 / targetRate);
+                    encoderTimeBases.set(index, targetRate !== filterRate ? 1 / targetRate : audioTimeBase ?? 1 / targetRate);
                   }
 
                   return {

@@ -42,6 +42,17 @@ for (const [mode, expected] of [["i", [12268, 268]], ["o", [2522, 268]], ["e", [
   });
 }
 
+for (const filter of ["deesser=i=1:s=e", "deesser=1:0.5:0.5:e"]) {
+  for (const graph of [false, true]) it(`${filter} accepts a trailing separator (graph=${graph})`, async () => {
+    const channels = [Float64Array.from({ length: 384 }, (_, i) => ((i * 7919) % 50000 - 25000) / 32768)];
+    const expected = await run(filter, graph, channels);
+    const actual = await run(`${filter}:`, graph, channels);
+    assert.equal(expected.result.exitCode, 0, expected.stderr);
+    assert.equal(actual.result.exitCode, 0, actual.stderr);
+    assert.deepEqual(actual.fs.readFileSync("/out.wav"), expected.fs.readFileSync("/out.wav"));
+  });
+}
+
 for (const filter of ["anull", "deesser", "deesser=i=0.8:s=i", "deesser=i=0.8:m=1"]) it(`${filter} preserves input`, async () => {
   const { fs, result, stderr } = await run(filter);
   assert.equal(result.exitCode, 0, stderr);
@@ -49,6 +60,12 @@ for (const filter of ["anull", "deesser", "deesser=i=0.8:s=i", "deesser=i=0.8:m=
 });
 
 for (const option of ["i=-1", "m=1.1", "f=NaN", "i=", "s=3", "s=0.5", "unknown=1"]) it(`rejects ${option} without overwriting output`, async () => {
+  const { fs, result } = await run(`deesser=${option}`);
+  assert.equal(result.exitCode, 1);
+  assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
+});
+
+for (const option of ["i=1::s=e", "i=1:s=e::", "i=1:s=:"]) it(`rejects empty options in ${option} without overwriting output`, async () => {
   const { fs, result } = await run(`deesser=${option}`);
   assert.equal(result.exitCode, 1);
   assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");

@@ -29,7 +29,9 @@ export async function deessAudio(
 ): Promise<Float64Array[]> {
   const options = { i: 0, m: 0.5, f: 0.5, s: 1 };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  const parts = argument.split(":");
+  if (parts.at(-1) === "") parts.pop();
+  for (const [index, option] of parts.entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["i", "m", "f", "s"][index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();

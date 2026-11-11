@@ -10014,7 +10014,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const samples = evaluateSamples ?? data16 ?? out, quantumScale = evaluateSamples || !data16 ? 257 : 1, maximum = evaluateSamples || !data16 ? 255 : 65535;
             // Gray has one color sample; R selects all three copies in RGBA storage.
             const gray = image.space === "b-w" || image.space === "grey16";
-            const mask = channels ? [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a && (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false)] : undefined;
+            const linearGray = (image.space === "b-w" || image.space === "grey16") && image.gamma === 1 && image.magickColorspace !== "Gray";
+            const activeAlpha = image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false;
+            const mask = channels ? [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, channels.a && activeAlpha] : undefined;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
                 if (mask) {
@@ -10028,14 +10030,16 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         }
                     }
                 } else {
-                    const intensity = magickIntensity(samples[idx]!, samples[idx + 1]!, samples[idx + 2]!, state.intensity, maximum, image.magickColorspace === "RGB" || image.magickColorspace === "scRGB") * quantumScale;
+                    // Native bypasses intensity conversion for single-channel gray, but not gray with alpha.
+                    const intensity = linearGray && !activeAlpha ? samples[idx]! * quantumScale
+                        : magickIntensity(samples[idx]!, samples[idx + 1]!, samples[idx + 2]!, state.intensity, maximum, image.magickColorspace === "RGB" || image.magickColorspace === "scRGB" || linearGray) * quantumScale;
                     const result = intensity > value ? 255 : 0;
                     samples[idx] = samples[idx + 1] = samples[idx + 2] = result ? maximum : 0;
                     if (hueSamples) hueSamples[idx] = hueSamples[idx + 1] = hueSamples[idx + 2] = result ? 1 : 0;
                     out[idx] = out[idx + 1] = out[idx + 2] = result;
                     if (data16) data16[idx] = data16[idx + 1] = data16[idx + 2] = result ? 65535 : 0;
                     // Native default threshold assigns the intensity result to alpha too.
-                    if (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false) {
+                    if (activeAlpha) {
                         samples[idx + 3] = result ? maximum : 0;
                         if (hueSamples) hueSamples[idx + 3] = result ? 1 : 0;
                         out[idx + 3] = result;

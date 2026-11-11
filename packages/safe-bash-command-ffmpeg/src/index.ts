@@ -7615,7 +7615,7 @@ export function evalSyncFfmpeg(
         doc = concatMp4(Array.from({ length: inp.streamLoop + 1 }, () => doc), { budget });
       }
       if (startSeconds !== undefined || inp.endSeconds !== undefined || inp.durationSeconds !== undefined) {
-        doc = sliceMp4(doc, { inputSeek: startSeconds !== undefined, startSeconds, endSeconds: inp.endSeconds, durationSeconds: inp.durationSeconds, copyAudio: audioCodec === "copy" });
+        doc = sliceMp4(doc, { inputSeek: startSeconds !== undefined, startSeconds, endSeconds: inp.endSeconds, durationSeconds: inp.durationSeconds, copyAudio: audioCodec === "copy", resetTimestamps: !copyTimestamps });
         if (videoCodec === "copy" && !copyPriorStart && startSeconds !== undefined) doc = discardOutputPreroll(doc, { video: videoCodec }, copyInitialNonKeyframes);
       }
       if (inp.streamLoop === -1) {
@@ -10723,7 +10723,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   startSeconds: rawSeek || concatInputSeek ? 0 : startSeconds,
                   endSeconds: (rawSeek || concatInputSeek) && inp.endSeconds !== undefined ? inp.endSeconds - startSeconds! : inp.endSeconds,
                   durationSeconds: inp.durationSeconds,
-                  copyAudio: audioCodec === "copy"
+                  copyAudio: audioCodec === "copy",
+                  resetTimestamps: !copyTimestamps
                 });
                 if (videoCodec === "copy" && !copyPriorStart && startSeconds !== undefined) doc = discardOutputPreroll(doc, { video: videoCodec }, copyInitialNonKeyframes);
               }

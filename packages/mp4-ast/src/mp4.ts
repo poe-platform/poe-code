@@ -2335,10 +2335,11 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
       }
     }
 
-    // Codec delay is already represented in packet timestamps. A duration-only
-    // copy must retain that timeline instead of replacing it with an edit list.
-    const preserveTimeline = options.copyAudio && track.type === "audio" &&
-      !track.decodedAudio && track.codecDelayNs !== undefined && !track.editList && startSec === 0;
+    // PCM cuts can retain the input timeline. Compressed codec delay is already
+    // in packet timestamps, so a duration-only copy must also retain it.
+    const preserveTimeline = track.decodedAudio && options.resetTimestamps === false ||
+      options.copyAudio && track.type === "audio" && !track.decodedAudio &&
+      track.codecDelayNs !== undefined && !track.editList && startSec === 0;
     if (options.inputSeek && options.copyAudio && doc.containerFormat === "ogg" &&
         track.codecDescriptions[0]?.codecName === "opus" && !track.decodedAudio) {
       // Ogg seeks return the whole page at or before the requested timestamp.
@@ -2399,11 +2400,11 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
         data: sampleData,
         size: sampleData.byteLength,
         isKeyframe: isPromotedFirst ? true : s.isKeyframe,
-        dts: preserveTimeline ? s.dts : runningDts,
-        pts: preserveTimeline ? s.pts : runningDts + s.cts,
+        dts: preserveTimeline ? sampleStart : runningDts,
+        pts: preserveTimeline ? s.pts + sampleStart - s.dts : runningDts + s.cts,
         duration: clippedDuration
       });
-      runningDts = (preserveTimeline ? s.dts : runningDts) + clippedDuration;
+      runningDts = (preserveTimeline ? sampleStart : runningDts) + clippedDuration;
     }
 
     let editList: Mp4EditListEntry[] | undefined;
@@ -2430,14 +2431,19 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
         }));
     }
 
+    // Input seeks address the original decoded data even if the demuxer has
+    // advanced its packets. Later cuts address the retained packet timeline.
+    const audioOrigin = options.inputSeek ? 0 : (track.samples[0]?.pts ?? 0) / ts;
     const decodedAudio = track.decodedAudio && {
       ...track.decodedAudio,
       channelData: track.decodedAudio.channelData.map((channel) =>
-        channel.slice(Math.round(startSec * track.decodedAudio!.sampleRate), Math.max(0, Math.round(endSec * track.decodedAudio!.sampleRate)))
+        channel.slice(Math.max(0, Math.round((startSec - audioOrigin) * track.decodedAudio!.sampleRate)),
+          Math.max(0, Math.round((endSec - audioOrigin) * track.decodedAudio!.sampleRate)))
       )
     };
     if (decodedAudio) {
-      runningDts = Math.round((decodedAudio.channelData[0]?.length ?? 0) * ts / decodedAudio.sampleRate);
+      runningDts = (preserveTimeline ? slicedSamples[0]?.dts ?? 0 : 0) +
+        Math.round((decodedAudio.channelData[0]?.length ?? 0) * ts / decodedAudio.sampleRate);
     }
     slicedTracks.push({
       ...track,

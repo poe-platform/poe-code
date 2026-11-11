@@ -14355,8 +14355,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-emboss") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const raw = tokens[++i] ?? "";
+            let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
+                const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 const normalized = expanded.replaceAll(",", "x").replaceAll("/", "x").replaceAll("(", "").replaceAll(")", "");
                 validateMagickTransformGeometry(normalized, t);
                 const geometry = parseMagickGeometry(normalized);
@@ -18619,8 +18620,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return result;
             });
         } else if (!operandsOnly && token === "-emboss") {
+            let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                images = stack;
                 return stack;
             });
             const raw = tokens[++i] ?? "", optionProperties = state.optionProperties, sync = state.channelSync, seed = state.seed;
@@ -18628,7 +18631,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const meta = state.channelExplicit && !state.channelDefault ? state.channels.meta ?? [] : undefined;
             steps.push(Object.assign(async (image: StoredRgbaImage | undefined, backend: CompareFileSession) => {
                 if (!image) return;
-                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
+                const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 const normalized = expanded.replaceAll(",", "x").replaceAll("/", "x").replaceAll("(", "").replaceAll(")", "");
                 validateMagickTransformGeometry(normalized, token);
                 const geometry = parseMagickGeometry(normalized);

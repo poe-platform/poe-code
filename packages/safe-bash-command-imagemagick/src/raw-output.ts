@@ -95,6 +95,7 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
     const format = options.format;
     const requestedDepth = options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8);
     const depth = options.tiffFloatDepth ?? (requestedDepth === 32 || requestedDepth === 64 || requestedDepth === 1 || requestedDepth === 2 || requestedDepth === 4 || requestedDepth >= 8 && requestedDepth <= 16 ? requestedDepth : requestedDepth > 8 ? 16 : 8);
+    const cmykToRgb = image.space === "cmyk" && (format === "rgb" || format === "rgba" || format === "rgbo");
     const pixels = image.width * image.height;
     const rowSamples = image.width * (options.rawInterlace ? 1 : channels.length);
     const rowBytes = Math.ceil(rowSamples * depth / 8);
@@ -113,7 +114,11 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
         for (let c = 0; c < channels.length; c++) {
             const channel = channels[c]!;
             const index = format === "graya" && channel === 1 ? 3 : reverseChannels && channel < 3 ? 2 - channel : channel;
-            const value = format === "farbfeld" && index < 3 && image.hueSamples
+            // The RGB coder clamps each ink before converting; explicit sRGB conversion keeps HDRI inks.
+            const value = cmykToRgb && image.hueSamples && index < 3
+                ? Math.fround((1 - Math.max(0, Math.min(1, image.hueSamples[pixel * 4 + index]!)))
+                    * (1 - Math.max(0, Math.min(1, image.hueSamples[pixel * 4 + 3]!))) * 65535) * scale / 65535
+                : format === "farbfeld" && index < 3 && image.hueSamples
                 ? Math.max(0, Math.min(1, image.hueSamples[pixel * 4 + index]!)) * scale
                 : inks
                 ? channel < 4 ? Math.max(0, Math.min(1, inks[channel]!)) * scale : image.hasAlpha ? samples[pixel * 4 + 3]! : scale
@@ -230,7 +235,7 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
     for (let plane = 0; plane < (rawFrames ? channels : 1); plane++) {
         for (let frame = 0; frame < (rawFrames?.length ?? 1); frame++) {
             if (rawFrames) image = await rawFrames.at(frame);
-            const workingColorspace = options.format === "farbfeld" || options.format.startsWith("cmyk") && image.space === "cmyk";
+            const workingColorspace = options.format === "farbfeld" || image.space === "cmyk" && (options.format.startsWith("cmyk") || options.format === "rgb" || options.format === "rgba" || options.format === "rgbo");
             const pixels = image.width * image.height;
             const depth = options.tiffFloatDepth ?? options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8);
             const packed = depth === 1 || depth === 2 || depth === 4 || depth > 8 && depth < 16;

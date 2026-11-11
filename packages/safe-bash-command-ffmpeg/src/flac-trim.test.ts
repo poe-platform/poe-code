@@ -20,8 +20,10 @@ for (const bits of [16, 24]) for (const sync of [false, true]) {
       if (sync) {
         assert.equal(evalSyncFfmpeg(args, undefined,
           path => volume.existsSync(path) ? volume.readFileSync(path) as Buffer : undefined,
-          (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), "");
-      } else {
+          (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), mode === "trim" ? undefined : "");
+      }
+      // Decoded PCM trimming defers to the async path for frame timestamp handling.
+      if (!sync || mode === "trim") {
         let stderr = "";
         const result = await createFfmpegCommand().execute({
           args, cwd: "/", env: {}, signal: new AbortController().signal,

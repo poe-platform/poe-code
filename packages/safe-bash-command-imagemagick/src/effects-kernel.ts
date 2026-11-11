@@ -108,7 +108,7 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
     const sourceAtop = name === "atop" || name === "srcatop", destinationAtop = name === "dstatop" || name === "destatop";
     const destinationIn = name === "dstin" || name === "destin", sourceOut = name === "srcout" || name === "out";
     const copySource = ["src", "source", "copy"].includes(name), copyDestination = ["dst", "destination"].includes(name);
-    const blend = name === "multiply" || name === "screen" || name === "difference" || name === "hardlight" || name === "overlay";
+    const blend = name === "multiply" || name === "screen" || name === "difference" || name === "hardlight" || name === "overlay" || name === "exclusion";
     const copyAlpha = name === "copyalpha" || name === "copyopacity";
     const copyChannel = ["copyred", "copygreen", "copyblue"].indexOf(name);
     const linearCoverage = source.magickColorspace === "RGB" ||
@@ -303,6 +303,7 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                         const source = sourceColor / pixelScale, destinationAlpha = background.a / 255;
                         const mixed = name === "multiply" ? source * color / 255
                             : name === "screen" ? source + color - source * color / 255
+                            : name === "exclusion" ? source + color - 2 * source * color / 255
                             : name === "hardlight" || name === "overlay" ? (name === "overlay" ? color : source) <= 127.5 ? 2 * source * color / 255 : 255 - 2 * (255 - source) * (255 - color) / 255
                             : Math.abs(source - color);
                         const value = mixed * foreground * destinationAlpha + source * foreground * (1 - destinationAlpha) + color * back;

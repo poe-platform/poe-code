@@ -93,10 +93,10 @@ frames before the next keyframe may not be independently decodable.
 Use `-progress pipe:1` for a machine-readable completion record on stdout,
 `-progress pipe:2` for stderr, or `-progress report.txt` for a file in the virtual
 filesystem. Records include
-`out_time` and `progress=end`. Video outputs also report `frame`, `fps`, and
+`out_time` and `progress=end`. Encoded video outputs also report `frame`, `fps`, and
 `stream_<output>_<stream>_q`; audio-only outputs omit these video fields. Single-file outputs report `total_size` in bytes and
 `bitrate` in kbits/s; null output keeps both fields at `N/A`. `-nostats` is accepted and leaves these records enabled.
-`-stats_period DURATION` accepts a positive interval (seconds, `ms`, `us`, or a clock duration); zero and negative intervals return status 234. Progress emits a final record after processing, without periodic updates. `speed` reports processed media seconds per elapsed second with an `x` suffix, or `N/A` when either duration is zero.
+Progress emits a final record after processing. `speed` reports processed media seconds per elapsed second with an `x` suffix, or `N/A` when either duration is zero.
 `ebur128=peak=sample` reports loudness every 100 ms and a final integrated
 loudness, loudness range, and sample-peak summary without changing PCM samples.
 Frame reports default to `framelog=info`; `framelog=verbose` requires `-v verbose`

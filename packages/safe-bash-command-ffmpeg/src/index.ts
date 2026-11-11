@@ -16396,7 +16396,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             workingDoc = avoidNegativeTimestamps(workingDoc, avoidNegativeTs === "auto" && outPlugin?.id === "srt" ? "make_non_negative" : avoidNegativeTs, budget);
             let outputHasFrames = false;
             for (const [streamIndex, track] of workingDoc.tracks.entries()) {
-              const hasFrames = track.decodedAudio ? track.decodedAudio.channelData.some(channel => channel.length > 0)
+              const hasFrames = track.type === "video" && videoCodec === "copy" ? track.samples.length > 0
+                : track.decodedAudio ? track.decodedAudio.channelData.some(channel => channel.length > 0)
                 : track.decodedVideoFrames ? track.decodedVideoFrames.length > 0
                   : track.samples.length > 0;
               outputHasFrames ||= hasFrames;
@@ -16408,15 +16409,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (progressTarget !== undefined) {
               // Rawvideo progress uses packet timing before muxer timestamp adjustments.
               for (const [streamIndex, track] of (outputFormat === "rawvideo" ? progressTracks : workingDoc.tracks).entries()) {
-                if (track.type === "video") {
+                if (track.type === "video" && videoCodec !== "copy") {
                   progressFrames ??= track.decodedVideoFrames?.length ?? track.samples.length;
-                  progressQuality.push(`stream_${progressOutputIndex}_${streamIndex}_q=${videoCodec === "copy" ? "-1.0" : "-0.0"}`);
+                  progressQuality.push(`stream_${progressOutputIndex}_${streamIndex}_q=-0.0`);
                 }
                 if (track.decodedAudio && !track.samples.length) {
                   if (!track.decodedAudio.channelData[0]?.length) continue;
                   progressSeconds = Math.max(progressSeconds,
                     (track.decodedAudio.channelData[0]?.length ?? 0) / track.decodedAudio.sampleRate);
-                } else if (track.decodedVideoFrames) {
+                } else if (track.decodedVideoFrames && videoCodec !== "copy") {
                   for (const frame of track.decodedVideoFrames) {
                     progressSeconds = Math.max(progressSeconds, frame.ptsSeconds + frame.durationSeconds);
                   }

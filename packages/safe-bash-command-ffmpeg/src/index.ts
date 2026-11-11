@@ -3928,7 +3928,7 @@ async function applyVideoFilterChain(
       // Selecting a batch representative preserves the upstream EOF timestamp.
       if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       if (positional.at(-1) === "") positional.pop();
-      if (positional.filter(value => !value.includes("=")).length > 2 || Object.keys(named).some(key => key !== "n" && key !== "log" && key !== "threads")) {
+      if (positional.filter(value => !value.includes("=")).length > 2 || Object.keys(named).some(key => key !== "n" && key !== "log" && key !== "enable" && key !== "threads")) {
         throw new Error("thumbnail: expected batch size n and log level");
       }
       if (named.threads !== undefined) {
@@ -3951,16 +3951,46 @@ async function applyVideoFilterChain(
         throw new RangeError("thumbnail: n must be from 2 to 2147483647");
       }
       const count = roundToEven(value);
+      const variables = {
+        n: 0, t: NaN, w: NaN, h: NaN, pos: NaN, NAN: NaN, INF: Infinity,
+        PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+      };
+      const registers = new Float64Array(10);
+      if (named.enable !== undefined && current.length === 0) {
+        parseFilterExpression(named.enable, "thumbnail enable", variables, undefined, registers);
+      }
       const selected: typeof current = [];
-      for (let start = 0; start < current.length; start += count) {
-        const length = Math.min(count, current.length - start);
+      let next = 0;
+      while (next < current.length) {
+        const batch: typeof current = [];
+        while (next < current.length && batch.length < count) {
+          if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          const n = next++;
+          const frame = current[n]!;
+          if (named.enable !== undefined) {
+            variables.n = n;
+            variables.t = frame.ptsSeconds;
+            variables.w = frame.width;
+            variables.h = frame.height;
+            variables.pos = frame.offset ?? NaN;
+            // FFmpeg evaluates the generic timeline before and during frame dispatch.
+            parseFilterExpression(named.enable, "thumbnail enable", variables, undefined, registers);
+            if (!(Math.abs(parseFilterExpression(named.enable, "thumbnail enable", variables, undefined, registers)) >= 0.5)) {
+              selected.push(frame);
+              continue;
+            }
+          }
+          batch.push(frame);
+        }
+        const length = batch.length;
+        if (length === 0) break;
         const bytes = (length + 1) * 768 * Float64Array.BYTES_PER_ELEMENT;
         budget.allocateMemory(bytes);
         try {
           const average = new Float64Array(768);
           const histograms: Float64Array[] = [];
           for (let n = 0; n < length; n++) {
-            const frame = current[start + n]!;
+            const frame = batch[n]!;
             const bins = new Float64Array(768);
             const native = frame.native;
             if (native?.rgba === frame.data && native.width === frame.width && native.height === frame.height &&
@@ -3996,9 +4026,9 @@ async function applyVideoFilterChain(
             // Keep the earliest frame when histogram distances tie.
             if (error < minimum) { minimum = error; best = n; }
           }
-          selected.push(current[start + best]!);
+          selected.push(batch[best]!);
           if (level !== -8 && diagnostics.logLevel >= level) {
-            await diagnostics.write(`[thumbnail] frame id #${best} (pts_time=${current[start + best]!.ptsSeconds.toFixed(6)}) selected from a set of ${length} images\n`);
+            await diagnostics.write(`[thumbnail] frame id #${best} (pts_time=${batch[best]!.ptsSeconds.toFixed(6)}) selected from a set of ${length} images\n`);
           }
         } finally {
           budget.releaseMemory(bytes);

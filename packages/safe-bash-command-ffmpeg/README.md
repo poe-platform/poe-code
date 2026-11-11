@@ -233,6 +233,10 @@ AC-3 elementary input is detected by its frame headers or selected with `-f ac3`
 `framehash` and `framemd5` default to version 2 and accept `-format_version 1` or `2`.
 `framemd5`, `framehash`, and `framecrc` write one row per video frame, with timestamps,
 duration, raw pixel byte count, and a digest (MD5, SHA256, or Adler-32 respectively).
+Use `-enc_time_base 1:1000` to express audio and video checksum timestamps and durations
+in milliseconds without changing payload sizes or hashes. Stream selectors such as
+`-enc_time_base:v` and `-enc_time_base:a:0` apply it only to matching output streams;
+`0` restores the default time base, and stream copy retains the source time base.
 `framemd5` and `framehash` report copied streams’ codec extradata sizes and the selected
 digest before the stream headers, including ALAC configuration. `framecrc` uses Adler-32
 for these headers. PCM output has no extradata header.

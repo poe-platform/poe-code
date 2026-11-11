@@ -1,6 +1,7 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function exciteAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
@@ -30,14 +31,10 @@ export async function exciteAudio(
   let positional = 0;
   for (const option of args) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? names[positional++] : option.slice(0, separator).trim() as keyof typeof options | "enable" | "threads" | "extra_hw_frames";
+    const key = separator < 0 ? names[positional++] : option.slice(0, separator).trim() as keyof typeof options | "enable" | "threads" | "thread_type" | "extra_hw_frames";
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-    if (key === "threads" || key === "extra_hw_frames") {
-      const min = key === "threads" ? 0 : -1;
-      const number = parseFilterExpression(value, "aexciter", { min, max: 2147483647, default: min });
-      if (!Number.isFinite(number) || number < min || number > 2147483647) {
-        throw new RangeError(`aexciter: invalid ${key}`);
-      }
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, value, "aexciter");
       // Scheduling and hardware frame reservations do not change PCM samples.
       continue;
     }

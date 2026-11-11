@@ -1456,6 +1456,8 @@ frames using `n` (frame number) or `t` (timestamp in seconds), for example
 unchanged while filter history continues updating. A trailing option separator is
 accepted: `aexciter=amount=2:` produces the same audio as `aexciter=amount=2`. `threads` (0–2147483647) and
 `extra_hw_frames` (-1–2147483647) accept numeric expressions without changing PCM output.
+`thread_type` accepts flags such as `slice`, `none`, or `all-slice`, and numeric
+values such as `0` or `1`, also without changing PCM output.
 
 `hqdn3d=4:3:6:4.5` denoises 8-bit grayscale video spatially and across frames. Increase the third value (temporal luma strength), for example `hqdn3d=4:3:24:4.5`, for stronger temporal smoothing. Named `luma_spatial`, `chroma_spatial`, `luma_tmp`, and `chroma_tmp` options are accepted; chroma strengths do not affect grayscale. Omitted or zero strengths use native derived defaults. `enable` selects output frames while denoising history continues to advance. Frame timing is preserved. Other pixel formats and runtime commands are unsupported.
 

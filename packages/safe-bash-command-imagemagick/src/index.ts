@@ -3035,6 +3035,12 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
     }
 }
 
+function parseMagickPrecision(value: string): number {
+    validateMagickTransformGeometry(value, "-precision");
+    // Native reads a decimal integer after validating geometry, not an exponent or radix.
+    return Number.parseInt(value, 10) || 0;
+}
+
 function hasSignedMagickShaveDimensions(raw: string): boolean {
     // Native treats signs in pixel dimensions as offsets, leaving an unshavable axis.
     const geometry = [...raw].filter(character => character.trim() !== "").join("").toLowerCase();
@@ -8771,9 +8777,10 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         else if (a === "-precision") {
             const value = argv[++i];
             if (value === undefined) return { exitCode: 1, stdout: "", stderr: "identify: missing an argument for option '-precision'\n" };
-            const requested = Number(value);
-            if (!value.trim() || !Number.isFinite(requested)) return { exitCode: 1, stdout: "", stderr: "identify: invalid argument for option '-precision'\n" };
-            precision = requested < 1 ? 6 : Math.min(100, Math.trunc(requested));
+            try {
+                const requested = parseMagickPrecision(value);
+                precision = requested < 1 ? 6 : Math.min(100, requested);
+            } catch (error) { return { exitCode: 1, stdout: "", stderr: `identify: ${(error as Error).message}\n` }; }
         }
         else if (a === "-" || (!a.startsWith("-") && !a.startsWith("+"))) {
             let names = [a];
@@ -12612,9 +12619,8 @@ if (t === "-intent" || t === "+intent") {
         }
         else if (t === "+seed") { state.seed = BigInt(Math.floor(Date.now() / 1000)); }
         else if (t === "-precision") {
-            const value = tokens[++i], requested = Number(value);
-            if (value === undefined || !value.trim() || !Number.isFinite(requested)) throw new Error("invalid argument for option '-precision'");
-            if (requested !== 0) state.precision = requested < 1 ? 6 : Math.min(100, Math.trunc(requested));
+            const requested = parseMagickPrecision(tokens[++i] ?? "");
+            if (requested !== 0) state.precision = requested < 1 ? 6 : Math.min(100, requested);
         }
         else if (t === "+precision") { state.precision = 6; }
         else if (t === "-treedepth") {
@@ -21503,9 +21509,10 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         else if (t === "-precision") {
             const value = argv[++i];
             if (value === undefined) return { exitCode: 2, stdout: "", stderr: "compare: missing an argument for option '-precision'\n" };
-            const requested = Number(value);
-            if (value.trim() === "" || !Number.isFinite(requested)) return { exitCode: 2, stdout: "", stderr: `compare: invalid argument for option '-precision': ${value}\n` };
-            precision = requested < 1 ? 6 : Math.min(100, Math.trunc(requested));
+            try {
+                const requested = parseMagickPrecision(value);
+                precision = requested < 1 ? 6 : Math.min(100, requested);
+            } catch (error) { return { exitCode: 2, stdout: "", stderr: `compare: ${(error as Error).message}\n` }; }
         }
         else if (t === "-metric") {
             const rawMetric = argv[++i] ?? "rmse";

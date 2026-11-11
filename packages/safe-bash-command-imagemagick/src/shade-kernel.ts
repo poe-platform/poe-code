@@ -33,6 +33,7 @@ export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
     const { width, height } = image, highDepth = !!(image.data16 || image.storedData16), quantum = highDepth ? 65535 : 255;
     const cmyk = image.space === "cmyk", hue = !!image.hueSamples || image.storedHueSamples !== undefined;
     const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha] : [true, true, true, image.hasAlpha];
+    if (image.space === "b-w" || image.space === "grey16") mask[1] = mask[2] = mask[0]!;
     const gray = method === "white" ? 255 : method === "gray" ? 128 : 0;
     const fill = (method === "background" || method.endsWith("-tile") ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255]).map(value => value * quantum / 255);
     const blocks = new Map<number, Uint8Array | Uint16Array | Float64Array>();

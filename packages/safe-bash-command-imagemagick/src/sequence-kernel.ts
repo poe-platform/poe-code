@@ -220,7 +220,7 @@ export function* interpolatePixelSteps(size: number, fraction: number, blendAlph
 
 export type ChannelAssignment = { image: number; target: number } & ({ source: number; activateAlpha?: boolean; reverse?: boolean } | { value: number });
 
-export function* channelFxPixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space"> & { inactiveAlpha?: boolean | undefined })[], assignments: readonly ChannelAssignment[], highDepth: boolean): Steps {
+export function* channelFxPixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space"> & { inactiveAlpha?: boolean | undefined })[], assignments: readonly ChannelAssignment[], highDepth: boolean, metaChannel?: number): Steps {
     const { width, height } = inputs[0]!;
     const targetAlpha = inputs[0]!.hasAlpha || inputs[0]!.inactiveAlpha || assignments.some(assignment => "activateAlpha" in assignment && assignment.activateAlpha);
     for (const assignment of assignments) {
@@ -243,14 +243,16 @@ export function* channelFxPixelSteps(inputs: readonly (Pick<RgbaImage, "width" |
             baseInks.set(rgbToCmyk(base[offset]! / 255, base[offset + 1]! / 255, base[offset + 2]! / 255), offset);
         const colorSamples = inputs[0]!.space !== "cmyk" ? yield { kind: "read", hue: true, position, length } : undefined;
         if (colorSamples?.length) base.set(new Float64Array(colorSamples.slice().buffer).map(value => value * 255));
-        const data = base.slice(), inks = baseInks?.slice();
+        const data = metaChannel === undefined ? base.slice() : new Float64Array(length);
+        const inks = metaChannel === undefined ? baseInks?.slice() : undefined;
         for (const assignment of assignments) {
+            if (metaChannel === undefined ? assignment.target >= 5 : assignment.target !== metaChannel) continue;
             const input = inputs[Math.min(assignment.image, inputs.length - 1)]!;
             // Missing destinations and the reverse half of an exchange are no-ops.
             if (assignment.target === 3 && !targetAlpha || "source" in assignment && assignment.source === 3 && !input.hasAlpha && !input.inactiveAlpha) continue;
             if (assignment.target === 4 && !inks) continue;
             const target = inks && assignment.target !== 3 ? inks : data;
-            const targetChannel = assignment.target === 4 ? 3 : assignment.target;
+            const targetChannel = metaChannel !== undefined ? 0 : assignment.target === 4 ? 3 : assignment.target;
             const scale = target === inks ? 255 : 1;
             if ("value" in assignment) {
                 for (let offset = targetChannel; offset < length; offset += 4) target[offset] = assignment.value / scale;
@@ -281,6 +283,10 @@ export function* channelFxPixelSteps(inputs: readonly (Pick<RgbaImage, "width" |
                 target[offset + targetChannel] = value / scale;
             }
         }
+        if (metaChannel !== undefined) for (let offset = 0; offset < length; offset += 4) {
+            data[offset + 1] = data[offset + 2] = data[offset]!;
+            data[offset + 3] = 255;
+        }
         if (inks) {
             // K is the fourth ink; alpha stays independent in the RGBA backing.
             for (let offset = 0; offset < length; offset += 4) for (let channel = 0; channel < 3; channel++)
@@ -288,7 +294,7 @@ export function* channelFxPixelSteps(inputs: readonly (Pick<RgbaImage, "width" |
             yield { kind: "write", hue: true, position, data: new Uint8Array(inks.buffer) };
         }
         // Conversion back to sRGB reads the working colorspace plane.
-        if (colorSamples?.length) yield { kind: "write", hue: true, position, data: new Uint8Array(data.map(value => value / 255).buffer) };
+        if (metaChannel === undefined && colorSamples?.length) yield { kind: "write", hue: true, position, data: new Uint8Array(data.map(value => value / 255).buffer) };
         yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
         const bounded = highDepth ? Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(65535, value * 257))))
             : Uint8Array.from(data, value => Math.round(Math.max(0, Math.min(255, value))));

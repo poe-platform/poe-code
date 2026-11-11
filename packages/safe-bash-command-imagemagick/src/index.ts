@@ -9752,7 +9752,9 @@ function parseChannelAssignments(expression: string): ChannelAssignment[] {
         }
         const exchange = assignment.includes("<=>");
         const parts = assignment.split(exchange ? "<=>" : "=>");
-        const channels = parts.map(part => names.findIndex(aliases => aliases.includes(part.trim().toLowerCase())));
+        // Extra destinations use the existing Meta0..Meta21 / 10..31 channel range.
+        const destinations = exchange ? names : [...names, ...Array.from({ length: 22 }, (_, index) => [`meta${index}`, String(index + 10)])];
+        const channels = parts.map((part, index) => (index === 1 ? destinations : names).findIndex(aliases => aliases.includes(part.trim().toLowerCase())));
         if (parts.length !== 2 || channels.some(channel => channel < 0))
             throw new Error(`unsupported channel-fx assignment '${assignment}'`);
         const source = channels[0]!, target = channels[1]!;
@@ -12779,6 +12781,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     const sources = [base, ...stack.slice(1)];
                     const hasAlpha = base.hasAlpha || assignments.some(assignment => "activateAlpha" in assignment && assignment.activateAlpha);
                     let output = yield* applyMagickRasterSteps({ ...base, space: base.space === "cmyk" ? "cmyk" : "srgb", channels: base.space === "cmyk" ? 4 : hasAlpha ? 4 : 3 }, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.data16) || assignments.some(assignment => "value" in assignment)), signal, { ...base, hasAlpha }, sources);
+                    const count = assignments.reduce((count, assignment) => Math.max(count, assignment.target - 4), base.metaChannels?.length ?? 0);
+                    if (count) {
+                        output.metaChannels = [...(base.metaChannels ?? [])];
+                        for (let channel = 0; channel < count; channel++) {
+                            if (output.metaChannels[channel] && !assignments.some(assignment => assignment.target === channel + 5)) continue;
+                            const plane = { width: base.width, height: base.height, format: base.format, depth: base.depth, density: base.density, space: "b-w" as const, channels: 1 as const, hasAlpha: false, data: base.data };
+                            output.metaChannels[channel] = yield* applyMagickRasterSteps(plane, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.data16), channel + 5), signal, plane, sources);
+                        }
+                    }
                     if ("gray" in group && group.gray) output = yield* selectMagickChannels(output, [0]);
                     result.push(output);
                 }
@@ -13856,6 +13867,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     for (let source = 1; source <= Math.min(lastSource, stack.length - 1); source++) sources.push((await stack.get(source))!);
                     const hasAlpha = base.hasAlpha || assignments.some(assignment => "activateAlpha" in assignment && assignment.activateAlpha);
                     let output = await transformStoredMagickRaster({ ...base, space: base.space === "cmyk" ? "cmyk" : "srgb", channels: base.space === "cmyk" ? 4 : hasAlpha ? 4 : 3 }, backend, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.storedData16) || assignments.some(assignment => "value" in assignment)), signal, { ...base, hasAlpha }, sources);
+                    const count = assignments.reduce((count, assignment) => Math.max(count, assignment.target - 4), base.storedMetaChannels?.length ?? 0);
+                    if (count) {
+                        output.storedMetaChannels = [...(base.storedMetaChannels ?? [])];
+                        for (let channel = 0; channel < count; channel++) {
+                            if (output.storedMetaChannels[channel] && !assignments.some(assignment => assignment.target === channel + 5)) continue;
+                            const plane = { width: base.width, height: base.height, format: base.format, depth: base.depth, density: base.density, space: "b-w" as const, channels: 1 as const, hasAlpha: false, position: base.position };
+                            output.storedMetaChannels[channel] = await transformStoredMagickRaster(plane, backend, channelFxPixelSteps(sources, assignments, sources.some(source => !!source.storedData16), channel + 5), signal, plane, sources);
+                        }
+                    }
                     if ("gray" in group && group.gray) output = await transformStoredMagickPixels(output, backend, { end: 0, highDepth: true, evaluate: true, apply: image => selectMagickChannels(image, [0]) }, signal);
                     await result.push(output);
                 } else if (image) for (const channels of selections) {

@@ -2312,7 +2312,7 @@ export function image2Ast(): MediaAstPlugin {
     mimeTypes: ["image/png", "image/jpeg", "image/webp", "image/bmp", "image/x-portable-pixmap"],
     canDemux: true,
     canMux: true,
-    supportedVideoCodecs: ["png", "mjpeg", "webp", "bmp", "ppm", "qoi"],
+    supportedVideoCodecs: ["png", "mjpeg", "webp", "bmp", "ppm", "pgm", "qoi"],
     supportedAudioCodecs: [],
     detect(bytes, filename) {
       if (apngAst().detect(bytes)) return false;

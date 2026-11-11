@@ -1,3 +1,4 @@
+import { imagePipeFrameEnd } from "./image-pipe.js";
 import { parseAudioSegment } from "./audio-asegment.js";
 import { createAudioTimestampTransform } from "./audio-clock.js";
 import { audioSpeakerMasks, parseAudioChannelCount, parseAudioChannelLayout } from "./audio-channel-layout.js";
@@ -7979,6 +7980,7 @@ function matchesImageGlob(pattern: string, name: string, budget: MediaBudgetTrac
 }
 
 interface InputSpec {
+  readonly videoDecoder?: string | undefined;
   readonly channelLayout?: string | undefined;
   readonly guessLayoutMax?: number | undefined;
   readonly videoSize?: string | undefined;
@@ -9293,7 +9295,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Unknown decoder '${pendingVideoDecoder}'\n`), context.signal);
               return { exitCode: 1 };
             }
-            pendingVideoDecoder = undefined;
             const path = args[++i] ?? "";
             if (pendingFormat !== undefined && !["lavfi", "rawvideo", "concat", "image2", "image2pipe"].includes(pendingFormat) &&
                 !registry.findByFormatName(pendingFormat)?.canDemux) {
@@ -9334,6 +9335,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               imageLoop: pendingImageLoop,
               fps: pendingFps,
               videoSize: pendingVideoSize,
+              videoDecoder: pendingVideoDecoder,
               pixelFormat: pendingPixelFormat,
               startNumber: pendingStartNumber,
               patternType: pendingPatternType,
@@ -9370,6 +9372,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingImageLoop = undefined;
             pendingFps = undefined;
             pendingVideoSize = undefined;
+            pendingVideoDecoder = undefined;
             pendingPixelFormat = undefined;
             pendingStartNumber = undefined;
             pendingStartNumberRange = undefined;
@@ -10207,24 +10210,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let planeFrame: MediaVideoFrame | undefined;
                   if (pipeBytes) {
                     const start = pipeOffset;
-                    if (![137, 80, 78, 71, 13, 10, 26, 10].every((byte, i) => pipeBytes[start + i] === byte)) {
-                      throw new Error("image2pipe input requires complete PNG datastreams");
-                    }
-                    pipeOffset += 8;
-                    const view = new DataView(pipeBytes.buffer, pipeBytes.byteOffset, pipeBytes.byteLength);
-                    for (;;) {
-                      budget.checkCpu();
-                      context.signal.throwIfAborted();
-                      if (pipeOffset + 12 > pipeBytes.length) throw new Error("Truncated image2pipe PNG chunk");
-                      const length = view.getUint32(pipeOffset);
-                      const end = view.getUint32(pipeOffset + 4) === 0x49454e44; // IEND
-                      if (length > pipeBytes.length - pipeOffset - 12) throw new Error("Truncated image2pipe PNG chunk");
-                      pipeOffset += length + 12;
-                      if (end) {
-                        if (length !== 0) throw new Error("Invalid image2pipe PNG IEND chunk");
-                        break;
-                      }
-                    }
+                    pipeOffset = imagePipeFrameEnd(pipeBytes, start, input?.videoDecoder, budget);
                     imgBytes = pipeBytes.subarray(start, pipeOffset);
                   } else {
                     const formatted = globPaths ? globPaths[idx]! : literalPlane ? filePath : formatImageSequence(filePath, idx, false)!;

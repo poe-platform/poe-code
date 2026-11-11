@@ -9245,6 +9245,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             pendingAudioDecoder = undefined;
             const path = args[++i] ?? "";
+            if (pendingFormat !== undefined && !["lavfi", "rawvideo", "concat", "image2", "image2pipe"].includes(pendingFormat) &&
+                !registry.findByFormatName(pendingFormat)?.canDemux) {
+              await writeBytes(context.stderr,
+                encodeUtf8(`ffmpeg: Unknown input format: '${pendingFormat}' (AST not registered)\nError opening input file ${path}.\n`), context.signal);
+              return { exitCode: 234 };
+            }
             inputs.push({
               channelLayout: pendingChannelLayout,
               guessLayoutMax: pendingChannelLayout ? undefined : pendingGuessLayoutMax,

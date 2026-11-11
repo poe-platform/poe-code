@@ -499,7 +499,7 @@ clipping; subsequent filters and output receive those converted samples.
 The histogram includes empty bins between
 the peak and the bin reaching the loudest 0.1% of samples; inputs shorter than
 1000 samples have no histogram.
-`astats` (also `astats=metadata=0:reset=0`) reports per-channel and overall PCM
+`astats` (also `astats=` or `astats=metadata=0:reset=0`) reports per-channel and overall PCM
 statistics on stderr without changing samples: DC offset, signed extrema, sample
 differences, peak/RMS levels, flat factor, peak counts, noise floor, entropy and
 bit depth. Channel reports also include crest factor, dynamic range and zero

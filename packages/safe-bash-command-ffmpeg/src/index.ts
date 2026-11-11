@@ -12733,7 +12733,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let reset = 0;
                         let metadata = false;
                         let rmsLength = 0.05;
-                        if (trimmed.startsWith("astats=")) {
+                        if (trimmed.startsWith("astats=") && trimmed !== "astats=") {
                           for (const [index, option] of trimmed.slice("astats=".length).split(":").entries()) {
                             const parts = option.split("=");
                             const key = parts.length === 1 && index === 0 ? "length" : parts[0];

@@ -1103,8 +1103,10 @@ export function serializeWav(doc: MediaDocument, options: SerializeMediaOptions 
     const bytesPerSample = bitsPerSample >>> 3;
     // Integer PCM and FLAC narrowing discard low bits; floating-point sources round.
     const source = audioTrack?.codecDescriptions[0];
-    const truncate = formatTag === 1 && (source?.codecName === "flac" || source?.codecName.startsWith("pcm_s")) &&
-      (source.bitsPerSample ?? 0) > bitsPerSample;
+    // G.711 decodes to PCM16 despite its 8-bit compressed storage width.
+    const truncate = formatTag === 1 && ((source?.codecName === "pcm_alaw" || source?.codecName === "pcm_mulaw") ? bitsPerSample < 16
+      : (source?.codecName === "flac" || source?.codecName.startsWith("pcm_s")) &&
+        (source.bitsPerSample ?? 0) > bitsPerSample);
     // PCM8 rounds directly; companded audio and PCM24 use PCM16/PCM32 precision.
     const scale = 2 ** ((bitsPerSample === 8 && formatTag !== 1 ? 16 : bitsPerSample === 24 ? 32 : bitsPerSample) - 1);
     pcmBytes = new Uint8Array(numSamples * channels * bytesPerSample);

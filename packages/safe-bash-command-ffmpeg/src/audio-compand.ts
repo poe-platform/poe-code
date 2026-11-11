@@ -124,11 +124,12 @@ export async function compandAudio(
       multiplier = 10 ** ((gain + segment.y + offset * (segment.a * offset + segment.b)) / 20);
       if (i >= delay) output[c]![i - delay] = channels[c]![i - delay]! * multiplier;
     }
-    // The input is already buffered. Drain pending samples with the final
-    // envelope, without feeding silence into the detector or adding padding.
-    for (let i = Math.max(0, length - delay); i < length; i++) {
+    // Drain with the final envelope. If the delay buffer never filled, FFmpeg
+    // starts in its unused silent tail and still emits only `length` samples.
+    const silence = Math.max(0, delay - length);
+    for (let i = Math.max(silence, length - delay); i < length; i++) {
       if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-      output[c]![i] = channels[c]![i]! * multiplier;
+      output[c]![i] = channels[c]![i - silence]! * multiplier;
     }
   }
   return output;

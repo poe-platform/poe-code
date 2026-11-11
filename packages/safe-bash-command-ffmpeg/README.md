@@ -723,6 +723,7 @@ without a speaker mask is treated as 7.1.
 Downstream `ashowinfo` reports packed double (`dbl`) frames before output encoding.
 Mono input is converted to stereo at √½ gain per channel before crossfeed is applied.
 For center/LFE input, only center contributes to both stereo channels at √½ gain.
+Multichannel `pan` output (`2.1`, `3.0`, `FL+FR+BC`, `quad`, `4.0`, `5.0`, `5.1`, and `7.1`) is mixed to stereo before streaming or block processing. Front channels keep their gain; center and paired surround speakers contribute at √½, back center at ½, and LFE is omitted.
 Reversed stereo and rear-only speaker pairs are rejected.
 Strength and range default to 0.2 and 0.5 (0–1); slope defaults to 0.5 (0.01–1).
 `level_in` and `level_out` default to 0.9 and 1 (0–1).

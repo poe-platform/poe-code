@@ -17801,9 +17801,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         filteredSampleFormat = "dbl";
                         if (stretched.length === 1 && (!filteredChannelMask || filteredChannelMask === 4) ||
-                            stretched.length === 2 && filteredChannelMask === 12) {
-                          // FC contributes equally to stereo; LFE does not contribute.
-                          const stereo = await panAudio(`stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`,
+                            stretched.length === 2 && filteredChannelMask === 12 ||
+                            [0x7, 0xb, 0x103, 0x33, 0x107, 0x37, 0x3f, 0x63f].includes(filteredChannelMask ?? 0)) {
+                          // Floating-point negotiation retains front gain and omits LFE.
+                          const expression = stretched.length <= 2
+                            ? `stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`
+                            : `stereo|FL=FL+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BL+${Math.SQRT1_2}*SL|FR=FR+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BR+${Math.SQRT1_2}*SR`;
+                          const stereo = await panAudio(expression,
                             stretched, filteredChannelMask, "flt", budget, context.signal);
                           stretched = stereo.channels;
                           filteredChannelMask = stereo.channelMask;

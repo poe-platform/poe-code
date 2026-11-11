@@ -714,7 +714,9 @@ Strength and range default to 0.2 and 0.5 (0–1); slope defaults to 0.5 (0.01�
 `level_in` and `level_out` default to 0.9 and 1 (0–1).
 `asendcmd=c='0.064 crossfeed@x level_out 0',crossfeed@x` changes output gain
 at the next audio frame without resetting filter history. Commands target the
-first matching instance; unmatched targets and invalid gains leave it unchanged.
+first matching instance; unmatched targets and invalid values leave it unchanged.
+Runtime `strength` commands update the crossfeed coefficients at the same frame
+boundaries while retaining filter history.
 `crossfeed=strength=0:level_in=1:level_out=1` preserves every stereo input sample.
 Timeline expressions such as `crossfeed=enable='gte(t,0.064)'` evaluate at audio
 frame boundaries using frame time `t` or frame number `n`. Bypassed frames retain

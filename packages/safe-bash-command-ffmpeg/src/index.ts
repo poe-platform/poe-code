@@ -13753,7 +13753,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))
                             || ["i", "c"].includes(action!) && (target === "crystalizer" || target?.startsWith("crystalizer@"))
                             || ["level_in", "level_out", "mode", "type", "enable"].includes(action!) && (target === "aemphasis" || target?.startsWith("aemphasis@"))
-                            || action === "level_out" && (target === "crossfeed" || target?.startsWith("crossfeed@"))
+                            || ["strength", "level_out"].includes(action!) && (target === "crossfeed" || target?.startsWith("crossfeed@"))
                             || target === "stereowiden" || target?.startsWith("stereowiden@")
                             || target === "stereotools" || target?.startsWith("stereotools@")
                             // aphaser declines runtime commands without aborting the render.
@@ -17489,17 +17489,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         audioCommands = audioCommands.filter(command => command.target !== "crossfeed" && command.target !== filterTarget);
                         let nextCommand = 0;
                         // Low-shelf the stereo difference signal, preserving the mid signal.
-                        const gain = 10 ** (-30 * options.strength / 40);
-                        const omega = 2 * Math.PI * (1 - options.range) * 2100 / origRate;
-                        const cosine = Math.cos(omega);
-                        const alpha = Math.sin(omega) / 2 * Math.sqrt((gain + 1 / gain) * (1 / options.slope - 1) + 2);
-                        const beta = 2 * Math.sqrt(gain) * alpha;
-                        const a0 = (gain + 1) + (gain - 1) * cosine + beta;
-                        const a1 = -2 * ((gain - 1) + (gain + 1) * cosine) / a0;
-                        const a2 = ((gain + 1) + (gain - 1) * cosine - beta) / a0;
-                        const b0 = gain * ((gain + 1) - (gain - 1) * cosine + beta) / a0;
-                        const b1 = 2 * gain * ((gain - 1) - (gain + 1) * cosine) / a0;
-                        const b2 = gain * ((gain + 1) - (gain - 1) * cosine - beta) / a0;
+                        const coefficients = () => {
+                          const gain = 10 ** (-30 * options.strength / 40);
+                          const omega = 2 * Math.PI * (1 - options.range) * 2100 / origRate;
+                          const cosine = Math.cos(omega);
+                          const alpha = Math.sin(omega) / 2 * Math.sqrt((gain + 1 / gain) * (1 / options.slope - 1) + 2);
+                          const beta = 2 * Math.sqrt(gain) * alpha;
+                          const a0 = (gain + 1) + (gain - 1) * cosine + beta;
+                          const a1 = -2 * ((gain - 1) + (gain + 1) * cosine) / a0;
+                          const a2 = ((gain + 1) + (gain - 1) * cosine - beta) / a0;
+                          const b0 = gain * ((gain + 1) - (gain - 1) * cosine + beta) / a0;
+                          const b1 = 2 * gain * ((gain - 1) - (gain + 1) * cosine) / a0;
+                          const b2 = gain * ((gain + 1) - (gain - 1) * cosine - beta) / a0;
+                          return { a1, a2, b0, b1, b2 };
+                        };
+                        let shelf = coefficients();
                         let w1 = 0;
                         let w2 = 0;
                         const length = stretched[0]!.length;
@@ -17528,14 +17532,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 const command = commands[nextCommand++]!;
                                 try {
                                   const value = parseFilterExpression(command.expression, "crossfeed", {});
-                                  if (Number.isFinite(value) && value >= 0 && value <= 1) options.level_out = value;
-                                } catch { /* Rejected runtime commands leave the current gain unchanged. */ }
+                                  if (Number.isFinite(value) && value >= 0 && value <= 1) {
+                                    if (command.action === "strength") {
+                                      options.strength = value;
+                                      shelf = coefficients();
+                                    } else options.level_out = value;
+                                  }
+                                } catch { /* Rejected runtime commands leave the current settings unchanged. */ }
                               }
                               const mid = (stretched[0]![i]! + stretched[1]![i]!) * options.level_in * 0.5;
                               const side = (stretched[0]![i]! - stretched[1]![i]!) * options.level_in * 0.5;
-                              const filtered = side * b0 + w1;
-                              w1 = b1 * side + w2 - a1 * filtered;
-                              w2 = b2 * side - a2 * filtered;
+                              const filtered = side * shelf.b0 + w1;
+                              w1 = shelf.b1 * side + w2 - shelf.a1 * filtered;
+                              w2 = shelf.b2 * side - shelf.a2 * filtered;
                               // Keep the low-shelf history running even when the output is bypassed.
                               output[0]![i] = enabled ? (mid + filtered) * options.level_out : stretched[0]![i]!;
                               output[1]![i] = enabled ? (mid - filtered) * options.level_out : stretched[1]![i]!;
@@ -17543,8 +17552,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             start = end;
                           }
                         } else {
-                          // Retain two forward-filtered blocks. A reverse pass over both
-                          // supplies lookahead for the older block; EOF also drains the newer one.
+                          // Refilter the pending block and its lookahead with the current
+                          // coefficients. EOF also drains the newer block.
                           const forward = new Float64Array(size * 2);
                           const previous = audioTimestamps;
                           budget.allocateMemory((Math.ceil(length / size) + 1) * 24);
@@ -17559,21 +17568,33 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               const command = commands[nextCommand++]!;
                               try {
                                 const value = parseFilterExpression(command.expression, "crossfeed", {});
-                                if (Number.isFinite(value) && value >= 0 && value <= 1) options.level_out = value;
-                              } catch { /* Rejected runtime commands leave the current gain unchanged. */ }
+                                if (Number.isFinite(value) && value >= 0 && value <= 1) {
+                                  if (command.action === "strength") {
+                                    options.strength = value;
+                                    shelf = coefficients();
+                                  } else options.level_out = value;
+                                }
+                              } catch { /* Rejected runtime commands leave the current settings unchanged. */ }
                             }
                             const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "crossfeed enable", {
                               n: start / size, t: pts / origRate
                             })) >= 0.5;
-                            for (let i = 0; i < size; i++) {
+                            let blockW1 = w1;
+                            let blockW2 = w2;
+                            for (let i = 0; i < size * 2; i++) {
                               if (++work % 4096 === 0) {
                                 budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted();
                               }
-                              const side = ((stretched[0]![start + i] ?? 0) - (stretched[1]![start + i] ?? 0)) * options.level_in * 0.5;
-                              const filtered = side * b0 + w1;
-                              w1 = b1 * side + w2 - a1 * filtered;
-                              w2 = b2 * side - a2 * filtered;
-                              forward[size + i] = filtered;
+                              const sample = start - size + i;
+                              const side = ((stretched[0]![sample] ?? 0) - (stretched[1]![sample] ?? 0)) * options.level_in * 0.5;
+                              const filtered = side * shelf.b0 + blockW1;
+                              blockW1 = shelf.b1 * side + blockW2 - shelf.a1 * filtered;
+                              blockW2 = shelf.b2 * side - shelf.a2 * filtered;
+                              forward[i] = filtered;
+                              if (i === size - 1) {
+                                w1 = blockW1;
+                                w2 = blockW2;
+                              }
                             }
                             let reverseW1 = 0;
                             let reverseW2 = 0;
@@ -17582,16 +17603,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted();
                               }
                               const side = forward[i]!;
-                              const filtered = side * b0 + reverseW1;
-                              reverseW1 = b1 * side + reverseW2 - a1 * filtered;
-                              reverseW2 = b2 * side - a2 * filtered;
+                              const filtered = side * shelf.b0 + reverseW1;
+                              reverseW1 = shelf.b1 * side + reverseW2 - shelf.a1 * filtered;
+                              reverseW2 = shelf.b2 * side - shelf.a2 * filtered;
                               const sample = start - size + i;
                               if (sample < 0 || sample >= length || (i >= size && start + size < length)) continue;
                               const mid = (stretched[0]![sample]! + stretched[1]![sample]!) * options.level_in * 0.5;
                               output[0]![sample] = enabled ? (mid + filtered) * options.level_out : sample < start ? stretched[0]![start + i] ?? 0 : 0;
                               output[1]![sample] = enabled ? (mid - filtered) * options.level_out : sample < start ? stretched[1]![start + i] ?? 0 : 0;
                             }
-                            forward.copyWithin(0, size);
                             audioTimestamps.push({ start, end: Math.min(length, start + size), pts });
                           }
                         }

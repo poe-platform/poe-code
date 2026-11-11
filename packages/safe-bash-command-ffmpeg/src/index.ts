@@ -7639,6 +7639,8 @@ export function evalSyncFfmpeg(
     if (subtitleCodec !== "copy") workingDoc = transcodeSubtitles(workingDoc,
       outPlugin?.id, subtitleCodec);
     if (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined) {
+      // Decoded PCM cuts need the async path's frame timestamps and duration handling.
+      if (audioCodec !== "copy" && workingDoc.tracks.some(track => track.decodedAudio)) return undefined;
       if (audioCodec === "copy" && outputSs !== undefined) {
         workingDoc = { ...workingDoc, tracks: workingDoc.tracks.map(track =>
           workingDoc.containerFormat === "au" || track.codecDescriptions[0]?.codecName === `pcm_${workingDoc.containerFormat}`
@@ -11589,7 +11591,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 if (track.type === "video" && vfFilters.length > 0) return uncutTracks[index]!;
                 if (track.type !== "audio") return track;
                 const ordinal = audioOrdinal++;
-                return afFilters.some(filter => filter.ordinal === undefined || filter.ordinal === ordinal)
+                return (audioCodec !== "copy" && uncutTracks[index]!.decodedAudio) ||
+                  afFilters.some(filter => filter.ordinal === undefined || filter.ordinal === ordinal)
                   ? uncutTracks[index]! : track;
               }) };
             }
@@ -11832,7 +11835,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     t = graph.outputs[0]!.track;
                     filter = { ...filter, expression: graph.outputs[0]!.expression };
                   }
-                  if (autoConversionFilters && audioRate === undefined && audioChannels === undefined && rematrixVolume === 1 && !filter && maxAudioFrames === undefined && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms") return t;
+                  const outputCut = index !== undefined && (filter !== undefined || t.decodedAudio !== undefined) &&
+                    (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined);
+                  if (autoConversionFilters && audioRate === undefined && audioChannels === undefined && rematrixVolume === 1 && !filter && !outputCut && maxAudioFrames === undefined && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms") return t;
                   const doc = index === undefined ? loadedDocs.find(doc => doc.tracks.includes(t)) ?? loadedDocs[0]! : workingDoc;
                   const audio = t.decodedAudio ?? (t.codecDescriptions[0]?.codecName === "aac"
                     ? decodeAacTrack(doc, t) : t.codecDescriptions[0]?.codecName === "mp3"
@@ -11861,7 +11866,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let audioInitialFrameUnavailable = false;
                   let audioMetadata: { pts: number; tags: Map<string, string> }[] = [];
                   let audioTimestamps: { start: number; end: number; pts: number; exactPts?: bigint | undefined; pos?: number | undefined }[] | undefined;
-                  if (!sink && ((index !== undefined && (audioSegment || frameChecksumOutput)) || (filter && parseFilterChain(filter.expression)
+                  if (!sink && (outputCut || (index !== undefined && (audioSegment || frameChecksumOutput)) || (filter && parseFilterChain(filter.expression)
                     .some(item => item.trim().split("=", 1)[0]!.split("@", 1)[0] === "areverse")))) {
                     if (index !== undefined && audioSegment) segmentAudioPackets = [];
                     audioTimestamps = [];
@@ -15952,7 +15957,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                   }
 
-                  if (filter && (outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined)) {
+                  if (outputCut) {
                     const start = outputSs === undefined ? 0 : Math.max(0, Math.round(outputSs * origRate) - audioStartSample);
                     const endSeconds = outputDuration === undefined ? outputTo : (outputSs ?? 0) + outputDuration;
                     const end = endSeconds === undefined ? undefined : Math.max(start, Math.round(endSeconds * origRate) - audioStartSample);
@@ -16338,7 +16343,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   };
             }
 
-            if ((!autoConversionFilters || audioRate !== undefined || audioChannelOptions.length > 0 || rematrixVolume !== 1 || afFilters.length > 0 || maxAudioFrames !== undefined || (audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms")) && audioCodec !== "copy") {
+            if ((!autoConversionFilters || audioRate !== undefined || audioChannelOptions.length > 0 || rematrixVolume !== 1 || afFilters.length > 0 || maxAudioFrames !== undefined || outputSs !== undefined || outputTo !== undefined || outputDuration !== undefined || (audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms")) && audioCodec !== "copy") {
               workingDoc = { ...workingDoc, tracks: await mapWork(workingDoc.tracks,
                 (track, index) => filterAudio(track, undefined, index), context.signal) };
             }

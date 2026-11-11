@@ -4,7 +4,8 @@ import type { ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
 import { createByteCodec, defaultRuntime } from "@poe-code/compression";
 
 export function miffChannels(image: Pick<RgbaImage, "space" | "hasAlpha">): 1 | 2 | 3 | 4 | 5 {
-    return image.space === "cmyk" ? image.hasAlpha ? 5 : 4 : image.space === "b-w" || image.space === "grey16" ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3;
+    if (image.space === "cmyk") return image.hasAlpha ? 5 : 4;
+    return image.space === "b-w" || image.space === "grey16" ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3;
 }
 
 function miffPixels(bytes: Uint8Array, channels: number, sampleBytes: number, compression: OutputEncodeOptions["miffCompression"], meta: readonly Uint8Array[], inks?: Float64Array): Uint8Array {

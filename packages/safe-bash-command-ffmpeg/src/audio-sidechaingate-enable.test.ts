@@ -29,7 +29,9 @@ for (const [enable, gains] of [
   [undefined, [0.5, 0.5]], ["0", [1, 1]], ["1", [0.5, 0.5]],
   ["gte(t,0.064)", [1, 0.5]], ["gte(t,0.001)", [1, 0.5]],
   ["between(t,0,0.063)", [0.5, 1]], ["eq(n,1)", [1, 0.5]],
-  ["0.4", [1, 1]], ["-0.5", [0.5, 0.5]]
+  ["0.4", [1, 1]], ["-0.5", [0.5, 0.5]],
+  ["eq(pos,44)", [0.5, 1]], ["eq(pos,0)", [1, 1]],
+  ["eq(pos,2092)", [1, 0.5]], ["eq(pos,1068)", [1, 1]]
 ] as const) {
   it(`sidechaingate applies timeline enable=${enable} at audio frame boundaries`, async () => {
     const { result, errors, bytes } = await runGate(enable);

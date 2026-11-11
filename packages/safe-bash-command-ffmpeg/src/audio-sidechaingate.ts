@@ -84,7 +84,7 @@ export async function gateAudio(
   let nextFrame = 0;
   let enabled = true;
   if (enable !== undefined && length === 0) {
-    parseFilterExpression(enable, "sidechaingate enable", { t: 0, n: 0, w: 0, h: 0 });
+    parseFilterExpression(enable, "sidechaingate enable", { t: 0, n: 0, w: 0, h: 0, pos: NaN });
   }
   for (let i = 0; i < length; i++) {
     if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
@@ -104,7 +104,7 @@ export async function gateAudio(
       const pts = programPts + i - programStart;
       if (enable !== undefined) {
         enabled = Math.abs(parseFilterExpression(enable, "sidechaingate enable", {
-          t: pts / sampleRate, n: frame, w: 0, h: 0
+          t: pts / sampleRate, n: frame, w: 0, h: 0, pos: first.samples[programFrame - 1]?.offset ?? NaN
         })) >= 0.5;
       }
       // Each output frame drains the shorter of the two current input frames.

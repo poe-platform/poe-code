@@ -212,6 +212,9 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
         budget.checkOutputBytes(size + (frame.width * frame.height +
           2 * Math.ceil(frame.width / 2) * Math.ceil(frame.height / 2)) * 2);
         append((await formatYuv(frame, format, signal)).native!.pixels);
+      } else if (format === "yuva444p") {
+        budget.checkOutputBytes(size + frame.width * frame.height * 4);
+        append((await formatYuv(frame, format, signal)).native!.pixels);
       } else if (format === "yuva420p") {
         const lumaSize = frame.width * frame.height;
         budget.checkOutputBytes(size + 2 * lumaSize + 2 * Math.ceil(frame.width / 2) * Math.ceil(frame.height / 2));

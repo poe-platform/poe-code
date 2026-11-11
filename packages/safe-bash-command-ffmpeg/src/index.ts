@@ -13770,7 +13770,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const end = Math.min(inputLength, offset + count);
                             let pts = (frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + frameStart))
                               + offset - frameStart;
-                            if (loop! > 0 && start! > 0 && offset < regionEnd) {
+                            if (loop! > 0 && loopStart > 0 && offset < regionEnd) {
                               const region = regions[regionIndex];
                               if (region && region.start < end) {
                                 // The first cached frame advances the replay clock by its drained prefix.

@@ -330,7 +330,7 @@ export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" 
             // Q16-HDRI stores these conversions as float quantum samples; YCbCr
             // neutral chroma must round to exactly half-range before palette classification.
             const value = target === "ProPhoto" || image.magickColorspace === "ProPhoto" ? Math.fround(sample * 65535) / 65535
-                : target === "Adobe98" || image.magickColorspace === "Adobe98" ? Math.fround(sample * 65535) / 65535
+                : target === "Adobe98" || image.magickColorspace === "Adobe98" || target === "XYZ" || image.magickColorspace === "XYZ" ? Math.fround(sample * 65535) / 65535
                 : rec601 && channel < 3 ? Math.fround(Math.max(0, Math.min(1, sample)) * 65535) / 65535
                 : target === "DisplayP3" || image.magickColorspace === "DisplayP3" || target === "CAT02LMS" || image.magickColorspace === "CAT02LMS" || target === "YIQ" || target === "YDbDr" || image.magickColorspace === "YIQ" || image.magickColorspace === "YDbDr" || target === "Rec709YCbCr" || image.magickColorspace === "Rec709YCbCr" || lch || sourceLch || target === "Jzazbz" || image.magickColorspace === "Jzazbz" || target === "xyY" || image.magickColorspace === "xyY" || target === "Oklch" || image.magickColorspace === "Oklch" || target === "Oklab" || image.magickColorspace === "Oklab" || target === "CIELab" || image.magickColorspace === "CIELab" || target === "HSI" || image.magickColorspace === "HSI" || target === "HSL" || image.magickColorspace === "HSL" || (target === "YPbPr" || target === "YCbCr") || (image.magickColorspace === "YPbPr" || image.magickColorspace === "YCbCr") || image.magickColorspace === "YCC"
                 ? Math.fround(sample * 65535) / 65535 : sample;

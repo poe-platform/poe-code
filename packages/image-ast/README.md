@@ -133,7 +133,7 @@ pixel caches and pull-driven owned data subblocks, including animated frames.
 `decodeGifToStorage` retains LZW input, animation canvases and frame delays in caller
 storage, including page selection, interlacing and disposal. Async GIF output reads
 those retained delays without a frame-count-sized array. GIF encoding accepts `gifInterlace: true` for four-pass interlaced frames and
-`transparentColor: { r, g, b }` to select the transparent palette color without changing opacity.
+`transparentColor: { r, g, b }` to select the transparent palette color without changing opacity. Solid-color GIFs use their image color for exposed canvas when no background is specified; explicit and inherited backgrounds take precedence.
 `decodeWebpToStorage` retains RIFF metadata, VP8L pixels, transforms and Huffman groups
 in caller storage with fixed input and word caches.
 Set `smartSubsample: true` (also available in `.webp()`) for sharp RGB-to-YUV conversion in lossy WebP; lossless output is unaffected. Set `webpExact: false` in WebP encoding options to discard hidden RGB at zero alpha; the library preserves it by default.

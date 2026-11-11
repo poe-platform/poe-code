@@ -43,12 +43,13 @@ function raster(spec: Spec): RgbaImage {
   };
 }
 // Small palettes use frozen encoder hashes, with transparency flagged only for transparent frames.
+// Single-color vectors include their source color as the screen background.
 // Former RGB332 fallback cases instead check decoded source-color accuracy.
 const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
   {
     spec: { width: 1, height: 1, colors: 254 },
     options: {},
-    hash: "b46352beb02d635162606e38ccde029be5a8dbc9d8a8d9cb016489e1a27f367e"
+    hash: "164fd9758fffa20e74533c0b473f558b62a93be7873ffc96997cc96ec205a5b0"
   },
   {
     spec: { width: 119, height: 1, colors: 254 },
@@ -123,7 +124,7 @@ const vectors: { spec: Spec; options: GifOptions; hash?: string }[] = [
   {
     spec: { width: 2, height: 4, colors: 1, mode: "alpha" },
     options: { pageHeight: 1, delay: [12, 35], loop: 2 },
-    hash: "8819b30b36bf59a1a1f3808c0e66f35b6dc781215a6b0323d620ef4e882bece8"
+    hash: "22bb543a9eba86219a9c15dad87e0a98f75147383e4677aef1233106cd3f54fb"
   },
   {
     spec: { width: 253, height: 4, colors: 252, mode: "grid" },

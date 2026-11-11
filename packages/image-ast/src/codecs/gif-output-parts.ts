@@ -70,6 +70,10 @@ export class GifPalette {
       this.quantized = quantizeGif(this.histogram, this.bytes);
     }
   }
+  get defaultBackgroundIndex(): number {
+    // A solid image uses its sole color, not the prefilled black palette entry.
+    return this.used.size === 1 ? this.used.values().next().value! : 0;
+  }
   /** PNG has no fixed table size: omit unused entries and remap raster indices. */
   finishPng() {
     this.finish();
@@ -151,7 +155,7 @@ export function gifHeader(
     frameHeight & 255,
     frameHeight >>> 8,
     options.globalPalette === false ? 112 : 247,
-    image.backgroundColor ? palette.index(image.backgroundColor.r, image.backgroundColor.g, image.backgroundColor.b, 255) : 0,
+    image.backgroundColor ? palette.index(image.backgroundColor.r, image.backgroundColor.g, image.backgroundColor.b, 255) : palette.defaultBackgroundIndex,
     0
   ]);
   if (options.globalPalette !== false) out.set(palette.bytes, 13);

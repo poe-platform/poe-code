@@ -1,6 +1,7 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function softClipAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
@@ -21,14 +22,14 @@ export async function softClipAudio(
         ...Object.fromEntries(types.map((name, index) => [name, index - 1])),
         default: 0, min: -1, max: types.length - 2
       }, undefined, new Float64Array(10));
-      if (!Number.isFinite(number) || number < -1 || number > types.length - 2) throw new Error("asoftclip: invalid type");
+      if (!Number.isFinite(number) || number < -1 || number > types.length - 2) throw new RangeError("asoftclip: invalid type");
       // FFmpeg's integer options round exact halves to the nearest even integer.
       const lower = Math.floor(number);
       const index = number - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(number);
       type = types[index + 1]!;
     } else if (key === "oversample") {
       const number = parseFilterExpression(value, "asoftclip", {});
-      if (!Number.isFinite(number) || number < 1 || number > 64) throw new Error("asoftclip: invalid oversample");
+      if (!Number.isFinite(number) || number < 1 || number > 64) throw new RangeError("asoftclip: invalid oversample");
       // Native integer options validate the range before rounding ties to even.
       options.oversample = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
     } else if (key === "threshold" || key === "output" || key === "param") {
@@ -36,7 +37,7 @@ export async function softClipAudio(
       const min = key === "param" ? 0.01 : 0.000001;
       const max = key === "param" ? 3 : key === "output" ? 16 : 1;
       if (!value || !Number.isFinite(number) || number < min || number > max) {
-        throw new Error(`asoftclip: invalid ${key}`);
+        throw new RangeError(`asoftclip: invalid ${key}`);
       }
       options[key] = number;
     } else {
@@ -49,6 +50,10 @@ export async function softClipAudio(
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["type", "threshold", "output", "param", "oversample"][positional++] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, value, "asoftclip");
+      continue;
+    }
     setOption(key, value);
   }
   function clip(sample: number): number {

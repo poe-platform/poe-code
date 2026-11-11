@@ -2,6 +2,7 @@ import type { MediaBudgetTracker, MediaSample, MediaTrack } from "@poe-code/mp4-
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 import { resampleAudio } from "./audio-resample.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function correlateAudio(
   first: MediaTrack, second: MediaTrack, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
@@ -39,6 +40,8 @@ export async function correlateAudio(
       // Native integer options round ties to even after validating the range.
       const rounded = numeric % 1 === 0.5 ? 2 * Math.round(numeric / 2) : Math.round(numeric);
       algo = ["slow", "fast", "best"][rounded]!;
+    } else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, value, "axcorrelate");
     } else throw new Error(`axcorrelate: unsupported option ${key}`);
   }
   let secondChannels = b.channelData;

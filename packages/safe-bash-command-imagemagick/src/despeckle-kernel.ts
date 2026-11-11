@@ -2,7 +2,7 @@ import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 /** Directional hull smoothing with the native zero border and Q16 step size. */
-export function* despecklePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedHueSamples" | "storedEvaluateSamples">>, channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* despecklePixelSteps(image: { alphaSeparate?: boolean | undefined } & Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedHueSamples" | "storedEvaluateSamples">>, channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, stride = width + 2;
     const gray = image.space === "b-w" || image.space === "grey16";
     const hue = image.space !== "cmyk" && (!!image.hueSamples || image.storedHueSamples !== undefined);
@@ -20,7 +20,7 @@ export function* despecklePixelSteps(image: Pick<RgbaImage, "width" | "height" |
     const pixels = new Float64Array(stride * (height + 2));
     const buffer = new Float64Array(pixels.length);
     let work = 0;
-    for (let channel = 0; channel < (image.hasAlpha ? 4 : 3); channel++) {
+    for (let channel = 0; channel < (image.hasAlpha || image.alphaSeparate ? 4 : 3); channel++) {
         if (gray && (channel === 1 || channel === 2) || channels && !channels[channel]) continue;
         for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
             if (++work % 4096 === 0) yield;

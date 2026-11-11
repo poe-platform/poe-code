@@ -4990,6 +4990,45 @@ async function applyVideoFilterChain(
       }
       current = blended;
       if (([6, 13].includes(modes[3]!) || fractionalOpacity || hasExpressions) && packedAlpha) pixelFormat = "gbrap";
+    } else if (name === "shuffleplanes") {
+      const mapping = [0, 1, 2, 3];
+      for (const [index, part] of (argStr ? positional : []).entries()) {
+        const separator = part.indexOf("=");
+        const key = separator < 0 ? `map${index}` : part.slice(0, separator).trim();
+        const plane = ["map0", "map1", "map2", "map3"].indexOf(key);
+        if (plane < 0) throw new Error(`shuffleplanes: unsupported option ${key}`);
+        const value = parseFilterExpression(separator < 0 ? part : part.slice(separator + 1), "shuffleplanes", {});
+        if (!Number.isInteger(value) || value < 0 || value > 3) throw new Error("shuffleplanes: invalid plane index");
+        mapping[plane] = value;
+      }
+      current = await mapWork(current, async (frame) => {
+        const source = frame.native;
+        if (!source || source.rgba !== frame.data || source.width !== frame.width || source.height !== frame.height ||
+            ![0, 4, 5, 12, 13, 14, 49, 68].includes(source.format)) {
+          throw new Error("shuffleplanes: expected native planar YUV input");
+        }
+        const sampleBytes = [49, 68].includes(source.format) ? 2 : 1;
+        const hsub = [5, 14, 49, 68].includes(source.format) ? 1 : 2;
+        const vsub = [0, 12].includes(source.format) ? 2 : 1;
+        const luma = frame.width * frame.height * sampleBytes;
+        const chroma = Math.ceil(frame.width / hsub) * Math.ceil(frame.height / vsub) * sampleBytes;
+        const sizes = [luma, chroma, chroma];
+        const offsets = [0, luma, luma + chroma];
+        for (let plane = 0; plane < 3; plane++) {
+          if (mapping[plane]! >= 3 || sizes[mapping[plane]!] !== sizes[plane]) {
+            throw new Error("shuffleplanes: mapped planes must have matching dimensions and exist in the input");
+          }
+        }
+        budget.allocateMemory(source.pixels.byteLength + frame.data.byteLength);
+        const pixels = new Uint8Array(source.pixels.length);
+        for (let plane = 0; plane < 3; plane++) {
+          const start = offsets[mapping[plane]!]!;
+          pixels.set(source.pixels.subarray(start, start + sizes[plane]!), offsets[plane]!);
+        }
+        const native = { ...source, pixels };
+        const data = scaleVideoPicture({ ...frame, native }, frame.width, frame.height)!;
+        return { ...frame, data, native: { ...native, rgba: data } };
+      }, signal);
     } else if (name === "shuffleframes") {
       for (const [key, value] of Object.entries(named)) {
         if (key === "mapping" || key === "enable") continue;

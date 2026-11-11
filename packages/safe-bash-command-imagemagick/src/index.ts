@@ -6175,7 +6175,7 @@ function magickResizeOptions(img:Pick<RgbaImage,"width"|"height"|"hasAlpha"|"isP
 function thumbnailProperties(image: ImageMetadata & { [magickInput]?: MagickFormatContext }, pages = image[magickInput]?.sceneCount ?? 1): ImageMetadata["properties"] {
     const source = image[magickInput];
     const properties = updateMagickProperty(image.properties, "Software", "https://imagemagick.org");
-    if (!source?.filePath) return properties;
+    if (source?.filePath === undefined) return properties;
     const path = source.filePath;
     const uriPath = Array.from(new TextEncoder().encode(path), byte => {
         const char = String.fromCharCode(byte);
@@ -8127,7 +8127,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         const c1 = parseColor(c1Str || "#ffffff", true);
         const c2 = parseColor(separator < 0 ? "#000000" : c2Str || "#ffffff", true);
         const image = yield* createGradientImageSteps(state.sizeWidth, state.sizeHeight, c1, c2, radial, state.gradientDirection, state.gradientAngle, state.gradientVector, state.gradientBoundingBox, state.gradientCenter, state.gradientRadii, state.gradientExtent);
-        return yield* applyMod([Object.assign(image, { [magickInput]: { filePath: c1Str, inputFormat: baseToken.slice(0, baseToken.indexOf(":")).toUpperCase() } })]);
+        return yield* applyMod([Object.assign(image, { [magickInput]: { filePath: c1Str || "white", inputFormat: baseToken.slice(0, baseToken.indexOf(":")).toUpperCase() } })]);
     }
     if (lower.startsWith("plasma:")) {
         const spec = baseToken.slice(7), fractal = spec.toLowerCase() === "fractal";
@@ -20775,7 +20775,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   }
   image={position,width,height,...(storedData16?{storedData16}:{}),...(storedEvaluateSamples===undefined?{}:{storedEvaluateSamples}),...(storedHueSamples===undefined?{}:{storedHueSamples}),format:"png",channels:a.space?(a.a<255||b.a<255?2:1):4,depth:checker?"uchar":"ushort",space:a.cmyk?"cmyk":a.space??"srgb",density:72,hasAlpha:checker||a.a<255||b.a<255};
   if (pattern) image = { ...image, space: state.hasSize ? "srgb" : pattern.space, channels: state.hasSize || pattern.space === "srgb" ? 3 : 1, hasAlpha: false };
-  image = Object.assign(image, { ...(pattern ? { bitsPerSample: state.hasSize ? state.inputDepth ?? 16 : pattern.bitsPerSample } : {}), [magickInput]: { filePath: pattern ? spec : first, inputFormat: pattern && !state.hasSize ? pattern.format.toUpperCase() : baseToken.slice(0, baseToken.indexOf(":")).toUpperCase() } });
+  image = Object.assign(image, { ...(pattern ? { bitsPerSample: state.hasSize ? state.inputDepth ?? 16 : pattern.bitsPerSample } : {}), [magickInput]: { filePath: pattern ? spec : first || "white", inputFormat: pattern && !state.hasSize ? pattern.format.toUpperCase() : baseToken.slice(0, baseToken.indexOf(":")).toUpperCase() } });
  }else if(lower.startsWith("label:")||lower.startsWith("caption:")){
   const text = baseToken.slice(baseToken.indexOf(":") + 1), kind = lower.startsWith("caption:") ? "caption" : "label";
   const font = state.font === undefined ? defaultCaptionFont : await backend.read(state.font, async source => {

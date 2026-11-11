@@ -6,11 +6,15 @@ import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js"
 // ImageMagick 7.1.2-35 uses the first gradient color as the thumbnail source URI.
 for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     it.each([
-        { input: "gradient:red-blue", repeat: false },
-        { input: "gradient:red-blue", repeat: true },
-        { input: "radial-gradient:red-blue", repeat: false },
-        { input: "radial-gradient:red-blue", repeat: true },
-    ])(`${mode} preserves original thumbnail properties for $input (repeat: $repeat)`, async ({ input, repeat }) => {
+        { input: "gradient:red-blue", uri: "./red", repeat: false },
+        { input: "gradient:red-blue", uri: "./red", repeat: true },
+        { input: "radial-gradient:red-blue", uri: "./red", repeat: false },
+        { input: "radial-gradient:red-blue", uri: "./red", repeat: true },
+        { input: "gradient:", uri: "./white", repeat: false },
+        { input: "gradient:", uri: "./white", repeat: true },
+        { input: "radial-gradient:", uri: "./white", repeat: false },
+        { input: "radial-gradient:", uri: "./white", repeat: true },
+    ])(`${mode} preserves original thumbnail properties for $input (repeat: $repeat)`, async ({ input, uri, repeat }) => {
         const argv = ["-size", "5x3", input, "-thumbnail", "2x2", ...(repeat ? ["-thumbnail", "1x1"] : []),
             "-format", "%wx%h:%[Thumb::Image::Width]:%[Thumb::Image::Height]:%[Thumb::Document::Pages]:%[Thumb::URI]", "info:-"];
         const filesystem = new MemoryFileSystem();
@@ -31,7 +35,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
             stdout = result.stdout;
             stderr = result.stderr;
         }
-        expect(stdout).toBe(`${repeat ? "1x1" : "2x1"}:5:3:1:./red`);
+        expect(stdout).toBe(`${repeat ? "1x1" : "2x1"}:5:3:1:${uri}`);
         expect(stderr).toBe("");
     });
 }

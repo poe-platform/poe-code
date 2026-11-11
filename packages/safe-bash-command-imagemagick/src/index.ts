@@ -9007,8 +9007,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (imageType === "truecolor" || imageType === "truecoloralpha" || paletteType) {
                 const hasAlpha = imageType === "truecoloralpha" || (paletteType && imageType !== "palette");
                 const source = image;
-                // Enabling absent alpha makes it opaque; TrueColor preserves hidden RGB.
-                if (imageType === "truecolor" || !image.hasAlpha) image = yield* prepareInactiveAlphaOutput({ ...image, hasAlpha: false });
+                // Enabling alpha initializes opacity; disabling it retains the stored samples.
+                if (!image.hasAlpha && (hasAlpha || imageType === "palette" && !image.inactiveAlpha)) image = yield* prepareInactiveAlphaOutput({ ...image, hasAlpha: false });
                 if (bilevelAlpha) {
                     const data = new Uint8Array(image.data), data16 = image.data16?.slice();
                     const samples = image.data16 ?? image.data, midpoint = image.data16 ? 32767.5 : 127.5;
@@ -9024,8 +9024,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     }
                     image = { ...image, data, ...(data16 ? { data16 } : {}) };
                 }
-                // Palette quantization uses alpha for color ordering, then leaves it inactive.
-                if (imageType === "palette" && source.hasAlpha) image = { ...image, inactiveAlpha: true, alphaBlend: false };
+                // Palette quantization also uses the retained alpha for color ordering.
+                if (!hasAlpha && (source.hasAlpha || source.inactiveAlpha)) image = { ...image, inactiveAlpha: true, alphaBlend: false, alphaSeparate: false };
                 const gray = !paletteType && (image.space === "b-w" || image.space === "grey16");
                 return { ...image, isPalette: paletteType, hasAlpha, channels: gray ? (hasAlpha ? 2 : 1) : (hasAlpha ? 4 : 3), space: gray ? image.space : "srgb" };
             }
@@ -9095,7 +9095,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 data16[idx] = data16[idx + 1] = data16[idx + 2] = Math.round(gray);
                 data16[idx + 3] = Math.round(Math.max(0, Math.min(65535, evaluateSamples[idx + 3]! * 257)));
                 evaluateSamples[idx] = evaluateSamples[idx + 1] = evaluateSamples[idx + 2] = intensity / 257;
-                if (imageType !== undefined && (imageType !== "grayscalealpha" || !image.hasAlpha)) {
+                if (imageType === "bilevel" || imageType === "grayscalealpha" && !image.hasAlpha) {
                     out[idx + 3] = evaluateSamples[idx + 3] = 255;
                     data16[idx + 3] = 65535;
                 }
@@ -9105,6 +9105,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             }
             const { data16: ignored, magickColorspace: ignoredSpace, hueSamples: ignoredHue, storedHueSamples: ignoredStoredHue, ...metadata } = image;
             const hasAlpha = imageType === undefined ? image.hasAlpha : imageType === "grayscalealpha";
+            if (imageType === "grayscale" || imageType === "bilevel") {
+                metadata.inactiveAlpha = image.hasAlpha || image.inactiveAlpha;
+                metadata.alphaBlend = false;
+                metadata.alphaSeparate = false;
+            }
             return { ...metadata, isPalette: false, data: out, data16, evaluateSamples, space: "b-w", ...(luminance ? { gamma: 1 } : {}), hasAlpha, channels: hasAlpha ? 2 : 1 };
         };
     }

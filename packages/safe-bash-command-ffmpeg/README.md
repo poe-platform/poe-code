@@ -1177,6 +1177,9 @@ WebVTT input `-kind subtitles|captions|descriptions|metadata` applies to the nex
 (peak-to-peak), or `dev` (standard deviation) detection with a configurable window.
 Numeric detector aliases are `0`, `1`, `2`, `3`, `4`, and `5`, respectively.
 Threshold expressions accept `min` and `default` (both `0`) and `max` (the largest finite double).
+Threshold, period, detection, and timestamp expressions accept `none=0` and `all=-1`, subject to their option ranges.
+Channel modes accept `none` as `any`; `all` retains its channel-mode value of `1`.
+These aliases also apply to timed threshold and channel-mode commands.
 The `threads` and `extra_hw_frames` options accept `none` (`0`) and `all` (`-1`) in expressions; `threads=all` remains out of range. These scheduling options leave the audio unchanged.
 Negative stop periods remove repeated silent sections.
 Timed commands such as `asendcmd=c='0.003 silenceremove@trim stop_threshold 0.5',silenceremove@trim=stop_periods=-1:window=0`

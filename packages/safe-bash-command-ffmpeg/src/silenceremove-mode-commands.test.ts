@@ -50,7 +50,7 @@ for (const complex of [false, true]) {
         assert.deepEqual(await run(`asetnsamples=4:0,asendcmd=c='0.004 ${target} ${phase}_mode any',${filter}`, complex), expected);
       });
     }
-    for (const value of ["0", "0.5", "all-1", "min"]) {
+    for (const value of ["0", "0.5", "all-1", "min", "none"]) {
       it(`evaluates scheduled ${phase}_mode=${value} at the next frame (complex=${complex})`, async () => {
         assert.deepEqual(await run(`asetnsamples=4:0,asendcmd=c='0.001 silenceremove@s ${phase}_mode ${value}',${filter}`, complex), expected);
       });

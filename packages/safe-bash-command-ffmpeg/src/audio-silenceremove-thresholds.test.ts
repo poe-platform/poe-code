@@ -33,7 +33,7 @@ for (const graph of [false, true]) {
     for (const [threshold, high] of [
       ["min", false], ["default", false], ["max", true],
       ["min+default", false], ["max/2", true], ["default+0", false],
-      ["0", false], ["1e100", true]
+      ["0", false], ["1e100", true], ["none", false], ["all+1", false]
     ] as const) {
       it(`resolves ${phase}_threshold=${threshold} (graph=${graph})`, async () => {
         const { result, stderr, volume } = await run(
@@ -45,11 +45,11 @@ for (const graph of [false, true]) {
         assert.deepEqual(volume.readFileSync("/out.raw"), expected);
       });
     }
-    for (const threshold of ["min-1", "max*2", "default/0", "unknown"]) {
+    for (const threshold of ["min-1", "max*2", "default/0", "unknown", "all"]) {
       it(`rejects ${phase}_threshold=${threshold} without replacing output (graph=${graph})`, async () => {
         const { result, volume } = await run(
           `silenceremove=${phase}_periods=1:window=0:${phase}_threshold=${threshold}`, graph, true);
-        assert.notEqual(result.exitCode, 0);
+        assert.equal(result.exitCode, threshold === "unknown" || threshold === "default/0" ? 234 : 222);
         assert.equal(volume.readFileSync("/out.raw", "utf8"), "keep");
       });
     }

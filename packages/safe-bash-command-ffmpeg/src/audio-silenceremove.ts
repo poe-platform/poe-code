@@ -57,6 +57,7 @@ export async function removeSilence(
       const names = key === "detection" ? ["avg", "rms", "peak", "median", "ptp", "dev"]
         : key === "timestamp" ? ["write", "copy"] : ["any", "all"];
       const number = parseFilterExpression(value, "silenceremove", {
+        none: 0, all: -1,
         ...Object.fromEntries(names.map((name, i) => [name, i])),
         min: 0, max: names.length - 1, default: key === "stop_mode" || key === "detection" ? 1 : 0
       });
@@ -72,7 +73,7 @@ export async function removeSilence(
       const periods = key.endsWith("periods");
       const min = key === "stop_periods" ? -9000 : 0;
       const max = periods ? 9000 : key === "window" ? 100 : threshold ? Number.MAX_VALUE : 2147.483647;
-      const number = threshold || periods ? parseFilterExpression(value, "silenceremove", { min, max, default: 0 })
+      const number = threshold || periods ? parseFilterExpression(value, "silenceremove", { min, max, default: 0, none: 0, all: -1 })
         : parseHlsDuration(value);
       if (!value || Number.isNaN(number)) throw new Error(`silenceremove: invalid ${key}`);
       if (!Number.isFinite(number) || number < min || number > max) {
@@ -115,12 +116,12 @@ export async function removeSilence(
           randomStates.length = 0;
         } else if (command.action === "start_mode" || command.action === "stop_mode") {
           const value = parseFilterExpression(command.expression, "silenceremove", {
-            any: 0, all: 1, min: 0, max: 1, default: command.action === "stop_mode" ? 1 : 0
+            any: 0, all: 1, none: 0, min: 0, max: 1, default: command.action === "stop_mode" ? 1 : 0
           });
           // Native validates before rounding integer options, with ties to even.
           if (Number.isFinite(value) && value >= 0 && value <= 1) options[command.action] = value > 0.5 ? "all" : "any";
         } else if (command.action === "start_threshold" || command.action === "stop_threshold") {
-          const value = parseFilterExpression(command.expression, "silenceremove", { min: 0, max: Number.MAX_VALUE, default: 0 });
+          const value = parseFilterExpression(command.expression, "silenceremove", { min: 0, max: Number.MAX_VALUE, default: 0, none: 0, all: -1 });
           if (Number.isFinite(value) && value >= 0) {
             if (command.action === "start_threshold") startThreshold = value;
             else stopThreshold = value;

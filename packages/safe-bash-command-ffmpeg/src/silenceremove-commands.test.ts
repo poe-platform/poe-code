@@ -6,7 +6,7 @@ import { createFfmpegCommand } from "./index.js";
 // Native FFmpeg 7.0.2 reference samples at 1 kHz, in three-sample frames.
 for (const complex of [false, true]) {
   for (const named of [false, true]) {
-    for (const threshold of [undefined, "0", "0.5", "invalid", "-1"]) {
+    for (const threshold of [undefined, "0", "0.5", "invalid", "-1", "none", "all", "all+1.5"]) {
       it(`silenceremove timed stop_threshold=${threshold} (complex=${complex}, named=${named})`, async () => {
         const input = Buffer.alloc(24);
         [0, 0, 2000, 2000, 0, 0, -4000, -4000, 0, 0, 6000, 0]
@@ -32,10 +32,10 @@ for (const complex of [false, true]) {
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
         assert.equal(result.exitCode, 0, stderr);
-        if (threshold === undefined || threshold === "0" || threshold === "0.5") assert.equal(stderr, "");
+        if (threshold === undefined || threshold === "0" || threshold === "0.5" || threshold === "none" || threshold === "all+1.5") assert.equal(stderr, "");
         const output = Buffer.concat(chunks);
         assert.deepEqual(Array.from({ length: output.length / 2 }, (_, i) => output.readInt16LE(i * 2)),
-          threshold === "0.5" ? [0, 0, 2000] : [0, 0, 2000, 2000, -4000, -4000, 6000]);
+          (threshold === "0.5" || threshold === "all+1.5") ? [0, 0, 2000] : [0, 0, 2000, 2000, -4000, -4000, 6000]);
       });
     }
   }
@@ -44,15 +44,16 @@ for (const complex of [false, true]) {
 // Native FFmpeg 7.0.2 reference samples at 1 kHz, in four-sample frames.
 for (const complex of [false, true]) {
   for (const named of [false, true]) {
-    for (const time of [undefined, "0.004", "0.008"]) {
-      it(`silenceremove timed start_threshold at ${time} (complex=${complex}, named=${named})`, async () => {
+    for (const [time, threshold] of [[undefined, "0.001"], ["0.004", "0.001"], ["0.008", "0.001"],
+      ["0.004", "none"], ["0.008", "all+1"]]) {
+      it(`silenceremove timed start_threshold=${threshold} at ${time} (complex=${complex}, named=${named})`, async () => {
         const input = Buffer.alloc(40);
         [0, 0, 100, 0, 200, 300, 0, 0, 0, 400, 500, 600, 0, 0, 0, 0, 700, 800, 0, 0]
           .forEach((sample, i) => input.writeInt16LE(sample, i * 2));
         const volume = Volume.fromJSON({ "/in.pcm": input });
         const target = named ? "silenceremove@trim" : "silenceremove";
         const filter = `asetnsamples=n=4:p=0,${time === undefined ? "" :
-          `asendcmd=c='${time} ${target} start_threshold 0.001',`}${target}=start_periods=1:start_threshold=1:window=0`;
+          `asendcmd=c='${time} ${target} start_threshold ${threshold}',`}${target}=start_periods=1:start_threshold=1:window=0`;
         const chunks: Buffer[] = [];
         let stderr = "";
         const result = await createFfmpegCommand().execute({

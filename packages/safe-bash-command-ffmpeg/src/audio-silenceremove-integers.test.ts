@@ -43,14 +43,21 @@ for (const graph of [false, true]) {
     for (const [value, literal] of [
       ["min", min], ["max", max], ["default", defaultValue],
       ["max-1", max - 1], ["min+1", min + 1], ["default+0", defaultValue],
-      [named, defaultValue]
+      [named, defaultValue], ["none", 0], ["none+1", 1],
+      ["all", key.endsWith("_mode") ? 1 : -1],
+      ["all+1", key.endsWith("_mode") ? 2 : 0]
     ] as const) {
       it(`resolves ${key}=${value} (graph=${graph})`, async () => {
         const prefix = `silenceremove=start_periods=1:stop_periods=-1:window=0:${key}=${max}:`;
         const expected = await run(`${prefix}${key}=${literal}`, graph);
-        assert.equal(expected.result.exitCode, 0, expected.stderr);
+        assert.equal(expected.result.exitCode, literal < min || literal > max ? 222 : 0, expected.stderr);
         const actual = await run(`${prefix}${key}=${value}`, graph);
-        assert.equal(actual.result.exitCode, 0, actual.stderr);
+        assert.equal(actual.result.exitCode, expected.result.exitCode, actual.stderr);
+        assert.equal(actual.stderr, expected.stderr);
+        if (expected.result.exitCode !== 0) {
+          assert.equal(actual.volume.existsSync("/out.raw"), false);
+          return;
+        }
         assert.deepEqual(actual.volume.readFileSync("/out.raw"), expected.volume.readFileSync("/out.raw"));
       });
     }

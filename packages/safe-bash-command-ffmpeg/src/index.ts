@@ -3203,6 +3203,7 @@ async function applyVideoFilterChain(
       await diagnostics.write(`[showinfo] config in time_base: ${timeBase}, frame_rate: ${frameRate}\n` +
         "[showinfo] config out time_base: 0/0, frame_rate: 0/0\n");
       const checksumEnabled = !["0", "false", "no", "off"].includes(option ?? "");
+      const formatTime = (seconds: number) => Number(Math.abs(seconds) < 1 ? seconds.toPrecision(6) : seconds.toFixed(6));
       for (const [n, frame] of current.entries()) {
         budget.checkCpu();
         let format = diagnostics.pixelFormat ?? "rgba";
@@ -3255,7 +3256,7 @@ async function applyVideoFilterChain(
           }
           stats = ` checksum:${hex(b * 65536 + a)} plane_checksum:[${checksums.join(" ")}] mean:[${means.join(" ")}] stdev:[${deviations.join(" ")}]`;
         }
-        await diagnostics.write(`[showinfo] n:${n} pts:${Math.round(frame.ptsSeconds * diagnostics.timescale)} pts_time:${Number(frame.ptsSeconds.toPrecision(6))} duration:${Math.round(frame.durationSeconds * diagnostics.timescale)} duration_time:${Number(frame.durationSeconds.toPrecision(6))} fmt:${format} cl:${diagnostics.chromaLocation ?? "unspecified"} sar:${diagnostics.sarWidth}/${diagnostics.sarHeight} s:${frame.width}x${frame.height} i:${frame.interlaced ? frame.topFieldFirst ? "T" : "B" : "P"} iskey:${Number(frame.keyframe)} type:${["?", "I", "P", "B", "S", "i", "p", "b"][frame.pictureType ?? 0] ?? "?"}${stats}\n`);
+        await diagnostics.write(`[showinfo] n:${n} pts:${Math.round(frame.ptsSeconds * diagnostics.timescale)} pts_time:${formatTime(frame.ptsSeconds)} duration:${Math.round(frame.durationSeconds * diagnostics.timescale)} duration_time:${formatTime(frame.durationSeconds)} fmt:${format} cl:${diagnostics.chromaLocation ?? "unspecified"} sar:${diagnostics.sarWidth}/${diagnostics.sarHeight} s:${frame.width}x${frame.height} i:${frame.interlaced ? frame.topFieldFirst ? "T" : "B" : "P"} iskey:${Number(frame.keyframe)} type:${["?", "I", "P", "B", "S", "i", "p", "b"][frame.pictureType ?? 0] ?? "?"}${stats}\n`);
       }
     } else if (name === "zoompan") {
       const result = await zoompan(current, argStr, diagnostics.sar, budget, signal);

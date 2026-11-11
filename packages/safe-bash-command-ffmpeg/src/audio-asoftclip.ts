@@ -5,20 +5,17 @@ import { parseFilterExpression } from "./filter-expression.js";
 export async function softClipAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: readonly { start: number; end: number; pts: number }[],
-  format: string, budget: MediaBudgetTracker, signal?: AbortSignal
+  format: string, budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<Float64Array[]> {
   const types = ["hard", "tanh", "atan", "cubic", "exp", "alg", "quintic", "sin", "erf"];
   let type = "tanh";
   let enable: string | undefined;
   const options = { threshold: 1, output: 1, param: 1, oversample: 1 };
-  const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
-    const separator = option.indexOf("=");
-    const key = separator < 0 ? ["type", "threshold", "output", "param", "oversample"][index] : option.slice(0, separator).trim();
-    const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+  function setOption(key: string | undefined, value: string): void {
     if (key === "enable") {
+      parseFilterExpression(value, "asoftclip enable", { n: 0, t: 0 });
       enable = value;
-      parseFilterExpression(enable, "asoftclip enable", { n: 0, t: 0 });
     } else if (key === "type") {
       const selected = types.includes(value) ? value : types.find((_, i) => value === String(i - 1));
       if (!selected) throw new Error("asoftclip: invalid type");
@@ -38,6 +35,13 @@ export async function softClipAudio(
     } else {
       throw new Error(`asoftclip: unsupported option ${key}`);
     }
+  }
+  const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+    const separator = option.indexOf("=");
+    const key = separator < 0 ? ["type", "threshold", "output", "param", "oversample"][index] : option.slice(0, separator).trim();
+    const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    setOption(key, value);
   }
   function clip(sample: number): number {
     let clipped: number;
@@ -92,28 +96,42 @@ export async function softClipAudio(
   // Zero insertion and two low-pass passes match FFmpeg's oversampling.
   // The cutoff is the original Nyquist frequency, so the rate cancels out.
   const round = format === "dblp" ? (value: number) => value : Math.fround;
-  const angle = Math.PI / options.oversample;
-  const cosine = Math.cos(angle);
-  const alpha = Math.sin(angle) / 1.6;
-  const a0 = 1 + alpha;
-  const feedback1 = -2 * cosine / a0;
-  const feedback2 = (1 - alpha) / a0;
-  const feed0 = (1 - cosine) / 2 / a0;
-  const feed1 = (1 - cosine) / a0;
-  const normalization = (1 + feedback1 + feedback2) / (feed0 + feed1 + feed0);
-  const a1 = round(feedback1), a2 = round(feedback2);
-  const b0 = round(feed0 * normalization), b1 = round(feed1 * normalization);
-  const threshold = round(options.threshold);
-  const gain = round(options.output * threshold);
-  const factor = round(1 / threshold);
-  const param = round(options.param);
+  budget.allocateMemory(channels.length * 64 * 4 * 8);
+  // Native keeps separate up/down histories for every oversampling factor.
+  const history = channels.map(() => new Float64Array(64 * 4));
+  let gain = 1, param = 1;
   let work = 0;
-  for (const [c, channel] of channels.entries()) {
-    let up0 = 0, up1 = 0, down0 = 0, down1 = 0;
-    for (const [n, frame] of frames.entries()) {
-      const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "asoftclip enable", {
-        n, t: frame.pts / sampleRate
-      })) >= 0.5;
+  let nextCommand = 0;
+  for (const [n, frame] of frames.entries()) {
+    while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame.start) {
+      const command = commands[nextCommand++]!;
+      try {
+        setOption(command.action, command.expression);
+      } catch { /* Native asendcmd continues after a rejected command. */ }
+    }
+    const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "asoftclip enable", {
+      n, t: frame.pts / sampleRate
+    })) >= 0.5;
+    const angle = Math.PI / options.oversample;
+    const cosine = Math.cos(angle);
+    const alpha = Math.sin(angle) / 1.6;
+    const a0 = 1 + alpha;
+    const feedback1 = -2 * cosine / a0;
+    const feedback2 = (1 - alpha) / a0;
+    const feed0 = (1 - cosine) / 2 / a0;
+    const feed1 = (1 - cosine) / a0;
+    const normalization = (1 + feedback1 + feedback2) / (feed0 + feed1 + feed0);
+    const a1 = round(feedback1), a2 = round(feedback2);
+    const b0 = round(feed0 * normalization), b1 = round(feed1 * normalization);
+    const threshold = round(options.threshold);
+    gain = round(options.output * threshold);
+    const factor = round(1 / threshold);
+    param = round(options.param);
+    for (const [c, channel] of channels.entries()) {
+      const state = history[c]!;
+      const offset = (options.oversample - 1) * 4;
+      let up0 = state[offset]!, up1 = state[offset + 1]!;
+      let down0 = state[offset + 2]!, down1 = state[offset + 3]!;
       for (let i = frame.start; i < frame.end; i++) {
         for (let phase = 0; phase < (enabled ? options.oversample : 1); phase++) {
           if (work++ % 4096 === 0) {
@@ -141,6 +159,10 @@ export async function softClipAudio(
           if (phase === 0) output[c]![i] = round(filtered * (options.oversample * 0.5));
         }
       }
+      state[offset] = up0;
+      state[offset + 1] = up1;
+      state[offset + 2] = down0;
+      state[offset + 3] = down1;
     }
   }
   return output;

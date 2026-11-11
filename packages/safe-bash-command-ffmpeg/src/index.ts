@@ -13759,6 +13759,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || target === "atilt" || target?.startsWith("atilt@")
                             || target === "aexciter" || target?.startsWith("aexciter@")
                             || target === "acrusher" || target?.startsWith("acrusher@")
+                            || target === "asoftclip" || target?.startsWith("asoftclip@")
                             || ["unity", "silence", "curve", "c", "nb_samples", "ns", "duration", "d", "type", "t", "start_sample", "ss", "start_time", "st", "enable"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
                             || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !expression) {
@@ -14796,8 +14797,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             .filter(name => Math.floor(mask / audioSpeakerMasks[name]!) % 2 === 1);
                           stretched = await boostSubAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal, names, commands);
                         } else if (filterName === "asoftclip") {
+                          const commands = audioCommands.filter(command => command.target === "asoftclip" || command.target === filterTarget)
+                            .sort((a, b) => a.sample - b.sample);
+                          audioCommands = audioCommands.filter(command => command.target !== "asoftclip" && command.target !== filterTarget);
                           filteredSampleFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
-                          stretched = await softClipAudio(stretched, origRate, trimmed, audioTimestamps, filteredSampleFormat, budget, context.signal);
+                          stretched = await softClipAudio(stretched, origRate, trimmed, audioTimestamps, filteredSampleFormat, budget, context.signal, commands);
                         } else if (filterName === "tremolo") {
                           const commands = audioCommands.filter(command => command.target === "tremolo" || command.target === filterTarget)
                             .sort((a, b) => a.sample - b.sample);

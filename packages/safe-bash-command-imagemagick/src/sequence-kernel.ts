@@ -420,7 +420,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
             return mask ? [mask.r, mask.g, mask.b, mask.a, mask.k === true] : undefined;
         }) : undefined;
     if (sourceChannels) channels = sourceChannels[inputs.indexOf(canvas)];
-    const fractional = cmyk || ["cos", "cosine", "divide", "inverselog", "log", "mean", "multiply", "rms", "rootmeansquare", "sin", "sine"].includes(operation);
+    const fractional = cmyk || ["cos", "cosine", "divide", "inverselog", "log", "mean", "multiply", "rms", "rootmeansquare", "sin", "sine", "thresholdblack", "thresholdwhite"].includes(operation);
     const retainRange = ["add", "addmodulus", "sum", "subtract", "min", "max"].includes(operation);
     function* read(image: number, position: number, length: number, retainWorking = retainRange || fractional): Generator<ConvolveRequest, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
         const storagePosition = position / stride * 4, storageLength = length / stride * 4;

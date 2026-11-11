@@ -13253,7 +13253,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let audioMetadata: { pts: number; tags: Map<string, string> }[] = [];
                   let audioTimestamps: { start: number; end: number; pts: number; exactPts?: bigint | undefined; pos?: number | undefined }[] | undefined;
                   if (!sink && (outputCut || (index !== undefined && (audioSegment || frameChecksumOutput)) || (filter && parseFilterChain(filter.expression)
-                    .some(item => item.trim().split("=", 1)[0]!.split("@", 1)[0] === "areverse")))) {
+                    .some(item => ["areverse", "silencedetect"].includes(item.trim().split("=", 1)[0]!.split("@", 1)[0]!))))) {
                     if (index !== undefined && audioSegment) segmentAudioPackets = [];
                     audioTimestamps = [];
                     const length = stretched[0]?.length ?? 0;

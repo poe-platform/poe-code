@@ -127,6 +127,8 @@ function* trimBounds(width: number, height: number, hasAlpha: boolean, fuzz: num
         if (!selected.includes("east")) right = width;
         if (!selected.includes("south")) bottom = height;
     }
+    // Empty far-edge bounds stay unexpanded in native geometry.
+    if (right === 0 || bottom === 0) return { left, top, width: right, height: bottom };
     if (left > right || top > bottom) return;
     return { left, top, width: right - left + 1, height: bottom - top + 1 };
 }
@@ -182,7 +184,7 @@ function emptyTrimPixel(image: RgbaImage | StoredRgbaImage, background?: RgbaCol
 }
 
 export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor, emptyBackground?: RgbaColor): Generator<void, RgbaImage, void> {
-    if (image.width === 1 && image.height === 1) {
+    if (image.width === 1 && image.height === 1 && edges === undefined) {
         if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
         return image;
     }
@@ -239,7 +241,7 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
 }
 
 export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByteStorage, fuzz: number, signal: AbortSignal, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor, emptyBackground?: RgbaColor): Promise<StoredRgbaImage> {
-    if (image.width === 1 && image.height === 1) {
+    if (image.width === 1 && image.height === 1 && edges === undefined) {
         if (analysis) analysis.warnings += "magick: geometry does not contain image\n";
         return image;
     }

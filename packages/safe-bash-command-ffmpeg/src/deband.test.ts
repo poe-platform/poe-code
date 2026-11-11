@@ -1,0 +1,57 @@
+import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
+import { it } from "node:test";
+import { Volume } from "memfs";
+import type { MediaResourceLimits } from "@poe-code/mp4-ast";
+import { createFfmpegCommand } from "./index.js";
+
+const input = Buffer.from(Array.from({ length: 1024 }, (_, i) => 96 + 2 * Math.floor((i % 32) / 3) + Math.floor(Math.floor(i / 32) / 8)));
+async function run(filter: string, format = "rawvideo", limits?: MediaResourceLimits) {
+  const volume = Volume.fromJSON({ "/in.gray": input, "/out": "KEEP" });
+  const errors: Uint8Array[] = [];
+  const result = await createFfmpegCommand({ limits }).execute({
+    args: ["-v", "error", "-y", "-f", "rawvideo", "-pix_fmt", "gray", "-s", "32x32", "-r", "4", "-i", "/in.gray",
+      "-vf", filter, "-fps_mode", "passthrough", "-pix_fmt", "gray", "-bitexact", "-f", format, "/out"],
+    cwd: "/", env: {}, signal: new AbortController().signal,
+    fs: {
+      async readFile(path: string) { return volume.readFileSync(path); },
+      async stat(path: string) { return volume.statSync(path); },
+      async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); }
+    },
+    stdin: (async function* () {})(), stdout: { async write() {} },
+    stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
+  } as never);
+  return { ...result, output: volume.readFileSync("/out") as Buffer, stderr: Buffer.concat(errors).toString() };
+}
+
+// Native FFmpeg 7.0.2 hashes cover every pixel, including clipped borders.
+for (const [filter, hash, changes] of [
+  ["null", "25cd9a3386feaefe47a71ba1cbb93062f87ee134379b43590b0ee75f6efc3060", 0],
+  ["deband=r=-3:d=-1:1thr=0.1", "6846e7b966485c644d1eb70766b9888dd2b18f280daf059612feea317892579b", 652],
+  ["deband=r=-3:d=-1:1thr=0.001", "25cd9a3386feaefe47a71ba1cbb93062f87ee134379b43590b0ee75f6efc3060", 0],
+  ["deband=r=-3:d=-0.01:1thr=0.1", "449eaf2f14fbc637f601498ebfc5b1199012c03c00817122c6eca010ef4c718f", 704],
+  ["deband=0.1:0.02:0.02:0.02:-3:-1", "6846e7b966485c644d1eb70766b9888dd2b18f280daf059612feea317892579b", 652],
+  ["deband=range=-3:direction=-1:1thr=0.1:blur=0", "6846e7b966485c644d1eb70766b9888dd2b18f280daf059612feea317892579b", 652],
+] as const) {
+  it(`matches native grayscale ${filter}`, async () => {
+    const result = await run(filter);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.output.length, input.length);
+    assert.equal(createHash("sha256").update(result.output).digest("hex"), hash);
+    assert.equal(result.output.filter((value, i) => value !== input[i]).length, changes);
+  });
+}
+
+for (const options of ["1thr=0", "1thr=0.6", "r=-2.5", "d=-7", "b=wrong", "c=1", "unknown=1", "r=3", "d=1"]) {
+  it(`rejects invalid or unsupported deband ${options} without replacing output`, async () => {
+    const result = await run(`deband=r=-3:d=-1:${options}`);
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(result.output.toString(), "KEEP");
+  });
+}
+
+it("enforces the memory budget without replacing output", async () => {
+  const result = await run("deband=r=-3:d=-1:1thr=0.1", "rawvideo", { maxMemoryBytes: 4096 });
+  assert.notEqual(result.exitCode, 0);
+  assert.equal(result.output.toString(), "KEEP");
+});

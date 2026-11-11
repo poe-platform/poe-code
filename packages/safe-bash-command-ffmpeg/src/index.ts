@@ -3011,6 +3011,64 @@ async function applyVideoFilterChain(
         const { native: ignoredNative, ...frame } = f;
         return { ...frame, width, height, data };
       }, signal);
+    } else if (name === "deband") {
+      let threshold = 0.02, range = 16, direction = 2 * Math.PI, blur = true;
+      let sawNamed = false;
+      for (const [index, option] of (argStr ? positional : []).entries()) {
+        const separator = option.indexOf("=");
+        const key = separator < 0 ? ["1thr", "2thr", "3thr", "4thr", "range", "direction", "blur", "coupling"][index] : option.slice(0, separator);
+        const value = separator < 0 ? option : option.slice(separator + 1);
+        if (separator < 0 && sawNamed) throw new Error("deband: positional option after named option");
+        sawNamed ||= separator >= 0;
+        if (key === "blur" || key === "b") blur = parseFilterBoolean(value, "deband: invalid blur");
+        else if (key === "coupling" || key === "c") {
+          if (parseFilterBoolean(value, "deband: invalid coupling")) throw new Error("deband: plane coupling is unsupported");
+        } else if (["1thr", "2thr", "3thr", "4thr", "range", "r", "direction", "d"].includes(key ?? "")) {
+          const number = parseFilterExpression(value, "deband", { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
+          if (!Number.isFinite(number)) throw new Error("deband: invalid number");
+          if (key === "range" || key === "r") {
+            if (!Number.isInteger(number) || number < -2147483647 || number > 2147483647) throw new Error("deband: invalid range");
+            range = number;
+          } else if (key === "direction" || key === "d") {
+            if (Math.abs(number) > 2 * Math.PI) throw new Error("deband: invalid direction");
+            direction = Math.fround(number);
+          } else {
+            if (number < 0.00003 || number > 0.5) throw new Error("deband: invalid threshold");
+            if (key === "1thr") threshold = Math.fround(number);
+          }
+        } else throw new Error(`deband: unsupported option ${key ?? option}`);
+      }
+      if (pixelFormat !== "gray" && pixelFormat !== "gray8") throw new Error("deband: requires 8-bit grayscale input");
+      if (range >= 0 || direction >= 0) throw new Error("deband: requires fixed negative range and direction");
+      // Native fixed sampling truncates single-precision offsets and clamps at edges.
+      const dx = Math.trunc(Math.fround(Math.fround(Math.cos(-direction)) * -range));
+      const dy = Math.trunc(Math.fround(Math.fround(Math.sin(-direction)) * -range));
+      const limit = Math.trunc(Math.fround(255 * threshold));
+      current = await mapWork(current, async ({ native: _native, ...frame }) => {
+        budget.allocateMemory(frame.data.byteLength);
+        const data = new Uint8Array(frame.data);
+        for (let y = 0; y < frame.height; y++) {
+          for (let x = 0; x < frame.width; x++) {
+            const offset = (y * frame.width + x) * 4;
+            if (offset % 16384 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+            const left = Math.max(0, Math.min(frame.width - 1, x - dx));
+            const right = Math.max(0, Math.min(frame.width - 1, x + dx));
+            const top = Math.max(0, Math.min(frame.height - 1, y - dy)) * frame.width;
+            const bottom = Math.max(0, Math.min(frame.height - 1, y + dy)) * frame.width;
+            const a = frame.data[(top + left) * 4]!;
+            const b = frame.data[(top + right) * 4]!;
+            const c = frame.data[(bottom + left) * 4]!;
+            const d = frame.data[(bottom + right) * 4]!;
+            const average = Math.trunc((a + b + c + d) / 4);
+            const source = frame.data[offset]!;
+            const replace = blur ? Math.abs(source - average) < limit :
+              Math.abs(source - a) < limit && Math.abs(source - b) < limit &&
+              Math.abs(source - c) < limit && Math.abs(source - d) < limit;
+            if (replace) data[offset] = data[offset + 1] = data[offset + 2] = average;
+          }
+        }
+        return { ...frame, data };
+      }, signal);
     } else if (name === "oscilloscope") {
       if (argStr) throw new Error("oscilloscope: options are not supported");
       let frameIndex = 0;

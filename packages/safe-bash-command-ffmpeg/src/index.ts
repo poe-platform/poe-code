@@ -1,3 +1,4 @@
+import { median } from "./median.js";
 import { parseAlphamergeGraph, alphamerge } from "./alphamerge.js";
 import { interpolateFrameRate } from "./framerate.js";
 import { zoompan } from "./zoompan.js";
@@ -2461,6 +2462,8 @@ async function applyVideoFilterChain(
           videoCommands.push({ ...scheduled[next++]!, time: frame.ptsSeconds });
         }
       }
+    } else if (name === "median") {
+      current = await median(current, argStr, pixelFormat, budget, signal);
     } else if (name === "blackdetect") {
       current = await blackdetect(current, argStr, budget, { ...diagnostics, timescale, pixelFormat }, signal);
     } else if (name === "blackframe") {

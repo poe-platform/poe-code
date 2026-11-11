@@ -162,6 +162,8 @@ poe-code models --search claude
 
 ## SDK
 
+Safe Bash FFmpeg `median=radius=2:percentile=1` selects neighborhood percentiles in 8-bit grayscale video.
+
 Safe Bash FFmpeg `stereotools` accepts positional values after named options with native option binding. Safe Bash FFmpeg `drawbox` accepts `threads`, `thread_type`, and `extra_hw_frames` without changing pixels.
 
 Safe Bash FFmpeg `premultiply=inplace=1` multiplies RGBA colors by their own alpha with native rounding. Safe Bash FFmpeg `tpad=stop=-1` honors output frame/time limits with explicit gray output.

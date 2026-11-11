@@ -69,7 +69,7 @@ it("uses the default decay of 0.95", async () => {
   assert.deepEqual(result.stdout, Buffer.from([200, 190, 180, 171].flatMap(value => Array(4).fill(value))));
 });
 
-for (const option of ["decay=-0.1", "decay=1.1", "decay=bad", "planes=-2", "planes=1.5", "unknown=1"]) {
+for (const option of ["decay=-0.1", "decay=1.1", "decay=bad", "planes=1.5", "unknown=1"]) {
   it(`rejects ${option} before replacing output`, async () => {
     const result = await run(`lagfun=${option}`, input, "/out.raw");
     assert.notEqual(result.exitCode, 0, result.stderr);
@@ -94,5 +94,21 @@ for (const [filter, hex] of [
     const result = await run(filter, commandInput, "pipe:1", "1");
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stdout.toString("hex"), hex);
+  });
+}
+
+// Native FFmpeg flag masks select only bit zero for grayscale input.
+for (const [planes, enabled] of [
+  ["all", true], ["none", false], ["-1", false], ["16", false],
+  ["1", true], ["0", false], ["-2", true], ["all-1", false],
+  ["none+1", true], ["16+1", true], ["0xffffffff", true],
+  ["4294967295", true], ["+16", true]
+] as const) {
+  it(`matches native lagfun planes=${planes} bytes`, async () => {
+    const source = Buffer.from("c8b4a08c0a0a0a0a0a0a0a0a0a0a0a0a", "hex");
+    const result = await run(`lagfun=planes=${planes}`, source);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stdout.toString("hex"), enabled
+      ? "c8b4a08cbeab9885b4a2907eab9a8978" : source.toString("hex"));
   });
 }

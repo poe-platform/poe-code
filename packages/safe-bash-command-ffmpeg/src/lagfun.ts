@@ -11,15 +11,34 @@ export async function lagfun(
   let planes = 15;
   const update = (key: string | undefined, expression: string): void => {
     if (key !== "decay" && key !== "planes") throw new Error(`lagfun: unsupported option ${key}`);
-    const value = parseFilterExpression(expression, "lagfun", {
-      min: 0, max: key === "decay" ? 1 : 15, default: key === "decay" ? 0.95 : 15, none: 0
-    }, undefined, new Float64Array(10), []);
-    if (!Number.isFinite(value) || value < 0 || value > (key === "decay" ? 1 : 15) ||
-        key === "planes" && !Number.isInteger(value)) {
-      throw new RangeError(`lagfun: invalid ${key}`);
+    if (key === "planes") {
+      const flags = expression.trim();
+      let mask = flags.startsWith("+") || flags.startsWith("-") ? planes : 0;
+      let offset = 0;
+      do {
+        const remove = flags[offset] === "-";
+        if (remove || flags[offset] === "+") offset++;
+        const start = offset;
+        if (flags[offset] === "+" || flags[offset] === "-") offset++;
+        while (offset < flags.length && flags[offset] !== "+" && flags[offset] !== "-") offset++;
+        const bits = parseFilterExpression(flags.slice(start, offset), "lagfun", {
+          all: -1, none: 0, default: 15, min: 0, max: 15
+        });
+        if (!Number.isInteger(bits) || bits < -2147483648 || bits > 4294967295) {
+          throw new RangeError("lagfun: invalid planes");
+        }
+        mask = remove ? mask & ~bits : mask | bits;
+      } while (offset < flags.length);
+      planes = mask;
+    } else {
+      const value = parseFilterExpression(expression, "lagfun", {
+        min: 0, max: 1, default: 0.95, none: 0
+      }, undefined, new Float64Array(10), []);
+      if (!Number.isFinite(value) || value < 0 || value > 1) {
+        throw new RangeError("lagfun: invalid decay");
+      }
+      decay = Math.fround(value);
     }
-    if (key === "decay") decay = Math.fround(value);
-    else planes = value;
   };
   let position = 0;
   const parts = argument ? argument.split(":") : [];

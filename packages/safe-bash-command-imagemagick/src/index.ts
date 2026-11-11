@@ -5019,7 +5019,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
         }
         if (["-wave", "-swirl", "-implode", "-spread"].includes(token)) validateMagickTransformGeometry(geometry, token);
         if (token === "-spread") {
-            geometry = geometry.replaceAll("(", "").replaceAll(")", "");
+            geometry = [...geometry].filter(character => character.trim() !== "" && character !== "(" && character !== ")").join("");
             const radius = parseMagickGeometry(geometry).aspectRatio ?? Number.parseFloat(geometry);
             // Native's automatic kernel width for sigma=0.5 is five, including radius zero.
             const width = radius > 1e-12 ? 2 * Math.ceil(radius) + 1 : 5;

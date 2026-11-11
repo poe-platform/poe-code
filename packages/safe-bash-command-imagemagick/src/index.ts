@@ -10747,10 +10747,13 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return parseFloat(p) / 257;
         };
         const blackPoint = parsePt(parts[0], 0);
-        // RGB endpoint colors have zero black ink; K is independent of alpha.
-        const black = endpointColors ? [endpointColors[0]!.r, endpointColors[0]!.g, endpointColors[0]!.b, endpointColors[0]!.a, 0] : [blackPoint, blackPoint, blackPoint, blackPoint, blackPoint];
+        // CMYK endpoints supply native inks even on RGB images; K is independent of alpha.
+        const endpointValues = endpointColors?.map(color => color.cmyk
+            ? [color.cmyk[0]! * 255, color.cmyk[1]! * 255, color.cmyk[2]! * 255, color.a, color.cmyk[3]! * 255]
+            : [color.r, color.g, color.b, color.a, 0]);
+        const black = endpointValues?.[0] ?? [blackPoint, blackPoint, blackPoint, blackPoint, blackPoint];
         const whitePoint = parsePt(parts[1], 255 - blackPoint);
-        const white = endpointColors ? [endpointColors[1]!.r, endpointColors[1]!.g, endpointColors[1]!.b, endpointColors[1]!.a, 0] : [whitePoint, whitePoint, whitePoint, whitePoint, whitePoint];
+        const white = endpointValues?.[1] ?? [whitePoint, whitePoint, whitePoint, whitePoint, whitePoint];
         const gamma = !colorEndpoints && parts[2]?.trim() ? parseFloat(parts[2]) : 1.0;
         const exponent = 1 / (Math.abs(gamma) >= 1e-12 ? gamma : gamma < 0 ? -1e-12 : 1e-12);
         const inverse = token === "+level-colors" || token === "+level" || !colorEndpoints && raw.includes("!");

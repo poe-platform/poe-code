@@ -14691,6 +14691,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     if (im.data.buffer !== canvas.data.buffer) detachRgbaBuffer(im.data);
                 }
                 const first = oldStack[0]! as MagickImage;
+                canvas.region = first.region;
                 if (first.readMask) canvas.readMask = yield* createSolidRgbaImageSteps(maxW, maxH, { r: 0, g: 0, b: 0, a: 255 });
                 stack = [{ ...canvas, [magickInput]: { channelMask: mask }, depth: first.depth, ...(first.bitsPerSample === undefined ? {} : { bitsPerSample: first.bitsPerSample }), ...(first.properties ? { properties: first.properties } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0] }];
                 if (state.units !== undefined) stack[0] = applyMagickUnits(stack[0]!, state.units);
@@ -16929,6 +16930,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 if (!append) {
                     const first: StoredRgbaImage = (await stack.get(0))!, scene = first[magickInput]?.sceneIdx ?? 0;
+                    result.region = first.region;
                     if (first.readMask) result.readMask = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                     result = { ...result, [magickInput]: { channelMask: mask }, ...(first.properties ? { properties: first.properties } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0] };
                     if (settings.units !== undefined) result = applyMagickUnits(result, settings.units);

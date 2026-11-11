@@ -108,7 +108,7 @@ import { compositePixelsSteps, magickCompositeMode, magickComposeNames } from ".
 import { composite16PixelSteps } from "./composite16.js";
 import { steganoPixelSteps } from "./stegano.js";
 import { stereoPixelSteps } from "./stereo.js";
-import { splineSamples, warpPixelSteps, type WarpPlan, type VirtualPixelMethod } from "./warp-kernel.js";
+import { catromSamples, splineSamples, warpPixelSteps, type WarpPlan, type VirtualPixelMethod } from "./warp-kernel.js";
 import { distancePixelSteps, manhattanDistanceScale } from "./distance-kernel.js";
 import { morphologyIntensityPixelSteps } from "./morphology-intensity.js";
 import { morphologyDifferencePixelSteps } from "./morphology-difference.js";
@@ -3443,9 +3443,23 @@ function sampleFxImage(
   return sampleFxPixel(img.evaluateSamples ?? img.data16 ?? img.data!, idx, ch, img.evaluateSamples ? 255 : img.data16 ? 65535 : 255);
 }
 function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefined, x: number, y: number, ch: number, interpolation?: LookupInterpolation): number {
-  if (interpolation === "blend" || interpolation === "catrom") throw new Error(`Unsupported FX interpolation: ${interpolation}`);
+  if (interpolation === "blend") throw new Error(`Unsupported FX interpolation: ${interpolation}`);
   if (!img) return 0;
   if (!Number.isFinite(x) || !Number.isFinite(y)) return NaN;
+  if (interpolation === "catrom") {
+    if (ch >= 5 && ch <= 7) {
+      return sampleFxPixel([0, 1, 2].map(channel => interpolateFxImage(sample, img, x, y, channel, interpolation)), 0, ch, 1);
+    }
+    let value = 0, alpha = 0;
+    for (const [px, py, weight] of catromSamples(x, y)) {
+      if (weight === 0) continue;
+      const opacity = img.hasAlpha && ch !== 3 ? sample(img, px, py, 3) : 1;
+      value += weight * opacity * sample(img, px, py, ch);
+      alpha += weight * opacity;
+    }
+    // Native Catrom intensity keeps premultiplied colors; FX color channels unassociate alpha.
+    return ch === 4 ? value : alpha === 0 ? 0 : value / alpha;
+  }
   const averageSize = interpolation === "average16" ? 4 : interpolation === "average9" ? 3 : interpolation === "average" ? 2 : 0;
   // Odd neighborhoods center on the nearest pixel; even ones straddle floor(x/y).
   const left = averageSize === 3 ? Math.floor(x + 0.5) - 1 : Math.floor(x) - (averageSize === 4 ? 1 : 0);
@@ -4693,7 +4707,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     if (token === "-interpolative-resize") {
         const geometry = tokens[start + 1] ?? "", interpolation = state.interpolation ?? "bilinear";
         validateMagickTransformGeometry(geometry, token);
-        if (interpolation === "blend" || interpolation === "catrom") throw new Error(`Unsupported interpolative-resize interpolation: ${interpolation}`);
+        if (interpolation === "blend") throw new Error(`Unsupported interpolative-resize interpolation: ${interpolation}`);
         const background = state.background, virtualPixel = state.virtualPixel ?? "edge";
         return { end: start + 1, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "virtualCanvas">) => {
             const options = magickResizeOptions(image, geometry, undefined);

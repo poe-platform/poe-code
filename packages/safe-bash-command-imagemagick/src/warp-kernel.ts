@@ -25,7 +25,7 @@ const robidoux = Float64Array.from({ length: 1024 }, (_, i) => {
         : ((-b - 6 * c) * x ** 3 + (6 * b + 30 * c) * x * x + (-12 * b - 48 * c) * x + 8 * b + 24 * c) / 6;
 });
 
-function* catromSamples(sx: number, sy: number): Generator<readonly [number, number, number]> {
+export function* catromSamples(sx: number, sy: number): Generator<readonly [number, number, number]> {
     const left = Math.floor(sx), top = Math.floor(sy);
     const weights = [sx - left, sy - top].map(x => {
         const alpha = 1 - x, beta = -0.5 * x * alpha;

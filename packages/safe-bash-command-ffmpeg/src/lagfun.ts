@@ -12,8 +12,8 @@ export async function lagfun(
   const update = (key: string | undefined, expression: string): void => {
     if (key !== "decay" && key !== "planes") throw new Error(`lagfun: unsupported option ${key}`);
     const value = parseFilterExpression(expression, "lagfun", {
-      min: 0, max: key === "decay" ? 1 : 15, default: key === "decay" ? 0.95 : 15
-    });
+      min: 0, max: key === "decay" ? 1 : 15, default: key === "decay" ? 0.95 : 15, none: 0
+    }, undefined, new Float64Array(10), []);
     if (!Number.isFinite(value) || value < 0 || value > (key === "decay" ? 1 : 15) ||
         key === "planes" && !Number.isInteger(value)) {
       throw new RangeError(`lagfun: invalid ${key}`);

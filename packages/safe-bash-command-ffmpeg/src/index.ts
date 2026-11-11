@@ -7949,7 +7949,7 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           }
           if (outputFormat !== "ass" && containerCodec !== "ass") {
             text = decodeAssText(text);
-            if (outputFormat === "srt" || containerCodec === "subrip") text = text.trimStart().replaceAll("\n", "\r\n");
+            if (outputFormat === "srt" || containerCodec === "subrip") text = text.replaceAll("\n", "\r\n");
           }
           const data = encodeUtf8(text);
           sample = { ...sample, data, size: data.byteLength };

@@ -6555,11 +6555,12 @@ function* smushLayoutSteps(images: Pick<RgbaImage, "width" | "height" | "hasAlph
     return { width: vertical ? cross : cursor, height: vertical ? cursor : cross, virtualCanvas, offsets };
 }
 
-function* overCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height" | "magickColorspace" | "space">, frame: Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha">, left: number, top: number, highDepth: boolean, alphaSource = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* overCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height" | "magickColorspace" | "space">, frame: Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha">, left: number, top: number, highDepth: boolean, alphaSource = false, channels?: MagickState["channels"]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = canvas.space === "cmyk", gray = canvas.space === "b-w" || canvas.space === "grey16";
     const hue = cmyk || canvas.magickColorspace !== undefined && canvas.magickColorspace !== "RGB" && canvas.magickColorspace !== "Gray";
     const sourceCmyk = frame.space === "cmyk", sourceHue = sourceCmyk || !cmyk && hue;
     const quantum = hue ? 1 : 255;
+    const selected = channels ? [channels.r, channels.g, channels.b, channels.k === true] : undefined;
     for (let y = 0; y < canvas.height; y++) {
         for (let x = 0; x < canvas.width; x += 512) {
             yield;
@@ -6608,14 +6609,19 @@ function* overCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height" | "
                     const src = (pixel - start) * 4, dst = (pixel - x) * 4;
                     const sa = !frame.hasAlpha ? 1 : cmyk || sourceCmyk ? inputBacking ? inputBacking[src + 3]! / 255 : integers[src + 3]! / (highDepth ? 65535 : 255) : samples[src + 3]! / quantum, da = backing[dst + 3]! / quantum * (1 - sa), alpha = sa + da;
                     if (sa === 0) {
-                        if (cmyk && alpha === 0) output.fill(0, dst, dst + 4);
+                        if (cmyk && alpha === 0) {
+                            for (let channel = 0; channel < 4; channel++) {
+                                if (!selected || selected[channel]) output[dst + channel] = 0;
+                            }
+                        }
                         continue;
                     }
                     for (let channel = 0; channel < (cmyk ? 4 : 3); channel++) {
+                        if (selected && !selected[channel]) continue;
                         const value = (samples[src + channel]! * sa + output[dst + channel]! * da) / alpha;
                         output[dst + channel] = Math.max(0, Math.min(quantum, value));
                     }
-                    backing[dst + 3] = alpha * quantum;
+                    if (!channels || channels.a) backing[dst + 3] = alpha * quantum;
                 }
             }
             // A grayscale canvas stores only the red/gray sample, including its background.
@@ -13047,6 +13053,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-smush" || t === "+smush") {
             const geometry = tokens[++i] ?? "", image = stack[0];
             if (!image) throw new Error(`no images found for operation '${t}'`);
+            const mask = (image as MagickImage)[magickInput]?.channelMask;
+            const channels = mask?.default ? undefined : mask;
             const gap = smushGap(yield* formatMagickPropertyStringSteps(geometry, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties }));
             const background = state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background;
             const layout = smushLayoutSteps(stack, t === "-smush", gap, state.gravity, state.virtualPixel, background);
@@ -13065,7 +13073,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
             // Smush composites retained alpha samples even when the channel is inactive.
             for (const [n, frame] of stack.entries()) {
-                canvas = yield* applyMagickRasterSteps(canvas, overCompositePixelSteps(canvas, { ...frame, hasAlpha: frame.hasAlpha || frame.alphaBlend === true || frame.alphaSeparate === true || frame.isPalette === true && frame.inactiveAlpha === true }, offsets[n]!.left, offsets[n]!.top, !!(canvas.data16 || frame.data16)), signal, canvas, [canvas, frame]);
+                canvas = yield* applyMagickRasterSteps(canvas, overCompositePixelSteps(canvas, { ...frame, hasAlpha: frame.hasAlpha || frame.alphaBlend === true || frame.alphaSeparate === true || frame.isPalette === true && frame.inactiveAlpha === true }, offsets[n]!.left, offsets[n]!.top, !!(canvas.data16 || frame.data16), false, channels), signal, canvas, [canvas, frame]);
             }
             if (image.metaChannels?.length) {
                 canvas.metaChannels = [];
@@ -14822,6 +14830,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async (stack, backend) => {
                 const image = await stack.get(0);
                 if (!image) throw new Error(`no images found for operation '${token}'`);
+                const mask = (image as StoredMagickImage)[magickInput]?.channelMask;
+                const channels = mask?.default ? undefined : mask;
                 const gap = smushGap(await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: stack.length, optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack));
                 const images: StoredRgbaImage[] = [];
                 for (let n = 0; n < stack.length; n++) images.push((await stack.get(n))!);
@@ -14844,7 +14854,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     delete canvas.magickColorspace;
                 }
                 for (const [n, frame] of images.entries()) {
-                    canvas = await transformStoredMagickRaster(canvas, backend, overCompositePixelSteps(canvas, { ...frame, hasAlpha: frame.hasAlpha || frame.alphaBlend === true || frame.alphaSeparate === true || frame.isPalette === true && frame.inactiveAlpha === true }, offsets[n]!.left, offsets[n]!.top, !!(canvas.storedData16 || frame.storedData16)), signal, canvas, [canvas, frame]);
+                    canvas = await transformStoredMagickRaster(canvas, backend, overCompositePixelSteps(canvas, { ...frame, hasAlpha: frame.hasAlpha || frame.alphaBlend === true || frame.alphaSeparate === true || frame.isPalette === true && frame.inactiveAlpha === true }, offsets[n]!.left, offsets[n]!.top, !!(canvas.storedData16 || frame.storedData16), false, channels), signal, canvas, [canvas, frame]);
                 }
                 if (image.storedMetaChannels?.length) {
                     canvas.storedMetaChannels = [];

@@ -9602,7 +9602,9 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
         }
         // Retain HDRI lookup fractions without changing the input's output depth.
         const cmyk = image.space === "cmyk" && (token === "-contrast-stretch" || token === "-equalize");
-        const active = [channels.r, channels.g, channels.b, (!independent || channels.a) && (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false), cmyk && (!independent || settings.channels.k === true)];
+        // Gray's single color channel is selected by R across all three backing samples.
+        const gray = image.space === "b-w" || image.space === "grey16";
+        const active = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, (!independent || channels.a) && (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false), cmyk && (!independent || settings.channels.k === true)];
         const lookup = Array.from({ length: cmyk ? 5 : 4 }, () =>
             Float32Array.from({ length: levels }, (_, value) => value * 65535 / (levels - 1)));
         const paletteLookup = [...lookup];

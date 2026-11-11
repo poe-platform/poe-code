@@ -3195,7 +3195,7 @@ async function applyVideoFilterChain(
           validateWeaveGenericOption(key, value, "deband");
         } else throw new Error(`deband: unsupported option ${key ?? option}`);
       }
-      if (!["gray", "gray8", "yuv444p"].includes(pixelFormat ?? "")) throw new Error("deband: requires 8-bit grayscale or yuv444p input");
+      if (!["gray", "gray8", "gray16be", "gray16le", "yuv444p"].includes(pixelFormat ?? "")) throw new Error("deband: requires 8/16-bit grayscale or 8-bit yuv444p input");
       const instance = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim();
       const commands = videoCommands.filter(command => command.target === name || command.target === instance);
       videoCommands = videoCommands.filter(command => command.target !== name && command.target !== instance);
@@ -3215,7 +3215,8 @@ async function applyVideoFilterChain(
             // Rejected runtime commands preserve the active threshold.
           }
         }
-        const limits = thresholds.map(threshold => Math.trunc(Math.fround(255 * threshold)));
+        const depth = pixelFormat === "gray16be" || pixelFormat === "gray16le" ? 16 : 8;
+        const limits = thresholds.map(threshold => Math.trunc(Math.fround((2 ** depth - 1) * threshold)));
         if (named.enable !== undefined) {
           const variables = { ...initialVariables, n, t: frame.ptsSeconds, w: frame.width, h: frame.height, pos: frame.offset ?? NaN };
           // FFmpeg evaluates the generic timeline twice per frame, using the second result.
@@ -3229,13 +3230,20 @@ async function applyVideoFilterChain(
           frame = await formatYuv(frame, "yuv444p", signal);
         }
         const { native: sourceNative, ...outputFrame } = frame;
-        const source = planar ? sourceNative!.pixels : frame.data;
-        budget.allocateMemory(source.byteLength + (planar ? frame.data.byteLength : 0));
+        if (depth === 16 && !(sourceNative && (sourceNative.format === 29 || sourceNative.format === 30) &&
+            sourceNative.rgba === frame.data && sourceNative.width === frame.width && sourceNative.height === frame.height)) {
+          throw new Error("deband: requires retained 16-bit grayscale samples");
+        }
+        const source = planar || depth === 16 ? sourceNative!.pixels : frame.data;
+        budget.allocateMemory(source.byteLength + (planar || depth === 16 ? frame.data.byteLength : 0));
         const data = new Uint8Array(source);
-        const stride = planar ? 1 : 4;
+        const stride = depth === 16 ? 2 : planar ? 1 : 4;
+        const inputView = depth === 16 ? new DataView(source.buffer, source.byteOffset, source.byteLength) : undefined;
+        const outputView = depth === 16 ? new DataView(data.buffer) : undefined;
+        const littleEndian = sourceNative?.format === 30;
         const planeSize = frame.width * frame.height;
         const planeCount = planar ? 3 : 1;
-        const averages = new Uint8Array(planeCount);
+        const averages = new Uint16Array(planeCount);
         const replacements = new Uint8Array(planeCount);
         for (let y = 0; y < frame.height; y++) {
           for (let x = 0; x < frame.width; x++) {
@@ -3257,12 +3265,12 @@ async function applyVideoFilterChain(
             let replaceAll = true;
             for (let plane = 0; plane < planeCount; plane++) {
               const base = planar ? plane * planeSize : 0;
-              const a = source[base + (top + left) * stride]!;
-              const b = source[base + (top + right) * stride]!;
-              const c = source[base + (bottom + left) * stride]!;
-              const d = source[base + (bottom + right) * stride]!;
+              const a = inputView ? inputView.getUint16((top + left) * stride, littleEndian) : source[base + (top + left) * stride]!;
+              const b = inputView ? inputView.getUint16((top + right) * stride, littleEndian) : source[base + (top + right) * stride]!;
+              const c = inputView ? inputView.getUint16((bottom + left) * stride, littleEndian) : source[base + (bottom + left) * stride]!;
+              const d = inputView ? inputView.getUint16((bottom + right) * stride, littleEndian) : source[base + (bottom + right) * stride]!;
               const average = Math.trunc((a + b + c + d) / 4);
-              const value = source[base + (y * frame.width + x) * stride]!;
+              const value = inputView ? inputView.getUint16((y * frame.width + x) * stride, littleEndian) : source[base + (y * frame.width + x) * stride]!;
               const limit = limits[plane]!;
               const replace = blur ? Math.abs(value - average) < limit :
                 Math.abs(value - a) < limit && Math.abs(value - b) < limit &&
@@ -3274,11 +3282,12 @@ async function applyVideoFilterChain(
             for (let plane = 0; plane < planeCount; plane++) {
               if (!(coupling ? replaceAll : replacements[plane])) continue;
               if (planar) data[plane * planeSize + y * frame.width + x] = averages[plane]!;
+              else if (outputView) outputView.setUint16((y * frame.width + x) * stride, averages[plane]!, littleEndian);
               else data[offset] = data[offset + 1] = data[offset + 2] = averages[plane]!;
             }
           }
         }
-        if (planar) {
+        if (planar || outputView) {
           const native = { ...sourceNative!, pixels: data };
           const rgba = scaleVideoPicture({ ...frame, native }, frame.width, frame.height)!;
           return { ...frame, data: rgba, native: { ...native, rgba } };

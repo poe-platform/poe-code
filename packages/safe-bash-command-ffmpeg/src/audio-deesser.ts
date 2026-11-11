@@ -71,7 +71,7 @@ export async function deessAudio(
     const number = parseFilterExpression(value, "deesser", {
       min: 0, max: key === "s" ? 2 : 1, default: key === "i" ? 0 : key === "s" ? 1 : 0.5,
       ...(key === "s" ? { i: 0, o: 1, e: 2 } : {})
-    });
+    }, undefined, new Float64Array(10), []);
     if (!value || !Number.isFinite(number)) throw new Error(`deesser: invalid ${key}`);
     if (number < 0 || number > (key === "s" ? 2 : 1)) throw new RangeError(`deesser: invalid ${key}`);
     options[key] = number;

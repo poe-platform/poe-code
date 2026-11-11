@@ -112,8 +112,11 @@ export function parseFilterExpression(expression: string, filter: string, variab
         else if (name === "sin" && args.length === 1) value = Math.sin(args[0]!);
         else if (name === "cos" && args.length === 1) value = Math.cos(args[0]!);
         else if (name === "tan" && args.length === 1) value = Math.tan(args[0]!);
+        else if (name === "asin" && args.length === 1) value = Math.asin(args[0]!);
+        else if (name === "acos" && args.length === 1) value = Math.acos(args[0]!);
         else if (name === "atan" && args.length === 1) value = Math.atan(args[0]!);
         else if (name === "atan2" && args.length === 2) value = Math.atan2(args[0]!, args[1]!);
+        else if (name === "sinh" && args.length === 1) value = Math.sinh(args[0]!);
         else if (name === "cosh" && args.length === 1) value = Math.cosh(args[0]!);
         else if (name === "tanh" && args.length === 1) value = Math.tanh(args[0]!);
         else if (name === "squish" && args.length === 1) value = 1 / (1 + Math.exp(4 * args[0]!));

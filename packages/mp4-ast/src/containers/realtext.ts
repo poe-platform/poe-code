@@ -58,6 +58,7 @@ function parseRealtext(bytes: Uint8Array): MediaDocument {
   }, { recognizeSelfClosing: true });
   parser.end(decodeUtf8(bytes));
   flush();
+  samples.sort((a, b) => a.pts - b.pts);
   const duration = samples.reduce((last, sample) => Math.max(last, sample.pts + sample.duration), 0);
   return { containerFormat: "realtext", timescale: 1000, duration, durationSeconds: duration / 1000,
     tracks: [{ id: 1, type: "subtitle", handlerType: "sbtl", timescale: 1000, duration,

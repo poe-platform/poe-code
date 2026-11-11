@@ -22,5 +22,5 @@ it("defaults each omitted RealText begin to zero without accepting malformed beg
   ));
   assert.deepEqual(doc.tracks[0]!.samples.map(sample => [
     sample.pts, sample.duration, new TextDecoder().decode(sample.data)
-  ]), [[1000, 1000, "First"], [0, 3000, "Second"]]);
+  ]), [[0, 3000, "Second"], [1000, 1000, "First"]]);
 });

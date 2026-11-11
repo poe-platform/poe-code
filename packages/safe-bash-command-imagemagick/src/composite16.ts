@@ -8,7 +8,7 @@ type Raster = Pick<RgbaImage, "width" | "height" | "hasAlpha" | "evaluateSamples
 // Use the shared compose formulas on bounded spans, retaining working samples and all 16 source bits.
 // Meta planes take alpha from their parent images, supplied as raster sources 2 and 3.
 export function* composite16PixelSteps(base: Raster, overlay: Raster, left: number, top: number, mode: string,
-    args?: string, tile = false, fuzz = 0, clipToOverlay = false, alphaSources?: readonly [Raster, Raster], copyChannels = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    args?: string, tile = false, fuzz = 0, clipToOverlay = false, alphaSources?: readonly [Raster, Raster], copyChannels = false, channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const highDepth = !!(base.data16 || overlay.data16 || base.storedData16 || overlay.storedData16);
     const baseEvaluate = !!base.evaluateSamples || base.storedEvaluateSamples !== undefined;
     const overlayEvaluate = !!overlay.evaluateSamples || overlay.storedEvaluateSamples !== undefined;
@@ -46,7 +46,7 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
             for (let i = 3; i < samples.length; i += 4) samples[i] = alpha[i]! / (evaluate ? 1 : 257);
         }
         if (outside && maskDestination && !tile && !clipToOverlay) {
-            if (base.hasAlpha) for (let i = 3; i < samples.length; i += 4) samples[i] = 0;
+            if (base.hasAlpha && (!channels || channels[3])) for (let i = 3; i < samples.length; i += 4) samples[i] = 0;
         } else if (!outside || extendSource) {
             const sourceBytes = (yield { kind: "read", highDepth: true, evaluate: overlayEvaluate, image: 1,
                 position: (sourceY * overlay.width + sourceX) * 4, length: outsideX ? 4 : count * 4 })!;
@@ -68,7 +68,7 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
                     for (let c = 0; c < 3; c++) sourceSamples[i + c] = sourceInks[i + c]! * 255;
                 }
             }
-            if (inks) for (let i = 0; i < samples.length; i += 4) {
+            if (inks && (!channels || channels[4])) for (let i = 0; i < samples.length; i += 4) {
                 const j = outsideX ? 0 : i;
                 const alpha = overlay.hasAlpha ? sourceSamples[j + 3]! / 255 : 1;
                 const destinationAlpha = base.hasAlpha ? samples[i + 3]! / 255 : 1;
@@ -85,7 +85,8 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
             for (let i = 0; i < src.data.length; i++) src.data[i] = sourceSamples[outsideX ? i % 4 : i]!;
             const result = new Float64Array(count * 4);
             yield* compositePixelsSteps(dst, src, result, mode, 0, 0, args, fuzz, clipToOverlay);
-            for (let i = 0; i < samples.length; i++) samples[i] = Math.fround(result[i]! * 257) / 257;
+            for (let i = 0; i < samples.length; i++)
+                if (!channels || channels[i % 4]) samples[i] = Math.fround(result[i]! * 257) / 257;
         }
         if (inks) {
             for (let i = 0; i < samples.length; i += 4) for (let c = 0; c < 3; c++) {

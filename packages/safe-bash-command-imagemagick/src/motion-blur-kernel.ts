@@ -65,7 +65,7 @@ export function* motionBlurPixelSteps(image: Pick<RgbaImage, "width" | "height" 
                         // Native gray is half the quantum range; round only the final blurred pixel.
                         const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 127.5 : 0;
                         const samples = (virtualPixel === "background" || virtualPixel?.endsWith("-tile")) ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
-                        pixel = [...samples.map(value => value * scale), 0];
+                        pixel = [...samples.map(value => value * scale), gray * scale];
                     }
                 }
                 if (!pixel) {

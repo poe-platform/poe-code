@@ -25,7 +25,8 @@ export function liquidRescaleSteps(image: { width: number; height: number; hasAl
     const channels = [0, 1, 2, ...(cmyk ? [3] : []), ...(image.hasAlpha ? [cmyk ? 4 : 3] : []),
         ...(!cmyk && palette.size ? [4] : []), ...Array.from({ length: stride - baseStride }, (_, i) => baseStride + i)];
     let data: Float32Array;
-    return { pixels: carve(), writeMask: image.writeMask || image.region ? writeMaskPixels() : undefined };
+    return { pixels: carve(), readMask: image.readMask ? maskPixels(baseStride) : undefined,
+        writeMask: image.writeMask || image.region ? maskPixels(stride - 1) : undefined };
 
     function* carve(): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
         data = new Float32Array(image.width * image.height * stride);
@@ -188,8 +189,7 @@ export function liquidRescaleSteps(image: { width: number; height: number; hasAl
         }
     }
 
-    function* writeMaskPixels(): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-        const channel = stride - 1;
+    function* maskPixels(channel: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
         for (let offset = 0; offset < width * height * 4; offset += 4096) {
             yield;
             const length = Math.min(4096, width * height * 4 - offset);

@@ -13180,6 +13180,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (width === image.width && height === image.height) return image;
                 const plan = liquidRescaleSteps(image, width, height, seam.hasOffset ? Math.max(0, seam.x) : 1, seam.hasYOffset ? seam.y : 0);
                 const result = yield* applyMagickRasterSteps(image, plan.pixels, signal, { ...image, width, height }, [image, ...(image.readMask ? [image.readMask as RgbaImage] : []), ...(image.writeMask ? [image.writeMask] : [])]);
+                if (plan.readMask) result.readMask = yield* applyMagickRasterSteps(image, plan.readMask, signal, { width, height, hasAlpha: false });
                 if (plan.writeMask) {
                     result.region = undefined;
                     result.writeMask = yield* applyMagickRasterSteps(image, plan.writeMask, signal, { width, height, hasAlpha: false });
@@ -17148,6 +17149,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (width === image.width && height === image.height) return image;
                 const plan = liquidRescaleSteps({ ...image, writeMask: image.storedWriteMask }, width, height, seam.hasOffset ? Math.max(0, seam.x) : 1, seam.hasYOffset ? seam.y : 0);
                 const result = await transformStoredMagickRaster(image, backend, plan.pixels, signal, { ...image, width, height }, [image, ...(image.readMask ? [image.readMask as StoredRgbaImage] : []), ...(image.storedWriteMask ? [image.storedWriteMask] : [])]);
+                if (plan.readMask) result.readMask = await transformStoredMagickRaster(image, backend, plan.readMask, signal, { width, height, hasAlpha: false });
                 if (plan.writeMask) {
                     result.region = undefined;
                     result.storedWriteMask = await transformStoredMagickRaster(image, backend, plan.writeMask, signal, { width, height, hasAlpha: false });

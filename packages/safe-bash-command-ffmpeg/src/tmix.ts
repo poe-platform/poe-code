@@ -88,10 +88,21 @@ export async function tmix(
   let nextCommand = 0;
   for (const [index, frame] of frames.entries()) {
     if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+    const enableVariables = {
+      n: index, t: frame.ptsSeconds, w: frame.width, h: frame.height, pos: frame.offset ?? NaN,
+      NAN: NaN, INF: Infinity, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+    };
     while (nextCommand < commands.length && commands[nextCommand]!.time <= frame.ptsSeconds) {
       if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
       const command = commands[nextCommand++]!;
       try {
+        if (command.action === "enable") {
+          parseFilterExpression(command.expression, "tmix enable", enableVariables, undefined, new Float64Array(10), []);
+          options.enable = command.expression;
+          registers.fill(0);
+          randomStates.length = 0;
+          continue;
+        }
         if (command.action === "weights") {
           ({ weights, sum } = parseWeights(command.expression));
           continue;
@@ -111,10 +122,8 @@ export async function tmix(
     if (history.some(previous => previous.width !== frame.width || previous.height !== frame.height)) {
       throw new Error("tmix: frames must have matching dimensions");
     }
-    const enabled = options.enable === undefined || Math.abs(parseFilterExpression(options.enable, "tmix enable", {
-      n: index, t: frame.ptsSeconds, w: frame.width, h: frame.height, pos: frame.offset ?? NaN,
-      NAN: NaN, INF: Infinity, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
-    }, undefined, registers, randomStates)) >= 0.5;
+    const enabled = options.enable === undefined || Math.abs(parseFilterExpression(options.enable, "tmix enable",
+      enableVariables, undefined, registers, randomStates)) >= 0.5;
     if (count === 1 || !enabled) {
       // Native bypass advances history and emits its oldest frame, including its PTS.
       output.push(count === 1 ? frame : history[0]!);

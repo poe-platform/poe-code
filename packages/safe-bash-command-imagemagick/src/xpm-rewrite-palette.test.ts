@@ -12,7 +12,7 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
         ["red", "ab.", [0, 1, 2], "0000ffffffffffffff0000ff"]
     ] as const)(`preserves palette identity through XPM output (${mode}, %s, %s)`, async (first, row, indices, cycled) => {
         const input = new TextEncoder().encode(`/* XPM */\nstatic char *icon[] = {"3 1 3 1", "a c ${first}", "b c blue", ". c white", "${row}"};`);
-        const files = new Map([["/icon.xpm", input]]), fs = new MemoryFileSystem();
+        const files = new Map<string, Uint8Array>([["/icon.xpm", input]]), fs = new MemoryFileSystem();
         await fs.writeFile("/icon.xpm", input);
         const args = ["/icon.xpm", "xpm:-"];
         let output: Uint8Array, stderr = "";

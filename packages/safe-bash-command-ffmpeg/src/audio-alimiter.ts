@@ -18,6 +18,22 @@ export async function limitAudio(
   const options = { ...defaults };
   const ranges = { level_in: [0.015625, 64], level_out: [0.015625, 64], limit: [0.0625, 1], attack: [0.1, 80], release: [1, 8000], asc: [0, 1], asc_level: [0, 1], level: [0, 1], latency: [0, 1] };
   const names = Object.keys(options) as (keyof typeof options)[];
+  const setOption = (key: keyof typeof options, value: string) => {
+    const [min, max] = ranges[key];
+    const boolean = key === "asc" || key === "level" || key === "latency";
+    const number = !boolean ? parseFilterExpression(value, "alimiter", {
+      default: defaults[key], min: min!, max: max!, none: 0, all: -1
+    }, undefined, new Float64Array(10))
+      : ["1", "true", "yes", "y", "on"].includes(value.toLowerCase()) ? 1
+      : ["0", "false", "no", "n", "off"].includes(value.toLowerCase()) ? 0 : NaN;
+    if (!value || !Number.isFinite(number)) {
+      throw new Error(`alimiter: invalid or unsupported ${key}`);
+    }
+    if (number < min! || number > max!) {
+      throw new AlimiterError(`alimiter: invalid or unsupported ${key}`, "options", 222);
+    }
+    options[key] = number;
+  };
   let enable: string | undefined;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const parts = argument ? argument.split(":") : [];
@@ -42,27 +58,12 @@ export async function limitAudio(
       if (!key) throw new Error(`alimiter: unsupported option ${key}`);
       if (!Object.hasOwn(options, key)) throw new AlimiterError(`alimiter: unsupported option ${key}`, "options", 8);
       const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-      const [min, max] = ranges[key];
-      const boolean = key === "asc" || key === "level" || key === "latency";
-      const number = !boolean ? parseFilterExpression(value, "alimiter", {
-        default: defaults[key], min: min!, max: max!, none: 0, all: -1
-      }, undefined, new Float64Array(10))
-        : ["1", "true", "yes", "y", "on"].includes(value.toLowerCase()) ? 1
-        : ["0", "false", "no", "n", "off"].includes(value.toLowerCase()) ? 0 : NaN;
-      if (!value || !Number.isFinite(number)) {
-        throw new Error(`alimiter: invalid or unsupported ${key}`);
-      }
-      if (number < min! || number > max!) {
-        throw new AlimiterError(`alimiter: invalid or unsupported ${key}`, "options", 222);
-      }
-      options[key] = number;
+      setOption(key, value);
     }
   } catch (error) {
     if (error instanceof AlimiterError) throw error;
     throw new AlimiterError((error as Error).message, "options");
   }
-  const { level_in: inputGain, level_out: outputGain } = options;
-  let { limit } = options;
   let nextCommand = 0;
   const window = Math.floor(sampleRate * (options.attack / 1000));
   if (window < 1) throw new AlimiterError("alimiter: Attack is too small", "configuration");
@@ -106,14 +107,12 @@ export async function limitAudio(
         if (command.action === "enable") {
           parseFilterExpression(command.expression, "alimiter enable", { t: 0, n: 0, w: 0, h: 0, pos: NaN });
           enable = command.expression;
-        } else if (command.action === "limit") {
-          const value = parseFilterExpression(command.expression, "alimiter", {
-            default: defaults.limit, min: ranges.limit[0]!, max: ranges.limit[1]!, none: 0, all: -1
-          });
-          if (Number.isFinite(value) && value >= ranges.limit[0]! && value <= ranges.limit[1]!) limit = value;
+        } else if (command.action === "limit" || command.action === "level_in" || command.action === "level_out" || command.action === "level") {
+          setOption(command.action, command.expression);
         }
       } catch { /* Native asendcmd continues after a rejected command. */ }
     }
+    const { limit, level_in: inputGain, level_out: outputGain } = options;
     const gain = outputGain * (options.level ? 1 / limit : 1);
     const enabled = flushing || enable === undefined || Math.abs(parseFilterExpression(enable, "alimiter enable", {
       t: input.pts / sampleRate, n, w: 0, h: 0, pos: input.pos === undefined || input.pos < 0 ? NaN : input.pos

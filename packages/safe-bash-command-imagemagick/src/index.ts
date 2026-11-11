@@ -4883,7 +4883,7 @@ function applyMagickDistortViewport<T extends WarpPlan>(plan: T, image: Pick<Rgb
     return plan;
 }
 
-function scaleMagickWarpPlan(plan: WarpPlan, image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, scale: number): WarpPlan {
+function scaleMagickWarpPlan<T extends WarpPlan>(plan: T, image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, scale: number): T {
     const original = plan, originX = original.virtualCanvas?.x ?? 0, originY = original.virtualCanvas?.y ?? 0;
     let width = Math.floor(original.width * scale + 0.5), height = Math.floor(original.height * scale + 0.5);
     if (width === 0 || height === 0) { width = image.width; height = image.height; }
@@ -14669,12 +14669,15 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-deskew") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const spec = tokens[++i] ?? "";
+            const scale = state.distortScale === undefined ? undefined : Math.abs(Number.parseFloat(state.distortScale));
+            if (scale !== undefined && (!Number.isFinite(scale) || scale < 0.1)) throw new Error("invalid argument for option distort:scale");
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = yield* formatMagickPropertyStringSteps(spec, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 let background = state.backgroundExplicit ? state.background : image.backgroundColor ?? state.background;
                 if (state.deskewAutoCrop === "1") background = deskewBackground(image, background, [0, image.height - 1].map(y => image.data.subarray(y * image.width * 4, (y * image.width + Math.min(2, image.width)) * 4)));
                 let plan = deskewPlan(image, yield* deskewAngleSteps(image, expanded), background, state.pointFilter, state.interpolation);
                 plan = applyMagickDistortViewport(plan, image, image.properties?.["artifact:distort:viewport"] ?? state.optionProperties?.["distort:viewport"], plan.virtualCanvas, analysis);
+                if (scale !== undefined) plan = scaleMagickWarpPlan(plan, image, scale);
                 image = discardDisassociatedAlpha(image);
                 const rotated = { ...yield* applyMagickRasterSteps(image, warpPixelSteps(image, plan, background, "background", state.kernel, state.resizeFilter), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
                 if (image.metaChannels) rotated.metaChannels = yield* mapSteps(image.metaChannels, function* (plane) {
@@ -18812,6 +18815,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             const spec = tokens[++i] ?? "", background = state.background, autoCrop = state.deskewAutoCrop, fuzz = state.alphaFuzz, percentBackground = state.trimPercentBackground, pointFilter = state.pointFilter, interpolation = state.interpolation, kernel = state.kernel, filter = state.resizeFilter;
             const backgroundExplicit = state.backgroundExplicit, optionProperties = state.optionProperties, trimEdges = state.trimEdges;
+            const scale = state.distortScale === undefined ? undefined : Math.abs(Number.parseFloat(state.distortScale));
+            if (scale !== undefined && (!Number.isFinite(scale) || scale < 0.1)) throw new Error("invalid argument for option distort:scale");
             steps.push(async (input, backend) => {
                 if (!input) return;
                 let image = input;
@@ -18820,6 +18825,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (autoCrop === "1") color = deskewBackground(image, color, await Promise.all([0, image.height - 1].map(y => backend.storage.read(image.position + y * image.width * 4, Math.min(2, image.width) * 4))));
                 let plan = deskewPlan(image, await storedDeskewAngle(image, backend.storage, expanded, signal), color, pointFilter, interpolation);
                 plan = applyMagickDistortViewport(plan, image, image.properties?.["artifact:distort:viewport"] ?? optionProperties?.["distort:viewport"], plan.virtualCanvas, analysis);
+                if (scale !== undefined) plan = scaleMagickWarpPlan(plan, image, scale);
                 image = discardDisassociatedAlpha(image);
                 const rotated = { ...await transformStoredMagickRaster(image, backend, warpPixelSteps(image, plan, color, "background", kernel, filter), signal, plan), virtualCanvas: plan.virtualCanvas, properties: plan.properties };
                 if (image.storedMetaChannels) {

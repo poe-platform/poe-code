@@ -54,8 +54,8 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         }
     });
 
-    for (const operator of ["-distort", "+distort"]) {
-        const distortion = [operator, "PerspectiveProjection", "1,0,0,0,1,0,0,0"];
+    for (const operator of ["-distort", "+distort", "-deskew"]) {
+        const distortion = operator === "-deskew" ? [operator, "40%"] : [operator, "PerspectiveProjection", "1,0,0,0,1,0,0,0"];
         it.each(["0", "-0", "0.0", "broken", ""])(`rejects distort:scale=%s without replacing output (${operator}, ${mode})`, async scale => {
             const result = await run(["-define", `distort:scale=${scale}`, ...distortion]);
             expect(result.exitCode).toBe(1);

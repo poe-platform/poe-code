@@ -7298,6 +7298,10 @@ function validateSubtitleEncoder(codec: string | undefined, doc: MediaDocument, 
   }
 }
 
+const subtitleCharencModeNames = new Map([
+  ["-1", "do_nothing"], ["0", "auto"], ["1", "pre_decoder"], ["2", "ignore"]
+]);
+
 function recodeSubtitles(doc: MediaDocument, charset: string): MediaDocument {
   const name = charset.toUpperCase();
   // WHATWG maps ASCII and ISO-8859-1 to Windows-1252; iconv does not.
@@ -8261,6 +8265,7 @@ export function evalSyncFfmpeg(
         if (!pendingSubtitleCharset || !args.slice(i + 1).includes("-i")) return undefined;
       } else if (arg === "-sub_charenc_mode") {
         pendingSubtitleCharencMode = args[++i];
+        pendingSubtitleCharencMode = subtitleCharencModeNames.get(pendingSubtitleCharencMode ?? "") ?? pendingSubtitleCharencMode;
         if (!["ignore", "do_nothing", "auto", "pre_decoder"].includes(pendingSubtitleCharencMode ?? "") || !args.slice(i + 1).includes("-i")) return undefined;
       } else if (arg === "-subfps") {
         pendingSubtitleFrameRate = parseFrameRate(args[++i] ?? "");
@@ -10303,8 +10308,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
           } else if (arg === "-sub_charenc_mode") {
             pendingSubtitleCharencMode = args[++i];
+            pendingSubtitleCharencMode = subtitleCharencModeNames.get(pendingSubtitleCharencMode ?? "") ?? pendingSubtitleCharencMode;
             if (!["ignore", "do_nothing", "auto", "pre_decoder"].includes(pendingSubtitleCharencMode ?? "") || !args.slice(i + 1).includes("-i")) {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -sub_charenc_mode requires ignore, do_nothing, auto or pre_decoder before an input\n"), context.signal);
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -sub_charenc_mode requires ignore (2), do_nothing (-1), auto (0) or pre_decoder (1) before an input\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-subfps") {

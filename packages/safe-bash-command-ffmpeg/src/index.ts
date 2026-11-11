@@ -5583,6 +5583,10 @@ async function applyVideoFilterChain(
           const frame = current[index]!;
           repeated.push({ ...frame, ptsSeconds: frame.ptsSeconds + values.loop * duration });
         }
+        // FFmpeg forwards EOF with the full replay offset, including the
+        // buffered duration; trailing input frames use one duration less.
+        const last = current[current.length - 1]!;
+        endTimeSeconds = (endTimeSeconds ?? last.ptsSeconds + last.durationSeconds) + (values.loop + 1) * duration;
         current = repeated;
       }
     } else if (name === "reverse") {
@@ -5806,7 +5810,7 @@ async function applyVideoFilterChain(
     }
     // Filters that change the final frame's timing establish a new endpoint.
     const lastOutputFrame = current.at(-1);
-    if (name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "thumbnail" && name !== "trim" && name !== "decimate" && name !== "framestep" &&
+    if (name !== "loop" && name !== "weave" && name !== "doubleweave" && name !== "separatefields" && name !== "settb" && name !== "setpts" && name !== "fps" && name !== "select" && name !== "thumbnail" && name !== "trim" && name !== "decimate" && name !== "framestep" &&
         (lastOutputFrame?.ptsSeconds !== lastInputFrame?.ptsSeconds ||
          lastOutputFrame?.durationSeconds !== lastInputFrame?.durationSeconds)) {
       endTimeSeconds = undefined;

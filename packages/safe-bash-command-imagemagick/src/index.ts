@@ -7445,7 +7445,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
         if (cmyk) im = yield* convertCmykPixels(im);
         if (++work % 16384 === 0)
             yield;
-        const off = resolveGravityOffset(vertical ? totalW - im.width : 0, vertical ? 0 : totalH - im.height, im.gravity ?? state.gravity);
+        const off = resolveGravityOffset(vertical ? totalW - im.width : 0, vertical ? 0 : totalH - im.height, magickPlacementGravity(im, state));
         const left = vertical ? off.left : cursor, top = vertical ? cursor : off.top;
         for (let y = 0; y < im.height; y++) {
             for (let x = 0; x < im.width; x += 4096) {
@@ -17562,7 +17562,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     if (append && cmyk && !nonCmyk && frame.storedHueSamples === undefined) frame = await transformStoredMagickPixels(frame, backend, { end: 0, highDepth: true, apply: convertCmykPixels }, signal);
                     if (append && cmyk && nonCmyk && frame.space === "cmyk") frame = await transformStoredMagickPixels(frame, backend, { end: 0, highDepth: true, apply: copyCmykChannelsToRgb }, signal);
-                    const offset = resolveGravityOffset(vertical ? width - frame.width : 0, vertical ? 0 : height - frame.height, frame.gravity ?? settings.gravity);
+                    const offset = resolveGravityOffset(vertical ? width - frame.width : 0, vertical ? 0 : height - frame.height, magickPlacementGravity(frame, settings));
                     if (append) {
                         const left = vertical ? offset.left : cursor, top = vertical ? cursor : offset.top;
                         const chunkPixels = result.storedEvaluateSamples === undefined && result.storedHueSamples === undefined ? 4096 : 512;

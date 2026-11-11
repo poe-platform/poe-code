@@ -11,6 +11,12 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const)
 it.each([
     { name: "vertical scoped East", args: [...first, ...second.slice(0, -1), "-gravity", "east", ")", "-append"], hex: "2060b0802060b080ffffffffc04020edffffffffc04020ed" },
     { name: "vertical global East", args: [...first, ...second, "-gravity", "east", "-append"], hex: "2060b0802060b080ffffffffc04020edffffffffc04020ed" },
+    { name: "vertical image East", args: [...first, ...second, "-set", "gravity", "East", "-append"], hex: "2060b0802060b080ffffffffc04020edffffffffc04020ed" },
+    { name: "vertical option East", args: [...first, ...second, "-set", "option:gravity", "East", "-append"], hex: "2060b0802060b080ffffffffc04020edffffffffc04020ed" },
+    { name: "horizontal image South", args: [...first, ...second, "-set", "gravity", "South", "+append"], hex: "ffffffffffffffffc04020ed2060b0802060b080c04020ed" },
+    { name: "horizontal option South", args: [...first, ...second, "-set", "option:gravity", "South", "+append"], hex: "ffffffffffffffffc04020ed2060b0802060b080c04020ed" },
+    { name: "option West overrides image East", args: [...first, ...second, "-gravity", "West", "-set", "gravity", "East", "-append"], hex: "2060b0802060b080c04020edffffffffc04020edffffffff" },
+    { name: "reset clears image East", args: [...first, ...second, "-set", "gravity", "East", "+gravity", "-append"], hex: "2060b0802060b080c04020edffffffffc04020edffffffff" },
     { name: "vertical default", args: [...first, ...second, "-append"], hex: "2060b0802060b080c04020edffffffffc04020edffffffff" },
     { name: "horizontal scoped South", args: [...first.slice(0, -1), "-gravity", "south", ")", ...second, "+append"], hex: "ffffffffffffffffc04020ed2060b0802060b080c04020ed" },
     { name: "global reset overrides scoped East", args: [...first, ...second.slice(0, -1), "-gravity", "east", ")", "+gravity", "-append"], hex: "2060b0802060b080c04020edffffffffc04020edffffffff" },

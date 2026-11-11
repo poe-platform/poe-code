@@ -3985,8 +3985,9 @@ async function applyVideoFilterChain(
     } else if (name === "swapuv") {
       if (argStr) throw new Error("swapuv: unsupported option");
       current = await mapWork(current, frame => swapUv(frame, budget, signal), signal);
-    } else if (name === "extractplanes") {
-      const plane = named.planes ?? argStr;
+    } else if (name === "extractplanes" || name === "alphaextract") {
+      if (name === "alphaextract" && argStr) throw new Error("alphaextract: unsupported option");
+      const plane = name === "alphaextract" ? "a" : named.planes ?? argStr;
       if (positional.length !== 1 || Object.keys(named).some(key => key !== "planes") ||
           !["y", "u", "v", "r", "g", "b", "a"].includes(plane)) {
         throw new Error("extractplanes: select a single plane (y, u, v, r, g, b, or a)");
@@ -3994,7 +3995,7 @@ async function applyVideoFilterChain(
       const channel = ["r", "g", "b", "a"].indexOf(plane);
       if (channel >= 0 && !(plane === "a" ? ["rgba", "bgra", "gbrap", "ya8"] :
         ["rgba", "bgra", "rgb24", "bgr24", "gbrp", "gbrap"]).includes(pixelFormat ?? "rgba")) {
-        throw new Error("extractplanes: requested RGB/alpha plane is unavailable in this pixel format");
+        throw new Error(`${name}: requested RGB/alpha plane is unavailable in this pixel format`);
       }
       current = await mapWork(current, async ({ native, ...frame }) => {
         let { width, height } = frame;

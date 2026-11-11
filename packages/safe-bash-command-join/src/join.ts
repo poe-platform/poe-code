@@ -23,25 +23,28 @@ interface Options {
 // GNU's 64-bit PTRDIFF_MAX bounds field numbers, including overflowing decimals.
 const maxField = 9223372036854775807n;
 
-function number(value: string, label: string): bigint {
+function number(value: string): bigint {
   let result = 0n;
   let index = 0;
   while (index < value.length && " \t\n\r\v\f".includes(value[index]!)) index++;
   if (value[index] === "+") index++;
   for (; index < value.length; index++) {
     const digit = value.charCodeAt(index) - 48;
-    if (digit < 0 || digit > 9) fail(`invalid ${label}: ${value}`);
+    if (digit < 0 || digit > 9) throw new PublicDiagnostic(`invalid field number: '${value}'`);
     if (result < maxField) {
       result = result * 10n + BigInt(digit);
       if (result > maxField) result = maxField;
     }
   }
-  if (result === 0n) fail(`invalid ${label}: ${value}`);
+  if (result === 0n) throw new PublicDiagnostic(`invalid field number: '${value}'`);
   return result;
 }
 
 function parse(context: CommandContext, budget: Budget, utf8: boolean): Options {
   const options: Options = { files: [], fields: [0, 0], unpaired: new Set(), paired: true, separator: 10, delimiter: undefined, whole: false, utf8, replacement: empty, format: undefined, fold: false, header: false, order: "default" };
+  const optionError = (message: string): never => {
+    throw new PublicDiagnostic(`${message}\nTry 'join --help' for more information.`);
+  };
   let literal = false;
   let delimiterChoice: Uint8Array | undefined;
   const explicitFields: [bigint | undefined, bigint | undefined] = [undefined, undefined];
@@ -58,12 +61,12 @@ function parse(context: CommandContext, budget: Budget, utf8: boolean): Options 
   };
   const apply = (flag: string, value: string, rawValue?: Uint8Array): void => {
     if (flag === "1" || flag === "2" || flag === "j") {
-      const field = number(value, "field") - 1n;
+      const field = number(value) - 1n;
       if (flag !== "2") setField(0, field);
       if (flag !== "1") setField(1, field);
     } else if (flag === "a" || flag === "v") {
-      const file = number(value, "file number");
-      if (file !== 1n && file !== 2n) fail(`invalid file number: ${value}`);
+      const file = number(value);
+      if (file !== 1n && file !== 2n) throw new PublicDiagnostic(`invalid field number: '${value}'`);
       options.unpaired.add(Number(file) - 1);
       if (flag === "v") options.paired = false;
     } else if (flag === "e") {
@@ -106,9 +109,8 @@ function parse(context: CommandContext, budget: Budget, utf8: boolean): Options 
       budget.check(values.length, budget.limits.maxFields, "field");
       const fields = values.map(specification => {
         if (specification === "0") return { file: 0, index: 0 };
-        const match = /^([12])\.(\+?[0-9]+)$/u.exec(specification);
-        if (!match) fail(`invalid output field: ${specification}`);
-        return { file: Number(match[1]), index: Number(number(match[2]!, "output field") - 1n) };
+        if ((specification[0] !== "1" && specification[0] !== "2") || specification[1] !== ".") fail(`invalid output field: ${specification}`);
+        return { file: Number(specification[0]), index: Number(number(specification.slice(2)) - 1n) };
       });
       options.format = [...(Array.isArray(options.format) ? options.format : []), ...fields];
       budget.check(options.format.length, budget.limits.maxFields, "field");
@@ -135,13 +137,21 @@ function parse(context: CommandContext, budget: Budget, utf8: boolean): Options 
       continue;
     }
     if (token === "--") { literal = true; continue; }
-    // --h and --he are ambiguous with --help.
-    if (token.length >= 5 && "--header".startsWith(token)) { options.header = true; continue; }
-    if ("--check-order".startsWith(token)) { options.order = "check"; continue; }
-    if ("--nocheck-order".startsWith(token)) { options.order = "none"; continue; }
-    if ("--ignore-case".startsWith(token)) { options.fold = true; continue; }
-    if ("--zero-terminated".startsWith(token)) { options.separator = 0; continue; }
-    if (token.startsWith("--")) fail(`unsupported option ${token}`);
+    if (token.startsWith("--")) {
+      const name = token.split("=")[0]!;
+      const matches = ["--header", "--check-order", "--nocheck-order", "--ignore-case", "--zero-terminated", "--help", "--version"].filter(option => option.startsWith(name));
+      if (matches.length > 1) optionError(`option '${token}' is ambiguous; possibilities: ${matches.map(option => `'${option}'`).join(" ")}`);
+      const option = matches[0];
+      if (!option) optionError(`unrecognized option '${token}'`);
+      if (token.includes("=")) optionError(`option '${option}' doesn't allow an argument`);
+      if (option === "--header") options.header = true;
+      else if (option === "--check-order") options.order = "check";
+      else if (option === "--nocheck-order") options.order = "none";
+      else if (option === "--ignore-case") options.fold = true;
+      else if (option === "--zero-terminated") options.separator = 0;
+      else fail(`unsupported option ${token}`);
+      continue;
+    }
     for (let offset = 1; offset < token.length; offset++) {
       const flag = token[offset]!;
       if (flag === "i") options.fold = true;
@@ -153,12 +163,13 @@ function parse(context: CommandContext, budget: Budget, utf8: boolean): Options 
           nextFieldCandidate = rest;
           break;
         }
+        if (!rest && index + 1 === context.args.length) optionError(`option requires an argument -- '${flag}'`);
         let value: string;
         [value, index] = argument(context.args, index, rest || undefined, `-${flag}`);
         apply(flag, value, flag === "t" || flag === "e" ? getCommandArguments(context).bytes(index)!.subarray(rest ? offset + 1 : 0) : undefined);
         if (flag === "o" && value !== "auto") nextFieldCandidate = "o";
         break;
-      } else fail(`unsupported option -${flag}`);
+      } else optionError(`invalid option -- '${flag}'`);
     }
   }
   if (options.files.length !== 2) fail("join requires exactly two files");

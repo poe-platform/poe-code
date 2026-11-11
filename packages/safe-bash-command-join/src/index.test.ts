@@ -219,7 +219,7 @@ for (const file of [1, 2]) {
    const result = await run(["-o", `${file}.${field}`, "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
    assert.equal(result.exitCode, 1);
    assert.equal(result.stdout, "");
-   assert.ok(result.stderr.includes("invalid output field"), result.stderr);
+   assert.equal(result.stderr, `join: invalid field number: '${field}'\n`);
   });
  }
 }
@@ -272,7 +272,7 @@ test("join validates every digit even after field-number saturation", async () =
   const result = await run(["-j", field, "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
-  assert.equal(result.stderr, `join: EINVAL: invalid field: ${field}\n`);
+  assert.equal(result.stderr, `join: invalid field number: '${field}'\n`);
  }
 });
 
@@ -331,7 +331,7 @@ for (const flag of ["-a", "-v"]) {
    const result = await run([flag, selector, "/left", "/right"], { "/left": "k AA\n", "/right": "k BB\n" });
    assert.equal(result.exitCode, 1);
    assert.equal(result.stdout, "");
-   assert.equal(result.stderr, `join: EINVAL: invalid file number: ${selector}\n`);
+   assert.equal(result.stderr, `join: invalid field number: '${selector}'\n`);
   });
  }
 }
@@ -356,12 +356,22 @@ for (const [option, minimum, left, right, expected, exitCode] of [
  });
 }
 
-for (const option of ["--h", "--he", "--nochi", "--headers", "--Header", "--hea=1", "--ignore=", "--check=yes", "--nocheck=no", "--zero=0"]) {
- test(`join rejects invalid or ambiguous option ${option}`, async () => {
-  const result = await run([option, "/a", "/b"], { "/a": "a\n", "/b": "a\n" });
+for (const [option, diagnostic] of [
+ ["--h", "option '--h' is ambiguous; possibilities: '--header' '--help'"],
+ ["--he", "option '--he' is ambiguous; possibilities: '--header' '--help'"],
+ ["--he=yes", "option '--he=yes' is ambiguous; possibilities: '--header' '--help'"],
+ ...["--nochi", "--headers", "--Header", "--unknown=yes"].map(option => [option, `unrecognized option '${option}'`]),
+ ...["--header=yes", "--hea=1", "--ignore=", "--check=yes", "--nocheck=no", "--zero=0", "--help=yes", "--version=yes"].map(option => [option, `option '${({ "--hea": "--header", "--ignore": "--ignore-case", "--check": "--check-order", "--nocheck": "--nocheck-order", "--zero": "--zero-terminated" }[option.split("=")[0]!] ?? option.split("=")[0])}' doesn't allow an argument`]),
+ ...[..."12jaevto"].map(flag => [`-${flag}`, `option requires an argument -- '${flag}'`]),
+ ["-ia", "option requires an argument -- 'a'"],
+ ["-x", "invalid option -- 'x'"],
+ ["-ix", "invalid option -- 'x'"],
+]) {
+ test(`join reports GNU option syntax errors: ${option}`, async () => {
+  const result = await run([option!], {}, { LC_ALL: "C" });
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
-  assert.ok(result.stderr.includes(`unsupported option ${option}`), result.stderr);
+  assert.equal(result.stderr, `join: ${diagnostic}\nTry 'join --help' for more information.\n`);
  });
 }
 
@@ -470,7 +480,7 @@ for (const flag of ["-j", "-1", "-2", "-a", "-v"]) {
  }
 }
 
-for (const format of ["1. 2", "1.\t2", "1.\n2", "1.\v2", "1.\f2", "1.\r2"]) {
+for (const format of ["1. 2", "1.\t2"]) {
  test(`join output field grammar does not accept padding: ${JSON.stringify(format)}`, async () => {
   const result = await run(["-o", format, "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" });
   assert.equal(result.exitCode, 1);
@@ -536,5 +546,34 @@ for (const separator of ["\n", "\r", "\v", "\f", "\u0085", "\u00a0", "\u2007", "
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
   assert.ok(result.stderr.includes("invalid output field"), result.stderr);
+ });
+}
+
+for (const [args, field] of [
+ [["-j", "x"], "x"], [["-1x"], "x"], [["-2", "x"], "x"],
+ [["-o", "2.x"], "x"], [["-o1.0"], "0"], [["-o", "0,1.2,2.x"], "x"],
+ [["-o", "1."], ""], [["-a", "3"], "3"], [["-v3"], "3"],
+] as const) {
+ test(`join identifies rejected field numbers without a usage hint: ${args.join(" ")}`, async () => {
+  const result = await run([...args], {}, { LC_ALL: "C" });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, `join: invalid field number: '${field}'\n`);
+ });
+}
+
+test("join output field zero selects the join key", async () => {
+ const result = await run(["-o", "0", "left", "right"], { "/left": "a 1\n", "/right": "a 2\n" }, { LC_ALL: "C" });
+ assert.equal(result.exitCode, 0);
+ assert.equal(result.stdout, "a\n");
+ assert.equal(result.stderr, "");
+});
+
+for (const whitespace of ["\n", "\v", "\f", "\r"]) {
+ test(`join accepts numeric whitespace within output fields: ${JSON.stringify(whitespace)}`, async () => {
+  const result = await run(["-o", `1.${whitespace}2`, "/a", "/b"], { "/a": "k A\n", "/b": "k B\n" }, { LC_ALL: "C" });
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "A\n");
+  assert.equal(result.stderr, "");
  });
 }

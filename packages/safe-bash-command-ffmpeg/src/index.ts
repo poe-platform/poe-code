@@ -14106,6 +14106,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           }
                           if (rates === undefined) continue;
                           await applyAudioSampleRates(rates, nextIndex);
+                          // The implicit converter must emit adelay's negotiated sample format.
+                          stretched = await convertAudioSampleFormat(stretched, panSampleFormat, filteredSampleFormat, budget, context.signal);
+                          panSampleFormat = filteredSampleFormat;
                           break;
                         }
                       }

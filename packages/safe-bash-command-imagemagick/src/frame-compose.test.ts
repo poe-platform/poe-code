@@ -33,6 +33,34 @@ for (const mode of ["public", "sync"] as const) {
     }
 }
 
+// Full-raster reference: ImageMagick 7.1.2-35 Q16-HDRI (older versions copy unselected source channels).
+for (const mode of ["public", "sync"] as const) {
+    it.each([
+        { channel: undefined, interior: [205, 124, 151, 255] },
+        { channel: "R", interior: [205, 223, 223, 255] },
+        { channel: "B", interior: [223, 223, 151, 255] },
+        { channel: "A", interior: [223, 223, 223, 255] },
+    ])(`${mode}: honors frame color channel $channel across the full raster`, async ({ channel, interior }) => {
+        const args = ["-size", "3x2", "xc:#c0306090", "-mattecolor", "#2880b070", ...(channel ? ["-channel", channel] : []), "-compose", "Over", "-frame", "3x3+0+0", "-depth", "8", "rgba:out.rgba"];
+        const files = new Map<string, Uint8Array>(), fs = new MemoryFileSystem();
+        const argumentValues = createCommandArguments(args);
+        let stderr = "";
+        const result = mode === "sync" ? runConvertCliSync(args, files) : await createMagickCommand().execute({
+            command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} }, stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        });
+        expect(result.exitCode, stderr).toBe(0);
+        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        const actual = mode === "sync" ? files.get("out.rgba")! : await fs.readFile("/out.rgba");
+        const expected = Uint8Array.from({ length: 9 * 8 * 4 }, (_, i) => {
+            const x = Math.floor(i / 4) % 9, y = Math.floor(i / 36);
+            return (x >= 3 && x < 6 && y >= 3 && y < 5 ? interior : [40, 128, 176, 112])[i % 4]!;
+        });
+        expect(actual).toEqual(expected);
+    });
+}
+
 async function frame(data: Uint8Array, width: number, height: number, options: string[], mode: "public" | "sync") {
     const input = encodeImage({ width, height, data, format: "png", depth: "uchar", density: 72, channels: 4, space: "srgb", hasAlpha: data.some((value, index) => index % 4 === 3 && value < 255) }, { format: "png" }).data;
     const args = ["input.png", ...options, "PNG32:out.png"];

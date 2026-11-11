@@ -3,7 +3,7 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 
 // Shared by convert frames and montage's 15-pixel matte with 3-pixel bevels.
 export function* magickFramePixels(source: Pick<RgbaImage, "width" | "height" | "data16" | "space" | "hasAlpha" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">>, width: number, height: number,
-    border: RgbaColor & { cmyk?: readonly number[] }, matte: RgbaColor & { cmyk?: readonly number[] }, frameX: number, frameY: number, outer: number, inner: number, compositeSource = true): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    border: RgbaColor & { cmyk?: readonly number[] }, matte: RgbaColor & { cmyk?: readonly number[] }, frameX: number, frameY: number, outer: number, inner: number, compositeSource = true, channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     if (outer < 0 || inner < 0 || outer + inner > Math.min(frameX, frameY)) throw new Error("frame is less than image size");
     // Native grayscale channel aliases leave the blue matte component in the gray channel.
     if (source.space === "b-w" || source.space === "grey16") matte = { ...matte, r: matte.b, g: matte.b };
@@ -62,6 +62,7 @@ export function* magickFramePixels(source: Pick<RgbaImage, "width" | "height" | 
                 const src = (x - first) * 4, dst = (x - left) * 4, alpha = source.hasAlpha ? samples[src + 3]! / maximum : 1;
                 const outAlpha = alpha + border.a / 255 * (1 - alpha);
                 for (let c = 0; c < 4; c++) {
+                    if (c < 3 && channels && !channels[c]) continue;
                     const value = c === 3 ? outAlpha * maximum : outAlpha ? (samples[src + c]! * alpha + interior[c]! * border.a / 255 * (1 - alpha)) / outAlpha : 0;
                     data[dst + c] = Math.round(value);
                     if (hueSamples) hueSamples[dst + c] = Math.fround(value * 65535 / maximum) / 65535;

@@ -7387,7 +7387,14 @@ function haldInputMetadata(token: string, inputDepth: number = 16): Omit<RgbaIma
     const level = Number.isNaN(parsed) || parsed < 2 ? 8 : parsed;
     const width = level ** 3;
     if (!Number.isSafeInteger(width * width * 8) || width * width * 8 > 0x7fffffff) throw new Error("Hald image dimensions exceed resource limits");
-    return { width, height: width, format: "png", channels: 3, depth: 255 % (level * level - 1) === 0 ? "uchar" : "ushort", bitsPerSample: inputDepth, space: "srgb", density: 72, hasAlpha: false };
+    const side = level * level;
+    // Native retains the identity colormap up to its 65536-entry limit,
+    // including colors no longer present after a crop.
+    const indexedColors = width * width <= 65536 ? Array.from({ length: width * width }, (_, pixel) =>
+        0xff000000 + Math.round((pixel % side) * 255 / (side - 1)) * 65536
+        + Math.round((Math.floor(pixel / side) % side) * 255 / (side - 1)) * 256
+        + Math.round(Math.floor(pixel / (side * side)) * 255 / (side - 1))) : undefined;
+    return { width, height: width, format: "png", channels: 3, depth: 255 % (side - 1) === 0 ? "uchar" : "ushort", bitsPerSample: inputDepth, space: "srgb", density: 72, hasAlpha: false, isPalette: !!indexedColors, ...(indexedColors ? { indexedColors } : {}) };
 }
 
 function* haldInputPixelSteps(width: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {

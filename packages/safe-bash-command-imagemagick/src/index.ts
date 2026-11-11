@@ -13362,6 +13362,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const subTokens = tokens.slice(i + 1, endIdx);
             const subState: MagickState = state.respectParentheses ? { ...state } : state;
             const subResult = (yield* evaluatePipelineTokensSteps(subTokens, files, subState, stack, stdinBytes, signal, analysis, registers, argumentOffset + i + 1));
+            // Numeric precision remains active outside image-setting scopes.
+            if (subState.precision !== undefined) state.precision = subState.precision;
             if (subState.qualityExplicit) for (let index = 0; index < subResult.length; index++) {
                 yield;
                 subResult[index] = { ...subResult[index]!, quality: subState.quality };
@@ -16835,7 +16837,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const quality = state.quality;
                 steps.push(async image => image ? { ...image, quality } : image);
             }
+            const precision = state.precision;
             state = scopes.pop()!.state; operandsOnly = false;
+            if (precision !== undefined) state.precision = precision;
             const channels = state.channels;
             stackStep(async (stack, _backend, parents) => { maskChannels = channels; const parent = parents.pop()!; for (let n = 0; n < stack.length; n++) await parent.push((await stack.get(n))!); return parent; });
             continue;

@@ -163,7 +163,7 @@ function* labelSteps(width: number, height: number, connectivity: number, fuzz: 
 }
 
 function* sortSteps(components: Component[], sort?: ConnectedComponentsSort, order?: "increasing" | "decreasing"): Generator<undefined, Component[], unknown> {
- const increasing = order === undefined ? sort !== undefined : order === "increasing";
+ const increasing = sort !== undefined && order !== "decreasing";
  const value = (component: Component) => sort === "x" ? component.left : sort === "y" ? component.top
   : sort === "width" ? component.right - component.left + 1 : sort === "height" ? component.bottom - component.top + 1 : component.area;
  // Iterative merge sort keeps ordering cooperative, including checkerboards.

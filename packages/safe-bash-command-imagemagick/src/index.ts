@@ -11479,11 +11479,10 @@ if (t === "-intent" || t === "+intent") {
                     if (extra !== undefined || !["true", "false", "1", "0", "yes", "no", "on", "off"].includes(value ?? "")) throw new Error(`Unsupported connected-components define: ${defStr}`);
                     state.connectedVerbose = ["true", "1", "yes", "on"].includes(value!);
                 } else if (key === "connected-components:sort") {
-                    if (extra !== undefined || (value !== "x" && value !== "y" && value !== "width" && value !== "height" && value !== "area")) throw new Error(`Unsupported connected-components define: ${defStr}`);
-                    state.connectedSort = value;
+                    if (extra === undefined && (value === "x" || value === "y" || value === "width" || value === "height" || value === "area")) state.connectedSort = value;
+                    else delete state.connectedSort;
                 } else if (key === "connected-components:sort-order") {
-                    if (extra !== undefined || (value !== "increasing" && value !== "decreasing")) throw new Error(`Unsupported connected-components define: ${defStr}`);
-                    state.connectedSortOrder = value;
+                    state.connectedSortOrder = extra === undefined && value === "decreasing" ? "decreasing" : "increasing";
                 } else if (key === "connected-components:area-threshold" || key === "connected-components:diameter-threshold" || key === "connected-components:eccentricity-threshold" || key === "connected-components:minor-axis-threshold" || key === "connected-components:perimeter-threshold" || key === "connected-components:angle-threshold" || key === "connected-components:major-axis-threshold" || key === "connected-components:circularity-threshold") {
                     const range = value?.trim() ?? "";
                     const separator = key === "connected-components:area-threshold" && Number.isFinite(Number(range)) ? -1 : range.indexOf("-", range.startsWith("-") ? 1 : 0);

@@ -1,3 +1,4 @@
+import { isMpc, mpcCachePath, mpcSource } from "./mpc.js";
 import { withImageSource, type ImageByteSource } from "@poe-code/image-ast/portable";
 import { PagedStorage } from "@poe-code/safe-fs/storage";
 import { FsError, type FileSystem } from "@poe-code/safe-fs/contracts";
@@ -42,7 +43,7 @@ export async function withImageInputs<T>(input: ImageFileInput, stdinBytes: Uint
     };
     let retired = false, closing: Promise<void> | undefined;
     const close = () => closing ??= (async () => { retired = true; await stdinStorage?.close(); })();
-    const read: ImageInputReader = Object.assign(async <Result>(path: string, inspect: (source: ImageByteSource) => Promise<Result>) => {
+    const readRaw: ImageInputReader = Object.assign(async <Result>(path: string, inspect: (source: ImageByteSource) => Promise<Result>) => {
         if (retired)
             throw new FsError("ECANCELED");
         let result: Result | undefined;
@@ -132,6 +133,16 @@ export async function withImageInputs<T>(input: ImageFileInput, stdinBytes: Uint
         }
         return result;
     }, { close });
+    const read: ImageInputReader = Object.assign(<Result>(path: string, inspect: (source: ImageByteSource) => Promise<Result>) => readRaw(path, async source => {
+        if (!isMpc(await source.read(0, Math.min(20, source.size), io))) return inspect(source);
+        if (source.size > 65536) throw new Error("MPC header exceeds limit");
+        const descriptor = new Uint8Array(source.size);
+        for (let offset = 0; offset < source.size; offset += 16384) descriptor.set(await source.read(offset, Math.min(16384, source.size - offset), io), offset);
+        let found = false;
+        const result = await readRaw(mpcCachePath(path), async cache => { found = true; return inspect(mpcSource(descriptor, cache)); });
+        if (!found) throw new Error("Missing MPC pixel cache");
+        return result as Result;
+    }), { close });
     try {
         const result = await run(read);
         failed = false;

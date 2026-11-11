@@ -1,4 +1,5 @@
 import { htmlImageMap } from "./html-output.js";
+import { isMpc, mpcCachePath, mpcToMiff, storeMpc } from "./mpc.js";
 import { solveLinearSystem } from "./linear-system.js";
 import { parseSparseColor, sparseColorPixels } from "./sparse-color-operator.js";
 import { imageDescriptionOutput, imageDescription, type ImageDescriptionOutput } from "./json-output.js";
@@ -7595,6 +7596,8 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
       return "mng";
     case "apng":
       return "apng";
+    case "mpc":
+      return "mpc";
     case "miff":
       return "miff";
     case "png":
@@ -8061,6 +8064,11 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     let rawBytes = partitions ? partitions[0] : cleanToken === "-" ? stdinBytes : files.get(cleanToken) ?? files.get(token);
     if (!rawBytes)
         return undefined;
+    if (isMpc(rawBytes)) {
+        const cache = files.get(mpcCachePath(cleanToken));
+        if (!cache) throw new Error("Missing MPC pixel cache");
+        rawBytes = mpcToMiff(rawBytes, cache);
+    }
     if (ftxt) {
         if (!state.hasSize) throw new Error("must specify image size for FTXT input");
         const steps = ftxtInput(state.sizeWidth, state.sizeHeight, rawBytes.length);
@@ -11835,7 +11843,7 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
     if (format === "pgm" && image.hueSamples) image = yield* parseMagickPixelOperation(["-grayscale", "Rec709Luma"], createDefaultState(), 0)!.apply(image);
     // Convert working colorspaces first; keep ordinary sRGB luma at exporter precision.
     if ((format === "gray" || format === "graya") && (image.magickColorspace || (image.space === "b-w" || image.space === "grey16") && image.gamma === 1)) image = yield* parseMagickPixelOperation(["-colorspace", "Gray"], createDefaultState(), 0)!.apply(image);
-    if (pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format) || format === "miff" || format === "tiff") image = yield* prepare16BitOutput(image);
+    if (pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format) || format === "miff" || format === "mpc" || format === "tiff") image = yield* prepare16BitOutput(image);
     if ((pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && image.alphaBlend === false
         || (pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && !image.hasAlpha && (image.writeMask || image.region)) {
         // Raw RGBA synchronizes the masked cache before activating stored alpha.
@@ -11894,7 +11902,7 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     if (format === "pgm" && image.storedHueSamples !== undefined) image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-grayscale", "Rec709Luma"], createDefaultState(), 0)!, signal);
     // Convert working colorspaces first; keep ordinary sRGB luma at exporter precision.
     if ((format === "gray" || format === "graya") && (image.magickColorspace || (image.space === "b-w" || image.space === "grey16") && image.gamma === 1)) image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "Gray"], createDefaultState(), 0)!, signal);
-    if ((pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format) || format === "miff" || format === "tiff") && image.storedEvaluateSamples !== undefined) {
+    if ((pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format) || format === "miff" || format === "mpc" || format === "tiff") && image.storedEvaluateSamples !== undefined) {
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepare16BitOutput }, signal);
     }
     if ((pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && image.alphaBlend === false
@@ -15476,7 +15484,9 @@ function combineConvertOutput(result: ImageMagickCliResult, analysis: ReturnType
 }
 
 function storeMagickOutput(files: Map<string, Uint8Array>, path: string, bytes: Uint8Array, format: ImageFormat, state: MagickState, scene?: number): void {
-    if (isRawCoder(format) && state.rawInterlace === "partition") {
+    if (format === "mpc") {
+        storeMpc(files, path, bytes);
+    } else if (isRawCoder(format) && state.rawInterlace === "partition") {
         const paths = rawPartitionPaths(path, format, scene);
         const size = bytes.length / paths.length;
         for (const [channel, target] of paths.entries()) files.set(target, bytes.slice(channel * size, (channel + 1) * size));
@@ -21039,6 +21049,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     if ("data" in image) {
                         const { data } = encodeImage(image, { ...encoding, outputFilename: path });
                         if (path === "-") snapshotChunks.push(data);
+                        else if (output.format === "mpc") storeMpc(files, path, data);
                         else files.set(path, data);
                     } else {
                         const snapshot = image;
@@ -21264,6 +21275,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 for (let index = 0; index < stack.length; index++) {
                     const { data } = encodeImage(stack[index]!, { ...encoding, outputFilename: path === "-" ? path : formatSceneOutputPath(path, index) });
                     if (path === "-") stdoutChunks.push(data);
+                    else if (format === "mpc") storeMpc(files, formatSceneOutputPath(path, index), data);
                     else files.set(formatSceneOutputPath(path, index), data);
                 }
             } else {
@@ -21273,6 +21285,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 if (subimageSearch && format === "gif") image = yield* prepareGifFrames(stack);
                 const { data } = encodeImage({ ...(image), ...(format === "gif" && state.backgroundExplicit ? { backgroundColor: state.background } : {}) }, { ...encoding, outputFilename: path.replaceAll("%%", "%"), ...(image.pageHeight === undefined ? {} : { pageHeight: image.pageHeight }) });
                 if (path === "-") stdoutBytes = data;
+                else if (format === "mpc") storeMpc(files, path.replaceAll("%%", "%"), data);
                 else files.set(path.replaceAll("%%", "%"), data);
                 detachRgbaBuffer(image.data);
             }
@@ -21912,7 +21925,8 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             stdoutChunks.push(encoded);
             return;
         }
-        files.set(outPath, encoded);
+        if (format === "mpc") storeMpc(files, outPath, encoded);
+        else files.set(outPath, encoded);
     }
     let canvas: RgbaImage;
     function* compositeTile(image: RgbaImage, x: number, y: number): Generator<void, void, void> {

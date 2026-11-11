@@ -1,3 +1,4 @@
+import { mpcHeader, mpcPixels, mpcStoredPixels } from "./mpc.js";
 import { encodeImage as encodeRaster, encodeStoredImage as encodeStoredRaster, type ImageFormat as RasterFormat, type OutputEncodeOptions as RasterOptions, type RgbaImage, type StoredRgbaImage, type ImageByteStorage, type OutputInfo } from "@poe-code/image-ast/portable";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { encodeMapImage, encodeMapFromStorage } from "./map-output.js";
@@ -9,7 +10,7 @@ export type RawImage = RgbaImage & { rawFrames?: readonly RgbaImage[] };
 export type StoredRawImage = StoredRgbaImage & { rawFrames?: { length: number; at(index: number): Promise<StoredRgbaImage> } };
 
 export type RawCoder = "rgb" | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro" | "gray" | "graya" | "cmyk" | "cmyka";
-export type ImageFormat = RasterFormat | RawCoder | "map" | "farbfeld" | "mono" | "pal";
+export type ImageFormat = RasterFormat | RawCoder | "map" | "farbfeld" | "mono" | "pal" | "mpc";
 export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; rawInterlace?: "line" | "plane" | "partition" | undefined; rawDefines?: Readonly<Record<string, string>> | undefined; jpegExtent?: number | undefined; webpTargetSize?: number | undefined; webpPass?: number | undefined };
 
 /** Search complete output sizes, including alpha and container overhead. */
@@ -45,6 +46,12 @@ export function encodeImage(image: RawImage, options: OutputEncodeOptions): Retu
     if (options.format === "jpeg" && image.quality) options = { ...options, quality: image.quality, chromaSubsampling: image.quality < 90 ? "4:2:0" : "4:4:4" };
     if (options.format === "png" && (image.resolution?.x === 0 || image.resolution?.y === 0)) options = { ...options, omitPngResolution: true };
     if (options.format === "pam") options = { ...options, netpbmDepth: options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8) };
+    if (options.format === "mpc") {
+        if (options.outputFilename === "-") throw new Error("MPC output requires a filename for its pixel cache");
+        const header = mpcHeader(image), pixels = mpcPixels(image), data = new Uint8Array(header.length + pixels.length);
+        data.set(header); data.set(pixels, header.length);
+        return { data, format: "raw", channels: image.hasAlpha ? 4 : 3 };
+    }
     if (options.format === "farbfeld") {
         const data = new Uint8Array(16 + image.width * image.height * 8);
         data.set(farbfeldHeader(image));
@@ -195,6 +202,13 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
     if (options.format === "jpeg" && image.quality) options = { ...options, quality: image.quality, chromaSubsampling: image.quality < 90 ? "4:2:0" : "4:4:4" };
     if (options.format === "png" && (image.resolution?.x === 0 || image.resolution?.y === 0)) options = { ...options, omitPngResolution: true };
     if (options.format === "pam") options = { ...options, netpbmDepth: options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8) };
+    if (options.format === "mpc") {
+        if (options.outputFilename === "-") throw new Error("MPC output requires a filename for its pixel cache");
+        const header = mpcHeader(image); let size = header.length;
+        yield header;
+        for await (const chunk of mpcStoredPixels(image, storage, signal)) { size += chunk.length; yield chunk; }
+        return { format: "raw", width: image.width, height: image.height, channels: image.hasAlpha ? 4 : 3, premultiplied: false, size };
+    }
     if (options.format === "farbfeld") {
         yield farbfeldHeader(image);
         options = { format: "farbfeld", netpbmDepth: 16, endian: "msb" };
@@ -214,7 +228,7 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
         for await (const chunk of encodeMapFromStorage(image, storage, signal)) { size += chunk.length; yield chunk; }
         return { format: "raw", width: image.width, height: image.height, channels: 3, premultiplied: false, size };
     }
-    if (options.format !== "farbfeld" && !isRawCoder(options.format)) {
+    if (options.format !== "mpc" && options.format !== "farbfeld" && !isRawCoder(options.format)) {
         let quality = options.quality ?? 92;
         if (options.format === "webp" && options.lossless === false && (options.webpTargetSize ?? 0) > 0) {
             const search = webpTargetQualities(options);

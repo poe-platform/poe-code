@@ -1,3 +1,4 @@
+import { isMpc, mpcCachePath, mpcHeader, mpcStoredPixels, mpcSource } from "./mpc.js";
 import { rawPartitionPaths } from "./raw-rgb.js";
 import { decodeMagickImage as decodeImage } from "./image-raster.js";
 import { magickInput } from "./stored-stack.js";
@@ -61,10 +62,11 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
     try {
         const result = await withImageInputs(input, stdinBytes, signal, async (read) => {
         const publishImage = async (image: StoredRgbaImage, path: string, encoding: OutputEncodeOptions, snapshot?: NonNullable<import("@poe-code/image-ast/portable").StoredImageFileInput["encoded"]>, retire = true): Promise<Uint8Array | undefined> => {
+                if (encoding.format === "mpc" && path === "-") throw new Error("MPC output requires a filename for its pixel cache");
                 encoding = { ...encoding, outputFilename: path };
                 if (encoding.format === "pam") encoding = { ...encoding, netpbmDepth: encoding.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8) };
                 try {
-                if ((path !== "-" || snapshot) && encoding.format !== "map" && encoding.format !== "farbfeld" && encoding.format !== "mono" && encoding.format !== "pal") {
+                if ((path !== "-" || snapshot) && encoding.format !== "map" && encoding.format !== "farbfeld" && encoding.format !== "mono" && encoding.format !== "pal" && encoding.format !== "mpc") {
                     const output = resolvePath(cwd, path), info = await tryImageFile({ image, storage, ...(snapshot ? { encoded: snapshot } : {}), async close() { if (retire) { await storage.close(); await read.close(); } } }, output, { filesystem: budgetedFs, workingDirectory: cwd, signal }, { ...encoding, synthesizeExif: false, format: isRawCoder(encoding.format) ? "raw" : encoding.format });
                     if (info)
                         return;
@@ -109,6 +111,17 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
             };
         const stage = async (image: StoredRawImage, path: string, encoding: OutputEncodeOptions, scene?: number) => {
             encoding = { ...encoding, outputFilename: path };
+            if (encoding.format === "mpc") {
+                const header = mpcHeader(image);
+                const info = { format: "raw", width: image.width, height: image.height, channels: image.hasAlpha ? 4 : 3, premultiplied: false };
+                await snapshots.stage(image, mpcCachePath(path), { format: "raw" }, (async function* () {
+                    let size = 0;
+                    for await (const chunk of mpcStoredPixels(image, storage, signal)) { size += chunk.length; yield chunk; }
+                    return { ...info, size };
+                })());
+                await snapshots.stage(image, path, { format: "raw" }, (async function* () { yield header; return { ...info, size: header.length }; })());
+                return;
+            }
             if (!isRawCoder(encoding.format) || encoding.rawInterlace !== "partition") return snapshots.stage(image, path, encoding);
             let size = 0;
             for (let index = 0; index < (image.rawFrames?.length ?? 1); index++) {
@@ -209,6 +222,11 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
 
                     };
                     const snapshot = path === "-" ? undefined : await snapshots.get(path);
+                    if (!source && snapshot && isMpc(await snapshot.encoded.source.read(0, Math.min(20, snapshot.encoded.source.size), io))) {
+                        const cache = await snapshots.get(mpcCachePath(path));
+                        if (!cache) throw new Error("Missing MPC pixel cache");
+                        return consume(mpcSource(await materialize(snapshot.encoded.source), cache.encoded.source));
+                    }
                     return source ? await consume(source) : snapshot ? await consume(snapshot.encoded.source) : await read(path, consume);
                 }
                 catch (error) {
@@ -235,7 +253,7 @@ export async function withCompareFiles<T>(input: CompareFileInput, stdinBytes: U
             },
             async publish(image, path, encoding) {
                 const targetWebp = encoding.format === "webp" && encoding.lossless === false && (encoding.webpTargetSize ?? 0) > 0;
-                if (!snapshots.size && !targetWebp && (!isRawCoder(encoding.format) || path === "-")) return publishImage(image, path, encoding);
+                if (!snapshots.size && !targetWebp && encoding.format !== "mpc" && (!isRawCoder(encoding.format) || path === "-")) return publishImage(image, path, encoding);
                 let bytes: Uint8Array | undefined;
                 if (path === "-") bytes = await publishImage(image, path, encoding);
                 else await stage(image, path, encoding);

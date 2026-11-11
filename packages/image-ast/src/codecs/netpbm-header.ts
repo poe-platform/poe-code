@@ -32,7 +32,7 @@ export function* netpbmHeaderSteps(size: number): Generator<number, {
         const depth = Number(fields.get("DEPTH")), maxval = Number(fields.get("MAXVAL"));
         const tuple = fields.get("TUPLTYPE");
         if (!Number.isSafeInteger(width * height * 4) || !Number.isInteger(width) || !Number.isInteger(height) || width <= 0 || height <= 0 ||
-            ![1, 2, 3, 4, 5].includes(depth) || !Number.isInteger(maxval) || maxval < 1 || maxval > 65535)
+            ![1, 2, 3, 4, 5].includes(depth) || !Number.isInteger(maxval) || maxval < 1 || maxval > 4294967295)
           throw new Error("Invalid PAM header");
         const tuples: Record<string, number> = { BLACKANDWHITE: 1, BLACKANDWHITE_ALPHA: 2, GRAYSCALE: 1, GRAYSCALE_ALPHA: 2, RGB: 3, RGB_ALPHA: 4, CMYK: 4, CMYK_ALPHA: 5 };
         // ImageMagick defaults to packed RGB for missing or custom tuple names.
@@ -139,7 +139,7 @@ export function* netpbmSequenceSteps(size: number, page?: number): Generator<num
     first ??= header;
     const selected = pages++ === page;
     const { width, height, magic, maxval } = header;
-    const sampleBytes = (magic === "P5" || magic === "P6") && maxval > 65535 ? 4 : maxval > 255 ? 2 : 1;
+    const sampleBytes = maxval > 65535 ? 4 : maxval > 255 ? 2 : 1;
     if (!Number.isSafeInteger(width * height) || width <= 0 || height <= 0) throw new RangeError("Invalid Netpbm dimensions");
     if (magic === "P4" && size - header.dataOffset < Math.ceil(width / 8) * height) throw new Error("Truncated PBM raster");
     if (magic === "P5" && size - header.dataOffset < width * height * sampleBytes) throw new Error("Truncated PGM raster");

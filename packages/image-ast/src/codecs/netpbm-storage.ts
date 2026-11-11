@@ -17,7 +17,7 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
  if(!Number.isSafeInteger(width)||width<=0||!Number.isSafeInteger(height)||height<=0||!Number.isSafeInteger(width*height*4)) throw new RangeError("Invalid Netpbm dimensions");
  checkLimitInputPixels(width,height,options);
  if(magic==="P6"&&source.size-dataOffset<width*height*3*(maxval>65535?4:maxval>255?2:1)) throw new Error("Truncated PPM raster");
- if(magic==="P7"&&source.size-dataOffset<width*height*channels*(maxval>255?2:1)) throw new Error("Truncated PAM raster");
+ if(magic==="P7"&&source.size-dataOffset<width*height*channels*(maxval>65535?4:maxval>255?2:1)) throw new Error("Truncated PAM raster");
  const metadata:StoredRgbaImage={...(properties?{properties}:{}),width,height,position:0,format,space:cmyk?"cmyk":channels>=3?"srgb":"b-w",channels,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",bitsPerSample:Math.ceil(Math.log2(maxval+1)),density:72,hasAlpha};
  // Native 8/16-bit binary rasters use stored values across their full-depth MAXVAL range.
  const sampleMax=magic==="P5"||magic==="P6"||magic==="P7"
@@ -61,7 +61,7 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
  const sample=async():Promise<number>=>{
   if(magic==="P1"||magic==="P2"||magic==="P3") return ascii();
   const hi=await reader.at(position++)??0;
-  if((magic==="P5"||magic==="P6")&&maxval>65535) return hi*16777216+(await reader.at(position++))!*65536+(await reader.at(position++))!*256+(await reader.at(position++))!;
+  if(maxval>65535) return hi*16777216+(await reader.at(position++))!*65536+(await reader.at(position++))!*256+(await reader.at(position++))!;
   return maxval>255?(hi<<8)|(await reader.at(position++)??0):hi;
  };
  for(let y=0;y<height;y++) for(let x=0;x<width;x++) {

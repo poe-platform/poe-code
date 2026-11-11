@@ -65,7 +65,7 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
   if (magic === "P6" && bytes.length - hdr.dataOffset < width * height * 3 * (maxval > 65535 ? 4 : maxval > 255 ? 2 : 1)) {
     throw new Error("Truncated PPM raster");
   }
-  if (magic === "P7" && bytes.length - hdr.dataOffset < width * height * channels * (maxval > 255 ? 2 : 1)) throw new Error("Truncated PAM raster");
+  if (magic === "P7" && bytes.length - hdr.dataOffset < width * height * channels * (maxval > 65535 ? 4 : maxval > 255 ? 2 : 1)) throw new Error("Truncated PAM raster");
   // Native 8/16-bit binary rasters use stored values across their full-depth MAXVAL range.
   const sampleMax = magic === "P5" || magic === "P6" || magic === "P7"
     ? maxval >= 32768 && maxval <= 65535 ? 65535 : maxval >= 128 && maxval <= 255 ? 255 : maxval
@@ -100,7 +100,7 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
   if (magic === "P7" || magic === "P6" || magic === "P5" || magic === "P3" || magic === "P2") {
     const readSample = magic === "P3" || magic === "P2" ? readNextAsciiInt : () => {
       const hi = bytes[pos++] ?? 0;
-      if ((magic === "P5" || magic === "P6") && maxval > 65535) return hi * 16777216 + bytes[pos++]! * 65536 + bytes[pos++]! * 256 + bytes[pos++]!;
+      if (maxval > 65535) return hi * 16777216 + bytes[pos++]! * 65536 + bytes[pos++]! * 256 + bytes[pos++]!;
       return maxval > 255 ? (hi << 8) | (bytes[pos++] ?? 0) : hi;
     };
     for (let i = 0; i < width * height; i++) {

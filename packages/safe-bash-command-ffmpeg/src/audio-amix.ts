@@ -18,8 +18,7 @@ export async function mixAudio(
   const layouts = inputs.map(input => input.channelMask ||
     (input.channels === 1 ? 4 : input.channels === 2 ? 3 : input.channels === 6 ? 0x3f : undefined));
   const remix = inputs.map((input, index) => input.channels !== a.channels &&
-    (layouts[0] === 4 && (layouts[index] === 3 || layouts[index] === 0x3f || layouts[index] === 0x60f) ||
-      layouts[index] === 4 && (layouts[0] === 3 || layouts[0] === 0x3f || layouts[0] === 0x60f)));
+    [layouts[0], layouts[index]].every(layout => layout === 4 || layout === 3 || layout === 0x3f || layout === 0x60f));
   if (inputs.some((input, index) => !remix[index] && (input.channels !== a.channels || layouts[index] !== layouts[0]))) {
     throw new Error("amix requires matching channel layouts");
   }
@@ -133,7 +132,14 @@ export async function mixAudio(
           if (remix[input]) {
             // FFmpeg remixes in float with equal-power gains, without PCM clipping.
             if (a.channels === 6) {
-              value = channel === 2 ? value : 0;
+              value = audio.channels === 1 ? (channel === 2 ? value : 0)
+                : channel < 2 ? (audio.channelData[channel]![sample] ?? 0) : 0;
+            } else if (a.channels === 2 && audio.channels === 6) {
+              // Front left/right stay at unity; center and the matching surround are -3 dB.
+              value = Math.fround((audio.channelData[channel]![sample] ?? 0) +
+                Math.fround((audio.channelData[2]![sample] ?? 0) * Math.fround(Math.SQRT1_2)));
+              value = Math.fround(value +
+                Math.fround((audio.channelData[channel + 4]![sample] ?? 0) * Math.fround(Math.SQRT1_2)));
             } else {
               value = Math.fround(value * Math.fround(Math.SQRT1_2));
               if (audio.channels >= 2) value = Math.fround(value +

@@ -39,7 +39,7 @@ export async function resampleAudio(
       if (available <= filterLength) continue;
       // Each input frame emits only samples whose filter support is available.
       // The remaining tail is a separate frame emitted during flush.
-      const produced = Math.max(0, Math.ceil((available - filterLength / 2) / rateRatio));
+      const produced = Math.max(0, Math.ceil((available - (filterLength - center - 1)) / rateRatio));
       if (produced <= emitted) continue;
       emitted = Math.min(outputLength, produced);
       frameLimit.outputEnds?.push(emitted);

@@ -14510,7 +14510,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t === "+combine" && argument === undefined) throw new Error("missing an argument for option '+combine'");
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const first = stack[0]!;
-            const colorspace = argument === undefined ? undefined : yield* formatMagickPropertyStringSteps(argument, first, () => first, { ...(first as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties });
+            let colorspace = argument === undefined ? undefined : yield* formatMagickPropertyStringSteps(argument, first, () => first, { ...(first as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, optionProperties: state.optionProperties });
+            if (colorspace?.toLowerCase() === "undefined") colorspace = "sRGB";
             const rIm = colorspace === undefined ? first : yield* parseMagickPixelOperation(["-colorspace", colorspace], state, 0, signal)!.apply(first);
             const cmyk = rIm.space === "cmyk" && (colorspace !== undefined || stack.length <= 4 + Number(rIm.hasAlpha));
             const gray = (rIm.space === "b-w" || rIm.space === "grey16") && (colorspace !== undefined || stack.length <= (rIm.hasAlpha ? 2 : 1));
@@ -15865,7 +15866,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     return result;
                 } else if (token === "-combine" || token === "+combine") {
                     const first = (await stack.get(0))! as StoredRgbaImage;
-                    const colorspace = token === "+combine" ? await formatRetainedIdentify(argument, first, { ...(first as StoredMagickImage)[magickInput], sceneCount: stack.length, optionProperties: settings.optionProperties }, async () => ({ image: first, storage: backend.storage }), signal, stack) : undefined;
+                    let colorspace = token === "+combine" ? await formatRetainedIdentify(argument, first, { ...(first as StoredMagickImage)[magickInput], sceneCount: stack.length, optionProperties: settings.optionProperties }, async () => ({ image: first, storage: backend.storage }), signal, stack) : undefined;
+                    if (colorspace?.toLowerCase() === "undefined") colorspace = "sRGB";
                     const base = colorspace === undefined ? first : await transformStoredMagickPixels(first, backend, parseMagickPixelOperation(["-colorspace", colorspace], settings, 0, signal)!, signal);
                     const cmyk = base.space === "cmyk" && (colorspace !== undefined || stack.length <= 4 + Number(base.hasAlpha));
                     const gray = (base.space === "b-w" || base.space === "grey16") && (colorspace !== undefined || stack.length <= (base.hasAlpha ? 2 : 1));

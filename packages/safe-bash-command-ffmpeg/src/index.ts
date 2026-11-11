@@ -12376,7 +12376,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let loudnormResampling = false;
                   let filteredChannelMask = audio.channelMask;
                   const inputChannelLayout = t.codecDescriptions[0]?.channelLayout;
-                  let filteredChannelNames = inputChannelLayout ? parseAudioChannelLayout(inputChannelLayout) : undefined;
+                  let filteredChannelNames = inputChannelLayout && parseAudioChannelCount(inputChannelLayout) === undefined
+                    ? parseAudioChannelLayout(inputChannelLayout) : undefined;
                   const inputCodec = t.codecDescriptions[0]?.codecName;
                   let filteredSampleFormat = inputCodec === "pcm_u8" ? "u8" : inputCodec === "pcm_s16le" ? "s16" : ["pcm_s24le", "pcm_s32le"].includes(inputCodec ?? "") ? "s32"
                     : inputCodec === "pcm_f32le" ? "flt" : "dbl";

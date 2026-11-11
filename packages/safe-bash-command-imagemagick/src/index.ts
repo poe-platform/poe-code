@@ -10199,7 +10199,9 @@ function* prepareGifFrames(stack: readonly MagickImage[], dither: MagickState["d
     let cooperativeWork = 0;
     let fw = 0, fh = 0;
     for (const frame of stack) { fw = Math.max(fw, frame.width); fh = Math.max(fh, frame.height); }
-    const combined = new Uint8Array(fw * fh * stack.length * 4);
+    const size = fw * fh * 4;
+    const combined = new Uint8Array(size * stack.length);
+    let pages = 0;
     const delays: number[] = [];
     const disposals: number[] = [];
     for (let idx = 0; idx < stack.length; idx++) {
@@ -10207,22 +10209,31 @@ function* prepareGifFrames(stack: readonly MagickImage[], dither: MagickState["d
         const outputFrame = yield* prepareMagickOutput(stack[idx]!, "gif", dither, diffusionAmount);
         disposals.push(typeof outputFrame.disposal === "number" ? outputFrame.disposal : 0);
         const delay = outputFrame.delay?.[(stack[idx] as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0;
-        delays.push(format === "webp" && delay >= 0 && delay < 10 ? 100 : delay);
+        const duration = format === "webp" && delay >= 0 && delay < 10 ? 100 : delay;
+        if (format === "webp" && (!Number.isInteger(duration) || duration < 0 || duration > 0xffffff)) throw new RangeError("Invalid WebP frame duration");
+        if (format === "webp") combined.fill(0, pages * size, (pages + 1) * size);
         for (let y = 0; y < outputFrame.height; y++) {
             if (++cooperativeWork % 64 === 0) yield;
-            combined.set(outputFrame.data.subarray(y * outputFrame.width * 4, (y + 1) * outputFrame.width * 4), (idx * fw * fh + y * fw) * 4);
+            combined.set(outputFrame.data.subarray(y * outputFrame.width * 4, (y + 1) * outputFrame.width * 4), pages * size + y * fw * 4);
         }
+        let duplicate = format === "webp" && pages > 0 && delays[pages - 1]! + duration <= 0xffffff;
+        for (let offset = 0; duplicate && offset < size; offset++) {
+            if (offset % 65536 === 0) yield;
+            duplicate = combined[(pages - 1) * size + offset] === combined[pages * size + offset];
+        }
+        if (duplicate) delays[pages - 1]! += duration;
+        else { delays.push(duration); pages++; }
     }
     return {
         ...(yield* prepareMagickOutput(stack[0]!, "gif", dither, diffusionAmount)),
         width: fw,
-        height: fh * stack.length,
-        pages: stack.length,
+        height: fh * pages,
+        pages,
         pageHeight: fh,
         delay: delays,
         disposal: disposals,
         gifFrames: stack.map(frame => ({ icc: frame.icc, gifApplications: frame.gifApplications, comment: frame.properties?.comment, gifCommentBytes: frame.gifCommentBytes, width: frame.width, height: frame.height, x: frame.virtualCanvas?.x ?? 0, y: frame.virtualCanvas?.y ?? 0 })),
-        data: combined
+        data: combined.subarray(0, pages * size)
     };
 }
 
@@ -10236,16 +10247,42 @@ async function prepareStoredGifFrames(stack: StoredImageStack, backend: CompareF
         hasAlpha ||= frame.hasAlpha;
     }
     const size = width * height * 4, position = backend.storage.allocate(size * stack.length);
+    const delaysPosition = format === "webp" ? backend.storage.allocate(stack.length * 8) : undefined;
+    let pages = 0, previousDelay = 0;
     for (let index = 0; index < stack.length; index++) {
-        const frame = await prepareStoredMagickOutput((await stack.get(index))!, "gif", backend, signal, dither, diffusionAmount);
+        const source = (await stack.get(index))!;
+        const frame = await prepareStoredMagickOutput(source, "gif", backend, signal, dither, diffusionAmount);
+        const scene = source[magickInput]?.sceneIdx ?? 0;
+        const delay = format === "webp" ? await source.storedDelay?.at(scene, { signal }) ?? source.delay?.[scene] ?? 0 : 0;
+        const duration = delay >= 0 && delay < 10 ? 100 : delay;
+        if (format === "webp" && (!Number.isInteger(duration) || duration < 0 || duration > 0xffffff)) throw new RangeError("Invalid WebP frame duration");
+        let duplicate = format === "webp" && pages > 0 && previousDelay + duration <= 0xffffff;
         for (let y = 0; y < height; y++) for (let x = 0; x < width; x += 4096) {
             await yieldTurn(signal);
             const count = Math.min(4096, width - x), bytes = new Uint8Array(count * 4);
             if (y < frame.height && x < frame.width) bytes.set(await backend.storage.read(frame.position + (y * frame.width + x) * 4, Math.min(count, frame.width - x) * 4));
-            await backend.storage.write(position + index * size + (y * width + x) * 4, bytes);
+            const offset = (y * width + x) * 4;
+            if (duplicate) {
+                const previous = await backend.storage.read(position + (pages - 1) * size + offset, bytes.length);
+                duplicate = bytes.every((value, at) => value === previous[at]);
+            }
+            await backend.storage.write(position + pages * size + offset, bytes);
+        }
+        if (duplicate) previousDelay += duration;
+        else { previousDelay = duration; pages++; }
+        if (delaysPosition !== undefined) {
+            const bytes = new Uint8Array(8);
+            new DataView(bytes.buffer).setFloat64(0, previousDelay, true);
+            await backend.storage.write(delaysPosition + (pages - 1) * 8, bytes);
         }
     }
     const { storedData16: ignored, ...metadata } = first;
+    if (delaysPosition !== undefined) return { ...metadata, position, width, height: height * pages, pages, pageHeight: height, hasAlpha,
+        storedDelay: { length: pages, async at(index) {
+            const bytes = await backend.storage.read(delaysPosition + index * 8, 8);
+            return new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength).getFloat64(0, true);
+        } }
+    };
     return { ...metadata, position, width, height: height * stack.length, pages: stack.length, pageHeight: height, hasAlpha,
         storedGifFrame: { async at(index) {
             const frame = (await stack.get(index))!;

@@ -30,7 +30,7 @@ for (const retained of [false, true]) for (const write of [false, true]) for (co
     await filesystem.writeFile("/in.png", input);
     const outputs: Uint8Array[] = [];
     for (const args of [["-define", "webp:alpha-compression=0"], ["-define", "webp:alpha-compression=1"], ["-define", "webp:alpha-compression=0", "+define", "webp:alpha-compression"]]) {
-      const result = await runConvertCli(["/in.png", ...(animated ? ["/in.png"] : []), ...args, ...(write ? ["-write", "/out.webp", "null:"] : ["/out.webp"])], retained ? { filesystem, cwd: "/" } : files);
+      const result = await runConvertCli(["/in.png", ...(animated ? ["(", "/in.png", "-channel", "RGB", "-negate", "+channel", ")"] : []), ...args, ...(write ? ["-write", "/out.webp", "null:"] : ["/out.webp"])], retained ? { filesystem, cwd: "/" } : files);
       expect(result).toMatchObject({ exitCode: 0 });
       outputs.push(retained ? await filesystem.readFile("/out.webp") : files.get("/out.webp")!);
     }

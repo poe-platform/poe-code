@@ -64,7 +64,7 @@ for (const retained of [false, true]) {
     const filesystem = new MemoryFileSystem();
     await filesystem.writeFile("/in.png", input);
     const result = await runConvertCli([
-      "-delay", "7", "/in.png", "-delay", "19", "/in.png", "-loop", "3",
+      "-delay", "7", "/in.png", "(", "-delay", "19", "/in.png", "-channel", "RGB", "-negate", "+channel", ")", "-loop", "3",
       "-define", "webp:target-size=3000", "-write", "/small.webp",
       "-define", "webp:target-size=5000", "/large.webp"
     ], retained ? { filesystem, cwd: "/" } : files);

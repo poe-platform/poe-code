@@ -18,14 +18,14 @@ for (const animated of [false, true]) {
         const payloads: Uint8Array[] = [];
         const decoded: Uint8Array[] = [];
         for (const defines of [["-define", "webp:use-sharp-yuv=false"], ["-define", "webp:use-sharp-yuv=true"], [], ["-define", "webp:use-sharp-yuv=false", "+define", "webp:use-sharp-yuv"]]) {
-          const result = await runConvertCli(["/in.png", ...(animated ? ["-delay", "20", "/in.png", "-loop", "3"] : []), ...defines, ...(write ? ["-write", "/out.webp", "null:"] : ["/out.webp"])], retained ? { filesystem, cwd: "/" } : files);
+          const result = await runConvertCli(["/in.png", ...(animated ? ["(", "-delay", "20", "/in.png", "-channel", "RGB", "-negate", "+channel", ")", "-loop", "3"] : []), ...defines, ...(write ? ["-write", "/out.webp", "null:"] : ["/out.webp"])], retained ? { filesystem, cwd: "/" } : files);
           expect(result).toMatchObject({ exitCode: 0 });
           const output = retained ? await filesystem.readFile("/out.webp") : files.get("/out.webp")!;
           payloads.push(output);
           const image = decodeImage(output);
           if (animated) {
             const second = decodeImage(output, { page: 1 });
-            expect(second.data).toEqual(image.data);
+            expect(second.data).not.toEqual(image.data);
             expect(readImageMetadata(output)).toMatchObject({ pages: 2, loop: 3 });
           }
           expect(image).toMatchObject({ width: 64, height: 48 });

@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import sharp, { decodeImage } from "@poe-code/image-ast";
+import sharp, { decodeImage, readImageMetadata } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli } from "./index.js";
 
@@ -18,19 +18,20 @@ for (const mode of ["buffered", "retained"] as const) {
       const defines = setting === "default" ? [] : setting === "reset"
         ? ["-define", "webp:exact=true", "+define", "webp:exact"]
         : ["-define", `webp:exact=${setting}`];
-      const result = await runConvertCli(["/input.png", ...(animated ? ["/input.png"] : []),
+      const result = await runConvertCli(["/input.png", ...(animated ? ["(", "/input.png", "-channel", "RGB", "-negate", "+channel", ")"] : []),
         "-define", "webp:lossless=true", ...defines, "-write", "/copy.webp", "/output.webp"],
       mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
       expect(result, result.stderr).toMatchObject({ exitCode: 0 });
       for (const path of ["/copy.webp", "/output.webp"]) {
         const output = mode === "buffered" ? files.get(path)! : await fs.readFile(path);
+        if (animated) expect(readImageMetadata(output).pages).toBe(2);
         for (const page of animated ? [0, 1] : [0]) {
           const { data } = decodeImage(output, { page });
           let hiddenChanges = 0;
           for (let i = 0; i < input.length; i += 4) {
             expect(data[i + 3]).toBe(input[i + 3]);
             if (input[i + 3] !== 0 || setting === "true") {
-              expect(data.subarray(i, i + 3)).toEqual(input.subarray(i, i + 3));
+              expect(data.subarray(i, i + 3)).toEqual(input.subarray(i, i + 3).map(value => page === 1 ? 255 - value : value));
             } else if (data.subarray(i, i + 3).some((value, channel) => value !== input[i + channel])) hiddenChanges++;
           }
           if (setting !== "true") expect(hiddenChanges).toBeGreaterThan(0);

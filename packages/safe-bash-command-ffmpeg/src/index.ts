@@ -7061,7 +7061,8 @@ export function evalSyncFfmpeg(
       else if (arg === "-vsync" || arg === "-fps_mode" || arg.startsWith("-fps_mode:")) return undefined;
       else if (arg === "-crf") return undefined;
       else if (arg === "-pix_fmt") {
-        if (args[++i]?.startsWith("+")) return undefined;
+        const format = args[++i];
+        if (format?.startsWith("+") || format === "gray" || format === "gray8") return undefined;
       }
       else if (arg === "-v" || arg === "-loglevel" || arg === "-safe" || arg === "-threads" || arg === "-filter_threads" || arg === "-tag:a") i++;
       else if (arg === "-bf") {
@@ -11608,7 +11609,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             if (videoCodec !== "copy" && (rawPixelFormat === "gray" || rawPixelFormat === "gray8" || rawPixelFormat === "ya8" ||
                 (outPlugin?.id === "y4m" && (rawPixelFormat === "yuv420p" || rawPixelFormat === "yuv422p" || rawPixelFormat === "yuv444p")))) {
-              vfFilters.push(`format=${rawPixelFormat}`);
+              // QOI cannot encode gray; negotiate RGB before converting pixels.
+              const pixelFormat = (rawPixelFormat === "gray" || rawPixelFormat === "gray8") &&
+                (imageOutput || numberedImageOutput) &&
+                imageOutputFormat(videoCodec, outputTarget.split(".").pop()?.toLowerCase() ?? "") === "qoi"
+                ? "rgb24" : rawPixelFormat;
+              vfFilters.push(`format=${pixelFormat}`);
             }
 
             // Apply output-level time slicing (`-ss`, `-to`, `-t`)

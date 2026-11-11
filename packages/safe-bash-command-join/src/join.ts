@@ -40,13 +40,10 @@ function number(value: string, label: string): bigint {
   return result;
 }
 
-function parse(context: CommandContext, budget: Budget): Options {
-  const options: Options = { files: [], fields: [0, 0], unpaired: new Set(), paired: true, separator: 10, delimiter: undefined, whole: false, utf8: false, replacement: empty, format: undefined, fold: false, header: false, order: "default" };
+function parse(context: CommandContext, budget: Budget, utf8: boolean): Options {
+  const options: Options = { files: [], fields: [0, 0], unpaired: new Set(), paired: true, separator: 10, delimiter: undefined, whole: false, utf8, replacement: empty, format: undefined, fold: false, header: false, order: "default" };
   let literal = false;
   let delimiterChoice: Uint8Array | undefined;
-  const locale = (context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG || "C").toUpperCase().split("@")[0]!;
-  const utf8 = locale.endsWith("UTF-8") || locale.endsWith("UTF8");
-  options.utf8 = utf8;
   const explicitFields: [bigint | undefined, bigint | undefined] = [undefined, undefined];
   let replacementSet = false;
   const fieldCandidates: ("1" | "2" | "o" | undefined)[] = [];
@@ -214,19 +211,29 @@ function split(bytes: Uint8Array, options: Options, budget: Budget): readonly Ui
   return fields;
 }
 
-function keyComparison(env: Readonly<Record<string, string>>): typeof compare {
-  const locale = env.LC_ALL || env.LC_COLLATE || env.LANG || "C";
-  if (["C", "POSIX", "C.UTF-8", "C.utf8", "C.UTF8", "C.utf-8"].includes(locale)) return compare;
-  const language = locale.split(".")[0]!.split("_").join("-");
+function localeSettings(env: Readonly<Record<string, string>>): { utf8: boolean; compareKeys: typeof compare } {
+  // GNU initializes all locale categories together; any failure leaves them in C.
+  const locales = ["LC_CTYPE", "LC_COLLATE", "LC_MESSAGES", "LC_MONETARY", "LC_NUMERIC", "LC_TIME",
+    "LC_PAPER", "LC_NAME", "LC_ADDRESS", "LC_TELEPHONE", "LC_MEASUREMENT", "LC_IDENTIFICATION"]
+    .map(category => env.LC_ALL || env[category] || env.LANG || "C");
+  const byteLocales = ["C", "POSIX", "C.UTF-8", "C.utf8", "C.UTF8", "C.utf-8"];
+  const ctype = locales[0]!.toUpperCase();
+  const utf8 = ctype.endsWith("UTF-8") || ctype.endsWith("UTF8");
   let collator: Intl.Collator;
   try {
-    if (!Intl.Collator.supportedLocalesOf([language]).length || locale.includes("@")) throw new RangeError();
-    collator = new Intl.Collator(language, { usage: "sort", sensitivity: "variant", caseFirst: "lower" });
+    for (const locale of new Set(locales)) {
+      if (byteLocales.includes(locale)) continue;
+      const language = locale.split(".")[0]!.split("_").join("-");
+      if (locale.includes("@") || !Intl.Collator.supportedLocalesOf([language]).length) throw new RangeError();
+    }
+    const locale = locales[1]!;
+    if (byteLocales.includes(locale)) return { utf8, compareKeys: compare };
+    collator = new Intl.Collator(locale.split(".")[0]!.split("_").join("-"), { usage: "sort", sensitivity: "variant", caseFirst: "lower" });
   } catch {
-    fail(`unsupported collation locale '${locale}'`);
+    return { utf8: false, compareKeys: compare };
   }
   const decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
-  return (left, right, fold) => {
+  return { utf8, compareKeys(left, right, fold) {
     // GNU ignore-case uses folded byte comparison, bypassing collation.
     if (fold) return compare(left, right, true);
     let first: string | undefined, second: string | undefined;
@@ -234,14 +241,14 @@ function keyComparison(env: Readonly<Record<string, string>>): typeof compare {
     try { second = decoder.decode(right); } catch { /* Preserve byte ordering for invalid text. */ }
     if (first === undefined) return second === undefined ? compare(left, right) : 1;
     return second === undefined ? -1 : collator.compare(first, second);
-  };
+  } };
 }
 
 export function createJoinCommand(factory: TableTextCommandsOptions = {}): CommandDefinition {
   const limits = settings(factory);
   return command("join", limits, async (context, budget) => {
-    const options = parse(context, budget);
-    const compareKeys = keyComparison(context.env);
+    const { utf8, compareKeys } = localeSettings(context.env);
+    const options = parse(context, budget, utf8);
     const inputs = new Inputs(context, budget, options.separator);
     const terminator = Uint8Array.of(options.separator), delimiter = options.delimiter ?? Uint8Array.of(32);
     const orderFailure = Symbol("join order failure");

@@ -89,3 +89,48 @@ for (const locale of ["C.UTF8", "C.utf-8"]) {
   }
  });
 }
+
+for (const env of [
+ { LC_ALL: "definitely_invalid" },
+ { LC_ALL: "unknown_X.utf8" },
+ { LANG: "unknown_X.utf8" },
+ { LC_ALL: "", LC_COLLATE: "unknown_X.utf8", LC_CTYPE: "C.UTF-8" },
+ { LC_COLLATE: "en_US.UTF-8", LC_CTYPE: "unknown_X.utf8" },
+ { LANG: "unknown_X.utf8", LC_COLLATE: "C", LC_CTYPE: "C.UTF-8" },
+ { LANG: "en_US.UTF-8", LC_MESSAGES: "unknown_X.utf8" },
+]) {
+ test(`join falls back to C when locale initialization fails: ${JSON.stringify(env)}`, async () => {
+  const joined = await run(["/a", "/b"], { "/a": "a L\n", "/b": "a R\n" }, env);
+  assert.equal(joined.exitCode, 0, joined.stderr);
+  assert.equal(joined.stdout.toString(), "a L R\n");
+  assert.equal(joined.stderr, "");
+
+  const ordered = await run(["--check-order", "/a", "/b"], {
+   "/a": "B L\na L\n", "/b": "B R\na R\n",
+  }, env);
+  assert.equal(ordered.exitCode, 0, ordered.stderr);
+  assert.equal(ordered.stdout.toString(), "B L R\na L R\n");
+  assert.equal(ordered.stderr, "");
+
+  const blanks = await run(["/a", "/b"], { "/a": "a\u2003L\n", "/b": "a\u2003R\n" }, env);
+  assert.equal(blanks.exitCode, 0, blanks.stderr);
+  assert.equal(blanks.stdout.length, 0);
+  assert.equal(blanks.stderr, "");
+
+  for (const args of [["-t", "é"], ["-o", "1.1\u20032.2"]]) {
+   const result = await run([...args, "/a", "/b"], { "/a": "a L\n", "/b": "a R\n" }, env);
+   const cLocale = await run([...args, "/a", "/b"], { "/a": "a L\n", "/b": "a R\n" }, { LC_ALL: "C" });
+   assert.equal(result.exitCode, 1);
+   assert.deepEqual(result, cLocale);
+  }
+ });
+}
+
+test("join ignores unavailable locales overridden by LC_ALL", async () => {
+ const result = await run(["/a", "/b"], { "/a": "a\u2003L\n", "/b": "a\u2003R\n" }, {
+  LC_ALL: "C.UTF-8", LANG: "unknown_X.utf8", LC_COLLATE: "definitely_invalid", LC_CTYPE: "unknown_X.utf8",
+ });
+ assert.equal(result.exitCode, 0, result.stderr);
+ assert.equal(result.stdout.toString(), "a L R\n");
+ assert.equal(result.stderr, "");
+});

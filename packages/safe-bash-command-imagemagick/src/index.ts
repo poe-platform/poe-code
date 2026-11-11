@@ -1,5 +1,6 @@
+import { readMpc } from "./mpc-input.js";
 import { htmlImageMap } from "./html-output.js";
-import { isMpc, mpcCachePath, mpcToMiff, storeMpc } from "./mpc.js";
+import { storeMpc } from "./mpc.js";
 import { solveLinearSystem } from "./linear-system.js";
 import { parseSparseColor, sparseColorPixels } from "./sparse-color-operator.js";
 import { imageDescriptionOutput, imageDescription, type ImageDescriptionOutput } from "./json-output.js";
@@ -8067,11 +8068,6 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     let rawBytes = partitions ? partitions[0] : cleanToken === "-" ? stdinBytes : files.get(cleanToken) ?? files.get(token);
     if (!rawBytes)
         return undefined;
-    if (isMpc(rawBytes)) {
-        const cache = files.get(mpcCachePath(cleanToken));
-        if (!cache) throw new Error("Missing MPC pixel cache");
-        rawBytes = mpcToMiff(rawBytes, cache);
-    }
     if (ftxt) {
         if (!state.hasSize) throw new Error("must specify image size for FTXT input");
         const steps = ftxtInput(state.sizeWidth, state.sizeHeight, rawBytes.length);
@@ -8105,6 +8101,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         }
         return yield* applyMod(frames);
     }
+    rawBytes = yield* readMpc(rawBytes, cleanToken, files);
     let totalPages = 1;
     let inputMeta: ImageMetadata | undefined;
     try {

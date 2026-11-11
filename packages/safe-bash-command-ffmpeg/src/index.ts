@@ -3075,9 +3075,12 @@ async function applyVideoFilterChain(
           if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
           const command = commands[nextCommand++]!;
           const key = command.action === "out_w" ? "w" : command.action === "out_h" ? "h" : command.action;
+          const previous = crop[key];
           crop[key] = command.expression;
           try { configureCrop(); } catch {
             // Rejected commands retain the active dimensions and coordinate expressions.
+            if (previous === undefined) delete crop[key];
+            else crop[key] = previous;
           }
         }
         variables.n = n;

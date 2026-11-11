@@ -652,6 +652,7 @@ function parseDelayOption(value: string, current: number): ReturnType<typeof par
 }
 
 interface MagickState {
+  blackPointCompensation?: boolean;
   respectParentheses?: boolean;
   extract?: string;
   distortScale?: string;
@@ -7059,7 +7060,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
                 }
                 im = { ...image, evaluateSamples };
             }
-            im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: im.width, originalHeight: im.height, ...(im as MagickImage)[magickInput], interpolation: state.interpolation, intensity: state.intensity, virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
+            im = Object.assign({}, im, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: im.width, originalHeight: im.height, ...(im as MagickImage)[magickInput], blackPointCompensation: state.blackPointCompensation, interpolation: state.interpolation, intensity: state.intensity, virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
             if (state.compression !== undefined) im = { ...im, [magickInput]: { ...im[magickInput], compression: state.compression } };
             if (state.inputType !== undefined) im = setMagickType(im as MagickImage, state.inputType);
             if (state.qualityExplicit) im = { ...im, quality: state.quality };
@@ -10510,6 +10511,10 @@ function applyMagickReadSetting(tokens: readonly string[], state: MagickState, s
     const t = tokens[i];
     // The plus form does not undo monochrome conversion on loaded images.
     if (t === "+monochrome") return i;
+    if (t === "-black-point-compensation" || t === "+black-point-compensation") {
+        state.blackPointCompensation = t === "-black-point-compensation";
+        return i;
+    }
     if (t === "-limit") {
         const resource = tokens[++i], value = tokens[++i], threads = Number(value);
         if (resource?.toLowerCase() !== "thread") throw new Error(`unsupported resource type '-limit' '${resource ?? ""}'`);
@@ -11397,6 +11402,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     return { ...image, [magickInput]: { ...image[magickInput], fuzz: state.alphaFuzz } };
                 });
             }
+            if (t === "-black-point-compensation" || t === "+black-point-compensation") {
+                stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                    yield;
+                    return { ...image, [magickInput]: { ...image[magickInput], blackPointCompensation: state.blackPointCompensation } };
+                });
+            }
             if (t === "-intensity" || t === "+intensity") stack = yield* mapMagickImagesSteps(stack, function* (image) { yield; return { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], intensity: state.intensity } }; });
             if (t === "-bordercolor" || t === "+bordercolor") {
                 stack = yield* mapMagickImagesSteps(stack, function* (image) {
@@ -11702,8 +11713,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const profile = t === "-profile" ? files.get(name) : undefined;
             if (t === "-profile" && !profile) throw new Error(`unable to open profile '${name}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                const tagged = applyMagickProfile(image, name, profile);
-                return image.icc && profile ? yield* createIccConversion(image.icc, profile)(image) : tagged;
+                const transform = createIccConversion(image.icc, profile, state.optionProperties?.intent, image[magickInput]?.blackPointCompensation);
+                try { return applyMagickProfile(transform ? yield* transform.apply(image) : image, name, profile); }
+                finally { transform?.close(); }
             });
         }
         else if (t === "-strip") {
@@ -14428,6 +14440,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const fuzz = state.alphaFuzz;
                 steps.push(async image => image ? { ...image, [magickInput]: { ...image[magickInput], fuzz } } : undefined);
             }
+            if (token === "-black-point-compensation" || token === "+black-point-compensation") {
+                const blackPointCompensation = state.blackPointCompensation;
+                steps.push(async image => image ? { ...image, [magickInput]: { ...image[magickInput], blackPointCompensation } } : undefined);
+            }
             if (token === "-intensity" || token === "+intensity") {
                 const intensity = state.intensity;
                 steps.push(async image => image ? { ...image, [magickInput]: { ...(image as StoredMagickImage)[magickInput], intensity } } : undefined);
@@ -15512,6 +15528,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         if (!operandsOnly && (token === "-profile" || token === "+profile")) {
             const name = tokens[++i];
             if (!name) throw new Error(`missing argument '${token}'`);
+            const intent = state.optionProperties?.intent;
             stackStep(async (stack, backend) => {
                 const profile = token === "-profile" ? await backend.read(name, async source => {
                     const bytes = new Uint8Array(source.size);
@@ -15523,11 +15540,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }) : undefined;
                 if (token === "-profile" && !profile) throw new Error(`unable to open profile '${name}'`);
                 for (let index = 0; index < stack.length; index++) {
-                    const image = (await stack.get(index))!;
-                    const tagged = applyMagickProfile(image, name, profile);
-                    await stack.set(index, image.icc && profile ? await transformStoredMagickPixels(image, backend, {
-                        end: 0, highDepth: true, evaluate: true, apply: createIccConversion(image.icc, profile)
-                    }, signal) : tagged);
+                    let image = (await stack.get(index))!;
+                    const transform = createIccConversion(image.icc, profile, intent, image[magickInput]?.blackPointCompensation);
+                    try {
+                        if (transform) image = await transformStoredMagickPixels(image, backend, {
+                            end: 0, highDepth: true, evaluate: true, apply: transform.apply
+                        }, signal);
+                        await stack.set(index, applyMagickProfile(image, name, profile));
+                    } finally { transform?.close(); }
                 }
                 return stack;
             });
@@ -17372,7 +17392,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    }
    image = { ...metadata, storedEvaluateSamples };
   }
-  image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: image.width, originalHeight: image.height, ...(image as StoredMagickImage)[magickInput], interpolation: state.interpolation, intensity: state.intensity, virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
+  image = Object.assign({}, image, { gravity: state.gravity, virtualPixel: state.virtualPixel ?? "edge", [magickInput]: { originalWidth: image.width, originalHeight: image.height, ...(image as StoredMagickImage)[magickInput], blackPointCompensation: state.blackPointCompensation, interpolation: state.interpolation, intensity: state.intensity, virtualPixel: state.optionProperties?.["virtual-pixel"], fuzz: state.alphaFuzz, resizeKernel: state.kernel } });
   if(state.compression!==undefined)image={...image,[magickInput]:{...image[magickInput],compression:state.compression}};
   if(state.inputType!==undefined)image=setMagickType(image as StoredMagickImage,state.inputType);
   if(state.qualityExplicit)image={...image,quality:state.quality};
@@ -17929,14 +17949,19 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             return;
         }
         if (typeof operation === "object" && "profile" in operation) {
-            let converted = applyMagickProfile(image, operation.name, operation.profile);
-            if (image.icc && operation.profile) {
-                const apply = createIccConversion(image.icc, operation.profile);
-                if ("data" in image) converted = yield* apply(image);
-                else yield { async run() {
-                    converted = await transformStoredMagickPixels(image, backend!, { end: 0, highDepth: true, evaluate: true, apply }, signal!);
-                } };
-            }
+            const conversion = createIccConversion(image.icc, operation.profile);
+            let converted = image;
+            try {
+                if (conversion) {
+                    if ("data" in image) converted = yield* conversion.apply(image);
+                    else yield { async run() {
+                        converted = await transformStoredMagickPixels(image, backend!, {
+                            end: 0, highDepth: true, evaluate: true, apply: conversion.apply
+                        }, signal!);
+                    } };
+                }
+                converted = applyMagickProfile(converted, operation.name, operation.profile);
+            } finally { conversion?.close(); }
             yield* acceptImage(converted, operations, index + 1);
             return;
         }

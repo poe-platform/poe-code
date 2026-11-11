@@ -41,9 +41,10 @@ it("preserves alpha and uses high-depth samples without modifying the source", (
   input.data[3] = 73;
   input.data16[3] = 18700;
   const original = input.data.slice();
-  const steps = createIccConversion(source, target)(input);
+  const conversion = createIccConversion(source, target)!;
+  const steps = conversion.apply(input);
   let step = steps.next();
-  while (!step.done) step = steps.next();
+  try { while (!step.done) step = steps.next(); } finally { conversion.close(); }
   expect(step.value.data[3]).toBe(73);
   expect(step.value.data16![3]).toBe(18700);
   expect(step.value.data.slice(0, 3)).toEqual(Uint8Array.of(219, 0, 0));

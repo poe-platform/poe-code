@@ -49,7 +49,7 @@ export async function removeSilence(
       enable = value;
       parseFilterExpression(enable, "silenceremove enable", {
         n: 0, t: 0, pos: NaN, w: 0, h: 0, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
-      });
+      }, undefined, new Float64Array(10));
     } else if (key === "start_mode" || key === "stop_mode" || key === "detection" || key === "timestamp") {
       const names = key === "detection" ? ["avg", "rms", "peak", "median", "ptp", "dev"]
         : key === "timestamp" ? ["write", "copy"] : ["any", "all"];
@@ -91,6 +91,8 @@ export async function removeSilence(
   let stopThreshold = options.stop_threshold;
   let nextCommand = 0;
   let enabledFrames = new Uint8Array(frames.length);
+  // Validation must not advance the per-filter timeline registers.
+  const registers = new Float64Array(10);
   for (const [n, frame] of frames.entries()) {
     if (n % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
     while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame.start) {
@@ -109,7 +111,7 @@ export async function removeSilence(
       n, t: frame.pts / sampleRate,
       pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0, h: 0,
       PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
-    })) >= 0.5);
+    }, undefined, registers)) >= 0.5);
   }
   const firstPts = frames[0]?.pts ?? 0;
   const window = Math.max(1, Math.round(options.window * sampleRate));

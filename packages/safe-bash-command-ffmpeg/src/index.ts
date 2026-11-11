@@ -4684,8 +4684,6 @@ async function applyVideoFilterChain(
       if (!frameRateKnown) {
         throw new Error("decimate: The input needs a constant frame rate; current rate of 1/0 is invalid");
       }
-      // Decimate retimes frames but forwards the input EOF to downstream filters.
-      if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       const chroma = parseFilterBoolean(named.chroma ?? "1", "decimate: chroma must be a boolean");
       const blockx = Number(named.blockx ?? 32), blocky = Number(named.blocky ?? 32);
       for (const size of [blockx, blocky]) {
@@ -4697,6 +4695,8 @@ async function applyVideoFilterChain(
       const ppsrc = parseFilterBoolean(named.ppsrc ?? "0", "decimate: ppsrc must be a boolean");
       if (ppsrc !== (cleanFrames !== undefined)) throw new Error("decimate: ppsrc requires exactly two inputs when enabled and one when disabled");
       current = await decimate(current, roundToEven(cycle), mixed, dupthresh, sceneThreshold, chroma, blockx, blocky, budget, signal, cleanFrames);
+      // Native decimate signals EOF at its last output PTS, excluding its duration.
+      endTimeSeconds = current.at(-1)?.ptsSeconds ?? 0;
       cleanFrames = undefined;
     } else if (name === "mpdecimate") {
       if (argStr) throw new Error("mpdecimate: custom options are unsupported");

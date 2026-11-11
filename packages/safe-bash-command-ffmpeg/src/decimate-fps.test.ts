@@ -44,3 +44,33 @@ for (const [count, filter, indices, sha256] of [
     assert.equal(createHash("sha256").update(output).digest("hex"), sha256);
   });
 }
+
+// Native FFmpeg 7.0.2 and 9.0.1: small frames retain the first source frame.
+for (const [filter, expected] of [
+  ["decimate=cycle=4,fps=4", [20, 65, 65, 100, 170, 180, 180, 205]],
+  ["decimate=cycle=4", [20, 65, 100, 170, 180, 205, 221]]
+] as const) {
+  it(`matches native 16x16 gray EOF through ${filter}`, async () => {
+    const volume = Volume.fromJSON({
+      "/in.gray": Buffer.concat(levels.map(level => Buffer.alloc(256, level)))
+    });
+    const chunks: Uint8Array[] = [];
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "error", "-f", "rawvideo", "-pix_fmt", "gray", "-s", "16x16", "-r", "4",
+        "-i", "/in.gray", "-vf", filter, "-fps_mode", "passthrough", "-pix_fmt", "gray",
+        "-bitexact", "-f", "rawvideo", "pipe:1"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, data: Uint8Array) { volume.writeFileSync(path, data); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(),
+      stdout: { async write(data: Uint8Array) { chunks.push(data); } },
+      stderr: { async write(data: Uint8Array) { stderr += new TextDecoder().decode(data); } }
+    } as never);
+    assert.equal(result.exitCode, 0, stderr);
+    assert.deepEqual(Buffer.concat(chunks), Buffer.concat(expected.map(level => Buffer.alloc(256, level))));
+  });
+}

@@ -11229,7 +11229,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     gridColumns = Number(dimensions[0]);
                     gridInputs = gridColumns * Number(dimensions[1]);
                   }
-                  if (xoptions.shortest !== undefined && !["0", "1", "true", "false", "yes", "no", "on", "off"].includes(xoptions.shortest)) {
+                  if (xoptions.shortest !== undefined && !["0", "1", "true", "false", "yes", "no", "on", "off"].includes(xoptions.shortest.toLowerCase())) {
                     throw new Error("xstack: invalid shortest option");
                   }
                 }
@@ -11348,7 +11348,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 if (pads) throw new Error(`${filter}: unsupported input labels ${pads}`);
                 const shortestOption = xstack ? xoptions.shortest : options.filter((option) => option.trim().startsWith("shortest=")).at(-1)
                   ?.split("=")[1]?.trim() ?? options[1]?.trim();
-                const stopAtShortest = framepack || ["1", "true", "yes", "on"].includes(shortestOption ?? "0");
+                const stopAtShortest = framepack || ["1", "true", "yes", "on"].includes(shortestOption?.toLowerCase() ?? "0");
                 const lengths = inputs.map(frames => frames.length);
                 let count = Math.min(...lengths);
                 // Native framepack stops on decoder EOF before consuming the final

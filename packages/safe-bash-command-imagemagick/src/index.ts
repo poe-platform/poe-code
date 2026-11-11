@@ -14825,14 +14825,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 return result;
             });
         }
-        else if (t === "-median") {
-            analysis.warnings += 'magick: option has been replaced \'-median\', use "-statistic Median"\n';
-            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            const rows = magickMedianRows(parseMagickStatisticGeometry(tokens[++i] ?? "3"));
-            stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, morphologyPixelSteps(im, rows, "median", undefined, state.virtualPixel, state.background), signal);
-            });
-        }
         else if (t === "-morphology") {
             const method = (tokens[++i] ?? "dilate").toLowerCase();
             let kernelSpec = "";
@@ -14854,17 +14846,18 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 });
             }
         }
-        else if (t === "-statistic" || t === "-mode" || t === "-noise") {
+        else if (t === "-statistic" || t === "-mode" || t === "-noise" || t === "-median") {
+            if (t === "-median") analysis.warnings += 'magick: option has been replaced \'-median\', use "-statistic Median"\n';
             if (t === "-noise") analysis.warnings += `magick: option has been replaced '-noise', use "-statistic NonPeak" at CLI arg ${argumentOffset + i + 1}\n`;
             if (t === "-mode") analysis.warnings += 'magick: option has been replaced \'-mode\', use "-statistic Mode"\n';
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            const statType = t === "-noise" ? "NonPeak" : t === "-mode" ? "Mode" : tokens[++i] ?? "median";
+            const statType = t === "-noise" ? "NonPeak" : t === "-mode" ? "Mode" : t === "-median" ? "Median" : tokens[++i] ?? "median";
             const geom = tokens[++i] ?? "3x3";
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const context = { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties };
                 const method = yield* formatMagickPropertyStringSteps(statType, im, () => im, context);
                 validateMagickStatistic(method);
-                const geometry = parseMagickStatisticGeometry(t === "-mode" ? geom : yield* formatMagickPropertyStringSteps(geom, im, () => im, context));
+                const geometry = parseMagickStatisticGeometry(t === "-median" || t === "-mode" ? geom : yield* formatMagickPropertyStringSteps(geom, im, () => im, context));
                 const plan = magickMorphologyPlan(method, geometry, true);
                 if (state.virtualPixel === "transparent" && (!state.channelExplicit || state.channels.a)) im = { ...im, hasAlpha: true };
                 let channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k ?? true] : undefined;
@@ -18276,15 +18269,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     { width: layout.width, height: layout.height, hasAlpha: false }));
                 return { ...await transformStoredMagickRaster(image, backend, shadowPixelSteps(image, layout, backgroundExplicit ? background : image.backgroundColor ?? background, alpha), signal, layout), isPalette: false, alphaBlend: true, alphaSeparate: false, inactiveAlpha: false, region: undefined, storedWriteMask, readMask, storedMetaChannels, virtualCanvas: layout.virtualCanvas };
             });
-        } else if (!operandsOnly && (token === "-statistic" || token === "-mode" || token === "-noise")) {
+        } else if (!operandsOnly && (token === "-statistic" || token === "-mode" || token === "-noise" || token === "-median")) {
             const argumentPosition = i + 1;
             stackStep(async stack => {
+                if (token === "-median") analysis.warnings += 'magick: option has been replaced \'-median\', use "-statistic Median"\n';
                 if (token === "-noise") analysis.warnings += `magick: option has been replaced '-noise', use "-statistic NonPeak" at CLI arg ${argumentPosition}\n`;
                 if (token === "-mode") analysis.warnings += 'magick: option has been replaced \'-mode\', use "-statistic Mode"\n';
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const statType = token === "-noise" ? "NonPeak" : token === "-mode" ? "Mode" : tokens[++i] ?? "median", geom = tokens[++i] ?? "3x3";
+            const statType = token === "-noise" ? "NonPeak" : token === "-mode" ? "Mode" : token === "-median" ? "Median" : tokens[++i] ?? "median", geom = tokens[++i] ?? "3x3";
             const optionProperties = state.optionProperties, virtualPixel = state.virtualPixel, background = state.background;
             const meta = state.channelExplicit && !state.channelDefault ? state.channels.meta ?? [] : undefined;
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k ?? true] : undefined;
@@ -18293,7 +18287,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const context = { ...(image as StoredMagickImage)[magickInput], optionProperties };
                 const method = await formatRetainedIdentify(statType, image, context, async () => ({ image: image!, storage: backend.storage }), signal);
                 validateMagickStatistic(method);
-                const geometry = parseMagickStatisticGeometry(token === "-mode" ? geom : await formatRetainedIdentify(geom, image, context, async () => ({ image: image!, storage: backend.storage }), signal));
+                const geometry = parseMagickStatisticGeometry(token === "-median" || token === "-mode" ? geom : await formatRetainedIdentify(geom, image, context, async () => ({ image: image!, storage: backend.storage }), signal));
                 if (virtualPixel === "transparent" && (!channels || channels[3])) image = { ...image, hasAlpha: true };
                 const plan = magickMorphologyPlan(method, geometry, true);
                 let selectedChannels = !image.hasAlpha && image.inactiveAlpha && !image.alphaSeparate
@@ -19115,15 +19109,6 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 return result;
             });
-        } else if (!operandsOnly && token === "-median") {
-            stackStep(async stack => {
-                analysis.warnings += 'magick: option has been replaced \'-median\', use "-statistic Median"\n';
-                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
-                return stack;
-            });
-            const rows = magickMedianRows(parseMagickStatisticGeometry(tokens[++i] ?? "3"));
-            const { virtualPixel, background } = state;
-            steps.push(async (image, backend) => image ? transformStoredMagickRaster({ ...image, isPalette: false }, backend, morphologyPixelSteps(image, rows, "median", undefined, virtualPixel, background), signal) : undefined);
         } else if (!operandsOnly && token === "-extent") {
             let images: StoredImageStack, sceneIdx = 0;
             stackStep(async stack => {

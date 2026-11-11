@@ -1368,7 +1368,9 @@ function parseChannelSplit(spec: string): { input: string[]; selected: string[] 
   let layout = "stereo";
   let channels = "all";
   const options = equals < 0 ? [] : spec.slice(equals + 1).split(":");
+  if (options.at(-1) === "") options.pop();
   for (const [index, option] of options.entries()) {
+    if (option === "") throw new Error("channelsplit: empty option");
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["channel_layout", "channels"][index] : option.slice(0, separator);
     const value = separator < 0 ? option : option.slice(separator + 1);
@@ -1782,7 +1784,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       if (!output || nodes.has(output)) throw new Error("Duplicate or empty audio filter output");
       // Each graph edge evaluates the preceding chain, then selects its own PCM range or channel.
       const selected = segments ? serializeFilterChain([...filters.slice(0, -1), segments[index]!])
-        : split ? expression + (last.includes("=") ? ":" : "=") + `channels=${split.selected[index]}` : expression;
+        : split ? expression + (last.endsWith(":") ? "" : last.includes("=") ? ":" : "=") + `channels=${split.selected[index]}` : expression;
       nodes.set(output, { inputs, expression: selected, asplit: last === "asplit" || last.startsWith("asplit=") });
     }
     for (const input of inputs) {
@@ -17775,6 +17777,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("channelmap: unsupported option ")) return { exitCode: 8 };
             if (msg === "pan: unsupported option enable") return { exitCode: 176 };
             if (msg === "channelsplit: unsupported option enable") return { exitCode: 176 };
+            if (msg === "channelsplit: empty option") return { exitCode: 234 };
             if (msg.startsWith("channelsplit: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("pan: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("pan:")) return { exitCode: 222 };

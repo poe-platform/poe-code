@@ -8,6 +8,7 @@ export function rawRasterInput(width: number, height: number, depth: number, end
         ? maximum === minimum ? 0 : 65535 / (maximum - minimum)
         : Number.parseFloat(options["quantum:scale"]) || 0;
     const channels = typeof layout === "string" ? layout.length : layout;
+    const minIsWhite = depth === 1 && channels === 1 && options?.["quantum:polarity"]?.toLowerCase() === "min-is-white";
     const bgr = typeof layout === "string" && layout.startsWith("bgr"), sampleBytes = Math.min(depth, 16) / 8, pixelBytes = channels * sampleBytes;
     const coder = typeof layout === "string" ? layout.toUpperCase() : channels === 1 ? "GRAY" : channels === 2 ? "GRAYA" : channels === 3 ? "RGB" : channels === 4 ? "CMYK" : "CMYKA";
     if (interlace === "line" && layout === 1) throw new Error("ImageDoesNotHaveAnAlphaChannel in GRAY input");
@@ -57,6 +58,7 @@ export function rawRasterInput(width: number, height: number, depth: number, end
                                 const sample = ((input[byte]! << 16 | (input[byte + 1] ?? 0) << 8 | (input[byte + 2] ?? 0)) >>> (24 - depth - bit % 8)) & (2 ** depth - 1);
                                 const sampleChannel = interlace === "none" ? i % channels : channel;
                                 let value = Math.round(sample * (sampleBytes === 1 ? 255 : 65535) / (2 ** depth - 1));
+                                if (minIsWhite) value = 255 - value;
                                 if ((layout === "bgro" || layout === "rgbo") && sampleChannel === 3) value = (sampleBytes === 1 ? 255 : 65535) - value;
                                 // Native 10-bit BGRA imports RGB order; 12-bit BGRA and BGR swap red and blue.
                                 const output = ((interlace === "none" ? pixel * channels + i : (pixel + i) * channels + channel) + (bgr && !(layout === "bgra" && depth === 10) && sampleChannel < 3 ? 2 - 2 * sampleChannel : 0)) * sampleBytes;

@@ -12039,9 +12039,10 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
     if (pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format) || format === "miff" || format === "mpc" || format === "tiff") image = yield* prepare16BitOutput(image);
     if ((pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && image.alphaBlend === false
         || (pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && !image.hasAlpha && (image.writeMask || image.region)) {
-        // Raw RGBA synchronizes the masked cache before activating stored alpha.
+        // Raw RGBA reinitializes implicit alpha; PNG retains shear's inactive samples.
+        // Disassociated alpha retains its explicitly stored samples in either coder.
         if (format === "rgba" && image.hasAlpha && image.writeMask) image = yield* applyMagickRasterSteps(image, writeMaskPixelSteps(image, image.writeMask, !!image.data16), undefined, image, [image, image, image.writeMask]);
-        image = { ...yield* applyMagickRasterSteps(image, pngAlphaPixelSteps(image, image.writeMask, !!image.data16), undefined, { ...image, hasAlpha: true }, image.writeMask ? [image, image.writeMask] : [image]), channels: 4 };
+        image = { ...yield* applyMagickRasterSteps(image, pngAlphaPixelSteps(format === "rgba" && image.alphaBlend !== false ? { ...image, inactiveAlpha: false } : image, image.writeMask, !!image.data16), undefined, { ...image, hasAlpha: true }, image.writeMask ? [image, image.writeMask] : [image]), channels: 4 };
     }
     if (format === "png" && image.virtualCanvas?.width === 0 && image.virtualCanvas.height === 0) image = { ...image, virtualCanvas: { ...image.virtualCanvas, width: image.width, height: image.height } };
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
@@ -12120,7 +12121,7 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
     if ((pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && image.alphaBlend === false
         || (pngCoder === "png32" || pngCoder === "png64" || format === "rgba") && !image.hasAlpha && (image.storedWriteMask || image.region)) {
         if (format === "rgba" && image.hasAlpha && image.storedWriteMask) image = await transformStoredMagickRaster(image, backend, writeMaskPixelSteps(image, image.storedWriteMask, !!image.storedData16), signal, image, [image, image, image.storedWriteMask]);
-        image = { ...await transformStoredMagickRaster(image, backend, pngAlphaPixelSteps(image, image.storedWriteMask, !!image.storedData16), signal, { ...image, hasAlpha: true }, image.storedWriteMask ? [image, image.storedWriteMask] : [image]), channels: 4 };
+        image = { ...await transformStoredMagickRaster(image, backend, pngAlphaPixelSteps(format === "rgba" && image.alphaBlend !== false ? { ...image, inactiveAlpha: false } : image, image.storedWriteMask, !!image.storedData16), signal, { ...image, hasAlpha: true }, image.storedWriteMask ? [image, image.storedWriteMask] : [image]), channels: 4 };
     }
     if (format === "png" && image.virtualCanvas?.width === 0 && image.virtualCanvas.height === 0) image = { ...image, virtualCanvas: { ...image.virtualCanvas, width: image.width, height: image.height } };
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
@@ -13638,7 +13639,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     }
                 }
                 // Shear's border canvas initializes any write-mask channel to zero.
-                if (t === "-shear" && image.writeMask) {
+                // Its opaque alpha samples survive for PNG even though the alpha trait resets.
+                if (t === "-shear" && (image.writeMask || image.region)) {
+                    if (!image.hasAlpha && image.alphaBlend !== false) output.inactiveAlpha = true;
                     output.writeMask = yield* createSolidRgbaImageSteps(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 });
                 }
                 // Nonzero shear borders the image, clearing its retained read-mask selection.
@@ -17237,7 +17240,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         output.storedMetaChannels.push(await transformStoredMagickRaster(plane, backend, metaPlan.steps, signal, metaPlan));
                     }
                 }
-                if (token === "-shear" && image.storedWriteMask) {
+                if (token === "-shear" && (image.storedWriteMask || image.region)) {
+                    if (!image.hasAlpha && image.alphaBlend !== false) output.inactiveAlpha = true;
                     output.storedWriteMask = await createStoredCanvas(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
                 }
                 if (token === "-shear" && image.readMask) {

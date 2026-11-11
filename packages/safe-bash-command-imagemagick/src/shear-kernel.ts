@@ -1,4 +1,5 @@
 import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
+import { regionContains, type Region } from "./region.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import { compositePixelsSteps, magickCompositeMode } from "./composite-pixels.js";
 
@@ -25,7 +26,7 @@ export function shearPlan(image: Pick<RgbaImage, "width" | "height" | "hasAlpha"
         columnOffset: Math.floor((fullWidth - width) / 2) };
 }
 
-export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "space" | "storedData16" | "storedHueSamples" | "storedEvaluateSamples">> & { alphaSeparate?: boolean | undefined; alphaBlend?: boolean | undefined }, plan: ReturnType<typeof shearPlan>, background: RgbaColor, compose: string, composeArgs?: string, fuzz = 0, selected?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "data16" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "space" | "storedData16" | "storedHueSamples" | "storedEvaluateSamples">> & { alphaSeparate?: boolean | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined }, plan: ReturnType<typeof shearPlan>, background: RgbaColor, compose: string, composeArgs?: string, fuzz = 0, selected?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const hasAlpha = plan.hasAlpha || source.alphaSeparate === true && source.alphaBlend !== false;
     const cmyk = source.space === "cmyk";
     const hue = source.space !== "cmyk" && (!!source.hueSamples || source.storedHueSamples !== undefined);
@@ -48,8 +49,9 @@ export function* shearPixelSteps(source: Pick<RgbaImage, "width" | "height" | "d
                 const working = new Float64Array(inks.slice().buffer);
                 samples = [working[0]! * maximum, working[1]! * maximum, working[2]! * maximum, samples[3]!, working[3]! * maximum];
             }
-            // Discrete alpha still contributes its stored opacity; disabled alpha is opaque.
-            const sourceAlpha = hasAlpha ? samples[3]! : maximum;
+            // Shear activates opaque alpha before BorderImage; the region leaves selected
+            // samples transparent. Existing active/discrete alpha keeps its stored opacity.
+            const sourceAlpha = hasAlpha ? samples[3]! : source.region && regionContains(source.region, px, y) ? 0 : maximum;
             if (over) {
                 const remaining = bg[3]! * (1 - sourceAlpha / maximum), alpha = sourceAlpha + remaining;
                 for (let c = 0; c < 3; c++) composite[c] = alpha > 0 ? (samples[c]! * sourceAlpha + bg[c]! * remaining) / alpha : 0;

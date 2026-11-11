@@ -73,21 +73,7 @@ export async function softClipAudio(
         clipped = Math.sign(sample) * (2 / Math.sqrt(Math.PI) * Math.exp(-x * x) * sum);
         break;
       }
-      default: {
-        const x = round(sample * param);
-        if (format === "dblp") {
-          clipped = Math.tanh(x);
-          break;
-        }
-        // tanhf rounds expm1 and each arithmetic step to float precision.
-        // Rounding the double-precision tanh result can differ by one float ULP.
-        const magnitude = Math.abs(x);
-        const exponential = round(Math.expm1(magnitude < 1 ? -2 * magnitude : 2 * magnitude));
-        clipped = Math.sign(x) * (magnitude < 1
-          ? round(-exponential / round(exponential + 2))
-          : round(1 - round(2 / round(exponential + 2))));
-        break;
-      }
+      default: clipped = format === "dblp" ? Math.tanh(sample * param) : tanhFloat(round(sample * param));
     }
     return round(round(clipped) * gain);
   }
@@ -166,4 +152,54 @@ export async function softClipAudio(
     }
   }
   return output;
+}
+
+// Float tanh/expm1 arithmetic from Sun fdlibm, as used by native FFmpeg's libm.
+// Copyright (C) 1993 by Sun Microsystems, Inc. All rights reserved.
+// Developed at SunPro, a Sun Microsystems, Inc. business.
+// Permission to use, copy, modify, and distribute this software is freely
+// granted, provided that this notice is preserved.
+function tanhFloat(value: number): number {
+  const round = Math.fround;
+  const magnitude = Math.abs(value);
+  if (magnitude < 2 ** -55) return value;
+  if (magnitude >= 22) return Math.sign(value);
+  let x = magnitude < 1 ? -2 * magnitude : 2 * magnitude;
+  let exponent = 0, correction = 0;
+  if (Math.abs(x) > round(Math.LN2 / 2)) {
+    exponent = Math.abs(x) < round(1.5 * Math.LN2)
+      ? Math.sign(x) : Math.trunc(round(round(round(1.4426950216) * x) + Math.sign(x) * 0.5));
+    const high = round(x - round(exponent * round(0.69313812256)));
+    const low = round(exponent * round(9.0580006145e-6));
+    x = round(high - low);
+    correction = round(round(high - x) - low);
+  }
+  let exponential: number;
+  if (exponent === 0 && Math.abs(x) < 2 ** -25) {
+    exponential = x;
+  } else {
+    const half = round(0.5 * x);
+    const square = round(x * half);
+    let polynomial = round(round(4.0082177293e-6) + round(square * round(-2.0109921195e-7)));
+    polynomial = round(round(-7.9365076090e-5) + round(square * polynomial));
+    polynomial = round(round(1.5873016091e-3) + round(square * polynomial));
+    polynomial = round(round(-3.3333335072e-2) + round(square * polynomial));
+    const rational = round(1 + round(square * polynomial));
+    const denominator = round(3 - round(rational * half));
+    let error = round(square * round(round(rational - denominator) / round(6 - round(x * denominator))));
+    if (exponent === 0) {
+      exponential = round(x - round(round(x * error) - square));
+    } else {
+      error = round(round(round(x * round(error - correction)) - correction) - square);
+      if (exponent === -1) exponential = round(round(0.5 * round(x - error)) - 0.5);
+      else if (exponent === 1) exponential = x < -0.25
+        ? round(-2 * round(error - round(x + 0.5))) : round(1 + round(2 * round(x - error)));
+      else if (exponent <= -2 || exponent > 56) exponential = round(round(round(1 - round(error - x)) * 2 ** exponent) - 1);
+      else if (exponent < 23) exponential = round(round(round(1 - 2 ** -exponent) - round(error - x)) * 2 ** exponent);
+      else exponential = round(round(round(x - round(error + 2 ** -exponent)) + 1) * 2 ** exponent);
+    }
+  }
+  return Math.sign(value) * (magnitude < 1
+    ? round(-exponential / round(exponential + 2))
+    : round(1 - round(2 / round(exponential + 2))));
 }

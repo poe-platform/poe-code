@@ -1,6 +1,7 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function pulsateAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
@@ -18,11 +19,15 @@ export async function pulsateAudio(
   let optionPosition = 0;
   for (const option of argumentsList) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? names[optionPosition] : option.slice(0, separator).trim() as keyof typeof options | "mode" | "timing";
+    const key = separator < 0 ? names[optionPosition] : option.slice(0, separator).trim() as keyof typeof options | "mode" | "timing" | "threads" | "thread_type" | "extra_hw_frames";
     // FFmpeg 7 restarts shorthand after named options, skipping the first slot
     // when it was just visited. The named key does not select the next slot.
     if (separator < 0) optionPosition++;
     else optionPosition = optionPosition === 0 ? 1 : 0;
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, option.slice(separator + 1).trim(), "apulsator");
+      continue;
+    }
     if (!key || (key !== "mode" && key !== "timing" && !Object.hasOwn(options, key))) throw new Error(`apulsator: unsupported option ${option}`);
     const value = option.slice(separator + 1).trim();
     if (key === "mode" || key === "timing") {

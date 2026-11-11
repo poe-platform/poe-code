@@ -5125,6 +5125,10 @@ function blendSepiaRegion(tone: number[], original: readonly number[], alpha: nu
 }
 
 function* applyMagickSolarizeSteps(img: RgbaImage, thresh: number, channels: MagickState["channels"], signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    // Solarize drops the alpha channel whose trait Disassociate disabled.
+    if (!img.hasAlpha && img.inactiveAlpha && img.alphaBlend === false)
+        img = { ...img, inactiveAlpha: false, alphaSeparate: false,
+            channels: img.channels === 4 ? 3 : img.channels === 2 ? 1 : img.channels };
     // Native solarize promotes grayscale even when the threshold changes no samples.
     if (img.space === "b-w" || img.space === "grey16")
         img = { ...img, space: "srgb", channels: img.hasAlpha ? 4 : 3 };

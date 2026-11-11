@@ -17853,7 +17853,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           start = end;
                         }
                         stretched = [left, right];
-                      } else if (trimmed.startsWith("channelmap=")) {
+                      } else if (trimmed === "channelmap" || trimmed.startsWith("channelmap=")) {
                         let map: string | undefined;
                         let layout: string | undefined;
                         const options = trimmed.slice("channelmap=".length).trimStart().split(":");
@@ -19895,7 +19895,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("astats: unsupported option enable=")) return { exitCode: 176 };
             if (msg.startsWith("astats: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("astats:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
-            if (msg === "channelmap: invalid or duplicate output channel" || msg === "channelmap: empty channel layout") return { exitCode: 234 };
+            if (msg === "channelmap: invalid channel name" ||
+                msg === "channelmap: mixed or invalid channel mapping" ||
+                msg === "channelmap: unsupported or mismatched channel layout" ||
+                msg === "channelmap: invalid or duplicate output channel" || msg === "channelmap: empty channel layout") return { exitCode: 234 };
             const unavailableChannel = msg.startsWith("channelmap: unavailable input channel") &&
               (err instanceof RangeError || msg.endsWith(" (unnamed layout)"));
             const unsupportedPanOrder = msg.startsWith("pan: unsupported output channel order ") ||

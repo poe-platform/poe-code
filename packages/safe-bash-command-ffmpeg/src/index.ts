@@ -3852,11 +3852,12 @@ async function applyVideoFilterChain(
       let nextCommand = 0;
       const registers = new Float64Array(10);
       current = await mapWork(current, async (f, n) => {
-        const source = f.native;
-        const planar = source && source.rgba === f.data && source.width === f.width && source.height === f.height &&
-          [0, 4, 5, 12, 13, 14, 29, 30].includes(source.format) ? source : undefined;
+        const source = f.native?.rgba === f.data && f.native.width === f.width && f.native.height === f.height
+          ? f.native : undefined;
+        const planar = source && [0, 4, 5, 12, 13, 14, 29, 30].includes(source.format) ? source : undefined;
+        const packed = source && (source.format === 34 || source.format === 104) ? source : undefined;
         const gray = pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "gray16be" || pixelFormat === "gray16le" || pixelFormat === "ya8";
-        const available = planar ? ((planar.format === 29 || planar.format === 30) ? 0x10 : 0x70) : gray ? (pixelFormat === "ya8" ? 0x18 : 0x10) :
+        const available = packed ? (packed.format === 34 ? 0x07 : 0x0f) : planar ? ((planar.format === 29 || planar.format === 30) ? 0x10 : 0x70) : gray ? (pixelFormat === "ya8" ? 0x18 : 0x10) :
           pixelFormat === "rgb24" || pixelFormat === "bgr24" || pixelFormat === "gbrp" ? 0x07 : 0x0f;
         while (nextCommand < commands.length && commands[nextCommand]!.time <= f.ptsSeconds) {
           if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
@@ -3884,6 +3885,25 @@ async function applyVideoFilterChain(
           if (!(Math.abs(parseFilterExpression(named.enable, "negate enable", variables, undefined, registers)) >= 0.5)) return f;
         }
         if (selected === 0) return f;
+        if (packed) {
+          budget.allocateMemory(packed.pixels.byteLength + f.data.byteLength);
+          const pixels = packed.pixels.slice();
+          const channels = packed.format === 34 ? 3 : 4;
+          // Complement both bytes of selected 16-bit components; retain every other bit.
+          for (let i = 0; i < pixels.length; i += 2) {
+            if (i % 65536 === 0) {
+              await yieldTurn(signal);
+              signal?.throwIfAborted();
+              budget.checkCpu();
+            }
+            if (!(selected & (1 << ((i / 2) % channels)))) continue;
+            pixels[i] = 255 - pixels[i]!;
+            pixels[i + 1] = 255 - pixels[i + 1]!;
+          }
+          const native = { ...packed, pixels };
+          const data = scaleVideoPicture({ ...f, native }, f.width, f.height)!;
+          return { ...f, data, native: { ...native, rgba: data } };
+        }
         // Invert retained grayscale or YUV bytes before RGB conversion. Complementing
         // both bytes of a gray16 sample is exactly 65535 minus the original value.
         if (planar) {

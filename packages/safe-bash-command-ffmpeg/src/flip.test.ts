@@ -34,10 +34,10 @@ async function render(filter: string) {
 }
 
 for (const direction of ["hflip", "vflip"]) {
-  for (const option of ["typo=1", "enable=bogus", "1", "enable=1:typo=1", "enable="]) {
+  for (const [option, exitCode] of [["typo=1", 8], ["enable=bogus", 234], ["1", 234], ["enable=1:typo=1", 8], ["enable=", 234]] as const) {
     it(`${direction} rejects ${option} before writing any output frames`, async () => {
       const { volume, existing, result, stderr } = await render(`${direction}=${option}`);
-      assert.equal(result.exitCode, 1, stderr);
+      assert.equal(result.exitCode, exitCode, stderr);
       assert.ok(stderr.includes(direction), stderr);
       assert.deepEqual(volume.readFileSync("/out1.png"), Buffer.from(existing));
       assert.equal(volume.existsSync("/out2.png"), false);

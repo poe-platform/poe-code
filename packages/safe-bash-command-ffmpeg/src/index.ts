@@ -3366,7 +3366,8 @@ async function applyVideoFilterChain(
       for (const part of argStr ? positional : []) {
         const separator = part.indexOf("=");
         const key = part.slice(0, separator).trim();
-        if (separator < 0 || !["enable", "threads", "thread_type", "extra_hw_frames"].includes(key)) {
+        if (separator < 0) throw new Error(`${name}: missing option name`);
+        if (!["enable", "threads", "thread_type", "extra_hw_frames"].includes(key)) {
           throw new Error(`${name}: unsupported option`);
         }
         if (key === "enable") continue;
@@ -17104,6 +17105,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
             if (msg.startsWith("Unknown input format:")) return { exitCode: 234 };
             if (msg === audioConversionDisabled) return { exitCode: 234 };
+            if (msg === "hflip: unsupported option" || msg === "vflip: unsupported option") return { exitCode: 8 };
+            if (msg === "hflip: missing option name" || msg === "vflip: missing option name" ||
+                msg.startsWith("hflip enable:") || msg.startsWith("vflip enable:")) return { exitCode: 234 };
             if (msg === "metadata: unsupported mode") return { exitCode: 234 };
             if (msg === "metadata: unsupported option") return { exitCode: 8 };
             if (msg.startsWith("silenceremove: unsupported option ")) return { exitCode: 8 };

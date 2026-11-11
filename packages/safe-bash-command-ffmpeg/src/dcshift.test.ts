@@ -20,6 +20,10 @@ const cases: [string, number[] | null][] = [
   ["dcshift=limitergain=0.1", input],
   ["dcshift=0.25:limitergain=0.1:enable=0", input],
   ["dcshift=0.25:limitergain=0.1:enable=1", positive],
+  ...["PI", "E", "PHI"].flatMap((constant): [string, number[]][] => [
+    [`dcshift=0.25:limitergain=0.1:enable=${constant}`, positive],
+    [`dcshift=0.25:limitergain=0.1:enable=${constant}-${constant}`, input]
+  ]),
   ["dcshift=0.25:limitergain=-0.1", null],
   ["dcshift=0.25:limitergain=1.1", null],
   ["dcshift=0.25:limitergain=NaN", null],

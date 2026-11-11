@@ -1,3 +1,5 @@
+import { solveLinearSystem } from "./linear-system.js";
+import { parseSparseColor, sparseColorPixels } from "./sparse-color-operator.js";
 import { jsonOutputPath, jsonImageDescription } from "./json-output.js";
 import { createIccConversion } from "./icc-conversion.js";
 import { readIccDescription } from "./icc-description.js";
@@ -3970,30 +3972,6 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
     }
 }
 
-function solveLinearSystem(A: number[][], b: number[]): number[] {
-  const n = b.length;
-  const M = A.map((row, idx) => [...row, b[idx]!]);
-  for (let col = 0; col < n; col++) {
-    let maxRow = col;
-    for (let row = col + 1; row < n; row++) {
-      if (Math.abs(M[row]![col]!) > Math.abs(M[maxRow]![col]!)) maxRow = row;
-    }
-    const tmp = M[col]!;
-    M[col] = M[maxRow]!;
-    M[maxRow] = tmp;
-    const pivot = M[col]![col]!;
-    if (Math.abs(pivot) < 1e-12) throw new Error("Unsolvable Matrix");
-    for (let j = col; j <= n; j++) M[col]![j]! /= pivot;
-    for (let row = 0; row < n; row++) {
-      if (row === col) continue;
-      const factor = M[row]![col]!;
-      for (let j = col; j <= n; j++) {
-        M[row]![j]! -= factor * M[col]![j]!;
-      }
-    }
-  }
-  return M.map((row) => row[n]!);
-}
 
 function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "virtualCanvas">, token: string, spec: string, args = "0"): WarpPlan | undefined {
     if (token === "-swirl" || token === "-implode" || token === "-wave")
@@ -4094,6 +4072,30 @@ function magickWarpPlan(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "
                     vx += dx * ry[i]!; vy += dy * ry[i]!;
                 }
                 return [ux, uy, vx, vy];
+            }
+        };
+    }
+    if (method === "cylinder2plane") {
+        if (nums.length === 0) throw new Error("invalid list of numbers");
+        const fov = nums[0]!;
+        if (fov < 1e-12 || fov > 160) throw new Error("invalid argument for option Cylinder2Plane : Invalid FOV Angle");
+        const radians = fov * Math.PI / 180, radius = w / radians;
+        const centerX = w / 2 + (img.virtualCanvas?.x ?? 0), centerY = h / 2 + (img.virtualCanvas?.y ?? 0);
+        const fit = token === "+distort";
+        const width = fit ? Math.ceil(2 * radius * Math.tan(radians / 2)) : w;
+        const height = fit ? Math.ceil(2 * centerY / Math.cos(radians / 2)) : h;
+        const destX = fit ? width / 2 : centerX, destY = fit ? height / 2 : centerY;
+        // Project destination pixel centers back onto the cylinder. Best-fit
+        // resets the destination origin and removes the source page offset.
+        return {
+            ...result((x, y) => {
+                const angle = Math.atan((x + 0.5 - destX) / radius);
+                return [radius * angle + (fit ? w / 2 : centerX) - 0.5,
+                    (y + 0.5 - destY) * Math.cos(angle) + (fit ? h / 2 : centerY) - 0.5];
+            }, width, height),
+            derivatives(x, y) {
+                const dx = (x + 0.5 - destX) / radius, dy = y + 0.5 - destY, cos = Math.cos(Math.atan(dx));
+                return [1 / (1 + dx * dx), 0, -dx * dy * cos * cos * cos / radius, cos];
             }
         };
     }
@@ -6978,7 +6980,7 @@ function inferMaxDecodeDimensionFromUpcomingTokens(
     const coordDependentOps = new Set([
         "-copy", "-crop", "-chop", "-splice", "-trim", "-roll", "-shave", "-sort-pixels",
         "-extent", "-border", "-frame", "-draw", "-annotate",
-        "-region", "-floodfill", "+floodfill", "-repage", "+repage", "-distort"
+        "-region", "-floodfill", "+floodfill", "-repage", "+repage", "-distort", "-sparse-color"
     ]);
     for (let k = startIdx; k < tokens.length; k++) {
         const tok = tokens[k]!;
@@ -8374,7 +8376,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     let maskAlpha: MagickPixelOperation["maskAlpha"];
     let meta: MagickPixelOperation["meta"];
     let evaluate = false;
-    if (token === "-colorspace" || token === "-grayscale" || token === "-type" || token === "-monochrome") {
+    if (token === "-sparse-color") {
+        const plan = parseSparseColor(tokens[++i] ?? "", tokens[++i] ?? "", color => parseColor(color, true));
+        const channels = state.channelExplicit ? state.channels : undefined;
+        highDepth = evaluate = true;
+        apply = (image, offset, width) => sparseColorPixels(image, plan, channels, offset, width);
+    } else if (token === "-colorspace" || token === "-grayscale" || token === "-type" || token === "-monochrome") {
         const value = token === "-monochrome" ? "Bilevel" : tokens[++i];
         const imageType = token === "-type" || token === "-monochrome" ? (value ?? "").toLowerCase() : undefined;
         if (imageType !== undefined && !["bilevel", "grayscale", "grayscalealpha", "truecolor", "truecoloralpha", "palette", "palettealpha", "palettematte", "palettebilevelalpha", "palettebilevelmatte"].includes(imageType)) {
@@ -17481,7 +17488,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-clone", "-insert", "-swap", "-delete", "-smush", "+smush", "-layers", "-recolor",
         "-contrast-stretch", "-linear-stretch", "-intensity", "-connected-components", "+connected-components"
     ]);
-    const flagsWithTwoArgs = new Set(["-copy", "-annotate", "-evaluate", "-function", "-morphology", "-statistic", "-set", "-distort", "+distort", "-floodfill", "+floodfill"]);
+    const flagsWithTwoArgs = new Set(["-sparse-color", "-copy", "-annotate", "-evaluate", "-function", "-morphology", "-statistic", "-set", "-distort", "+distort", "-floodfill", "+floodfill"]);
     const readFlags = new Set(["-density", "-background", "-fuzz", "-filter", "-size", "-page", "-comment", "-label", "-caption"]);
     const flagsWithoutArgs = new Set([
         "-despeckle", "+fill", "+caption",

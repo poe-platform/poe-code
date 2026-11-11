@@ -11,14 +11,14 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
   const gray = pixelFormat === "gray" || pixelFormat === "gray8";
   const gray16 = pixelFormat === "gray16be" || pixelFormat === "gray16le";
   const yuv10 = pixelFormat === "yuv420p10le";
-  const yuv16 = pixelFormat === "yuv444p10le" || pixelFormat === "yuv444p16le";
+  const yuv16 = pixelFormat === "yuv420p16le" || pixelFormat === "yuv444p10le" || pixelFormat === "yuv444p16le";
   const yuv = yuv10 || yuv16 || pixelFormat === "yuv420p" || pixelFormat === "yuv422p" || pixelFormat === "yuv444p";
   const rgb16Format = pixelFormat === "rgb48be" ? 34 : pixelFormat === "rgb48le" ? 35
     : pixelFormat === "rgba64be" ? 104 : pixelFormat === "rgba64le" ? 105 : undefined;
   const rgb16 = rgb16Format !== undefined;
   if (!rgb16 && !gray && pixelFormat !== "gbrap" && pixelFormat !== "bgra" && pixelFormat !== "rgb24" && pixelFormat !== "rgba" && !gray16 && !yuv && pixelFormat !== "ya8") throw new Error(`Unsupported rawvideo input pixel format '${pixelFormat ?? "yuv420p"}'`);
   const ySize = width * height;
-  const chromaSize = yuv16 || pixelFormat === "yuv444p" ? ySize : Math.ceil(width / 2) * (pixelFormat === "yuv422p" ? height : Math.ceil(height / 2));
+  const chromaSize = (yuv16 && pixelFormat !== "yuv420p16le") || pixelFormat === "yuv444p" ? ySize : Math.ceil(width / 2) * (pixelFormat === "yuv422p" ? height : Math.ceil(height / 2));
   const frameBytes = rgb16 ? ySize * (rgb16Format === 104 || rgb16Format === 105 ? 8 : 6) : pixelFormat === "bgra" || pixelFormat === "rgba" || pixelFormat === "gbrap" ? ySize * 4 : yuv ? (ySize + chromaSize * 2) * (yuv10 || yuv16 ? 2 : 1) : ySize * (gray ? 1 : gray16 || pixelFormat === "ya8" ? 2 : 3);
   if (!Number.isSafeInteger(frameBytes)) throw new Error("Invalid rawvideo frame size");
   const count = Math.ceil(bytes.length / frameBytes);
@@ -37,7 +37,7 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
     budget.allocateMemory(width * height * 4);
     const rgba = rgb16 || yuv10 || yuv16
       ? scaleVideoPicture({ data, width, height, native: { rgba: data, pixels: data, width, height,
-        format: rgb16Format ?? (yuv10 ? 62 : pixelFormat === "yuv444p10le" ? 68 : 49), colorspace: 5, fullRange: rgb16 ? 1 : 0 } }, width, height)!
+        format: rgb16Format ?? (yuv10 ? 62 : pixelFormat === "yuv444p10le" ? 68 : pixelFormat === "yuv420p16le" ? 45 : 49), colorspace: 5, fullRange: rgb16 ? 1 : 0 } }, width, height)!
       : yuv
       ? yuv420pToRgba(data.subarray(0, ySize), data.subarray(ySize, ySize + chromaSize), data.subarray(ySize + chromaSize), width, height,
         pixelFormat === "yuv444p" ? 0 : 1, pixelFormat === "yuv420p" ? 1 : 0)
@@ -68,7 +68,7 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
     }
     frames.push({ width, height, data: rgba, offset: index * frameBytes,
       ...(rgb16 || yuv || gray16 || gray ? { native: { rgba, pixels: data, width, height,
-        format: yuv10 ? 62 : yuv16 ? (pixelFormat === "yuv444p10le" ? 68 : 49) : rgb16Format ?? (gray ? 8 : gray16 ? (pixelFormat === "gray16le" ? 30 : 29) : pixelFormat === "yuv444p" ? 5 : pixelFormat === "yuv422p" ? 4 : 0), colorspace: 5, fullRange: rgb16 || gray16 || gray ? 1 : 0 } } : {}),
+        format: yuv10 ? 62 : yuv16 ? (pixelFormat === "yuv444p10le" ? 68 : pixelFormat === "yuv420p16le" ? 45 : 49) : rgb16Format ?? (gray ? 8 : gray16 ? (pixelFormat === "gray16le" ? 30 : 29) : pixelFormat === "yuv444p" ? 5 : pixelFormat === "yuv422p" ? 4 : 0), colorspace: 5, fullRange: rgb16 || gray16 || gray ? 1 : 0 } } : {}),
       ptsSeconds: index / timescale,
       durationSeconds: 1 / timescale, keyframe: true, pictureType: 1 });
   }

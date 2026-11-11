@@ -76,7 +76,23 @@ function* miffFrameHeader(size: number): Generator<MiffRead, MiffHeader, Uint8Ar
         || !Number.isSafeInteger(metaChannelCount) || metaChannelCount < 0 || metaChannelCount > 54 || indexed && metaChannelCount !== 0
         || !Number.isSafeInteger(width * height * (44 + metaChannelCount * 12))
         || Number(fields.get("number-channels") ?? channels + Number(indexed) + metaChannelCount) !== channels + Number(indexed) + metaChannelCount || fields.has("quantum:format") && fields.get("quantum:format") !== "unsigned" && !floating
-        || [...fields.keys()].some(key => key.startsWith("profile:") || key === "montage")) throw new Error("Unsupported MIFF encoding");
+        || [...fields.keys()].some(key => key.startsWith("profile:"))) throw new Error("Unsupported MIFF encoding");
+    let montage: ImageMetadata["montage"];
+    const geometry = fields.get("montage");
+    if (geometry !== undefined) {
+        const directory: string[] = [], name: number[] = [];
+        while (true) {
+            const byte = (yield { offset: offset++, length: 1 })[0];
+            if (byte === undefined) throw new Error("Truncated MIFF montage directory");
+            if (byte === 0) {
+                if (name.length) directory.push(new TextDecoder().decode(new Uint8Array(name)));
+                break;
+            }
+            if (byte === 255) { directory.push(new TextDecoder().decode(new Uint8Array(name))); name.length = 0; }
+            else name.push(byte);
+        }
+        montage = { geometry, directory };
+    }
     if (indexed && size - offset < colors * 3 * sampleBytes) throw new Error("Truncated MIFF palette");
     if (compression === "None" && size - offset < (indexed ? colors * 3 * sampleBytes : 0) + width * height * pixelBytes) throw new Error("Truncated MIFF raster");
     const renderingIntent = fields.get("rendering-intent");
@@ -105,7 +121,7 @@ function* miffFrameHeader(size: number): Generator<MiffRead, MiffHeader, Uint8Ar
     const [x = 0, y = x] = (fields.get("resolution") ?? "").split("x").map(Number);
     const unit = fields.get("units") === "PixelsPerInch" ? "inch" : fields.get("units") === "PixelsPerCentimeter" ? "cm" : "unknown";
     const resolution: ImageMetadata["resolution"] = Number.isFinite(x) && Number.isFinite(y) && x > 0 && y > 0 ? { x, y, unit } : undefined;
-    return { metadata: { metaChannelCount, ...(renderingIntent ? { renderingIntent } : {}), ...(Object.keys(chromaticity).length ? { chromaticity } : {}), ...(Number.isFinite(gamma) ? { gamma } : {}), disposal, ...(orientation ? { orientation } : {}), ...(virtualCanvas ? { virtualCanvas } : {}), delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, ...(Object.keys(properties).length ? { properties } : {}), format: "miff", width, height, channels, hasAlpha, depth: floating ? "float" : depth === 32 ? "uint" : depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: cmyk ? "cmyk" : gray ? "b-w" : "srgb", magickColorspace: colorspace, density: resolution ? x * (unit === "cm" ? 2.54 : 1) : 72, ...(resolution ? { resolution } : fields.has("units") ? { magickUnits: unit } : {}), size, ...(indexed ? { isPalette: true } : {}) }, offset, colors: indexed ? colors : 0, pixelBytes, compression };
+    return { metadata: { ...(montage ? { montage } : {}), metaChannelCount, ...(renderingIntent ? { renderingIntent } : {}), ...(Object.keys(chromaticity).length ? { chromaticity } : {}), ...(Number.isFinite(gamma) ? { gamma } : {}), disposal, ...(orientation ? { orientation } : {}), ...(virtualCanvas ? { virtualCanvas } : {}), delay: [delay * 1000 / ticksPerSecond], ticksPerSecond, ...(Object.keys(properties).length ? { properties } : {}), format: "miff", width, height, channels, hasAlpha, depth: floating ? "float" : depth === 32 ? "uint" : depth === 16 ? "ushort" : "uchar", bitsPerSample: depth, space: cmyk ? "cmyk" : gray ? "b-w" : "srgb", magickColorspace: colorspace, density: resolution ? x * (unit === "cm" ? 2.54 : 1) : 72, ...(resolution ? { resolution } : fields.has("units") ? { magickUnits: unit } : {}), size, ...(indexed ? { isPalette: true } : {}) }, offset, colors: indexed ? colors : 0, pixelBytes, compression };
 }
 
 /** Scan adjacent frames without retaining their rasters. */

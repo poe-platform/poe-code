@@ -19857,11 +19857,13 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const gifPages: MagickImage[] = [];
     const stdoutChunks: Uint8Array[] = [];
     let stdout = "";
-    function* writePage(canvas: RgbaImage, page: number, sceneCount: number): Generator<void, void, void> {
+    function* writePage(canvas: RgbaImage, page: number, sceneCount: number, slotW: number, slotH: number, directory: string[]): Generator<void, void, void> {
+        let titleHeight = 0;
         if (state.units !== undefined) canvas = applyMagickUnits(canvas, state.units);
         if (state.densityGeometry !== undefined) canvas = applyMagickDensity(canvas, state.densityGeometry);
         if (title !== undefined) {
             const { svg, height } = montageTitleSvg(title, canvas.width, state, padY);
+            titleHeight = height;
             const caption = decodeImage(new TextEncoder().encode(svg));
             const previous = canvas;
             canvas = yield* extendImageSteps(canvas, { top: height, bottom: 0, left: 0, right: 0, background: state.background, extendWith: "background" });
@@ -19869,6 +19871,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             yield* blitOverRgbaInPlaceSteps(canvas, caption, 0, 0);
             detachRgbaBuffer(caption.data);
         }
+        canvas = { ...canvas, montage: { geometry: `${slotW}x${slotH}+0+${titleHeight}`, directory } };
         if (!anyTransparent) {
             (canvas as { hasAlpha?: boolean; channels?: number }).hasAlpha = false;
             (canvas as { hasAlpha?: boolean; channels?: number }).channels = 3;
@@ -19988,10 +19991,11 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 yield* compositeTile(im, dstX + borderW, dstY + borderW);
                 detachRgbaBuffer(im.data);
             }
-            yield* writePage(canvas, pageStart / (cols * rows), Math.ceil(n / (cols * rows)));
+            yield* writePage(canvas, pageStart / (cols * rows), Math.ceil(n / (cols * rows)), slotW, slotH, inPaths.slice(pageStart, pageStart + pageSize));
         }
     } else {
         const images: RgbaImage[] = [];
+        const directory: string[] = [];
         for (const [inputIndex, p] of inPaths.entries()) {
             yield;
             let loadedList: RgbaImage[] | undefined;
@@ -20069,6 +20073,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                         (thumb as MagickImage)[magickInput] = { filePath: "null:" };
                     }
                     images.push(thumb);
+                    directory.push((loaded as MagickImage)[magickInput]?.filePath ?? parseInputToken(p).baseToken);
                 }
             }
         }
@@ -20152,7 +20157,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 yield* compositeTile(im, cellX + off.left + (concatenate ? borderW : 0), cellY + off.top + (concatenate ? borderW : 0));
                 detachRgbaBuffer(im.data);
             }
-            yield* writePage(canvas, pageStart / (cols * rows), Math.ceil(n / (cols * rows)));
+            yield* writePage(canvas, pageStart / (cols * rows), Math.ceil(n / (cols * rows)), slotW, slotH, directory.slice(pageStart, pageStart + pageSize));
         }
         images.length = 0;
     }
@@ -20303,7 +20308,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     const loaded = await parseStoredCompareInput(path, { ...state, ...sizes[index] }, backend, signal, { analysis, source: await sourceAt(index), onInvalidIndex: invalidIndex => {
                         inputErrors += `montage: invalid image index ${invalidIndex} '${parseInputToken(path).baseToken}'\n`;
                     }, visit: async image => {
-                        const isNull = (image as StoredMagickImage)[magickInput]?.filePath === "null:";
+                        const source = (image as StoredMagickImage)[magickInput];
                         if (trim) image = await trimStoredMagick(image, backend.storage, state.alphaFuzz, signal);
                         async function* transformTiles(tile: StoredRgbaImage, offset = 0): AsyncGenerator<StoredRgbaImage> {
                             const transform = transforms[index]![offset];
@@ -20363,7 +20368,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                                 image = await transformStoredImage(image, backend.storage, { kind: "extend", top: 0, bottom: height, left: 0, right: 0, background: state.background, extendWith: "background" }, signal);
                                 image = await compositeStoredMagick(image, caption, backend, signal, 0, image.height - height, "over", undefined, false, true);
                             }
-                            if (isNull) (image as StoredMagickImage)[magickInput] = { filePath: "null:" };
+                            if (source) (image as StoredMagickImage)[magickInput] = source;
                             maxThumbW = Math.max(maxThumbW, image.width); maxThumbH = Math.max(maxThumbH, image.height); await images.push(image);
                         }
                     } });
@@ -20409,6 +20414,8 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 }
             }
             let tileX = 0, tileY = 0;
+            const directory: string[] = [];
+            let titleHeight = 0;
             let canvas = { ...await createStoredCanvas(Math.max(1, canvasWidth), Math.max(1, canvasHeight), state.background, backend, signal), hasAlpha: state.background.a < 255 };
             if (textureImage) canvas = await compositeStoredMagick(canvas, textureImage, backend, signal, 0, 0, "over", undefined, false, true, false, true);
             let anyTransparent = state.background.a < 255 || (borderW > 0 && state.borderColor.a < 255);
@@ -20426,6 +20433,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     if (!image) return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: unable to open image '${path}': No such file or directory\n` };
                     directPng = await sources.get(BigInt((pageStart + index) * 5 + 4)) === 1n;
                 } else image = (await images.get(pageStart + index))!;
+                directory.push((image as StoredMagickImage)[magickInput]?.filePath ?? paths[pageStart + index]!);
                 if (variableCells && col === 0) {
                     tileX = 0;
                     if (row > 0) tileY += Number(await rowHeights.get(BigInt(row - 1)));
@@ -20464,12 +20472,13 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             }
             if (title !== undefined) {
                 const { svg, height } = montageTitleSvg(title, canvas.width, state, padY);
+                titleHeight = height;
                 const caption = await decodeStoredMagickSvg(svg, 72, backend, signal);
                 const titled = await createStoredCanvas(canvas.width, canvas.height + height, state.background, backend, signal);
                 canvas = await compositeStoredMagick(titled, canvas, backend, signal, 0, height, "over", undefined, false, true);
                 canvas = await compositeStoredMagick(canvas, caption, backend, signal, 0, 0, "over", undefined, false, true);
             }
-            canvas = { ...canvas, hasAlpha: anyTransparent, channels: anyTransparent ? 4 : 3 };
+            canvas = { ...canvas, montage: { geometry: `${slotW}x${slotH}+0+${titleHeight}`, directory }, hasAlpha: anyTransparent, channels: anyTransparent ? 4 : 3 };
             if (state.units !== undefined) canvas = applyMagickUnits(canvas, state.units);
             if (state.densityGeometry !== undefined) canvas = applyMagickDensity(canvas, state.densityGeometry);
             if (outSpec.toLowerCase().startsWith("info:")) {

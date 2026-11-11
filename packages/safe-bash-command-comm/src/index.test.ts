@@ -292,13 +292,35 @@ for (const env of [
  });
 }
 
-for (const locale of ["C", "POSIX", "C.UTF-8", "C.utf8"]) {
+for (const locale of ["C", "POSIX", "C.UTF-8", "C.utf8", "C.UTF8", "C.utf-8"]) {
  test(`comm preserves byte ordering with ${locale} overriding LC_COLLATE`, async () => {
   const result = await run(["--check-order", "-12", "/a", "/b"], { "/a": "Beta\nalpha\n", "/b": "alpha\n" }, { LC_ALL: locale, LC_COLLATE: "en_US.utf8" });
   assert.equal(result.stdout, "alpha\n");
   assert.equal(result.stderr, "");
   assert.equal(result.exitCode, 0);
  });
+}
+
+for (const locale of ["C.UTF8", "C.utf-8"]) {
+ for (const env of [
+  { LC_ALL: locale, LC_COLLATE: "en_US.utf8", LANG: "en_US.utf8" },
+  { LC_ALL: "", LC_COLLATE: locale, LANG: "en_US.utf8" },
+  { LC_ALL: "", LC_COLLATE: "", LANG: locale },
+ ]) {
+  test(`comm accepts C UTF-8 aliases: ${JSON.stringify(env)}`, async () => {
+   const result = await run(["/left", "/right"], { "/left": "a\n", "/right": "a\n" }, env);
+   assert.equal(result.exitCode, 0, result.stderr);
+   assert.deepEqual(result.stdoutBytes, [9, 9, 97, 10]);
+   assert.equal(result.stderr, "");
+
+   const ordered = await run(["--check-order", "/left", "/right"], {
+    "/left": "Beta\nalpha\né\n", "/right": "alpha\né\n",
+   }, env);
+   assert.equal(ordered.exitCode, 0, ordered.stderr);
+   assert.deepEqual(ordered.stdoutBytes, [...new TextEncoder().encode("Beta\n\t\talpha\n\t\té\n")]);
+   assert.equal(ordered.stderr, "");
+  });
+ }
 }
 
 test("comm keeps delimiter equality byte based under locale collation", async () => {

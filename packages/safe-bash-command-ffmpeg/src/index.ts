@@ -4952,7 +4952,7 @@ async function applyVideoFilterChain(
         // Scheduling and hardware frame reservations do not affect software extraction.
       }
       const layout = named.layout ?? (positional[0]?.includes("=") ? "" : positional[0]) ?? "";
-      const dimensions = (layout || "6x5").split("x");
+      const dimensions = (layout || "6x5").toLowerCase().replaceAll("/", "x").split("x");
       const cols = Number(dimensions[0]);
       const rows = Number(dimensions[1]);
       if (positional.some((part, index) => index > 0 && !part.includes("=") &&

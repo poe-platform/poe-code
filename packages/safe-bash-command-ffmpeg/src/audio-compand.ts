@@ -43,6 +43,7 @@ export async function compandAudio(
   for (const [index, option] of parts.entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? names[index] : option.slice(0, separator).trim();
+    if (key === "enable") throw new CompandError("compand: timeline is unsupported", "options", 176);
     if (!key || !Object.hasOwn(options, key)) throw new CompandError(`compand: unsupported option ${key}`, "options", 8);
     options[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (Object.hasOwn(ranges, key)) numericOption(key);

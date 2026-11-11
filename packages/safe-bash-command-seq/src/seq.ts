@@ -23,7 +23,7 @@ function decimal(text: string, session: Session): Decimal {
     return { coefficient, scale, precision, width: 0, negativeZero: coefficient === 0n && hexadecimal[1] === "-" };
   }
   const match = /^([+-]?)(?:(\d+)(?:\.(\d*))?|\.(\d+))(?:[eE]([+-]?\d+))?$/u.exec(text.trimStart());
-  if (!match) throw new UsageError(`invalid decimal argument: '${text}'`);
+  if (!match) throw new UsageError(`invalid floating point argument: '${text}'\nTry 'seq --help' for more information.`);
   const fraction = match[3] ?? match[4] ?? "";
   const digits = (match[2] ?? "0") + fraction;
   const exponent = Number(match[5] ?? 0);
@@ -251,12 +251,13 @@ export function createSeqWithSettings(limits: StreamFormatLimits): CommandDefini
         }
       }
     }
-    if (!operands.length || operands.length > 3) throw new UsageError("expected one to three numeric operands");
+    if (!operands.length) throw new UsageError("missing operand\nTry 'seq --help' for more information.");
+    if (operands.length > 3) throw new UsageError(`extra operand '${operands[3]}'\nTry 'seq --help' for more information.`);
     if (equalWidth && formatText !== undefined) throw new UsageError("format string may not be specified when printing equal width strings");
     const first = decimal(operands.length === 1 ? "1" : operands[0]!, session);
     const increment = decimal(operands.length === 3 ? operands[1]! : "1", session);
     const last = decimal(operands.at(-1)!, session);
-    if (increment.coefficient === 0n) throw new UsageError("invalid Zero increment value");
+    if (increment.coefficient === 0n) throw new UsageError(`invalid Zero increment value: '${operands[1]}'\nTry 'seq --help' for more information.`);
     const scale = Math.max(0, first.scale, increment.scale, last.scale);
     const align = (value: Decimal): bigint => {
       session.check(value.coefficient.toString().length + scale - value.scale, limits.maxNumericDigits + 1, "numeric digit");

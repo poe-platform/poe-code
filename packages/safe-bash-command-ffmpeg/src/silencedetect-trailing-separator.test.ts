@@ -12,10 +12,10 @@ for (const graph of [false, true]) {
     ["0.001:2ms:", 0],
     ["n=0.001:d=2ms:m=0:", 0],
     ["0.001:2ms:0:", 0],
-    ["n=0.001:d=2ms::", 234],
+    ["n=0.001:d=2ms:m=0::", 8],
     ["n=0.001::m=0", 234],
-    ["n=0.001:d=2ms:m=", 234],
-    ["n=0.001:d=2ms:m=:", 234],
+    ["n=:d=2ms:", 234],
+    ["n=0.001:d=:", 234],
     [":", 234]
   ] as const) {
     it(`handles trailing separators in ${JSON.stringify(options)} (graph=${graph})`, async () => {

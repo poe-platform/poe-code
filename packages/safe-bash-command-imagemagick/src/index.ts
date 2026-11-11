@@ -8956,7 +8956,9 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
         } };
     }
     if (token === "-sepia-tone") {
-        const argument = tokens[start + 1] ?? "", raw = parseFloat(argument);
+        const argument = tokens[start + 1] ?? "", value = argument.trimStart();
+        const unsigned = value.startsWith("+") || value.startsWith("-") ? value.slice(1) : value;
+        const raw = unsigned.toLowerCase().startsWith("0x") ? Number.parseInt(value, 16) : parseFloat(value);
         // Native CLI percentages span QuantumRange + 1 (65536), in Q16 units.
         const percent = argument.indexOf("%"), prefix = argument.slice(0, percent);
         // The percent sign must immediately follow the first numeric value.

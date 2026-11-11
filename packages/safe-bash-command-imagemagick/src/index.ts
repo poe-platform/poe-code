@@ -17522,9 +17522,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const value = tokens[++i] ?? "", optionProperties = state.optionProperties;
             const levels = value.includes("%[") ? undefined : parsePosterizeLevels(value);
             const dither = state.dither, diffusionAmount = state.diffusionAmount ?? 1, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
+            let images: StoredImageStack, sceneIdx = 0;
+            stackStep(async stack => { images = stack; return stack; });
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expandedLevels = levels ?? parsePosterizeLevels(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal));
+                const expandedLevels = levels ?? parsePosterizeLevels(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images));
                 const working = image.storedHueSamples !== undefined || (image.magickColorspace === "RGB" || image.magickColorspace === "scRGB") && (!dither || expandedLevels < 2 || Math.trunc(expandedLevels) > 16);
                 // Posterize replaces the colormap, including unused input PNG entries.
                 const colormap: number[][] = [];

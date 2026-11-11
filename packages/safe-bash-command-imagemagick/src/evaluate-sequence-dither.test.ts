@@ -32,7 +32,7 @@ for (const mode of ["map", "retained", "sync", "command"] as const) {
             : await runMagickCli(args, mode === "map" ? files : { filesystem: fs, cwd: "/" });
         expect({ exitCode: result.exitCode, stderr: "stderr" in result ? result.stderr : stderr })
             .toEqual({ exitCode: 0, stderr: "" });
-        const bytes = "stdoutBytes" in result ? result.stdoutBytes! : Buffer.concat(chunks);
+        const bytes = "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : Buffer.concat(chunks);
         expect(Buffer.from(bytes).toString("hex")).toBe(expected);
     });
 }

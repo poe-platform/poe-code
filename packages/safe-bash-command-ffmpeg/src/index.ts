@@ -12759,10 +12759,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // Native s16 detection truncates and wraps noise to signed 16-bit PCM.
                         if (panSampleFormat === "s16") noise = (noise * 32767 << 16 >> 16) / 32768;
                         const channels = stretched.length;
+                        const timeBase = audioTimeBase ?? 1 / origRate;
+                        const samplesPerTick = timeBase * origRate;
+                        const toTicks = (samples: number) => Math.sign(samples) * Math.round(Math.abs(samples) / samplesPerTick);
                         const counts = new Array<number>(mono ? channels : 1).fill(0);
                         const starts = new Array<number | undefined>(counts.length).fill(undefined);
                         const minimum = Math.round(duration * origRate) * (mono ? 1 : channels);
                         const length = stretched[0]?.length ?? 0;
+                        let frameEndPts = 0;
                         for (let frameStart = 0, n = 0; frameStart < length; n++) {
                           const timestamp = audioTimestamps?.[n];
                           const packet = t.samples[n];
@@ -12772,8 +12776,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           budget.allocateMemory(64);
                           const metadata = audioMetadata[n] ?? { pts: timestamp?.pts ?? audioStartSample + frameStart, tags: new Map<string, string>() };
                           audioMetadata[n] = metadata;
+                          const framePts = toTicks(timestamp?.pts ?? audioStartSample + frameStart);
+                          frameEndPts = framePts + toTicks(frameEnd - frameStart);
                           for (let frame = frameStart; frame < frameEnd; frame++) {
-                            const pts = (timestamp?.pts ?? audioStartSample + frameStart) + frame - frameStart;
                             for (let channel = 0; channel < channels; channel++) {
                               if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                               const slot = mono ? channel : 0;
@@ -12782,20 +12787,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               if (Math.abs(stretched[channel]![frame]!) < noise) {
                                 counts[slot]!++;
                                 if (starts[slot] === undefined && counts[slot]! >= minimum) {
-                                  const start = pts / origRate - (minimum / (mono ? 1 : channels) - 1) / origRate;
+                                  // Native rescales the complete offset, which can reach into an earlier frame.
+                                  const start = framePts + toTicks(frame - frameStart + 1 - minimum / (mono ? 1 : channels));
                                   starts[slot] = start;
                                   budget.allocateMemory(128);
-                                  metadata.tags.set(`lavfi.silence_start${suffix}`, String(Number(start.toPrecision(6))));
-                                  if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_start: ${Number(start.toPrecision(6))}\n`), context.signal);
+                                  metadata.tags.set(`lavfi.silence_start${suffix}`, String(Number((start * timeBase).toPrecision(6))));
+                                  if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_start: ${Number((start * timeBase).toPrecision(6))}\n`), context.signal);
                                 }
                               } else {
                                 const start = starts[slot];
                                 if (start !== undefined) {
-                                  const end = pts / origRate;
+                                  const end = framePts + toTicks(frame - frameStart);
                                   budget.allocateMemory(256);
-                                  metadata.tags.set(`lavfi.silence_end${suffix}`, String(Number(end.toPrecision(6))));
-                                  metadata.tags.set(`lavfi.silence_duration${suffix}`, String(Number((end - start).toPrecision(6))));
-                                  if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number(end.toPrecision(6))} | silence_duration: ${Number((end - start).toPrecision(6))}\n`), context.signal);
+                                  metadata.tags.set(`lavfi.silence_end${suffix}`, String(Number((end * timeBase).toPrecision(6))));
+                                  metadata.tags.set(`lavfi.silence_duration${suffix}`, String(Number(((end - start) * timeBase).toPrecision(6))));
+                                  if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number((end * timeBase).toPrecision(6))} | silence_duration: ${Number(((end - start) * timeBase).toPrecision(6))}\n`), context.signal);
                                 }
                                 counts[slot] = 0;
                                 starts[slot] = undefined;
@@ -12806,10 +12812,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         for (const [slot, start] of starts.entries()) {
                           if (start === undefined) continue;
-                          const last = audioTimestamps?.at(-1);
-                          const end = (last ? last.pts + last.end - last.start : audioStartSample + length) / origRate;
+                          const end = frameEndPts;
                           const prefix = mono ? `channel: ${slot} | ` : "";
-                          if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number(end.toPrecision(6))} | silence_duration: ${Number((end - start).toPrecision(6))}\n`), context.signal);
+                          if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(`${prefix}silence_end: ${Number((end * timeBase).toPrecision(6))} | silence_duration: ${Number(((end - start) * timeBase).toPrecision(6))}\n`), context.signal);
                         }
                       } else if (trimmed === "astats" || trimmed.startsWith("astats=")) {
                         let perChannel: number | undefined;

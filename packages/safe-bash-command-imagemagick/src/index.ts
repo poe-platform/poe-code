@@ -18595,7 +18595,8 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const listRes = tryHandleMagickListOption(argv);
     if (listRes) return listRes;
     let cooperativeWork = 63;
-    const state = createDefaultState();
+    let state = createDefaultState();
+    let respectParentheses = false;
     state.fuzz = 0;
     let density: string | undefined;
     let pngColorType: string | undefined;
@@ -18635,7 +18636,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const operandSettings: MagickState[] = [];
     let leadingOperations: CompareOperation[] = [];
     let groupStart = 0;
-    const groups: number[] = [];
+    const groups: { start: number; state: MagickState; density: string | undefined; pngColorType: string | undefined; extract: string | undefined }[] = [];
     const stackSteps: { operand: number; token: string; spec?: string; quality?: number }[] = [];
     // Compare reapplies ungrouped trailing rotations to the difference image.
     let outputRotations: Rotation[] = [];
@@ -18865,10 +18866,13 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             catch (error) { return { exitCode: 2, stdout: "", stderr: `compare: ${(error as Error).message}\n` }; }
             state.density = Math.max(1, Math.round(parseMagickDensity(density).width));
         }
+        else if (t === "-respect-parentheses" || t === "+respect-parentheses") {
+            respectParentheses = t === "-respect-parentheses";
+        }
         else if (t === "(") {
             resizeSteps.push(t);
             stackSteps.push({ operand: operands.length, token: t });
-            groups.push(groupStart);
+            groups.push({ start: groupStart, state: { ...state }, density, pngColorType, extract });
             groupStart = operands.length;
             leadingOperations = [];
             outputRotations = [];
@@ -18878,7 +18882,14 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             stackSteps.push({ operand: operands.length, token: t });
             const parent = groups.pop();
             if (parent === undefined) return { exitCode: 2, stdout: "", stderr: "compare: unbalanced parenthesis\n" };
-            groupStart = parent;
+            groupStart = parent.start;
+            if (respectParentheses) {
+                // Compare format and channel selection are global, unlike image settings.
+                state = { ...parent.state, formatStr: state.formatStr };
+                density = parent.density;
+                pngColorType = parent.pngColorType;
+                extract = parent.extract;
+            }
             leadingOperations = [];
             outputRotations = [];
         }

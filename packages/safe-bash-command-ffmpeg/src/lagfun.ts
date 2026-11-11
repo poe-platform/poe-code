@@ -111,8 +111,7 @@ export async function lagfun(
           // Retain float history; FFmpeg rounds only the emitted sample, with ties to even.
           const value = Math.max(sample, Math.fround(previous[index]! * decay));
           previous[index] = value;
-          // Disabled frames update and decay history while retaining their original samples.
-          const rounded = enabled ? (value % 1 === 0.5 ? 2 * Math.round(value / 2) : Math.round(value)) : sample;
+          const rounded = value % 1 === 0.5 ? 2 * Math.round(value / 2) : Math.round(value);
           if (sampleBytes === 2) view.setUint16(position, rounded, littleEndian);
           else pixels[position] = rounded;
         }

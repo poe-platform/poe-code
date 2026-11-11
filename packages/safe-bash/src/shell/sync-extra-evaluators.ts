@@ -26164,7 +26164,7 @@ const syncExtraRuntimeMethods = {
     return dedup;
   }
 ,
-  evalSyncUniq(this: any, rawLines: readonly string[], opArgs: readonly string[], isByteLocale = false, allowZero = false): string[] | undefined {
+  evalSyncUniq(this: any, rawLines: readonly string[], opArgs: readonly string[], _isByteLocale = false, allowZero = false): string[] | undefined {
     let ignoreCase = false;
     let hasCount = false;
     let onlyRepeated = false;
@@ -26230,7 +26230,8 @@ const syncExtraRuntimeMethods = {
         return undefined;
       }
     }
-    if (isByteLocale && (skipChars !== 0 || checkChars !== Infinity) && rawLines.some(line => {
+    // Locale initialization and multibyte boundaries belong to the byte command.
+    if ((skipFields !== 0 || skipChars !== 0 || checkChars !== Infinity) && rawLines.some(line => {
       for (let i = 0; i < line.length; i++) if (line.charCodeAt(i) > 127) return true;
       return false;
     })) return undefined;

@@ -691,8 +691,23 @@ async function executeUniqGeneral(context: CommandContext, preReadSource?: ByteS
   const onlyRepeated = parsed.flags.has("d");
   const onlyUnique = parsed.flags.has("u");
   const identityKey = skipFields === 0 && skipCharacters === 0 && width === Infinity && !ignoreCase;
-  const locale = context.env.LC_ALL || context.env.LC_CTYPE || context.env.LANG;
-  const byteLocale = locale === "C" || locale === "POSIX";
+  const locales = ["LC_CTYPE", "LC_NUMERIC", "LC_TIME", "LC_COLLATE", "LC_MONETARY", "LC_MESSAGES",
+    "LC_PAPER", "LC_NAME", "LC_ADDRESS", "LC_TELEPHONE", "LC_MEASUREMENT", "LC_IDENTIFICATION"]
+    .map(category => context.env.LC_ALL || context.env[category] || context.env.LANG || "C");
+  const validLocales = locales.every(locale => {
+    if (locale === "C" || locale === "POSIX") return true;
+    const [name, codeset] = locale.split(".");
+    const encoding = codeset?.toLowerCase();
+    if (locale.includes("@") || !encoding) return false;
+    if (name === "C") return encoding === "utf-8" || encoding === "utf8";
+    try {
+      if (!Intl.Collator.supportedLocalesOf([name!.split("_").join("-")]).length) return false;
+      new TextDecoder(encoding);
+      return true;
+    } catch { return false; }
+  });
+  // A failed setlocale(LC_ALL, "") leaves every category in the initial C locale.
+  const byteLocale = !validLocales || locales[0] === "C" || locales[0] === "POSIX";
   const advanceCharacters = (bytes: Uint8Array, offset: number, count: number) => {
     if (byteLocale) return Math.min(bytes.length, offset + count);
     for (let character = 0; character < count && offset < bytes.length; character++) {

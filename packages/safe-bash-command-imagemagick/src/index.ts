@@ -14378,7 +14378,7 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
             for (let index = 0; index < stack.length; index++) {
                 let source = stack[index]!;
                 if (!histogramInfo || state.formatStr && (state.formatStr.includes("%c") || state.formatStr.includes("%[comment]"))) source = { ...source, properties: { ...source.properties, comment: yield* formatHistogramOutputSteps(source, state.precision) } };
-                stack[index] = yield* applyMagickRasterSteps({ ...source, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 }, channels: source.space === "cmyk" ? 4 : source.space === "b-w" || source.space === "grey16" ? 1 : 3 }, histogramPixelSteps(source, width, height, state.channels), signal, { width, height, hasAlpha: false });
+                stack[index] = yield* applyMagickRasterSteps({ ...source, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 } }, histogramPixelSteps(source, width, height, state.channels), signal, { width, height, hasAlpha: source.hasAlpha });
             }
         }
         const finalImg = stack[stack.length - 1]!;
@@ -17810,7 +17810,7 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
                     for await (const part of storedHistogram(source, backend.storage, signal, state.precision)) comment += part;
                     source = { ...source, properties: { ...source.properties, comment } };
                 }
-                await stack.set(index, await transformStoredMagickRaster({ ...source, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 }, channels: source.space === "cmyk" ? 4 : source.space === "b-w" || source.space === "grey16" ? 1 : 3 }, backend, histogramPixelSteps(source, width, height, state.channels), signal, { width, height, hasAlpha: false }));
+                await stack.set(index, await transformStoredMagickRaster({ ...source, virtualCanvas: { width: 0, height: 0, x: 0, y: 0 } }, backend, histogramPixelSteps(source, width, height, state.channels), signal, { width, height, hasAlpha: source.hasAlpha }));
             }
             image = (await stack.get(stack.length - 1))!;
         }

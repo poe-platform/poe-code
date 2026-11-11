@@ -13920,6 +13920,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           // These actions have one accepting filter type; reuse its first-instance routing.
                           const target = requestedTarget !== "all" ? requestedTarget
                             : action === "unity" ? "afade"
+                            : action === "bits" ? "acrusher"
                             : action === "delays" ? "adelay"
                             : action === "start_threshold" || action === "stop_threshold" ? "silenceremove" : requestedTarget;
                           const supported = action === "enable" && ["tremolo", "vibrato", "dcshift", "deesser"].some(name => target === name || target?.startsWith(`${name}@`))

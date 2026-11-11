@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
-import { parseFfmetadata, serializeFfmetadata } from "./index.js";
+import { ffmetadataAst, parseFfmetadata, serializeFfmetadata } from "./index.js";
 
 for (const newline of ["\n", "\r\n"]) {
   it(`preserves escaped FFmetadata newlines with ${JSON.stringify(newline)} endings`, () => {
@@ -35,5 +35,15 @@ for (const newline of ["\n", "\r\n"]) {
     const doc = parseFfmetadata(new TextEncoder().encode([";FFMETADATA1", "a=b\\\r", "c=d", ""].join(newline)));
     assert.deepEqual(doc.metadata.custom, { a: "b\r", c: "d" });
     assert.equal(new TextDecoder().decode(serializeFfmetadata(doc)), ";FFMETADATA1\na=b\r\nc=d\n");
+  });
+}
+
+for (const newline of ["\n", "\r\n", "\r"]) {
+  it(`reads FFmetadata records terminated by ${JSON.stringify(newline)}`, () => {
+    const input = new TextEncoder().encode(`;FFMETADATA1\na=b${newline}c=d${newline}`);
+    const doc = parseFfmetadata(input);
+    assert.deepEqual(doc.metadata.custom, { a: "b", c: "d" });
+    assert.deepEqual(ffmetadataAst().probe!(input, {}).format.tags, { a: "b", c: "d" });
+    assert.equal(new TextDecoder().decode(serializeFfmetadata(doc)), ";FFMETADATA1\na=b\nc=d\n");
   });
 }

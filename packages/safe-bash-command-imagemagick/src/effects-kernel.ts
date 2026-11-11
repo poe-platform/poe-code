@@ -122,7 +122,7 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
     const highDepth = !!(source.data16 || source.storedData16);
     const hue = source.space !== "cmyk" && (!!source.hueSamples || source.storedHueSamples !== undefined);
     const scale = hue ? 1 / 255 : highDepth ? 257 : 1;
-    const quantum = (value: number) => hue ? Math.fround(value * 65535) / 65535 : Math.round(value);
+    const quantum = (value: number) => Math.fround(value * 257 / scale) / 257 * scale;
     if (source.space === "b-w" || source.space === "grey16") {
         // Native converts the canvas background to the source's gray colorspace.
         const gray = 0.212656 * background.r + 0.715158 * background.g + 0.072186 * background.b;
@@ -140,14 +140,16 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
     for (let position = 0; position < canvas.width * canvas.height * 4; position += 4096) {
         yield;
         const length = Math.min(4096, canvas.width * canvas.height * 4 - position);
-        const data = hue ? new Float64Array(length) : highDepth ? new Uint16Array(length) : new Uint8Array(length);
+        const data = new Float64Array(length);
         for (let i = 0; i < length; i += 4) {
             for (const [channel, value] of [background.r, background.g, background.b, background.a].entries())
-                data[i + channel] = hue ? value / 255 : Math.round(value * scale);
+                data[i + channel] = quantum(value * scale);
         }
         if (hue) yield { kind: "write", hue: true, position, data: new Uint8Array(data.buffer) };
-        const bounded = hue ? Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(1, value)) * 65535)) : data;
-        yield { kind: "write", highDepth, position, data: new Uint8Array(bounded.buffer) };
+        else yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.map(value => value / scale).buffer) };
+        const bounded = hue || highDepth ? Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(255 * scale, value)) * (hue ? 65535 : 1)))
+            : Uint8Array.from(data, value => Math.round(Math.max(0, Math.min(255, value))));
+        yield { kind: "write", highDepth: hue || highDepth, position, data: new Uint8Array(bounded.buffer) };
         if (backgroundInks) {
             const inks = new Float64Array(length);
             for (let i = 0; i < length; i += 4) inks.set(backgroundInks, i);
@@ -207,7 +209,7 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
         }
         const fill = distance < 1 ? (1 - distance) ** 2 : 0;
         const stroke = distance <= 0.25 ? 1 : distance < 1.25 ? (1.25 - distance) ** 2 : 0;
-        return fill + stroke * (1 - fill);
+        return Math.fround((fill + stroke * (1 - fill)) * 65535) / 65535;
     };
     for (let left = Math.max(0, -offsetX); left < Math.min(width, canvas.width - offsetX); left += 1024) {
         const count = Math.min(1024, width - left, canvas.width - offsetX - left), rows = new Map<number, Float64Array>();
@@ -222,20 +224,28 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                     const samples = new Float64Array(count + half * 2);
                     for (let x = 0; x < samples.length; x++) samples[x] = mask(Math.max(0, Math.min(width - 1, left + x - half)), sy);
                     row = new Float64Array(count);
-                    for (let x = 0; x < count; x++) for (let k = 0; k < weights.length; k++) row[x]! += samples[x + k]! * weights[k]!;
+                    for (let x = 0; x < count; x++) {
+                        for (let k = 0; k < weights.length; k++) row[x]! += samples[x + k]! * weights[k]!;
+                        row[x] = Math.fround(row[x]! * 65535) / 65535;
+                    }
                     if (rows.size >= 32) rows.delete(rows.keys().next().value!);
                     rows.set(sy, row);
                 }
                 for (let x = 0; x < count; x++) coverage[x]! += row[x]! * weights[ky + half]!;
             }
+            // Native stores the drawn mask and each blur pass in Q16-HDRI samples.
+            for (let x = 0; x < count; x++) coverage[x] = Math.fround(coverage[x]! * 65535) / 65535;
             // Native converts the blurred linear mask to sRGB before copying its intensity to alpha.
             if (linearCoverage) for (let x = 0; x < count; x++) {
                 const value = coverage[x]!;
                 coverage[x] = value <= 0.0031308 ? 12.92 * value : 1.055 * value ** (1 / 2.4) - 0.055;
             }
-            const position = (y * width + left) * 4, bytes = yield { kind: "read", hue, highDepth, position, length: count * 4 };
-            if (!bytes || bytes.length !== count * 4 * (hue ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated vignette pixels");
-            const data = hue ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
+            const position = (y * width + left) * 4;
+            const working = yield { kind: "read", hue, evaluate: !hue, position, length: count * 4 };
+            const bytes = working?.length ? working : yield { kind: "read", highDepth, position, length: count * 4 };
+            if (!bytes || bytes.length !== count * 4 * (working?.length ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated vignette pixels");
+            const data = working?.length ? new Float64Array(bytes.slice().buffer).map(value => hue ? value : value * scale)
+                : Float64Array.from(highDepth ? new Uint16Array(bytes.slice().buffer) : bytes);
             const inkBytes = backgroundInks ? yield { kind: "read", hue: true, position, length: count * 4 } : undefined;
             const inks = inkBytes?.length ? new Float64Array(inkBytes.slice().buffer) : backgroundInks ? new Float64Array(count * 4) : undefined;
             if (inks && !inkBytes?.length) for (let i = 0; i < data.length; i += 4)
@@ -332,8 +342,10 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
             const target = ((y + offsetY) * canvas.width + left + offsetX) * 4;
             if (inks) yield { kind: "write", hue: true, position: target, data: new Uint8Array(inks.buffer) };
             if (hue) yield { kind: "write", hue: true, position: target, data: new Uint8Array(data.buffer) };
-            const bounded = hue ? Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(1, value)) * 65535)) : data;
-            yield { kind: "write", highDepth, position: target, data: new Uint8Array(bounded.buffer) };
+            else yield { kind: "write", evaluate: true, position: target, data: new Uint8Array(data.map(value => value / scale).buffer) };
+            const bounded = hue || highDepth ? Uint16Array.from(data, value => Math.round(Math.max(0, Math.min(255 * scale, value)) * (hue ? 65535 : 1)))
+                : Uint8Array.from(data, value => Math.round(Math.max(0, Math.min(255, value))));
+            yield { kind: "write", highDepth: hue || highDepth, position: target, data: new Uint8Array(bounded.buffer) };
         }
     }
 }

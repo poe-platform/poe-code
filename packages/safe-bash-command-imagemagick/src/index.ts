@@ -9325,7 +9325,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     else if (token === "-gamma" || token === "+gamma") {
         highDepth = true;
         const value = tokens[++i] ?? "1";
-        const suffix = [...value].findIndex(character => "xX!#%(),/:<>@\\^".includes(character));
+        // Decimal geometry accepts signed offsets; exponent signs stay in the first value.
+        const suffix = [...value].findIndex((character, index) => "xX!#%(),/:<>@\\^".includes(character)
+            || (character === "+" || character === "-") && value.slice(0, index).includes(".")
+                && value[index - 1]?.toLowerCase() !== "e");
         const parts = [...value.trim()].map(character => character.trim() === "" ? "," : character).join("").split(",");
         const scalar = Number(parts[0]);
         const gamma = Number.isFinite(scalar) ? scalar : Number(suffix < 0 ? value : value.slice(0, suffix));

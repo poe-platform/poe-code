@@ -5058,7 +5058,11 @@ function magickShadowLayout(image: Pick<RgbaImage, "width" | "height" | "virtual
         if (end > sigmaStart + 2) normalized = normalized.slice(0, sigmaStart)
             + Number.parseInt(normalized.slice(sigmaStart + 2, end), 16) + normalized.slice(end);
     }
-    normalized = normalized.split("x", 2).join("x");
+    // A colon makes the first pair a ratio; subsequent fields are offsets.
+    const ratio = geometry.includes(":");
+    const fields = normalized.replaceAll(":", "x").split("x");
+    normalized = fields.slice(0, 2).join(ratio ? ":" : "x") +
+        (ratio ? fields.slice(2).map(field => `+${field}`).join("") : "");
     // Shadow ignores these geometry modifiers, including resize area semantics.
     const g = parseMagickGeometry(normalized.replaceAll("(", "").replaceAll(")", "").replaceAll("#", "").replaceAll("@", ""));
     const opacity = opacitySign * (g.aspectRatio ?? g.width ?? 0) / 100, sigma = Math.max(0, g.height ?? 1);

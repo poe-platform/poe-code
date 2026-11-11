@@ -14413,17 +14413,17 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-charcoal") {
             const intensity = state.intensity;
             const raw = tokens[++i] ?? "0x1";
-            const { virtualPixel, background } = state;
+            const { virtualPixel, background, seed } = state;
             const channels = state.channelExplicit ? { ...state.channels } : undefined;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, t);
                 const geometry = parseMagickGeometry(expanded.replace(",", "x").replace("/", "x"));
-                let edges = yield* applyMagickRasterSteps(im, charcoalEdgePixelSteps({ ...im, hasAlpha: im.hasAlpha || virtualPixel === "transparent" || virtualPixel === "background" && background.a < 255 }, geometry.width ?? 0, channels, virtualPixel, background), signal, { ...im, hasAlpha: false });
+                let edges = yield* applyMagickRasterSteps(im, charcoalEdgePixelSteps({ ...im, hasAlpha: im.hasAlpha || virtualPixel === "transparent" || virtualPixel === "background" && background.a < 255 }, geometry.width ?? 0, channels, virtualPixel, background, seed), signal, { ...im, hasAlpha: false });
                 if (im.region) edges = yield* applyMagickRasterSteps(edges, regionPixelSteps(edges, im.region), signal, edges, [edges, im]);
                 if (im.writeMask) edges = yield* applyMagickRasterSteps(edges, writeMaskPixelSteps(edges, im.writeMask), signal, edges, [edges, im, im.writeMask]);
                 const { magickColorspace: ignoredSpace, hueSamples: ignoredHue, ...metadata } = edges;
-                const result = yield* applyMagickRasterSteps({ ...metadata, space: "b-w", channels: 1, gamma: 1 / 2.2, isPalette: false, hasAlpha: false, inactiveAlpha: false, alphaBlend: false, alphaSeparate: false }, charcoalPixelSteps(edges, geometry, im.writeMask, channels, virtualPixel, background, intensity), signal, edges, im.writeMask ? [edges, im.writeMask] : [edges]);
+                const result = yield* applyMagickRasterSteps({ ...metadata, space: "b-w", channels: 1, gamma: 1 / 2.2, isPalette: false, hasAlpha: false, inactiveAlpha: false, alphaBlend: false, alphaSeparate: false }, charcoalPixelSteps(edges, geometry, im.writeMask, channels, virtualPixel, background, intensity, seed), signal, edges, im.writeMask ? [edges, im.writeMask] : [edges]);
                 if (im.metaChannels) {
                     result.metaChannels = [];
                     for (const plane of im.metaChannels) result.metaChannels.push(yield* createSolidRgbaImageSteps(result.width, result.height, { r: 0, g: 0, b: 0, a: 255 }, !!plane.data16));
@@ -18731,18 +18731,18 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-charcoal") {
             const intensity = state.intensity;
             const raw = tokens[++i] ?? "0x1", optionProperties = state.optionProperties;
-            const { virtualPixel, background } = state;
+            const { virtualPixel, background, seed } = state;
             const channels = state.channelExplicit ? { ...state.channels } : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 validateMagickTransformGeometry(expanded, token);
                 const geometry = parseMagickGeometry(expanded.replace(",", "x").replace("/", "x"));
-                let edges = await transformStoredMagickRaster(image, backend, charcoalEdgePixelSteps({ ...image, hasAlpha: image.hasAlpha || virtualPixel === "transparent" || virtualPixel === "background" && background.a < 255 }, geometry.width ?? 0, channels, virtualPixel, background), signal, { ...image, hasAlpha: false });
+                let edges = await transformStoredMagickRaster(image, backend, charcoalEdgePixelSteps({ ...image, hasAlpha: image.hasAlpha || virtualPixel === "transparent" || virtualPixel === "background" && background.a < 255 }, geometry.width ?? 0, channels, virtualPixel, background, seed), signal, { ...image, hasAlpha: false });
                 if (image.region) edges = await transformStoredMagickRaster(edges, backend, regionPixelSteps(edges, image.region), signal, edges, [edges, image]);
                 if (image.storedWriteMask) edges = await transformStoredMagickRaster(edges, backend, writeMaskPixelSteps(edges, image.storedWriteMask), signal, edges, [edges, image, image.storedWriteMask]);
                 const { magickColorspace: ignoredSpace, storedHueSamples: ignoredHue, ...metadata } = edges;
-                const result = await transformStoredMagickRaster({ ...metadata, space: "b-w", channels: 1, gamma: 1 / 2.2, isPalette: false, hasAlpha: false, inactiveAlpha: false, alphaBlend: false, alphaSeparate: false }, backend, charcoalPixelSteps(edges, geometry, image.storedWriteMask, channels, virtualPixel, background, intensity), signal, edges, image.storedWriteMask ? [edges, image.storedWriteMask] : [edges]);
+                const result = await transformStoredMagickRaster({ ...metadata, space: "b-w", channels: 1, gamma: 1 / 2.2, isPalette: false, hasAlpha: false, inactiveAlpha: false, alphaBlend: false, alphaSeparate: false }, backend, charcoalPixelSteps(edges, geometry, image.storedWriteMask, channels, virtualPixel, background, intensity, seed), signal, edges, image.storedWriteMask ? [edges, image.storedWriteMask] : [edges]);
                 if (image.storedMetaChannels) {
                     result.storedMetaChannels = [];
                     for (const plane of image.storedMetaChannels) result.storedMetaChannels.push(await createStoredCanvas(result.width, result.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal, !!plane.storedData16));

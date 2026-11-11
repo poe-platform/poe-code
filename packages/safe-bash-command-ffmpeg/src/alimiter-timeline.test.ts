@@ -3,11 +3,12 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import { Volume } from "memfs";
+import { encodeWav } from "@poe-code/audio-ast";
 import { createFfmpegCommand } from "./index.js";
 
 const input = readFileSync(new URL("./fixtures/alimiter-timeline.wav", import.meta.url));
-async function run(filter: string, graph: boolean) {
-  const fs = Volume.fromJSON({ "/in.wav": input, "/out.pcm": "KEEP" });
+async function run(filter: string, graph: boolean, inputBytes: Uint8Array = input) {
+  const fs = Volume.fromJSON({ "/in.wav": Buffer.from(inputBytes), "/out.pcm": "KEEP" });
   let stderr = "";
   const result = await createFfmpegCommand().execute({
     args: ["-y", "-i", "/in.wav", ...(graph
@@ -24,6 +25,19 @@ async function run(filter: string, graph: boolean) {
 }
 
 for (const graph of [false, true]) {
+  for (const [enable, delayed] of [["eq(pos\\,44)", true], ["eq(pos\\,45)", false], ["1", true], ["0", false]] as const) {
+    it(`uses WAV packet position in alimiter enable=${enable} (${graph ? "graph" : "simple"})`, async () => {
+      const samples = [1000, -2000, 3000, -4000, 5000, -6000, 7000, -8000,
+        9000, -10000, 11000, -12000, 13000, -14000, 15000, -16000];
+      const wav = encodeWav({ sampleRate: 8000, channels: [Float64Array.from(samples, sample => sample / 32768)] });
+      const { result, stderr, output } = await run(`alimiter=attack=0.5:level=0:enable=${enable}`, graph, wav);
+      assert.equal(result.exitCode, 0, stderr);
+      assert.equal(stderr, "");
+      assert.deepEqual(Array.from({ length: output.length / 2 }, (_, i) => output.readInt16LE(i * 2)),
+        delayed ? [0, 0, 0, ...samples.slice(0, -3)] : samples);
+    });
+  }
+
   // Complete PCM16 references from native FFmpeg 7.0.2, using the same WAV.
   for (const [filter, hash, count = 3087] of [
     ["alimiter=limit=0.25:level=0:enable=gte(t\\,0.1)", "6bed54dee269e8cd5ea2122ddd37b939cbe8e82e0f7c5be1ed7a0479d0915619"],

@@ -65,7 +65,7 @@ export async function limitAudio(
   let trim = delay;
   let processed = 0;
   let destination = 0;
-  if (enable !== undefined && length === 0) parseFilterExpression(enable, "alimiter enable", { t: 0, n: 0, w: 0, h: 0 });
+  if (enable !== undefined && length === 0) parseFilterExpression(enable, "alimiter enable", { t: 0, n: 0, w: 0, h: 0, pos: NaN });
   const peaks = new Float64Array(window);
   // FFmpeg indexes the peak queue by interleaved sample slots, including its
   // cleared-entry sentinel when a short lookahead wraps the queue.
@@ -94,7 +94,7 @@ export async function limitAudio(
     }
     const gain = outputGain * (options.level ? 1 / limit : 1);
     const enabled = flushing || enable === undefined || Math.abs(parseFilterExpression(enable, "alimiter enable", {
-      t: input.pts / sampleRate, n, w: 0, h: 0
+      t: input.pts / sampleRate, n, w: 0, h: 0, pos: input.pos === undefined || input.pos < 0 ? NaN : input.pos
     })) >= 0.5;
     const start = destination;
     if (enabled) {

@@ -29,7 +29,7 @@ for (const width of [1, 513]) {
             expect(result.exitCode).toBe(0);
             expect("stderr" in result ? result.stderr : stderr).toBe("");
             const output = mode === "command" ? Buffer.concat(stdout)
-                : report && "stdout" in result ? Buffer.from(result.stdout)
+                : report && "stdout" in result && typeof result.stdout === "string" ? Buffer.from(result.stdout)
                 : "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : new Uint8Array();
             expect(Buffer.from(output).toString(report ? "utf8" : "hex")).toBe(report ? space : rgb.repeat(width));
         }

@@ -13071,8 +13071,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const originY = merge ? Math.min(...oldStack.map(im => im.virtualCanvas?.y ?? 0)) : 0;
                 const maxW = flatten ? oldStack[0]!.virtualCanvas?.width || oldStack[0]!.width : Math.max(mosaic ? oldStack[0]!.virtualCanvas?.width || oldStack[0]!.width : -Infinity, ...oldStack.map(im => im.width + (im.virtualCanvas?.x ?? 0))) - originX;
                 const maxH = flatten ? oldStack[0]!.virtualCanvas?.height || oldStack[0]!.height : Math.max(mosaic ? oldStack[0]!.virtualCanvas?.height || oldStack[0]!.height : -Infinity, ...oldStack.map(im => im.height + (im.virtualCanvas?.y ?? 0))) - originY;
-                const highDepth = oldStack.some(image => !!image.data16);
                 const background = state.backgroundExplicit ? state.background : oldStack[0]!.backgroundColor ?? state.background;
+                const highDepth = oldStack.some(image => !!image.data16) || [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value));
                 const colorspace = oldStack[0]!;
                 let canvas: RgbaImage = { ...yield* createSolidRgbaImageSteps(maxW, maxH, background, highDepth),
                     space: colorspace.space, ...(colorspace.magickColorspace === undefined ? {} : { magickColorspace: colorspace.magickColorspace }) };
@@ -14936,7 +14936,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 const background = settings.backgroundExplicit ? settings.background : (await stack.get(0))!.backgroundColor ?? settings.background;
                 const first = (await stack.get(0))!;
-                result = { ...await createStoredCanvas(width, height, background, backend, signal, highDepth || append && [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value))), depth: first.depth, ...(first.bitsPerSample === undefined ? {} : { bitsPerSample: first.bitsPerSample }) };
+                highDepth ||= [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value));
+                result = { ...await createStoredCanvas(width, height, background, backend, signal, highDepth), depth: first.depth, ...(first.bitsPerSample === undefined ? {} : { bitsPerSample: first.bitsPerSample }) };
                 if (!append) {
                     const first = (await stack.get(0))! as StoredRgbaImage;
                     result = { ...result, space: first.space, ...(first.magickColorspace === undefined ? {} : { magickColorspace: first.magickColorspace }) };

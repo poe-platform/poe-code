@@ -2046,12 +2046,8 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
  return drainIdentifySteps(formatMagickPropertyStringSteps(format,metadata,()=>{throw new UnsupportedStoredResource("Pixel formatting requires decoded input");},context,resolve),signal);
 }
 
-<<<<<<< HEAD
 function* formatTxtEnumerationSteps(img: RgbaImage, depth = img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)): Generator<void, string, void> {
-=======
-function* formatTxtEnumerationSteps(img: RgbaImage, depth?: number): Generator<void, string, void> {
     const metaSamples = (img.metaChannels ?? []).map(plane => plane.data16 ?? plane.data);
->>>>>>> 9b7905e071 (fix(imagemagick): include meta channels in TXT output)
     if (img.space === "cmyk") {
         const maximum = (depth ?? img.bitsPerSample ?? (img.depth === "ushort" ? 16 : 8)) <= 8 ? 255 : 65535;
         const lines = [`# ImageMagick pixel enumeration: ${img.width},${img.height},${img.metaChannels?.length ?? 0},${maximum},cmyk${img.hasAlpha ? "a" : ""}`];
@@ -2081,11 +2077,7 @@ function* formatTxtEnumerationSteps(img: RgbaImage, depth?: number): Generator<v
                 yield;
             const idx = (y * img.width + x) * 4;
             if (srgbDepth) {
-<<<<<<< HEAD
-                lines.push(srgbDepthEnumerationLine(x, y, (img.data16 ?? img.data).subarray(idx, idx + 4), img.hasAlpha, depth, img.evaluateSamples?.subarray(idx, idx + 4)));
-=======
-                lines.push(appendEnumerationMetaSamples(srgbDepthEnumerationLine(x, y, (img.data16 ?? img.data).subarray(idx, idx + 4), img.hasAlpha, depth), metaSamples, idx, depth > 8 ? 65535 : 255));
->>>>>>> fee4a73c37 (fix(imagemagick): read TXT extra channel samples)
+                lines.push(appendEnumerationMetaSamples(srgbDepthEnumerationLine(x, y, (img.data16 ?? img.data).subarray(idx, idx + 4), img.hasAlpha, depth, img.evaluateSamples?.subarray(idx, idx + 4)), metaSamples, idx, depth > 8 ? 65535 : 255));
                 continue;
             }
             if (gray16) {

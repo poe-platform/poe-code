@@ -908,6 +908,8 @@ multiple branches from one input. Its `threads`, `thread_type`, and
 plays the input twice; filters on each branch run before concatenation. When the first segment is stereo, later mono segments use FFmpeg’s native mono-to-stereo gain; explicitly duplicating both channels with `pan` retains unity gain. Downstream audio expressions use concat’s microsecond time base: at 8 kHz, `asetpts=PTS+125` shifts timestamps by one sample. An explicit `asettb` overrides this time base.
 Packet timestamp gaps are retained, and each segment starts at the preceding
 segment's final packet end; gaps do not insert silence into PCM output.
+Concat returns exit status 8 for unknown options, 176 for unsupported `enable`,
+and 222 for out-of-range segment or stream counts, without replacing existing output.
 Consume an unused audio branch with `anullsink`, which has no output:
 `-filter_complex '[0:a]channelsplit[L][R];[L]anullsink;[R]anull[out]' -map '[out]' right.wav`.
 The retained channel keeps its speaker layout; dropping the sink leaves an invalid

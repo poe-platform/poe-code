@@ -1900,19 +1900,18 @@ function audioConcatInputs(filter: string): number | undefined {
       parseFilterBoolean(equal < 0 ? option : option.slice(equal + 1), "concat: invalid unsafe boolean");
       continue;
     }
-    if (key !== "n" && key !== "v" && key !== "a") throw new Error("concat: invalid option");
+    if (key !== "n" && key !== "v" && key !== "a") throw new Error(`concat: unsupported option ${key}`);
     const min = key === "n" ? 1 : 0;
     const value = parseFilterExpression(equal < 0 ? option : option.slice(equal + 1), "concat", {
       E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2,
       min, max: 2147483647, default: key === "n" ? 2 : key === "v" ? 1 : 0
     });
     if (!Number.isFinite(value) || value < min || value > 2147483647) {
-      throw new Error("concat: invalid option");
+      throw new RangeError(`concat: ${key} out of range`);
     }
     values[key] = roundToEven(value);
   }
   if (values.v !== 0 || values.a !== 1) return undefined;
-  if (!values.n) throw new Error("concat: n must be positive");
   return values.n;
 }
 
@@ -20770,6 +20769,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 return { exitCode: err instanceof RangeError ? 222 : 234 };
               }
             }
+            if (msg === "concat: unsupported option enable") return { exitCode: 176 };
+            if (msg.startsWith("concat: unsupported option ")) return { exitCode: 8 };
+            if (err instanceof RangeError && msg.startsWith("concat:")) return { exitCode: 222 };
             if (msg === "join: unsupported option enable") return { exitCode: 176 };
             if (msg.startsWith("join: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("join:")) return { exitCode: 222 };

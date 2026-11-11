@@ -10,7 +10,7 @@ import { encodeSvgImage, encodeSvgFromStorage } from "./svg-output.js";
 export type RawImage = RgbaImage & { rawFrames?: readonly RgbaImage[] };
 export type StoredRawImage = StoredRgbaImage & { rawFrames?: { length: number; at(index: number): Promise<StoredRgbaImage> } };
 
-export type RawCoder = "rgb" | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro" | "gray" | "graya" | "cmyk" | "cmyka";
+export type RawCoder = "rgb" | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro" | "gray" | "graya" | "cmyk" | "cmyka" | "ycbcr" | "ycbcra";
 export type ImageFormat = RasterFormat | RawCoder | "map" | "farbfeld" | "mono" | "pal" | "mpc" | "h";
 export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; rawInterlace?: "line" | "plane" | "partition" | undefined; rawDefines?: Readonly<Record<string, string>> | undefined; jpegExtent?: number | undefined; webpTargetSize?: number | undefined; webpPass?: number | undefined };
 
@@ -31,7 +31,7 @@ function* webpTargetQualities(options: OutputEncodeOptions): Generator<number, n
     return best;
 }
 export function isRawCoder(format: string | undefined): format is RawCoder {
-    return format === "rgbo" || format === "bgro" || format === "rgb" || format === "rgba" || format === "bgr" || format === "bgra" || format === "gray" || format === "graya" || format === "cmyk" || format === "cmyka";
+    return format === "rgbo" || format === "bgro" || format === "rgb" || format === "rgba" || format === "bgr" || format === "bgra" || format === "gray" || format === "graya" || format === "cmyk" || format === "cmyka" || format === "ycbcr" || format === "ycbcra";
 }
 
 function farbfeldHeader(image: Pick<RgbaImage, "width" | "height">): Uint8Array {
@@ -155,6 +155,8 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
             const value = cmykToRgb && image.hueSamples && index < 3
                 ? Math.fround((1 - Math.max(0, Math.min(1, image.hueSamples[pixel * 4 + index]!)))
                     * (1 - Math.max(0, Math.min(1, image.hueSamples[pixel * 4 + 3]!))) * 65535) * scale / 65535
+                : format.startsWith("ycbcr") && image.hueSamples
+                ? index === 3 && !image.hasAlpha ? scale : Math.max(0, Math.min(1, image.hueSamples[pixel * 4 + index]!)) * scale
                 : format === "farbfeld" && index < 3 && image.hueSamples
                 ? Math.max(0, Math.min(1, image.hueSamples[pixel * 4 + index]!)) * scale
                 : inks
@@ -305,7 +307,7 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
     for (let plane = 0; plane < (rawFrames ? channels : 1); plane++) {
         for (let frame = 0; frame < (rawFrames?.length ?? 1); frame++) {
             if (rawFrames) image = await rawFrames.at(frame);
-            const workingColorspace = options.format === "farbfeld" || image.space === "cmyk" && (options.format.startsWith("cmyk") || options.format === "rgb" || options.format === "rgba" || options.format === "rgbo");
+            const workingColorspace = options.format.startsWith("ycbcr") || options.format === "farbfeld" || image.space === "cmyk" && (options.format.startsWith("cmyk") || options.format === "rgb" || options.format === "rgba" || options.format === "rgbo");
             const pixels = image.width * image.height;
             const depth = options.tiffFloatDepth ?? options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8);
             const packed = depth === 1 || depth === 2 || depth === 4 || depth > 8 && depth < 16;

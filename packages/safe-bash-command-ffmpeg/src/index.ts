@@ -6478,7 +6478,12 @@ async function applyVideoFilterChain(
             const pixel = f.data[index]! << 7;
             const delta = average - pixel;
             const weight = Math.max(0, 127 - ((Math.abs(delta) * threshold) >> 16));
-            const value = Math.max(0, Math.min(255, (pixel + ((weight * weight * delta) >> 14) + dither[y & 7]![x & 7]!) >> 7));
+            // FFmpeg's x86 SSSE3 path shifts delta in a signed 16-bit lane
+            // before multiplying. The final partial eight-pixel block uses C.
+            const correction = x < (f.width & ~7)
+              ? (weight * weight * ((delta << 18) >> 16)) >> 16
+              : (weight * weight * delta) >> 14;
+            const value = Math.max(0, Math.min(255, (pixel + correction + dither[y & 7]![x & 7]!) >> 7));
             data[index] = data[index + 1] = data[index + 2] = value;
           }
         }

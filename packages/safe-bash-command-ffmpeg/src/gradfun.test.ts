@@ -7,26 +7,60 @@ import { createFfmpegCommand } from "./index.js";
 const input = Buffer.from(Array.from({ length: 1024 }, (_, i) =>
   96 + 2 * Math.floor((i % 32) / 3) + Math.floor(i / 256)));
 
-async function run(filter: string, width = 32, height = 32) {
-  const input = Buffer.from(Array.from({ length: width * height }, (_, i) =>
-    96 + 2 * Math.floor((i % width) / 3) + Math.floor(i / width / 8)));
+async function run(filter: string, width = 32, height = 32, input = Buffer.from(Array.from({ length: width * height }, (_, i) =>
+  96 + 2 * Math.floor((i % width) / 3) + Math.floor(i / width / 8)))) {
   const volume = Volume.fromJSON({ "/in.raw": input });
+  const chunks: Buffer[] = [];
   let stderr = "";
   const result = await createFfmpegCommand().execute({
     args: ["-v", "error", "-f", "rawvideo", "-pixel_format", "gray", "-video_size", `${width}x${height}`,
       "-framerate", "4", "-i", "/in.raw", "-vf", filter, "-fps_mode", "passthrough",
-      "-pix_fmt", "gray", "-bitexact", "-f", "rawvideo", "/out.raw"],
+      "-pix_fmt", "gray", "-bitexact", "-f", "rawvideo", "pipe:1"],
     cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
       async readFile(path: string) { return volume.readFileSync(path); },
       async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
       async stat(path: string) { return volume.statSync(path); }
     },
-    stdin: (async function* () {})(), stdout: { async write() {} },
+    stdin: (async function* () {})(), stdout: { async write(bytes: Uint8Array) { chunks.push(Buffer.from(bytes)); } },
     stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
   } as never);
   assert.deepEqual(volume.readFileSync("/in.raw"), input);
-  return { result, stderr, output: volume.existsSync("/out.raw") ? volume.readFileSync("/out.raw") as Buffer : undefined };
+  return { result, stderr, output: chunks.length ? Buffer.concat(chunks) : undefined };
+}
+
+it("keeps scalar arithmetic for the final partial eight-pixel block", async () => {
+  const pattern = Buffer.from(Array.from({ length: 39 * 32 }, (_, i) => {
+    const x = i % 39;
+    const y = Math.floor(i / 39);
+    return (x * x + y * 7 + x * y) % 256;
+  }));
+  const { result, stderr, output } = await run("gradfun=64:4", 39, 32, pattern);
+  assert.equal(result.exitCode, 0, stderr);
+  assert.equal(output!.length, pattern.length);
+  // Scalar tail bytes independently verified with native FFmpeg 9.0.1 on ARM.
+  const tail = output!.filter((_, i) => i % 39 >= 32);
+  assert.equal(createHash("sha256").update(tail).digest("hex"),
+    "1fc03c022526c4f309945e2e10002b34f02658ad379b2c1733f59500883b5ab2");
+});
+
+// Ordinary FFmpeg 7.0.2 on x86 with SSSE3 enabled (not -cpuflags 0).
+for (const [strength, hash] of [
+  [32, "64a7267dde357d3c017391482becdf18a791ff890b8dd43cf127d1ee2186abfb"],
+  [40, "d20175d46ff8d30e530423fb24024ac262819d631eaed675e0e8e612b6332249"],
+  [64, "51370bcf316a1eca63fc6a55a57c4c5998ea6a4e079944e59fe09cddfb0cc97c"]
+] as const) {
+  it(`matches native x86 gradfun at strength ${strength}`, async () => {
+    const pattern = Buffer.from(Array.from({ length: 1024 }, (_, i) => {
+      const x = i % 32;
+      const y = Math.floor(i / 32);
+      return (x * x + y * 7 + x * y) % 256;
+    }));
+    const { result, stderr, output } = await run(`gradfun=${strength}:4`, 32, 32, pattern);
+    assert.equal(result.exitCode, 0, stderr);
+    assert.equal(output!.length, 1024);
+    assert.equal(createHash("sha256").update(output!).digest("hex"), hash);
+  });
 }
 
 for (const [options, hash] of [

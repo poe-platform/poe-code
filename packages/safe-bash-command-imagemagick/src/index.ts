@@ -7822,6 +7822,8 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
         };
     }
     const outParts: string[] = [];
+    // Native identify emits descriptions before the accumulated custom-format text.
+    const formattedParts: string[] = [];
     const errParts: string[] = [];
     const flush = function* (): Generator<IdentifyStep, void, void> {
         for (const [sink, parts] of [[output?.stdout, outParts], [output?.stderr, errParts]] as const) {
@@ -7919,7 +7921,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             const bitDepth = meta.depth === "ushort" ? "16" : meta.depth === "bit" ? "1" : "8";
             const spaceLabel = meta.space === "b-w" ? "Gray" : meta.space === "cmyk" ? "CMYK" : "sRGB";
             if (customFormat !== undefined) {
-                outParts.push(inspected?.formatted??(yield* formatMagickPropertyStringSteps(customFormat, meta, () => inlineImage ?? decodeImage(encoded!, inputOptions), {
+                formattedParts.push(inspected?.formatted??(yield* formatMagickPropertyStringSteps(customFormat, meta, () => inlineImage ?? decodeImage(encoded!, inputOptions), {
                     filePath: baseInPath, originalInput: target.originalInput, byteLen: size, sceneIdx: pageIdx ?? 0, listIndex: target.listIndex, sceneCount: sceneCount ?? meta.pages ?? 1, precision, analysis, channelSelection, optionProperties: { format: customFormat }
                 })));
             }
@@ -8006,7 +8008,7 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
     }
     return {
         exitCode: optionError ? 1 : exitCode,
-        stdout: outParts.join(""),
+        stdout: outParts.join("") + formattedParts.join(""),
         stderr: errParts.join("") + optionError
     };
 }

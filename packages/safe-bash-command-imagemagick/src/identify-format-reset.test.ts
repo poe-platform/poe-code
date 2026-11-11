@@ -1,21 +1,25 @@
 import { expect, it } from "vitest";
-import sharp from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createIdentifyCommand, createMagickCommand, runConvertCliSync, runIdentifyCli, runIdentifyCliSync } from "./index.js";
 
 for (const mode of ["buffered", "retained", "sync", "identify", "magick"])
 it.each([
-    { options: ["-format", "one;", "photo.png", "+format", "photo.png"], formatted: "one;", descriptions: 1 },
-    { options: ["+format", "photo.png"], formatted: "", descriptions: 1 },
-    { options: ["-format", "one;", "photo.png", "+format"], formatted: "one;", descriptions: 0 },
-    { options: ["-format", "", "photo.png", "+format", "photo.png"], formatted: "", descriptions: 1 },
-    { options: ["-format", "one;", "photo.png", "+format", "photo.png", "-format", "two;", "photo.png"], formatted: "one;two;", descriptions: 1 }
-])(`identify resets the format for subsequent inputs (${mode}): $options`, async ({ options, formatted, descriptions }) => {
-    const bytes = await sharp({ create: { width: 3, height: 2, channels: 3, background: "red" } }).png().toBuffer();
-    const files = new Map([["photo.png", bytes]]);
+    { options: ["-format", "FIRST;", "a.ppm", "+format", "b.ppm", "-format", "LAST;", "a.ppm"], formatted: "FIRST;LAST;", descriptions: ["b.ppm PPM 2x1 "] },
+    { options: ["-format", "%f:%wx%h;", "a.ppm", "+format", "b.ppm"], formatted: "a.ppm:1x1;", descriptions: ["b.ppm PPM 2x1 "] },
+    { options: ["-format", "FIRST;", "a.ppm", "-format", "LAST;", "b.ppm"], formatted: "FIRST;LAST;", descriptions: [] },
+    { options: ["+format", "a.ppm"], formatted: "", descriptions: ["a.ppm PPM 1x1 "] },
+    { options: ["-format", "one;", "a.ppm", "+format"], formatted: "one;", descriptions: [] },
+    { options: ["-format", "", "a.ppm", "+format", "b.ppm"], formatted: "", descriptions: ["b.ppm PPM 2x1 "] },
+    { options: ["-format", "one;", "a.ppm", "+format", "b.ppm", "a.ppm", "-format", "two;", "a.ppm"], formatted: "one;two;", descriptions: ["b.ppm PPM 2x1 ", "a.ppm PPM 1x1 "] },
+    { options: ["-format", "one;", "a.ppm", "+format", "missing.ppm", "b.ppm", "-format", "two;", "a.ppm"], formatted: "one;two;", descriptions: ["b.ppm PPM 2x1 "] }
+])(`identify emits default descriptions before formatted output (${mode}): $options`, async ({ options, formatted, descriptions }) => {
+    const files = new Map([
+        ["a.ppm", new TextEncoder().encode("P3\n1 1\n255\n255 0 0\n")],
+        ["b.ppm", new TextEncoder().encode("P3\n2 1\n255\n0 0 255 0 255 0\n")]
+    ]);
     const fs = new MemoryFileSystem();
-    await fs.writeFile("/photo.png", bytes);
+    for (const [path, bytes] of files) await fs.writeFile(`/${path}`, bytes);
     let result;
     if (mode === "sync") result = runIdentifyCliSync(options, files);
     else if (mode === "buffered" || mode === "retained") result = await runIdentifyCli(options, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
@@ -31,11 +35,13 @@ it.each([
         });
         result = { ...status, stdout, stderr };
     }
-    expect(result).toMatchObject({ exitCode: 0, stderr: "" });
-    // Compare the default description and literal output without pinning size/timing or buffering order.
-    const parts = result.stdout.split("photo.png PNG 3x2 3x2+0+0 ");
-    expect(parts).toHaveLength(descriptions + 1);
-    expect(parts[0] + parts.slice(1).map(part => part.slice(part.indexOf("\n") + 1)).join("")).toBe(formatted);
+    expect(result).toMatchObject(options.includes("missing.ppm")
+        ? { exitCode: 1, stderr: "identify: unable to open image 'missing.ppm': No such file or directory\n" }
+        : { exitCode: 0, stderr: "" });
+    const lines = result.stdout.split("\n");
+    expect(lines).toHaveLength(descriptions.length + 1);
+    for (const [index, description] of descriptions.entries()) expect(lines[index]!.startsWith(description)).toBe(true);
+    expect(lines.at(-1)).toBe(formatted);
 });
 
 it("preserves the input format when identify expands multiple frames", async () => {
@@ -46,7 +52,8 @@ it("preserves the input format when identify expands multiple frames", async () 
     for (const input of [files, { filesystem: fs, cwd: "/" }]) {
         const result = await runIdentifyCli(["-format", "one;", "movie.tiff", "+format", "movie.tiff"], input);
         expect(result).toMatchObject({ exitCode: 0, stderr: "" });
-        expect(result.stdout.split("one;")).toHaveLength(3);
+        expect(result.stdout.split("\n")).toHaveLength(3);
+        expect(result.stdout.split("\n").at(-1)).toBe("one;one;");
         expect(result.stdout).toContain("movie.tiff[0] TIFF 3x2 ");
         expect(result.stdout).toContain("movie.tiff[1] TIFF 3x2 ");
     }

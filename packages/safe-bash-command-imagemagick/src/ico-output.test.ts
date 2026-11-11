@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli, runConvertCliSync } from "./index.js";
 
@@ -43,5 +44,30 @@ it.each(["sync", "buffered", "retained"] as const)("preserves alpha, 256 dimensi
     for (const args of [["+adjoin", "split.ico"], ["scene-%d.ico"]]) {
         expect(await run(["-size", "16x16", "xc:red", "xc:blue", ...args])).toMatchObject({ exitCode: 0 });
         for (const index of [0, 1]) expect([...(await read(`${args.length === 2 ? "split" : "scene"}-${index}.ico`)).slice(0, 6)]).toEqual([0, 0, 1, 0, 1, 0]);
+    }
+});
+
+// Pixel values and encoded sizes verified against native ImageMagick.
+it.each(["sync", "buffered", "retained"] as const)("writes native indexed ICO depths without changing pixels (%s)", async mode => {
+    const tile = Buffer.concat([Buffer.from("P6\n4 2\n255\n"), Buffer.from("ff000000ff000000ffffffff000000227766ff8800442299", "hex")]);
+    const reds = [255,247,239,230,222,214,206,197,189,181,173,165,156,148,140,132,123,115,107,99,90,82,74,66,58,49,41,33,25,16,8,0];
+    for (const test of [
+        { args: ["-size", "32x32", "gradient:red-blue", "-colors", "32", "-type", "Palette"], depth: 8, size: 2238,
+          pixels: Uint8Array.from(reds.flatMap(r => Array.from({ length: 32 }, () => [r, 0, 255-r, 255]).flat())) },
+        { args: ["tile.ppm", "-colors", "4", "-type", "Palette"], depth: 4, size: 142,
+          pixels: Uint8Array.from(Buffer.from("aa8200ff113c33ff2211ccffffffffff113c33ff113c33ffaa8200ff2211ccff", "hex")) },
+        { args: ["tile.ppm"], depth: 32, size: 102,
+          pixels: Uint8Array.from(Array.from({ length: 8 }, (_, i) => [...tile.subarray(tile.length - 24 + i * 3, tile.length - 21 + i * 3), 255]).flat()) },
+    ]) {
+        const files = new Map<string, Uint8Array>([["tile.ppm", tile]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/tile.ppm", tile);
+        const args = [...test.args, "out.ico"];
+        expect(mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "buffered" ? files : { filesystem, cwd: "/" })).toMatchObject({ exitCode: 0, stderr: "" });
+        const bytes = mode === "retained" ? await filesystem.readFile("/out.ico") : files.get("out.ico")!;
+        const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength), offset = view.getUint32(18, true);
+        expect(view.getUint16(12, true)).toBe(test.depth);
+        expect(view.getUint16(offset + 14, true)).toBe(test.depth);
+        expect(bytes.length).toBe(test.size);
+        expect(decodeImage(bytes).data).toEqual(test.pixels);
     }
 });

@@ -12272,6 +12272,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || action === "tempo" && (target === "atempo" || target?.startsWith("atempo@"))
                             || action === "volume" && (target === "volume" || target?.startsWith("volume@"))
                             || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))
+                            || ["i", "c"].includes(action!) && (target === "crystalizer" || target?.startsWith("crystalizer@"))
                             || action === "level_out" && (target === "crossfeed" || target?.startsWith("crossfeed@"))
                             || target === "stereowiden" || target?.startsWith("stereowiden@")
                             // aphaser declines runtime commands without aborting the render.
@@ -12287,7 +12288,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || ["unity", "silence", "curve", "c", "nb_samples", "ns", "duration", "d", "type", "t", "start_sample", "ss", "start_time", "st", "enable"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
                             || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !supported || !expression) {
-                            throw new Error("asendcmd: expected TIME silenceremove[@NAME] stop_threshold VALUE or TIME tremolo[@NAME] enable EXPR or TIME vibrato[@NAME] enable EXPR or TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback|crossfeed|drymix|enable EXPR or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] mm|cm|m|dry|wet|temp|enable VALUE or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays|enable VALUE or TIME alimiter[@NAME] limit LIMIT or TIME agate[@NAME] makeup GAIN or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN or TIME aphaser[@NAME] COMMAND ARG or TIME atilt[@NAME] freq|slope|width|order|level VALUE or TIME amix[@NAME] weights|normalize VALUE");
+                            throw new Error("asendcmd: expected TIME silenceremove[@NAME] stop_threshold VALUE or TIME tremolo[@NAME] enable EXPR or TIME vibrato[@NAME] enable EXPR or TIME atempo[@NAME] tempo TEMPO or TIME stereowiden[@NAME] feedback|crossfeed|drymix|enable EXPR or TIME crossfeed[@NAME] level_out GAIN or TIME extrastereo[@NAME] m WIDTH or TIME crystalizer[@NAME] i|c VALUE or TIME volume[@NAME] volume GAIN or TIME compensationdelay[@NAME] mm|cm|m|dry|wet|temp|enable VALUE or TIME afreqshift[@NAME] level GAIN or TIME aphaseshift[@NAME] level GAIN or TIME asubboost[@NAME] wet GAIN or TIME adelay[@NAME] delays|enable VALUE or TIME alimiter[@NAME] limit LIMIT or TIME agate[@NAME] makeup GAIN or TIME afade[@NAME] unity|silence|curve|c|nb_samples|ns|duration|d|type|t|start_sample|ss|start_time|st|enable VALUE or TIME dialoguenhance[@NAME] original GAIN or TIME aphaser[@NAME] COMMAND ARG or TIME atilt[@NAME] freq|slope|width|order|level VALUE or TIME amix[@NAME] weights|normalize VALUE");
                           }
                           return { time, target, action: action!, expression };
                         });
@@ -14633,62 +14634,79 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let intensity = 2;
                         let clip = true;
                         let enable: string | undefined;
+                        const setOption = (key: string | undefined, value: string): void => {
+                          if (key === "i") {
+                            const next = Math.fround(parseFilterExpression(value, "crystalizer", { E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }));
+                            if (!Number.isFinite(next) || next < -10 || next > 10) {
+                              throw new RangeError("crystalizer: i must be in the range [-10, 10]");
+                            }
+                            intensity = next;
+                          } else if (key === "c") {
+                            clip = parseFilterBoolean(value, "crystalizer: invalid clipping option");
+                          } else if (key === "enable") enable = value;
+                          else throw new Error(`crystalizer: unsupported option ${key}`);
+                        };
                         const argument = trimmed.slice("crystalizer=".length);
                         for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? ["i", "c"][index] : option.slice(0, separator).trim();
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
-                          if (key === "i") {
-                            intensity = Math.fround(parseFilterExpression(value, "crystalizer", { E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }));
-                            if (!Number.isFinite(intensity) || intensity < -10 || intensity > 10) {
-                              throw new RangeError("crystalizer: i must be in the range [-10, 10]");
-                            }
-                          } else if (key === "c") {
-                            clip = parseFilterBoolean(value, "crystalizer: invalid clipping option");
-                          } else if (key === "enable") enable = value;
-                          else throw new Error(`crystalizer: unsupported option ${key}`);
+                          setOption(key, value);
                         }
-                        stretched = await mapWork(stretched, async channel => {
+                        const commands = audioCommands.filter(command => command.target === "crystalizer" || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        audioCommands = audioCommands.filter(command => command.target !== "crystalizer" && command.target !== filterTarget);
+                        let nextCommand = 0;
+                        const output = stretched.map(channel => {
                           budget.allocateMemory(channel.length * Float32Array.BYTES_PER_ELEMENT);
-                          const output = new Float32Array(channel.length);
-                          const scale = Math.fround(1 / Math.fround(1 - intensity));
-                          let previous = 0;
-                          let frameEnd = 0;
-                          let frameIndex = 0;
-                          let enabled = true;
-                          for (let i = 0; i < channel.length; i++) {
-                            if (enable !== undefined && i >= frameEnd) {
-                              const packet = t.samples[frameIndex];
-                              const timestamp = audioTimestamps?.[frameIndex];
-                              const frameLength = timestamp ? timestamp.end - timestamp.start
-                                : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
-                              const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + i);
-                              enabled = Math.abs(parseFilterExpression(enable, "crystalizer enable", {
-                                n: frameIndex, t: pts / origRate
-                              })) >= 0.5;
-                              frameEnd = i + frameLength;
-                              frameIndex++;
-                            }
-                            if (i % 4096 === 0) {
-                              await yieldTurn(context.signal);
-                              context.signal?.throwIfAborted();
-                              budget.checkCpu();
-                            }
-                            const current = Math.fround(channel[i]!);
+                          return new Float32Array(channel.length);
+                        });
+                        const previous = stretched.map(() => 0);
+                        let frameEnd = 0;
+                        let frameIndex = 0;
+                        let enabled = true;
+                        let scale = Math.fround(1 / Math.fround(1 - intensity));
+                        for (let i = 0; i < (stretched[0]?.length ?? 0); i++) {
+                          if (enable !== undefined && i >= frameEnd) {
+                            const packet = t.samples[frameIndex];
+                            const timestamp = audioTimestamps?.[frameIndex];
+                            const frameLength = timestamp ? timestamp.end - timestamp.start
+                              : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
+                            const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + i);
+                            enabled = Math.abs(parseFilterExpression(enable, "crystalizer enable", {
+                              n: frameIndex, t: pts / origRate
+                            })) >= 0.5;
+                            frameEnd = i + frameLength;
+                            frameIndex++;
+                          }
+                          if (i % 4096 === 0) {
+                            await yieldTurn(context.signal);
+                            context.signal?.throwIfAborted();
+                            budget.checkCpu();
+                          }
+                          while (nextCommand < commands.length && commands[nextCommand]!.sample <= i) {
+                            const command = commands[nextCommand++]!;
+                            try {
+                              setOption(command.action, command.expression);
+                              scale = Math.fround(1 / Math.fround(1 - intensity));
+                            } catch { /* Rejected runtime commands retain the current options. */ }
+                          }
+                          for (let c = 0; c < stretched.length; c++) {
+                            const current = Math.fround(stretched[c]![i]!);
                             // Disabled frames pass through but still seed the next frame's history.
                             if (!enabled) {
-                              previous = current;
-                              output[i] = current;
+                              previous[c] = current;
+                              output[c]![i] = current;
                               continue;
                             }
                             const value = intensity < 0
-                              ? Math.fround(Math.fround(current - Math.fround(previous * intensity)) * scale)
-                              : Math.fround(current + Math.fround(Math.fround(current - previous) * intensity));
-                            previous = intensity < 0 ? value : current;
-                            output[i] = clip ? Math.max(-1, Math.min(1, value)) : value;
+                              ? Math.fround(Math.fround(current - Math.fround(previous[c]! * intensity)) * scale)
+                              : Math.fround(current + Math.fround(Math.fround(current - previous[c]!) * intensity));
+                            previous[c] = intensity < 0 ? value : current;
+                            output[c]![i] = clip ? Math.max(-1, Math.min(1, value)) : value;
                           }
-                          return output;
-                        }, context.signal);
+                        }
+                        stretched = output;
                       } else if (trimmed === "extrastereo" || trimmed.startsWith("extrastereo=")) {
                         let multiplier = 2.5;
                         let clip = true;

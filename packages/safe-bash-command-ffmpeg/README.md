@@ -534,6 +534,7 @@ without emitting audio.
 Intensity defaults to 2 (range -10 to 10); negative values smooth the audio.
 Intensity expressions accept `PI`, `E`, and `PHI`, for example `crystalizer=i=PI/2`.
 Clipping is enabled by default; `c=0` preserves peaks for subsequent filters.
+`asendcmd=c='0.256 crystalizer@x i 0',crystalizer@x=i=2` changes intensity at the first audio frame at or after 0.256 seconds. Commands can change `i` or `c` on a named instance, or the first matching instance when unnamed, preserving each channel’s history. Invalid values leave the current setting unchanged.
 Invalid options leave output untouched and return native FFmpeg statuses: 8 for unknown
 options, 222 for out-of-range intensity, and 234 for invalid expressions or booleans.
 `enable='gte(t,0.256)'` enables processing from that audio frame timestamp;

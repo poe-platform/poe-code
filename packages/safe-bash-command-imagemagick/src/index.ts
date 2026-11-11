@@ -11036,6 +11036,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             i++;
             continue;
         }
+        if (t === "-set" && tokens[i + 1]?.toLowerCase().startsWith("option:") && tokens[i + 2]?.includes("%") && stack[0]) {
+            const image = stack[0];
+            const value = yield* formatMagickPropertyStringSteps(tokens[i + 2]!, image, () => image,
+                { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: 0, optionProperties: state.optionProperties });
+            tokens = [...tokens.slice(0, i + 2), value, ...tokens.slice(i + 3)];
+        }
         let frameListOperand: string | undefined;
         if (["-clone", "-duplicate", "-delete", "-insert", "-swap"].includes(t)) {
             frameListOperand = tokens[++i] ?? (t === "-swap" ? "-2,-1" : t === "-insert" ? "0" : t === "-duplicate" ? "" : "-1");
@@ -13793,6 +13799,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async stack => { analysis.regardWarnings = token === "-regard-warnings"; return stack; });
             continue;
         }
+        // Expand option assignments sequentially before later settings and operators capture them.
+        if (!operandsOnly && token === "-set" && tokens[i + 1]?.toLowerCase().startsWith("option:") && tokens[i + 2]?.includes("%")) return;
         if (!operandsOnly && token === "-sampling-factor") { state.samplingFactor = tokens[++i] ?? ""; continue; }
         if (!operandsOnly && token === "+sampling-factor") { delete state.samplingFactor; continue; }
         if (!operandsOnly && token === "--") { operandsOnly = true; continue; }

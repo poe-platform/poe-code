@@ -298,7 +298,10 @@ function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly
   }
   const grayMatch = /^gr[ae]y(\d{1,3})$/.exec(low);
   if (grayMatch) {
-    const v = Math.max(0, Math.min(255, Math.round((Number(grayMatch[1]) / 100) * 255)));
+    const level = Number(grayMatch[1]);
+    // X11 names at 50 and 90 use lower samples than the corresponding percentages.
+    const v = level === 50 ? 127 : level === 90 ? 229
+      : Math.max(0, Math.min(255, Math.round((level / 100) * 255)));
     return { r: v, g: v, b: v, a: 255, space: "b-w" };
   }
   const round = (value: number) => precise ? value : Math.round(value);

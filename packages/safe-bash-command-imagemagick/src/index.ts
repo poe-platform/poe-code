@@ -5602,6 +5602,8 @@ function* magickCropAreas(img: Pick<RgbaImage, "width" | "height" | "virtualCanv
                 const left = Math.min(img.width - 1, Math.round((c * width) / cols - Math.min(0, offset.x)));
                 const nextLeft = Math.max(left + 1, Math.min(img.width, Math.round(((c + 1) * width) / cols + Math.max(0, offset.x))));
                 yield { left, top, width: nextLeft - left, height: nextTop - top };
+                // Native subdivision ends when a tile covers the whole raster.
+                if (left === 0 && top === 0 && nextLeft === img.width && nextTop === img.height) return;
             }
         }
     } else if (!g.hasOffset && !(g.isPercent && gravity !== undefined)) {

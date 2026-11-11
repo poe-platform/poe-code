@@ -2136,11 +2136,13 @@ function* formatMagickPropertyStringSteps<Step=never>(
             const hasAlpha = fxImage.hasAlpha || fxImage.inactiveAlpha === true && fxImage.alphaBlend !== false;
             for (const ch of fxImage.space === "cmyk" ? (hasAlpha ? [0, 1, 2, 8, 3] : [0, 1, 2, 8]) : (hasAlpha ? [0, 1, 2, 3] : [0, 1, 2])) {
               ctx.vars.clear();
+              // Native pixel expressions evaluate bare statistics as zero in red.
+              const channelContext = { ...ctx, ch, statistics: key.startsWith("pixel:") && ch === 0 ? {} : ctx.statistics };
               if (key.startsWith("hex:")) {
-                channels.push(Math.max(0, Math.min(hexMaximum, Math.round((yield* evaluate({ ...ctx, ch })) * hexMaximum))));
+                channels.push(Math.max(0, Math.min(hexMaximum, Math.round((yield* evaluate(channelContext)) * hexMaximum))));
                 continue;
               }
-              channels.push((ch === 3 || fxImage.space === "cmyk" || fxImage.magickColorspace === "HCL" || fxImage.magickColorspace === "HCLp" || fxImage.magickColorspace === "HSL" || fxImage.magickColorspace === "HSB" || fxImage.magickColorspace === "HSV" || fxImage.magickColorspace === "HSI" || fxImage.magickColorspace === "HWB" || fxImage.magickColorspace === "LMS" || fxImage.magickColorspace === "CAT02LMS" || fxImage.magickColorspace === "XYZ" || fxImage.magickColorspace === "DisplayP3" || fxImage.magickColorspace === "xyY" || fxImage.magickColorspace === "ProPhoto" || fxImage.magickColorspace === "Jzazbz" || (fxImage.magickColorspace === "YPbPr" || fxImage.magickColorspace === "YCbCr") || fxImage.magickColorspace === "Rec601YCbCr" || fxImage.magickColorspace === "YCC" || fxImage.magickColorspace === "Rec709YCbCr" || fxImage.magickColorspace === "Log" || fxImage.magickColorspace === "Adobe98" || fxImage.magickColorspace === "OHTA" || fxImage.magickColorspace === "CMY" || fxImage.magickColorspace === "YUV" || fxImage.magickColorspace === "YIQ" || fxImage.magickColorspace === "YDbDr" || fxImage.magickColorspace === "Oklab" || fxImage.magickColorspace === "Luv" || fxImage.magickColorspace === "Oklch" || fxImage.magickColorspace === "LCH" || fxImage.magickColorspace === "LCHab" || fxImage.magickColorspace === "LCHuv" || fxImage.magickColorspace === "CIELab") && key.startsWith("pixel:") ? (yield* evaluate({ ...ctx, ch })) : (yield* evaluate({ ...ctx, ch })) * 255);
+              channels.push((ch === 3 || fxImage.space === "cmyk" || fxImage.magickColorspace === "HCL" || fxImage.magickColorspace === "HCLp" || fxImage.magickColorspace === "HSL" || fxImage.magickColorspace === "HSB" || fxImage.magickColorspace === "HSV" || fxImage.magickColorspace === "HSI" || fxImage.magickColorspace === "HWB" || fxImage.magickColorspace === "LMS" || fxImage.magickColorspace === "CAT02LMS" || fxImage.magickColorspace === "XYZ" || fxImage.magickColorspace === "DisplayP3" || fxImage.magickColorspace === "xyY" || fxImage.magickColorspace === "ProPhoto" || fxImage.magickColorspace === "Jzazbz" || (fxImage.magickColorspace === "YPbPr" || fxImage.magickColorspace === "YCbCr") || fxImage.magickColorspace === "Rec601YCbCr" || fxImage.magickColorspace === "YCC" || fxImage.magickColorspace === "Rec709YCbCr" || fxImage.magickColorspace === "Log" || fxImage.magickColorspace === "Adobe98" || fxImage.magickColorspace === "OHTA" || fxImage.magickColorspace === "CMY" || fxImage.magickColorspace === "YUV" || fxImage.magickColorspace === "YIQ" || fxImage.magickColorspace === "YDbDr" || fxImage.magickColorspace === "Oklab" || fxImage.magickColorspace === "Luv" || fxImage.magickColorspace === "Oklch" || fxImage.magickColorspace === "LCH" || fxImage.magickColorspace === "LCHab" || fxImage.magickColorspace === "LCHuv" || fxImage.magickColorspace === "CIELab") && key.startsWith("pixel:") ? (yield* evaluate(channelContext)) : (yield* evaluate(channelContext)) * 255);
             }
             if (key.startsWith("hex:")) {
               parts.push(channels.map(value => value.toString(16).toUpperCase().padStart(hexMaximum === 65535 ? 4 : 2, "0")).join(""));
@@ -2226,7 +2228,8 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
   let value:number;
   while(true){
    signal?.throwIfAborted();fxContext.vars.clear();
-   try{value=fn({...fxContext,ch});break;}
+   // Keep image-qualified statistics and scalar FX values independent of this pixel quirk.
+   try{value=fn({...fxContext,ch,statistics:key.startsWith("pixel:") && ch === 0 ? {} : statistics});break;}
    catch(error){
     if (error instanceof FxFrameDemand) { yield { async run() { frames.set(demanded, (await stack!.get(demanded))!); } }; continue; }
     if (error instanceof FxStatisticsDemand) {

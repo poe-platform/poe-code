@@ -3204,7 +3204,7 @@ function* applyMagickTransparentSteps(img: RgbaImage, target: ReturnType<typeof 
     return { ...img, data: out, ...(data16 ? { data16 } : {}), hasAlpha: true };
 }
 
-function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, channels: {
+function* applyMagickEvaluateSteps(img: RgbaImage, op: string, rawNum: number, isPct: boolean, channels: {
     r: boolean;
     g: boolean;
     b: boolean;
@@ -3215,8 +3215,6 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, valStr: string, c
     if (cmyk) img = yield* convertCmykPixels(img);
     const hueSamples = img.hueSamples?.slice();
     let cooperativeWork = 0;
-    const isPct = valStr.trim().endsWith("%");
-    const rawNum = parseFloat(valStr);
     const vByte = isPct
         ? (rawNum / 100) * 255
         : rawNum / 257;
@@ -9656,7 +9654,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-clamp") {
         highDepth = true;
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
-        apply = image => applyMagickEvaluateSteps(image, "clamp", "0", channels, undefined, signal);
+        apply = image => applyMagickEvaluateSteps(image, "clamp", 0, false, channels, undefined, signal);
     } else if (token === "-evaluate") {
         const operationRaw = tokens[++i] ?? "Add", value = tokens[++i] ?? "0";
         const operation = operationRaw.toLowerCase().split("-").join("").split("_").join("");
@@ -9666,8 +9664,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             "threshold", "thresholdblack", "thresholdwhite", "rms", "rootmeansquare", "uniformnoise", "impulsenoise", "gaussiannoise", "laplaciannoise", "multiplicativenoise", "poissonnoise"].includes(operation)) {
             throw new Error(`unrecognized evaluate operator '-evaluate' '${operationRaw}'`);
         }
-        const operand = value.trim().endsWith("%") ? value.trim().slice(0, -1) : value;
-        if (!Number.isFinite(Number(operand)) || !Number.isFinite(Number.parseFloat(operand))) {
+        const isPct = value.trim().endsWith("%");
+        const operand = (isPct ? value.trim().slice(0, -1) : value).trim();
+        const unsigned = (operand.startsWith("+") || operand.startsWith("-") ? operand.slice(1) : operand).toLowerCase();
+        const hexadecimal = unsigned.startsWith("0x");
+        const number = hexadecimal ? Number(unsigned) * (operand.startsWith("-") ? -1 : 1) : Number(operand);
+        if (!Number.isFinite(number) || unsigned.startsWith("0b") || unsigned.startsWith("0o") || (!hexadecimal && Number.parseFloat(operand) !== number)) {
             throw new Error(`invalid argument '-evaluate' '${value}'`);
         }
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
@@ -9675,7 +9677,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = (image, pixelOffset = 0) => {
             if ((operation === "uniformnoise" || operation === "gaussiannoise" || operation === "impulsenoise" || operation === "laplaciannoise" || operation === "multiplicativenoise" || operation === "poissonnoise") && pixelOffset === 0)
                 random = createMagickRandom(state.seed ?? 0n);
-            return applyMagickEvaluateSteps({ ...image, isPalette: false }, operation, value, channels, random, signal);
+            return applyMagickEvaluateSteps({ ...image, isPalette: false }, operation, number, isPct, channels, random, signal);
         };
     } else if (token === "-function") {
         highDepth = true;

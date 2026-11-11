@@ -7,6 +7,18 @@ import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.j
 for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     it.each([
         ["Add", "bogus", undefined],
+        ["Set", "0b0", undefined],
+        ["Set", "0o0", undefined],
+        ["Set", "0b100", undefined],
+        ["Set", "0o100", undefined],
+        ["Set", "+0b100", undefined],
+        ["Set", "-0b100", undefined],
+        ["Set", "+0o100", undefined],
+        ["Set", "-0o100", undefined],
+        ["Set", "0B100", undefined],
+        ["Set", "0O100", undefined],
+        ["Set", "0x20junk", undefined],
+
         ["Multiply", "2junk", undefined],
         ["Add", "", undefined],
         ["Add", "NaN", undefined],
@@ -23,11 +35,11 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
         const fs = new MemoryFileSystem();
         for (const [path, bytes] of files) await fs.writeFile(path, bytes);
         const args = ["/in.png", "-evaluate", operator, operand, "/out.png"];
-        let stderr = "";
+        let stderr = "", stdout = "";
         const result = mode === "command" ? await createMagickCommand().execute({
             command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
             stdin: (async function* () {})(), signal: new AbortController().signal,
-            stdout: { write: async () => {} }, stderr: { write: async chunk => { stderr += new TextDecoder().decode(chunk); } },
+            stdout: { write: async chunk => { stdout += new TextDecoder().decode(chunk); } }, stderr: { write: async chunk => { stderr += new TextDecoder().decode(chunk); } },
         }) : mode === "sync" ? runConvertCliSync(args, files)
             : await runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
         const output = mode === "command" || mode === "retained" ? await fs.readFile("/out.png") : files.get("/out.png")!;
@@ -37,6 +49,7 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
         } else {
             expect(result.exitCode).toBe(1);
             expect("stderr" in result ? result.stderr : stderr).toContain("invalid argument '-evaluate'");
+            expect(stdout).toBe("");
             expect(output).toEqual(original);
         }
     });

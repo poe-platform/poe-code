@@ -17856,7 +17856,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed.startsWith("channelmap=")) {
                         let map: string | undefined;
                         let layout: string | undefined;
-                        for (const [index, option] of trimmed.slice("channelmap=".length).trimStart().split(":").entries()) {
+                        const options = trimmed.slice("channelmap=".length).trimStart().split(":");
+                        if (options.at(-1) === "") options.pop();
+                        for (const [index, option] of options.entries()) {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? ["map", "channel_layout"][index] : option.slice(0, separator);
                           const value = separator < 0 ? option : option.slice(separator + 1);
@@ -17870,7 +17872,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               throw new RangeError(`channelmap: invalid ${key}`);
                             }
                             // Scheduling and hardware frame reservations do not change PCM samples.
-                          } else throw new Error(`channelmap: unsupported option ${key}`);
+                          } else if (option === "") throw new Error("channelmap: empty option");
+                          else throw new Error(`channelmap: unsupported option ${key}`);
                         }
                         if (layout === "") throw new Error("channelmap: empty channel layout");
                         const speakers = Object.keys(audioSpeakerMasks);
@@ -19909,6 +19912,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "amix: invalid normalize" || msg === "amix: invalid expression" ||
                 msg === "amix: invalid or unsupported expression") return { exitCode: 234 };
             if (msg === "channelmap: unsupported option enable") return { exitCode: 176 };
+            if (msg === "channelmap: empty option") return { exitCode: 234 };
             if (msg.startsWith("channelmap: unsupported option ")) return { exitCode: 8 };
             if (msg === "pan: unsupported option enable") return { exitCode: 176 };
             if (msg === "channelsplit: unsupported option enable") return { exitCode: 176 };

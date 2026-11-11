@@ -11822,6 +11822,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (target && target !== "-") files.set(target, new TextEncoder().encode(result));
                 else analysis.text += result;
             }
+            else if (writePath.toLowerCase().startsWith("txt:") || (writePath.toLowerCase().endsWith(".txt") && !writePath.includes(":"))) {
+                let text = "";
+                for (const frame of stack) text += yield* formatTxtEnumerationSteps(frame, state.inputDepth);
+                const target = writePath.toLowerCase().startsWith("txt:") ? writePath.slice(4) : writePath;
+                if (!target || target === "-") analysis.text += text;
+                else files.set(target, new TextEncoder().encode(text));
+            }
             else if (stack.length > 0 && writePath && writePath.toLowerCase() !== "null:") {
                 const top = stack[stack.length - 1]!;
                 const { format, path, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(writePath, top.format);
@@ -15803,6 +15810,18 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         if (input.stdout) await writeIdentifyText(input.stdout, part, signal);
                         else analysis.text += part;
                     }
+                }
+                else if (image && (path.toLowerCase().startsWith("txt:") || (path.toLowerCase().endsWith(".txt") && !path.includes(":")))) {
+                    async function* enumeration(): AsyncGenerator<string> {
+                        for (let index = 0; index < stack.length; index++) {
+                            await yieldTurn(signal);
+                            yield* storedPixelEnumeration((await stack.get(index))!, backend.storage, signal, netpbmDepth);
+                        }
+                    }
+                    const target = path.toLowerCase().startsWith("txt:") ? path.slice(4) : path;
+                    if (target && target !== "-") await backend.stageText(image, target, encodeText(enumeration(), signal));
+                    else if (input.stdout) for await (const chunk of encodeText(enumeration(), signal)) await writeBytes(input.stdout, chunk, signal);
+                    else for await (const part of enumeration()) analysis.text += part;
                 }
                 else if (image && path && path.toLowerCase() !== "null:") {
                     const output = inferOutputFormat(path, image.format);

@@ -29,6 +29,7 @@ export function parseAudioSegment(filter: string): string[] {
       validateWeaveGenericOption(key, value, "asegment");
       continue;
     }
+    if (key === "enable") throw new Error("asegment: timeline is unsupported");
     if (key !== "timestamps" && key !== "samples") throw new Error("asegment: unsupported option");
     options.set(key, value);
   }

@@ -20724,6 +20724,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
             if (msg.startsWith("asendcmd: Cannot read file '")) return { exitCode: 254 };
             if (msg === "asendcmd: Only one of the filename or commands options must be specified.") return { exitCode: 234 };
+            if (msg === "asegment: timeline is unsupported") return { exitCode: 176 };
+            if (msg === "asegment: unsupported option") return { exitCode: 8 };
+            if (msg === "asegment: invalid split point") return { exitCode: 234 };
             if (msg.startsWith("More input link labels specified for filter ")) return { exitCode: 234 };
             if (msg.startsWith("Unsupported audio filter:")) return { exitCode: 8 };
             if (msg.startsWith("Simple filtergraph '")) return { exitCode: 234 };

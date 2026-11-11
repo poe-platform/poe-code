@@ -11970,6 +11970,43 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     // One output is an identity, including for downstream frame bounds and PCM precision.
                     return Number(count) === 1 ? "anull" : item;
                   }) : [];
+                  for (const [index, item] of audioFilters.entries()) {
+                    const equals = item.indexOf("=");
+                    if (item.slice(0, equals).split("@", 1)[0] !== "asendcmd") continue;
+                    const argument = item.slice(equals + 1);
+                    const options: string[] = [];
+                    let option = "";
+                    let quoted = false;
+                    for (let i = 0; i < argument.length; i++) {
+                      const char = argument[i]!;
+                      if (char === "'") quoted = !quoted;
+                      else if (!quoted && char === "\\" && i + 1 < argument.length) option += argument[++i]!;
+                      else if (!quoted && char === ":") { options.push(option); option = ""; }
+                      else option += char;
+                    }
+                    options.push(option);
+                    let filename: string | undefined;
+                    let commands: string | undefined;
+                    for (const [position, value] of options.entries()) {
+                      const separator = value.indexOf("=");
+                      const key = separator < 0 ? ["commands", "filename"][position] : value.slice(0, separator);
+                      const text = separator < 0 ? value : value.slice(separator + 1);
+                      if (key === "f" || key === "filename") filename = text;
+                      else if (key === "c" || key === "commands") commands = text;
+                    }
+                    if (filename === undefined) continue;
+                    if (commands !== undefined) {
+                      throw new Error("asendcmd: Only one of the filename or commands options must be specified.");
+                    }
+                    let bytes: Uint8Array;
+                    try {
+                      bytes = await readInput(resolvePath(context.cwd, filename));
+                    } catch (error) {
+                      rethrowRuntimeError(context, error);
+                      throw new Error(`asendcmd: Cannot read file '${filename}': ${error instanceof Error ? error.message : String(error)}`);
+                    }
+                    audioFilters[index] = `${item.slice(0, equals)}=c=${new TextDecoder().decode(bytes)}`;
+                  }
                   if (filter) {
                     let audioCommands: { sample: number; target: string; action: string; expression: string }[] = [];
                     const commandSenders = audioFilters.flatMap((item, sender) => {
@@ -17824,6 +17861,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 encodeUtf8("Could not write header (incorrect codec parameters ?): Invalid argument\n"), context.signal);
               return { exitCode: 234 };
             }
+            if (msg.startsWith("asendcmd: Cannot read file '")) return { exitCode: 254 };
+            if (msg === "asendcmd: Only one of the filename or commands options must be specified.") return { exitCode: 234 };
             if (msg.startsWith("Unsupported audio filter:")) return { exitCode: 8 };
             if (msg.startsWith("aemphasis: unsupported ")) return { exitCode: 8 };
             if (msg.startsWith("aemphasis:")) return { exitCode: err instanceof RangeError ? 222 : 234 };

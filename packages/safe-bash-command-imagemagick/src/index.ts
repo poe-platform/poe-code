@@ -1282,10 +1282,6 @@ function parseMagickConvolveKernel(spec: string, normalize = true, reverse = fal
     return { weights: reverse ? weights.reverse() : weights, width, height,
         x: reverse ? width - 1 - x : x, y: reverse ? height - 1 - y : y };
 }
-function* applyMagickCustomConvolveSteps(img: RgbaImage, spec: string, signal?: AbortSignal): Generator<void, RgbaImage, void> {
-    const kernel = parseMagickConvolveKernel(spec);
-    return kernel.weights.length ? yield* applyMagickRasterSteps(img, convolvePixelSteps(img, kernel, 0), signal) : img;
-}
 
 function parseMagickColorMatrix(spec: string): { m: number[]; cols: number; rows: number } {
     const separator = spec.indexOf(":");
@@ -14098,9 +14094,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
         }
         else if (t === "-convolve") {
-            const kSpec = tokens[++i] ?? "1";
+            const kernel = parseMagickConvolveKernel(tokens[++i] ?? "1");
+            const channels = state.channelExplicit ? state.channels : undefined;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
-                return (yield* applyMagickCustomConvolveSteps(im, kSpec, signal));
+                return kernel.weights.length ? yield* applyMagickRasterSteps(im, convolvePixelSteps(im, kernel, 0, undefined, channels), signal) : im;
             });
         }
         else if (t === "-read-mask" || t === "+read-mask") {
@@ -18635,7 +18632,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
         } else if (!operandsOnly && token === "-convolve") {
             const spec = tokens[++i] ?? "1";
             const kernel = parseMagickConvolveKernel(spec);
-            steps.push(async (image, backend) => image && kernel.weights.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0), signal) : image);
+            const channels = state.channelExplicit ? state.channels : undefined;
+            steps.push(async (image, backend) => image && kernel.weights.length ? transformStoredMagickRaster(image, backend, convolvePixelSteps(image, kernel, 0, undefined, channels), signal) : image);
         } else if (!operandsOnly && token === "-copy") {
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);

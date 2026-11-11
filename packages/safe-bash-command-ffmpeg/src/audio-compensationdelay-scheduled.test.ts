@@ -7,6 +7,29 @@ import { createFfmpegCommand } from "./index.js";
 // Native FFmpeg 7.0.2: 128 mono PCM16 samples 256..383, 8 kHz.
 // asetnsamples=32:0,asendcmd=c='0.004 compensationdelay@d ACTION VALUE',compensationdelay@d=m=1
 for (const graph of [false, true]) {
+  for (const threshold of [3, 4, 5]) {
+    it(`preserves enable registers across frames at threshold ${threshold} (${graph ? "graph" : "simple"})`, async () => {
+      const pcm = await run(`compensationdelay=m=1:enable='gte(st(0,ld(0)+1),${threshold})'`, graph);
+      assert.deepEqual(pcm, expected(i => 2 * (Math.floor(i / 32) + 1) >= threshold ? delayed(i, 23) : 256 + i));
+    });
+  }
+
+  it(`isolates enable registers between instances (${graph ? "graph" : "simple"})`, async () => {
+    const stateful = "compensationdelay=m=1:enable='gte(st(0,ld(0)+1),4)'";
+    const control = "compensationdelay=m=1:enable='gte(n,1)'";
+    assert.deepEqual(await run(`${stateful},${stateful}`, graph), await run(`${control},${control}`, graph));
+  });
+
+  it(`resets registers after replacing enable (${graph ? "graph" : "simple"})`, async () => {
+    assert.deepEqual(await run("asendcmd=c='0.008 compensationdelay@d enable gte(st(0,ld(0)+1),4)',compensationdelay@d=m=1:enable='st(0,1)'", graph),
+      expected(i => i >= 64 && i < 96 ? 256 + i : delayed(i, 23)));
+  });
+
+  it(`preserves registers after rejected enable updates (${graph ? "graph" : "simple"})`, async () => {
+    assert.deepEqual(await run("asendcmd=c='0.004 compensationdelay@d enable st(0,99)+unknown',compensationdelay@d=m=1:enable='gte(st(0,ld(0)+1),5)'", graph),
+      expected(i => i < 64 ? 256 + i : delayed(i, 23)));
+  });
+
   for (const [action, value, delay, dry, wet, bypass] of [
     ["wet", "0", 23, 0, 0, false],
     ["dry", "0.5", 23, 0.5, 1, false],

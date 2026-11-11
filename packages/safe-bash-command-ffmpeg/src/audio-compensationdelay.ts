@@ -12,6 +12,7 @@ export async function compensateAudioDelay(
   const defaults = [0, 0, 0, 0, 1, 20];
   const values = [...defaults];
   let enable: string | undefined;
+  const registers = new Float64Array(10);
   const argument = filter.slice("compensationdelay=".length);
   const options = argument.split(":");
   if (options.at(-1) === "") options.pop();
@@ -28,8 +29,10 @@ export async function compensateAudioDelay(
   }
   function setOption(name: string, raw: string): void {
     if (name === "enable") {
-      parseFilterExpression(raw, "compensationdelay enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, PI: Math.PI, E: Math.E });
+      // Validation must not advance or corrupt the active expression's state.
+      parseFilterExpression(raw, "compensationdelay enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0, PI: Math.PI, E: Math.E }, undefined, new Float64Array(10));
       enable = raw;
+      registers.fill(0);
       return;
     }
     const key = names.indexOf(name);
@@ -61,10 +64,16 @@ export async function compensateAudioDelay(
     // Recompute whole-sample delay after distance or temperature updates.
     const speed = 1.85325 * (643.95 * Math.sqrt((values[5]! + 273.15) / 273.15)) * 100000 / 3600;
     const delay = Math.trunc((values[2]! * 100 + values[1]! + values[0]! * 0.1) * (1 / speed) * sampleRate);
-    const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "compensationdelay enable", {
-      n, t: frame.pts / sampleRate, pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN,
-      w: 0, h: 0, PI: Math.PI, E: Math.E
-    })) >= 0.5;
+    let enabled = true;
+    if (enable !== undefined) {
+      const variables = {
+        n, t: frame.pts / sampleRate, pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN,
+        w: 0, h: 0, PI: Math.PI, E: Math.E
+      };
+      // FFmpeg evaluates on frame consumption and again before filter_frame.
+      parseFilterExpression(enable, "compensationdelay enable", variables, undefined, registers);
+      enabled = Math.abs(parseFilterExpression(enable, "compensationdelay enable", variables, undefined, registers)) >= 0.5;
+    }
     for (let i = frame.start; i < frame.end; i++) {
       if (i % 1024 === 0) { budget.checkCpu(); await yieldTurn(signal); signal?.throwIfAborted(); }
       for (const [c, channel] of channels.entries()) {

@@ -9601,7 +9601,7 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             }, 0)!.apply;
         }
         // Retain HDRI lookup fractions without changing the input's output depth.
-        const cmyk = image.space === "cmyk" && (token === "-contrast-stretch" || token === "-equalize");
+        const cmyk = image.space === "cmyk";
         // Gray's single color channel is selected by R across all three backing samples.
         const gray = image.space === "b-w" || image.space === "grey16";
         const active = [channels.r, gray ? channels.r : channels.g, gray ? channels.r : channels.b, (!independent || channels.a) && (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false), cmyk && (!independent || settings.channels.k === true)];
@@ -13680,7 +13680,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if ((t === "-normalize" || t === "-contrast-stretch") && image.space !== "cmyk" && image[magickInput]?.imageType)
                     image = yield* prepareMagickGrayStretch(image);
                 const sums = t === "-auto-gamma" ? { count: 0, values: [0, 0, 0, 0, 0] } : undefined;
-                const cmykHistogram = image.space === "cmyk" && (t === "-contrast-stretch" || t === "-linear-stretch" || t === "-equalize");
+                const cmykHistogram = image.space === "cmyk" && (t === "-normalize" || t === "-contrast-stretch" || t === "-linear-stretch" || t === "-equalize");
                 const histogram = sums ? [] : t === "-auto-level" ? Array.from({ length: image.space === "cmyk" ? 5 : 4 }, () => new Float64Array([Infinity, -Infinity])) : Array.from({ length: cmykHistogram || operation.sepiaThreshold !== undefined && image.space === "cmyk" ? 6 : analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(cmykHistogram || channel === 4 || operation.sepiaThreshold !== undefined || analysisOperation.highDepth && image.data16 ? 65536 : 256));
                 const selection = t === "-auto-gamma" ? yield* readMaskSelectionSteps(image, 0, image.data.length) : undefined;
                 yield* accumulateMagickHistogram(analysisOperation.highDepth ? image.data16 ?? image.data : image.data, histogram, state.intensity, image.magickColorspace === "RGB" || image.magickColorspace === "scRGB", selection, operation.sepiaThreshold, image.space === "b-w" || image.space === "grey16", image, 0, state.channels, cmykHistogram || operation.sepiaThreshold !== undefined || t === "-auto-level" || t === "-auto-threshold" && image.space === "cmyk" || t === "-equalize" || sums ? image.hueSamples ?? image.evaluateSamples : undefined, !!image.hueSamples, image.space === "cmyk", sums, t === "-auto-level");
@@ -17867,7 +17867,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if ((token === "-normalize" || token === "-contrast-stretch") && image.space !== "cmyk" && image[magickInput]?.imageType)
                     image = await transformStoredMagickPixels(image, backend, { end: 0, evaluate: true, apply: prepareMagickGrayStretch }, signal, true);
                 const sums = token === "-auto-gamma" ? { count: 0, values: [0, 0, 0, 0, 0] } : undefined;
-                const cmykHistogram = image.space === "cmyk" && (token === "-contrast-stretch" || token === "-linear-stretch" || token === "-equalize");
+                const cmykHistogram = image.space === "cmyk" && (token === "-normalize" || token === "-contrast-stretch" || token === "-linear-stretch" || token === "-equalize");
                 const histogram = sums ? [] : token === "-auto-level" ? Array.from({ length: image.space === "cmyk" ? 5 : 4 }, () => new Float64Array([Infinity, -Infinity])) : Array.from({ length: cmykHistogram || operation.sepiaThreshold !== undefined && image.space === "cmyk" ? 6 : analysisOperation.luminance ? 5 : 4 }, (_, channel) => new Float64Array(cmykHistogram || channel === 4 || operation.sepiaThreshold !== undefined || analysisOperation.highDepth && image.storedData16 ? 65536 : 256)), size = image.width * image.height * 4;
                 const metaChannels = (token === "-auto-level" || sums) && settings.channelDefault ? image.storedMetaChannels : undefined;
                 for (const plane of [image, ...metaChannels ?? []]) {

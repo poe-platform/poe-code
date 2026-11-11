@@ -17401,6 +17401,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             rethrowRuntimeError(context, err);
             const msg = err instanceof Error ? err.message : String(err);
             await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
+            if (msg.startsWith("Unsupported audio filter:")) return { exitCode: 8 };
             if (msg.startsWith("Unknown input format:")) return { exitCode: 234 };
             if (msg === audioConversionDisabled) return { exitCode: 234 };
             if (msg.startsWith("afade: silence:") || msg.startsWith("afade: unity:")) {

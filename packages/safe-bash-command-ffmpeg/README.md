@@ -963,6 +963,7 @@ uses normalized speaker weights and excludes LFE.
 to front left/right/center before extraction. Mono occupies center; stereo leaves
 center silent. Surround mixes omit LFE and normalize integer samples across all
 three output speakers. Automatic conversion filters must be enabled.
+For `channelsplit=7.1:FL` (or another 7.1 speaker), input is converted to 7.1 before extraction: missing speakers are silent, back center is shared between back left/right, and wide front speakers fold into front left/right with normalized integer mixing.
 Matching custom channel orders support named extraction, for example
 `join=channel_layout=FR+FL:map=0.0-FR|1.0-FL,channelsplit=FR+FL:FR`.
 `channels=all` emits speakers in the custom layout’s order.

@@ -18836,6 +18836,34 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           filteredChannelMask = mixed.channelMask;
                           filteredChannelNames = undefined;
                         }
+                        if (mask === 0x63f && (stretched.length !== 8 || filteredChannelMask !== mask)) {
+                          if (!autoConversionFilters) throw new Error(audioConversionDisabled);
+                          const sourceMask = filteredChannelMask ||
+                            ([0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][stretched.length] ?? 0);
+                          const sources = Object.keys(audioSpeakerMasks).filter(name =>
+                            Math.floor(sourceMask / audioSpeakerMasks[name]!) % 2 === 1);
+                          const rows = [
+                            { FL: 1, FLC: 1 }, { FR: 1, FRC: 1 }, { FC: 1 }, { LFE: 1 },
+                            { BL: 1, BC: Math.SQRT1_2 }, { BR: 1, BC: Math.SQRT1_2 },
+                            { SL: 1 }, { SR: 1 }
+                          ];
+                          // SWR normalizes every output by the largest contributing row sum.
+                          const floating = ["flt", "fltp", "dbl", "dblp"].includes(panSampleFormat);
+                          const scale = floating ? 1 : Math.max(1, ...rows.map(row =>
+                            sources.reduce((sum, name) => sum + (row[name as keyof typeof row] ?? 0), 0)));
+                          const expression = rows.map((row, index) =>
+                            `${input[index]}=${Object.entries(row).map(([name, gain]) => {
+                              const value = gain / scale;
+                              const coefficient = panSampleFormat === "s16" || panSampleFormat === "s16p"
+                                ? Math.round(value * 32768) / 32768 : value;
+                              return `${coefficient}*${name}`;
+                            }).join("+")}`);
+                          const mixed = await panAudio(`7.1|${expression.join("|")}`, stretched,
+                            sourceMask, panSampleFormat, budget, context.signal);
+                          stretched = mixed.channels;
+                          filteredChannelMask = mixed.channelMask;
+                          filteredChannelNames = undefined;
+                        }
                         const quad = stretched.length === 4 && filteredChannelMask === 0x33;
                         if (mask === 3 && (stretched.length === 1 || quad || stretched.length === 6)) {
                           const mono = stretched.length === 1;

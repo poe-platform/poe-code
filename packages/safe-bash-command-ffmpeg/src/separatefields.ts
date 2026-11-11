@@ -4,6 +4,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 export async function separateFields(
   frames: (MediaVideoFrame & { interlaced?: boolean; topFieldFirst?: boolean })[],
   budget: MediaBudgetTracker,
+  endTimeSeconds: number | undefined,
   signal?: AbortSignal
 ): Promise<(MediaVideoFrame & { interlaced: boolean; topFieldFirst: boolean })[]> {
   const output: (MediaVideoFrame & { interlaced: boolean; topFieldFirst: boolean })[] = [];
@@ -19,7 +20,7 @@ export async function separateFields(
       budget.recordFrame(frame.width, height);
       const parity = frame.topFieldFirst ? field : 1 - field;
       const result = { ...frame, height, durationSeconds,
-        ptsSeconds: frame.ptsSeconds + (field ? ((frames[index + 1]?.ptsSeconds ??
+        ptsSeconds: frame.ptsSeconds + (field ? ((frames[index + 1]?.ptsSeconds ?? endTimeSeconds ??
           frame.ptsSeconds + frame.durationSeconds) - frame.ptsSeconds) / 2 : 0),
         interlaced: false, topFieldFirst: false };
       const native = frame.native;

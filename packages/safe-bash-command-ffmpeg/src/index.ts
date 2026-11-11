@@ -4886,7 +4886,7 @@ async function applyVideoFilterChain(
         if (key === "enable") throw new Error("separatefields: timeline is unsupported");
         throw new Error(`separatefields: unsupported option ${key}`);
       }
-      current = await separateFields(current, budget, signal);
+      current = await separateFields(current, budget, endTimeSeconds, signal);
       timescale *= 2;
       diagnostics.timescale = timescale;
     } else if (name === "tinterlace") {

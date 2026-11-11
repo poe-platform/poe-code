@@ -2105,13 +2105,16 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
             source.track = await filterAudio(source.track, source.expression);
           }
         }
-        // Split outputs share their input list. Only pass-through branches
-        // forward EOF together; buffering/reframing filters schedule it separately.
-        const splitInputs = node.inputs.map(input => {
+        // Split outputs share their input list. Reversing the first branch drains
+        // the split, so a pass-through second branch has already reached EOF.
+        // Buffering/reframing the second branch still schedules its EOF separately.
+        const splitInputs = node.inputs.map((input, inputIndex) => {
           let branch = nodes.get(input);
           while (branch && !branch.asplit && branch.inputs.length === 1 &&
-            parseFilterChain(branch.expression).every(filter =>
-              ["anull", "acopy"].includes(filter.split("=", 1)[0]!.split("@", 1)[0]!))) {
+            parseFilterChain(branch.expression).every(filter => {
+              const name = filter.split("=", 1)[0]!.split("@", 1)[0]!;
+              return ["anull", "acopy"].includes(name) || inputIndex === 0 && name === "areverse";
+            })) {
             branch = nodes.get(branch.inputs[0]!);
           }
           return branch?.asplit ? branch.inputs : undefined;

@@ -29,6 +29,7 @@ export async function pulsateAudio(
       const values = key === "mode" ? ["sine", "triangle", "square", "sawup", "sawdown"] : ["bpm", "ms", "hz"];
       const number = parseFilterExpression(value, "apulsator", {
         PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2,
+        min: 0, max: values.length - 1, default: key === "mode" ? 0 : 2,
         ...Object.fromEntries(values.map((name, index) => [name, index]))
       });
       if (number < 0 || number > values.length - 1) throw new Error(`apulsator: invalid ${key}`);

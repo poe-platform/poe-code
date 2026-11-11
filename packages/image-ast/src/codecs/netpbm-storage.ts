@@ -19,7 +19,8 @@ export async function decodeNetpbmToStorage(source:ImageByteSource,storage:Image
  if(magic==="P7"&&source.size-dataOffset<width*height*channels*(maxval>255?2:1)) throw new Error("Truncated PAM raster");
  const metadata:StoredRgbaImage={...(properties?{properties}:{}),width,height,position:0,format,space:cmyk?"cmyk":channels>=3?"srgb":"b-w",channels,depth:format==="pbm"?"bit":maxval>255?"ushort":"uchar",density:72,hasAlpha};
  const output=new Output(metadata,width,height,storage,signal);let position=dataOffset;
- const storedData16=maxval>255?{position:storage.allocate(width*height*8),length:width*height*4}:undefined;
+ // Retain precision whenever the input scale cannot be represented in 8 bits.
+ const storedData16=255%maxval!==0?{position:storage.allocate(width*height*8),length:width*height*4}:undefined;
  const storedHueSamples=cmyk?storage.allocate(width*height*32):undefined;
  const storedEvaluateSamples=cmyk?storage.allocate(width*height*32):undefined;
  const evaluated=cmyk?new Float64Array(2048):undefined;

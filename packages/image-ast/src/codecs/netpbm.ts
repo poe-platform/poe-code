@@ -67,7 +67,8 @@ export function decodeNetpbmImage(bytes: Uint8Array, page = 0): RgbaImage {
   const rgba = new Uint8Array(width * height * 4);
   const evaluateSamples = cmyk ? new Float64Array(rgba.length) : undefined;
   const hueSamples = cmyk ? new Float64Array(rgba.length) : undefined;
-  const data16 = maxval > 255 ? new Uint16Array(width * height * 4) : undefined;
+  // Retain precision whenever the input scale cannot be represented in 8 bits.
+  const data16 = 255 % maxval !== 0 ? new Uint16Array(width * height * 4) : undefined;
   let pos = hdr.dataOffset;
 
   const readNextAsciiInt = (): number => {

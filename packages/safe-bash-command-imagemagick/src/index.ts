@@ -26,7 +26,7 @@ import { morphologyWorkingPixelSteps } from "./morphology-working.js";
 import { builtinPattern } from "./builtin-patterns.js";
 import { gradientRadii } from "./gradient-radii.js";
 import { gradientVector } from "./gradient-vector.js";
-import { gradientCenter, gradientProjection, validateGradientBoundingBox } from "./gradient.js";
+import { gradientCenter, gradientProjection, gradientRadialProjection, validateGradientBoundingBox } from "./gradient.js";
 import { besselJ } from "./bessel.js";
 import { clahePixelSteps, parseClaheGeometry } from "./clahe-kernel.js";
 import { localThresholdPixelSteps, parseLocalThresholdGeometry } from "./local-threshold-kernel.js";
@@ -2201,7 +2201,7 @@ function* createGradientImageSteps(width: number, height: number, c1: ReturnType
     const hueSamples = c1.cmyk ? new Float64Array(w * h * 4) : undefined;
     if (!radial && extent !== undefined) direction ??= "southeast";
     const axes = gradientRadii(w, h, extent, radii);
-    const vectorFactor = gradientVector(w, h, (radial && center) ? undefined : radial || angle === undefined ? vector : undefined, radial, axes);
+    const vectorFactor = gradientVector(w, h, (radial && center) ? undefined : radial || angle === undefined ? vector : undefined, radial, axes, angle);
     if (!hueSamples && !radial && direction === undefined && angle === undefined && !vectorFactor && box === undefined) {
         const u64 = new BigUint64Array(data16.buffer);
         const u32 = new Uint32Array(data.buffer, 0, w * h);
@@ -2224,7 +2224,7 @@ function* createGradientImageSteps(width: number, height: number, c1: ReturnType
         }
     } else {
         const { x: cx, y: cy } = gradientCenter(w, h, direction, center, vector);
-        const projection = gradientProjection(w, h, direction, angle);
+        const projection = radial ? gradientRadialProjection(cx, cy, axes, angle) : gradientProjection(w, h, direction, angle);
         for (let y = 0; y < h; y++) {
             if (++work % 16384 === 0)
                 yield;
@@ -2232,7 +2232,7 @@ function* createGradientImageSteps(width: number, height: number, c1: ReturnType
                 if (++work % 16384 === 0)
                     yield;
                 const outside = box && (x < box.x || y < box.y || x >= box.x + (box.width ?? w) || y >= box.y + (box.height ?? h));
-                const t = outside ? 0 : vectorFactor ? vectorFactor(x, y) : radial ? Math.min(1, Math.hypot((x - cx) / axes[0], (y - cy) / axes[1])) : projection(x, y);
+                const t = outside ? 0 : vectorFactor ? vectorFactor(x, y) : projection(x, y);
                 const idx = (y * w + x) * 4;
                 writeGradientPixel(data, data16, evaluateSamples, idx, c1, c2, t, hueSamples, outside);
             }
@@ -19072,15 +19072,15 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const spec=baseToken.slice(baseToken.indexOf(":")+1),separator=spec.indexOf("-"),first=separator<0?spec:spec.slice(0,separator),last=separator<0?"":spec.slice(separator+1),a=parseColor(checker?"white":first||"#ffffff",true),b=parseColor(checker||separator<0?"#000000":last||"#ffffff",true);
   const storedHueSamples=a.cmyk?backend.storage.allocate(width*height*32):undefined;
   const {x:cx,y:cy}=gradientCenter(width,height,state.gradientDirection,state.gradientCenter,state.gradientVector),axes=gradientRadii(width,height,state.gradientExtent,state.gradientRadii),box=state.gradientBoundingBox;
-  const projection=gradientProjection(width,height,state.gradientDirection??(state.gradientExtent===undefined?undefined:"southeast"),state.gradientAngle);
-  const vectorFactor=gradientVector(width,height,(radial&&state.gradientCenter)?undefined:radial||state.gradientAngle===undefined?state.gradientVector:undefined,radial,axes);
+  const projection=radial?gradientRadialProjection(cx,cy,axes,state.gradientAngle):gradientProjection(width,height,state.gradientDirection??(state.gradientExtent===undefined?undefined:"southeast"),state.gradientAngle);
+  const vectorFactor=gradientVector(width,height,(radial&&state.gradientCenter)?undefined:radial||state.gradientAngle===undefined?state.gradientVector:undefined,radial,axes,state.gradientAngle);
   for(let start=0;start<width*height;start+=4096){
    if(start%262144===0)await yieldTurn(signal);
    const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4),samples=checker?undefined:new Uint16Array(count*4),evaluateSamples=checker?undefined:new Float64Array(count*4),hueSamples=a.cmyk?new Float64Array(count*4):undefined;
    for(let i=0;i<count;i++){
     const x=(start+i)%width,y=Math.floor((start+i)/width),offset=i*4;
     if(pattern){const cell=pattern.gray(x,y);bytes[offset]=cell;bytes[offset+1]=cell;bytes[offset+2]=cell;bytes[offset+3]=255;}
-    else{const outside=box&&(x<box.x||y<box.y||x>=box.x+(box.width??width)||y>=box.y+(box.height??height));const t=outside?0:vectorFactor?vectorFactor(x,y):radial?Math.min(1,Math.hypot((x-cx)/axes[0],(y-cy)/axes[1])):projection(x,y);writeGradientPixel(bytes,samples!,evaluateSamples!,offset,a,b,t,hueSamples,outside);}
+    else{const outside=box&&(x<box.x||y<box.y||x>=box.x+(box.width??width)||y>=box.y+(box.height??height));const t=outside?0:vectorFactor?vectorFactor(x,y):projection(x,y);writeGradientPixel(bytes,samples!,evaluateSamples!,offset,a,b,t,hueSamples,outside);}
    }
    await backend.storage.write(position+start*4,bytes);
    if(storedData16&&samples)await backend.storage.write(storedData16.position+start*8,new Uint8Array(samples.buffer));

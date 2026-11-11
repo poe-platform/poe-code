@@ -28,6 +28,16 @@ export function gradientCenter(width: number, height: number, direction?: string
     return { x: center?.x ?? x, y: center?.y ?? y };
 }
 
+/** Rotate pixel offsets into the ellipse's axes before measuring radial distance. */
+export function gradientRadialProjection(cx: number, cy: number, radii: readonly [number, number], angle = 0): (x: number, y: number) => number {
+    const radians = radii[0] === radii[1] ? 0 : angle * Math.PI / 180;
+    const cosine = Math.cos(radians), sine = Math.sin(radians);
+    return (x, y) => {
+        const dx = x - cx, dy = y - cy;
+        return Math.min(1, Math.hypot((cosine * dx + sine * dy) / radii[0], (sine * dx - cosine * dy) / radii[1]));
+    };
+}
+
 /** Linear projection matching ImageMagick's gradient endpoints. */
 export function gradientProjection(width: number, height: number, direction?: string, angle?: number): (column: number, row: number) => number {
     let x = 0, y = 1;

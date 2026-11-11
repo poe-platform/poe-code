@@ -1639,6 +1639,17 @@ async function panAudio(
   if (pureMapping && names.length > 1 && names.includes("FL") !== names.includes("FR")) {
     throw new Error(`pan: unsupported output channel layout ${layout}`);
   }
+  // With equal channel counts, SWR retains the input layout after pure mapping.
+  // It validates that layout and remixes the mapped center into both stereo speakers.
+  if (pureMapping && names.length === channels.length) {
+    if (inputNames.length > 1 && inputNames.includes("FL") !== inputNames.includes("FR")) {
+      throw new Error("pan: unsupported input channel layout");
+    }
+    if (inputMask === 0xc && ["FL+FR", "DL+DR"].includes(names.join("+"))) {
+      const center = gains[0]!.map(gain => gain * Math.SQRT1_2);
+      for (const row of gains) row.set(center);
+    }
+  }
   // Pure channel selection must retain the source sample precision.
   if (gains.every(row => row.every(gain => gain === 0 || gain === 1) &&
       row.filter(gain => gain === 1).length <= 1)) {

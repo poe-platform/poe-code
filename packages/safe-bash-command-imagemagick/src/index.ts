@@ -73,7 +73,7 @@ import { convertHuePixels, prepareHueOutput, formatHuePixel, hueTextPixel, type 
 import { enhancePixelSteps } from "./enhance-kernel.js";
 import { adaptiveEdgePixelSteps, adaptivePixelSteps } from "./adaptive-kernel.js";
 import { sharpenPixelSteps } from "./sharpen-kernel.js";
-import { despecklePixelSteps } from "./despeckle-kernel.js";
+import { despecklePixelSteps, despeckleMetaMaskPixelSteps } from "./despeckle-kernel.js";
 import { waveletDenoisePixelSteps } from "./wavelet-denoise-kernel.js";
 import { segmentPixelSteps } from "./segment.js";
 import { meanShiftPixelSteps, parseMeanShiftGeometry } from "./mean-shift-kernel.js";
@@ -15032,7 +15032,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     result.metaChannels = [];
                     for (const [index, plane] of im.metaChannels.entries()) {
                         const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index);
-                        result.metaChannels.push(selected ? yield* applyMagickRasterSteps(plane, despecklePixelSteps(plane), signal) : plane);
+                        let filtered = selected ? yield* applyMagickRasterSteps(plane, despecklePixelSteps(plane), signal) : plane;
+                        if (selected && (im.region || im.writeMask)) filtered = yield* applyMagickRasterSteps(filtered,
+                            despeckleMetaMaskPixelSteps(im, im.writeMask, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k ?? false] : undefined,
+                                im.metaChannels.map((_, channel) => !state.channelExplicit || state.channelDefault || !!state.channels.meta?.includes(channel)), index), signal, filtered,
+                            im.writeMask ? [filtered, plane, im, result, im.writeMask] : [filtered, plane, im, result]);
+                        result.metaChannels.push(filtered);
                     }
                 }
                 return result;
@@ -19391,7 +19396,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     result.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries()) {
                         const selected = metaChannels === "all" || metaChannels.includes(index);
-                        result.storedMetaChannels.push(selected ? await transformStoredMagickRaster(plane, backend, despecklePixelSteps(plane), signal) : plane);
+                        let filtered = selected ? await transformStoredMagickRaster(plane, backend, despecklePixelSteps(plane), signal) : plane;
+                        if (selected && (image.region || image.storedWriteMask)) filtered = await transformStoredMagickRaster(filtered, backend,
+                            despeckleMetaMaskPixelSteps(image, image.storedWriteMask, channels,
+                                image.storedMetaChannels.map((_, channel) => metaChannels === "all" || metaChannels.includes(channel)), index), signal, filtered,
+                            image.storedWriteMask ? [filtered, plane, image, result, image.storedWriteMask] : [filtered, plane, image, result]);
+                        result.storedMetaChannels.push(filtered);
                     }
                 }
                 return result;

@@ -2795,8 +2795,10 @@ export function serializeSubtitleDocument(
       : format === "srt" && (codec === "ass" || doc.containerFormat === "sami")
         ? text.trimStart().replaceAll("\r\n", "\n").replaceAll("\n", "\r\n") : text.trim();
     if (!(packet?.byteLength ?? cueText.length) && format !== "webvtt") continue;
-    const startMs = Math.round((s.pts / ts) * 1000);
-    const endMs = Math.round(((s.pts + s.duration) / ts) * 1000);
+    const startMs = Math.round(s.pts * 1000 / ts);
+    // SRT receives packet timestamps and durations independently rescaled by the muxer.
+    const endMs = format === "srt" ? startMs + Math.round(s.duration * 1000 / ts)
+      : Math.round(((s.pts + s.duration) / ts) * 1000);
     if (format === "ttml") {
       const text = cueText.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
         .split("\n").join("<br/>");

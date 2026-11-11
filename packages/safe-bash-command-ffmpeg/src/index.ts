@@ -7933,7 +7933,13 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
       if (outputFormat === "ttml" && (doc.containerFormat === "webvtt" || doc.containerFormat === "srt") && track.language === "und") {
         track = { ...track, language: "" };
       }
+      // The SubRip encoder emits microsecond packet timestamps before muxing.
+      const scale = outputFormat === "srt" ? 1_000_000 / track.timescale : 1;
       const samples = track.samples.map((sample, index) => {
+        if (scale !== 1) sample = { ...sample,
+          pts: Math.round(sample.pts * scale), dts: Math.round(sample.dts * scale),
+          cts: Math.round(sample.cts * scale), duration: Math.round(sample.duration * scale)
+        };
         const description = track.codecDescriptions[sample.sampleDescriptionIndex - 1];
         const codec = description?.codecName;
         const sami = doc.containerFormat === "sami";
@@ -8153,7 +8159,11 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
         }
         return { ...sample, webvtt: undefined };
       });
-      return { ...track, samples,
+      return { ...track, samples, timescale: track.timescale * scale,
+        duration: Math.round(track.duration * scale),
+        editList: track.editList?.map(edit => ({ ...edit,
+          mediaTime: edit.mediaTime < 0 ? edit.mediaTime : Math.round(edit.mediaTime * scale)
+        })),
         codecDescriptions: containerCodec ? track.codecDescriptions.map(description => ({
           ...description, codecName: containerCodec,
           formatFourCC: containerCodec === "ass" ? "ass " : containerCodec === "webvtt" ? "wvtt" : "tx3g",

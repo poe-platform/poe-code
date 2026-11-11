@@ -1,7 +1,7 @@
 import type { MediaBudgetTracker, MediaTrack } from "@poe-code/mp4-ast";
 import { parseFilterExpression } from "./filter-expression.js";
 
-export function setPacketTimestamps(tracks: readonly MediaTrack[], filter: string, type: "audio" | "video", budget: MediaBudgetTracker, movieTimescale: number): readonly MediaTrack[] {
+export function setPacketTimestamps(tracks: readonly MediaTrack[], filter: string, type: "audio" | "video" | "subtitle", budget: MediaBudgetTracker, movieTimescale: number): readonly MediaTrack[] {
   const expressions: Record<string, string> = { ts: "TS", duration: "DURATION" };
   if (filter !== "setts") for (const [index, option] of filter.slice(6).split(":").entries()) {
     const equals = option.indexOf("=");

@@ -25,6 +25,10 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
   filters.push(value.trim());
   for (const filter of filters) {
     if (filter === "null") continue;
+    if (filter === "setts" || filter.startsWith("setts=")) {
+      tracks = setPacketTimestamps(tracks, filter, type, budget, movieTimescale);
+      continue;
+    }
     if (filter.startsWith("noise=drop=")) {
       const expression = filter.slice("noise=drop=".length);
       parseFilterExpression(expression, "noise bitstream filter", { n: 0 });
@@ -124,10 +128,6 @@ export function filterBitstream(tracks: readonly MediaTrack[], chain: string | u
           return end === sample.data.length ? sample : { ...sample, data: sample.data.subarray(0, end) };
         })
       });
-      continue;
-    }
-    if (filter === "setts" || filter.startsWith("setts=")) {
-      tracks = setPacketTimestamps(tracks, filter, type, budget, movieTimescale);
       continue;
     }
     if (type === "audio" && (filter === "pcm_rechunk" || filter.startsWith("pcm_rechunk="))) {

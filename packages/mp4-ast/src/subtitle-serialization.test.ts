@@ -48,3 +48,17 @@ for (const newline of ["\n", "\r\n"]) {
       "1\n00:00:01,000 --> 00:00:03,000\nleading and trailing  \n\n");
   });
 }
+
+it("rescales SRT packet starts and durations separately from microseconds", () => {
+  const doc = parseSubtitleDocument(new TextEncoder().encode("1\n00:00:03,000 --> 00:00:04,000\nA\n"), "srt");
+  const track = doc.tracks[0]!;
+  const packet = track.samples[0]!;
+  const output = serializeSubtitleDocument({ ...doc, tracks: [{ ...track, timescale: 1_000_000,
+    samples: [
+      { ...packet, pts: 3_000_500, dts: 3_000_000, duration: 1_000_000 },
+      { ...packet, pts: 5_000_500, dts: 5_000_000, duration: 1_000_500 }
+    ]
+  }] }, "srt");
+  assert.equal(new TextDecoder().decode(output),
+    "1\n00:00:03,001 --> 00:00:04,001\nA\n\n2\n00:00:05,001 --> 00:00:06,002\nA\n\n");
+});

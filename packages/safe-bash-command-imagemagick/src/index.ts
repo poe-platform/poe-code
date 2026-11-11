@@ -6997,7 +6997,12 @@ function* haldInputPixelSteps(width: number): Generator<ConvolveRequest | undefi
     }
 }
 
-function* selectedInputPages(pageSpec: string | undefined, totalPages: number, onInvalidIndex?: (index: number) => void): Generator<number> {
+function* selectedInputPages(pageSpec: string | undefined, totalPages: number, onInvalidIndex?: (index: number) => void, format?: ImageMetadata["format"]): Generator<number> {
+    // The native PNM reader returns a lone image without applying scene selection.
+    if (totalPages === 1 && (format === "pbm" || format === "pgm" || format === "ppm" || format === "pam")) {
+        yield 0;
+        return;
+    }
     if (pageSpec === undefined) {
         for (let page = 0; page < totalPages; page++) yield page;
         return;
@@ -7247,7 +7252,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     catch {
         totalPages = 1;
     }
-    const pageIndices:number[]=[];for(const page of selectedInputPages(pageSpec,totalPages,onInvalidIndex)){if(++work%16384===0)yield;pageIndices.push(page);}
+    const pageIndices:number[]=[];for(const page of selectedInputPages(pageSpec,totalPages,onInvalidIndex,inputMeta?.format)){if(++work%16384===0)yield;pageIndices.push(page);}
     const effectiveMaxDecodeDim = inferMaxDecodeDimensionFromUpcomingTokens([], 0, inlineGeom) ?? maxDecodeDimension;
     const results: RgbaImage[] = [];
     for (const pageIdx of pageIndices) {
@@ -17466,10 +17471,10 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    }
    let path=baseToken;const colon=path.indexOf(":");if(colon>0&&extToImageFormat(path.slice(0,colon)))path=path.slice(colon+1);
    if(readOptions.visit){
-    await backend.load(path,function*(metadata){const total=metadata?.pages&&metadata.pages>1?metadata.pages:1;const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;for(const page of selectedInputPages(pageSpec,total,readOptions.onInvalidIndex))yield {coalesce:false,density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},async(frame)=>{image=await finish(frame);await readOptions.visit!(image);},readOptions.source);
+    await backend.load(path,function*(metadata){const total=metadata?.pages&&metadata.pages>1?metadata.pages:1;const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;for(const page of selectedInputPages(pageSpec,total,readOptions.onInvalidIndex,metadata?.format))yield {coalesce:false,density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},async(frame)=>{image=await finish(frame);await readOptions.visit!(image);},readOptions.source);
     return image;
    }
-   image=await backend.load(path,metadata=>{const total=metadata?.pages&&metadata.pages>1?metadata.pages:1,pages=selectedInputPages(pageSpec,total,readOptions.onInvalidIndex);let page=pages.next().value??0;if(readOptions.lastPage){for(const selected of pages)page=selected;}pages.return(undefined);const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;return {coalesce:false,density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},undefined,readOptions.source);
+   image=await backend.load(path,metadata=>{const total=metadata?.pages&&metadata.pages>1?metadata.pages:1,pages=selectedInputPages(pageSpec,total,readOptions.onInvalidIndex,metadata?.format);let page=pages.next().value??0;if(readOptions.lastPage){for(const selected of pages)page=selected;}pages.return(undefined);const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;return {coalesce:false,density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},undefined,readOptions.source);
   }
  }
  if(image){image=await finish(image);await readOptions.visit?.(image);}

@@ -10602,7 +10602,7 @@ function parseChannelSourceGroups(expression: string): { image: number; assignme
 
 function parseChannelSelections(expression: string): number[][] {
     if (expression === "") return [[0, 1, 2]];
-    const names = [["0", "r", "red", "c", "cyan", "gray"], ["1", "g", "green", "m", "magenta"], ["2", "b", "blue", "y", "yellow"], ["4", "a", "alpha", "o"], ["3", "k", "black"]];
+    const names = [["0", "r", "red", "c", "cyan", "gray"], ["1", "g", "green", "m", "magenta"], ["2", "b", "blue", "y", "yellow"], ["4", "a", "alpha", "o"], ["3", "k", "black"], ...Array.from({ length: 54 }, (_, index) => [`meta${index}`, String(index + 10)])];
     return expression.split(";").map(group => group.split(",").map(name => {
         const channel = names.findIndex(aliases => aliases.includes(name.trim().toLowerCase()));
         if (channel < 0) throw new Error(`unsupported channel-fx selection '${name}'`);
@@ -10613,6 +10613,7 @@ function parseChannelSelections(expression: string): number[][] {
 function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<void, RgbaImage> {
     if (channels.includes(4) && image.space !== "cmyk") throw new Error("missing image channel 'black' in channel-fx");
     if (channels.includes(3) && !image.hasAlpha && !image.inactiveAlpha) throw new Error("missing image channel 'a'");
+    for (const channel of channels) if (channel >= 5 && !image.metaChannels?.[channel - 5]) throw new Error(`missing image channel 'meta${channel - 5}'`);
     const single = channels.length === 1;
     const data = new Uint8Array(image.data), data16 = image.data16 ? new Uint16Array(image.data16) : undefined;
     const evaluateSamples = single && (image.hueSamples || image.evaluateSamples)
@@ -10620,13 +10621,15 @@ function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<
     for (let offset = 0; offset < data.length; offset += 4) {
         if (offset % 65536 === 0) yield;
         for (let target = 0; target < 3; target++) {
-            const source = channels[target] ?? (single ? channels[0]! : target);
-            data[offset + target] = source === 3 && !image.hasAlpha && !image.inactiveAlpha ? 255 : image.data[offset + source]!;
-            if (data16) data16[offset + target] = source === 3 && !image.hasAlpha && !image.inactiveAlpha ? 65535 : image.data16![offset + source]!;
+            const channel = channels[target] ?? (single ? channels[0]! : target);
+            const plane = channel >= 5 ? image.metaChannels![channel - 5]! : image;
+            const source = channel >= 5 ? 0 : channel;
+            data[offset + target] = source === 3 && !image.hasAlpha && !image.inactiveAlpha ? 255 : plane.data[offset + source]!;
+            if (data16) data16[offset + target] = source === 3 && !image.hasAlpha && !image.inactiveAlpha ? 65535 : plane.data16![offset + source]!;
             if (evaluateSamples) {
                 const value = source === 3 && !image.hasAlpha && !image.inactiveAlpha ? 255
-                    : source !== 3 && image.hueSamples ? Math.fround(image.hueSamples[offset + (source === 4 ? 3 : source)]! * 65535) / 257
-                    : image.evaluateSamples?.[offset + source] ?? (image.data16 ? image.data16[offset + source]! / 257 : image.data[offset + source]!);
+                    : channel < 5 && source !== 3 && image.hueSamples ? Math.fround(image.hueSamples[offset + (source === 4 ? 3 : source)]! * 65535) / 257
+                    : plane.evaluateSamples?.[offset + source] ?? (plane.data16 ? plane.data16[offset + source]! / 257 : plane.data[offset + source]!);
                 evaluateSamples[offset + target] = value;
                 data[offset + target] = clampByteVal(value);
                 if (data16) data16[offset + target] = Math.round(Math.max(0, Math.min(65535, value * 257)));
@@ -15107,7 +15110,17 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     if ("gray" in group && group.gray) output = await transformStoredMagickPixels(output, backend, { end: 0, highDepth: true, evaluate: true, apply: image => selectMagickChannels(image, [0]) }, signal);
                     await result.push(output);
                 } else if (image) for (const channels of selections) {
-                    await result.push(await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: channels.length === 1, apply: image => selectMagickChannels(image, channels) }, signal));
+                    let selected = image;
+                    if (channels.some(channel => channel >= 5)) {
+                        const sources = [image, ...(image.storedMetaChannels ?? [])];
+                        const assignments = Array.from({ length: 3 }, (_, target) => {
+                            const channel = channels[target] ?? (channels.length === 1 ? channels[0]! : target);
+                            if (channel >= 5 && !sources[channel - 4]) throw new Error(`missing image channel 'meta${channel - 5}'`);
+                            return { image: channel >= 5 ? channel - 4 : 0, source: channel >= 5 ? 0 : channel, target };
+                        });
+                        selected = await transformStoredMagickRaster(image, backend, channelFxPixelSteps(sources, assignments, !!image.storedData16), signal, image, sources);
+                    }
+                    await result.push(await transformStoredMagickPixels(selected, backend, { end: 0, highDepth: true, evaluate: channels.length === 1, apply: image => selectMagickChannels(image, channels.some(channel => channel >= 5) ? channels.length === 1 ? [0] : [0, 1, 2] : channels) }, signal));
                 }
                 return result;
             });

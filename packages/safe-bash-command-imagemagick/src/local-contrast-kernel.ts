@@ -1,4 +1,4 @@
-import type { RgbaColor, RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
+import type { RgbaColor, RgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { VirtualPixelMethod } from "./warp-kernel.js";
@@ -13,8 +13,8 @@ export function parseLocalContrastGeometry(raw: string): { radius: number; stren
 }
 
 /** Native luminance mask: separable weighted passes, float intermediates, RGB gain. */
-export function* localContrastPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16"> & Partial<Pick<StoredRgbaImage, "storedData16">>, geometry: ReturnType<typeof parseLocalContrastGeometry>, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const { width, height } = image, size = width * height, highDepth = !!(image.data16 || image.storedData16);
+export function* localContrastPixelSteps(image: Pick<RgbaImage, "width" | "height">, geometry: ReturnType<typeof parseLocalContrastGeometry>, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const { width, height } = image, size = width * height;
     const radius = Math.trunc(Math.max(width, height) * 0.002 * Math.abs(geometry.radius));
     if (radius > 5000) throw new Error("Local contrast radius exceeds 5000");
     const luma = new Float32Array(size), vertical = new Float32Array(size);
@@ -45,9 +45,10 @@ export function* localContrastPixelSteps(image: Pick<RgbaImage, "width" | "heigh
     for (let start = 0; start < size; start += 1024) {
         yield;
         const count = Math.min(1024, size - start);
-        const bytes = yield { kind: "read", highDepth, position: start * 4, length: count * 4 };
-        if (!bytes || bytes.length !== count * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated local contrast pixels");
-        const output = highDepth ? new Uint16Array(bytes.slice().buffer) : bytes.slice();
+        const bytes = yield { kind: "read", highDepth: true, position: start * 4, length: count * 4 };
+        if (!bytes || bytes.length !== count * 8) throw new Error("Truncated local contrast pixels");
+        const output = new Uint16Array(bytes.slice().buffer);
+        const output8 = Uint8Array.from(output, value => Math.round(value / 257));
         if (geometry.strength !== 0) for (let i = 0; i < count; i++) {
             const position = start + i, x = position % width, y = Math.floor(position / width);
             let sum = 0;
@@ -62,10 +63,13 @@ export function* localContrastPixelSteps(image: Pick<RgbaImage, "width" | "heigh
             const source = luma[position]!;
             const gain = source === 0 ? 0 : (source + (source - sum / totalWeight) * geometry.strength / 100) / source;
             for (let c = 0; c < 3; c++) if (selected[c]) {
-                const value = Math.fround(output[i * 4 + c]! * (highDepth ? 1 : 257) * gain);
-                output[i * 4 + c] = Math.max(0, Math.min(highDepth ? 65535 : 255, Math.round(value / (highDepth ? 1 : 257))));
+                const value = Math.fround(output[i * 4 + c]! * gain);
+                output[i * 4 + c] = Math.max(0, Math.min(65535, Math.round(value)));
+                output8[i * 4 + c] = Math.max(0, Math.min(255, Math.round(value / 257)));
             }
         }
-        yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(output.buffer, output.byteOffset, output.byteLength) };
+        yield { kind: "write", highDepth: true, position: start * 4, data: new Uint8Array(output.buffer, output.byteOffset, output.byteLength) };
+        // Round each output depth directly from the calculation, avoiding double rounding.
+        yield { kind: "write", position: start * 4, data: output8 };
     }
 }

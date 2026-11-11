@@ -3,7 +3,8 @@ import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
 import { decodeImage, encodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { runConvertCli, runConvertCliSync, runMogrifyCli } from "./index.js";
+import { createCommandArguments } from "safe-bash-contracts/command";
+import { createMagickCommand, runConvertCli, runConvertCliSync, runMogrifyCli } from "./index.js";
 
 const input = new Uint8Array(readFileSync(new URL("./fixtures/local-contrast-input.png", import.meta.url)));
 // ImageMagick 7.1.2-35: input.png -local-contrast 12xSTRENGTH -depth 8 rgba:-.
@@ -15,7 +16,7 @@ for (const mode of ["buffered", "retained", "sync", "mogrify"] as const) {
     ] as const)(`matches every native local-contrast pixel at strength %s via ${mode}`, async (strength, blue, hash) => {
         const files = new Map([["input.png", input]]), filesystem = new MemoryFileSystem();
         await filesystem.writeFile("/input.png", input);
-        const options = ["-local-contrast", `12x${strength}`];
+        const options = ["-local-contrast", `12x${strength}`, "-depth", "8"];
         const args = ["input.png", ...options, "out.png"];
         const result = mode === "sync" ? runConvertCliSync(args, files)
             : mode === "mogrify" ? await runMogrifyCli([...options, "input.png"], files)
@@ -47,7 +48,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
     it.each(nativeCases)(`matches native local-contrast radius, defaults and settings via ${mode}: $options`, async ({ options, hash }) => {
         const files = new Map([["input.png", input]]), filesystem = new MemoryFileSystem();
         await filesystem.writeFile("/input.png", input);
-        const args = ["input.png", ...options, "out.png"];
+        const args = ["input.png", ...options, "-depth", "8", "out.png"];
         const result = mode === "sync" ? runConvertCliSync(args, files)
             : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
         expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "" });
@@ -84,5 +85,34 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         expect(result.stderr.toLowerCase()).toContain("local contrast");
         if (mode === "retained") await expect(filesystem.stat("/out.png")).rejects.toMatchObject({ code: "ENOENT" });
         else expect(files.has("out.png")).toBe(false);
+    });
+}
+
+// Complete RGB raster hashes from native ImageMagick Q16-HDRI, with RGB8 input.
+for (const mode of ["command", "buffered", "retained", "sync"] as const) {
+    it.each([
+        { channels: [], depth: "16", hash: "8aeb9a55e5eb8906d2e421dd71909a396aee50fe66826d8a061abc4802579784" },
+        { channels: ["-channel", "R"], depth: "16", hash: "88837e278e41c09c73dde36b8ceb01e779181e54754d70aaf407f62182b533d0" },
+        { channels: [], depth: "8", hash: "9b9e99b2e94c14fbc838a0cfdc793f71fd73aa214f40a3803d6da74aa000ebe9" },
+        { channels: ["-channel", "R"], depth: "8", hash: "1def40ec8c7c502222d9242c8c75d173c905ef034db1c60a65e2597945b97682" },
+    ])(`preserves calculated RGB8 local contrast at depth $depth with $channels via ${mode}`, async ({ channels, depth, hash }) => {
+        const input = Uint8Array.from([...new TextEncoder().encode("P6\n7 5\n255\n"), ...Array.from({ length: 105 }, (_, i) => (i * 41 + 51) % 256)]);
+        const files = new Map([["/input.ppm", input]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/input.ppm", input);
+        const args = ["/input.ppm", ...channels, "-local-contrast", "10x20", "-endian", "MSB", "-depth", depth, "rgb:/out"];
+        const argumentValues = createCommandArguments(args);
+        let stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs: filesystem,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        }) : mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        const output = mode === "retained" || mode === "command" ? await filesystem.readFile("/out") : files.get("/out")!;
+        expect(output.length).toBe(105 * (depth === "16" ? 2 : 1));
+        expect(createHash("sha256").update(output).digest("hex")).toBe(hash);
     });
 }

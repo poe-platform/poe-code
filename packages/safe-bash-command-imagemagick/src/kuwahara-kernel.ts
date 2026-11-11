@@ -3,11 +3,10 @@ import type { LookupInterpolation } from "./sequence-kernel.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 import type { RgbaColor } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
-import type { VirtualPixelMethod } from "./warp-kernel.js";
+import { catromSamples, splineSamples, type VirtualPixelMethod } from "./warp-kernel.js";
 
 /** Native Kuwahara: rank-three blur, minimum luma variance, quadrant-center interpolation. */
 export function* kuwaharaPixelSteps(image: { width: number; height: number; alphaBlend?: boolean | undefined; region?: Region | undefined }, geometry: { width?: number; height?: number }, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean }, interpolation: LookupInterpolation = "bilinear", writeMask?: { width: number; height: number }): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    if (interpolation === "average9" || interpolation === "average16" || interpolation === "blend" || interpolation === "mesh" || interpolation === "catrom" || interpolation === "spline") throw new Error(`Unsupported Kuwahara interpolation: ${interpolation}`);
     const { width, height } = image, radius = geometry.width ?? 0, sigma = Math.abs(geometry.height ?? 1);
     if (!Number.isFinite(radius) || radius < 0 || radius >= 5000 || !Number.isFinite(sigma)) throw new Error("Kuwahara radius or sigma exceeds limit");
     const quadrant = Math.floor(radius) + 1, mask = channels ? [channels.r, channels.g, channels.b, channels.a] : undefined;
@@ -124,17 +123,36 @@ export function* kuwaharaPixelSteps(image: { width: number; height: number; alph
             }
             const cx = targetX + quadrant / 2, cy = targetY + quadrant / 2;
             const nearest = interpolation === "nearest", single = nearest || interpolation === "integer";
-            const left = Math.floor(cx + (nearest ? 0.5 : 0)), top = Math.floor(cy + (nearest ? 0.5 : 0));
-            const fx = cx - left, fy = cy - top, sums = [0, 0, 0, 0];
-            for (let dy = 0; dy < (single ? 1 : 2); dy++) for (let dx = 0; dx < (single ? 1 : 2); dx++) {
-                const weight = single ? 1 : interpolation === "average" ? 0.25 : (dx ? fx : 1 - fx) * (dy ? fy : 1 - fy);
+            const averageSize = interpolation === "average" ? 2 : interpolation === "average9" ? 3 : interpolation === "average16" ? 4 : 0;
+            const shift = averageSize > 2 ? 1 : 0, round = nearest || averageSize === 3 ? 0.5 : 0;
+            const left = Math.floor(cx + round) - shift, top = Math.floor(cy + round) - shift;
+            const fx = cx - left, fy = cy - top, sums = Array<number>(4).fill(0);
+            let meshPixels: number[][] | undefined, meshWeights: number[] | undefined;
+            if (interpolation === "mesh") {
+                meshPixels = [yield* sample(left, top, 2), yield* sample(left + 1, top, 2), yield* sample(left, top + 1, 2), yield* sample(left + 1, top + 1, 2)];
+                const luma = meshPixels.map(pixel => 0.212656 * pixel[0]! + 0.715158 * pixel[1]! + 0.072186 * pixel[2]!);
+                // Native mesh chooses the diagonal with the smaller luma difference.
+                meshWeights = Math.abs(luma[0]! - luma[3]!) < Math.abs(luma[1]! - luma[2]!)
+                    ? fx <= fy ? [1 - fy, 0, fy - fx, fx] : [1 - fx, fx - fy, 0, fy]
+                    : fx <= 1 - fy ? [1 - fx - fy, fx, fy, 0] : [0, 1 - fy, 1 - fx, fx + fy - 1];
+            }
+            const interpolationSamples: Iterable<readonly [number, number, number]> = interpolation === "catrom" ? catromSamples(cx, cy)
+                : interpolation === "spline" ? splineSamples(cx, cy)
+                : Array.from({ length: (single ? 1 : averageSize || 2) ** 2 }, (_, index) => {
+                    const size = single ? 1 : averageSize || 2, dx = index % size, dy = Math.floor(index / size);
+                    return [left + dx, top + dy, meshWeights?.[index] ?? (single ? 1 : averageSize ? 1 / (size * size) : (dx ? fx : 1 - fx) * (dy ? fy : 1 - fy))] as const;
+                });
+            for (const [sx, sy, weight] of interpolationSamples) {
                 if (weight === 0) continue;
-                const pixel = yield* sample(left + dx, top + dy, 2), alpha = image.alphaBlend === false ? 1 : pixel[3]! / 65535;
-                const colorWeight = single ? 1 : interpolation === "average" ? Number(alpha > 0) : alpha;
-                for (let c = 0; c < 3; c++) sums[c]! += pixel[c]! * (mask && !mask[c] ? 1 : colorWeight) * weight;
+                const pixel = meshPixels?.[(sy - top) * 2 + sx - left] ?? (yield* sample(sx, sy, 2)), alpha = image.alphaBlend === false ? 1 : pixel[3]! / 65535;
+                // Mesh divides unassociated colors by alpha; cubic keeps premultiplied colors.
+                // Kuwahara centers are integers or halves, where blend and bilinear weights agree.
+                const colorWeight = single || interpolation === "mesh" ? 1 : averageSize ? Number(alpha > 0) : alpha;
+                for (let c = 0; c < 4; c++) if (c !== 3) sums[c]! += pixel[c]! * (mask && !mask[c] && interpolation !== "blend" ? 1 : colorWeight) * weight;
                 sums[3]! += alpha * weight;
             }
-            if (interpolation === "bilinear" || interpolation === "background") for (let c = 0; c < 3; c++) if (!mask || mask[c]) sums[c] = sums[3]! > 0 ? sums[c]! / sums[3]! : 0;
+            if (interpolation === "bilinear" || interpolation === "background" || interpolation === "blend" || interpolation === "mesh")
+                for (let c = 0; c < 4; c++) if (c !== 3 && (!mask || mask[c] || interpolation === "blend")) sums[c] = sums[3]! > 0 ? sums[c]! / sums[3]! : 0;
             for (let c = 0; c < 4; c++) data[i * 4 + c] = Math.max(0, Math.min(255, Math.round(c === 3 ? sums[3]! * 255 : sums[c]! / 257)));
         }
         yield { kind: "write", position: start * 4, data };

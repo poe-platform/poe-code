@@ -9768,12 +9768,24 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             "threshold", "thresholdblack", "thresholdwhite", "rms", "rootmeansquare", "uniformnoise", "impulsenoise", "gaussiannoise", "laplaciannoise", "multiplicativenoise", "poissonnoise"].includes(operation)) {
             throw new Error(`unrecognized evaluate operator '-evaluate' '${operationRaw}'`);
         }
-        const operand = value.trim().endsWith("%") ? value.trim().slice(0, -1) : value.trim();
-        const isPct = value.trim().endsWith("%") && operand === operand.trimEnd();
-        const unsigned = (operand.startsWith("+") || operand.startsWith("-") ? operand.slice(1) : operand).toLowerCase();
-        const hexadecimal = unsigned.startsWith("0x");
-        const number = hexadecimal ? Number(unsigned) * (operand.startsWith("-") ? -1 : 1) : Number(operand);
-        if (!Number.isFinite(number) || unsigned.startsWith("0b") || unsigned.startsWith("0o") || (!hexadecimal && Number.parseFloat(operand) !== number)) {
+        const operand = value.trimStart();
+        const sign = operand.startsWith("-") ? -1 : 1;
+        const unsigned = operand.startsWith("+") || operand.startsWith("-") ? operand.slice(1) : operand;
+        const hexadecimal = unsigned.toLowerCase().startsWith("0x");
+        // Native validates geometry but reads only its leading scalar; omitted values are zero.
+        const number = (hexadecimal ? Number.parseInt(operand, 16) : Number.parseFloat(operand)) || 0;
+        const percent = unsigned.indexOf("%"), prefix = unsigned.slice(0, percent);
+        const isPct = percent > 0 && prefix.trimEnd() === prefix && Number(prefix) * sign === number;
+        try {
+            validateMagickTransformGeometry(value.replaceAll(",", "x").replaceAll("/", "x"), token);
+            // Geometry accepts separators and modifiers, but not incomplete decimal exponents.
+            if (!hexadecimal) for (let index = 0; index < value.length; index++) {
+                if (value[index]?.toLowerCase() !== "e") continue;
+                const next = value[index + 1] === "+" || value[index + 1] === "-" ? index + 2 : index + 1;
+                if (!(value[next]! >= "0" && value[next]! <= "9")) throw new Error();
+            }
+            if (!Number.isFinite(number)) throw new Error();
+        } catch {
             throw new Error(`invalid argument '-evaluate' '${value}'`);
         }
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };

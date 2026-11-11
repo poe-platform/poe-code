@@ -11296,6 +11296,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     branchStart = pos + 1;
                   }
                 }
+                const usedTracks = new Set<MediaTrack>();
                 const resolve = async (label: string, visiting = new Set<string>()): Promise<{ track: MediaTrack; frames: MediaVideoFrame[] }> => {
                   const branch = branches.get(label);
                   if (branch) {
@@ -11330,17 +11331,27 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const doc = loadedDocs[inputIndex];
                   const track = doc?.tracks.filter(t => t.type === "video")[streamIndex];
                   if (!doc || !track) throw new Error(`${filter}: input ${inputIndex}:v:${streamIndex} is unavailable`);
+                  usedTracks.add(track);
                   return { track, frames: await ensureDecodedFrames(track, doc.timescale, budget, context.signal) };
                 };
                 let pads = prefix.slice(branchStart).trim();
                 for (let i = 0; i < inputCount; i++) {
-                  let label = `${i}:v`;
+                  let label: string | undefined;
                   if (pads.startsWith("[")) {
                     const end = pads.indexOf("]");
                     if (end < 0) throw new Error(`${filter}: invalid input labels ${pads}`);
                     label = pads.slice(1, end);
                     pads = pads.slice(end + 1).trim();
+                  } else {
+                    for (const [inputIndex, doc] of loadedDocs.entries()) {
+                      const streamIndex = doc.tracks.filter(track => track.type === "video")
+                        .findIndex(track => !usedTracks.has(track));
+                      if (streamIndex < 0) continue;
+                      label = `${inputIndex}:v:${streamIndex}`;
+                      break;
+                    }
                   }
+                  if (label === undefined) throw new Error(`${filter}: unused video input is unavailable`);
                   const { track, frames } = await resolve(label);
                   inputTracks.push(track);
                   inputs.push(frames);

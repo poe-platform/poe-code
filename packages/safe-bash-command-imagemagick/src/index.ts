@@ -7438,7 +7438,8 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     }
     const packedCoder = (["mono", "map", "gray", "graya", "cmyk", "cmyka", "rgba", "rgbo", "bgr", "bgra", "bgro"] as const).find(coder => lower.startsWith(`${coder}:`) || (!lower.includes(":") && lower.endsWith(`.${coder}`)));
     if (packedCoder) {
-        if (!state.hasSize) throw new Error(`must specify image size for ${packedCoder.toUpperCase()} input`);
+        const geometry = inlineGeom === undefined ? undefined : parseMagickGeometry(inlineGeom);
+        if (!state.hasSize || (geometry?.hasOffset && geometry.width === undefined && geometry.height === undefined)) throw new Error(`must specify image size for ${packedCoder.toUpperCase()} input`);
         const path = lower.startsWith(`${packedCoder}:`) ? baseToken.slice(packedCoder.length + 1) : baseToken;
         const partition = packedCoder !== "map" && packedCoder !== "mono" && state.rawInterlace === "partition" && path !== "-";
         const sources = partition
@@ -7487,7 +7488,8 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         rawBytes = bytes!;
     }
     if (rgb) {
-        if (!state.hasSize) throw new Error("must specify image size for RGB input");
+        const geometry = inlineGeom === undefined ? undefined : parseMagickGeometry(inlineGeom);
+        if (!state.hasSize || (geometry?.hasOffset && geometry.width === undefined && geometry.height === undefined)) throw new Error("must specify image size for RGB input");
         const raw = rawRasterInput(state.sizeWidth, state.sizeHeight, state.inputDepth ?? 16, state.inputEndian ?? "lsb", partitions ? Math.min(...partitions.map(bytes => bytes!.length)) * 3 : rawBytes.length, 3, state.inputOffset, state.rawInterlace, state.tiffFloatingPoint);
         const frames: RgbaImage[] = [];
         for (const page of selectedInputPages(pageSpec, raw.pages, onInvalidIndex)) {
@@ -18037,7 +18039,8 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   };
   return readOptions.source===null?undefined:readOptions.source?consume(readOptions.source):backend.read(baseToken.slice(5),consume);
  }else if(packedCoder){
-  if(!state.hasSize)throw new Error(`must specify image size for ${packedCoder.toUpperCase()} input`);
+  const geometry = inlineGeom === undefined ? undefined : parseMagickGeometry(inlineGeom);
+  if(!state.hasSize || (geometry?.hasOffset && geometry.width === undefined && geometry.height === undefined))throw new Error(`must specify image size for ${packedCoder.toUpperCase()} input`);
   const path=lower.startsWith(`${packedCoder}:`)?baseToken.slice(packedCoder.length+1):baseToken;
   const partition=packedCoder!=="map"&&packedCoder!=="mono"&&state.rawInterlace==="partition"&&path!=="-";
   const consume=async(sources:ImageByteSource[])=>{
@@ -18059,7 +18062,8 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   }
   return readOptions.source===null?undefined:readOptions.source?consume([readOptions.source]):backend.read(path,source=>consume([source]));
  }else if(lower.startsWith("rgb:")||(!lower.includes(":")&&lower.endsWith(".rgb"))){
-  if(!state.hasSize)throw new Error("must specify image size for RGB input");
+  const geometry = inlineGeom === undefined ? undefined : parseMagickGeometry(inlineGeom);
+  if(!state.hasSize || (geometry?.hasOffset && geometry.width === undefined && geometry.height === undefined))throw new Error("must specify image size for RGB input");
   const path=lower.startsWith("rgb:")?baseToken.slice(4):baseToken;
   const consume=async(sources:ImageByteSource[])=>{
    const raw=rawRasterInput(state.sizeWidth,state.sizeHeight,state.inputDepth??16,state.inputEndian??"lsb",Math.min(...sources.map(source=>source.size))*sources.length,3,state.inputOffset,state.rawInterlace, state.tiffFloatingPoint);

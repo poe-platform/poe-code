@@ -12771,6 +12771,7 @@ if (t === "-intent" || t === "+intent") {
             }
             if (k === "option:magnify:method") state.magnifyMethod = parseMagnifyMethod(v);
             if (k === "option:filter") applyMagickReadSetting(["-filter", v], state, 0);
+            if (k === "option:fuzz") applyMagickReadSetting(["-fuzz", v], state, 0);
             if (k === "option:deskew:auto-crop") state.deskewAutoCrop = v.toLowerCase();
             if (k === "option:connected-components:verbose") {
                 const value = v.toLowerCase();

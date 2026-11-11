@@ -7806,8 +7806,6 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
     case "ff":
     case "farbfeld":
       return "farbfeld";
-    case "yuv":
-      return "yuv";
     case "pal":
     case "uyvy":
       return "pal";
@@ -8288,7 +8286,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         }
         return yield* applyMod(selected);
     }
-    const packedCoder = (["uyvy", "pal", "mono", "map", "gray", "graya", "cmyk", "cmyka", "rgba", "rgbo", "bgr", "bgra", "bgro", "r", "g", "b", "a", "o", "c", "m", "y", "k"] as const).find(coder => lower.startsWith(`${coder}:`) || (coder.length > 1 && !lower.includes(":") && lower.endsWith(`.${coder}`)));
+    const packedCoder = (["uyvy", "pal", "mono", "map", "ycbcr", "ycbcra", "gray", "graya", "cmyk", "cmyka", "rgba", "rgbo", "bgr", "bgra", "bgro", "r", "g", "b", "a", "o", "c", "m", "y", "k"] as const).find(coder => lower.startsWith(`${coder}:`) || (coder.length > 1 && !lower.includes(":") && lower.endsWith(`.${coder}`)));
     if (packedCoder) {
         const geometry = inlineGeom === undefined ? undefined : parseMagickGeometry(inlineGeom);
         if (!state.hasSize || (geometry?.hasOffset && geometry.width === undefined && geometry.height === undefined)) throw new Error(`must specify image size for ${packedCoder.toUpperCase()} input`);
@@ -8805,8 +8803,9 @@ function* runIdentifyCliSteps(argv: readonly string[], files: Map<string, Uint8A
             }
         };
         if (requestedCoder) baseInPath = baseInPath.slice(colon + 1);
-        const rawCoder = (["rgb", "rgba", "rgbo", "bgr", "bgra", "bgro", "gray", "graya", "cmyk", "cmyka"] as const)
+        const rawCoder = (["rgb", "rgba", "rgbo", "bgr", "bgra", "bgro", "gray", "graya", "cmyk", "cmyka", "ycbcr", "ycbcra"] as const)
             .find(rawCoder => inPath.toLowerCase().startsWith(`${rawCoder}:`) || (!inPath.includes(":") && baseInPath.toLowerCase().endsWith(`.${rawCoder}`)));
+        if (!requestedCoder && rawCoder && colon > 0) baseInPath = baseInPath.slice(colon + 1);
         const inlineInput = baseInPath.toLowerCase().startsWith("xc:") || baseInPath.toLowerCase().startsWith("canvas:");
         if (target.sceneCount === undefined && (!bracketMatch || !rawCoder && !inlineInput)) {
             try {
@@ -20910,7 +20909,7 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
      }
      return image;
  }
- const packedCoder=(["uyvy","pal","mono","map","gray","graya","cmyk","cmyka","rgba","rgbo","bgr","bgra","bgro","r","g","b","a","o","c","m","y","k"] as const).find(coder=>lower.startsWith(`${coder}:`)||(coder.length>1&&!lower.includes(":")&&lower.endsWith(`.${coder}`)));
+ const packedCoder=(["uyvy","pal","mono","map","ycbcr","ycbcra","gray","graya","cmyk","cmyka","rgba","rgbo","bgr","bgra","bgro","r","g","b","a","o","c","m","y","k"] as const).find(coder=>lower.startsWith(`${coder}:`)||(coder.length>1&&!lower.includes(":")&&lower.endsWith(`.${coder}`)));
  if(lower.startsWith("tile:")){
   if(!state.hasSize)throw new Error("must specify image size for TILE input");
   if(readOptions.visit){

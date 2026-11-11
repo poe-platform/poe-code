@@ -5,14 +5,13 @@ import { encodeMapImage, encodeMapFromStorage } from "./map-output.js";
 import { encodePalImage, encodePalFromStorage } from "./pal-output.js";
 import { encodeMonoImage, encodeMonoFromStorage } from "./mono-output.js";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
-import { encodeYuvImage, encodeYuvFromStorage } from "./yuv-output.js";
 import { encodeSvgImage, encodeSvgFromStorage } from "./svg-output.js";
 
 export type RawImage = RgbaImage & { rawFrames?: readonly RgbaImage[] };
 export type StoredRawImage = StoredRgbaImage & { rawFrames?: { length: number; at(index: number): Promise<StoredRgbaImage> } };
 
 export type RawCoder = "rgb" | "rgba" | "rgbo" | "bgr" | "bgra" | "bgro" | "gray" | "graya" | "cmyk" | "cmyka" | "ycbcr" | "ycbcra";
-export type ImageFormat = RasterFormat | RawCoder | "map" | "farbfeld" | "mono" | "pal" | "mpc" | "h" | "yuv";
+export type ImageFormat = RasterFormat | RawCoder | "map" | "farbfeld" | "mono" | "pal" | "mpc" | "h";
 export type OutputEncodeOptions = Omit<RasterOptions, "format"> & { format: ImageFormat; rawInterlace?: "line" | "plane" | "partition" | undefined; rawDefines?: Readonly<Record<string, string>> | undefined; jpegExtent?: number | undefined; webpTargetSize?: number | undefined; webpPass?: number | undefined };
 
 /** Search complete output sizes, including alpha and container overhead. */
@@ -76,7 +75,6 @@ export function encodeImage(image: RawImage, options: OutputEncodeOptions): Retu
         return { data, format: "raw", channels: 4 };
     }
     const format = options.format;
-    if (format === "yuv") return { data: encodeYuvImage(image, options), format: "raw", channels: 3 };
     if (format === "pal") return { data: encodePalImage(image), format: "raw", channels: 3 };
     if (format === "mono") return { data: encodeMonoImage(image, options.endian), format: "raw", channels: 1 };
     if (format === "map") return { data: encodeMapImage(image), format: "raw", channels: 3 };
@@ -250,11 +248,6 @@ export async function* encodeStoredImage(image: StoredRawImage, storage: ImageBy
     if (options.format === "farbfeld") {
         yield farbfeldHeader(image);
         options = { format: "farbfeld", netpbmDepth: 16, endian: "msb" };
-    }
-    if (options.format === "yuv") {
-        let size = 0;
-        for await (const chunk of encodeYuvFromStorage(image, storage, signal, options)) { size += chunk.length; yield chunk; }
-        return { format: "raw", width: image.width, height: image.height, channels: 3, premultiplied: false, size };
     }
     if (options.format === "pal") {
         let size = 0;

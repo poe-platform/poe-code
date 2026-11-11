@@ -1111,7 +1111,7 @@ function parseAsetnsamples(argument: string) {
   } };
 }
 
-function parseAtrim(argument: string, origRate: number) {
+function parseAtrim(argument: string, origRate: number, print?: (value: number, level: number) => void) {
   let duration = 0;
   const bounds = new Map<string, number>();
   const options: string[] = [];
@@ -1190,7 +1190,7 @@ function parseAtrim(argument: string, origRate: number) {
       max: 2 ** 63,
       default: pts ? -(2 ** 63) : key === "start_sample" ? -1 : 2 ** 63,
       none: 0
-    }, undefined, new Float64Array(10), []) : parseHlsDuration(value);
+    }, undefined, new Float64Array(10), [], print) : parseHlsDuration(value);
     const boundary = samples || pts ? roundToEven(number)
       : Math.sign(number) * Math.round(Math.round(Math.abs(number) * 1_000_000) * origRate / 1_000_000);
     // Native int64 options use doubles, including INT64_MAX rounded to 2^63.
@@ -12854,6 +12854,38 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     // One output is an identity, including for downstream frame bounds and PCM precision.
                     return Number(count) === 1 ? "anull" : item;
                   }) : [];
+                  let trimReport = "";
+                  let lastTrimMessage = "";
+                  let repeatedTrimMessages = 0;
+                  try {
+                    // FFmpeg evaluates numeric options while creating the graph and again
+                    // while configuring it. Lookahead parses used to bound PCM stay silent.
+                    for (let pass = 0; pass < 2; pass++) {
+                      // Stream mapping separates the two passes at info level and above.
+                      if (logLevel >= 32) lastTrimMessage = "";
+                      for (const item of audioFilters) {
+                        const equals = item.indexOf("=");
+                        if (equals < 0 || item.slice(0, equals).split("@", 1)[0] !== "atrim") continue;
+                        parseAtrim(item.slice(equals + 1), origRate, (value, level) => {
+                          budget.checkCpu();
+                          if (level > logLevel) return;
+                          const message = `${Number.isFinite(value) ? Object.is(value, -0) ? "-0.000000" : value.toFixed(6)
+                            : Number.isNaN(value) ? "nan" : value < 0 ? "-inf" : "inf"}\n`;
+                          if (message === lastTrimMessage) { repeatedTrimMessages++; return; }
+                          if (repeatedTrimMessages) {
+                            trimReport += `    Last message repeated ${repeatedTrimMessages} times\n`;
+                            repeatedTrimMessages = 0;
+                          }
+                          budget.allocateMemory(message.length * 2);
+                          trimReport += message;
+                          lastTrimMessage = message;
+                        });
+                      }
+                    }
+                  } finally {
+                    if (repeatedTrimMessages) trimReport += `    Last message repeated ${repeatedTrimMessages} times\n`;
+                    if (trimReport) await writeBytes(context.stderr, encodeUtf8(trimReport), context.signal);
+                  }
                   for (const [index, item] of audioFilters.entries()) {
                     const equals = item.indexOf("=");
                     if (item.slice(0, equals).split("@", 1)[0] !== "asendcmd") continue;

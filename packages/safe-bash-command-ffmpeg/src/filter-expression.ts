@@ -1,4 +1,4 @@
-export function parseFilterExpression(expression: string, filter: string, variables: Record<string, number>, sampleValue?: (channel: number) => number, registers?: Float64Array, randomStates?: BigUint64Array[]): number {
+export function parseFilterExpression(expression: string, filter: string, variables: Record<string, number>, sampleValue?: (channel: number) => number, registers?: Float64Array, randomStates?: BigUint64Array[], print?: (value: number, level: number) => void): number {
   let offset = 0;
   // FFmpeg removes ASCII whitespace before tokenizing, including inside tokens.
   let source = "";
@@ -101,6 +101,10 @@ export function parseFilterExpression(expression: string, filter: string, variab
           const sin = Math.abs(Math.sin(args[0]!));
           const cos = Math.abs(Math.cos(args[0]!));
           value = name === "rotw" ? variables.iw! * cos + variables.ih! * sin : variables.iw! * sin + variables.ih! * cos;
+        }
+        else if (name === "print" && (args.length === 1 || args.length === 2) && filter === "atrim") {
+          value = args[0]!;
+          if (evaluate) print?.(value, Math.trunc(args[1] ?? 32));
         }
         else if (name === "abs" && args.length === 1) value = Math.abs(args[0]!);
         else if (name === "sgn" && args.length === 1) value = Number(args[0]! > 0) - Number(args[0]! < 0);
@@ -235,6 +239,12 @@ export function parseFilterExpression(expression: string, filter: string, variab
     }
     // Discard skipped results before their parent validates function arguments.
     return evaluate ? value : 0;
+  }
+  // Parse the complete expression before emitting any print() side effects.
+  if (print) {
+    parse(0, 0, false);
+    if (offset !== source.length) throw new Error(`${filter}: invalid or unsupported expression`);
+    offset = 0;
   }
   const angle = parse();
   if (offset !== source.length || (!Number.isFinite(angle) && !((filter === "astats" || filter === "fps: frame rate" || filter === "tremolo" || filter === "crop" || filter === "silenceremove" || filter === "silencedetect" || filter === "afade: silence" || filter === "afade: unity" || filter === "format_version") && Math.abs(angle) === Infinity) && filter !== "asendcmd" && filter !== "asetpts" && filter !== "volume" && filter !== "atrim" && filter !== "aeval" && filter !== "tblend" && filter !== "aselect" && filter !== "asetnsamples enable" && filter !== "tmix enable" && filter !== "unsharp enable" && filter !== "framestep enable" && filter !== "thumbnail enable" && filter !== "metadata enable" && filter !== "negate enable" && filter !== "hflip enable" && filter !== "vflip enable" && filter !== "aemphasis enable" && filter !== "adelay enable" && filter !== "compensationdelay enable" && filter !== "afade enable" && filter !== "silenceremove enable" && filter !== "vibrato enable" && filter !== "tremolo enable" && filter !== "drawbox enable" && !((filter === "select" || filter === "crop" || filter === "pad" || filter === "scale" || filter === "drawbox" || filter === "drawbox enable") && Number.isNaN(angle)))) throw new Error(`${filter}: invalid or unsupported expression`);

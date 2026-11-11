@@ -41,9 +41,13 @@ export async function compandAudio(
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const parts = argument.split(":");
   if (parts.at(-1) === "") parts.pop();
-  for (const [index, option] of parts.entries()) {
+  let positional = 0;
+  for (const option of parts) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? names[index] : option.slice(0, separator).trim();
+    const key = separator < 0 ? names[positional] : option.slice(0, separator).trim();
+    // FFmpeg restarts shorthand after a named option, skipping the preceding
+    // option's offset when it was already the first (attacks) slot.
+    positional = separator < 0 ? positional + 1 : positional === 0 ? 1 : 0;
     if (key === "enable") throw new CompandError("compand: timeline is unsupported", "options", 176);
     if (!key || !Object.hasOwn(options, key)) throw new CompandError(`compand: unsupported option ${key}`, "options", 8);
     options[key] = (separator < 0 ? option : option.slice(separator + 1)).trim();

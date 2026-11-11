@@ -12382,6 +12382,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 : yield* parseInputOperandSteps(palSpec, files, state, stdinBytes, analysis);
             if (!palImg) throw new Error(`unable to open image '${palSpec}'`);
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
+                if (t === "-remap" && im.magickColorspace === "RGB") {
+                    const { evaluateSamples: ignoredSamples, ...converted } = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(im);
+                    im = converted;
+                }
                 const hueSpace = t === "-remap" && (im.magickColorspace === "HSL" || im.magickColorspace === "HSB" || im.magickColorspace === "HSV" || im.magickColorspace === "CIELab" || im.magickColorspace === "XYZ") ? im.magickColorspace : undefined;
                 // Remap RGB palette colors, then restore the source colorspace with fresh samples.
                 if (hueSpace) im = yield* convertHuePixels(im, "sRGB");
@@ -15880,6 +15884,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     ? await registers.get(palette.slice(4).toLowerCase())?.get(0)
                     : await parseStoredCompareInput(palette, settings, backend, signal, { analysis });
                 if (!colors) throw new Error(`unable to open image '${palette}'`);
+                if (image.magickColorspace === "RGB") {
+                    const { storedEvaluateSamples: ignoredSamples, ...converted } = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], settings, 0, signal)!, signal);
+                    image = converted;
+                }
                 const hueSpace = image.magickColorspace === "HSL" || image.magickColorspace === "HSB" || image.magickColorspace === "HSV" || image.magickColorspace === "CIELab" || image.magickColorspace === "XYZ" ? image.magickColorspace : undefined;
                 if (hueSpace) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);
                 if (hueSpace && (colors.magickColorspace === "HSL" || colors.magickColorspace === "HSB" || colors.magickColorspace === "HSV" || colors.magickColorspace === "CIELab" || colors.magickColorspace === "XYZ")) colors = await transformStoredMagickPixels(colors, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);

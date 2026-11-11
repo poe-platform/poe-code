@@ -1257,7 +1257,16 @@ function parseMagickColorMatrix(spec: string): { m: number[]; cols: number; rows
     const argument = separator < 0 || spec.slice(separator + 1).trim() === "" ? undefined : Number(spec.slice(separator + 1));
     let named: number[] | undefined;
     if (name === "unity") named = [argument ?? 1];
-    else if (name === "sobel" && (argument === undefined || argument === 0)) named = [1, 0, -1, 2, 0, -2, 1, 0, -1];
+    else if (name === "sobel" && (argument === undefined || Number.isFinite(argument))) {
+        named = [1, 0, -1, 2, 0, -2, 1, 0, -1];
+        const angle = ((argument ?? 0) % 360 + 360) % 360;
+        // Native 3x3 kernels rotate their perimeter in 45-degree steps; ties round down.
+        const steps = Math.ceil(angle / 45 - 0.5);
+        const perimeter = [0, 1, 2, 5, 8, 7, 6, 3];
+        const values = named.slice();
+        for (let i = 0; i < perimeter.length; i++)
+            named[perimeter[(i + steps) % perimeter.length]!] = values[perimeter[i]!]!;
+    }
     else if (name === "square" && (argument === undefined || Number.isFinite(argument))) {
         // Only RGB, black, alpha and the constant column affect a color matrix.
         // Larger all-ones kernels have the same effect as a 6x6 matrix.

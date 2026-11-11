@@ -8056,7 +8056,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let hasOutputFrames = false;
       let hasEmptyOutput = false;
       let progressTarget: string | undefined;
-      let progressSeconds = 0;
+      let progressSeconds = -Infinity;
       const progressStarted = performance.now();
       let progressFrames: number | undefined;
       const progressQuality: string[] = [];
@@ -16377,7 +16377,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   progressFrames ??= track.decodedVideoFrames?.length ?? track.samples.length;
                   progressQuality.push(`stream_${progressOutputIndex}_${streamIndex}_q=${videoCodec === "copy" ? "-1.0" : "-0.0"}`);
                 }
-                if (track.decodedAudio) {
+                if (track.decodedAudio && !track.samples.length) {
+                  if (!track.decodedAudio.channelData[0]?.length) continue;
                   progressSeconds = Math.max(progressSeconds,
                     (track.decodedAudio.channelData[0]?.length ?? 0) / track.decodedAudio.sampleRate);
                 } else if (track.decodedVideoFrames) {
@@ -16386,7 +16387,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
                 } else {
                   for (const sample of track.samples) {
-                    progressSeconds = Math.max(progressSeconds, (sample.dts + sample.cts + sample.duration) / track.timescale);
+                    const end = (sample.dts + sample.cts + sample.duration) / track.timescale;
+                    if (Number.isFinite(end)) progressSeconds = Math.max(progressSeconds, end);
                   }
                 }
               }
@@ -17547,11 +17549,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       }
       if (progressTarget !== undefined && !(exitOnError && inputReadFailed)) {
         const elapsedSeconds = (performance.now() - progressStarted) / 1000;
-        const microseconds = Math.round(progressSeconds * 1_000_000);
-        const seconds = Math.floor(microseconds / 1_000_000);
-        const time = [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60]
+        const microseconds = Number.isFinite(progressSeconds) ? Math.round(progressSeconds * 1_000_000) : 0;
+        const seconds = Math.floor(Math.abs(microseconds) / 1_000_000);
+        const time = (microseconds < 0 ? "-" : "") + [Math.floor(seconds / 3600), Math.floor(seconds / 60) % 60, seconds % 60]
           .map(value => String(value).padStart(2, "0")).join(":") +
-          "." + String(microseconds % 1_000_000).padStart(6, "0");
+          "." + String(Math.abs(microseconds) % 1_000_000).padStart(6, "0");
         const progress = encodeUtf8([
           ...(progressFrames === undefined ? [] : [`frame=${progressFrames}`, `fps=${(elapsedSeconds > 1 ? progressFrames / elapsedSeconds : 0).toFixed(2)}`, ...progressQuality]),
           `bitrate=${progressSize !== undefined && microseconds > 0 ? `${(progressSize * 8000 / microseconds).toFixed(1)}kbits/s` : "N/A"}`,

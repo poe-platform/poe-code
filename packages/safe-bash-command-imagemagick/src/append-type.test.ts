@@ -6,14 +6,15 @@ import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js"
 const first = ["(", "-size", "2x1", "xc:#2060b080"];
 const second = ["(", "-size", "1x2", "xc:#c04020ed", ")"];
 
-// Native ImageMagick 7.1.2-35 Q16-HDRI retains the first input's grayscale type.
+// Native ImageMagick 7.1.2-35 Q16-HDRI applies unscoped type settings at output.
 for (const mode of ["command", "retained", "buffered", "sync"] as const)
 for (const direction of ["-append", "+append"])
 it.each([
     { name: "scoped grayscale", args: [...first, "-type", "Grayscale", ")", ...second], type: "Grayscale" },
     { name: "global grayscale", args: [...first, ")", ...second, "-type", "Grayscale"], type: "Grayscale" },
     { name: "single grayscale", args: [...first, "-type", "Grayscale", ")"], type: "Grayscale" },
-    { name: "grayscale on second input", args: [...first, ")", ...second.slice(0, -1), "-type", "Grayscale", ")"], type: "PaletteAlpha" },
+    { name: "grayscale on second input", args: [...first, ")", ...second.slice(0, -1), "-type", "Grayscale", ")"], type: "Grayscale" },
+    { name: "scoped grayscale on second input", args: ["-respect-parentheses", ...first, ")", ...second.slice(0, -1), "-type", "Grayscale", ")"], type: "PaletteAlpha" },
     { name: "scoped grayscale alpha", args: [...first, "-type", "GrayscaleAlpha", ")", ...second], type: "GrayscaleAlpha" },
     { name: "reset scoped grayscale", args: [...first, "-type", "Grayscale", "-type", "TrueColorAlpha", ")", ...second], type: "PaletteAlpha" },
     { name: "no explicit type", args: [...first, ")", ...second], type: "PaletteAlpha" },

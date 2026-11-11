@@ -14697,9 +14697,10 @@ function* runConvertCliResultSteps(argv: readonly string[], files: Map<string, U
             const image = stack[index]!;
             stack[index] = { ...image, [magickInput]: { ...(image as MagickImage)[magickInput], interlace: state.interlace } };
         }
-        if (state.orientation !== undefined || state.units !== undefined || state.densityGeometry !== undefined) for (let index = 0; index < stack.length; index++) {
+        if (state.inputType !== undefined || state.orientation !== undefined || state.units !== undefined || state.densityGeometry !== undefined) for (let index = 0; index < stack.length; index++) {
             yield;
             let image = stack[index]!;
+            if (state.inputType !== undefined) image = setMagickType(image as MagickImage, state.inputType);
             if (state.orientation !== undefined) image = { ...image, orientation: state.orientation };
             if (state.units !== undefined && state.units !== "unknown") image = applyMagickUnits(image, state.units);
             if (state.densityGeometry !== undefined) image = applyMagickDensity(image, state.densityGeometry);
@@ -18255,9 +18256,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const image = (await stack.get(index))!;
                 await stack.set(index, { ...image, [magickInput]: { ...(image as StoredMagickImage)[magickInput], interlace: state.interlace } });
             }
-            if (state.orientation !== undefined || state.units !== undefined || state.densityGeometry !== undefined) for (let index = 0; index < stack.length; index++) {
+            if (state.inputType !== undefined || state.orientation !== undefined || state.units !== undefined || state.densityGeometry !== undefined) for (let index = 0; index < stack.length; index++) {
                 await yieldTurn(signal);
                 let image = (await stack.get(index))!;
+                if (state.inputType !== undefined) image = setMagickType(image as StoredMagickImage, state.inputType);
                 if (state.orientation !== undefined) image = { ...image, orientation: state.orientation };
                 if (state.units !== undefined && state.units !== "unknown") image = applyMagickUnits(image, state.units);
                 if (state.densityGeometry !== undefined) image = applyMagickDensity(image, state.densityGeometry);

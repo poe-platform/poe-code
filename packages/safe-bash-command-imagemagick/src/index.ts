@@ -14714,7 +14714,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 validateMagickTransformGeometry(expanded.replaceAll("/", "x"), "-motion-blur");
                 // A lone signed value is a radius, not a rectangle offset (angle).
                 const motion = expanded.trim() && !expanded.toLowerCase().includes("x") && Number.isFinite(Number(expanded)) ? { width: Number(expanded) } : parseMagickGeometry(expanded.replaceAll("/", "x"));
-                const result = yield* applyMagickRasterSteps(im, motionBlurPixelSteps(im, motion, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined), signal);
+                const result = yield* applyMagickRasterSteps({ ...im, isPalette: false }, motionBlurPixelSteps(im, motion, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined), signal);
                 if (im.metaChannels?.length) {
                     result.metaChannels = [];
                     for (const [index, plane] of im.metaChannels.entries()) {
@@ -18886,7 +18886,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 validateMagickTransformGeometry(expanded.replaceAll("/", "x"), "-motion-blur");
                 // A lone signed value is a radius, not a rectangle offset (angle).
                 const motion = expanded.trim() && !expanded.toLowerCase().includes("x") && Number.isFinite(Number(expanded)) ? { width: Number(expanded) } : parseMagickGeometry(expanded.replaceAll("/", "x"));
-                const result = await transformStoredMagickRaster(image, backend, motionBlurPixelSteps(image, motion, background, virtualPixel, channels), signal);
+                const result = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, motionBlurPixelSteps(image, motion, background, virtualPixel, channels), signal);
                 if (image.storedMetaChannels?.length) {
                     result.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries())

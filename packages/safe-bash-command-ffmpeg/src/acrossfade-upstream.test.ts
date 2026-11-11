@@ -62,7 +62,7 @@ for (const branch of [0, 1]) {
     const { result, volume, stderr } = await crossfade(
       `[0:a]${branch === 0 ? "unsupported_audio_filter" : "anull"}[aa];` +
       `[1:a]${branch === 1 ? "unsupported_audio_filter" : "anull"}[bb];[aa][bb]acrossfade=ns=4[o]`);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, 8);
     assert.ok(stderr.includes("unsupported_audio_filter"), stderr);
     assert.equal(volume.readFileSync("/out.wav", "utf8"), "sentinel");
   });

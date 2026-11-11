@@ -3,6 +3,11 @@ import { it } from "node:test";
 import { Volume } from "memfs";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
+// FFmpeg 7.0.2: s16le 8000 Hz mono PCM 640038ff2c0170fe, pcm_s16be AU,
+// metadata title=Song artist=Alice album=Record track=2 genre=Folk
+// date=2001 comment=Note session="Room 4" (the last three are not retained).
+const native = Buffer.from("LnNuZAAAAFAAAAAIAAAAAwAAH0AAAAABVGl0bGU9U29uZwpBcnRpc3Q9QWxpY2UKQWxidW09UmVjb3JkClRyYWNrPTIKR2VucmU9Rm9sawAAZP84ASz+cA==", "base64");
+
 for (const sync of [false, true]) {
   it(`exports AU title, artist and album annotations while ignoring unsupported fields (${sync ? "sync" : "async"})`, async () => {
     const annotation = Buffer.from("Title=Evening\nArtist=Kay\nAlbum=Record\nComment=note\ncustom=solo\n\0");
@@ -33,4 +38,42 @@ for (const sync of [false, true]) {
     const lines = String(volume.readFileSync("/out.ffmeta", "utf8")).trim().split("\n").filter(line => !line.startsWith("encoder="));
     assert.deepEqual(lines.sort(), [";FFMETADATA1", "title=Evening", "artist=Kay", "album=Record"].sort());
   });
+}
+
+for (const sync of [false, true]) {
+  for (const strip of [false, true]) {
+    for (const format of ["ffmetadata", "s16le"]) {
+      it(`reads native AU annotations and PCM (sync=${sync}, strip=${strip}, format=${format})`, async () => {
+        const volume = Volume.fromJSON({ "/in.au": native });
+        const args = ["-y", "-v", "error", "-i", "/in.au", ...(strip ? ["-map_metadata", "-1"] : []),
+          "-f", format, "/out.bin"];
+        if (sync) {
+          assert.equal(evalSyncFfmpeg(args, undefined,
+            path => volume.readFileSync(path) as Buffer,
+            (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), "");
+        } else {
+          let stderr = "";
+          const result = await createFfmpegCommand().execute({
+            args, cwd: "/", env: {}, signal: new AbortController().signal,
+            fs: {
+              async readFile(path: string) { return volume.readFileSync(path); },
+              async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+              async stat(path: string) { return volume.statSync(path); }
+            },
+            stdin: (async function* () {})(), stdout: { async write() {} },
+            stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+          } as never);
+          assert.equal(result.exitCode, 0, stderr);
+        }
+        if (format === "s16le") {
+          assert.deepEqual(volume.readFileSync("/out.bin"), Buffer.from("640038ff2c0170fe", "hex"));
+          return;
+        }
+        const lines = String(volume.readFileSync("/out.bin", "utf8")).trim().split("\n")
+          .filter(line => !line.startsWith("encoder="));
+        assert.deepEqual(lines.sort(), [";FFMETADATA1", ...(strip ? [] :
+          ["title=Song", "artist=Alice", "album=Record", "track=2", "genre=Folk"])].sort());
+      });
+    }
+  }
 }

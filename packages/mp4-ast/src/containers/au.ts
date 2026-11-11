@@ -86,7 +86,9 @@ function parseAu(bytes: Uint8Array, options: ParseMediaOptions = {}) {
   for (const line of annotation.split("\n")) {
     const separator = line.indexOf("=");
     const key = line.slice(0, separator).toLowerCase();
-    if (separator >= 0 && (key === "title" || key === "artist" || key === "album")) metadata[key] = line.slice(separator + 1);
+    if (separator >= 0 && (key === "title" || key === "artist" || key === "album" || key === "track" || key === "genre")) {
+      metadata[key === "track" ? "trackNumber" : key] = line.slice(separator + 1);
+    }
   }
   return { ...doc, metadata, containerFormat: "au", byteLength: bytes.length };
 }

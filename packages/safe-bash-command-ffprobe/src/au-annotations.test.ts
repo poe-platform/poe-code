@@ -34,3 +34,27 @@ it("exposes native AU title and artist annotations as format tags", async () => 
     expect(JSON.parse(evalSyncFfprobe(input, [...args, "pipe:0"])!)).toEqual(expected);
   }
 });
+
+// Exact bytes from native FFmpeg 7.0.2, with title/artist/album/track/genre
+// and unsupported date=2001, comment=Note, session="Room 4" metadata supplied.
+const native = Buffer.from("LnNuZAAAAFAAAAAIAAAAAwAAH0AAAAABVGl0bGU9U29uZwpBcnRpc3Q9QWxpY2UKQWxidW09UmVjb3JkClRyYWNrPTIKR2VucmU9Rm9sawAAZP84ASz+cA==", "base64");
+
+it("exposes all five native AU annotations through async and sync commands", async () => {
+  const fs = new MemoryFileSystem();
+  await fs.writeFile("/native.au", native);
+  const args = ["-v", "error", "-show_entries", "format_tags", "-of", "json"];
+  let output = "", diagnostic = "";
+  const result = await createFfprobeCommand().execute({
+    command: "ffprobe", ...createCommandArguments([...args, "-i", "/native.au"]),
+    cwd: "/", env: {}, fs, signal: new AbortController().signal,
+    stdin: (async function* () {})(),
+    stdout: { async write(bytes) { output += new TextDecoder().decode(bytes); } },
+    stderr: { async write(bytes) { diagnostic += new TextDecoder().decode(bytes); } }
+  });
+  expect(result.exitCode, diagnostic).toBe(0);
+  const expected = { format: { tags: {
+    title: "Song", artist: "Alice", album: "Record", track: "2", genre: "Folk"
+  } } };
+  expect(JSON.parse(output)).toEqual(expected);
+  expect(JSON.parse(evalSyncFfprobe(native, [...args, "pipe:0"])!)).toEqual(expected);
+});

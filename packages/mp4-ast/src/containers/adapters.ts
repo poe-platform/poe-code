@@ -3119,6 +3119,7 @@ export function serializeFfmetadata(doc: MediaDocument): Uint8Array {
   if (m.comment !== undefined) lines.push(`${m.keySpellings?.comment ?? "comment"}=${escapeFfmetadata(m.comment)}`);
   if (m.copyright !== undefined) lines.push(`${m.keySpellings?.copyright ?? "copyright"}=${escapeFfmetadata(m.copyright)}`);
   if (m.genre !== undefined) lines.push(`${m.keySpellings?.genre ?? "genre"}=${escapeFfmetadata(m.genre)}`);
+  if (m.trackNumber !== undefined) lines.push(`${m.keySpellings?.track ?? "track"}=${escapeFfmetadata(m.trackNumber)}`);
   if (m.encoder !== undefined) lines.push(`${m.keySpellings?.encoder ?? "encoder"}=${escapeFfmetadata(m.encoder)}`);
   for (const [key, value] of Object.entries(m.custom ?? {})) {
     lines.push(`${key}=${escapeFfmetadata(value)}`);

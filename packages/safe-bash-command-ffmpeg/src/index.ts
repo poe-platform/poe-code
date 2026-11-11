@@ -95,6 +95,7 @@ import { shiftAudioPhase } from "./audio-aphaseshift.js";
 import { correlateAudio } from "./audio-axcorrelate.js";
 import { adaptiveAudio } from "./audio-anlmf.js";
 import { gateAudio } from "./audio-sidechaingate.js";
+import { smoothAudio } from "./audio-adynamicsmooth.js";
 import { listenDynamicEqualizer } from "./audio-adynamicequalizer.js";
 import { tiltAudio } from "./audio-atilt.js";
 import { crushAudio } from "./audio-acrusher.js";
@@ -1932,7 +1933,7 @@ const audioGraphFormats = new WeakMap<MediaTrack, string>();
 // Recognize filters before graph binding can hide an unknown filter in a later chain.
 const audioGraphFilterNames = new Set([
   "acompressor", "acontrast", "acopy", "acrossfade", "acrusher", "adeclick", "adeclip",
-  "adecorrelate", "adelay", "adynamicequalizer", "aecho", "aemphasis", "aeval", "aexciter",
+  "adecorrelate", "adelay", "adynamicequalizer", "adynamicsmooth", "aecho", "aemphasis", "aeval", "aexciter",
   "afade", "afftdn", "aformat", "afreqshift", "afwtdn", "agate", "alimiter",
   "aloop", "amerge", "ametadata", "amix", "amultiply", "anlmf", "anlms",
   "anull", "anullsink", "apad", "aphasemeter", "aphaser", "aphaseshift", "apsyclip",
@@ -15219,7 +15220,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
                         filteredSampleFormat = "fltp";
-                      } else if (filterName === "adynamicequalizer" || filterName === "acrusher" || filterName === "aemphasis" || filterName === "deesser" || filterName === "aexciter" || filterName === "atilt" || filterName === "aphaseshift" || filterName === "afreqshift" || filterName === "silenceremove" || filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo" || filterName === "asoftclip" || filterName === "asubboost" || filterName === "agate") {
+                      } else if (filterName === "adynamicsmooth" || filterName === "adynamicequalizer" || filterName === "acrusher" || filterName === "aemphasis" || filterName === "deesser" || filterName === "aexciter" || filterName === "atilt" || filterName === "aphaseshift" || filterName === "afreqshift" || filterName === "silenceremove" || filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo" || filterName === "asoftclip" || filterName === "asubboost" || filterName === "agate") {
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           const length = stretched[0]?.length ?? 0;
@@ -15236,7 +15237,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             start = end;
                           }
                         }
-                        if (filterName === "adynamicequalizer") {
+                        if (filterName === "adynamicsmooth") {
+                          if (!autoConversionFilters && filteredSampleFormat !== "dblp") throw new Error(audioConversionDisabled);
+                          stretched = await smoothAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
+                          filteredSampleFormat = "dblp";
+                        } else if (filterName === "adynamicequalizer") {
                           stretched = await listenDynamicEqualizer(stretched, origRate, trimmed, budget, context.signal, filteredSampleFormat, audioTimestamps);
                           filteredSampleFormat = stretched[0] instanceof Float64Array ? "dblp" : "fltp";
                         } else if (filterName === "acrusher") {

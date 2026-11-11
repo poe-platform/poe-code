@@ -1,5 +1,5 @@
 import type { MediaBudgetTracker, MediaSample, MediaTrack } from "@poe-code/mp4-ast";
-import { resampleAudio } from "./audio-resample.js";
+import { convertAudioSampleFormat, resampleAudio } from "./audio-resample.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterBoolean } from "./filter-boolean.js";
 import { parseFilterExpression } from "./filter-expression.js";
@@ -75,6 +75,7 @@ export async function acrossfadeAudio(
   if (duration > 0) samples = Math.round(Math.round(duration * 1_000_000) * a.sampleRate / 1_000_000);
   // FFmpeg ends after the first input when a positive duration rounds to no samples.
   if (samples === 0) return first;
+  const pcm16 = sampleFormat === "s16" || sampleFormat === undefined && ["pcm_s16le", "pcm_s16be"].includes(first.codecDescriptions[0]?.codecName ?? "");
   let secondChannels = b.channelData;
   const ratio = a.sampleRate / b.sampleRate;
   if (ratio !== 1) {
@@ -83,6 +84,9 @@ export async function acrossfadeAudio(
     budget.checkDuration(resampledLength / a.sampleRate);
     budget.allocateMemory(resampledLength * b.channels * Float32Array.BYTES_PER_ELEMENT);
     secondChannels = await resampleAudio(b.channelData, resampledLength, b.sampleRate, a.sampleRate, budget, signal);
+    // Automatic S16 conversion rounds resampled floats to nearest even, just
+    // like an explicit aresample=osf=s16, before the fade consumes them.
+    if (pcm16) secondChannels = await convertAudioSampleFormat(secondChannels, "flt", "s16", budget, signal);
   }
   const aLength = a.channelData[0]!.length;
   const bLength = secondChannels[0]!.length;
@@ -97,7 +101,6 @@ export async function acrossfadeAudio(
   budget.allocateMemory(length * a.channels * 8);
   const channelData = a.channelData.map(() => new Float64Array(length));
   // FFmpeg negotiates the first input's precision and converts the second before fading.
-  const pcm16 = sampleFormat === "s16" || sampleFormat === undefined && ["pcm_s16le", "pcm_s16be"].includes(first.codecDescriptions[0]?.codecName ?? "");
   const pcm32 = sampleFormat === "s32" || sampleFormat === undefined && ["pcm_s24le", "pcm_s24be", "pcm_s32le", "pcm_s32be"].includes(first.codecDescriptions[0]?.codecName ?? "");
   const float32 = sampleFormat === "flt" || sampleFormat === undefined && ["pcm_f32le", "pcm_f32be"].includes(first.codecDescriptions[0]?.codecName ?? "");
   const secondPcm32 = ["pcm_s32le", "pcm_s32be", "pcm_s24le", "pcm_s24be"]

@@ -303,7 +303,7 @@ With `-c:a flac`, frame checksums report encoded FLAC packets, initial STREAMINF
 For audio, these formats retain PCM packet boundaries after filtering, including the
 short final packet, and checksum each packet separately. IMA WAV ADPCM `framehash`, `framemd5`, and `framecrc` report each compressed packet, with encoder timestamps, the unpadded sample duration, and the selected block size and trellis settings. MP3 inputs are decoded before
 filtering, preserving encoder-delay and end-padding trimming in the checksum packets.
-`framecrc` includes a `#software` header by default; `-bitexact` or `-fflags +bitexact` omits it without changing packet rows.
+`framecrc`, `framehash`, and `framemd5` include a `#software` header by default. Output `-bitexact` or `-fflags +bitexact` (after `-i`) omits it without changing packet rows; input-only flags keep it.
 For AAC decoded to PCM, audio rows follow decoder frames, skipping priming and
 retaining the complete final frame even when the container duration ends earlier.
 With `-map 0:s -c:s copy`, they checksum original subtitle packets, retaining style

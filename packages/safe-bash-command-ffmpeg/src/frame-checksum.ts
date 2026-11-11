@@ -143,7 +143,7 @@ export function serializeFrameChecksum(
       ? `#extradata ${index}: ${String(extra.length).padStart(8)}, ${checksum(extra)}`
       : `#extradata ${index}, ${String(extra.length).padStart(31)}, ${checksum(extra)}`);
   }
-  if (format === "framecrc" && !bitexact) lines.push("#software: Lavf61.7.100");
+  if (!bitexact) lines.push("#software: Lavf61.7.100");
   for (const [index, track] of doc.tracks.entries()) {
     const audioCodec = audioCodecs.get(index) ?? defaultAudioCodec;
     if (track.type === "video") {

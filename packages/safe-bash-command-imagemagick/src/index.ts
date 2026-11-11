@@ -10038,7 +10038,15 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
     } else if (token === "-tint") {
         highDepth = evaluate = true;
         const value = tokens[++i] ?? "";
-        const strength = [...value].filter(character => character.trim() !== "").join("");
+        let strength = [...value].filter(character => character.trim() !== "").join("");
+        while (strength.length > 0 && "!@^<>".includes(strength.at(-1)!)) strength = strength.slice(0, -1);
+        const separator = strength.toLowerCase().indexOf("x");
+        if (separator >= 0) {
+            const height = strength.slice(separator + 1);
+            const offset = [...height].findIndex((character, index) => index > 0
+                && (character === "+" || character === "-") && height[index - 1]?.toLowerCase() !== "e");
+            strength = strength.slice(0, separator) + "," + (offset < 0 ? height : height.slice(0, offset) + "," + height.slice(offset));
+        }
         const percentages = strength.replaceAll(":", ",").split(",").map(part => {
             const percent = part.endsWith("%") ? part.slice(0, -1) : part;
             if (!Number.isFinite(Number(percent)) || Number.parseFloat(percent) !== Number(percent)) {

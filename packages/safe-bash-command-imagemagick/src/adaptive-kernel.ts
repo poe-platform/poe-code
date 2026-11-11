@@ -6,26 +6,34 @@ import type { VirtualPixelMethod } from "./warp-kernel.js";
 type Image = Pick<RgbaImage, "width" | "height" | "hasAlpha"> & Partial<Pick<RgbaImage, "space" | "hueSamples"> & Pick<StoredRgbaImage, "storedHueSamples">>;
 type Channels = { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean };
 
+export interface AdaptiveEdgeRange {
+    images: readonly Image[];
+    low?: number[];
+    high?: number[];
+}
+
 /** Edge detection and auto-leveling, retaining HDRI values between operations. */
-export function* adaptiveEdgePixelSteps(image: Image, radius: number, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, channels?: Channels): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* adaptiveEdgePixelSteps(image: Image, radius: number, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, channels?: Channels, range: AdaptiveEdgeRange = { images: [image] }, sourceIndex = 0): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const half = radius > 0 ? Math.ceil(radius) : 2;
     if (!Number.isFinite(half) || half >= 5000) throw new Error("Adaptive filter radius exceeds 5000");
     const width = half * 2 + 1, weights = Array<number>(width * width).fill(-1);
     weights[Math.floor(weights.length / 2)] = weights.length - 1;
-    const low = Array<number>(5).fill(Infinity), high = Array<number>(5).fill(-Infinity);
-    const cmyk = image.space === "cmyk", stride = cmyk ? 5 : 4;
-    const selected = [channels?.r ?? true, channels?.g ?? true, channels?.b ?? true, !!image.hasAlpha && (!channels || cmyk) && (channels?.a ?? true), channels ? !!channels.k : true];
+    const low = range.low ?? Array<number>(5).fill(Infinity), high = range.high ?? Array<number>(5).fill(-Infinity);
     // Recompute the convolution after finding its range, without retaining a whole image.
-    for (let pass = 0; pass < 2; pass++) {
-        const steps = convolvePixelSteps(image, { weights, width, height: width, x: half, y: half }, 0, undefined, channels, virtualPixel, background);
+    for (let pass = 0; pass < 2; pass++) for (const [index, source] of range.images.entries()) {
+        if (pass === 0 && range.low || pass === 1 && index !== sourceIndex) continue;
+        const cmyk = source.space === "cmyk", stride = cmyk ? 5 : 4;
+        // Native per-channel auto-level addresses the fourth RGBA slot as Black, leaving alpha unchanged.
+        const selected = [channels?.r ?? true, channels?.g ?? true, channels?.b ?? true, !!source.hasAlpha && (!channels || cmyk) && (channels?.a ?? true), channels ? !!channels.k : true];
+        const steps = convolvePixelSteps(source, { weights, width, height: width, x: half, y: half }, 0, undefined, channels, virtualPixel, index === 0 ? background : { r: 0, g: 0, b: 0, a: 255 });
         let next = steps.next();
         let inks: Float64Array | undefined;
         while (!next.done) {
             const request = next.value;
             if (request?.kind === "read") {
-                let bytes = yield request;
+                let bytes = yield { ...request, image: index };
                 if (request.evaluate && !bytes?.length) {
-                    const source = yield { ...request, evaluate: false, highDepth: true };
+                    const source = yield { ...request, image: index, evaluate: false, highDepth: true };
                     if (!source || source.length !== request.length * 2) throw new Error("Truncated adaptive filter pixels");
                     bytes = new Uint8Array(Float64Array.from(new Uint16Array(source.slice().buffer), value => value / 257).buffer);
                 }
@@ -63,10 +71,11 @@ export function* adaptiveEdgePixelSteps(image: Image, radius: number, virtualPix
             }
         }
     }
+    range.low = low; range.high = high;
 }
 
 /** Select a blur or sharpening radius from the leveled, blurred edge intensity at each pixel. */
-export function* adaptivePixelSteps(image: Image & Partial<Pick<RgbaImage, "evaluateSamples">> & Partial<Pick<StoredRgbaImage, "storedEvaluateSamples">>, geometry: { width?: number; height?: number }, sharpen: boolean, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, channels?: Channels): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* adaptivePixelSteps(image: Image & Partial<Pick<RgbaImage, "evaluateSamples">> & Partial<Pick<StoredRgbaImage, "storedEvaluateSamples">>, geometry: { width?: number; height?: number }, sharpen: boolean, virtualPixel: VirtualPixelMethod = "edge", background?: RgbaColor, channels?: Channels, edgeImages: readonly Image[] = [image], edgeChannels = channels): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const { width, height } = image, radius = geometry.width ?? 0, sigma = geometry.height ?? 1;
     let half = radius > 0 ? Math.ceil(radius) : 1;
     if (radius <= 0) {
@@ -104,7 +113,7 @@ export function* adaptivePixelSteps(image: Image & Partial<Pick<RgbaImage, "eval
         if (!bytes || bytes.length !== length * (workingHue || floating ? 8 : 2)) throw new Error("Truncated adaptive filter pixels");
         const rgba = workingHue ? new Float64Array(bytes.slice().buffer).map(value => value * 255)
             : floating ? new Float64Array(bytes.slice().buffer) : Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257);
-        if (!cmyk) return rgba;
+        if ((source === 0 ? image : edgeImages[source - 1])?.space !== "cmyk") return rgba;
         const inkBytes = yield { kind: "read", image: source, hue: true, position, length };
         if (!inkBytes || inkBytes.length !== length * 8) throw new Error("Truncated adaptive filter inks");
         const inks = new Float64Array(inkBytes.slice().buffer), samples = new Float64Array(length / 4 * 5);
@@ -113,15 +122,19 @@ export function* adaptivePixelSteps(image: Image & Partial<Pick<RgbaImage, "eval
         return samples;
     }
     const selected = [channels?.r ?? true, channels?.g ?? true, channels?.b ?? true, !!image.hasAlpha && (channels?.a ?? true), channels ? !!channels.k : true];
-    const edgeSelected = [channels?.r ?? true, channels?.g ?? true, channels?.b ?? true, !!image.hasAlpha && (!channels || image.space === "cmyk") && (channels?.a ?? true), channels ? !!channels.k : true];
+    const edgeSelected = [edgeChannels?.r ?? true, edgeChannels?.g ?? true, edgeChannels?.b ?? true, !!edgeImages[0]!.hasAlpha && (!edgeChannels || edgeImages[0]!.space === "cmyk") && (edgeChannels?.a ?? true), edgeChannels ? !!edgeChannels.k : true];
     const low = Array<number>(5).fill(Infinity), high = Array<number>(5).fill(-Infinity);
-    for (let position = 0; position < width * height * 4; position += 2048) {
-        const length = Math.min(2048, width * height * 4 - position);
-        const samples = yield* readSamples(position, length, 1);
-        for (let i = 0; i < samples.length; i++) {
-            if (!edgeSelected[i % stride]) continue;
-            const c = channels ? i % stride : 0;
-            low[c] = Math.min(low[c]!, samples[i]!); high[c] = Math.max(high[c]!, samples[i]!);
+    for (const [index, edgeImage] of edgeImages.entries()) {
+        if (index > 0 && edgeChannels) continue;
+        for (let position = 0; position < width * height * 4; position += 2048) {
+            const length = Math.min(2048, width * height * 4 - position);
+            const samples = yield* readSamples(position, length, index + 1);
+            const edgeStride = edgeImage.space === "cmyk" ? 5 : 4;
+            for (let i = 0; i < samples.length; i++) {
+                if (index === 0 ? !edgeSelected[i % edgeStride] : i % edgeStride === 3 && !edgeImage.hasAlpha) continue;
+                const c = edgeChannels ? i % edgeStride : 0;
+                low[c] = Math.min(low[c]!, samples[i]!); high[c] = Math.max(high[c]!, samples[i]!);
+            }
         }
     }
     const gray = virtualPixel === "white" ? 255 : virtualPixel === "gray" ? 127.5 : 0;
@@ -150,7 +163,7 @@ export function* adaptivePixelSteps(image: Image & Partial<Pick<RgbaImage, "eval
         for (let x = 0; x < count; x++) {
             yield;
             const level = (c: number) => {
-                const range = channels ? c : 0, value = edges[x * stride + c]!;
+                const range = edgeChannels ? c : 0, value = edges[x * (edgeImages[0]!.space === "cmyk" ? 5 : 4) + c]!;
                 return edgeSelected[c] && high[range]! > low[range]!
                     ? Math.fround(65535 * (value - low[range]!) / (high[range]! - low[range]!)) / 65535 : value / 255;
             };

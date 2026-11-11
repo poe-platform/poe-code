@@ -15017,9 +15017,23 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 validateMagickTransformGeometry(expanded, t);
                 const geometry = parseMagickGeometry(expanded.replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x"));
                 if (Math.abs(geometry.height ?? 1) < 1e-12) return im;
-                const edges = yield* applyMagickRasterSteps(im, adaptiveEdgePixelSteps(im, geometry.width ?? 0, im.virtualPixel ?? state.virtualPixel, im.backgroundColor ?? state.background, channels), signal);
-                const blurred = yield* applyMagickRasterSteps(edges, blurPixelSteps(edges, geometry, false, channels, undefined, undefined, im.backgroundColor ?? state.background), signal);
-                return yield* applyMagickRasterSteps(im, adaptivePixelSteps(im, geometry, t === "-adaptive-sharpen", im.virtualPixel ?? state.virtualPixel, im.backgroundColor ?? state.background, channels), signal, im, [im, blurred]);
+                const sources = [im, ...im.metaChannels ?? []], blurred: RgbaImage[] = [];
+                const range = { images: sources };
+                for (const [index, source] of sources.entries()) {
+                    if (index > 0 && channels && !channels.meta?.includes(index - 1)) { blurred.push(source); continue; }
+                    const selection = index === 0 ? channels : undefined;
+                    const background = index === 0 ? im.backgroundColor ?? state.background : { r: 0, g: 0, b: 0, a: 255 };
+                    const edgeRange = channels ? { images: [source] } : range;
+                    const edges = yield* applyMagickRasterSteps(source, adaptiveEdgePixelSteps(source, geometry.width ?? 0, im.virtualPixel ?? state.virtualPixel, background, selection, edgeRange, channels ? 0 : index), signal, source, edgeRange.images);
+                    blurred.push(yield* applyMagickRasterSteps(edges, blurPixelSteps(edges, geometry, false, selection, undefined, undefined, background), signal));
+                }
+                const result = yield* applyMagickRasterSteps(im, adaptivePixelSteps(im, geometry, t === "-adaptive-sharpen", im.virtualPixel ?? state.virtualPixel, im.backgroundColor ?? state.background, channels, blurred), signal, im, [im, ...blurred]);
+                if (im.metaChannels?.length) {
+                    result.metaChannels = [];
+                    for (const [index, plane] of im.metaChannels.entries()) result.metaChannels.push(!channels || channels.meta?.includes(index)
+                        ? yield* applyMagickRasterSteps(plane, adaptivePixelSteps(plane, geometry, t === "-adaptive-sharpen", im.virtualPixel ?? state.virtualPixel, { r: 0, g: 0, b: 0, a: 255 }, undefined, blurred, channels), signal, plane, [plane, ...blurred]) : plane);
+                }
+                return result;
             });
         }
         else if (t === "-sharpen") {
@@ -19329,9 +19343,23 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 validateMagickTransformGeometry(expanded, token);
                 const geometry = parseMagickGeometry(expanded.replaceAll("(", "").replaceAll(")", "").replaceAll(",", "x").replaceAll("/", "x"));
                 if (Math.abs(geometry.height ?? 1) < 1e-12) return image;
-                const edges = await transformStoredMagickRaster(image, backend, adaptiveEdgePixelSteps(image, geometry.width ?? 0, image.virtualPixel ?? virtualPixel, image.backgroundColor ?? background, channels), signal);
-                const blurred = await transformStoredMagickRaster(edges, backend, blurPixelSteps(edges, geometry, false, channels, undefined, undefined, image.backgroundColor ?? background), signal);
-                return transformStoredMagickRaster(image, backend, adaptivePixelSteps(image, geometry, token === "-adaptive-sharpen", image.virtualPixel ?? virtualPixel, image.backgroundColor ?? background, channels), signal, image, [image, blurred]);
+                const sources = [image, ...image.storedMetaChannels ?? []], blurred: StoredRgbaImage[] = [];
+                const range = { images: sources };
+                for (const [index, source] of sources.entries()) {
+                    if (index > 0 && channels && !channels.meta?.includes(index - 1)) { blurred.push(source); continue; }
+                    const selection = index === 0 ? channels : undefined;
+                    const fill = index === 0 ? image.backgroundColor ?? background : { r: 0, g: 0, b: 0, a: 255 };
+                    const edgeRange = channels ? { images: [source] } : range;
+                    const edges = await transformStoredMagickRaster(source, backend, adaptiveEdgePixelSteps(source, geometry.width ?? 0, image.virtualPixel ?? virtualPixel, fill, selection, edgeRange, channels ? 0 : index), signal, source, edgeRange.images);
+                    blurred.push(await transformStoredMagickRaster(edges, backend, blurPixelSteps(edges, geometry, false, selection, undefined, undefined, fill), signal));
+                }
+                const result = await transformStoredMagickRaster(image, backend, adaptivePixelSteps(image, geometry, token === "-adaptive-sharpen", image.virtualPixel ?? virtualPixel, image.backgroundColor ?? background, channels, blurred), signal, image, [image, ...blurred]);
+                if (image.storedMetaChannels?.length) {
+                    result.storedMetaChannels = [];
+                    for (const [index, plane] of image.storedMetaChannels.entries()) result.storedMetaChannels.push(!channels || channels.meta?.includes(index)
+                        ? await transformStoredMagickRaster(plane, backend, adaptivePixelSteps(plane, geometry, token === "-adaptive-sharpen", image.virtualPixel ?? virtualPixel, { r: 0, g: 0, b: 0, a: 255 }, undefined, blurred, channels), signal, plane, [plane, ...blurred]) : plane);
+                }
+                return result;
             });
         } else if (!operandsOnly && token === "-sharpen") {
             stackStep(async stack => {

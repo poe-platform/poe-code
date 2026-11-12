@@ -11251,7 +11251,15 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (c === "," || c === "/") value += component++ === 0 ? "x" : "+";
             else if (c.trim() !== "" && !"!#%()<>@\\^".includes(c)) value += c;
         }
-        const geometry = parseMagickGeometry(value);
+        let geometry = parseMagickGeometry(value);
+        if (geometry.width !== undefined && geometry.hasOffset && !value.toLowerCase().includes("x")) {
+            // Native leaves numeric fields unset when unsigned brightness runs directly
+            // into offsets. Only modifier or decimal flags make that geometry valid.
+            if (![...raw].some(c => "!#%<>@^.".includes(c))) {
+                throw new Error(`invalid argument for option '-modulate': ${raw}`);
+            }
+            geometry = parseMagickGeometry("");
+        }
         const brightness = (geometry.width ?? 100) / 100, saturation = (geometry.height ?? 100) / 100, hueShift = ((geometry.hasOffset ? geometry.x : 100) - 100) * 3 / 100;
         const optionColorspace = state.optionProperties?.["modulate:colorspace"];
         apply = function* (image) {

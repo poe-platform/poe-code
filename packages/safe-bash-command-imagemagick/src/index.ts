@@ -12383,7 +12383,11 @@ async function remapStoredImageList(stack: StoredImageStack, backend: CompareFil
 // Compare the first frame with an empty canvas to trim its transparent margins.
 // Clearing/restoring frames keep their disposal-dependent encoder optimization.
 function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimize: boolean): Generator<void, void, void> {
+    // Defer Previous disposal until the preceding frame has also been cropped.
+    let restorePrevious = false;
     for (let n = stack.length - 1; n >= 0; n--) {
+        const restoreCurrent = restorePrevious;
+        restorePrevious = false;
         let current = stack[n]!;
         const previous = n > 0 ? stack[n - 1]! : { ...current, width: 0, height: 0 };
         // Clearing the first coalesced canvas is equivalent to restoring its empty predecessor.
@@ -12409,7 +12413,7 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
             }
         }
         let area = transparent ? undefined : next.value;
-        if (n === 1 && area && current.hasAlpha && !optimize) {
+        if (!restoreCurrent && n === 1 && area && current.hasAlpha && !optimize) {
             const restoring = initialFrameRestoreBounds(previous, current, fuzz, false);
             let back = restoring.next();
             while (!back.done) {
@@ -12427,9 +12431,9 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
                 stack[n] = current;
             }
         }
-        // Restoring the preceding canvas can replace a return frame with a pause.
+        // Restore the preceding canvas when it reduces the next rectangle (or makes a pause).
         const restored = n > 1 ? stack[n - 2] : undefined;
-        if (area && area.width * area.height > 1 && restored &&
+        if (!restoreCurrent && area && area.width * area.height > 1 && restored &&
             restored.width === current.width && restored.height === current.height &&
             (typeof restored.disposal !== "number" || restored.disposal <= 1)) {
             const returning = compareLayerBounds(restored, current, fuzz, "compareany");
@@ -12442,10 +12446,10 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
                     back = returning.next(hue ? source.hueSamples?.subarray(position, position + length) : (source.evaluateSamples ?? source.data16 ?? source.data).subarray(position, position + length));
                 }
             }
-            if (!back.value) {
-                stack[n - 1] = { ...previous, disposal: 3 };
-                current = { ...current, disposal: 3 };
-                area = undefined;
+            if (!back.value || back.value.width * back.value.height < area.width * area.height) {
+                restorePrevious = true;
+                current = { ...current, disposal: n === stack.length - 1 ? 3 : 1 };
+                area = back.value;
             }
         }
         if (!area) {
@@ -12460,11 +12464,16 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
         } else if (area.width !== current.width || area.height !== current.height) {
             stack[n] = { ...yield* extractImageSteps(current, area), virtualCanvas: magickCropCanvas(current, area.left, area.top) };
         }
+        if (restoreCurrent) stack[n] = { ...stack[n]!, disposal: 3 };
     }
 }
 
 async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: CompareFileSession, signal: AbortSignal, fuzz: number, optimize: boolean): Promise<void> {
+    // Defer Previous disposal until the preceding frame has also been cropped.
+    let restorePrevious = false;
     for (let n = stack.length - 1; n >= 0; n--) {
+        const restoreCurrent = restorePrevious;
+        restorePrevious = false;
         let current = (await stack.get(n))!;
         const previous = n > 0 ? (await stack.get(n - 1))! : { ...current, width: 0, height: 0 };
         // Clearing the first coalesced canvas is equivalent to restoring its empty predecessor.
@@ -12493,7 +12502,7 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
             }
         }
         let area = transparent ? undefined : next.value;
-        if (n === 1 && area && current.hasAlpha && !optimize) {
+        if (!restoreCurrent && n === 1 && area && current.hasAlpha && !optimize) {
             const restoring = initialFrameRestoreBounds(previous, current, fuzz, false);
             let back = restoring.next();
             while (!back.done) {
@@ -12515,9 +12524,9 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
                 await stack.set(n, current);
             }
         }
-        // Restoring the preceding canvas can replace a return frame with a pause.
+        // Restore the preceding canvas when it reduces the next rectangle (or makes a pause).
         const restored = n > 1 ? await stack.get(n - 2) : undefined;
-        if (area && area.width * area.height > 1 && restored &&
+        if (!restoreCurrent && area && area.width * area.height > 1 && restored &&
             restored.width === current.width && restored.height === current.height &&
             (typeof restored.disposal !== "number" || restored.disposal <= 1)) {
             const returning = compareLayerBounds(restored, current, fuzz, "compareany");
@@ -12534,10 +12543,10 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
                     back = returning.next(data);
                 }
             }
-            if (!back.value) {
-                await stack.set(n - 1, { ...previous, disposal: 3 });
-                current = { ...current, disposal: 3 };
-                area = undefined;
+            if (!back.value || back.value.width * back.value.height < area.width * area.height) {
+                restorePrevious = true;
+                current = { ...current, disposal: n === stack.length - 1 ? 3 : 1 };
+                area = back.value;
             }
         }
         if (!area) {
@@ -12551,6 +12560,7 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
         } else if (area.width !== current.width || area.height !== current.height) {
             await stack.set(n, { ...await transformStoredImage(current, backend.storage, { kind: "extract", ...area }, signal), virtualCanvas: magickCropCanvas(current, area.left, area.top) });
         }
+        if (restoreCurrent) await stack.set(n, { ...(await stack.get(n))!, disposal: 3 });
     }
 }
 

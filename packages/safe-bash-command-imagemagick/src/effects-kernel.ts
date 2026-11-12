@@ -277,6 +277,8 @@ export function* vignettePixelSteps(source: Pick<RgbaImage, "width" | "height" |
                 const sourceAlpha = source.hasAlpha ? data[x * 4 + 3]! / (255 * scale) : 0;
                 const foreground = protectedPixel ? sourceAlpha : coverage[x]!;
                 const intensity = protectedPixel ? sourceAlpha + coverage[x]! * (1 - sourceAlpha) : 1;
+                if (!protectedPixel) for (let c = 0; c < (inks ? 4 : 3); c++)
+                    samples[x * 4 + c] = Math.max(0, Math.min(255 * pixelScale, samples[x * 4 + c]!));
                 if (sharedCompose) {
                     for (let c = 0; c < 3; c++) overlay.data[c] = protectedPixel
                         ? Math.fround(samples[x * 4 + c]! / pixelScale * intensity * 257) / 257 : samples[x * 4 + c]! / pixelScale;

@@ -1,3 +1,4 @@
+import { decodeImage } from "@poe-code/image-ast";
 import { createHash } from "node:crypto";
 import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
@@ -33,5 +34,36 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         const output = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
         expect(output).toHaveLength(6 * 4 * 4);
         expect(createHash("sha256").update(output).digest("hex")).toBe(hash);
+    });
+}
+
+// ImageMagick 7.1.2-35 Q16-HDRI clips working channels during vignette intensity compositing.
+for (const mode of ["command", "retained", "buffered", "sync"] as const) {
+    it.each([
+        ["Lab", "Multiply", "ff53dc"],
+        ["HSL", "Multiply", "ffcbcb"],
+        ["Lab", "Divide", "00acf5"],
+        ["sRGB", "Multiply", "24f6ff"],
+    ])(`matches native out-of-range %s %s vignette (${mode})`, async (space, operation, rgb) => {
+        for (const clamp of [false, true]) for (const format of ["rgba", "PNG32"]) {
+            const files = new Map<string, Uint8Array>(), fs = new MemoryFileSystem();
+            const args = ["-size", "3x3", "xc:#127bd380", "-colorspace", space!, "-evaluate", operation!, "2",
+                ...(clamp ? ["-clamp"] : []), "-background", "none", "-vignette", "0x1+1+1",
+                "-colorspace", "sRGB", "-depth", "8", `${format}:/out`];
+            let stderr = "";
+            const result = mode === "command" ? await createMagickCommand().execute({
+                command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs,
+                stdin: (async function* () {})(), signal: new AbortController().signal,
+                stdout: { async write() {} },
+                stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+            }) : mode === "sync" ? runMagickCliSync(args, files)
+                : await runMagickCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+            expect(result.exitCode).toBe(0);
+            expect("stderr" in result ? result.stderr : stderr).toBe("");
+            const output = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
+            const pixels = format === "PNG32" ? decodeImage(output).data : output;
+            expect(Buffer.from(pixels).toString("hex")).toBe(
+                ["18", "36", "49", "36", "7a", "a5", "49", "a5", "de"].map(alpha => rgb + alpha).join(""));
+        }
     });
 }

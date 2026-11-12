@@ -61,7 +61,7 @@ function exp2(value: number): number {
 function decodeBlock(block: Uint8Array, budget: MediaBudgetTracker): Float64Array[] {
   const view = new DataView(block.buffer, block.byteOffset, block.byteLength);
   const count = view.getUint32(20, true), flags = view.getUint32(24, true);
-  if (flags & (0x8 | 0x80 | 0x80000000)) throw new Error("Unsupported hybrid, float or DSD WavPack audio");
+  if (flags & (0x8 | 0x80000000)) throw new Error("Unsupported hybrid or DSD WavPack audio");
   const mono = Boolean(flags & (4 | 0x40000000)), channels = mono ? 1 : 2;
   const parts = metadata(block);
   const terms = parts.get(2), weights = parts.get(3), history = parts.get(4), entropy = parts.get(5), stream = parts.get(10);
@@ -155,6 +155,51 @@ function decodeBlock(block: Uint8Array, budget: MediaBudgetTracker): Float64Arra
   const output = Array.from({ length: channels }, () => new Float64Array(count));
   const extended = parts.get(9);
   if (flags & 0x100 && (!extended || extended.length !== 4 || extended[0])) throw new Error("Unsupported WavPack extended integer bitstream");
+  const floatInfo = flags & 0x80 ? parts.get(8) : undefined;
+  if (flags & 0x80 && (!floatInfo || floatInfo.length !== 4)) throw new Error("Missing or invalid WavPack float metadata");
+  const extra = parts.get(12);
+  if (floatInfo && extra && (extra.length <= 4 || extra.length % 2)) throw new Error("Invalid WavPack float bitstream");
+  let extraBit = 32, floatCrc = 0xffffffff;
+  const floatView = new DataView(new ArrayBuffer(4));
+  const readExtra = (width: number): number => {
+    if (!extra || extraBit + width > extra.length * 8) throw new Error("Truncated WavPack float bitstream");
+    let value = 0;
+    for (let i = 0; i < width; i++, extraBit++) value += ((extra[extraBit >>> 3]! >>> (extraBit & 7)) & 1) * 2 ** i;
+    return value;
+  };
+  const decodeFloat = (value: number): number => {
+    const floatFlags = floatInfo![0]!;
+    let exponent = floatInfo![2]!, sign = 0, mantissa = 0;
+    if (!value) {
+      if (floatFlags & 8 && readExtra(1)) {
+        mantissa = readExtra(23);
+        exponent = exponent >= 25 ? readExtra(8) : 0;
+        sign = readExtra(1);
+      } else {
+        exponent = 0;
+        if ((floatFlags & 24) === 24) sign = readExtra(1);
+      }
+    } else {
+      value <<= floatInfo![1]! & 31;
+      if (value < 0) { value = -value; sign = 1; }
+      if (value === 0x1000000) {
+        if (readExtra(1)) mantissa = readExtra(23);
+        exponent = 255;
+      } else {
+        let shifted = 0;
+        if (exponent) while (!(value & 0x800000) && --exponent) { value <<= 1; shifted++; }
+        shifted &= 31;
+        if (shifted) {
+          if (floatFlags & 1 || (floatFlags & 2 && readExtra(1))) value |= 2 ** shifted - 1;
+          else if (floatFlags & 4) value |= readExtra(shifted);
+        }
+        mantissa = value & 0x7fffff;
+      }
+    }
+    floatCrc = (Math.imul(floatCrc, 27) + mantissa * 9 + exponent * 3 + sign) >>> 0;
+    floatView.setUint32(0, (sign << 31) | (exponent << 23) | mantissa, true);
+    return floatView.getFloat32(0, true);
+  };
   const shift = (flags >>> 13) & 31, scale = 2 ** (((flags & 3) + 1) * 8 - 1);
   let crc = 0xffffffff;
   for (let i = 0; i < count; i++) {
@@ -198,10 +243,11 @@ function decodeBlock(block: Uint8Array, budget: MediaBudgetTracker): Float64Arra
         else if (ones) value = ((value + 1) << ones) - 1;
         else if (dups) value = ((value + (value & 1)) << dups) - (value & 1);
       }
-      output[ch]![i] = (value << shift) / scale;
+      output[ch]![i] = floatInfo ? decodeFloat(value) : (value << shift) / scale;
     }
   }
   if (crc !== view.getUint32(28, true)) throw new Error("WavPack audio checksum mismatch");
+  if (floatInfo && extra && floatCrc !== new DataView(extra.buffer, extra.byteOffset, extra.byteLength).getUint32(0, true)) throw new Error("WavPack float checksum mismatch");
   if (flags & 0x40000000) output.push(output[0]!.slice());
   return output;
 }

@@ -51,3 +51,43 @@ for (const [options, channels, hash] of [
     });
   }
 }
+
+// Complete native Linux x86-64 FFmpeg 7.0.2 samples, including untouched tails.
+for (const [options, transition] of [
+  ["c1=nofade:c2=nofade", [-2147483648, -2147483648, -2147483648, -2147483648]],
+  ["c1=qsin:c2=qsin", [1847759065, -2147483648, -2147483648, -1847759065]],
+  ["c1=tri:c2=tri", [1500000000, -1500000000, 1500000000, -1500000000]],
+  ["c1=nofade:c2=nofade:o=0", [2000000000, -2000000000, 2000000000, -2000000000,
+    2000000000, -2000000000, 2000000000, -2000000000]]
+] as const) {
+  it(`acrossfade matches native loud PCM32 samples (${options})`, async () => {
+    const tail = [2000000000, -2000000000, 2000000000, -2000000000];
+    const volume = Volume.fromJSON({});
+    const wav = encodeWav({ sampleRate: 8000,
+      channels: [Float64Array.from([...tail, ...tail], value => value / 2147483648)]
+    }, { bitsPerSample: 32 });
+    volume.writeFileSync("/a.wav", wav);
+    volume.writeFileSync("/b.wav", wav);
+    const stdout: Buffer[] = [];
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "error", "-i", "/a.wav", "-i", "/b.wav", "-filter_complex",
+        `[0:a][1:a]acrossfade=ns=4:${options}[o]`, "-map", "[o]", "-f", "s32le", "pipe:1"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: {
+        async readFile(path: string) { return volume.readFileSync(path); },
+        async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
+        async stat(path: string) { return volume.statSync(path); }
+      },
+      stdin: (async function* () {})(),
+      stdout: { async write(bytes: Uint8Array) { stdout.push(Buffer.from(bytes)); } },
+      stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+    } as never);
+    assert.equal(result.exitCode, 0, stderr);
+    assert.equal(stderr, "");
+    const expected = [...tail, ...transition, ...tail];
+    const output = Buffer.concat(stdout);
+    assert.equal(output.length, expected.length * 4);
+    assert.deepEqual(expected.map((_, index) => output.readInt32LE(index * 4)), expected);
+  });
+}

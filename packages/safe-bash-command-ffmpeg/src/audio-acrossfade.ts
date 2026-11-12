@@ -206,9 +206,16 @@ export async function acrossfadeAudio(
         : secondSample) * secondGain;
       // Store the mixed sample at the negotiated precision before output conversion.
       const value = firstValue + secondValue;
-      channelData[channel]![i] = pcm16 ? (Math.trunc(value * 32768) << 16 >> 16) / 32768
-        : pcm32 ? (Math.trunc(value * 2147483648) | 0) / 2147483648
-        : float32 ? Math.fround(value) : value;
+      if (pcm32) {
+        const integer = Math.trunc(value * 2147483648);
+        // Native x86-64 conversion returns INT32_MIN when the truncated sum
+        // cannot fit in S32, rather than wrapping its low 32 bits.
+        channelData[channel]![i] = integer >= -2147483648 && integer <= 2147483647
+          ? integer / 2147483648 : -1;
+      } else {
+        channelData[channel]![i] = pcm16 ? (Math.trunc(value * 32768) << 16 >> 16) / 32768
+          : float32 ? Math.fround(value) : value;
+      }
     }
   }
   const frames: MediaSample[] = [];

@@ -16628,6 +16628,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }, undefined, true);
         }
         else if (t === "-unsharp") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const raw = tokens[++i] ?? "0x1";
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
@@ -21082,7 +21083,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             }, { handlesRegion: true }));
         } else if (!operandsOnly && token === "-unsharp") {
             let images: StoredImageStack, sceneIdx = 0;
-            stackStep(async stack => { images = stack; return stack; });
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                images = stack;
+                return stack;
+            });
             const raw = tokens[++i] ?? "0x1", channels = state.channelExplicit ? state.channels : undefined, optionProperties = state.optionProperties, background = state.background;
             const meta = state.channelExplicit && !state.channelDefault ? state.channels.meta ?? [] : undefined;
             steps.push(async (image, backend) => {

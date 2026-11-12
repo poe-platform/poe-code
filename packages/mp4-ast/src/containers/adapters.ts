@@ -2733,7 +2733,7 @@ export function parseSubtitleDocument(
       ...(position.x1 >= 0 ? { subtitlePosition: position } : {}),
       ...(block.offset !== undefined ? { offset: block.offset, webvtt: {
         identifier: arrowLineIdx > 0 ? lines[arrowLineIdx - 1]! : "",
-        settings: (rightWithSettings ?? "").trim().slice(rightRaw.length).trimStart()
+        settings: (rightWithSettings ?? "").trimStart().slice(rightRaw.length).trimStart()
       } } : {}),
       dts: startMs,
       pts: startMs,

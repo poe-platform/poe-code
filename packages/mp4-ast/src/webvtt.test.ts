@@ -34,3 +34,15 @@ for (const newline of ["\n", "\r\n"]) {
     assert.equal(new TextDecoder().decode(serializeSubtitleDocument(doc, "webvtt")), input);
   });
 }
+
+for (const settings of ["position:30%  ", "align:end\t", "position:30%", "line:2\talign:end"]) {
+  for (const newline of ["\n", "\r\n"]) {
+    it(`preserves WebVTT settings ${JSON.stringify(settings)} with ${JSON.stringify(newline)} line endings`, () => {
+      const expected = `WEBVTT\n\ncue-1\n00:01.250 --> 00:03.500 ${settings}\nHi\n`;
+      const input = (expected + "\n").replaceAll("\n", newline);
+      const doc = parseSubtitleDocument(new TextEncoder().encode(input), "webvtt");
+      assert.deepEqual(doc.tracks[0]!.samples[0]!.webvtt, { identifier: "cue-1", settings });
+      assert.equal(new TextDecoder().decode(serializeSubtitleDocument(doc, "webvtt")), expected);
+    });
+  }
+}

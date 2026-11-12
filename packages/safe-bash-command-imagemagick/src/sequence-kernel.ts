@@ -112,8 +112,8 @@ export function* clutPixelSteps(size: number, lut: Pick<RgbaImage, "width" | "he
                 if (!mask[channel]) continue;
                 // The working ink plane stores C/M/Y/K; alpha stays in the RGBA backing.
                 const ink = inks && channel !== 3 ? offset + (channel === 4 ? 3 : channel) : undefined;
-                const value = ink === undefined ? data[offset + channel]! / range : inks![ink]!;
-                const index = cmyk ? Math.round(Math.max(0, Math.min(1, value)) * 65535) / 65535 : value;
+                const value = Math.max(0, Math.min(1, ink === undefined ? data[offset + channel]! / range : inks![ink]!));
+                const index = cmyk ? Math.round(value * 65535) / 65535 : value;
                 const source = data[offset + channel]!;
                 const mapped = table && Number.isInteger(source) && source >= 0 && source <= 255
                     ? table[source * 4 + channel]! : (yield* sample(index))[channel] ?? 0;

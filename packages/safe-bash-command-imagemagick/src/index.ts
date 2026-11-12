@@ -3990,20 +3990,24 @@ function sampleFxImage(
     const background = img.backgroundColor ?? { r: 255, g: 255, b: 255, a: 255 };
     return sampleFxPixel(method === "background" || method.endsWith("-tile")
       ? [background.r, background.g, background.b, background.a]
-      : [gray, gray, gray, method === "transparent" ? 0 : 255], 0, ch);
+      : [gray, gray, gray, method === "transparent" ? 0 : 255], 0, ch, img);
   }
   const idx = pixel * 4;
   if (img.space === "cmyk" && (ch < 3 || ch === 4 || ch === 8)) {
     const channel = ch === 8 ? 3 : ch;
-    if (img.hueSamples) return ch === 4 ? sampleFxPixel(img.hueSamples, idx, ch, 1) : img.hueSamples[idx + channel]!;
+    if (img.hueSamples) return ch === 4 ? sampleFxPixel(img.hueSamples, idx, ch, img, 1) : img.hueSamples[idx + channel]!;
     const input = img.data16 ?? img.data!, range = img.data16 ? 65535 : 255;
     const cmyk = rgbToCmyk(input[idx]! / range, input[idx + 1]! / range, input[idx + 2]! / range);
-    return ch === 4 ? sampleFxPixel(cmyk, 0, ch, 1) : cmyk[channel]!;
+    return ch === 4 ? sampleFxPixel(cmyk, 0, ch, img, 1) : cmyk[channel]!;
   }
   if ((img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HSI" || img.magickColorspace === "HWB" || img.magickColorspace === "LMS" || img.magickColorspace === "CAT02LMS" || img.magickColorspace === "XYZ" || img.magickColorspace === "DisplayP3" || img.magickColorspace === "xyY" || img.magickColorspace === "ProPhoto" || img.magickColorspace === "Jzazbz" || (img.magickColorspace === "YPbPr" || img.magickColorspace === "YCbCr") || img.magickColorspace === "Rec601YCbCr" || img.magickColorspace === "YCC" || img.magickColorspace === "Rec709YCbCr" || img.magickColorspace === "Log" || img.magickColorspace === "Adobe98" || img.magickColorspace === "OHTA" || img.magickColorspace === "CMY" || img.magickColorspace === "YUV" || img.magickColorspace === "YIQ" || img.magickColorspace === "YDbDr" || img.magickColorspace === "Oklab" || img.magickColorspace === "Luv" || img.magickColorspace === "Oklch" || img.magickColorspace === "LCH" || img.magickColorspace === "LCHab" || img.magickColorspace === "LCHuv" || img.magickColorspace === "CIELab") && img.hueSamples && ch < 4) return img.hueSamples[idx + ch]!;
+<<<<<<< HEAD
   // Converted color channels retain fractional samples outside the integer encoding planes.
   if (ch === 4 && img.hueSamples && img.space !== "cmyk") return sampleFxPixel(img.hueSamples, idx, ch, 1);
   return sampleFxPixel(img.evaluateSamples ?? img.data16 ?? img.data!, idx, ch, img.evaluateSamples ? 255 : img.data16 ? 65535 : 255);
+=======
+  return sampleFxPixel(img.evaluateSamples ?? img.data16 ?? img.data!, idx, ch, img, img.evaluateSamples ? 255 : img.data16 ? 65535 : 255);
+>>>>>>> 3a4b55cb77 (fix(imagemagick): honor selected intensity in FX expressions)
 }
 function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefined, x: number, y: number, ch: number, interpolation?: LookupInterpolation): number {
   if (!img) return 0;
@@ -4012,7 +4016,7 @@ function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefin
   const hasAlpha = img.hasAlpha || img.inactiveAlpha === true;
   if (interpolation === "catrom") {
     if (ch >= 5 && ch <= 7) {
-      return sampleFxPixel([0, 1, 2].map(channel => interpolateFxImage(sample, img, x, y, channel, interpolation)), 0, ch, 1);
+      return sampleFxPixel([0, 1, 2].map(channel => interpolateFxImage(sample, img, x, y, channel, interpolation)), 0, ch, img, 1);
     }
     let value = 0, alpha = 0;
     for (const [px, py, weight] of catromSamples(x, y)) {
@@ -4038,8 +4042,8 @@ function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefin
   if (!averageSize && interpolation !== "spline" && dx === 0 && dy === 0) {
     return hasAlpha && ch !== 3 && sample(img, x, y, 3) === 0 ? 0 : sample(img, x, y, ch);
   }
-  if (ch >= 4 && ch <= 7) {
-    return sampleFxPixel([0, 1, 2].map(channel => interpolateFxImage(sample, img, x, y, channel, interpolation)), 0, ch, 1);
+  if (ch >= 4 && ch <= 7 || ch === 9) {
+    return sampleFxPixel([0, 1, 2].map(channel => interpolateFxImage(sample, img, x, y, channel, interpolation)), 0, ch, img, 1);
   }
   if (interpolation === "spline") {
     let value = 0;
@@ -4077,12 +4081,15 @@ function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefin
   return alpha === 0 ? 0 : value / alpha;
 }
 
-function sampleFxPixel(data: ArrayLike<number>, offset: number, ch: number, maximum = 255): number {
+function sampleFxPixel(data: ArrayLike<number>, offset: number, ch: number, img: FxImage, maximum = 255): number {
   const r = data[offset]! / maximum;
   const g = data[offset + 1]! / maximum;
   const b = data[offset + 2]! / maximum;
   if (ch === 4) {
-    // Rec.709 intensity / luma
+    return magickIntensity(r, g, b, img[magickInput]?.intensity ?? "rec709luma", 1, img.magickColorspace === "RGB" || img.magickColorspace === "scRGB");
+  }
+  if (ch === 9) {
+    // FX luma and luminance always use Rec.709 weights.
     return 0.212656 * r + 0.715158 * g + 0.072186 * b;
   }
   if (ch === 5 || ch === 6 || ch === 7) {
@@ -4649,7 +4656,7 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void, variabl
           return targetImg && !targetImg.hasAlpha && !targetImg.inactiveAlpha ? 1 : (ctx.sample ?? sampleFxImage)(targetImg, px, py, 3);
         }
         if (name === "intensity" || name === "luma" || name === "luminance") {
-          return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 4);
+          return (ctx.sample ?? sampleFxImage)(targetImg, px, py, name === "intensity" ? 4 : 9);
         }
         if (name === "hue") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 5);
         if (name === "saturation") return (ctx.sample ?? sampleFxImage)(targetImg, px, py, 6);
@@ -4723,14 +4730,14 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
                 px = index % target.width; py = Math.floor(index / target.width);
             } else {
                 const gray = method === "white" ? 255 : method === "gray" ? 128 : 0;
-                return sampleFxPixel(method === "background" || method?.endsWith("-tile") === true ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255], 0, channel);
+                return sampleFxPixel(method === "background" || method?.endsWith("-tile") === true ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255], 0, channel, target);
             }
         }
         const position = (py * target.width + px) * 4;
         if (!Number.isFinite(position)) return NaN;
         const image = stack.indexOf(target), pixel = samples.get(image + ":" + position);
         if (pixel === undefined) throw new FxPixelDemand(position, image);
-        return sampleFxPixel(pixel, 0, channel);
+        return sampleFxPixel(pixel, 0, channel, target);
     };
     for (let start = 0; start < base.width * base.height; start += 512) {
         yield;

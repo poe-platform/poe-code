@@ -47,7 +47,7 @@ export async function executeRetainedCairoDocument(context:CommandContext,plan:P
      await yieldTurn(signal);if(!selected(page.index+1))continue;
      const raster=await drainCooperativeSteps(parsePdftoppmArgsSteps([...plan.forwardedArgs,"--",plan.inputPath],true),signal);
      if(!("inputPath" in raster))throw new PdfError("E_CAPABILITY","Invalid PostScript rendering options");
-     const dpiX=raster.dpiX??raster.dpi,dpiY=raster.dpiY??raster.dpi;
+     const { dpiX, dpiY } = raster;
      const imageStorage=new PagedStorage({fs:context.fs,cwd:directory,env:{},signal},4);
      let pageFailed=false;
      try{

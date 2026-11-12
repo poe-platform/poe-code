@@ -150,7 +150,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
         }
         else {
             // The bitmap renderer rotates after scaling; Cairo specifies DPI in output axes.
-            const swapAxes = cairo && (rot === 90 || rot === 270);
+            const swapAxes = cairo && !(scaleToX > 0 || scaleToY > 0) && (rot === 90 || rot === 270);
             const bitmap = (yield* renderDisplayListToBitmapSteps(displayList, {
                 dpiX: swapAxes ? effDpiY : effDpiX,
                 dpiY: swapAxes ? effDpiX : effDpiY,
@@ -460,7 +460,7 @@ function* runPdftocairoCliSteps(argv: readonly string[], files: Map<string, Uint
             const page = doc.getPage(selectedIndices[s]!);
             const raster = yield* parsePdftoppmArgsSteps([...forwardedArgs, "--", inputPath], true);
             if (!("inputPath" in raster)) return raster;
-            const dpiX = raster.dpiX ?? raster.dpi, dpiY = raster.dpiY ?? raster.dpi;
+            const { dpiX, dpiY } = raster;
             const bitmap = yield* renderDisplayListToBitmapSteps(page.evaluateDisplayList(), {
                 dpiX, dpiY,
                 ...(hasCrop ? { cropRect: { x: cropX, y: cropY, width: cropW, height: cropH } } : {}),

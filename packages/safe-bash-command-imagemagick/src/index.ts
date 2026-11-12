@@ -23204,7 +23204,8 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         if (++cooperativeWork % 64 === 0)
             yield;
         const t = argv[i]!;
-        if (t.length > 1 && (t.startsWith("-") || t.startsWith("+"))) pending = operands.length > groupStart;
+        const isOption = t.length > 1 && (t.startsWith("-") || t.startsWith("+")) && !(t.startsWith("-[") && t.endsWith("]"));
+        if (isOption) pending = operands.length > groupStart;
         if (t === "(") {
             if (pending) yield* applyTransforms(true);
             groups.push(groupStart);
@@ -23892,7 +23893,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
                 ? "montage: missing argument for -font\n"
                 : `montage: unsupported font '${font}'; only bundled bitmap glyphs are available\n` };
         }
-        else if (t.length > 1 && (t.startsWith("-") || t.startsWith("+"))) {
+        else if (isOption) {
             return { exitCode: 1, stdout: "", stderr: `montage: unrecognized option '${t}'\n` };
         }
         else {

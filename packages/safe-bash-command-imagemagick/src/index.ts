@@ -6964,7 +6964,36 @@ async function createStoredCanvas(width: number, height: number, color: RgbaColo
     return image;
 }
 
-type MagickDrawShape = { kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "boundary"; points: readonly BoundaryPoint[]; width: number; height: number; strokeWidth: number; fill: RgbaColor } | { shape: "circle"; radius: number; angularStep: number } | { shape: "polygon"; points: readonly DrawPoint[]; width: number; height: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor; linecap: "butt" | "round" | "square" });
+type MagickDrawGradient = {
+    radial: boolean; x0: number; y0: number; x1: number; y1: number;
+    stops: { offset: number; color: RgbaColor }[];
+};
+
+function magickDrawGradientColor(gradient: MagickDrawGradient, x: number, y: number): RgbaColor {
+    const { x0, y0, x1, y1, stops } = gradient;
+    const dx = x1 - x0, dy = y1 - y0;
+    // MVG radial paint uses the bounding vector's midpoint and largest half-axis.
+    const position = gradient.radial
+        ? Math.hypot(x - (x0 + x1) / 2, y - (y0 + y1) / 2) / (Math.max(Math.abs(dx), Math.abs(dy)) / 2 || 1)
+        : ((x - x0) * dx + (y - y0) * dy) / (dx * dx + dy * dy || 1);
+    let low = stops[0]!;
+    for (let index = 1; index < stops.length; index++) {
+        const high = stops[index]!;
+        if (position <= high.offset) {
+            const t = Math.max(0, Math.min(1, (position - low.offset) / (high.offset - low.offset || 1)));
+            return {
+                r: low.color.r + (high.color.r - low.color.r) * t,
+                g: low.color.g + (high.color.g - low.color.g) * t,
+                b: low.color.b + (high.color.b - low.color.b) * t,
+                a: low.color.a + (high.color.a - low.color.a) * t,
+            };
+        }
+        low = high;
+    }
+    return low.color;
+}
+
+type MagickDrawShape = { gradient?: MagickDrawGradient | undefined; kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "boundary"; points: readonly BoundaryPoint[]; width: number; height: number; strokeWidth: number; fill: RgbaColor } | { shape: "circle"; radius: number; angularStep: number } | { shape: "polygon"; points: readonly DrawPoint[]; width: number; height: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor; linecap: "butt" | "round" | "square" });
 type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string } | ({ kind: "floodfill" } | { kind: "paint-point" } | { kind: "reset" } | { kind: "replace" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
 
 function parseMagickCopyGeometry(image: Pick<RgbaImage, "width" | "height">, geometry: string, offset: string) {
@@ -7086,7 +7115,8 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
             }
             const offset = i * 4;
             let red = data[offset]!, green = data[offset + 1]!, blue = data[offset + 2]!, opacity = data[offset + 3]!;
-            let color = shape.color;
+            let color = shape.gradient ? magickDrawGradientColor(shape.gradient, x, y) : shape.color;
+            if (shape.gradient) color = { ...color, a: color.a * shape.color.a / 255 };
             if (shape.shape === "line" || shape.shape === "boundary") {
                 let fillCoverage: number;
                 if (shape.shape === "boundary") {
@@ -7286,11 +7316,14 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
     let dashArray: number[] = [], dashOffset = 0;
     let linecap: "butt" | "round" | "square" = "butt";
     let strokeLinejoin = "miter", strokeMiterlimit = 10;
+    let gradient: MagickDrawGradient | undefined;
+    const gradients = new Map<string, MagickDrawGradient>();
+    let defsDepth = 0;
     let fillRule = "evenodd";
     let fillOpacity: number | undefined;
     let strokeOpacity: number | undefined;
     let affine: [number, number, number, number, number, number] = [1, 0, 0, 1, 0, 0];
-    const contexts: { fill: RgbaColor; fillRule: string; tile: boolean; stroke: RgbaColor; strokeWidth: number; dashArray: number[]; dashOffset: number; linecap: "butt" | "round" | "square"; strokeLinejoin: string; strokeMiterlimit: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
+    const contexts: { gradient: MagickDrawGradient | undefined; fill: RgbaColor; fillRule: string; tile: boolean; stroke: RgbaColor; strokeWidth: number; dashArray: number[]; dashOffset: number; linecap: "butt" | "round" | "square"; strokeLinejoin: string; strokeMiterlimit: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
     const tokens = yield* magickDrawTokensSteps(drawCmd);
     let i = 0;
     const num = () => {
@@ -7327,12 +7360,35 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         const elementStart = svgElements.length;
         const transformed = affine.some((value, index) => value !== (index === 0 || index === 3 ? 1 : 0));
         if (cmd === "push" || cmd === "pop") {
-            if (tokens[i++]?.toLowerCase() !== "graphic-context") throw new Error(`${cmd} drawing requires graphic-context`);
-            if (cmd === "push") contexts.push({ fill, fillRule, tile, stroke, strokeWidth, dashArray, dashOffset, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity });
+            const contextType = tokens[i++]?.toLowerCase();
+            if (contextType === "defs") {
+                defsDepth += cmd === "push" ? 1 : -1;
+                if (defsDepth < 0) throw new Error("Cannot pop defs without a matching push");
+                continue;
+            }
+            if (cmd === "push" && contextType === "gradient") {
+                const name = tokens[i++], type = tokens[i++]?.toLowerCase();
+                if (!name || (type !== "linear" && type !== "radial")) throw new Error("Invalid drawing gradient");
+                const definition: MagickDrawGradient = { radial: type === "radial", x0: num(), y0: num(), x1: num(), y1: num(), stops: [] };
+                if (definition.radial) num(); // MVG accepts a radius but derives paint extent from the vector.
+                while (tokens[i]?.toLowerCase() === "stop-color") {
+                    if (++cooperativeWork % 65536 === 0) yield;
+                    i++;
+                    const color = parseColor(tokens[i++] ?? "", true), raw = tokens[i++];
+                    const offset = raw?.endsWith("%") ? Number(raw.slice(0, -1)) / 100 : Number(raw);
+                    if (!raw || !Number.isFinite(offset)) throw new Error("Gradient stop requires a finite offset");
+                    definition.stops.push({ color, offset: Math.max(definition.stops.at(-1)?.offset ?? 0, Math.min(1, offset)) });
+                }
+                if (tokens[i++]?.toLowerCase() !== "pop" || tokens[i++]?.toLowerCase() !== "gradient" || definition.stops.length === 0) throw new Error("Gradient requires stops and a matching pop gradient");
+                gradients.set(name, definition);
+                continue;
+            }
+            if (contextType !== "graphic-context") throw new Error(`${cmd} drawing requires graphic-context`);
+            if (cmd === "push") contexts.push({ gradient, fill, fillRule, tile, stroke, strokeWidth, dashArray, dashOffset, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity });
             else {
                 const context = contexts.pop();
                 if (!context) throw new Error("Cannot pop graphic-context without a matching push");
-                ({ fill, fillRule, tile, stroke, strokeWidth, dashArray, dashOffset, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity } = context);
+                ({ gradient, fill, fillRule, tile, stroke, strokeWidth, dashArray, dashOffset, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity } = context);
             }
         }
         else if (cmd === "viewbox") {
@@ -7359,7 +7415,9 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             if (!affine.every(Number.isFinite)) throw new Error("Drawing requires a finite transform");
         }
         else if (cmd === "fill") {
-            fill = parseColor(tokens[i++] ?? "#000000", true);
+            const paint = tokens[i++] ?? "#000000";
+            gradient = gradients.get(paint);
+            fill = gradient ? { r: 0, g: 0, b: 0, a: 255 } : parseColor(paint, true);
             tile = false;
         }
         else if (cmd === "stroke") {
@@ -7437,7 +7495,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                 // Transform endpoint geometry before rasterizing inclusive pixel boundaries.
                 svgElements.push(`<path data-magick-fill="1" d="M ${rx},${ry} H ${rx + rw - 1} V ${ry + rh - 1} H ${rx} Z" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
             } else if (fill.a !== 0 && (strokeColor.a === 0 || strokeWidth <= 0) && svgElements.length === 0) {
-                yield { kind: "shape", shape: "rectangle", tile, color: fillColor, x: rx, y: ry, width: rw, height: rh };
+                yield { kind: "shape", shape: "rectangle", gradient, tile, color: fillColor, x: rx, y: ry, width: rw, height: rh };
             } else if (!transformed) {
                 const margin = strokeWidth / 2 + 1;
                 yield { kind: "shape", shape: "boundary", points: [[rx, ry], [rx + rw - 1, ry], [rx + rw - 1, ry + rh - 1], [rx, ry + rh - 1]],
@@ -7483,7 +7541,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             if (fill.a !== 0 && (strokeColor.a === 0 || strokeWidth <= 0) && svgElements.length === 0 &&
                 affine[1] === 0 && affine[2] === 0 && affine[0] === affine[3] && affine[0] > 0) {
                 // Native traces before transforming: scaling retains the original angular step.
-                yield { kind: "shape", shape: "circle", tile, color: fillColor,
+                yield { kind: "shape", shape: "circle", gradient, tile, color: fillColor,
                     x: cx * affine[0] + affine[4], y: cy * affine[3] + affine[5],
                     radius: r * affine[0], angularStep: 1 / (8 * r), antialias: state.antialias !== false };
             } else {

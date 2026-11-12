@@ -8413,7 +8413,7 @@ function inferOutputFormat(spec: string, fallback: ImageFormat = "png", inputFor
   if (inputFormat === "XC" && !["info", "null"].includes(prefixMatch?.[1]?.toLowerCase() ?? "")) {
     throw new Error("no encode delegate for this image format 'XC'");
   }
-  if (inputFormat) {
+  if (inputFormat && !["info", "null"].includes(prefixMatch?.[1]?.toLowerCase() ?? "")) {
     if (inputFormat === "PATTERN" || inputFormat === "HALD") throw new Error(`no encode delegate for this image format '${inputFormat}'`);
     fallback = extToImageFormat(inputFormat) ?? fallback;
   }

@@ -35,7 +35,8 @@ async function runGainCommand(gain: string, expression: string | undefined, comp
 for (const complex of [false, true]) {
   const route = complex ? "graph" : "simple";
   for (const gain of ["level_in", "level_out"]) {
-    for (const [expression, numeric] of [["default", 1], ["PI/4", Math.PI / 4],
+    for (const [expression, numeric] of [["isnan(0/0)", 1], ["isinf(1/0)", 1], ["if(isnan(0/0),2,3)", 2],
+      ["default", 1], ["PI/4", Math.PI / 4],
       ["min", 0], ["max/64", 1], ["E/4", Math.E / 4], ["PHI/2", (1 + Math.sqrt(5)) / 4]] as const) {
       it(`applies scheduled aemphasis ${gain} ${expression} at the third frame (${route})`, async () => {
         const control = await runGainCommand(gain, undefined, complex);
@@ -51,7 +52,7 @@ for (const complex of [false, true]) {
         }
       });
     }
-    for (const expression of ["90", "max+1", "min-1", "invalid", "1/0"]) {
+    for (const expression of ["90", "max+1", "min-1", "invalid", "1/0", "0/0", "sqrt(-1)", "if(isinf(1/0),65,1)"]) {
       it(`retains aemphasis ${gain} after rejected scheduled value ${expression} (${route})`, async () => {
         assert.deepEqual(await runGainCommand(gain, expression, complex), await runGainCommand(gain, undefined, complex));
       });

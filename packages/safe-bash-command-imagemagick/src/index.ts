@@ -15869,11 +15869,12 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(spec, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
-                const result = yield* applyMagickRasterSteps({ ...im, isPalette: false }, shadePixelSteps(im, expanded, argumentOffset + i, state.background, state.virtualPixel, state.channelExplicit ? state.channels : undefined, state.intensity, state.seed), signal);
+                const channels = im[magickInput]?.channelMask;
+                const result = yield* applyMagickRasterSteps({ ...im, isPalette: false }, shadePixelSteps(im, expanded, argumentOffset + i, state.background, state.virtualPixel, channels, state.intensity, state.seed), signal);
                 if (im.metaChannels?.length) {
                     result.metaChannels = [];
                     for (const [index, plane] of im.metaChannels.entries()) {
-                        const selected = !state.channelExplicit || state.channelDefault || state.channels.meta?.includes(index);
+                        const selected = !channels || channels.default || channels.meta?.includes(index);
                         let shaded = selected ? yield* applyMagickRasterSteps(plane,
                             shadePixelSteps(im, expanded, argumentOffset + i, state.background, state.virtualPixel, undefined, state.intensity, state.seed, true), signal, plane, [im]) : plane;
                         if (selected && (im.region || im.writeMask)) shaded = yield* applyMagickRasterSteps(shaded,
@@ -20297,16 +20298,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 images = stack;
                 return stack;
             });
-            const spec = tokens[++i] ?? "", background = state.background, virtualPixel = state.virtualPixel, channels = state.channelExplicit ? { ...state.channels } : undefined, intensity = state.intensity, seed = state.seed, optionProperties = state.optionProperties, argument = i;
-            const meta = state.channelExplicit && !state.channelDefault ? state.channels.meta ?? [] : undefined;
+            const spec = tokens[++i] ?? "", background = state.background, virtualPixel = state.virtualPixel, intensity = state.intensity, seed = state.seed, optionProperties = state.optionProperties, argument = i;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
+                const channels = image[magickInput]?.channelMask;
                 const result = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, shadePixelSteps(image, expanded, argument, background, virtualPixel, channels, intensity, seed), signal);
                 if (image.storedMetaChannels?.length) {
                     result.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries()) {
-                        const selected = !meta || meta.includes(index);
+                        const selected = !channels || channels.default || channels.meta?.includes(index);
                         let shaded = selected ? await transformStoredMagickRaster(plane, backend,
                             shadePixelSteps(image, expanded, argument, background, virtualPixel, undefined, intensity, seed, true), signal, plane, [image]) : plane;
                         if (selected && (image.region || image.storedWriteMask)) shaded = await transformStoredMagickRaster(shaded, backend,

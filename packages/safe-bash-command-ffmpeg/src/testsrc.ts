@@ -1,5 +1,6 @@
 /** Render FFmpeg's RGB testsrc calibration pattern into a budgeted RGBA frame. */
-export function* renderTestsrc(data: Uint8Array, width: number, height: number, time: number): Generator<void> {
+export function* renderTestsrc(data: Uint8Array, width: number, height: number, frame: number, fps: number, decimals: number): Generator<void> {
+  const time = frame / fps;
   const radius = Math.floor((width + height) / 4);
   const origin = Math.floor(width * width / 4) + Math.floor(height * height / 4) - radius * radius;
   for (let y = 0; y < height; y++) {
@@ -49,10 +50,11 @@ export function* renderTestsrc(data: Uint8Array, width: number, height: number, 
   }
 
   const segment = Math.floor(width / 80);
-  if (segment < 1 || height < 13 * segment || time >= 2147483647) return;
+  // Scale before dividing so exact decimal ticks do not lose a digit to rounding.
+  let second = Math.floor(frame * 10 ** decimals / fps);
+  if (segment < 1 || height < 13 * segment || second >= 2147483647) return;
   const masks = [125, 96, 55, 103, 106, 79, 95, 97, 127, 111];
   const rectangles = [[1, 0, 5, 1], [1, 6, 5, 1], [1, 12, 5, 1], [0, 1, 1, 5], [0, 7, 1, 5], [6, 1, 1, 5], [6, 7, 1, 5]];
-  let second = Math.floor(time);
   let left = width - Math.floor((width - segment * 64) / 2);
   const top = Math.floor((height - segment * 13) / 2);
   for (let digit = 0; digit < 8; digit++) {

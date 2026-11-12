@@ -671,12 +671,20 @@ function* lavfiSteps(
   const filterName = (eqIdx >= 0 ? spec.slice(0, eqIdx) : spec).trim().toLowerCase();
   const argsPart = eqIdx >= 0 ? spec.slice(eqIdx + 1) : "";
   const kv: Record<string, string> = {};
+  let decimals = 0;
   for (const part of argsPart.split(":")) {
     if (++work % 1024 === 0) yield;
 
     const kIdx = part.indexOf("=");
     if (kIdx >= 0) {
-      kv[part.slice(0, kIdx).trim().toLowerCase()] = part.slice(kIdx + 1).trim();
+      const key = part.slice(0, kIdx).trim().toLowerCase();
+      const value = part.slice(kIdx + 1).trim();
+      kv[key] = value;
+      if (filterName === "testsrc" && (key === "decimals" || key === "n")) {
+        const number = parseFilterExpression(value, "testsrc", { min: 0, max: 17, default: 0 });
+        if (number < 0 || number > 17) throw new Error("testsrc: decimals must be between 0 and 17");
+        decimals = roundToEven(number);
+      }
     } else if (part.trim()) {
       kv._0 = part.trim();
     }
@@ -779,7 +787,7 @@ function* lavfiSteps(
     budget.recordFrame(width, height);
     const rgba = new Uint8Array(width * height * 4);
     if (filterName === "testsrc") {
-      yield* renderTestsrc(rgba, width, height, i / fps);
+      yield* renderTestsrc(rgba, width, height, i, fps, decimals);
     } else for (let y = 0; y < height; y++) {
       if (y % 16 === 0) yield;
       for (let x = 0; x < width; x++) {

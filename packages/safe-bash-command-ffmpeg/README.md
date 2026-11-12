@@ -88,6 +88,8 @@ The `lavfi` `anullsrc` audio source preserves channel counts and speaker assignm
 
 The `lavfi` color source uses FFmpeg 7's limited-range BT.601 RGB samples: red
 becomes `(253, 0, 0)` in PNG output; existing RGB PNG inputs retain their samples.
+The `testsrc` counter accepts `decimals=N` or `n=N` (0–17, default 0), displaying
+truncated ticks of 10⁻ᴺ seconds; for example, `n=2` displays `50` at 0.5 seconds.
 Use `-abort_on empty_output` to fail with status 234 when processing produces no
 media frames in any output file. An output with both empty and nonempty streams
 remains valid. Empty outputs remain valid without this flag.

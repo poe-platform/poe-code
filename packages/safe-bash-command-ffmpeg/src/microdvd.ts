@@ -1,17 +1,20 @@
 /** Decode leading MicroDVD directives; lowercase directives end at a line break. */
 export function decodeMicrodvd(text: string): string {
-  const directives = new Map<string, { value: string; persistent: boolean }>();
+  const directives = new Map<string, string>();
   let opened: string[] = [];
   let result = "";
   const tags = () => {
-    const style = (directives.get("Y")?.value ?? "") + (directives.get("y")?.value ?? "");
+    const style = (directives.get("Y") ?? "") + (directives.get("y") ?? "");
     const output: string[] = [];
-    const color = directives.get("c")?.value;
-    if (color) output.push(`<font color="#${color}">`);
-    const face = directives.get("f")?.value;
-    if (face) output.push(`<font face="${face}">`);
-    const size = directives.get("s")?.value;
-    if (size) output.push(`<font size="${size}">`);
+    // Line-local fonts nest inside persistent fonts so inherited values survive.
+    for (const [colorKey, faceKey, sizeKey] of [["C", "F", "S"], ["c", "f", "s"]] as const) {
+      const color = directives.get(colorKey);
+      if (color) output.push(`<font color="#${color}">`);
+      const face = directives.get(faceKey);
+      if (face) output.push(`<font face="${face}">`);
+      const size = directives.get(sizeKey);
+      if (size) output.push(`<font size="${size}">`);
+    }
     output.push(...["i", "b", "u", "s"].filter(tag => style.includes(tag)).map(tag => `<${tag}>`));
     return output;
   };
@@ -33,8 +36,7 @@ export function decodeMicrodvd(text: string): string {
       const end = line.indexOf("}", position + 3);
       if (end < 0) break;
       const name = line[position + 1]!;
-      // Persistent and line-local emphasis have independent lifetimes.
-      const key = name === "Y" ? name : name.toLowerCase();
+      const key = name.toLowerCase();
       let value = line.slice(position + 3, end);
       if (name === "H") {
         position = end + 1;
@@ -48,7 +50,7 @@ export function decodeMicrodvd(text: string): string {
         position = end + 1;
         continue;
       }
-      if (!["Y", "y", "c", "f", "s"].includes(key)) break;
+      if (!["y", "c", "f", "s"].includes(key)) break;
       if (key === "c") {
         const hex = value.startsWith("$") ? value.slice(1) : value;
         if (!hex.length || hex.length > 6 || !Array.from(hex.toLowerCase()).every(char => "0123456789abcdef".includes(char))) break;
@@ -56,8 +58,8 @@ export function decodeMicrodvd(text: string): string {
         value = bgr.slice(4, 6) + bgr.slice(2, 4) + bgr.slice(0, 2);
       }
       if (key === "s" && (!value.length || !Array.from(value).every(char => char >= "0" && char <= "9"))) break;
-      if (key === "y" || key === "Y") value = (directives.get(key)?.value ?? "") + value;
-      directives.set(key, { value, persistent: name === name.toUpperCase() });
+      if (key === "y") value = (directives.get(name) ?? "") + value;
+      directives.set(name, value);
       position = end + 1;
     }
     const lineTags = tags();
@@ -68,8 +70,8 @@ export function decodeMicrodvd(text: string): string {
     }
     transition(lineTags);
     result += alignment + line.slice(position).replaceAll("\\N", "\n").replaceAll("\\n", "\n");
-    for (const [key, directive] of directives) {
-      if (!directive.persistent) directives.delete(key);
+    for (const key of directives.keys()) {
+      if (key === key.toLowerCase()) directives.delete(key);
     }
     transition(index === lines.length - 1 ? [] : tags());
     if (index < lines.length - 1) result += "\n";

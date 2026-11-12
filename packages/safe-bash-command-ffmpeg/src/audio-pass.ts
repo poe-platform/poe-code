@@ -50,6 +50,18 @@ export async function passAudio(
       csg = parseFilterBoolean(value, "bandpass: invalid csg");
       continue;
     }
+    if (optionName === "threads" || optionName === "extra_hw_frames") {
+      const minimum = optionName === "extra_hw_frames" ? -1 : 0;
+      const number = parseFilterExpression(value, name, {
+        default: minimum, min: minimum, max: 2147483647,
+        PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
+      });
+      if (!Number.isFinite(number) || number < minimum || number > 2147483647) {
+        throw new Error(`${name}: invalid ${optionName}`);
+      }
+      // Scheduling and hardware-frame hints do not affect this CPU implementation.
+      continue;
+    }
     if (optionName === "enable") {
       enable = value;
       // Validate without advancing the per-filter expression state.

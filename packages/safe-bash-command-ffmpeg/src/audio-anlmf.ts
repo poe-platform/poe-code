@@ -11,6 +11,7 @@ export async function adaptiveAudio(
   const bounds: Record<string, readonly [number, number]> = {
     order: [1, 32767], mu: [0, 2], eps: [0, 1], leakage: [0, 1], out_mode: [0, 4], precision: [0, 2]
   };
+  let enable: string | undefined;
   const names = Object.keys(options);
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const fields = argument ? argument.split(":") : [];
@@ -19,6 +20,11 @@ export async function adaptiveAudio(
     const separator = option.indexOf("=");
     const key = separator < 0 ? names[index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (key === "enable") {
+      enable = value;
+      parseFilterExpression(value, `${name} enable`, { n: 0, t: 0, pos: NaN, w: 0, h: 0 });
+      continue;
+    }
     if (!key || !Object.hasOwn(options, key)) throw new Error(`${name}: unsupported option ${key}`);
     const choices = key === "out_mode" ? ["i", "d", "o", "n", "e"] : key === "precision" ? ["auto", "float", "double"] : [];
     const [min, max] = bounds[key]!;
@@ -46,6 +52,48 @@ export async function adaptiveAudio(
   budget.checkSamples(length);
   budget.checkDuration(length / a.sampleRate);
   budget.allocateMemory((length * a.channels + 4 * kernel) * ArrayType.BYTES_PER_ELEMENT);
+  // Both input consumptions evaluate the internal timeline. The desired input
+  // is consumed last, so its timestamp determines bypass for the paired frame.
+  let enabled: Uint8Array | undefined;
+  if (enable !== undefined) {
+    budget.allocateMemory(length + 80);
+    enabled = new Uint8Array(length);
+    const registers = new Float64Array(10);
+    const randomStates: BigUint64Array[] = [];
+    const tracks = [first, desired];
+    const indices = [0, 0];
+    const starts = [0, 0];
+    let start = 0;
+    let n = 0;
+    while (start < length) {
+      if (n % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+      const packets = tracks.map((track, i) => {
+        let packet = track.samples[indices[i]!];
+        while (packet) {
+          const duration = Math.max(0, Math.round(packet.duration * a.sampleRate / track.timescale)
+            - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0));
+          if (starts[i]! + duration > start) return { packet, end: starts[i]! + duration };
+          starts[i]! += duration;
+          indices[i]!++;
+          packet = track.samples[indices[i]!];
+        }
+        return undefined;
+      });
+      const end = Math.min(length, ...packets.map(packet => packet?.end ?? length));
+      let active = true;
+      for (const [i, track] of tracks.entries()) {
+        const packet = packets[i]?.packet;
+        const pts = packet ? Math.round(packet.pts * a.sampleRate / track.timescale)
+          + (packet.skipSamples ?? 0) + start - starts[i]! : start;
+        active = Math.abs(parseFilterExpression(enable, `${name} enable`, {
+          n, t: pts / a.sampleRate, pos: NaN, w: 0, h: 0
+        }, undefined, registers, randomStates)) >= 0.5;
+      }
+      enabled.fill(Number(active), start, end);
+      start = end;
+      n++;
+    }
+  }
   const channelData = a.channelData.map(() => new ArrayType(length));
   const delay = new ArrayType(2 * kernel);
   const coeffs = new ArrayType(2 * kernel);
@@ -76,7 +124,7 @@ export async function adaptiveAudio(
       }
       coeffs.copyWithin(order, 0, order);
       offset = offset === 0 ? order - 1 : offset - 1;
-      channelData[channel]![sample] = options.out_mode === 0 ? input : options.out_mode === 1 ? target
+      channelData[channel]![sample] = (enabled && !enabled[sample]) || options.out_mode === 0 ? input : options.out_mode === 1 ? target
         : options.out_mode === 2 ? error : options.out_mode === 3 ? round(input - filtered) : filtered;
     }
   }

@@ -22,7 +22,7 @@ async function ensureParentDirs(fs, filePath) {
   }
 }
 
-async function collectFiles(fs, dirPath, out, emitted = new Set()) {
+async function collectFiles(fs, dirPath, out, inspect, emitted = new Set()) {
   // The command has finished. Read the entire result for transfer, including
   // inaccessible entries, while returning their original permission bits.
   const directoryStat = await fs.lstat(dirPath);
@@ -48,6 +48,7 @@ async function collectFiles(fs, dirPath, out, emitted = new Set()) {
     }
     const kind = entryType ?? stat?.type;
     const linkGroup = stat.nlink > 1 && kind !== "directory" ? String(stat.ino) : undefined;
+    inspect(fullPath, stat, emitted.has(linkGroup));
     if (kind === "directory" || (typeof stat?.isDirectory === "function" && stat.isDirectory())) {
       out.push({
         path: fullPath,
@@ -55,7 +56,7 @@ async function collectFiles(fs, dirPath, out, emitted = new Set()) {
         dataBase64: "",
         mode: stat.mode ?? 0o40755,
       });
-      await collectFiles(fs, fullPath, out, emitted);
+      await collectFiles(fs, fullPath, out, inspect, emitted);
     } else if (
       kind === "symlink" ||
       (typeof stat?.isSymbolicLink === "function" && stat.isSymbolicLink())
@@ -115,9 +116,13 @@ async function main() {
       await fs.writeFile(entry.path, new Uint8Array(bytes));
     }
   }
+  const imported = new Map(), revisions = new Map();
   // Materialize children before applying restrictive parent permissions.
   for (const entry of [...(req.files ?? [])].sort((left, right) => right.path.length - left.path.length)) {
     if (entry.kind !== "symlink") await fs.chmod(entry.path, entry.mode & 0o7777);
+    const stat = await fs.lstat(entry.path);
+    imported.set(entry.path, stat.ino);
+    revisions.set(stat.ino, stat.revision);
   }
 
   const shell = new Shell({
@@ -136,6 +141,15 @@ async function main() {
     }));
   }
 
+  // Preserve Rust's open file descriptions when the command only read the VFS.
+  async function changedFiles() {
+    const files = [];
+    let changed = false;
+    await collectFiles(fs, "/", files, (path, stat, alias) => {
+      if (imported.get(path) !== stat.ino || (!alias && revisions.get(stat.ino) !== stat.revision)) changed = true;
+    });
+    return changed || files.length !== imported.size ? files : undefined;
+  }
   const session = shell.createSession();
   const controller = new AbortController();
   let timer;
@@ -168,8 +182,6 @@ async function main() {
         return;
       }
       if (typeof err?.exitCode === "number") {
-        const files = [];
-        await collectFiles(fs, "/", files);
         process.stdout.write(
           JSON.stringify({
             stdout: "",
@@ -177,16 +189,13 @@ async function main() {
             exitCode: err.exitCode,
             cwd: req.cwd || "/",
             env: req.env || {},
-            files,
+            files: await changedFiles(),
           }),
         );
         return;
       }
       throw err;
     }
-
-    const files = [];
-    await collectFiles(fs, "/", files);
 
     const state = session.state;
     const nextEnv = {};
@@ -204,7 +213,7 @@ async function main() {
       exitCode: result.exitCode,
       cwd: state?.cwd || req.cwd || "/",
       env: nextEnv,
-      files,
+      files: await changedFiles(),
     };
     process.stdout.write(JSON.stringify(response));
   } finally {

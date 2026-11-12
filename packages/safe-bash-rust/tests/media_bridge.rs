@@ -13,7 +13,7 @@ fn fixture(mode: BackendMode) -> (Shell, MemoryVfs) {
 #[test]
 fn hybrid_montage_retains_real_pixels_without_replaying_prior_commands() {
     let (mut shell, fs) = fixture(BackendMode::Hybrid);
-    let result = shell.exec("printf once >> visits; montage red.ppm blue.ppm -tile 2x1 -geometry 2x1+0+0 'sheet with space.ppm'; printf after").unwrap();
+    let result = shell.exec("printf once >> visits; montage red.ppm blue.ppm -tile 2x1 -geometry 2x1+0+0 -depth 8 'sheet with space.ppm'; printf after").unwrap();
     assert_eq!(result.exit_code, 0, "{}", result.stderr);
     assert_eq!(fs.read_file("/work/visits").unwrap(), b"once");
     assert_eq!(result.stdout, "after");
@@ -56,7 +56,15 @@ fn hybrid_ffmpeg_preserves_audio_samples() {
     let output = fs.read_file("/work/output.wav").unwrap();
     assert_eq!(&output[..4], b"RIFF");
     assert_eq!(&output[8..12], b"WAVE");
-    assert_eq!(&output[44..], &pcm);
+    let mut chunks = &output[12..];
+    loop {
+        let size = u32::from_le_bytes(chunks[4..8].try_into().unwrap()) as usize;
+        if &chunks[..4] == b"data" {
+            assert_eq!(&chunks[8..8 + size], &pcm);
+            break;
+        }
+        chunks = &chunks[8 + size + size % 2..];
+    }
     assert!(result.used_typescript_bridge);
 }
 
@@ -73,6 +81,7 @@ fn bridge_usage_propagates_through_command_substitution_and_preserves_quoted_pat
 #[test]
 fn image_pipes_preserve_binary_bytes_across_the_bridge() {
     let (mut shell, fs) = fixture(BackendMode::Hybrid);
+    fs.hard_link("/work/red.ppm", "/work/red-alias.ppm").unwrap();
     for command in ["magick red.ppm ppm:- > result.ppm", "cat red.ppm | magick ppm:- result.ppm"] {
         let result = shell.exec(command).unwrap();
         assert_eq!(result.exit_code, 0, "{}", result.stderr);

@@ -7338,7 +7338,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                 if (fill.a !== 0) {
                     svgElements.push(`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${paintFill}"/>`);
                 }
-                if (stroke !== "none" && strokeWidth > 0) {
+                if (stroke.a > 0 && strokeWidth > 0) {
                     svgElements.push(`<polygon points="${rx},${ry} ${rx + rw - 1},${ry} ${rx + rw - 1},${ry + rh - 1} ${rx},${ry + rh - 1}" fill="none" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
                 }
             }
@@ -7357,7 +7357,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             if (fill.a !== 0) {
                 svgElements.push(`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="${wc}" ry="${hc}" fill="${paintFill}"/>`);
             }
-            if (stroke !== "none" && strokeWidth > 0) {
+            if (stroke.a > 0 && strokeWidth > 0) {
                 svgElements.push(`<polygon points="${rx},${ry} ${rx + rw - 1},${ry} ${rx + rw - 1},${ry + rh - 1} ${rx},${ry + rh - 1}" fill="none" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
             }
         }
@@ -7387,7 +7387,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const y0 = num();
             const x1 = num();
             const y1 = num();
-            const lineStroke = stroke === "none" ? paintFill : paintStroke;
+            const lineStroke = stroke.a === 0 ? paintFill : paintStroke;
             if (!transformed && svgElements.length === 0) {
                 yield { kind: "shape", shape: "line", tile: false, color: strokeColor, fill: fillColor, x: x0, y: y0, x1, y1, width: Math.max(1, strokeWidth), antialias: state.antialias !== false };
             } else {
@@ -7431,7 +7431,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                 if (cmd === "polygon") {
                     svgElements.push(`<polygon data-magick-fill="1" points="${points}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
                 } else {
-                    const lineStroke = stroke === "none" ? paintFill : paintStroke;
+                    const lineStroke = stroke.a === 0 ? paintFill : paintStroke;
                     svgElements.push(`<polyline points="${points}" fill="none" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
                 }
             }

@@ -15686,7 +15686,6 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-magnify") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
-            const factor = state.magnifyMethod === "scale3x" || state.magnifyMethod === "eagle3x" ? 3 : 2;
             const conversion = parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!;
             const factor = state.magnifyMethod === "scale3x" || state.magnifyMethod === "eagle3x" || state.magnifyMethod === "eagle3xb" ? 3 : 2;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
@@ -20199,7 +20198,6 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const method = state.magnifyMethod, factor = method === "scale3x" || method === "eagle3x" ? 3 : 2, background = state.background, virtualPixel = state.virtualPixel, intensity = state.intensity;
             const conversion = parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!;
             const method = state.magnifyMethod, factor = method === "scale3x" || method === "eagle3x" || method === "eagle3xb" ? 3 : 2, background = state.background, virtualPixel = state.virtualPixel, intensity = state.intensity;
             const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;

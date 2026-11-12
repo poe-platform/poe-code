@@ -6,6 +6,7 @@ import { encodePalImage, encodePalFromStorage } from "./pal-output.js";
 import { encodeMonoImage, encodeMonoFromStorage } from "./mono-output.js";
 import { encodeIsobrlImage, encodeIsobrlFromStorage } from "./isobrl-output.js";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
+import type { HueMetadata } from "./colorspace-hue.js";
 import { encodeYuvImage, encodeYuvFromStorage } from "./yuv-output.js";
 import { encodeSvgImage, encodeSvgFromStorage } from "./svg-output.js";
 import { encodeSgiImage, encodeSgiFromStorage } from "./sgi-output.js";
@@ -133,7 +134,7 @@ export function encodeImage(image: RawImage, options: OutputEncodeOptions): Retu
     return { data, format: "raw", channels };
 }
 
-function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channels: readonly number[]): Uint8Array {
+function encodeRawPixels(image: RgbaImage & HueMetadata, options: OutputEncodeOptions, channels: readonly number[]): Uint8Array {
     const format = options.format;
     const requestedDepth = options.netpbmDepth ?? image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8);
     const depth = options.tiffFloatDepth ?? (requestedDepth === 32 || requestedDepth === 64 || requestedDepth === 1 || requestedDepth === 2 || requestedDepth === 4 || requestedDepth >= 8 && requestedDepth <= 16 ? requestedDepth : requestedDepth > 8 ? 16 : 8);
@@ -159,12 +160,23 @@ function encodeRawPixels(image: RgbaImage, options: OutputEncodeOptions, channel
     const reverseChannels = format.startsWith("bgr") && options.rawInterlace !== "plane"
         && !(!options.rawInterlace && (depth === 10 || (depth < 8 || depth === 12) && (format === "bgr" || format === "bgro")
             || options.tiffFloatDepth === 32 || options.tiffFloatDepth === 64));
+    const linearCmyk = format.startsWith("cmyk") && image.space !== "cmyk" && (image.magickColorspace === "RGB" || image.magickColorspace === "scRGB"
+        || (image.space === "b-w" || image.space === "grey16") && image.gamma === 1 && image.magickColorspace !== "Gray");
     for (let pixel = 0; pixel < pixels; pixel++) {
-        const inks = format.startsWith("cmyk") ? image.space === "cmyk" && image.hueSamples
+        let inks = format.startsWith("cmyk") && !linearCmyk ? image.space === "cmyk" && image.hueSamples
             ? image.hueSamples.subarray(pixel * 4, pixel * 4 + 4)
             : image.evaluateSamples
             ? rgbToCmyk(image.evaluateSamples[pixel * 4]! / 255, image.evaluateSamples[pixel * 4 + 1]! / 255, image.evaluateSamples[pixel * 4 + 2]! / 255)
             : rgbToCmyk(samples[pixel * 4]! / scale, samples[pixel * 4 + 1]! / scale, samples[pixel * 4 + 2]! / scale) : undefined;
+        if (linearCmyk) {
+            const rgb = [0, 1, 2].map(channel => {
+                // The raw coder quantizes 8-bit linear channels before converting to nonlinear RGB.
+                const value = depth <= 8 ? image.data[pixel * 4 + channel]! / 255
+                    : image.evaluateSamples ? image.evaluateSamples[pixel * 4 + channel]! / 255 : samples[pixel * 4 + channel]! / scale;
+                return value <= 0.0031308 ? value * 12.92 : 1.055 * value ** (1 / 2.4) - 0.055;
+            });
+            inks = rgbToCmyk(rgb[0]!, rgb[1]!, rgb[2]!);
+        }
         for (let c = 0; c < channels.length; c++) {
             const channel = channels[c]!;
             const index = format === "graya" && channel === 1 ? 3 : reverseChannels && channel < 3 ? 2 - channel : channel;

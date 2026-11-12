@@ -23053,11 +23053,37 @@ export function runCompareCliSync(argv: readonly string[], files: Map<string, Ui
     return next.value;
 }
 
+interface MontageLayers {
+    kind: "layers";
+    method: "flatten" | "mosaic" | "merge";
+    state: MagickState;
+    operands: string[];
+    sizes: MontageArguments["sizes"];
+    transforms: MontageArguments["transforms"];
+}
+function montageLayerBounds(images: readonly Pick<RgbaImage, "width" | "height" | "virtualCanvas">[], method: MontageLayers["method"]) {
+    const first = images[0]!;
+    let x = 0, y = 0;
+    let right = method === "merge" ? -Infinity : first.virtualCanvas?.width || first.width;
+    let bottom = method === "merge" ? -Infinity : first.virtualCanvas?.height || first.height;
+    if (method === "merge") { x = Infinity; y = Infinity; }
+    for (const image of images) {
+        if (method === "merge") {
+            x = Math.min(x, image.virtualCanvas?.x ?? 0);
+            y = Math.min(y, image.virtualCanvas?.y ?? 0);
+        }
+        if (method !== "flatten") {
+            right = Math.max(right, (image.virtualCanvas?.x ?? 0) + image.width);
+            bottom = Math.max(bottom, (image.virtualCanvas?.y ?? 0) + image.height);
+        }
+    }
+    return { x, y, width: right - x, height: bottom - y };
+}
 interface MontageArguments {
     warnings: string;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth">[];
     shadow: boolean;
-    transforms: ({ kind: "flip" | "flop" } | { kind: "trim"; fuzz: number } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string } | { kind: "scale"; geometry: string } | { kind: "thumbnail"; geometry: string } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
+    transforms: (MontageLayers | { kind: "flip" | "flop" } | { kind: "trim"; fuzz: number } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string } | { kind: "scale"; geometry: string } | { kind: "thumbnail"; geometry: string } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
@@ -23342,6 +23368,18 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         }
         else if (t === "+label") {
             label = "";
+        }
+        else if (t === "-flatten" || t === "-layers") {
+            const method = t === "-flatten" ? "flatten" : argv[++i]?.toLowerCase();
+            if (method === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -layers\n" };
+            if (method !== "flatten" && method !== "mosaic" && method !== "merge")
+                return { exitCode: 1, stdout: "", stderr: `montage: unsupported layer method '${method}'\n` };
+            yield* applyTransforms(true);
+            if (operands.length === groupStart) return { exitCode: 1, stdout: "", stderr: `montage: no images found for operation ${t}\n` };
+            const layers: MontageLayers = { kind: "layers", method, state: { ...state },
+                operands: operands.slice(groupStart), sizes: sizes.slice(groupStart), transforms: transforms.slice(groupStart) };
+            operands.length = labels.length = sizes.length = groupStart + 1;
+            transforms.splice(groupStart, transforms.length - groupStart, [layers]);
         }
         else if (t === "-reverse") {
             yield* applyTransforms(true);
@@ -23779,12 +23817,35 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 inputErrors += `montage: unable to open image '${p}': No such file or directory\n`;
                 continue;
             }
-            function* transformTiles(image: RgbaImage, offset = 0): Generator<void, RgbaImage[], void> {
-                const transform = transforms[inputIndex]![offset];
+            function* transformTiles(image: RgbaImage, offset = 0, operations = transforms[inputIndex]!): Generator<void, RgbaImage[], void> {
+                const transform = operations[offset];
                 if (!transform) return [image];
+                if (transform.kind === "layers") {
+                    const layers: RgbaImage[] = [];
+                    for (let index = 0; index < transform.operands.length; index++) {
+                        const path = transform.operands[index]!;
+                        const inputs = index === 0 ? [image] : yield* parseInputOperandsSteps(path, files,
+                            { ...transform.state, ...transform.sizes[index] }, stdinBytes, undefined, undefined, undefined, analysis);
+                        if (!inputs) throw new Error(`unable to open image '${path}': No such file or directory`);
+                        for (const input of inputs) layers.push(...yield* transformTiles(input, 0, transform.transforms[index]!));
+                    }
+                    const bounds = montageLayerBounds(layers, transform.method);
+                    const first = layers[0]!;
+                    const background = transform.state.backgroundExplicit ? transform.state.background : first.backgroundColor ?? transform.state.background;
+                    let canvas = yield* createSolidRgbaImageSteps(bounds.width, bounds.height, background, layers.some(layer => !!layer.data16));
+                    for (const layer of layers) {
+                        canvas = yield* applyMagickCompositeLayerSteps(canvas, layer, transform.state.composeRaw,
+                            (layer.virtualCanvas?.x ?? 0) - bounds.x, (layer.virtualCanvas?.y ?? 0) - bounds.y, undefined, signal);
+                        if (layer.data.buffer !== canvas.data.buffer) detachRgbaBuffer(layer.data);
+                    }
+                    if (transform.method === "merge") canvas = { ...canvas, virtualCanvas: {
+                        width: first.virtualCanvas?.width || first.width, height: first.virtualCanvas?.height || first.height, x: bounds.x, y: bounds.y
+                    } };
+                    return yield* transformTiles(canvas, offset + 1, operations);
+                }
                 if (transform.kind === "repage") {
                     image = { ...image, virtualCanvas: transform.geometry ? magickRepageCanvas(image, transform.geometry, "repage") : { width: 0, height: 0, x: 0, y: 0 } };
-                    return yield* transformTiles(image, offset + 1);
+                    return yield* transformTiles(image, offset + 1, operations);
                 }
                 const tiles = transform.kind === "crop"
                     ? yield* applyMagickCropToStackSteps(image, transform.geometry, transform.gravity, analysis)
@@ -23803,7 +23864,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 }
                 if (!tiles.some(tile => tile.data.buffer === image.data.buffer)) detachRgbaBuffer(image.data);
                 const result: RgbaImage[] = [];
-                for (const tile of tiles) result.push(...yield* transformTiles(tile, offset + 1));
+                for (const tile of tiles) result.push(...yield* transformTiles(tile, offset + 1, operations));
                 return result;
             }
             for (const loaded of loadedList) {
@@ -24074,18 +24135,44 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                         inputErrors += `montage: invalid image index ${invalidIndex} '${parseInputToken(path).baseToken}'\n`;
                     }, visit: async image => {
                         const source = (image as StoredMagickImage)[magickInput];
-                        async function* transformTiles(tile: StoredRgbaImage, offset = 0): AsyncGenerator<StoredRgbaImage> {
-                            const transform = transforms[index]![offset];
+                        async function* transformTiles(tile: StoredRgbaImage, offset = 0, operations = transforms[index]!): AsyncGenerator<StoredRgbaImage> {
+                            const transform = operations[offset];
                             if (!transform) { yield tile; return; }
+                            if (transform.kind === "layers") {
+                                const layers: StoredRgbaImage[] = [];
+                                for (let layerIndex = 0; layerIndex < transform.operands.length; layerIndex++) {
+                                    const accept = async (input: StoredRgbaImage) => {
+                                        for await (const layer of transformTiles(input, 0, transform.transforms[layerIndex]!)) layers.push(layer);
+                                    };
+                                    if (layerIndex === 0) await accept(tile);
+                                    else {
+                                        const path = transform.operands[layerIndex]!;
+                                        const loaded = await parseStoredCompareInput(path, { ...transform.state, ...transform.sizes[layerIndex] }, backend, signal,
+                                            { analysis, source: await snapshotInput(parseInputToken(path).baseToken), visit: accept });
+                                        if (!loaded) throw new Error(`unable to open image '${path}': No such file or directory`);
+                                    }
+                                }
+                                const bounds = montageLayerBounds(layers, transform.method);
+                                const first = layers[0]!;
+                                const background = transform.state.backgroundExplicit ? transform.state.background : first.backgroundColor ?? transform.state.background;
+                                let canvas = await createStoredCanvas(bounds.width, bounds.height, background, backend, signal, layers.some(layer => !!layer.storedData16));
+                                for (const layer of layers) canvas = await compositeStoredMagick(canvas, layer, backend, signal,
+                                    (layer.virtualCanvas?.x ?? 0) - bounds.x, (layer.virtualCanvas?.y ?? 0) - bounds.y, transform.state.composeRaw);
+                                if (transform.method === "merge") canvas = { ...canvas, virtualCanvas: {
+                                    width: first.virtualCanvas?.width || first.width, height: first.virtualCanvas?.height || first.height, x: bounds.x, y: bounds.y
+                                } };
+                                yield* transformTiles(canvas, offset + 1, operations);
+                                return;
+                            }
                             if (transform.kind === "repage") {
                                 tile = { ...tile, virtualCanvas: transform.geometry ? magickRepageCanvas(tile, transform.geometry, "repage") : { width: 0, height: 0, x: 0, y: 0 } };
-                                yield* transformTiles(tile, offset + 1);
+                                yield* transformTiles(tile, offset + 1, operations);
                                 return;
                             }
                             if (transform.kind === "resize" || transform.kind === "scale" || transform.kind === "thumbnail") {
                                 const resize = magickResizeOptions(tile, transform.geometry, state.kernel ?? (transform.kind === "thumbnail" ? "lanczossharp" : undefined));
                                 if (resize) tile = await resizeStoredMagickImage(tile, backend, resize, signal, transform.kind === "thumbnail", false, transform.kind === "scale", state.resizeFilter);
-                                yield* transformTiles(tile, offset + 1);
+                                yield* transformTiles(tile, offset + 1, operations);
                                 return;
                             }
                             if (transform.kind === "crop") {
@@ -24097,7 +24184,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                                         ? await createStoredCanvas(1, 1, { ...state.background, a: 0 }, backend, signal)
                                         : area ? { ...await transformStoredImage(tile, backend.storage, { kind: "extract", ...area }, signal),
                                             virtualCanvas: magickCropCanvas(tile, area.left, area.top) } : tile;
-                                    yield* transformTiles(cropped, offset + 1);
+                                    yield* transformTiles(cropped, offset + 1, operations);
                                 }
                             } else {
                                 let transformed = "operation" in transform
@@ -24112,7 +24199,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                                 }
                                 if (transform.kind === "alpha") transformed = await transformStoredMagickPixels(transformed, backend,
                                     { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal);
-                                yield* transformTiles(transformed, offset + 1);
+                                yield* transformTiles(transformed, offset + 1, operations);
                             }
                         }
                         for await (image of transformTiles(image)) {

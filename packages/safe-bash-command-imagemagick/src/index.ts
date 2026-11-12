@@ -24784,16 +24784,18 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         let targets: string[] = [];
         let bytes: Uint8Array | undefined;
         yield { async run() {
-            if (path.startsWith("@")) {
-                await backend.read(path.slice(1), async source => {
-                    bytes = new Uint8Array(source.size);
-                    for (let offset = 0; offset < source.size; offset += 16384) {
-                        await yieldTurn(signal);
-                        bytes.set(await source.read(offset, Math.min(16384, source.size - offset), { signal }), offset);
-                    }
-                });
-            }
-            if (!bytes) targets = await mogrifyFileTargets(path, input.filesystem, input.cwd, signal);
+            try {
+                if (path.startsWith("@")) {
+                    await backend.read(path.slice(1), async source => {
+                        bytes = new Uint8Array(source.size);
+                        for (let offset = 0; offset < source.size; offset += 16384) {
+                            await yieldTurn(signal);
+                            bytes.set(await source.read(offset, Math.min(16384, source.size - offset), { signal }), offset);
+                        }
+                    });
+                }
+                if (!bytes) targets = await mogrifyFileTargets(path, input.filesystem, input.cwd, signal);
+            } catch (error) { throw new CompareInputFailure(error); }
         } };
         return bytes ? yield* montageInputNames(bytes) : targets;
     }, function* (path): Generator<IdentifyStep, Uint8Array | undefined, void> {

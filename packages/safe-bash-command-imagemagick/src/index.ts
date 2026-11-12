@@ -3395,11 +3395,11 @@ function* applyMagickOpaqueSteps(img: RgbaImage, target: ReturnType<typeof parse
     const hueSamples = cmyk ? img.hueSamples!.slice() : undefined;
     const paintInks = cmyk ? replacement.cmyk ?? rgbToCmyk(replacement.r / 255, replacement.g / 255, replacement.b / 255) : undefined;
     const inkMask = [channels.r, channels.g, channels.b, channels.k ?? true];
-    const evaluateSamples = cmyk ? img.evaluateSamples?.slice() ?? Float64Array.from(img.data16 ?? img.data, value => img.data16 ? value / 257 : value) : undefined;
+    const evaluateSamples = img.evaluateSamples?.slice() ?? (cmyk ? Float64Array.from(img.data16 ?? img.data, value => img.data16 ? value / 257 : value) : undefined);
     let cooperativeWork = 0;
     const out = new Uint8Array(img.data);
     const data16 = img.data16 ? new Uint16Array(img.data16) : undefined;
-    const samples = data16 ?? out, scale = data16 ? 257 : 1;
+    const samples = evaluateSamples ?? data16 ?? out, scale = evaluateSamples ? 1 : data16 ? 257 : 1;
     const gray = img.space === "b-w" || img.space === "grey16";
     const mask = [channels.r, channels.g, channels.b, channels.a];
     const paint = [replacement.r, replacement.g, replacement.b, replacement.a];
@@ -3450,7 +3450,7 @@ function* applyMagickOpaqueSteps(img: RgbaImage, target: ReturnType<typeof parse
             }
         }
     }
-    return { ...img, ...(hueSamples ? { hueSamples, evaluateSamples } : {}), data: out, ...(data16 ? { data16 } : {}), hasAlpha: img.hasAlpha || channels.a && replacement.a < 255 };
+    return { ...img, ...(hueSamples ? { hueSamples } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), data: out, ...(data16 ? { data16 } : {}), hasAlpha: img.hasAlpha || channels.a && replacement.a < 255 };
 }
 
 function* applyMagickTransparentSteps(img: RgbaImage, target: ReturnType<typeof parseColor>, fuzz: number, invert: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {
@@ -3458,10 +3458,11 @@ function* applyMagickTransparentSteps(img: RgbaImage, target: ReturnType<typeof 
     if (cmyk) img = yield* convertCmykPixels(img);
     const inks = cmyk ? img.hueSamples : undefined;
     const targetChannels = cmyk && target.cmyk ? target.cmyk.map(value => value * 255) : [target.r, target.g, target.b, 0];
+    const evaluateSamples = img.evaluateSamples?.slice();
     let cooperativeWork = 0;
     const out = new Uint8Array(img.data);
     const data16 = img.data16 ? new Uint16Array(img.data16) : undefined;
-    const samples = data16 ?? out, scale = data16 ? 257 : 1;
+    const samples = evaluateSamples ?? data16 ?? out, scale = evaluateSamples ? 1 : data16 ? 257 : 1;
     for (let i = 0; i < out.length; i += 4) {
         if (++cooperativeWork % 65536 === 0)
             yield;
@@ -3478,9 +3479,10 @@ function* applyMagickTransparentSteps(img: RgbaImage, target: ReturnType<typeof 
         if (invert ? !matched : matched) {
             out[i + 3] = 0;
             if (data16) data16[i + 3] = 0;
+            if (evaluateSamples) evaluateSamples[i + 3] = 0;
         }
     }
-    return { ...img, data: out, ...(data16 ? { data16 } : {}), hasAlpha: true };
+    return { ...img, data: out, ...(data16 ? { data16 } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), hasAlpha: true };
 }
 
 function* applyMagickEvaluateSteps(img: RgbaImage, op: string, rawNum: number, isPct: boolean, channels: {
@@ -10565,7 +10567,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const matrix = tokens[++i] ?? "1,0,0 0,1,0 0,0,1";
         apply = image => applyMagickColorMatrixSteps(image, matrix, signal);
     } else if (token === "-opaque" || token === "+opaque" || token === "-transparent" || token === "+transparent") {
-        highDepth = true;
+        highDepth = evaluate = true;
         const opaque = token.endsWith("opaque");
         const value = tokens[++i] ?? (opaque ? "#000000" : "#ffffff");
         let target: ReturnType<typeof parseColor>;

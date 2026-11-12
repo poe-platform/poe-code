@@ -21284,7 +21284,7 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
             if (t !== "-negate") i++;
             continue;
         }
-        if (t === "-negate" || t === "-rotate" || t === "-background") {
+        if (t === "-negate" || t === "-rotate" || t === "-background" || t === "-alpha") {
             operations.push(t);
             if (t !== "-negate") operations.push(argv[++i] ?? "");
         }

@@ -23,7 +23,7 @@ export function magickCompositeMode(mode: string): { name: string; delegated: bo
     else if (name === "copyyellow") name = "copyblue";
     // Source-over creates fractional samples even when both inputs are 8-bit.
     return { name, delegated: name === "add",
-        preservesAlpha: ["clear", "over", "srcover", "lightenintensity", "darkenintensity", "intensity", "difference", "src", "source", "copy", "xor", "blend", "dissolve", "in", "srcin", "out", "srcout", "dstin", "destin", "dstout", "destout"].includes(name) };
+        preservesAlpha: ["bumpmap", "clear", "over", "srcover", "lightenintensity", "darkenintensity", "intensity", "difference", "src", "source", "copy", "xor", "blend", "dissolve", "in", "srcin", "out", "srcout", "dstin", "destin", "dstout", "destout"].includes(name) };
 }
 
 export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster, out: Uint8Array | Float64Array, modeRaw: string, left: number, top: number, composeArgs?: string, fuzz = 0, clipToOverlay = false): Generator<undefined, void, unknown> {
@@ -216,7 +216,7 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
             if (norm === "bumpmap") {
                 // Native Rec.709 intensity scales alpha even when the source is transparent.
                 const intensity = (0.212656 * sr + 0.715158 * sg + 0.072186 * sb) / 255;
-                if (saByte !== 0) {
+                if (!src.hasAlpha || saByte !== 0) {
                     out[dIdx] = clampByteVal(dr * intensity);
                     out[dIdx + 1] = clampByteVal(dg * intensity);
                     out[dIdx + 2] = clampByteVal(db * intensity);

@@ -84,3 +84,46 @@ for (const limits of [{ maxFrames: 0 }, { maxSamplesPerTrack: 0 }, { maxMemoryBy
     assert.equal(result.output.length, 0);
   });
 }
+
+// Complete FFmpeg 7.0.2 reference planes: spatial filters only reorder samples.
+const spatialInput = "6464646464646464808080807b98b5d2ef0c2946";
+for (const [filter, expected] of [
+  ["transpose=clock", "646464646464646480808080ef7b0c9829b546d2"],
+  ["hflip", "646464646464646480808080d2b5987b46290cef"],
+  ["vflip", "646464646464646480808080ef0c29467b98b5d2"],
+  ["transpose=clock,transpose=cclock", spatialInput],
+  ["null", spatialInput],
+  ["transpose=clock:landscape", spatialInput]
+] as const) {
+  it(`preserves native YUVA420 samples through ${filter}`, async () => {
+    const result = await run(Buffer.from(spatialInput, "hex"), "yuva420p", "4x2",
+      ["-vf", filter, "-frames:v", "1", "-pix_fmt", "yuva420p"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.output.toString("hex"), expected);
+  });
+}
+
+// A 3x2 frame has six luma/alpha samples and two samples in each chroma plane.
+const oddSpatialInput = "000102030405060708090a0b0c0d0e0f";
+for (const [filter, expected] of [
+  ["transpose=clock", "030004010502060708090d0a0e0b0f0c"],
+  ["transpose=cclock", "020501040003070609080c0f0b0e0a0d"],
+  ["transpose=cclock_flip", "000301040205060708090a0d0b0e0c0f"],
+  ["transpose=clock_flip", "050204010300070609080f0c0e0b0d0a"],
+  ["hflip", "020100050403070609080c0b0a0f0e0d"],
+  ["vflip", "030405000102060708090d0e0f0a0b0c"],
+  ["hflip,hflip", oddSpatialInput],
+  ["vflip,vflip", oddSpatialInput],
+  ["transpose=clock,transpose=cclock", oddSpatialInput]
+] as const) {
+  it(`reorders every odd-sized YUVA420 plane in multiple frames through ${filter}`, async () => {
+    const input = Buffer.from(oddSpatialInput, "hex");
+    const output = Buffer.from(expected, "hex");
+    const result = await run(Buffer.concat([input, input.map(value => value + 128)]), "yuva420p", "3x2",
+      ["-vf", filter, "-pix_fmt", "yuva420p"]);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(result.output, Buffer.concat([output, output.map(value => value + 128)]));
+  });
+}

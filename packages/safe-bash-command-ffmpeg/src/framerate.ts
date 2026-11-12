@@ -29,7 +29,8 @@ export async function interpolateFrameRate(
     const defaults = [15, 240, 8.2, 1];
     const max = [255, 255, 100, 2147483647][index]!;
     const value = parseFilterExpression(options[key] ?? String(defaults[index]), "framerate", {
-      default: defaults[index]!, min: 0, max, scd: 1, scene_change_detect: 1
+      default: defaults[index]!, min: 0, max,
+      ...(key === "flags" ? { scd: 1, scene_change_detect: 1 } : {})
     });
     if (value < 0 || value > max) throw new RangeError(`framerate: ${key} out of range`);
     if (key === "scene") return value;

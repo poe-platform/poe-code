@@ -11,6 +11,7 @@ async function run(filter: string, pixels = source, width = 1, height = 1, graph
     "/out.gray": "KEEP"
   });
   let stderr = "";
+  const stdout: Buffer[] = [];
   const result = await createFfmpegCommand({ limits }).execute({
     args: ["-v", "info", "-y", "-f", "rawvideo", "-pix_fmt", "gray", "-s", `${width}x${height}`, "-r", "4", "-i", "/in.gray",
       ...(graph ? ["-filter_complex", `[0:v]${filter}[out]`, "-map", "[out]"] : ["-vf", filter]),
@@ -21,10 +22,10 @@ async function run(filter: string, pixels = source, width = 1, height = 1, graph
       async writeFile(path: string, data: Uint8Array) { volume.writeFileSync(path, data); },
       async stat(path: string) { return volume.statSync(path); }
     },
-    stdin: (async function* () {})(), stdout: { async write() {} },
+    stdin: (async function* () {})(), stdout: { async write(data: Uint8Array) { stdout.push(Buffer.from(data)); } },
     stderr: { async write(data: Uint8Array) { stderr += new TextDecoder().decode(data); } }
   } as never);
-  return { ...result, stderr, bytes: volume.readFileSync("/out.gray") };
+  return { ...result, stderr, stdout: Buffer.concat(stdout), bytes: volume.readFileSync("/out.gray") };
 }
 
 for (const graph of [false, true]) {
@@ -32,6 +33,33 @@ for (const graph of [false, true]) {
     const result = await run("framerate=fps=5", source, 1, 1, graph);
     assert.equal(result.exitCode, 0, result.stderr);
     assert.deepEqual(result.bytes, Buffer.from([10, 30, 48, 76, 110, 150, 198, 210]));
+  });
+}
+
+// Exit statuses and complete output bytes captured from native FFmpeg 9.0.1.
+for (const flag of ["scd", "scene_change_detect"]) {
+  for (const key of ["fps", "interp_start", "interp_end", "scene"]) {
+    it(`rejects the flag ${flag} in numeric option ${key}`, async () => {
+      const result = await run(`framerate=8:${key}=${flag}`, [11, 37], 2, 2);
+      assert.equal(result.exitCode, 234, result.stderr);
+      assert.deepEqual(result.stdout, Buffer.alloc(0));
+      assert.equal(result.bytes.toString(), "KEEP");
+    });
+  }
+}
+for (const [option, hex] of [
+  ["fps=1", "0b0b0b0b"],
+  ["interp_start=1", "0b0b0b0b0b0b0b0b2525252525252525"],
+  ["interp_end=1", "0b0b0b0b252525252525252525252525"],
+  ["scene=1", "0b0b0b0b0b0b0b0b2525252525252525"],
+  ["flags=1", "0b0b0b0b0b0b0b0b2525252525252525"],
+  ["flags=scd", "0b0b0b0b0b0b0b0b2525252525252525"],
+  ["flags=scene_change_detect", "0b0b0b0b0b0b0b0b2525252525252525"]
+]) {
+  it(`matches native status and bytes for ${option}`, async () => {
+    const result = await run(`framerate=8:${option}`, [11, 37], 2, 2);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.bytes, Buffer.from(hex!, "hex"));
   });
 }
 

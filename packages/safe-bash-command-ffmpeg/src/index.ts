@@ -738,7 +738,7 @@ function* lavfiSteps(
   const [wStr, hStr] = sizeStr.toLowerCase().split("x");
   const width = parseInt(wStr ?? "320", 10) || 320;
   const height = parseInt(hStr ?? "240", 10) || 240;
-  const fps = parseFloat(kv.rate ?? kv.r ?? "25") || 25;
+  const fps = parseFrameRate(kv.rate ?? kv.r ?? "25") ?? 25;
   const duration =
     durationOverride ?? (parseFloat(kv.duration ?? kv.d ?? "1") || 1);
   const frameCount = Math.max(1, Math.ceil(duration * fps));

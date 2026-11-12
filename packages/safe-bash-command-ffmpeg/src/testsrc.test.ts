@@ -64,3 +64,36 @@ for (const [size, hashes] of [
     }
   });
 }
+
+// Native FFmpeg 7.0.2 RGB24 outputs for two seconds at each frame rate.
+for (const option of ["r", "rate"]) {
+  for (const [rate, frames, hash] of [
+    ["3/2", 3, "e6a3aa9c72b5a7062c0c162826636e26f31c3c78b4c9274f416be93d5b9859a3"],
+    ["1.5", 3, "e6a3aa9c72b5a7062c0c162826636e26f31c3c78b4c9274f416be93d5b9859a3"],
+    ["3/1", 6, "2a19205bbbacf75d2b0d60fce618d96704da52fee49628214086dcd2c6548bcb"],
+    ["3", 6, "2a19205bbbacf75d2b0d60fce618d96704da52fee49628214086dcd2c6548bcb"]
+  ] as const) {
+    it(`renders native testsrc raw frames with ${option}=${rate}`, async () => {
+      const volume = Volume.fromJSON({});
+      const stdout: Uint8Array[] = [];
+      const stderr: Uint8Array[] = [];
+      const result = await createFfmpegCommand().execute({
+        args: ["-hide_banner", "-loglevel", "error", "-f", "lavfi", "-i",
+          `testsrc=s=16x8:${option}=${rate}:d=2`, "-pix_fmt", "rgb24", "-f", "rawvideo", "pipe:1"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: {
+          async readFile(path: string) { return volume.readFileSync(path); },
+          async stat(path: string) { return volume.statSync(path); }
+        },
+        stdin: (async function* () {})(),
+        stdout: { async write(bytes: Uint8Array) { stdout.push(bytes); } },
+        stderr: { async write(bytes: Uint8Array) { stderr.push(bytes); } }
+      } as never);
+      assert.equal(result.exitCode, 0, Buffer.concat(stderr).toString());
+      assert.equal(Buffer.concat(stderr).toString(), "");
+      const output = Buffer.concat(stdout);
+      assert.equal(output.length, frames * 16 * 8 * 3);
+      assert.equal(createHash("sha256").update(output).digest("hex"), hash);
+    });
+  }
+}

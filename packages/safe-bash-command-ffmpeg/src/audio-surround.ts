@@ -11,6 +11,7 @@ export async function surroundAudio(
   filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<{ channels: Float32Array[]; frameSize: number }> {
   let size = 4096, lfe = true;
+  let lfeMode = 0;
   let windowOverlap = 0.5;
   let lfeLow = 128, lfeHigh = 256;
   let outputChannels = 6;
@@ -65,6 +66,12 @@ export async function surroundAudio(
       if (key === "win_size") size = rounded;
       else if (key === "lfe_low") lfeLow = rounded;
       else lfeHigh = rounded;
+    } else if (key === "lfe_mode") {
+      const number = parseFilterExpression(value, "surround", { add: 0, sub: 1, min: 0, max: 1, default: 0 });
+      if (!Number.isFinite(number) || number < 0 || number > 1) {
+        throw new RangeError("surround: lfe_mode must be between 0 and 1");
+      }
+      lfeMode = number === 0.5 ? 0 : Math.round(number);
     } else if (key === "lfe") {
       const boolean = value.toLowerCase();
       if (["1", "true", "yes", "on", "y", "enabled"].includes(boolean)) lfe = true;
@@ -141,9 +148,12 @@ export async function surroundAudio(
         const horizontal = c === 2 || c === 3 ? f(1 - Math.abs(x)) : f(0.5 * f((c === 0 || c === 4 ? x : -x) + 1));
         const vertical = c === 3 ? f(1 - Math.abs(y)) : c < 3 ? front : f(1 - front);
         const factor = f(f(Math.pow(horizontal, spreadX[c]!)) * f(Math.pow(vertical, spreadY[c]!)));
-        const lowpass = !lfe || n >= high ? 0 : n < low ? 1
+        const lowpass = !lfe || outputChannels !== 6 || n >= high ? 0 : n < low ? 1
           : f(0.5 * f(1 + f(Math.cos(f(f(pi * f(low - n)) / f(low - high))))));
-        const magnitude = f((c === 3 ? f(lowpass * center) : c === 2 ? center : f(Math.hypot(lm, rm))) * factor);
+        const bass = f(lowpass * center);
+        const total = f(Math.hypot(lm, rm));
+        // Subtract bass before distributing energy to front/rear speakers; center is unchanged.
+        const magnitude = f((c === 3 ? bass : c === 2 ? center : lfeMode ? f(total - bass) : total) * factor);
         const phaseOut = c === 2 || c === 3 ? centerPhase : c === 0 || c === 4 ? lp : rp;
         outReal[n] = f(magnitude * f(Math.cos(phaseOut)));
         outImaginary[n] = n === 0 || n === size / 2 ? 0 : f(magnitude * f(Math.sin(phaseOut)));

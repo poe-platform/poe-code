@@ -673,6 +673,9 @@ Width expressions accept `E`, `PI`, and `PHI`, for example `extrastereo=m=PI/2`.
 `virtualbass` adds an LFE channel to stereo, preserving left/right samples, sample rate, and length. `virtualbass=cutoff=100:strength=0.5` sets the cutoff (100–500 Hz, default 250) and strength (0.5–3, default 3). Positional options and numeric expressions are accepted. `asendcmd` can change `strength` at audio frame boundaries. Like native FFmpeg, `enable=0` still generates bass.
 `surround` upmixes stereo to 5.1 (FL, FR, FC, LFE, BL, BR) using a
 windowed frequency transform, retaining the sample rate and frame count.
+`lfe_mode=add` (or `0`, the default) adds bass to LFE; `lfe_mode=sub` (or `1`)
+also subtracts that bass from the front and rear speakers, leaving center and LFE
+unchanged. With `lfe=0` or stereo output, both modes produce the same audio.
 `surround=chl_out=5.1:win_size=1024:lfe=0` silences only LFE. `lfe` also accepts
 case-insensitive `n`/`disabled` for off and `y`/`enabled` for on. The default
 window is 4096 samples; multiples of four from 1024 to 65536 are supported,

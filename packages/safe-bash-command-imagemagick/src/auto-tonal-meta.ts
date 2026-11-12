@@ -20,9 +20,12 @@ export function* autoTonalMetaPixelSteps(
         }
         const values = samples[0]!;
         for (let offset = 3; offset < length; offset += 4) values[offset] = samples[1]![offset]!;
+        const maskWorking = masked ? yield { kind: "read", evaluate: true, image: 2, position, length } : undefined;
         const writeMask = masked ? {
-            ...image, width: length / 4, height: 1,
+            width: length / 4, height: 1,
             data: (yield { kind: "read", image: 2, position, length })!,
+            evaluateSamples: maskWorking?.length ? new Float64Array(maskWorking.slice().buffer)
+                : Float64Array.from(new Uint16Array((yield { kind: "read", highDepth: true, image: 2, position, length })!.slice().buffer), value => value / 257),
         } : undefined;
         const pixels = {
             format: image.format, depth: image.depth, density: image.density,

@@ -11914,7 +11914,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 const maskOffset = writeMask ? (Math.min(Math.floor(idx / 4 / im.width), writeMask.height - 1) * writeMask.width + Math.min(idx / 4 % im.width, writeMask.width - 1)) * 4 : 0;
                 const x = (pixelOffset + idx / 4) % imageWidth, y = Math.floor((pixelOffset + idx / 4) / imageWidth);
                 const outsideRegion = im.region && !regionContains(im.region, x, y);
-                const protection = outsideRegion ? 1 : writeMask ? (0.212656 * writeMask.data[maskOffset]! + 0.715158 * writeMask.data[maskOffset + 1]! + 0.072186 * writeMask.data[maskOffset + 2]!) / 255 : 0;
+                const maskSamples = writeMask?.evaluateSamples ?? writeMask?.data16 ?? writeMask?.data;
+                const maskMaximum = writeMask?.evaluateSamples ? 255 : writeMask?.data16 ? 65535 : 255;
+                const protection = outsideRegion ? 1 : maskSamples ? (0.212656 * maskSamples[maskOffset]! + 0.715158 * maskSamples[maskOffset + 1]! + 0.072186 * maskSamples[maskOffset + 2]!) / maskMaximum : 0;
                 // Mask compositing uses retained opacity even when alpha is inactive.
                 const alpha = im.hasAlpha || im.alphaBlend !== false ? evaluateSamples[idx + 3]! / 255 : 1;
                 let editedAlpha = alpha;
@@ -12368,12 +12370,13 @@ async function transformStoredMagickPixels(image: StoredRgbaImage, backend: Comp
         const evaluateSamples = evaluateBytes ? new Float64Array(evaluateBytes.buffer.slice(evaluateBytes.byteOffset, evaluateBytes.byteOffset + evaluateBytes.byteLength)) : undefined;
         const { storedEvaluateSamples: ignoredEvaluate, storedData16: ignoredSource, storedHueSamples: ignoredHue, ...inputMetadata } = image;
         const writeMask = operation.handlesWriteMask && image.storedWriteMask
-            ? { ...image.storedWriteMask, width: data.length / 4, height: 1, data: await backend.storage.read(image.storedWriteMask.position + offset, data.length) } : undefined;
+            ? { ...image.storedWriteMask, width: data.length / 4, height: 1,
+                ...await drainIdentifySteps(loadIdentifyPixels({ image: image.storedWriteMask, storage: backend.storage }, signal, offset, data.length), signal) } : undefined;
         const transformed = await drainSteps(operation.apply({ ...inputMetadata, width: data.length / 4, height: 1, data, ...(writeMask ? { writeMask } : {}), ...(evaluateSamples ? {evaluateSamples} : {}), ...(data16 ? {data16} : {}), ...(hueSamples ? {hueSamples} : {}) }, offset / 4, image.width), signal);
         const { data: pixels, writeMask: outputMask, evaluateSamples: outputEvaluate, data16: output16, dataFloat: outputFloat, hueSamples: outputHue, ...metadata } = transformed;
         pixelsChanged ||= pixels !== data;
         if (outputMask) {
-            const { data: maskPixels, ...maskMetadata } = outputMask;
+            const { data: maskPixels, data16: ignoredMask16, evaluateSamples: ignoredMaskEvaluate, hueSamples: ignoredMaskHue, ...maskMetadata } = outputMask;
             storedWriteMask ??= { ...maskMetadata, width: image.width, height: image.height, position: backend.storage.allocate(size) };
             await backend.storage.write(storedWriteMask.position + offset, maskPixels);
         }

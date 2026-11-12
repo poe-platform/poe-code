@@ -20433,10 +20433,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
                   const centerLfe = origCh === 2 && channelMask === 12;
                   const centerLfeFront = centerLfe && (audioChannels === 2 || audioChannels === 3);
-                  const surroundUpmix = targetCh === 6 &&
+                  const surroundUpmix = (targetCh === 6 || centerLfe && targetCh === 4) &&
                     (centerLfe || origCh === 3 && (channelMask === 7 || channelMask === 11) || origCh === 4 && channelMask === 0x33);
                   const inputSpeakers = surroundUpmix
                     ? [1, 2, 4, 8, 16, 32].filter(speaker => (channelMask! & speaker) !== 0) : [];
+                  const outputSpeakers = surroundUpmix
+                    ? parseAudioChannelLayout(`${targetCh}c`).map(name => audioSpeakerMasks[name]!) : [];
                   const threeChannelDownmix = origCh === 3 && (targetCh === 1 || targetCh === 2) &&
                     (channelMask === 7 || channelMask === 11);
                   const centerToLfe = audioChannels === 3 && origCh === 3 && channelMask === 7;
@@ -20521,7 +20523,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (centerLfeFront) return output < 2 ? input === 0 ? Math.SQRT1_2 : 0 : input === 1 ? 1 : 0;
                       if (monoStereo) return output < 2 && input === 0 ? Math.SQRT1_2 : 0;
                       if (monoSurround) return output === 2 ? 1 : 0;
-                      if (surroundUpmix) return inputSpeakers[input] === 1 << output ? 1 : 0;
+                      if (surroundUpmix) return inputSpeakers[input] === outputSpeakers[output] ? 1 : 0;
                       if (surroundExpansion) return input === (output < 4 ? output : channelMask === 0x60f ? output - 2 : output) &&
                         (output < 4 || (channelMask === 0x60f ? output >= 6 : output < 6)) ? 1 : 0;
                       if (targetCh === 1 && !centerLfe && (origCh === 2 || threeChannelDownmix)) return input < 2 ? 0.5 : 0;
@@ -20545,7 +20547,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     const expandedChannel = c < 4 ? c : channelMask === 0x60f ? c - 2 : c;
                     const srcCh = surroundExpansion ? (c < 4 || (channelMask === 0x60f ? c >= 6 : c < 6)
                       ? stretched[expandedChannel] : undefined) : (monoStereo && c >= 2) || (centerToLfe && c === 2) || (quadToFour && c === 2) || (monoSurround && c !== 2)
-                      ? undefined : stretched[surroundUpmix ? inputSpeakers.indexOf(1 << c) : centerLfeFront ? c < 2 ? 0 : 1 : origCh === 1 ? 0 : c];
+                      ? undefined : stretched[surroundUpmix ? inputSpeakers.indexOf(outputSpeakers[c]!) : centerLfeFront ? c < 2 ? 0 : 1 : origCh === 1 ? 0 : c];
                     const rightCh = (origCh === 2 && !centerLfe || threeChannelDownmix) && targetCh === 1 ? stretched[1] : undefined;
                     if (srcCh && srcCh.length > 0) {
                       for (let i = 0; i < targetSamples; i++) {

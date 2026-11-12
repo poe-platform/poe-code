@@ -374,7 +374,7 @@ Piped WAV input requires `fmt ` before the first `data` chunk; invalid order fai
 
 Quad WAV supports `-ac 1` and `-ac 2`, mixing back speakers into their matching front sides with normalized FFmpeg weights. Stream copy retains all four speakers and the quad channel mask.
 
-Output `-ac 6` upmixes 3.0, 2.1, and quad WAV to 5.1, preserving each named speaker (including LFE) and leaving absent speakers silent.
+Output `-ac 6` upmixes 3.0, 2.1, and quad WAV to 5.1, preserving each named speaker (including LFE) and leaving absent speakers silent. Output `-ac 4` uses 4.0 (`FL FR FC BC`): `FC+LFE` input retains center in the third slot, omits LFE, and leaves the other
 
 Output `-ac 1`, `-ac 2`, and `-ac 6` downmix 7.1 WAV to mono, stereo, and 5.1 with normalized FFmpeg speaker weights. Mono and stereo omit LFE; 5.1 retains LFE and folds side speakers into the corresponding back speakers.
 

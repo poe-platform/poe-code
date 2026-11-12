@@ -444,6 +444,12 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
     const bitwise = ["and", "or", "xor"].includes(operation);
     const fractional = cmyk || bitwise || ["cos", "cosine", "divide", "inverselog", "log", "mean", "multiply", "rms", "rootmeansquare", "sin", "sine", "thresholdblack", "thresholdwhite"].includes(operation);
     const retainRange = ["add", "addmodulus", "sum", "subtract", "min", "max"].includes(operation);
+    // Native visits input slots through the output channel map. GrayAlpha has two
+    // slots, so only output red and green contribute; absent channels start at zero.
+    const inputChannels = inputs.map((image, index) => colorOutput && (image.space === "b-w" || image.space === "grey16")
+        && ["mean", "sum", "max", "min", "add", "subtract", "divide", "and", "or", "xor", "rms", "rootmeansquare", "threshold", "thresholdblack", "thresholdwhite"].includes(operation)
+        // An opaque 8-bit gray PNG also has a palette-index slot.
+        ? 1 + Number(alpha[index] || (image.format === "png" && image.depth === "uchar")) : stride);
     function* read(image: number, position: number, length: number, retainWorking = retainRange || fractional): Generator<ConvolveRequest, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
         const storagePosition = position / stride * 4, storageLength = length / stride * 4;
         const working = retainWorking ? yield { kind: "read", evaluate: true, image, position: storagePosition, length: storageLength } : undefined;
@@ -471,13 +477,9 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
             }
             bytes = samples;
         }
-        const gray = colorOutput && (inputImage.space === "b-w" || inputImage.space === "grey16");
-        // Native reductions visit the input's channel slots using the output channel map.
-        // An opaque 8-bit gray PNG has a palette-index slot in addition to gray.
-        const colorSlots = gray ? 1 + Number(alpha[image] || (inputImage.format === "png" && inputImage.depth === "uchar")) : cmyk ? stride : 3;
         const sourceMask = sourceChannels?.[image];
         const maskedMedian = operation === "median" && channels?.some(selected => !selected);
-        const graySlots = gray && ["mean", "sum", "max"].includes(operation);
+        const graySlots = inputChannels[image]! < stride;
         if (!inactiveAlpha && (!hasAlpha || alpha[image]) && !graySlots && !maskedMedian && !sourceMask) return bytes;
         const data = bytes.slice();
         for (let offset = 0; offset < length; offset++) {
@@ -485,7 +487,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
             // Mask candidates before ranking so unused samples cannot choose the median.
             if (sourceMask && !sourceMask[channel] && (channel !== 3 || hasAlpha)) data[offset] = 0;
             if (maskedMedian && !channels![channel] && (channel !== 3 || hasAlpha)) data[offset] = 0;
-            if (channel === 3 ? inactiveAlpha || hasAlpha && (!alpha[image] || graySlots) : graySlots && channel >= colorSlots) data[offset] = 0;
+            if (channel >= inputChannels[image]! || channel === 3 && (inactiveAlpha || hasAlpha && !alpha[image])) data[offset] = 0;
         }
         return data;
     }
@@ -588,6 +590,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 if (++work % 64 === 0) yield;
                 const bytes = yield* read(image, position, length);
                 for (let offset = 0; offset < length; offset++) {
+                    if (offset % stride >= inputChannels[image]!) continue;
                     // Native truncates the incoming Q16 sample and rounds the accumulator mask.
                     const sample = bytes[offset]! * scale, mask = Math.trunc(data[offset]! * scale + 0.5);
                     if (operation === "and") data[offset] = (sample & mask) / scale;
@@ -617,6 +620,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 const bytes = yield* read(image, position, length);
                 for (let offset = 0; offset < length; offset++) {
                     if (offset % stride === 3 && !hasAlpha) continue;
+                    if (offset % stride >= inputChannels[image]!) continue;
                     // Each incoming sample uses the accumulated result as its threshold.
                     const sample = bytes[offset]!, threshold = data[offset]!;
                     if (operation === "threshold") data[offset] = sample <= threshold ? 0 : range;
@@ -701,7 +705,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
             for (let image = 1; image < frames; image++) {
                 if (++work % 64 === 0) yield;
                 const bytes = yield* read(image, position, length);
-                for (let offset = 0; offset < length; offset++) values[offset]! += (bytes[offset]! * scale) ** 2;
+                for (let offset = 0; offset < length; offset++) if (offset % stride < inputChannels[image]!) values[offset]! += (bytes[offset]! * scale) ** 2;
             }
             for (let offset = 0; offset < length; offset++) {
                 if (offset % stride !== 3 || hasAlpha) data[offset] = Math.sqrt(values[offset]! / frames) / scale;
@@ -717,6 +721,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 if (++work % 64 === 0) yield;
                 const bytes = yield* read(image, position, length);
                 for (let offset = 0; offset < length; offset++) {
+                    if (image > 0 && offset % stride >= inputChannels[image]!) continue;
                     if (image > 0 && cmyk && inputs[image]!.space !== "cmyk" && offset % stride >= 3) continue;
                     if (image > 0 && sourceChannels?.[image] && !sourceChannels[image]![offset % stride]) {
                         // Multiply normalizes once per input even when its channel is skipped.

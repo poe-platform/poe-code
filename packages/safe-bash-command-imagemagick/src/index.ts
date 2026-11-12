@@ -23944,7 +23944,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const parsed = yield* parseMontageArguments(argv, function* (path): Generator<void, number, void> {
         yield;
         const bytes = path === "-" ? stdinBytes : files.get(path);
-        try { return bytes?.[0] === 0x47 ? readImageMetadata(bytes).pages ?? 1 : 1; }
+        try { return bytes && (bytes[0] === 0x47 || bytes[0] === 0x50) ? readImageMetadata(bytes).pages ?? 1 : 1; }
         catch { return 1; } // The image reader reports malformed headers.
     }, function* (path): Generator<void, string[], void> {
         const bytes = path.startsWith("@") ? files.get(path.slice(1)) : undefined;
@@ -24551,7 +24551,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             const source = await snapshotInput(path);
             if (source) {
                 const prefix = await source.read(0, Math.min(6, source.size));
-                if (prefix[0] === 0x47) {
+                if (prefix[0] === 0x47 || prefix[0] === 0x50) {
                     try { count = (await readImageMetadataFromSource(source, signal, undefined, backend.storage)).pages ?? 1; }
                     catch { signal.throwIfAborted(); } // The image reader reports malformed headers.
                 }

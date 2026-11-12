@@ -6,7 +6,10 @@ import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 export async function resampleAudio(
   channels: readonly (Float32Array | Float64Array)[], outputLength: number, inputRate: number, outputRate: number,
   budget: MediaBudgetTracker, signal?: AbortSignal, filterType: "cubic" | "kaiser" | "blackman_nuttall" = "kaiser", kaiserBeta = 9, filterSize = 32, resampleCutoff = 0, phaseShift = 10, linearInterp = 1, exactRational = 1,
-  frameLimit?: { count?: number; ends: readonly number[]; outputEnds?: number[] },
+  frameLimit?: {
+    count?: number; ends: readonly number[]; outputEnds?: number[];
+    timestamps?: readonly { start: number; pts: number }[] | undefined; outputPts?: number[];
+  },
   internalFormat: "fltp" | "dblp" = "fltp"
 ): Promise<(Float32Array | Float64Array)[]> {
   const rateRatio = inputRate / outputRate;
@@ -35,22 +38,36 @@ export async function resampleAudio(
   if (frameLimit) {
     let frames = 0;
     let emitted = 0;
+    let nextPts = 0;
     if (frameLimit.count === 0) outputLength = 0;
-    for (const end of frameLimit.ends) {
+    for (const [index, end] of frameLimit.ends.entries()) {
+      const timestamp = frameLimit.timestamps?.[index];
+      // swr_next_pts subtracts buffered input from every incoming timestamp,
+      // even when startup cannot emit a frame yet. Flush retains that clock.
+      if (timestamp && !Number.isNaN(timestamp.pts)) {
+        nextPts = (timestamp.pts - timestamp.start) / rateRatio + emitted;
+      }
       const available = Math.min(length, end);
       if (available <= filterLength) continue;
       // Each input frame emits only samples whose filter support is available.
       // The remaining tail is a separate frame emitted during flush.
       const produced = Math.max(0, Math.ceil((available - (filterLength - center - 1)) / rateRatio));
       if (produced <= emitted) continue;
+      const previous = emitted;
       emitted = Math.min(outputLength, produced);
       frameLimit.outputEnds?.push(emitted);
+      frameLimit.outputPts?.push(timestamp && Number.isNaN(timestamp.pts)
+        ? NaN : Math.sign(nextPts) * Math.round(Math.abs(nextPts)));
+      nextPts += emitted - previous;
       if (++frames === frameLimit.count) {
         outputLength = Math.min(outputLength, emitted);
         break;
       }
     }
-    if (emitted < outputLength) frameLimit.outputEnds?.push(outputLength);
+    if (emitted < outputLength) {
+      frameLimit.outputEnds?.push(outputLength);
+      frameLimit.outputPts?.push(Math.sign(nextPts) * Math.round(Math.abs(nextPts)));
+    }
   }
   const SampleArray = internalFormat === "dblp" ? Float64Array : Float32Array;
   const output = channels.map(() => new SampleArray(outputLength));

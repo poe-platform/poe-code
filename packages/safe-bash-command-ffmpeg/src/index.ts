@@ -17759,13 +17759,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               ? Float64Array.BYTES_PER_ELEMENT : Float32Array.BYTES_PER_ELEMENT));
                             const ends = audioTimestamps?.map(frame => frame.end) ??
                               t.samples.map(sample => (sample.dts + sample.duration - (t.samples[0]?.dts ?? 0)) * origRate / t.timescale);
-                            const firstPts = Math.round((audioTimestamps?.[0]?.pts ?? audioStartSample) * targetRate / origRate);
+                            const firstPts = audioTimestamps ? 0 : Math.round(audioStartSample * targetRate / origRate);
                             const outputEnds: number[] = [];
+                            const outputPts: number[] = [];
                             if (internalFormat === "fltp") {
                               stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, internalFormat, budget, context.signal);
                             }
                             stretched = await resampleAudio(stretched, length, origRate, targetRate, budget, context.signal,
-                              window, undefined, stageFilterSize, cutoff, stagePhaseShift, stageLinearInterp, stageExactRational, { ends, outputEnds }, internalFormat);
+                              window, undefined, stageFilterSize, cutoff, stagePhaseShift, stageLinearInterp, stageExactRational,
+                              { ends, timestamps: audioTimestamps, outputEnds, outputPts }, internalFormat);
                             // Resampling produces floats; later filters and encoders must round
                             // these samples rather than narrow the original integer PCM.
                             let nextFilter = downstreamFilter;
@@ -17783,17 +17785,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               format ??= filteredSampleFormat;
                             }
                             // Format-preserving observers share the encoder's negotiated format.
-                            if (!nextFilter) format ??= outputAudioFormat ?? filteredSampleFormat;
+                            if (!nextFilter && index !== undefined) format ??= outputAudioFormat ?? filteredSampleFormat;
                             // Keep the internal planar format until atempo negotiates its
                             // packed input with downstream filters and the output encoder.
                             filteredSampleFormat = panSampleFormat = nextFilter === "atempo"
                               ? internalFormat : internalFormat === "dblp" ? "dbl" : "flt";
                             audioStartSample = Math.round(audioStartSample * targetRate / origRate);
                             // Resampler startup buffers input frames; flush emits a separate tail frame.
-                            budget.allocateMemory(outputEnds.length * 24);
+                            budget.allocateMemory(outputEnds.length * 32);
                             audioTimestamps = outputEnds.map((end, i) => {
                               const start = outputEnds[i - 1] ?? 0;
-                              return { start, end, pts: firstPts + start };
+                              return { start, end, pts: firstPts + outputPts[i]! };
                             });
                             discard = Math.floor(discard * targetRate / origRate);
                             origRate = targetRate;

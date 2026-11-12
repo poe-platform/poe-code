@@ -106,7 +106,7 @@ it.each(["DCTDecode","JPXDecode","JBIG2Decode","CCITTFaxDecode"])("preserves ret
     expect(stdout).toBe(`out-001-000.${extension}\n`);
     expect(await fs.readFile(`/out-001-000.${extension}`)).toEqual(bytes);
     if (filter === "JBIG2Decode") expect(await fs.readFile("/out-001-000.jb2g")).toEqual(fixture("jbig2-symbols.sym"));
-    if (filter === "CCITTFaxDecode") expect(new TextDecoder().decode(await fs.readFile("/out-001-000.params"))).toBe("-4 -x 8 -y 2\n");
+    if (filter === "CCITTFaxDecode") expect(new TextDecoder().decode(await fs.readFile("/out-001-000.params"))).toBe("-4 -P -X 8 -B -M\n");
   }
   await compareCommand(input,["-list","-upw","secret"]);
 });

@@ -25,7 +25,7 @@ for (const fixture of ["stdin.mp3", "unknown-duration.flac"]) {
         stderr: { async write(chunk) { diagnostic += new TextDecoder().decode(chunk); } }
       });
       // Native ffprobe reports these tags only in FORMAT, leaving STREAM empty.
-      const expected = `[STREAM]\n[/STREAM]\n[FORMAT]\nTAG:${fixture.endsWith(".flac") ? "TITLE" : "title"}=Audit tone\nTAG:${fixture.endsWith(".flac") ? "ARTIST" : "artist"}=Test\n[/FORMAT]\n`;
+      const expected = `[STREAM]\n[/STREAM]\n[FORMAT]\nTAG:title=Audit tone\nTAG:artist=Test\n[/FORMAT]\n`;
       expect(result.exitCode, diagnostic).toBe(0);
       expect(output).toBe(expected);
       expect(evalSyncFfprobe(file ? undefined : bytes, args, () => bytes)).toBe(expected);

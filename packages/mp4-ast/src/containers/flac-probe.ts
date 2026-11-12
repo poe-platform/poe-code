@@ -1,4 +1,4 @@
-import { parseAudio, id3HeaderSize, flacFormatTags } from "@poe-code/audio-ast";
+import { id3HeaderSize, flacFormatTagName } from "@poe-code/audio-ast";
 import type { Mp4Chapter } from "../types.js";
 
 export function flacChapters(tags: Record<string, string>, duration: number): Mp4Chapter[] {
@@ -56,12 +56,98 @@ export function frameHeader(bytes: Uint8Array, start: number): { duration: numbe
   return { duration, number, headerSize: pos + 1 - start, variable: !!(bytes[start + 1]! & 1) };
 }
 
+/** Decode comment payloads incrementally; never retain the encoded metadata block. */
+class FlacComments {
+  readonly tags = new Map<string, [string, string]>();
+  readonly chapters: Record<string, string> = {};
+  hasReplayGain = false;
+  private state: "vendorLength" | "vendor" | "count" | "length" | "comment" = "vendorLength";
+  private integer = 0;
+  private integerBytes = 0;
+  private count = 0;
+  private left = 0;
+  private invalid = false;
+  private readonly buffer = new Uint8Array(4096);
+  private used = 0;
+  private decoder = new TextDecoder();
+  private name = "";
+  private folded = "";
+  private value = "";
+  private separated = false;
+
+  constructor(private remaining: number) {}
+
+  private decode(final: boolean): void {
+    const text = this.decoder.decode(this.buffer.subarray(0, this.used), { stream: !final });
+    this.used = 0;
+    if (this.separated) { this.value += text; return; }
+    const split = text.indexOf("="), name = split < 0 ? text : text.slice(0, split);
+    this.name += name;
+    this.folded += name.toUpperCase();
+    if (split >= 0) { this.separated = true; this.value = text.slice(split + 1); }
+  }
+
+  push(byte: number): void {
+    this.remaining--;
+    if (this.invalid) return;
+    if (this.state === "vendor") {
+      if (--this.left === 0) this.state = "count";
+      return;
+    }
+    if (this.state === "comment") {
+      this.buffer[this.used++] = byte;
+      this.left--;
+      if (this.used === this.buffer.length || !this.left) this.decode(!this.left);
+      if (this.left) return;
+      if (this.separated && this.name) {
+        const name = this.folded.length <= 12 ? flacFormatTagName(this.name) : this.name;
+        const folded = name === this.name ? this.folded : name.toUpperCase();
+        const previous = this.tags.get(folded)?.[1];
+        this.tags.set(folded, [name, previous ? `${previous};${this.value}` : this.value]);
+        if (this.folded.startsWith("CHAPTER")) {
+          const previous = this.chapters[this.folded];
+          this.chapters[this.folded] = previous ? `${previous}\n${this.value}` : this.value;
+        }
+        if (this.folded === "REPLAYGAIN_TRACK_GAIN" || this.folded === "REPLAYGAIN_ALBUM_GAIN") this.hasReplayGain = true;
+      }
+      this.state = "length";
+      return;
+    }
+    if (this.state === "length" && !this.count) { this.invalid = true; return; }
+    this.integer += byte * 2 ** (8 * this.integerBytes++);
+    if (this.integerBytes < 4) return;
+    const value = this.integer;
+    this.integer = 0; this.integerBytes = 0;
+    if (this.state === "count") {
+      this.count = value;
+      this.invalid = value > this.remaining / 4;
+      this.state = "length";
+    } else {
+      this.left = value;
+      this.invalid = value > this.remaining;
+      if (this.state === "vendorLength") this.state = value ? "vendor" : "count";
+      else {
+        this.count--;
+        this.state = value ? "comment" : "length";
+        this.decoder = new TextDecoder();
+        this.name = ""; this.folded = ""; this.value = ""; this.separated = false;
+      }
+    }
+  }
+
+  get complete(): boolean {
+    return !this.invalid && !this.remaining && this.state === "length" && !this.count && !this.integerBytes;
+  }
+}
+
 export class FlacFrameScanner {
   readonly header = new Uint8Array(42);
   readonly pictureBlocks: Uint8Array[] = [];
   hasReplayGain = false;
   readonly tags: Record<string, string> = {};
   private metadataBlock: Uint8Array | undefined;
+  private comments: FlacComments | undefined;
+  private commentsStart = 0;
   private readonly chapterTags: Record<string, string> = {};
   private readonly cueBlocks: Uint8Array[] = [];
   readonly packets: { pts: number; duration: number; size: number; pos: number }[] = [];
@@ -124,32 +210,33 @@ export class FlacFrameScanner {
       if (!this.audio) {
         if (this.offset < this.metadataEnd) {
           if (this.metadataBlock) this.metadataBlock[this.metadataBlock.length - (this.metadataEnd - this.offset)] = bytes[pos]!;
-          if (this.metadataBlock?.[0] === 4 && this.offset + 1 === this.metadataEnd) {
-            const metadata = new Uint8Array(42 + this.metadataBlock.length);
-            metadata.set(this.header); metadata[4] = 0;
-            metadata.set(this.metadataBlock, 42); metadata[42] = 132;
-            try {
-              const audio = parseAudio(metadata);
-              Object.assign(this.tags, flacFormatTags(audio.nodes));
-              for (const [key, value] of Object.entries(audio.tags)) {
-                if (key.startsWith("CHAPTER")) this.chapterTags[key] = value;
-                if (key === "REPLAYGAIN_TRACK_GAIN" || key === "REPLAYGAIN_ALBUM_GAIN") this.hasReplayGain = true;
+          if (this.comments && this.offset >= this.commentsStart) {
+            this.comments.push(bytes[pos]!);
+            if (this.offset + 1 === this.metadataEnd) {
+              if (this.comments.complete) {
+                Object.assign(this.tags, Object.fromEntries(this.comments.tags.values()));
+                Object.assign(this.chapterTags, this.comments.chapters);
+                this.hasReplayGain ||= this.comments.hasReplayGain;
               }
-            } catch { /* Malformed comments retain the existing media-probe fallback. */ }
-            this.metadataBlock = undefined;
+              this.comments = undefined;
+            }
           }
           continue;
         }
         this.metadataBlock = undefined;
+        this.comments = undefined;
         if (!this.lastMetadata) {
           if (pos + 4 > bytes.length) break;
           this.lastMetadata = !!(bytes[pos]! & 128);
           this.metadataEnd = this.offset + 4 + bytes[pos + 1]! * 65536 + bytes[pos + 2]! * 256 + bytes[pos + 3]!;
           const type = bytes[pos]! & 127;
-          if (type === 6 || type === 5 || type === 4) {
+          if (type === 4) {
+            this.commentsStart = this.offset + 4;
+            this.comments = new FlacComments(this.metadataEnd - this.commentsStart);
+          } else if (type === 6 || type === 5) {
             this.metadataBlock = new Uint8Array(this.metadataEnd - this.offset);
             this.metadataBlock[0] = type;
-            if (type !== 4) (type === 6 ? this.pictureBlocks : this.cueBlocks).push(this.metadataBlock);
+            (type === 6 ? this.pictureBlocks : this.cueBlocks).push(this.metadataBlock);
           }
           continue;
         }

@@ -33,6 +33,8 @@ export function parseAstatsMeasurements(value: string, current = 0xffffffff): nu
 }
 
 function fixed(value: number): string {
+  // toFixed switches to exponential notation at 1e21; FFmpeg keeps %f.
+  if (Number.isFinite(value) && Math.abs(value) >= 1e21) return `${BigInt(value)}.000000`;
   return Number.isNaN(value) ? "nan" : value === -Infinity ? "-inf" : value === Infinity ? "inf" : value.toFixed(6);
 }
 
@@ -241,8 +243,8 @@ export async function measureAstats(
         report += measurements(`Channel: ${channelIndex + 1}`, [
           ["DC offset", fixed(sum / channel.length)], ["Min level", fixed(min)], ["Max level", fixed(max)],
           ["Min difference", fixed(minDiff)], ["Max difference", fixed(maxDiff)],
-          ["Mean difference", fixed(differences / (channel.length - 1))],
-          ["RMS difference", fixed(Math.sqrt(differenceSquares / (channel.length - 1)))],
+          ["Mean difference", channel.length === 1 ? "-nan" : fixed(differences / (channel.length - 1))],
+          ["RMS difference", channel.length === 1 ? "-nan" : fixed(Math.sqrt(differenceSquares / (channel.length - 1)))],
           ["Peak level dB", db(normalizedPeak)], ["RMS level dB", db(rms)], ["RMS peak dB", db(Math.sqrt(maxRms))],
           ...(minRms === 1 ? [] : [["RMS trough dB", db(Math.sqrt(minRms))]] as [string, string][]),
           ["Crest factor", fixed(squares ? normalizedPeak / rms : 1)], ["Flat factor", db((minRuns + maxRuns) / (minCount + maxCount))],
@@ -310,8 +312,8 @@ export async function measureAstats(
     report += measurements("Overall", [
       ["DC offset", fixed(total.sum / (total.count / count))], ["Min level", fixed(total.min)], ["Max level", fixed(total.max)],
       ["Min difference", fixed(total.minDiff)], ["Max difference", fixed(total.maxDiff)],
-      ["Mean difference", fixed(total.differences / (total.count - count))],
-      ["RMS difference", fixed(Math.sqrt(total.differenceSquares / (total.count - count)))],
+      ["Mean difference", total.count === count ? "-nan" : fixed(total.differences / (total.count - count))],
+      ["RMS difference", total.count === count ? "-nan" : fixed(Math.sqrt(total.differenceSquares / (total.count - count)))],
       ["Peak level dB", db(total.peak)], ["RMS level dB", db(Math.sqrt(total.squares / total.count))],
       ["RMS peak dB", db(Math.sqrt(total.maxRms))],
       ...(total.minRms === 1 ? [] : [["RMS trough dB", db(Math.sqrt(total.minRms))]] as [string, string][]),

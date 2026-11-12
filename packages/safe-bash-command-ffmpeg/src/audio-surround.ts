@@ -13,6 +13,11 @@ export async function surroundAudio(
   let size = 4096, lfe = true;
   let outputChannels = 6;
   const outputLevels = { fl_out: 1, fr_out: 1, fc_out: 1, lfe_out: 1, bl_out: 1, br_out: 1 };
+  const spread = {
+    flx: 0.5, frx: 0.5, fcx: 0.5, blx: 0.5, brx: 0.5, slx: 0.5, srx: 0.5, bcx: 0.5,
+    fly: 0.5, fry: 0.5, fcy: 0.5, bly: 0.5, bry: 0.5, sly: 0.5, sry: 0.5, bcy: 0.5,
+    allx: -1, ally: -1
+  };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
@@ -36,6 +41,14 @@ export async function surroundAudio(
         throw new RangeError(`surround: ${key} must be between 0 and 10`);
       }
       outputLevels[key as keyof typeof outputLevels] = Math.fround(number);
+    } else if (key !== undefined && Object.hasOwn(spread, key)) {
+      const global = key === "allx" || key === "ally";
+      const min = global ? -1 : 0.06;
+      const number = parseFilterExpression(value, "surround", { min, max: 15, default: global ? -1 : 0.5 });
+      if (!Number.isFinite(number) || number < min || number > 15) {
+        throw new RangeError(`surround: ${key} must be between ${min} and 15`);
+      }
+      spread[key as keyof typeof spread] = Math.fround(number);
     } else if (key === "win_size") {
       const number = parseFilterExpression(value, "surround", { min: 1024, max: 65536, default: 4096 });
       if (!Number.isFinite(number) || number < 1024 || number > 65536) {
@@ -52,6 +65,12 @@ export async function surroundAudio(
   }
   if (size % 4 !== 0) throw new Error("surround: unsupported transform size");
   if (channels.length !== 2) throw new Error("surround: stereo input required");
+  // Global spreads override speaker options regardless of argument order.
+  // LFE has zero exponents by default and only global options change them.
+  const spreadX = [spread.flx, spread.frx, spread.fcx, 0, spread.blx, spread.brx]
+    .map(value => spread.allx >= 0 ? spread.allx : value);
+  const spreadY = [spread.fly, spread.fry, spread.fcy, 0, spread.bly, spread.bry]
+    .map(value => spread.ally >= 0 ? spread.ally : value);
   const length = channels[0]!.length, hop = size / 2;
   const scratchLength = (size & (size - 1)) === 0 ? 0 : 4 * 2 ** Math.ceil(Math.log2(2 * size - 1));
   // Output and overlap planes for each channel, two complex input transforms,
@@ -98,9 +117,9 @@ export async function surroundAudio(
         const phaseCosine = f(Math.cos(f(halfPi - f(phase / pi))));
         const y = Math.max(-1, Math.min(1, f(f(f(balanceCosine * phaseCosine) * f(Math.LN10)) + 1)));
         const front = f(f(y + 1) * 0.5);
-        const horizontal = c === 2 ? f(1 - Math.abs(x)) : f(0.5 * f((c === 0 || c === 4 ? x : -x) + 1));
-        const vertical = c < 3 ? front : f(1 - front);
-        const factor = c === 3 ? 1 : f(f(Math.sqrt(horizontal)) * f(Math.sqrt(vertical)));
+        const horizontal = c === 2 || c === 3 ? f(1 - Math.abs(x)) : f(0.5 * f((c === 0 || c === 4 ? x : -x) + 1));
+        const vertical = c === 3 ? f(1 - Math.abs(y)) : c < 3 ? front : f(1 - front);
+        const factor = f(f(Math.pow(horizontal, spreadX[c]!)) * f(Math.pow(vertical, spreadY[c]!)));
         const lowpass = !lfe || n >= high ? 0 : n < low ? 1
           : f(0.5 * f(1 + f(Math.cos(f(f(pi * f(low - n)) / f(low - high))))));
         const magnitude = f((c === 3 ? f(lowpass * center) : c === 2 ? center : f(Math.hypot(lm, rm))) * factor);

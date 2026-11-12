@@ -12,7 +12,7 @@ const codeBlocks = [
   {text: "```\na\n\n\n```", code: "a\n\n"},
   {text: "```\n```", code: ""},
   {text: "```\n\n```", code: ""},
-  {text: "```\nabc", code: "abc"},
+  {text: "```\nabc", code: "abc\n"},
   {text: "```\r\na\r\nb\r\n```", code: "a\nb"},
   {text: "    abc\n", code: "abc"},
   {text: "    a\n    b\n", code: "a\nb"},

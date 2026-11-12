@@ -7,6 +7,7 @@ export function createAudioTimestampTransform(expression: string, rate: number, 
   let previousOutputPts = NaN;
   let previousInputPts = NaN;
   const registers = new Float64Array(10);
+  const randomStates: BigUint64Array[] = [];
   return (frame: { start: number; end: number; pts: number; pos?: number | undefined }): number => {
     if (Number.isNaN(startPts)) startPts = frame.pts;
     const pts = Math.trunc(parseFilterExpression(expression, "asetpts", {
@@ -18,7 +19,7 @@ export function createAudioTimestampTransform(expression: string, rate: number, 
       N: frame.start, NB_CONSUMED_SAMPLES: frame.start,
       NB_SAMPLES: frame.end - frame.start, S: frame.end - frame.start,
       PREV_OUTPTS: toTicks(previousOutputPts), PREV_OUTT: previousOutputPts / rate
-    }, undefined, registers)) * samplesPerTick;
+    }, undefined, registers, randomStates)) * samplesPerTick;
     previousInputPts = frame.pts;
     previousOutputPts = pts;
     return pts;

@@ -23083,7 +23083,7 @@ interface MontageArguments {
     warnings: string;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth">[];
     shadow: boolean;
-    transforms: (MontageLayers | { kind: "flip" | "flop" } | { kind: "trim"; fuzz: number } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string } | { kind: "scale"; geometry: string } | { kind: "thumbnail"; geometry: string } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
+    transforms: ({ kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | MontageLayers | { kind: "flip" | "flop" } | { kind: "trim"; fuzz: number } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string } | { kind: "scale"; geometry: string } | { kind: "thumbnail"; geometry: string } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
@@ -23380,6 +23380,16 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
                 operands: operands.slice(groupStart), sizes: sizes.slice(groupStart), transforms: transforms.slice(groupStart) };
             operands.length = labels.length = sizes.length = groupStart + 1;
             transforms.splice(groupStart, transforms.length - groupStart, [layers]);
+        }
+        else if (t === "-composite") {
+            yield* applyTransforms(true);
+            if (operands.length - groupStart < 2)
+                return { exitCode: 1, stdout: "", stderr: "montage: image sequence is required '-composite'\n" };
+            const inputs = operands.slice(groupStart + 1).map((path, index) => ({
+                path, size: sizes[groupStart + 1 + index]!, transforms: transforms[groupStart + 1 + index]!
+            }));
+            transforms[groupStart]!.push({ kind: "composite", inputs, compose: state.composeRaw, gravity: inputGravity });
+            operands.length = labels.length = sizes.length = transforms.length = groupStart + 1;
         }
         else if (t === "-reverse") {
             yield* applyTransforms(true);
@@ -23843,6 +23853,23 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     } };
                     return yield* transformTiles(canvas, offset + 1, operations);
                 }
+                if (transform.kind === "composite") {
+                    const inputs: RgbaImage[] = [];
+                    for (const input of transform.inputs) {
+                        const loaded = yield* parseInputOperandsSteps(input.path, files, { ...state, ...input.size }, stdinBytes);
+                        if (!loaded) throw new Error(`unable to open image '${input.path}'`);
+                        for (const source of loaded) inputs.push(...yield* transformTiles(source, 0, input.transforms));
+                    }
+                    let overlay = inputs[0]!;
+                    const mask = inputs[1];
+                    if (mask) overlay = yield* applyMagickRasterSteps(overlay, compositeMaskPixelSteps(overlay, mask), signal, { ...overlay, hasAlpha: true }, [overlay, mask]);
+                    const position = gravityAdjustBox(image.width, image.height, overlay.width, overlay.height, 0, 0, transform.gravity);
+                    const result = yield* applyMagickCompositeLayerSteps(image, overlay, transform.compose, position.x, position.y, undefined, signal);
+                    if (result.data !== image.data) detachRgbaBuffer(image.data);
+                    for (const source of inputs) if (source.data !== result.data) detachRgbaBuffer(source.data);
+                    if (overlay.data !== result.data) detachRgbaBuffer(overlay.data);
+                    return yield* transformTiles(result, offset + 1, operations);
+                }
                 if (transform.kind === "repage") {
                     image = { ...image, virtualCanvas: transform.geometry ? magickRepageCanvas(image, transform.geometry, "repage") : { width: 0, height: 0, x: 0, y: 0 } };
                     return yield* transformTiles(image, offset + 1, operations);
@@ -24162,6 +24189,22 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                                     width: first.virtualCanvas?.width || first.width, height: first.virtualCanvas?.height || first.height, x: bounds.x, y: bounds.y
                                 } };
                                 yield* transformTiles(canvas, offset + 1, operations);
+                                return;
+                            }
+                            if (transform.kind === "composite") {
+                                const inputs: StoredRgbaImage[] = [];
+                                for (const input of transform.inputs) {
+                                    const loaded = await parseStoredCompareInput(input.path, { ...state, ...input.size }, backend, signal, { analysis, source: await snapshotInput(parseInputToken(input.path).baseToken), visit: async source => {
+                                        for await (const transformed of transformTiles(source, 0, input.transforms)) inputs.push(transformed);
+                                    } });
+                                    if (!loaded) throw new Error(`unable to open image '${input.path}'`);
+                                }
+                                let overlay = inputs[0]!;
+                                const mask = inputs[1];
+                                if (mask) overlay = await transformStoredMagickRaster(overlay, backend, compositeMaskPixelSteps(overlay, mask), signal, { ...overlay, hasAlpha: true }, [overlay, mask]);
+                                const position = gravityAdjustBox(tile.width, tile.height, overlay.width, overlay.height, 0, 0, transform.gravity);
+                                tile = await compositeStoredMagick(tile, overlay, backend, signal, position.x, position.y, transform.compose);
+                                yield* transformTiles(tile, offset + 1, operations);
                                 return;
                             }
                             if (transform.kind === "repage") {

@@ -68,7 +68,7 @@ import { rawRasterInput, rawPartitionPaths } from "./raw-rgb.js";
 import { yuvRasterInput } from "./yuv-input.js";
 import { encodeImage, encodeStoredImage, isRawCoder, type ImageFormat, type RawImage, type StoredRawImage } from "./raw-output.js";
 import { deskewAngleSteps, storedDeskewAngle, deskewPlan, deskewBackground } from "./deskew.js";
-import { clearedLayerBounds, compareLayerBounds, initialFrameRestoreBounds, optimizePlusPixels, optimizeTransparencyPixels } from "./compare-layers.js";
+import { backgroundFrameBounds, clearedLayerBounds, compareLayerBounds, initialFrameRestoreBounds, optimizePlusPixels, optimizeTransparencyPixels } from "./compare-layers.js";
 import { plasmaPixelSteps } from "./plasma.js";
 import { createMagickRandom } from "./random.js";
 import { evaluateNoiseSteps } from "./noise.js";
@@ -12385,11 +12385,39 @@ async function remapStoredImageList(stack: StoredImageStack, backend: CompareFil
 function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimize: boolean): Generator<void, void, void> {
     // Defer Previous disposal until the preceding frame has also been cropped.
     let restorePrevious = false;
+    let clearingArea: { left: number; top: number; width: number; height: number } | undefined;
     for (let n = stack.length - 1; n >= 0; n--) {
         const restoreCurrent = restorePrevious;
         restorePrevious = false;
         let current = stack[n]!;
         const previous = n > 0 ? stack[n - 1]! : { ...current, width: 0, height: 0 };
+        const disposalArea = clearingArea;
+        clearingArea = undefined;
+        const predecessor = n > 1 ? stack[n - 2] : undefined;
+        let background: { area: { left: number; top: number; width: number; height: number }; previousArea: { left: number; top: number; width: number; height: number } } | undefined;
+        if (predecessor && current.hasAlpha && current.disposal !== 3 && previous.disposal !== 3 &&
+            predecessor.width === previous.width && predecessor.height === previous.height &&
+            current.width === previous.width && current.height === previous.height) {
+            const clearing = backgroundFrameBounds(predecessor, previous, current, fuzz);
+            let step = clearing.next();
+            while (!step.done) {
+                if (!step.value) { yield; step = clearing.next(); }
+                else {
+                    const { image, position, length, hue } = step.value;
+                    const source = image === 2 ? predecessor : image === 1 ? current : previous;
+                    const data = hue ? source.hueSamples?.subarray(position, position + length)
+                        : (source.evaluateSamples ?? source.data16 ?? source.data).subarray(position, position + length);
+                    step = clearing.next(data);
+                }
+            }
+            background = step.value;
+            if (background) {
+                stack[n - 1] = { ...previous, disposal: 2 };
+                if (n === stack.length - 1) current = { ...current, disposal: 2 };
+                stack[n] = current;
+                clearingArea = background.previousArea;
+            }
+        }
         // Clearing the first coalesced canvas is equivalent to restoring its empty predecessor.
         if (optimize && n === 1 && previous.disposal === 2) {
             stack[0] = { ...previous, disposal: 3 };
@@ -12397,8 +12425,8 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
             continue;
         }
         if ((n > 0 && (current.width !== previous.width || current.height !== previous.height)) ||
-            (typeof current.disposal === "number" ? current.disposal : 0) > 1 ||
-            (typeof previous.disposal === "number" ? previous.disposal : 0) > 1) continue;
+            !background && !disposalArea && ((typeof current.disposal === "number" ? current.disposal : 0) > 1 ||
+                (typeof previous.disposal === "number" ? previous.disposal : 0) > 1)) continue;
         let transparent = current.hasAlpha;
         const bounds = compareLayerBounds(previous, current, fuzz, "compareany");
         let next = bounds.next();
@@ -12412,7 +12440,12 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
                 next = bounds.next(data);
             }
         }
-        let area = transparent ? undefined : next.value;
+        let area = disposalArea ?? background?.area ?? (transparent ? undefined : next.value);
+        if (disposalArea && background) {
+            const left = Math.min(disposalArea.left, background.area.left), top = Math.min(disposalArea.top, background.area.top);
+            area = { left, top, width: Math.max(disposalArea.left + disposalArea.width, background.area.left + background.area.width) - left,
+                height: Math.max(disposalArea.top + disposalArea.height, background.area.top + background.area.height) - top };
+        }
         if (!restoreCurrent && n === 1 && area && current.hasAlpha && !optimize) {
             const restoring = initialFrameRestoreBounds(previous, current, fuzz, false);
             let back = restoring.next();
@@ -12471,11 +12504,41 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
 async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: CompareFileSession, signal: AbortSignal, fuzz: number, optimize: boolean): Promise<void> {
     // Defer Previous disposal until the preceding frame has also been cropped.
     let restorePrevious = false;
+    let clearingArea: { left: number; top: number; width: number; height: number } | undefined;
     for (let n = stack.length - 1; n >= 0; n--) {
         const restoreCurrent = restorePrevious;
         restorePrevious = false;
         let current = (await stack.get(n))!;
         const previous = n > 0 ? (await stack.get(n - 1))! : { ...current, width: 0, height: 0 };
+        const disposalArea = clearingArea;
+        clearingArea = undefined;
+        const predecessor = n > 1 ? await stack.get(n - 2) : undefined;
+        let background: { area: { left: number; top: number; width: number; height: number }; previousArea: { left: number; top: number; width: number; height: number } } | undefined;
+        if (predecessor && current.hasAlpha && current.disposal !== 3 && previous.disposal !== 3 &&
+            predecessor.width === previous.width && predecessor.height === previous.height &&
+            current.width === previous.width && current.height === previous.height) {
+            const clearing = backgroundFrameBounds(predecessor, previous, current, fuzz);
+            let step = clearing.next();
+            while (!step.done) {
+                if (!step.value) { await yieldTurn(signal); step = clearing.next(); }
+                else {
+                    const { image, position, length, hue } = step.value;
+                    const source = image === 2 ? predecessor : image === 1 ? current : previous;
+                    const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedEvaluateSamples !== undefined
+                        ? new Float64Array((await backend.storage.read(source.storedEvaluateSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
+                        ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
+                        : await backend.storage.read(source.position + position, length);
+                    step = clearing.next(data);
+                }
+            }
+            background = step.value;
+            if (background) {
+                await stack.set(n - 1, { ...previous, disposal: 2 });
+                if (n === stack.length - 1) current = { ...current, disposal: 2 };
+                await stack.set(n, current);
+                clearingArea = background.previousArea;
+            }
+        }
         // Clearing the first coalesced canvas is equivalent to restoring its empty predecessor.
         if (optimize && n === 1 && previous.disposal === 2) {
             await stack.set(0, { ...previous, disposal: 3 });
@@ -12483,8 +12546,8 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
             continue;
         }
         if ((n > 0 && (current.width !== previous.width || current.height !== previous.height)) ||
-            (typeof current.disposal === "number" ? current.disposal : 0) > 1 ||
-            (typeof previous.disposal === "number" ? previous.disposal : 0) > 1) continue;
+            !background && !disposalArea && ((typeof current.disposal === "number" ? current.disposal : 0) > 1 ||
+                (typeof previous.disposal === "number" ? previous.disposal : 0) > 1)) continue;
         let transparent = current.hasAlpha;
         const bounds = compareLayerBounds(previous, current, fuzz, "compareany");
         let next = bounds.next();
@@ -12501,7 +12564,12 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
                 next = bounds.next(data);
             }
         }
-        let area = transparent ? undefined : next.value;
+        let area = disposalArea ?? background?.area ?? (transparent ? undefined : next.value);
+        if (disposalArea && background) {
+            const left = Math.min(disposalArea.left, background.area.left), top = Math.min(disposalArea.top, background.area.top);
+            area = { left, top, width: Math.max(disposalArea.left + disposalArea.width, background.area.left + background.area.width) - left,
+                height: Math.max(disposalArea.top + disposalArea.height, background.area.top + background.area.height) - top };
+        }
         if (!restoreCurrent && n === 1 && area && current.hasAlpha && !optimize) {
             const restoring = initialFrameRestoreBounds(previous, current, fuzz, false);
             let back = restoring.next();

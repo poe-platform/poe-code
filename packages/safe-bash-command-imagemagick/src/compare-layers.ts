@@ -82,6 +82,30 @@ export function* compareLayerBounds(previous: Frame, current: Frame, fuzz: numbe
     if (right >= left) return { left, top, width: right - left + 1, height: bottom - top + 1 };
 }
 
+// Clear the preceding patch before comparing the next displayed canvas. Include
+// its original update in the clearing rectangle so cropping cannot drop pixels.
+export function* backgroundFrameBounds(restored: Frame, previous: Frame, current: Frame, fuzz: number): Generator<
+    { image: 0 | 1 | 2; position: number; length: number; hue?: boolean } | undefined,
+    { area: { left: number; top: number; width: number; height: number }; previousArea: { left: number; top: number; width: number; height: number } } | undefined,
+    Uint8Array | Uint16Array | Float64Array | undefined
+> {
+    const clear = yield* compareLayerBounds(previous, current, 0, "compareclear");
+    if (!clear) return;
+    const update = compareLayerBounds(restored, previous, fuzz, "compareany");
+    let next = update.next();
+    while (!next.done) {
+        const request = next.value;
+        next = update.next(yield request ? { ...request, image: request.image === 0 ? 2 : 0 } : undefined);
+    }
+    if (!next.value) return;
+    const left = Math.min(clear.left, next.value.left), top = Math.min(clear.top, next.value.top);
+    const previousArea = { left, top,
+        width: Math.max(clear.left + clear.width, next.value.left + next.value.width) - left,
+        height: Math.max(clear.top + clear.height, next.value.top + next.value.height) - top };
+    const area = yield* clearedLayerBounds(previous, current, fuzz, previousArea);
+    if (area) return { area, previousArea };
+}
+
 // Compare against the canvas after Background disposal clears its rectangle.
 export function* clearedLayerBounds(previous: Frame, current: Frame, fuzz: number, clear: { left: number; top: number; width: number; height: number }): ReturnType<typeof compareLayerBounds> {
     const comparison = compareLayerBounds({ ...previous, hasAlpha: true }, current, fuzz, "compareany");

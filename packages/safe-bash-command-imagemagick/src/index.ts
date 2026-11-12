@@ -10115,7 +10115,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         if (space === "transparent") space = "srgb";
         const linearSpace = space === "scrgb" ? "scRGB" : "RGB";
         if (space === "scrgb") space = "rgb";
-        evaluate = (paletteType && !bilevelAlpha) || imageType === undefined && (token === "-grayscale" || ["cmyk", "prophoto", "adobe98", "displayp3", "log", "rgb", "srgb", "gray", "grey", "lineargray", "rec709luma", "rec601luma", "hsl", "lab", "cielab", "luv", "oklch", "lch", "lchab", "lchuv", "oklab", "ohta", "yuv", "yiq", "ydbdr", "ycbcr", "rec601ycbcr"].includes(space));
+        evaluate = imageType === "bilevel" || (paletteType && !bilevelAlpha) || imageType === undefined && (token === "-grayscale" || ["cmyk", "prophoto", "adobe98", "displayp3", "log", "rgb", "srgb", "gray", "grey", "lineargray", "rec709luma", "rec601luma", "hsl", "lab", "cielab", "luv", "oklch", "lch", "lchab", "lchuv", "oklab", "ohta", "yuv", "yiq", "ydbdr", "ycbcr", "rec601ycbcr"].includes(space));
         const luminance = space === "lineargray" || space === "rec601luminance" || space === "rec709luminance";
         apply = function* (image) {
             image = { ...image, [magickInput]: { ...image[magickInput],
@@ -11959,7 +11959,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else return;
-    return { end: i, apply, ...(meta ? { meta } : {}), handlesWriteMask: token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors", maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-color-threshold" || token === "-threshold" || token === "-contrast" || token === "+contrast" || token === "-colorize" || evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" };
+    return { end: i, apply, ...(meta ? { meta } : {}), handlesWriteMask: token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors", maskAlpha, ...(warning ? { warning } : {}), evaluate: token === "-color-threshold" || token === "-threshold" || token === "-contrast" || token === "+contrast" || token === "-colorize" || evaluate || token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" || token === "-modulate" || token === "-gamma" || token === "+gamma" || token === "-negate" || token === "+negate" || token === "-level" || token === "+level" || token === "-level-colors" || token === "+level-colors" || token === "-color-matrix" || token === "-function" || token === "-evaluate" || token === "-clamp" || token === "-solarize", highDepth: highDepth || token === "-colorspace" || token === "-grayscale" || token === "-type" || token === "-monochrome" };
 }
 
 function parseChannelAssignments(expression: string): ChannelAssignment[] {

@@ -1502,7 +1502,7 @@ async function renderShowwavespic(
     }
     options[key] = separator < 0 ? part : part.slice(separator + 1);
   }
-  const dimensions = (options.size ?? "600x240").split("x");
+  const dimensions = (options.size ?? "600x240").replaceAll("X", "x").replaceAll("/", "x").split("x");
   const [width = NaN, height = NaN] = dimensions.map(Number);
   if (dimensions.length !== 2 || !Number.isSafeInteger(width) || !Number.isSafeInteger(height) ||
       width <= 0 || height <= 0 || !Number.isSafeInteger(width * height * 4)) {

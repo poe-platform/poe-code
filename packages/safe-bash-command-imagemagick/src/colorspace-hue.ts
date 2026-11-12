@@ -12,6 +12,23 @@ export interface HueMetadata {
     storedHueSamples?: number;
 }
 
+/** Keep Lab canvas channels in the same working planes as converted Lab images. */
+export function* fillLabPixels(image: RgbaImage & HueMetadata, samples: readonly number[]): Generator<void, RgbaImage & HueMetadata, void> {
+    const { evaluateSamples: ignoredEvaluate, ...metadata } = image;
+    const hueSamples = new Float64Array(image.data.length), data16 = new Uint16Array(image.data.length);
+    const pixel = [...samples, 1];
+    for (let offset = 0; offset < image.data.length; offset += 4) {
+        if (offset % 65536 === 0) yield;
+        hueSamples.set(pixel, offset);
+        for (let channel = 0; channel < 4; channel++) {
+            const value = Math.max(0, Math.min(1, pixel[channel]!));
+            image.data[offset + channel] = Math.round(value * 255);
+            data16[offset + channel] = Math.round(value * 65535);
+        }
+    }
+    return { ...metadata, data16, hueSamples, magickColorspace: "CIELab", channels: image.hasAlpha ? 4 : 3 };
+}
+
 export function* convertHuePixels(image: RgbaImage & HueMetadata, target: "HCL" | "HCLp" | "HSI" | "HSL" | "HSB" | "HSV" | "HWB" | "DisplayP3" | "XYZ" | "CAT02LMS" | "LMS" | "xyY" | "ProPhoto" | "Jzazbz" | "CIELab" | "YPbPr" | "YCbCr" | "Rec601YCbCr" | "YCC" | "Rec709YCbCr" | "Log" | "Adobe98" | "OHTA" | "CMY" | "YUV" | "YIQ" | "YDbDr" | "Luv" | "LCH" | "LCHab" | "LCHuv" | "Oklch" | "Oklab" | "sRGB"): Generator<void, RgbaImage & HueMetadata, void> {
     if (image.magickColorspace === target) return image;
     if (target === "CIELab" || target === "XYZ" || target === "HSL") image = { ...image, isPalette: false };

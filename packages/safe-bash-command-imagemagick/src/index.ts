@@ -78,7 +78,7 @@ import { extendEdgePixelSteps } from "./extend-edge-kernel.js";
 import { bilevelPixelSteps } from "./bilevel-kernel.js";
 import { autoTonalMetaPixelSteps } from "./auto-tonal-meta.js";
 import { histogramPixelSteps } from "./histogram-kernel.js";
-import { convertHuePixels, prepareHueOutput, formatHuePixel, hueTextPixel, type HueMetadata } from "./colorspace-hue.js";
+import { fillLabPixels, convertHuePixels, prepareHueOutput, formatHuePixel, hueTextPixel, type HueMetadata } from "./colorspace-hue.js";
 import { enhancePixelSteps } from "./enhance-kernel.js";
 import { adaptiveEdgePixelSteps, adaptivePixelSteps } from "./adaptive-kernel.js";
 import { sharpenPixelSteps } from "./sharpen-kernel.js";
@@ -8973,6 +8973,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         let image: RgbaImage = { ...(yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, c, [c.r, c.g, c.b, c.a].some(value => !Number.isInteger(value)))), bitsPerSample: state.inputDepth ?? 16, endian: "lsb", hasAlpha, ...(!hasAlpha ? { inactiveAlpha: false } : {}) };
         if (c.space) image = { ...image, space: c.space, channels: hasAlpha ? 2 : 1 };
         if (c.cmyk) image = yield* fillCmykPixels(image, c.cmyk);
+        if (c.lab) image = yield* fillLabPixels(image, c.lab);
         return yield* applyMod([Object.assign(image, { [magickInput]: { filePath: baseToken.slice(baseToken.indexOf(":") + 1), inputFormat: baseToken.slice(0, baseToken.indexOf(":")).toUpperCase(), compression: "Undefined" } })]);
     }
     if (lower.startsWith("gradient:") || lower.startsWith("radial-gradient:")) {
@@ -22114,6 +22115,10 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   if ("cmyk" in color && color.cmyk) {
    const inks = color.cmyk;
    image = await transformStoredMagickPixels(image, backend, { end: 0, apply: image => fillCmykPixels(image, inks) }, signal);
+  }
+  if (color.lab && lower !== "null:") {
+   const lab = color.lab;
+   image = await transformStoredMagickPixels(image, backend, { end: 0, apply: image => fillLabPixels(image, lab) }, signal);
   }
  }else if(lower.startsWith("plasma:")){
   const spec=baseToken.slice(7),fractal=spec.toLowerCase()==="fractal",[first,last]=fractal?[]:spec.split("-");

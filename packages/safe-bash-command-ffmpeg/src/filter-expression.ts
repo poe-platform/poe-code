@@ -106,6 +106,10 @@ export function parseFilterExpression(expression: string, filter: string, variab
           value = args[0]!;
           if (evaluate) print?.(value, Math.trunc(args[1] ?? 32));
         }
+        else if (filter === "lutrgb" && name === "gammaval" && args.length === 1) {
+          const min = variables.minval!, max = variables.maxval!;
+          value = Math.pow((variables.clipval! - min) / (max - min), args[0]!) * (max - min) + min;
+        }
         else if (name === "abs" && args.length === 1) value = Math.abs(args[0]!);
         else if (name === "sgn" && args.length === 1) value = Number(args[0]! > 0) - Number(args[0]! < 0);
         else if (name === "sqrt" && args.length === 1) value = Math.sqrt(args[0]!);

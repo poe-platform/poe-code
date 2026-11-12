@@ -13933,6 +13933,37 @@ function magickRegion(image: Pick<RgbaImage, "width" | "height">, spec: string, 
     return { ...gravityAdjustBox(image.width, image.height, width, height, g.x, g.y, gravity), width, height };
 }
 
+function* quantizeMagickImageSteps(image: RgbaImage, count: number, state: MagickState, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    const colorspace = state.quantizeColorspace;
+    const nativeRgb = !colorspace && ["DisplayP3", "Adobe98", "ProPhoto"].includes(image.magickColorspace ?? "");
+    if (colorspace && colorspace !== "gray") image = yield* parseMagickPixelOperation(["-colorspace", colorspace === "cmyk" ? "sRGB" : colorspace], state, 0, signal)!.apply(image);
+    else if (image.space === "cmyk") image = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(image);
+    else if (!nativeRgb && image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray") image = yield* convertHuePixels(image, "sRGB");
+    const working = colorspace === "cmyk" ? "cmyk" : (colorspace || nativeRgb) && colorspace !== "gray" && image.hueSamples ? "hue" : undefined;
+    const { hueSamples: ignoredHue, ...pixels } = image;
+    const output = yield* applyMagickRasterSteps({ ...pixels, isPalette: true }, quantizePixelSteps(image.data.length, count, colorspace === "gray" || colorspace === "lineargray" && count === 2, state.treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, state.dither ? { width: image.width, height: image.height, method: state.dither, diffusionAmount: state.diffusionAmount ?? 1 } : undefined, true, working, undefined, image.width), signal, image, [image]);
+    if (working === "cmyk") return { ...output, space: "cmyk", channels: 4 };
+    if (working) return output;
+    // Native classifies the resulting colormap, even without reducing its size.
+    if (!output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;
+    const { magickColorspace: ignoredSpace, ...gray } = output;
+    return { ...gray, space: "b-w", channels: output.hasAlpha ? 2 : 1 };
+}
+async function quantizeStoredMagickImage(image: StoredRgbaImage, count: number, state: MagickState, backend: CompareFileSession, signal: AbortSignal): Promise<StoredRgbaImage> {
+    const { quantizeColorspace: colorspace, treeDepth, dither, diffusionAmount = 1 } = state;
+    const conversion = colorspace && colorspace !== "gray" ? parseMagickPixelOperation(["-colorspace", colorspace === "cmyk" ? "sRGB" : colorspace], state, 0, signal)! : undefined;
+    const nativeRgb = !colorspace && ["DisplayP3", "Adobe98", "ProPhoto"].includes(image.magickColorspace ?? "");
+    if (conversion) image = await transformStoredMagickPixels(image, backend, conversion, signal);
+    else if (image.space === "cmyk") image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!, signal);
+    else if (!nativeRgb && image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray") image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);
+    const working = colorspace === "cmyk" ? "cmyk" : (colorspace || nativeRgb) && colorspace !== "gray" && image.storedHueSamples !== undefined ? "hue" : undefined;
+    const output = await transformStoredMagickRaster({ ...image, isPalette: true }, backend, quantizePixelSteps(image.width * image.height * 4, count, colorspace === "gray" || colorspace === "lineargray" && count === 2, treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true, working, undefined, image.width), signal);
+    if (working === "cmyk") return { ...output, space: "cmyk", channels: 4 };
+    if (working) return output;
+    if (!output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;
+    const { magickColorspace: ignoredSpace, ...gray } = output;
+    return { ...gray, space: "b-w", channels: output.hasAlpha ? 2 : 1 };
+}
 function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<string, Uint8Array>, state: MagickState, parentStack?: RgbaImage[], stdinBytes?: Uint8Array, signal?: AbortSignal, analysis = createConvertAnalysis(), registers = new Map<string, RgbaImage[]>(), argumentOffset = 0): Generator<void, RgbaImage[], void> {
     function* mapMagickImagesSteps(images: readonly RgbaImage[], transform: (image: RgbaImage) => Generator<void, RgbaImage, void>, maskAlpha?: MagickPixelOperation["maskAlpha"], handlesRegion = false): Generator<void, RgbaImage[], void> {
         return yield* mapSteps(images, function* (original) {
@@ -14429,20 +14460,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const quantization = state.colors = { count: colors ?? 256 };
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const count = quantization.count = colors ?? parseMagickColorCount(yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties }));
-                const colorspace = state.quantizeColorspace;
-                const nativeRgb = !colorspace && ["DisplayP3", "Adobe98", "ProPhoto"].includes(image.magickColorspace ?? "");
-                if (colorspace && colorspace !== "gray") image = yield* parseMagickPixelOperation(["-colorspace", colorspace === "cmyk" ? "sRGB" : colorspace], state, 0, signal)!.apply(image);
-                else if (image.space === "cmyk") image = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!.apply(image);
-                else if (!nativeRgb && image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray") image = yield* convertHuePixels(image, "sRGB");
-                const working = colorspace === "cmyk" ? "cmyk" : (colorspace || nativeRgb) && colorspace !== "gray" && image.hueSamples ? "hue" : undefined;
-                const { hueSamples: ignoredHue, ...pixels } = image;
-                const output = yield* applyMagickRasterSteps({ ...pixels, isPalette: true }, quantizePixelSteps(image.data.length, count, colorspace === "gray" || colorspace === "lineargray" && count === 2, state.treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, state.dither ? { width: image.width, height: image.height, method: state.dither, diffusionAmount: state.diffusionAmount ?? 1 } : undefined, true, working, undefined, image.width), signal, image, [image]);
-                if (working === "cmyk") return { ...output, space: "cmyk", channels: 4 };
-                if (working) return output;
-                // Native classifies the resulting colormap, even without reducing its size.
-                if (!output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;
-                const { magickColorspace: ignoredSpace, ...gray } = output;
-                return { ...gray, space: "b-w", channels: output.hasAlpha ? 2 : 1 };
+                return yield* quantizeMagickImageSteps(image, count, state, signal);
             });
         }
         else if (pixelOperation) {
@@ -18284,25 +18302,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const value = tokens[++i] ?? "", optionProperties = state.optionProperties, colorspace = state.quantizeColorspace, treeDepth = state.treeDepth, dither = state.dither, diffusionAmount = state.diffusionAmount ?? 1;
+            const value = tokens[++i] ?? "", optionProperties = state.optionProperties, settings = { ...state };
             const colors = value.includes("%") ? undefined : parseMagickColorCount(value);
             const quantization = state.colors = { count: colors ?? 256 };
-            const conversion = colorspace && colorspace !== "gray" ? parseMagickPixelOperation(["-colorspace", colorspace === "cmyk" ? "sRGB" : colorspace], state, 0, signal)! : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const source = image;
                 const count = quantization.count = colors ?? parseMagickColorCount(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image: source, storage: backend.storage }), signal));
-                const nativeRgb = !colorspace && ["DisplayP3", "Adobe98", "ProPhoto"].includes(image.magickColorspace ?? "");
-                if (conversion) image = await transformStoredMagickPixels(image, backend, conversion, signal);
-                else if (image.space === "cmyk") image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!, signal);
-                else if (!nativeRgb && image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray") image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);
-                const working = colorspace === "cmyk" ? "cmyk" : (colorspace || nativeRgb) && colorspace !== "gray" && image.storedHueSamples !== undefined ? "hue" : undefined;
-                const output = await transformStoredMagickRaster({ ...image, isPalette: true }, backend, quantizePixelSteps(image.width * image.height * 4, count, colorspace === "gray" || colorspace === "lineargray" && count === 2, treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true, working, undefined, image.width), signal);
-                if (working === "cmyk") return { ...output, space: "cmyk", channels: 4 };
-                if (working) return output;
-                if (!output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;
-                const { magickColorspace: ignoredSpace, ...gray } = output;
-                return { ...gray, space: "b-w", channels: output.hasAlpha ? 2 : 1 };
+                return quantizeStoredMagickImage(image, count, settings, backend, signal);
             });
             continue;
         }
@@ -23107,7 +23114,7 @@ interface MontageArguments {
     regardWarnings: boolean;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth">[];
     shadow: boolean;
-    transforms: ({ kind: "colors"; count: number; dither: MagickState["dither"]; diffusionAmount: number } | { kind: "coalesce"; inputs: MontageInput[]; index: number } | { kind: "dispose"; sequence: object; index: number } | { kind: "disposal"; value: number } | { kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | { kind: "distort"; warp: NonNullable<ReturnType<typeof parseMagickWarpOperation>> } | MontageLayers | { kind: "flip" | "flop" } | { kind: "trim"; fuzz: number } | { kind: "adaptive-sharpen"; geometry: MagickGeometry; state: MagickState } | { kind: "unsharp"; geometry: ReturnType<typeof parseUnsharpGeometry> } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "scale"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "thumbnail"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "depth"; depth: number; channels: MagickState["channels"]; dither: boolean } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel" | "palette" | "palettealpha"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "blur"; geometry: MagickGeometry } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
+    transforms: ({ kind: "colors"; count: number; state: MagickState } | { kind: "coalesce"; inputs: MontageInput[]; index: number } | { kind: "dispose"; sequence: object; index: number } | { kind: "disposal"; value: number } | { kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | { kind: "distort"; warp: NonNullable<ReturnType<typeof parseMagickWarpOperation>> } | MontageLayers | { kind: "flip" | "flop" } | { kind: "trim"; fuzz: number } | { kind: "adaptive-sharpen"; geometry: MagickGeometry; state: MagickState } | { kind: "unsharp"; geometry: ReturnType<typeof parseUnsharpGeometry> } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "scale"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "thumbnail"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "depth"; depth: number; channels: MagickState["channels"]; dither: boolean } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel" | "palette" | "palettealpha"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "blur"; geometry: MagickGeometry } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
@@ -23325,11 +23332,16 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
                 return { exitCode: 1, stdout: "", stderr: `montage: unrecognized dither method '${value}'\n` };
             state.dither = value === "none" ? false : value;
         }
+        else if (t === "-quantize" || t === "+quantize") {
+            if (t === "-quantize" && argv[i + 1] === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -quantize\n" };
+            try { i = applyMagickReadSetting(argv, state, i)!; }
+            catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
+        }
         else if (t === "-colors") {
             const value = argv[++i];
             if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -colors\n" };
             try {
-                queuedTransforms.push({ kind: "colors", count: parseMagickColorCount(value), dither: state.dither, diffusionAmount: state.diffusionAmount ?? 1 });
+                queuedTransforms.push({ kind: "colors", count: parseMagickColorCount(value), state: { ...state } });
             } catch (error) {
                 return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` };
             }
@@ -24099,7 +24111,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 : [yield* ("operation" in transform ? transform.operation.apply(image)
                 : transform.kind === "depth" ? applyMagickRasterSteps(image, posterizePixelSteps(image, 2 ** transform.depth, false, 1, transform.channels, signal, false, transform.dither), signal)
                     : (transform.kind === "resize" || transform.kind === "scale" || transform.kind === "thumbnail") ? applyMagickResizeSteps(image, transform.geometry, transform.kernel, transform.kind === "thumbnail", false, transform.kind === "scale", transform.filter, undefined, false, undefined, transform.channels)
-                    : transform.kind === "colors" ? applyMagickRasterSteps(image, quantizePixelSteps(image.width * image.height * 4, transform.count, false, 0, image.hasAlpha, false, undefined, transform.dither ? { width: image.width, height: image.height, method: transform.dither, diffusionAmount: transform.diffusionAmount } : undefined, true, undefined, undefined, image.width), signal)
+                    : transform.kind === "colors" ? quantizeMagickImageSteps(image, transform.count, transform.state, signal)
                     : transform.kind === "unsharp" ? applyMagickRasterSteps(image, blurPixelSteps(image, transform.geometry, false, undefined, transform.geometry), signal)
                     : transform.kind === "adaptive-sharpen" ? applyMagickAdaptiveSteps(image, transform.geometry, true, transform.state, signal)
                     : transform.kind === "trim" ? trimMagickSteps(image, transform.fuzz, undefined, undefined, undefined, analysis)
@@ -24544,7 +24556,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     let transformed: StoredRgbaImage = "operation" in transform
                         ? await transformStoredMagickPixels(tile, backend, transform.operation, signal)
             : transform.kind === "depth" ? await transformStoredMagickRaster(tile, backend, posterizePixelSteps(tile, 2 ** transform.depth, false, 1, transform.channels, signal, false, transform.dither), signal)
-                        : transform.kind === "colors" ? await transformStoredMagickRaster(tile, backend, quantizePixelSteps(tile.width * tile.height * 4, transform.count, false, 0, tile.hasAlpha, false, undefined, transform.dither ? { width: tile.width, height: tile.height, method: transform.dither, diffusionAmount: transform.diffusionAmount } : undefined, true, undefined, undefined, tile.width), signal)
+                        : transform.kind === "colors" ? await quantizeStoredMagickImage(tile, transform.count, transform.state, backend, signal)
                         : transform.kind === "unsharp" ? await transformStoredMagickRaster(tile, backend, blurPixelSteps(tile, transform.geometry, false, undefined, transform.geometry), signal)
                         : transform.kind === "adaptive-sharpen" ? await applyStoredMagickAdaptive(tile, transform.geometry, true, transform.state.channelDefault ? undefined : transform.state.channels, transform.state.virtualPixel, transform.state.background, backend, signal)
             : transform.kind === "trim" ? await trimStoredMagick(tile, backend.storage, transform.fuzz, signal, undefined, undefined, undefined, analysis)

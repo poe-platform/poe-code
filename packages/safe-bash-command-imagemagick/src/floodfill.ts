@@ -11,7 +11,7 @@ export function matchesAlphaFloodfill(r: number, g: number, b: number, a: number
     return (a - refA) ** 2 + ((r - refR) ** 2 + (g - refG) ** 2 + (b - refB) ** 2) * (a / 255) * (refA / 255) / 3 <= fuzz ** 2 + referenceFuzz ** 2;
 }
 
-export async function floodfillStoredImage(image: StoredRgbaImage & HueMetadata, storage: ImageByteStorage, seedX: number, seedY: number, target: (RgbaColor & { cmyk?: readonly number[] }) | undefined, replacement: RgbaColor, fuzz: number, signal: AbortSignal, alphaOnly = false, channels?: readonly boolean[], fillToBorder = false): Promise<StoredRgbaImage & HueMetadata> {
+export async function floodfillStoredImage(image: StoredRgbaImage & HueMetadata, storage: ImageByteStorage, seedX: number, seedY: number, target: (Omit<RgbaColor, "a"> & { a?: number | undefined; cmyk?: readonly number[] }) | undefined, replacement: RgbaColor, fuzz: number, signal: AbortSignal, alphaOnly = false, channels?: readonly boolean[], fillToBorder = false): Promise<StoredRgbaImage & HueMetadata> {
     if (!alphaOnly && (image.space === "b-w" || image.space === "grey16"))
         image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
     const count = image.width * image.height, source = { position: image.storedData16?.position ?? image.position, length: count * (image.storedData16 ? 8 : 4) }, cache = new RasterBackingCache(storage, signal);
@@ -35,7 +35,8 @@ export async function floodfillStoredImage(image: StoredRgbaImage & HueMetadata,
         : target ? [target.r, target.g, target.b, 0] : undefined;
     const r = targetChannels ? targetChannels[0]! : seed[0]!, g = targetChannels ? targetChannels[1]! : seed[1]!, b = targetChannels ? targetChannels[2]! : seed[2]!;
     const k = targetChannels ? targetChannels[3]! : seed[4]!;
-    const a = (fillToBorder || !alphaOnly) && target ? target.a : seed[3]!;
+    // Draw filltoborder supplies border RGB while retaining the seed opacity.
+    const a = ((fillToBorder || !alphaOnly) ? target?.a : undefined) ?? seed[3]!;
     const matches = (pixel: readonly number[]) => fillToBorder !== ((image.space !== "cmyk" || (pixel[4]! - k) ** 2 <= fuzz ** 2 + (target ? 0 : fuzz ** 2)) && matchesAlphaFloodfill(pixel[0]!, pixel[1]!, pixel[2]!, pixel[3]!, r, g, b, a, fuzz, target ? 0 : fuzz));
     if (!matches(seed)) return replacement.a < 255 ? { ...image, hasAlpha: true } : image;
     const visited = await cache.allocate(count), stack = await cache.allocate(count * 4);

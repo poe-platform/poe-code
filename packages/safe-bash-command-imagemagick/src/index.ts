@@ -15548,7 +15548,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     return { ...yield* applyMagickRasterSteps(im, borderPixels(im, bw, bh, borderColor, !!im.data16), signal,
                         { width, height, hasAlpha: im.hasAlpha || !im.inactiveAlpha && borderColor.a < 255 }), alphaBlend: !im.inactiveAlpha && borderColor.a < 255 ? true : im.alphaBlend, region: undefined, writeMask, readMask, metaChannels, virtualCanvas: magickBorderCanvas(im, bw, bh) };
                 }
-                const canvas = yield* createSolidRgbaImageSteps(width, height, borderColor);
+                let canvas = yield* createSolidRgbaImageSteps(width, height, borderColor);
+                // Border colors are raw samples in the source image's working colorspace.
+                if (im.magickColorspace) canvas = yield* setColorspacePixels(canvas, im.magickColorspace);
                 if (im.alphaBlend === false) im = yield* prepareInactiveAlphaOutput(im);
                 const composed = yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, bw, bh, state.composeArgs, signal, state.alphaFuzz, true);
                 return { ...composed,
@@ -20736,7 +20738,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     return { ...await transformStoredMagickRaster(image, backend, borderPixels(image, left, top, background, !!image.storedData16), signal,
                         { width, height, hasAlpha: image.hasAlpha || !image.inactiveAlpha && background.a < 255 }), alphaBlend: !image.inactiveAlpha && background.a < 255 ? true : image.alphaBlend, region: undefined, storedWriteMask, readMask, storedMetaChannels, virtualCanvas: magickBorderCanvas(image, left, top) };
                 }
-                const canvas = await createStoredCanvas(width, height, background, backend, signal);
+                let canvas = await createStoredCanvas(width, height, background, backend, signal);
+                // Label the canvas without converting its border-color samples.
+                const colorspace = image.magickColorspace;
+                if (colorspace) canvas = await transformStoredMagickPixels(canvas, backend,
+                    { end: 0, highDepth: true, evaluate: true, apply: canvas => setColorspacePixels(canvas, colorspace) }, signal);
                 if (image.alphaBlend === false) image = await transformStoredMagickPixels(image, backend,
                     { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal);
                 return { ...await compositeStoredMagick(canvas, image, backend, signal, left, top, compose, composeArgs, false, true, false, false, fuzz, true),

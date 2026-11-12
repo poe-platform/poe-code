@@ -24269,7 +24269,9 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 if (!frame && borderW > 0) {
                     const prev = thumb;
                     thumb = yield* createSolidRgbaImageSteps(prev.width + borderW * 2, prev.height + borderW * 2, state.borderColor);
-                    yield* blitOverRgbaInPlaceSteps(thumb, prev, borderW, borderW);
+                    if (prev.data16 || prev.evaluateSamples) thumb = yield* applyMagickRasterSteps(thumb,
+                        composite16PixelSteps(thumb, prev, borderW, borderW, "over"), signal, thumb, [thumb, prev]);
+                    else yield* blitOverRgbaInPlaceSteps(thumb, prev, borderW, borderW);
                     if (thumb !== prev) detachRgbaBuffer(prev.data);
                 }
                 if (labels[inputIndex]) {

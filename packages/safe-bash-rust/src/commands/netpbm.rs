@@ -73,6 +73,9 @@ impl<'a> Netpbm<'a> {
         } else if matches!(data.first(), Some(b' ' | b'\t' | b'\r' | b'\n')) {
             data = &data[1..];
         }
+        if magic == b'6' && data.len() < w.saturating_mul(h).saturating_mul(if max > 255. { 6 } else { 3 }) {
+            return Err("Truncated PPM raster");
+        }
         Ok(Self {
             magic,
             width: w,

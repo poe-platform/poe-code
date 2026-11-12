@@ -5459,14 +5459,15 @@ impl<'a> EvalState<'a> {
         let long_listing = effective_cmd == "ls" && args.iter().take_while(|arg| arg.as_str() != "--")
             .any(|arg| arg.starts_with('-') && !arg.starts_with("--")
                 && arg.chars().skip(1).any(|flag| matches!(flag, 'l' | 'g' | 'o' | 'n')));
-        // Run unimplemented native operations once, at this command boundary.
-        if long_listing || matches!(effective_cmd,
-            "pandoc" | "ffmpeg" | "ffprobe" | "soffice" | "libreoffice" | "wkhtmltopdf"
+        // Keep the host bridge at the individual command boundary.
+        let bridge_only = long_listing || matches!(effective_cmd, "python" | "python3" | "rsvg-convert" | "soffice" | "libreoffice");
+        if bridge_only || self.allow_unported_fallback && matches!(effective_cmd,
+            "pandoc" | "ffmpeg" | "ffprobe" | "wkhtmltopdf"
             | "pdfunite" | "pdfseparate" | "qpdf" | "pdftk" | "pdfinfo" | "pdffonts"
             | "pdfdetach" | "pdftotext" | "pdftohtml" | "pdftoppm" | "pdftocairo"
-            | "pdfimages" | "diffpdf" | "pdfdiff" | "svgo" | "rsvg-convert" | "sox"
+            | "pdfimages" | "diffpdf" | "pdfdiff" | "svgo" | "sox"
             | "soxi" | "qrencode" | "magick" | "convert" | "mogrify" | "composite"
-            | "montage" | "compare" | "sips" | "exiftool" | "identify" | "python" | "python3")
+            | "montage" | "compare" | "sips" | "exiftool" | "identify")
         {
             if !self.allow_unported_fallback {
                 let unavailable = if long_listing { "native long listings are unavailable" } else if matches!(effective_cmd, "python" | "python3") { "native Python is unavailable" } else { "native document/media processing is unavailable" };

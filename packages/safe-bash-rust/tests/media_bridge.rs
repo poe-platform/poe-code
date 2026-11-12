@@ -23,13 +23,17 @@ fn hybrid_montage_retains_real_pixels_without_replaying_prior_commands() {
 }
 
 #[test]
-fn native_only_image_conversion_preserves_existing_output_on_unsupported_operation() {
+fn native_only_image_conversion_round_trips_pixels_and_preserves_output_on_invalid_input() {
     let (mut shell, fs) = fixture(BackendMode::NativeOnly);
-    fs.write_file("/work/output.png", b"existing output").unwrap();
-    let result = shell.exec("convert red.ppm output.png").unwrap();
+    let result = shell.exec("convert red.ppm output.png && convert output.png recovered.ppm").unwrap();
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    assert_eq!(fs.read_file("/work/recovered.ppm").unwrap(), fs.read_file("/work/red.ppm").unwrap());
+    let original = fs.read_file("/work/output.png").unwrap();
+    fs.write_file("/work/bad.ppm", b"P6\n2 1\n255\n").unwrap();
+    let result = shell.exec("convert bad.ppm output.png").unwrap();
     assert_ne!(result.exit_code, 0);
-    assert!(result.stderr.contains("TypeScript"));
-    assert_eq!(fs.read_file("/work/output.png").unwrap(), b"existing output");
+    assert!(!result.stderr.is_empty());
+    assert_eq!(fs.read_file("/work/output.png").unwrap(), original);
     assert!(!result.used_typescript_bridge);
 }
 
@@ -98,11 +102,16 @@ fn hybrid_pandoc_writes_wordprocessingml_and_reads_document_content() {
 fn native_only_pandoc_preserves_existing_document() {
     let (mut shell, fs) = fixture(BackendMode::NativeOnly);
     fs.write_file("/work/guide.md", b"# Welcome\n").unwrap();
-    fs.write_file("/work/guide.docx", b"existing document").unwrap();
-    let result = shell.exec("pandoc guide.md -o guide.docx").unwrap();
+    let created = shell.exec("pandoc guide.md -o guide.docx && pandoc guide.docx -t plain").unwrap();
+    assert_eq!(created.exit_code, 0, "{}", created.stderr);
+    assert!(created.stdout.contains("Welcome"));
+    assert!(!created.used_typescript_bridge);
+    let original = fs.read_file("/work/guide.docx").unwrap();
+    fs.write_file("/work/bad.docx", b"invalid Word document").unwrap();
+    let result = shell.exec("pandoc bad.docx -o guide.docx").unwrap();
     assert_ne!(result.exit_code, 0);
-    assert!(result.stderr.contains("TypeScript"));
-    assert_eq!(fs.read_file("/work/guide.docx").unwrap(), b"existing document");
+    assert!(result.stderr.contains("couldn't parse docx"));
+    assert_eq!(fs.read_file("/work/guide.docx").unwrap(), original);
     assert!(!result.used_typescript_bridge);
 }
 

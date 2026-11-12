@@ -10314,20 +10314,37 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                     : (value * scale - low) / (high - low) * maximum;
             }
         } else if (token === "-equalize") {
+            const dropsAlpha = !image.hasAlpha && image.inactiveAlpha === true && image.alphaBlend === false;
             for (let channel = 0; channel < lookup.length; channel++) {
-                if (!active[channel]) continue;
+                if (!active[channel] && !dropsAlpha) continue;
                 const bins = cmyk && !settings.channelSync ? histogram[channel === 4 ? 5 : channel]! : histogram[4] ?? histogram[channel]!, scale = histogram[4] ? 65535 / (levels - 1) : 1;
                 // Native equalization subtracts the zero bin, not the first occupied bin.
                 const black = bins[0]!;
-                if (count === black) { active[channel] = false; continue; }
+                if (count === black) { active[channel] = false; if (dropsAlpha) lookup[channel]!.fill(0); continue; }
                 let cumulative = 0, bin = 0;
                 for (let value = 0; value < levels; value++) {
                     for (; bin <= value * scale; bin++) cumulative += bins[bin]!;
                     lookup[channel]![value] = (cumulative - black) / (count - black) * 65535;
                 }
             }
+            if (dropsAlpha) {
+                // Native builds an interleaved map before authentic cache access drops alpha.
+                // Applying that map uses the shorter pixel stride, including across channels.
+                const order = cmyk ? [0, 1, 2, 4, 3] : gray ? [0, 3] : [0, 1, 2, 3];
+                const maps = order.map(channel => lookup[channel]!);
+                for (let offset = 0; offset < order.length - 1; offset++) {
+                    lookup[order[offset]!] = Float32Array.from({ length: levels }, (_, value) => {
+                        const index = value * (order.length - 1) + offset;
+                        return maps[index % order.length]![Math.floor(index / order.length)]!;
+                    });
+                }
+                if (gray) lookup[1] = lookup[2] = lookup[0]!;
+            }
         }
-        return image => cmyk ? applyCmykLookup(image, lookup, active) : applyMagickLookup(image, lookup, paletteLookup, active);
+        return function* (image) {
+            const result = yield* (cmyk ? applyCmykLookup(image, lookup, active) : applyMagickLookup(image, lookup, paletteLookup, active));
+            return token === "-equalize" ? discardDisassociatedAlpha(result) : result;
+        };
     } };
 }
 

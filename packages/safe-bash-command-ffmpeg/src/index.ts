@@ -4980,7 +4980,7 @@ async function applyVideoFilterChain(
         throw new Error("extractplanes: select a single plane (y, u, v, r, g, b, or a)");
       }
       const channel = ["r", "g", "b", "a"].indexOf(plane);
-      if (channel >= 0 && !(plane === "a" ? ["rgba", "bgra", "gbrap", "ya8"] :
+      if (channel >= 0 && !(plane === "a" ? ["rgba", "bgra", "gbrap", "ya8", "yuva420p"] :
         ["rgba", "bgra", "rgb24", "bgr24", "gbrp", "gbrap"]).includes(pixelFormat ?? "rgba")) {
         throw new Error(`${name}: requested RGB/alpha plane is unavailable in this pixel format`);
       }
@@ -4989,17 +4989,17 @@ async function applyVideoFilterChain(
         let pixels = frame.data;
         let offset = channel;
         let stride = 4;
-        if (channel < 0) {
+        if (channel < 0 || plane === "a" && pixelFormat === "yuva420p") {
           if (!native || native.rgba !== frame.data || native.width !== frame.width || native.height !== frame.height ||
-              ![0, 4, 5, 12, 13, 14].includes(native.format)) {
+              ![0, 4, 5, 12, 13, 14, 33].includes(native.format)) {
             throw new Error("extractplanes: requires retained 8-bit planar YUV input");
           }
           const chromaWidth = Math.ceil(frame.width / ([5, 14].includes(native.format) ? 1 : 2));
-          const chromaHeight = Math.ceil(frame.height / ([0, 12].includes(native.format) ? 2 : 1));
-          width = plane === "y" ? frame.width : chromaWidth;
-          height = plane === "y" ? frame.height : chromaHeight;
+          const chromaHeight = Math.ceil(frame.height / ([0, 12, 33].includes(native.format) ? 2 : 1));
+          width = plane === "y" || plane === "a" ? frame.width : chromaWidth;
+          height = plane === "y" || plane === "a" ? frame.height : chromaHeight;
           offset = plane === "y" ? 0 : frame.width * frame.height +
-            (plane === "v" ? chromaWidth * chromaHeight : 0);
+            chromaWidth * chromaHeight * (plane === "a" ? 2 : plane === "v" ? 1 : 0);
           pixels = native.pixels;
           stride = 1;
         }

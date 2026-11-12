@@ -208,9 +208,9 @@ the final input frame’s enable state controls whether the tail drains buffered
 `NaN` and computed NaN conditions bypass the delay; `INF` and computed infinity enable it.
 `isnan` and `isinf` can test these values in enable expressions.
 `asetrate=16000` changes the sample rate without resampling PCM, changing playback speed and duration. Later filters use the new rate; `r` and `sample_rate` are accepted option names.
-`alphaextract` extracts 8-bit RGBA, BGRA, GBRAP, or YA8 opacity as full-range grayscale, preserving frame dimensions and timing.
+`alphaextract` extracts 8-bit RGBA, BGRA, GBRAP, YA8, or YUVA420P opacity as full-range grayscale, preserving frame dimensions and timing.
 
-`extractplanes=y`, `extractplanes=u`, and `extractplanes=v` (also `extractplanes=planes=u`) extract one retained 8-bit planar YUV plane as grayscale without changing its sample values. Chroma output uses the source plane’s subsampled dimensions. `extractplanes=r`, `g`, `b`, and `a` extract one 8-bit RGB or alpha component in pixel order as opaque grayscale, including color samples under transparent alpha. Multiple output planes are unsupported.
+`extractplanes=y`, `extractplanes=u`, and `extractplanes=v` (also `extractplanes=planes=u`) extract one retained 8-bit planar YUV plane as grayscale without changing its sample values. Chroma output uses the source plane’s subsampled dimensions. YUVA420P input preserves the original Y, U, V, and alpha bytes, with full-resolution Y/alpha and rounded-up half-resolution U/V planes. `extractplanes=r`, `g`, `b`, and `a` extract one 8-bit RGB or alpha component in pixel order as opaque grayscale, including color samples under transparent alpha. Multiple output planes are unsupported.
 
 `premultiply=inplace=1` multiplies a single 8-bit RGBA input’s color channels by its own alpha, matching native planar alpha conversion and integer rounding. `planes` selects G/B/R with bits 1/2/4 (default 15); alpha is preserved after conversion. Positional `premultiply=15:1` and timeline `enable` expressions are supported. A separate matte input is not required.
 

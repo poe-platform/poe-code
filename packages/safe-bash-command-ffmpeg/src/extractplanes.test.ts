@@ -31,6 +31,49 @@ for (const [plane, expected] of [["y", "101a242e"], ["u", "38424c56"], ["v", "60
   });
 }
 
+// Native FFmpeg 7.0.2-static: YUVA420 preserves the source bytes in all four planes.
+const yuva420 = "111c27323d48535e69747f8a95a0abb6c1ccd7e2";
+for (const [filter, expected] of [
+  ["extractplanes=y", "111c27323d48535e"],
+  ["extractplanes=u", "6974"],
+  ["extractplanes=v", "7f8a"],
+  ["extractplanes=a", "95a0abb6c1ccd7e2"],
+  ["alphaextract", "95a0abb6c1ccd7e2"]
+]) {
+  it(`extracts YUVA420 source bytes with ${filter}`, async () => {
+    const result = await run(filter!, yuva420, "yuva420p", "4x2");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.output.toString("hex"), expected);
+  });
+}
+
+for (const [plane, expected] of [
+  ["y", "000102030405060708"], ["u", "090a0b0c"],
+  ["v", "0d0e0f10"], ["a", "111213141516171819"]
+]) {
+  it(`extracts YUVA420 ${plane} with rounded-up odd chroma dimensions`, async () => {
+    const result = await run(`extractplanes=${plane}`, "000102030405060708090a0b0c0d0e0f10111213141516171819", "yuva420p", "3x3");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.output.toString("hex"), expected);
+  });
+}
+
+it("preserves YUVA420 alpha per frame through downstream grayscale filtering", async () => {
+  const second = "111c27323d48535e69747f8a00ff01fe02fd03fc";
+  const result = await run("alphaextract,hflip", yuva420 + second, "yuva420p", "4x2", []);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.output.toString("hex"), "b6aba095e2d7ccc1fe01ff00fc03fd02");
+});
+
+it("checks YUVA420 extraction output limits before replacing the destination", async () => {
+  const result = await run("extractplanes=a", yuva420, "yuva420p", "4x2", undefined,
+    { limits: { maxOutputBytes: 7 } });
+  assert.notEqual(result.exitCode, 0);
+  assert.match(result.stderr, /maxOutputBytes/);
+  assert.equal(result.output.toString(), "keep");
+});
+
 const rgba = "4080c0ff4080c0800a141e00ff002040";
 
 // Native FFmpeg 7.0.2-static, including color samples under transparent alpha.

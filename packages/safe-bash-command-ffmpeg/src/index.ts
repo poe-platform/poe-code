@@ -11195,7 +11195,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(beforeInput
                 ? `ffmpeg: unsupported input channel layout '${layout ?? ""}'\n`
                 : "ffmpeg: only mono, stereo and 2.1 output channel layouts are supported\n"), context.signal);
-              return { exitCode: 1 };
+              return { exitCode: beforeInput ? 234 : 1 };
             }
             const separator = arg.indexOf(":");
             const specifier = beforeInput || separator < 0 ? "" : arg.slice(separator + 1);

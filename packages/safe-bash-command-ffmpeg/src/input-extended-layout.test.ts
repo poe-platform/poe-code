@@ -23,6 +23,23 @@ async function run(args: string[], files: Record<string, Buffer>) {
   return { ...result, stderr, output: Buffer.concat(output), volume };
 }
 
+// Native FFmpeg 7.0.2 rejects bogus with status 234 and preserves stereo samples.
+for (const option of ["-ch_layout", "-channel_layout"]) {
+  for (const layout of ["bogus", "stereo"]) {
+    it(`matches native raw PCM status and samples for ${option} ${layout}`, async () => {
+      const samples = [101, -901, 202, -802, 303, -703, 404, -604];
+      const input = Buffer.alloc(samples.length * 2);
+      samples.forEach((sample, index) => input.writeInt16LE(sample, index * 2));
+      const result = await run(["-f", "s16le", "-ar", "8000", option, layout,
+        "-i", "/in.raw", "-f", "s16le", "pipe:1"], { "/in.raw": input });
+      assert.equal(result.exitCode, layout === "bogus" ? 234 : 0, result.stderr);
+      assert.equal(result.output.length, layout === "bogus" ? 0 : input.length);
+      assert.deepEqual(Array.from({ length: result.output.length / 2 },
+        (_, index) => result.output.readInt16LE(index * 2)), layout === "bogus" ? [] : samples);
+    });
+  }
+}
+
 // Two distinct frames per channel; native FFmpeg preserves these bytes exactly.
 for (const [layout, channels] of [
   ["FR", 1], ["FL", 1], ["2C", 2], ["9C", 9], ["7.1.2", 10], ["hexadecagonal", 16],
@@ -64,7 +81,7 @@ for (const layout of ["", "unknown", "0C", "65C", "2.5C", "FL+unknown", "FL+FL"]
   });
 }
 
-for (const layout of ["FR", "FL", "2C", "9C", "7.1.2", "hexadecagonal"]) {
+for (const layout of ["FR", "FL", "2C", "9C", "7.1.2", "hexadecagonal", "bogus"]) {
   it(`defers raw ${layout} from synchronous execution without writing`, () => {
     const result = evalSyncFfmpeg(["-f", "s16le", "-channel_layout", layout, "-i", "/in.raw",
       "-f", "s16le", "/out.raw"], undefined, () => Buffer.from("64006500", "hex"),

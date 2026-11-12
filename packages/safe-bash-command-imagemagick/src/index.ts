@@ -16463,9 +16463,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const geometry = parseMagickGeometry(tokens[++i] ?? "");
             if (stack.length < 2) throw new Error("image sequence is required '-stereo'");
             const left = stack[0]!, right = stack[1]!;
-            const result = yield* applyMagickRasterSteps(left, stereoPixelSteps(left, right, geometry.x, geometry.y), signal, left, [left, right]);
-            detachRgbaBuffer(left.data); detachRgbaBuffer(right.data);
-            stack = [result, ...stack.slice(2)];
+            if (left.width !== right.width || left.height !== right.height) {
+                analysis.errors += "magick: left and right image sizes differ\n";
+                stack = [left, ...stack.slice(2)];
+            } else {
+                const result = yield* applyMagickRasterSteps(left, stereoPixelSteps(left, right, geometry.x, geometry.y), signal, left, [left, right]);
+                detachRgbaBuffer(left.data); detachRgbaBuffer(right.data);
+                stack = [result, ...stack.slice(2)];
+            }
         }
         else if (t === "-stegano") {
             const offset = Number.parseInt(tokens[++i] ?? "", 10);
@@ -18552,6 +18557,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             stackStep(async (stack, backend) => {
                 if (stack.length < 2) throw new Error("image sequence is required '-stereo'");
                 const left = (await stack.get(0))!, right = (await stack.get(1))!;
+                if (left.width !== right.width || left.height !== right.height) {
+                    analysis.errors += "magick: left and right image sizes differ\n";
+                    await stack.remove([1]);
+                    return stack;
+                }
                 const result = await transformStoredMagickRaster(left, backend, stereoPixelSteps(left, right, geometry.x, geometry.y), signal, left, [left, right]);
                 await stack.remove([1]); await stack.set(0, result); return stack;
             });

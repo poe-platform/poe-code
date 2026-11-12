@@ -3,8 +3,6 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 
 // Anaglyph stereo shifts the left image's red, keeping right green/blue in place.
 export function* stereoPixelSteps(left: Pick<RgbaImage, "width" | "height" | "hasAlpha">, right: Pick<RgbaImage, "width" | "height" | "hasAlpha">, offsetX: number, offsetY: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    if (left.width !== right.width || left.height !== right.height)
-        throw new Error("left and right image sizes differ");
     for (let y = 0; y < left.height; y++) for (let x = 0; x < left.width;) {
         yield;
         const sourceX = Math.max(0, Math.min(left.width - 1, x - offsetX));

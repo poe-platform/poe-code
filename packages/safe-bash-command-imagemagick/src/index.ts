@@ -23911,6 +23911,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const inPaths = operands.slice(0, -1);
     let inputErrors = "";
     let firstInputFormat = "";
+    let firstInputCmyk = false;
     const fastMetaDims: { width: number; height: number }[] = [];
     let canStreamTiles = !shadow && !transforms.some(operations => operations.length > 0) && !frame && borderW === 0 && variableCells && !labels.some(Boolean);
     if (canStreamTiles) {
@@ -23926,7 +23927,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     canStreamTiles = false;
                     break;
                 }
-                if (fastMetaDims.length === 0) firstInputFormat = meta.format.toUpperCase();
+                if (fastMetaDims.length === 0) { firstInputFormat = meta.format.toUpperCase(); firstInputCmyk = meta.space === "cmyk"; }
                 fastMetaDims.push({ width: meta.width + borderW * 2, height: meta.height + borderW * 2 });
             } catch {
                 canStreamTiles = false;
@@ -23970,7 +23971,10 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             return;
         }
         const { format, path, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(outSpec, "png");
-        if (format === "psd") canvas = { ...canvas, bitsPerSample: state.inputDepth ?? 16 };
+        if (format === "psd" || format === "psb") {
+            if (firstInputCmyk) canvas = yield* convertCmykPixels(canvas);
+            canvas = { ...canvas, bitsPerSample: state.inputDepth ?? 16 };
+        }
         if (state.adjoin && gifVersion !== "87a" && (format === "webp" || format === "gif" || format === "tiff" || format === "ico" || format === "psd") && sceneCount > 1 && !hasSceneOutputPattern(path)) {
             adjoinedPages.push(canvas);
             return;
@@ -23982,12 +23986,11 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 if (offset % 16384 === 0) yield;
                 gray = samples[offset] === samples[offset + 1] && samples[offset] === samples[offset + 2];
             }
-            if (gray) canvas = { ...canvas, space: "b-w", channels: canvas.hasAlpha ? 2 : 1 };
+            if (gray && canvas.space !== "cmyk") canvas = { ...canvas, space: "b-w", channels: canvas.hasAlpha ? 2 : 1 };
         }
         const outPath = path === "-" ? path : (sceneCount > 1 && !adjoin) || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, page) : path.replaceAll("%%", "%");
         if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
         if (format === "ico" && state.iconAutoResize) canvas = yield* prepareIcoPages([canvas], state.iconAutoResize, state.kernel, state.resizeFilter);
-        if ((format === "psd" || format === "psb") && state.inputDepth !== undefined) canvas = { ...canvas, bitsPerSample: state.inputDepth };
         if (format === "png") canvas = { ...canvas, backgroundColor: state.background, chromaticity: state.chromaticity ?? {} };
         if (format === "pfm" || format === "phm") canvas = yield* prepareFloatOutput(canvas, format);
         if (format === "png") canvas = yield* prepareMagickOutput({ ...canvas, bitsPerSample: state.inputDepth ?? 16 }, format, state.dither, state.diffusionAmount, pngCoder, state.inputType);
@@ -24002,6 +24005,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     }
     let canvas: RgbaImage;
     function* compositeTile(image: RgbaImage, x: number, y: number): Generator<void, void, void> {
+        if ((output.format === "psd" || output.format === "psb") && image.space === "cmyk") image = { ...yield* copyCmykChannelsToRgb(image), evaluateSamples: undefined };
         if (state.composeRaw.toLowerCase() === "over" && !canvas.evaluateSamples && !image.evaluateSamples) {
             yield* blitOverRgbaInPlaceSteps(canvas, image, x, y);
         } else {
@@ -24287,7 +24291,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 // Retain alpha between operators, then render disassociated tiles opaque.
                 if (thumb.inactiveAlpha && thumb.alphaBlend === false) thumb = yield* prepareInactiveAlphaOutput(thumb);
                 if (++cooperativeWork % 64 === 0) yield;
-                if (images.length === 0) firstInputFormat = (loaded as MagickImage)[magickInput]?.inputFormat ?? loaded.format.toUpperCase();
+                if (images.length === 0) { firstInputFormat = (loaded as MagickImage)[magickInput]?.inputFormat ?? loaded.format.toUpperCase(); firstInputCmyk = loaded.space === "cmyk"; }
                 const isNull = (loaded as MagickImage)[magickInput]?.filePath === "null:";
                 if (cellW !== undefined || cellH !== undefined) {
                     const previous = thumb;
@@ -24504,6 +24508,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
     if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + "montage: missing an image filename\n" }; }
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
     let firstInputFormat = "";
+    let firstInputCmyk = false;
         let textureImage: StoredRgbaImage | undefined;
         if (texture !== undefined) {
             try { textureImage = await parseStoredCompareInput(texture, state, backend, signal); }
@@ -24545,7 +24550,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             try {
                 const metadata = await readImageMetadataFromSource(source, signal, undefined, backend.storage);
                 if (!metadata.width || !metadata.height) { fast = false; continue; }
-                if (index === 0) firstInputFormat = metadata.format.toUpperCase();
+                if (index === 0) { firstInputFormat = metadata.format.toUpperCase(); firstInputCmyk = metadata.space === "cmyk"; }
                 const width = metadata.width + borderW * 2, height = metadata.height + borderW * 2;
                 maxThumbW = Math.max(maxThumbW, width); maxThumbH = Math.max(maxThumbH, height);
                 await sources.set(BigInt(index * 5 + 2), BigInt(width)); await sources.set(BigInt(index * 5 + 3), BigInt(height));
@@ -24751,7 +24756,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     const loaded = await loadTiles({ path, size: sizes[index]!, transforms: transforms[index]! }, async image => {
                         if (image.inactiveAlpha && image.alphaBlend === false) image = await transformStoredMagickPixels(image, backend,
                             { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal);
-                        if (images.length === 0) firstInputFormat = (image as StoredMagickImage)[magickInput]?.inputFormat ?? image.format.toUpperCase();
+                        if (images.length === 0) { firstInputFormat = (image as StoredMagickImage)[magickInput]?.inputFormat ?? image.format.toUpperCase(); firstInputCmyk = image.space === "cmyk"; }
                         const source = (image as StoredMagickImage)[magickInput];
                         if (cellW !== undefined || cellH !== undefined) {
                             const resize = magickResizeOptions(image, geometry, state.kernel ?? "lanczossharp");
@@ -24837,6 +24842,8 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     if (!image) return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: unable to open image '${path}': No such file or directory\n` };
                     directPng = await sources.get(BigInt((pageStart + index) * 5 + 4)) === 1n;
                 } else image = (await images.get(pageStart + index))!;
+                if ((output.format === "psd" || output.format === "psb") && image.space === "cmyk") image = await transformStoredMagickPixels(image, backend,
+                    { end: 0, highDepth: true, evaluate: true, apply: function* (image) { return { ...yield* copyCmykChannelsToRgb(image), evaluateSamples: undefined }; } }, signal);
                 directory.push((image as StoredMagickImage)[magickInput]?.filePath ?? paths[pageStart + index]!);
                 if (variableCells && col === 0) {
                     tileX = 0;
@@ -24905,7 +24912,10 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 continue;
             }
             if (output.format === "pfm" || output.format === "phm") canvas = await prepareStoredMagickOutput(canvas, output.format, backend, signal);
-            if (output.format === "psd") canvas = { ...canvas, bitsPerSample: state.inputDepth ?? 16 };
+            if (output.format === "psd" || output.format === "psb") {
+                if (firstInputCmyk) canvas = await transformStoredMagickPixels(canvas, backend, { end: 0, highDepth: true, evaluate: true, apply: convertCmykPixels }, signal);
+                canvas = { ...canvas, bitsPerSample: state.inputDepth ?? 16 };
+            }
             if (adjoinedPages) { await adjoinedPages.push(canvas); continue; }
             if (adjoin) { await pages.push(canvas); continue; }
             if (output.format === "jpeg" || output.format === "tiff" || output.format === "tga" || output.format === "psd" || output.format === "psb") {
@@ -24920,7 +24930,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     for (let index = 0; gray && index < samples.length; index += 4)
                         gray = samples[index] === samples[index + 1] && samples[index] === samples[index + 2];
                 }
-                if (gray) canvas = { ...canvas, space: "b-w", channels: canvas.hasAlpha ? 2 : 1 };
+                if (gray && canvas.space !== "cmyk") canvas = { ...canvas, space: "b-w", channels: canvas.hasAlpha ? 2 : 1 };
             }
             const { format, path } = output;
             const outputPath = path === "-" ? path : n > cols * rows || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, pageStart / (cols * rows)) : path.replaceAll("%%", "%");
@@ -24929,7 +24939,6 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 await icons.push(canvas);
                 canvas = await prepareStoredIcoPages(icons, canvas, backend, signal, state.iconAutoResize, state.kernel, state.resizeFilter);
             }
-            if ((format === "psd" || format === "psb") && state.inputDepth !== undefined) canvas = { ...canvas, bitsPerSample: state.inputDepth };
             if (format === "png") canvas = { ...canvas, backgroundColor: state.background, chromaticity: state.chromaticity ?? {} };
             if (format === "png") canvas = await prepareStoredMagickOutput({ ...canvas, bitsPerSample: state.inputDepth ?? 16 }, format, backend, signal, state.dither, state.diffusionAmount, output.pngCoder, state.inputType);
             const stdoutBytes = await (n > cols * rows ? backend.stage : backend.publish)(canvas, outputPath, { ...(state.psdCompression === undefined ? {} : { psdCompression: state.psdCompression }), ...(state.tgaCompression === undefined ? {} : { tgaCompression: state.tgaCompression }), bmpFormat: output.bmpFormat ?? state.bmpFormat ?? "bmp4", ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), format, ...(format === "gif" ? { delay: canvas.delay?.[0] ?? 0 } : {}), gifVersion: output.gifVersion, palette: true, ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), pngCoder: output.pngCoder, pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), netpbmAscii: state.netpbmAscii ?? false, rawInterlace: state.rawInterlace, ...(state.inputDepth === undefined ? {} : { tgaDepth: state.inputDepth }), netpbmDepth: state.inputDepth ?? 16, endian: state.inputEndian, tiffEndian: state.inputEndian === "msb" ? "msb" : "lsb", miffDepth: (state.inputDepth ?? 16) <= 8 ? 8 : 16, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) });

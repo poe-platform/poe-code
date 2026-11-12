@@ -5,16 +5,17 @@ import type { ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
 
 type PsdImage = Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "channels" | "density" | "resolution" | "virtualCanvas">;
 
-export function psdChannels(image: Pick<RgbaImage, "hasAlpha" | "space" | "channels">): 1 | 2 | 3 | 4 {
+export function psdChannels(image: Pick<RgbaImage, "hasAlpha" | "space" | "channels">): 1 | 2 | 3 | 4 | 5 {
     const gray = image.space === "b-w" || image.space === "grey16" || image.channels === 1 || image.channels === 2;
-    return gray ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3;
+    return image.space === "cmyk" ? image.hasAlpha ? 5 : 4 : gray ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3;
 }
 
 type PsdCompression = NonNullable<OutputEncodeOptions["psdCompression"]>;
-type PsdStep = Uint8Array | { image: number; offset: number; length: number };
-type PsdSamples = Uint8Array | Uint16Array;
+type PsdStep = Uint8Array | { image: number; offset: number; length: number; ink: boolean };
+type PsdSamples = Uint8Array | Uint16Array | Float64Array;
 
 function* psdPlane(frame: PsdImage, index: number, channel: number, baseChannels: number, depth: 8 | 16, compression: PsdCompression): Generator<PsdStep, { size: number; rows: number[] }, PsdSamples> {
+    const ink = baseChannels === 4 && channel < baseChannels, chunkPixels = ink ? 512 : 1024;
     const compressor = createTiffCompressor({ tiffCompression: compression === "rle" ? "packbits" : compression === "zip" ? "deflate" : "none", tiffPredictor: 1, tiffIntegerDepth: depth }, frame.width, 1);
     const rowCount = compression === "rle" ? frame.height : 1, columns = compression === "rle" ? frame.width : frame.width * frame.height;
     let size = 0;
@@ -22,12 +23,16 @@ function* psdPlane(frame: PsdImage, index: number, channel: number, baseChannels
     try {
         for (let row = 0; row < rowCount; row++) {
             const start = size;
-            for (let column = 0; column < columns; column += 1024) {
-                const samples = yield { image: index, offset: (row * columns + column) * 4, length: Math.min(1024, columns - column) * 4 };
+            for (let column = 0; column < columns; column += chunkPixels) {
+                const samples = yield { image: index, offset: (row * columns + column) * 4, length: Math.min(chunkPixels, columns - column) * 4, ink };
                 const bytes = new Uint8Array(samples.length / 4 * depth / 8), view = new DataView(bytes.buffer);
                 for (let i = 0; i < samples.length / 4; i++) {
                     const sample = samples[i * 4 + (channel === baseChannels ? 3 : channel)]!;
-                    if (depth === 16) view.setUint16(i * 2, samples instanceof Uint16Array ? sample : sample * 257);
+                    if (samples instanceof Float64Array) {
+                        const value = Math.round((1 - Math.max(0, Math.min(1, sample))) * (depth === 16 ? 65535 : 255));
+                        if (depth === 16) view.setUint16(i * 2, value);
+                        else bytes[i] = value;
+                    } else if (depth === 16) view.setUint16(i * 2, samples instanceof Uint16Array ? sample : sample * 257);
                     else bytes[i] = samples instanceof Uint16Array ? Math.round(sample / 257) : sample;
                 }
                 for (const chunk of compressor.push(bytes)) { size += chunk.length; yield chunk; }
@@ -39,9 +44,9 @@ function* psdPlane(frame: PsdImage, index: number, channel: number, baseChannels
     } finally { compressor.close(); }
 }
 
-/** PSD v1 / PSB v2: editable RGB or grayscale layers and their composite. */
+/** PSD v1 / PSB v2: editable RGB, CMYK or grayscale layers and their composite. */
 function* psdChunks(image: PsdImage, layers: readonly PsdImage[], depth: 8 | 16, format: "psd" | "psb", compression: PsdCompression): Generator<PsdStep, void, PsdSamples> {
-    const { width, height, hasAlpha } = image, channels = psdChannels(image), baseChannels = channels <= 2 ? 1 : 3;
+    const { width, height, hasAlpha } = image, channels = psdChannels(image), baseChannels = image.space === "cmyk" ? 4 : channels <= 2 ? 1 : 3;
     const large = format === "psb", lengthBytes = large ? 8 : 4, maxDimension = large ? 300000 : 30000;
     if (layers.length > 32767) throw new Error("Too many Photoshop layers");
     for (const frame of [image, ...layers]) {
@@ -151,7 +156,7 @@ export function encodePsdImage(image: RgbaImage, format: "psd" | "psb" = "psd", 
         while (!step.done) {
             if (!(step.value instanceof Uint8Array)) {
                 const request = step.value, frame = request.image < 0 ? image : layers[request.image]!;
-                const samples = frame.data16 ?? frame.data;
+                const samples = request.ink ? frame.hueSamples : frame.data16 ?? frame.data;
                 if (!samples || samples.length < request.offset + request.length) throw new Error("Truncated PSD pixel samples");
                 step = steps.next(samples.subarray(request.offset, request.offset + request.length));
             }
@@ -181,11 +186,12 @@ export async function* encodePsdFromStorage(image: StoredRgbaImage, storage: Ima
             signal.throwIfAborted();
             if (!(step.value instanceof Uint8Array)) {
                 const request = step.value, frame = request.image < 0 ? image : layers[request.image]!;
-                const sampleBytes = frame.storedData16 ? 2 : 1, position = frame.storedData16?.position ?? frame.position;
+                const sampleBytes = request.ink ? 8 : frame.storedData16 ? 2 : 1, position = request.ink ? frame.storedHueSamples : frame.storedData16?.position ?? frame.position;
+                if (position === undefined) throw new Error("Missing PSD CMYK samples");
                 const length = request.length * sampleBytes;
                 const bytes = await storage.read(position + request.offset * sampleBytes, length, { signal });
                 if (bytes.length !== length) throw new Error("Truncated PSD pixel storage");
-                step = steps.next(sampleBytes === 2 ? new Uint16Array(new Uint8Array(bytes).buffer) : bytes);
+                step = steps.next(request.ink ? new Float64Array(new Uint8Array(bytes).buffer) : sampleBytes === 2 ? new Uint16Array(new Uint8Array(bytes).buffer) : bytes);
             } else { yield step.value; step = steps.next(); }
         }
     } finally { steps.return(); }

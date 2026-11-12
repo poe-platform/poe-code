@@ -76,3 +76,42 @@ it("writes PSB dimensions beyond the PSD limit and rejects dimensions beyond PSB
     expect(new DataView(encoded.data.buffer).getUint32(18)).toBe(30001);
     expect(() => encodeImage({ ...image, width: 300001 }, { format: "psb" })).toThrow("PSB dimensions");
 });
+
+for (const format of ["psd", "psb"] as const) for (const hasAlpha of [false, true]) for (const depth of [8, 16]) {
+    it(`writes CMYK planes independently from alpha (${format}, ${depth}, alpha=${hasAlpha})`, async () => {
+        const width = 1031, size = width * 4;
+        const hueSamples = Float64Array.from({ length: size }, (_, i) => ((i * 31) % 65536) / 65535);
+        const data16 = Uint16Array.from({ length: size }, (_, i) => i % 4 === 3 ? 0x8001 : 0);
+        const image: RgbaImage = { width, height: 1, data: Uint8Array.from(data16, value => Math.round(value / 257)), data16, hueSamples,
+            format: "raw", space: "cmyk", channels: hasAlpha ? 5 : 4, hasAlpha, depth: "ushort", bitsPerSample: depth, density: 72 };
+        const encoded = encodeImage(image, { format });
+        expect(encoded.channels).toBe(hasAlpha ? 5 : 4);
+        const backing = Buffer.concat([image.data, new Uint8Array(data16.buffer), new Uint8Array(hueSamples.buffer)]);
+        const chunks: Uint8Array[] = [];
+        const steps = encodeStoredImage({ ...image, position: 0, storedData16: { position: size, length: data16.byteLength }, storedHueSamples: size * 3 }, {
+            allocate() { throw new Error("Must not allocate storage"); },
+            async write() { throw new Error("Must not mutate storage"); },
+            async read(position, length) {
+                expect(length).toBeLessThanOrEqual(16384);
+                const bytes = new Uint8Array(length + 1);
+                bytes.set(backing.subarray(position, position + length), 1);
+                return bytes.subarray(1);
+            }
+        }, new AbortController().signal, { format });
+        let step = await steps.next();
+        while (!step.done) { chunks.push(step.value); step = await steps.next(); }
+        expect(step.value.channels).toBe(hasAlpha ? 5 : 4);
+        expect(Buffer.concat(chunks)).toEqual(Buffer.from(encoded.data));
+        const view = new DataView(encoded.data.buffer);
+        expect(view.getUint16(24)).toBe(4);
+        expect(view.getUint16(12)).toBe(hasAlpha ? 5 : 4);
+        const section = 34 + view.getUint32(30);
+        let offset = section + (format === "psb" ? 8 + Number(view.getBigUint64(section)) : 4 + view.getUint32(section)) + 2;
+        for (let channel = 0; channel < (hasAlpha ? 5 : 4); channel++) for (let pixel = 0; pixel < width; pixel++) {
+            const expected = channel === 4 ? depth === 8 ? 128 : 0x8001 : Math.round((1 - hueSamples[pixel * 4 + channel]!) * (depth === 8 ? 255 : 65535));
+            expect(depth === 8 ? view.getUint8(offset) : view.getUint16(offset)).toBe(expected);
+            offset += depth / 8;
+        }
+        expect(offset).toBe(encoded.data.length);
+    });
+}

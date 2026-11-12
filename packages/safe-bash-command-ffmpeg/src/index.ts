@@ -1351,7 +1351,7 @@ function createAudioSelection(argument: string, origRate: number, timeBase = 1 /
     variables.samples_n = frame.end - frame.start;
     variables.pts = toTicks(frame.pts);
     variables.pos = frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN;
-    variables.t = frame.pts / origRate;
+    variables.t = variables.pts * timeBase;
     const start = tags?.get("lavf.concatdec.start_time");
     const duration = tags?.get("lavf.concatdec.duration");
     // Compare in integer microseconds, with an inclusive start and exclusive end.

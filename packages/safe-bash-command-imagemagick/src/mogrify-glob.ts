@@ -65,7 +65,10 @@ export function* mogrifyTargets(target: string, paths: Iterable<string>): Genera
         if (name.startsWith(".") && !pattern.startsWith(".")) continue;
         if (yield* matchesMagickGlob(pattern, name)) found.push(path);
     }
-    return found.length ? found.sort() : [target];
+    return found.length ? found.sort((a, b) => {
+        const left = a.toLowerCase(), right = b.toLowerCase();
+        return left < right ? -1 : left > right ? 1 : 0;
+    }) : [target];
 }
 
 export async function mogrifyFileTargets(target: string, filesystem: FileSystem, cwd: string, signal: AbortSignal): Promise<string[]> {

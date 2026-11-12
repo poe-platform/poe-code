@@ -5,17 +5,20 @@ import { createMagickCommand, runMontageCli, runMontageCliSync } from "./index.j
 
 for (const mode of ["command", "retained", "buffered", "sync"] as const)
 it.each([
-  { inputs: ["*.ppm"], order: [0, 1, 2] },
-  { inputs: ["?.ppm"], order: [0, 1] },
+  { inputs: ["*.ppm"], order: [0, 1, 2, 3] },
+  { inputs: ["?.ppm"], order: [0, 1, 3] },
   { inputs: ["[ab].ppm"], order: [0, 1] },
+  { inputs: ["[a-b].ppm"], order: [0, 1] },
+  { inputs: ["[a-z].ppm"], order: [0, 1] },
+  { inputs: ["Z.ppm", "a.ppm", "b.ppm"], order: [3, 0, 1] },
   { inputs: ["a.ppm", "b.ppm", "two words.ppm"], order: [0, 1, 2] },
-  { inputs: ["*.ppm", "-reverse"], order: [2, 1, 0] },
+  { inputs: ["*.ppm", "-reverse"], order: [3, 2, 1, 0] },
   { inputs: ["b.ppm", "[ab].ppm", "a.ppm"], order: [1, 0, 1, 0] },
   { inputs: ["missing*.ppm"], order: [] },
 ])(`expands montage filename wildcards via ${mode}: $inputs`, async ({ inputs, order }) => {
-  const colors = [[255, 0, 0], [0, 255, 0], [0, 0, 255]];
+  const colors = [[255, 0, 0], [0, 255, 0], [0, 0, 255], [255, 255, 0]];
   const files = new Map<string, Uint8Array>();
-  for (const [name, color] of [["two words.ppm", 2], ["b.ppm", 1], ["a.ppm", 0], [".hidden.ppm", 0]] as const)
+  for (const [name, color] of [["Z.ppm", 3], ["two words.ppm", 2], ["b.ppm", 1], ["a.ppm", 0], [".hidden.ppm", 0]] as const)
     files.set(name, new Uint8Array([...new TextEncoder().encode("P6\n1 1\n255\n"), ...colors[color]!]));
   const fs = new MemoryFileSystem();
   await fs.mkdir("/images");

@@ -14352,7 +14352,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || action === "strength" && (target === "virtualbass" || target?.startsWith("virtualbass@"))
                             || ["mm", "cm", "m", "dry", "wet", "temp", "enable"].includes(action!) && (target === "compensationdelay" || target?.startsWith("compensationdelay@"))
                             || ["p", "peak"].includes(action!) && (target === "dynaudnorm" || target?.startsWith("dynaudnorm@"))
-                            || ["limit", "level_in", "level_out", "level", "enable"].includes(action!) && (target === "alimiter" || target?.startsWith("alimiter@"))
+                            || ["limit", "level_in", "level_out", "level", "asc", "asc_level", "enable"].includes(action!) && (target === "alimiter" || target?.startsWith("alimiter@"))
                             || action === "makeup" && (target === "agate" || target?.startsWith("agate@"))
                             || target === "acompressor" || target?.startsWith("acompressor@")
                             || ["basefreq", "sensitivity"].includes(action!) && (target === "adynamicsmooth" || target?.startsWith("adynamicsmooth@"))

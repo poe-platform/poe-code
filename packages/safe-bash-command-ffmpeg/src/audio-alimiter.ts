@@ -88,7 +88,7 @@ export async function limitAudio(
   const positions = new Int32Array(Math.max(2, queueSize)).fill(-1);
   const slopes = new Float64Array(Math.max(2, queueSize));
   const releaseSamples = sampleRate * options.release / 1000;
-  const ascCoefficient = Math.pow(0.5, options.asc_level - 0.5) * -2;
+  let ascCoefficient = Math.pow(0.5, options.asc_level - 0.5) * -2;
   let ascSum = 0;
   let ascCount = 0;
   let attenuation = 1;
@@ -107,8 +107,10 @@ export async function limitAudio(
         if (command.action === "enable") {
           parseFilterExpression(command.expression, "alimiter enable", { t: 0, n: 0, w: 0, h: 0, pos: NaN });
           enable = command.expression;
-        } else if (command.action === "limit" || command.action === "level_in" || command.action === "level_out" || command.action === "level") {
+        } else if (command.action === "limit" || command.action === "level_in" || command.action === "level_out" || command.action === "level" || command.action === "asc" || command.action === "asc_level") {
           setOption(command.action, command.expression);
+          // Native transforms asc_level only during init; runtime writes use the raw value.
+          if (command.action === "asc_level") ascCoefficient = options.asc_level;
         }
       } catch { /* Native asendcmd continues after a rejected command. */ }
     }

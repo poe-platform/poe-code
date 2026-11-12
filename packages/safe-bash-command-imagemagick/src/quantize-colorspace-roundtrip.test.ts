@@ -8,6 +8,18 @@ const input = ["xc:#b03010", "xc:#302010", "xc:#505080", "xc:#a07070", "xc:#d0d0
 const palette = "a85040ff706b3bff706b3bffa85040ffa85040ff";
 
 for (const mode of ["public", "sync"]) {
+    for (const space of ["Lab", "sRGB"]) {
+        for (const cycle of [[], ["-cycle", "0"], ["-cycle", "1"], ["-cycle", "-1"], ["-cycle", "1", "-cycle", "-1"]]) {
+            it(`cycles the ${space} quantized palette with ${cycle.join(" ") || "no shift"} (${mode})`, async () => {
+                const output = await execute(["xc:#114477ff", "xc:#2233ddff", "+append",
+                    "-quantize", space, "+dither", "-colors", "4", ...cycle,
+                    "-colorspace", "sRGB", "-depth", "8", "rgba:/out"], mode);
+                expect(Buffer.from(output).toString("hex")).toBe(cycle.length === 2 && cycle[1] !== "0"
+                    ? "2233ddff114477ff" : "114477ff2233ddff");
+            });
+        }
+    }
+
     for (const space of ["Lab", "HSL"]) {
         for (const convertBack of [false, true]) {
             for (const format of ["info", "rgba"]) {

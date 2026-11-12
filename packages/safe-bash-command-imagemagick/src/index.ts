@@ -14936,7 +14936,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-strip") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             state.strip = true;
-            for (let index = 0; index < stack.length; index++) { const {gifApplications: ignoredGifApplications, properties: ignoredProperties, ...image} = applyMagickProfile(stack[index]!, "*"); stack[index] = image; }
+            for (let index = 0; index < stack.length; index++) stack[index] = applyMagickStrip(stack[index]!);
         }
         else if (t === "-format") {
             state.formatStr = tokens[++i] ?? "";
@@ -17573,6 +17573,12 @@ async function compositeStoredMagick(base: StoredRgbaImage, overlay: StoredRgbaI
     return { ...base, storedEvaluateSamples: undefined, position, hasAlpha, channels: hasAlpha ? base.channels : base.channels <= 2 ? 1 : 3 };
 }
 
+function applyMagickStrip<T extends ImageMetadata & { [magickInput]?: MagickFormatContext }>(image: T): T {
+    const { gifApplications: ignoredGifApplications, properties, ...rest } = applyMagickProfile(image, "*");
+    // Native -strip keeps labels, captions, custom properties and artifacts.
+    return { ...rest, properties: updateMagickProperty(properties, "comment") } as T;
+}
+
 function applyMagickProfile<T extends { readonly icc?: Uint8Array; readonly exif?: Uint8Array; readonly xmp?: Uint8Array; [magickInput]?: MagickFormatContext }>(image: T, name: string, profile?: Uint8Array): T {
     if (profile) {
         if (profile.length < 128 || String.fromCharCode(...profile.subarray(36, 40)) !== "acsp") throw new Error(`invalid ICC profile '${name}'`);
@@ -19596,7 +19602,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             state.strip = true;
-            steps.push(async image => { if (!image) return image; const {gifApplications: ignoredGifApplications, properties: ignoredProperties, ...rest} = applyMagickProfile(image, "*"); return rest; });
+            steps.push(async image => image ? applyMagickStrip(image) : image);
             continue;
         }
         if (!operandsOnly && (token === "+repage" || token === "-repage")) {
@@ -24357,8 +24363,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 return yield* transformTiles(image, operations, offset + 1);
             }
             if (transform.kind === "strip") {
-                const { gifApplications: ignoredGifApplications, properties: ignoredProperties, ...stripped } = applyMagickProfile(image, "*");
-                return yield* transformTiles(stripped, operations, offset + 1);
+                return yield* transformTiles(applyMagickStrip(image), operations, offset + 1);
             }
             if (transform.kind === "profile") {
                 const conversion = createIccConversion(image.icc, transform.bytes);
@@ -24845,8 +24850,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     return;
                 }
                 if (transform.kind === "strip") {
-                    const { gifApplications: ignoredGifApplications, properties: ignoredProperties, ...stripped } = applyMagickProfile(tile, "*");
-                    yield* transformTiles(stripped, operations, offset + 1);
+                    yield* transformTiles(applyMagickStrip(tile), operations, offset + 1);
                     return;
                 }
                 if (transform.kind === "profile") {

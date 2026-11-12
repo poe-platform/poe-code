@@ -6,7 +6,7 @@ import { createFfmpegCommand } from "./index.js";
 for (const [options, expected] of [
   ["filter=peak", "7f00007f7f00007f7f3f00fe7f3f00fe7f3f00fe7f00007f7f00007f7f00007f"],
   ["colors=red|blue", "00000000000000007f007ffe7f00007f7f00007f000000000000000000000000"],
-  ["colors=", null]
+  ["colors=", "0000000000000000fefefefe7f7f7f7f7f7f7f7f000000000000000000000000"]
 ] as const) {
   for (const trailing of ["", ":", "::"]) {
     it(`handles showwavespic options ${options}${trailing}`, async () => {
@@ -30,7 +30,7 @@ for (const [options, expected] of [
         stdout: { async write(bytes: Uint8Array) { stdout.push(Buffer.from(bytes)); } },
         stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
       } as never);
-      if (expected === null || trailing === "::") {
+      if (trailing === "::") {
         assert.equal(result.exitCode, 1);
         assert.equal(Buffer.concat(stdout).length, 0);
         assert.ok(stderr.length > 0);

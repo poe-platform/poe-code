@@ -1530,7 +1530,8 @@ async function renderShowwavespic(
   const scale = numericOption("scale", ["lin", "log", "sqrt", "cbrt"]);
   const full = numericOption("draw", ["scale", "full"]) === 1;
   const peak = numericOption("filter", ["average", "peak"]) === 1;
-  const colors = (options.colors ?? "red|green|blue|yellow|orange|lime|0xffc0cb|magenta|0xa52a2a").split("|");
+  const colors = (options.colors ?? "red|green|blue|yellow|orange|lime|0xffc0cb|magenta|0xa52a2a")
+    .split("|").filter(color => color.trim().length > 0);
   const channels = audio.channelData;
   const count = channels[0]?.length ?? 0;
   const frames: MediaVideoFrame[] = [];
@@ -1547,7 +1548,7 @@ async function renderShowwavespic(
   const samplesPerColumn = Math.floor(count / width);
   let work = 0;
   for (const [channel, samples] of channels.entries()) {
-    const color = parseColorRgba(colors[Math.min(channel, colors.length - 1)]!);
+    const color = parseColorRgba(colors[Math.min(channel, colors.length - 1)] ?? "white");
     if (!split && !full) {
       // FFmpeg truncates the shared intensity before scaling each RGBA component.
       const intensity = Math.floor(255 / channels.length);

@@ -35,6 +35,7 @@ export * from "./codecs/webp.js";
 export * from "./codecs/heif.js";
 export * from "./codecs/gif.js";
 export * from "./codecs/netpbm.js";
+export { parseNetpbmHeader } from "./codecs/netpbm-header.js";
 export * from "./codecs/svg-pdf.js";
 export * from "./codecs/index.js";
 export * from "./ops/resize.js";

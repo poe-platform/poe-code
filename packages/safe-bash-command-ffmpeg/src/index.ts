@@ -5332,7 +5332,7 @@ async function applyVideoFilterChain(
         if (key !== "pix_fmts") throw new Error(`format: unsupported option ${part}`);
         const values = (separator < 0 ? part : part.slice(separator + 1)).trim().split("|");
         for (const value of values) {
-          if (!["monob", "pal8", "rgba", "bgra", "rgb24", "bgr24", "gbrp", "gbrap", "gray", "gray8", "ya8", "rgba64be", "rgb48be", "gray16be", "yuv420p", "yuv422p", "yuv444p", "yuva444p"].includes(value)) {
+          if (!["monob", "pal8", "rgba", "bgra", "rgb24", "bgr24", "gbrp", "gbrap", "gray", "gray8", "ya8", "rgba64be", "rgb48be", "gray16be", "gray16le", "yuv420p", "yuv422p", "yuv444p", "yuva444p"].includes(value)) {
             throw new Error(`format: unsupported pixel format ${value}`);
           }
         }
@@ -5350,7 +5350,7 @@ async function applyVideoFilterChain(
             budget.checkCpu();
             return converted;
           }, signal);
-        } else if (!["gray", "gray8", "ya8", "gray16be"].includes(pixelFormat)) {
+        } else if (!["gray", "gray8", "ya8", "gray16be", "gray16le"].includes(pixelFormat)) {
           current = current.map(({ native: _native, ...frame }) => frame);
         }
         if (pixelFormat === "monob" && previousPixelFormat !== "monob") {
@@ -5429,7 +5429,7 @@ async function applyVideoFilterChain(
             return { ...f, data };
           }, signal);
         }
-        if (pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "ya8" || pixelFormat === "gray16be") {
+        if (pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "ya8" || pixelFormat === "gray16be" || pixelFormat === "gray16le") {
           const dither = [
             [36, 68, 60, 92, 34, 66, 58, 90], [100, 4, 124, 28, 98, 2, 122, 26],
             [52, 84, 44, 76, 50, 82, 42, 74], [116, 20, 108, 12, 114, 18, 106, 10],
@@ -5437,6 +5437,12 @@ async function applyVideoFilterChain(
             [48, 80, 40, 72, 54, 86, 46, 78], [112, 16, 104, 8, 118, 22, 110, 14]
           ];
           current = await mapWork(current, async ({ native, ...f }) => {
+            if ((pixelFormat === "gray16be" || pixelFormat === "gray16le") &&
+                native?.rgba === f.data && native.width === f.width && native.height === f.height &&
+                (native.format === 29 || native.format === 30)) {
+              // Keep all sample bits; native.format records the stored byte order.
+              return { ...f, native };
+            }
             const planar = native?.rgba === f.data && native.width === f.width && native.height === f.height &&
               [0, 4, 5, 12, 13, 14, 33].includes(native.format) ? native : undefined;
             const highDepthLuma = native?.rgba === f.data && native.width === f.width && native.height === f.height &&

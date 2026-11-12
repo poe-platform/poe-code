@@ -14705,7 +14705,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expandedAmount = amount ?? parseMagickCycleAmount(yield* formatMagickPropertyStringSteps(value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties }));
                 if (image.isPalette === false && image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray") image = yield* convertHuePixels(image, "sRGB");
-                const output = yield* applyMagickRasterSteps(image, cyclePixelSteps(image, expandedAmount, state.channels, !!image.writeMask), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha }, image.writeMask ? [image, image.writeMask] : [image]);
+                const output = yield* applyMagickRasterSteps(image, cyclePixelSteps(image, expandedAmount, state.channels, !!image.writeMask, state.dither, state.diffusionAmount), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha }, image.writeMask ? [image, image.writeMask] : [image]);
                 // Direct images are clipped during palette conversion inside the cycle kernel.
                 if (image.region && !output.hasAlpha && !(image.isPalette !== false && (image.indexedColors?.length || image.pngPalette?.bytes.length))) output.region = { ...image.region };
                 if (image.writeMask && !output.hasAlpha && !(image.isPalette !== false && (image.indexedColors?.length || image.pngPalette?.bytes.length))) output.writeMask = { ...image.writeMask };
@@ -18496,7 +18496,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const value = tokens[++i] ?? "", optionProperties = state.optionProperties, cycleChannels = state.channels;
+            const value = tokens[++i] ?? "", optionProperties = state.optionProperties, cycleChannels = state.channels, cycleDither = state.dither, cycleDiffusionAmount = state.diffusionAmount;
             const amount = value.includes("%") ? undefined : parseMagickCycleAmount(value);
             let images: StoredImageStack, sceneIdx = 0;
             if (amount === undefined) stackStep(async stack => { images = stack; return stack; });
@@ -18505,7 +18505,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let image = source;
                 const expandedAmount = amount ?? parseMagickCycleAmount(await formatRetainedIdentify(value, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images));
                 if (image.isPalette === false && image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray") image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);
-                const output = await transformStoredMagickRaster(image, backend, cyclePixelSteps(image, expandedAmount, cycleChannels, !!image.storedWriteMask), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha }, image.storedWriteMask ? [image, image.storedWriteMask] : [image]);
+                const output = await transformStoredMagickRaster(image, backend, cyclePixelSteps(image, expandedAmount, cycleChannels, !!image.storedWriteMask, cycleDither, cycleDiffusionAmount), signal, { ...image, hasAlpha: image.isPalette !== false && !!(image.indexedColors?.length || image.pngPalette?.bytes.length) && image.hasAlpha }, image.storedWriteMask ? [image, image.storedWriteMask] : [image]);
                 if (image.region && !output.hasAlpha && !(image.isPalette !== false && (image.indexedColors?.length || image.pngPalette?.bytes.length))) output.region = { ...image.region };
                 if (image.storedWriteMask && !output.hasAlpha && !(image.isPalette !== false && (image.indexedColors?.length || image.pngPalette?.bytes.length))) output.storedWriteMask = { ...image.storedWriteMask };
                 if (image.space !== "cmyk") return output;

@@ -366,6 +366,20 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         }
     }
     const assigned = new Float64Array(4), clipped = new Float64Array(4);
+    function assignColor(pixels: Float64Array, offset: number, color: number[], index: number, protection: number): number[] | Float64Array {
+        if (cycle && protection > 0) {
+            // Palette assignment and SyncImage each clip while alpha is active.
+            // Cycling then disables alpha, so protected pixels keep that result.
+            assigned.set(color);
+            for (let channel = 0; channel < 4; channel++) clipped[channel] = pixels[offset + channel]!;
+            blendMaskedPixel(clipped, clipped, assigned, 0, protection, 255, cycle.channels, cycle.alphaActive);
+            blendMaskedPixel(clipped, clipped, assigned, 0, protection, 255, cycle.channels, cycle.alphaActive);
+            assigned.set(palette[index]!);
+            blendMaskedPixel(clipped, clipped, assigned, 0, protection, 255, cycle.channels, false);
+            return clipped;
+        }
+        return cycle ? palette[index]! : color;
+    }
     const indices = new Map(palette.map((color, index) => [color, index]));
     // Retain byte-sized palette indices before later masked edits separate RGB from the colormap.
     const retainIndices = palette.length <= 256;
@@ -373,7 +387,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
     // An unreduced palette still goes through native dither assignment.
     // Its six-bit cache can reuse a nearby color; later pixels diffuse that error.
     let needsDither = bins.size > requested;
-    if (dither && bins.size <= requested && cycle === undefined) {
+    if (dither && bins.size <= requested) {
         const keys = new Set<number>();
         for (const color of palette) {
             if (++work % 1024 === 0) yield;
@@ -401,6 +415,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         for (const position of dither.method === "riemersma" ? hilbertPixels(dither) : scan()) {
             if (++work % 1024 === 0) yield;
             const target = yield* readPixels(position, 4), x = position / 4 % dither.width;
+            const original = cycle?.region || cycle?.writeMask ? target.slice() : target;
             if (working === "cmyk") {
                 const inks = rgbToCmyk(target[0]! / 255, target[1]! / 255, target[2]! / 255);
                 for (let c = 0; c < 3; c++) target[c] = inks[c]! * 255;
@@ -440,10 +455,15 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
                     nextRow[x * channels + c]! += error * 5;
                 }
             }
-            const data = Float64Array.from(color!);
-            if (retainIndices) yield { kind: "write", pngIndices: true, position: position / 4, data: Uint8Array.of(indices.get(color!)!) };
+            const index = (indices.get(color!)! + shift) % palette.length;
+            const mask = cycle?.writeMask ? new Uint16Array((yield { kind: "read", highDepth: true, image: 1, position, length: 4 })!.slice().buffer) : undefined;
+            const protection = mask ? (0.212656 * mask[0]! + 0.715158 * mask[1]! + 0.072186 * mask[2]!) / 65535
+                : cycle?.region && !regionContains(cycle.region, x, Math.floor(position / 4 / cycle.width)) ? 1 : 0;
+            const data = Float64Array.from(assignColor(original, 0, color!, index, protection));
+            if (cycle) data[3] = 255;
+            if (retainIndices) yield { kind: "write", pngIndices: true, position: position / 4, data: Uint8Array.of(index) };
             yield* writeWorkingPixels(position, data);
-            if (evaluate) yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
+            if (evaluate || cycle?.region || cycle?.writeMask) yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
             yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(data, value => Math.round(value * 257)).buffer) : Uint8Array.from(data, Math.round) };
         }
     } else for (let position = 0; position < length; position += chunkSize) {
@@ -462,17 +482,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             const pixel = (position + i) / 4;
             const protection = mask ? (0.212656 * mask[i]! + 0.715158 * mask[i + 1]! + 0.072186 * mask[i + 2]!) / 65535
                 : cycle?.region && !regionContains(cycle.region, pixel % cycle.width, Math.floor(pixel / cycle.width)) ? 1 : 0;
-            if (cycle && protection > 0) {
-                // Palette assignment and SyncImage each clip while alpha is active.
-                // Cycling then disables alpha, so protected pixels keep that result.
-                assigned.set(color);
-                for (let channel = 0; channel < 4; channel++) clipped[channel] = pixels[i + channel]!;
-                blendMaskedPixel(clipped, clipped, assigned, 0, protection, 255, cycle.channels, cycle.alphaActive);
-                blendMaskedPixel(clipped, clipped, assigned, 0, protection, 255, cycle.channels, cycle.alphaActive);
-                assigned.set(palette[index]!);
-                blendMaskedPixel(clipped, clipped, assigned, 0, protection, 255, cycle.channels, false);
-                data.set(clipped, i);
-            } else data.set(cycle ? palette[index]! : color, i);
+            data.set(assignColor(pixels, i, color, index, protection), i);
             if (cycle) data[i + 3] = 255;
         }
         if (pixelIndices) yield { kind: "write", pngIndices: true, position: position / 4, data: pixelIndices };

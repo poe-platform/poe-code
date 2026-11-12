@@ -8,12 +8,12 @@ import type { MaskChannels } from "./write-mask.js";
 export interface CyclePalette { indexedColorSamples?: readonly (readonly number[])[] }
 
 /** Rotate palette colors using bounded chunks in either raster backend. */
-export function* cyclePixelSteps(image: Pick<RgbaImage, "width" | "height" | "indexedColors" | "pngPalette" | "depth" | "hasAlpha" | "isPalette" | "hueSamples"> & CyclePalette & { storedHueSamples?: number | undefined; inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined }, amount: number, channels?: MaskChannels, writeMask = false): Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined> {
+export function* cyclePixelSteps(image: Pick<RgbaImage, "width" | "height" | "indexedColors" | "pngPalette" | "depth" | "hasAlpha" | "isPalette" | "hueSamples"> & CyclePalette & { storedHueSamples?: number | undefined; inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined }, amount: number, channels?: MaskChannels, writeMask = false, dither: false | "riemersma" | "floydsteinberg" = "riemersma", diffusionAmount = 1): Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined> {
     if (!Number.isSafeInteger(amount)) throw new Error("cycle requires an integer");
     const palette = image.isPalette !== false && image.indexedColors ? [...image.indexedColors] : [];
     const png = image.isPalette !== false ? image.pngPalette?.bytes : undefined;
     if (!palette.length && png) for (let i = 0; i < png.length; i += 3) palette.push((image.pngPalette?.transparency?.[i / 3] ?? 255) * 16777216 + png[i]! * 65536 + png[i + 1]! * 256 + png[i + 2]!);
-    if (!palette.length) return yield* quantizePixelSteps(image.width * image.height * 4, 256, false, 5, image.hasAlpha || image.inactiveAlpha === true, true, { amount, width: image.width, region: image.region, writeMask, alphaActive: image.hasAlpha && image.alphaBlend !== false, channels });
+    if (!palette.length) return yield* quantizePixelSteps(image.width * image.height * 4, 256, false, 5, image.hasAlpha || image.inactiveAlpha === true, true, { amount, width: image.width, region: image.region, writeMask, alphaActive: image.hasAlpha && image.alphaBlend !== false, channels }, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined);
     const indices = new Map(palette.map((color, index) => [color, index]));
     const shift = ((amount % palette.length) + palette.length) % palette.length;
     const length = image.width * image.height * 4;

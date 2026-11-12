@@ -14356,6 +14356,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || action === "makeup" && (target === "agate" || target?.startsWith("agate@"))
                             || target === "acompressor" || target?.startsWith("acompressor@")
                             || ["basefreq", "sensitivity"].includes(action!) && (target === "adynamicsmooth" || target?.startsWith("adynamicsmooth@"))
+                            || ["level", "type"].includes(action!) && (target === "adenorm" || target?.startsWith("adenorm@"))
                             || target === "atilt" || target?.startsWith("atilt@")
                             || target === "aexciter" || target?.startsWith("aexciter@")
                             || action === "range" && (target === "sidechaingate" || target?.startsWith("sidechaingate@"))
@@ -15578,7 +15579,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         if (filterName === "adenorm") {
                           if (!autoConversionFilters && filteredSampleFormat !== "dblp") throw new Error(audioConversionDisabled);
-                          stretched = await adenormAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
+                          const commands = audioCommands.filter(command => command.target === "adenorm" || command.target === filterTarget)
+                            .sort((a, b) => a.sample - b.sample);
+                          audioCommands = audioCommands.filter(command => command.target !== "adenorm" && command.target !== filterTarget);
+                          stretched = await adenormAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal, commands);
                           filteredSampleFormat = "dblp";
                         } else if (filterName === "adecorrelate") {
                           stretched = await decorrelateAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);

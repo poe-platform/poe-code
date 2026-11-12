@@ -5,7 +5,8 @@ import { parseFilterExpression } from "./filter-expression.js";
 export async function adenormAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[],
-  budget: MediaBudgetTracker, signal?: AbortSignal
+  budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<Float64Array[]> {
   let enable: string | undefined;
   let level = -351;
@@ -33,7 +34,7 @@ export async function adenormAudio(
       throw new Error(`adenorm: unsupported option ${key}`);
     }
   }
-  const amplitude = 10 ** (level / 20);
+  let amplitude = 10 ** (level / 20);
   budget.allocateMemory(channels.reduce((sum, channel) => sum + channel.length * 8, 0));
   const output = channels.map(channel => new Float64Array(channel.length));
   budget.allocateMemory(80);
@@ -41,7 +42,20 @@ export async function adenormAudio(
   const randomStates: BigUint64Array[] = [];
   let work = 0;
   let processed = 0;
+  let nextCommand = 0;
   for (const [n, frame] of frames.entries()) {
+    while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame.start) {
+      const command = commands[nextCommand++]!;
+      if (command.action === "type") {
+        const value = ({ "0": "dc", "1": "ac", "2": "square", "3": "pulse" } as Record<string, string>)[command.expression] ?? command.expression;
+        if (["dc", "ac", "square", "pulse"].includes(value)) type = value;
+      } else if (command.action === "level") {
+        try {
+          const value = parseFilterExpression(command.expression, "adenorm", {});
+          if (Number.isFinite(value) && value >= -451 && value <= -90) amplitude = 10 ** (value / 20);
+        } catch { /* Rejected runtime commands leave the current setting unchanged. */ }
+      }
+    }
     let enabled = true;
     if (enable !== undefined) {
       const variables = { n, t: frame.pts / sampleRate, pos: frame.pos ?? NaN, w: 0, h: 0 };

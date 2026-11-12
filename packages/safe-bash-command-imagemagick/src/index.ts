@@ -2030,10 +2030,11 @@ function* formatMagickPropertyStringSteps<Step=never>(
     } else if (token === "%@" || token.toLowerCase() === "%[bounding-box]") {
       const key = token === "%@" ? "@" : "bounding-box";
       const property = key === "@" ? "trim-geometry" : "bounding-box";
+      const settings = magickTrimSettings(context, meta.properties);
       short[key] ??= resolvePixels ? yield* resolvePixels(property) : yield* formatTrimBoundsSteps(img ??= getImage(), function*(position, length) {
         yield;
         return { data: img!.data.subarray(position, position + length), ...(img!.data16 ? { data16: img!.data16.subarray(position, position + length) } : {}), ...(img!.evaluateSamples ? { evaluateSamples: img!.evaluateSamples.subarray(position, position + length) } : {}), ...(img!.hueSamples ? { hueSamples: img!.hueSamples.subarray(position, position + length) } : {}) };
-      }, property, context.fuzz ?? 0, context.analysis, context.trimEdges, context.trimPercentBackground, context.trimBackgroundColor);
+      }, property, context.fuzz ?? 0, context.analysis, settings.trimEdges, settings.trimPercentBackground, settings.trimBackgroundColor);
       parts.push(short[key]!);
     } else if (token === "%T") {
       const delay = resolvePixels ? yield* resolvePixels("delay") : String((meta.delay ?? (img ??= getImage()).delay)?.[(meta as MagickImage)[magickInput]?.sceneIdx ?? context.sceneIdx ?? 0] ?? 0);
@@ -2305,7 +2306,10 @@ async function formatRetainedIdentify(format:string,metadata:ImageMetadata,conte
    return String(delay);
   }
   const load = loadIdentifyPixels.bind(undefined, raster!, signal);
-  if(property === "trim-geometry" || property === "bounding-box")return yield*formatTrimBoundsSteps(raster!.image,load,property,context.fuzz ?? 0,context.analysis,context.trimEdges,context.trimPercentBackground,context.trimBackgroundColor);
+  if(property === "trim-geometry" || property === "bounding-box") {
+   const settings = magickTrimSettings(context, raster!.image.properties);
+   return yield*formatTrimBoundsSteps(raster!.image,load,property,context.fuzz ?? 0,context.analysis,settings.trimEdges,settings.trimPercentBackground,settings.trimBackgroundColor);
+  }
   if(property === "signature")return yield*signatureSteps(raster!.image,load);
   if(property === "convex-hull" || property === "minimum-bounding-box" || property.startsWith("minimum-bounding-box:")) {
    if(!hull) {
@@ -13033,14 +13037,43 @@ function magickSampleOffset(image: ImageMetadata, option?: string): { x: number;
     return { x: x / 100, y: (geometry.aspectRatio !== undefined ? 1 : geometry.height ?? x) / 100 };
 }
 
-function magickTrimSettings(state: MagickState, properties: ImageMetadata["properties"]): MagickState {
+type MagickTrimSettings = Pick<MagickFormatContext, "trimEdges" | "trimPercentBackground" | "trimBackgroundColor"> & Pick<MagickState, "trimMinSize">;
+
+function applyMagickTrimSetting(state: MagickTrimSettings, key: string, raw: string | undefined): void {
+    if (key === "trim:percent-background" && raw !== undefined) {
+        const value = raw.trimStart();
+        const unsigned = value.startsWith("+") || value.startsWith("-") ? value.slice(1) : value;
+        state.trimPercentBackground = (unsigned.toLowerCase().startsWith("0x") ? Number.parseInt(value, 16) : Number.parseFloat(value)) || 0;
+    }
+    if (key === "trim:background-color") state.trimBackgroundColor = parseColor(raw ?? "", true);
+    if (key === "trim:edges" && raw !== undefined) state.trimEdges = raw;
+    if (key === "trim:minsize" && raw !== undefined) {
+        const value = raw.replaceAll("(", "").replaceAll(")", "").replaceAll("#", "").replace(":", "x").trimStart();
+        // Invalid geometry and leading offsets leave both minimum dimensions unset.
+        if (value.startsWith("+") || value.startsWith("-") || [...value].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) delete state.trimMinSize;
+        else {
+            const geometry = parseMagickGeometry(value);
+            // Native trim uses percentage geometry values as pixel minima on both axes.
+            state.trimMinSize = geometry.isPercent ? { width: geometry.percentX!, height: geometry.percentY! } : geometry;
+            const separator = value.toLowerCase().indexOf("x");
+            if (separator >= 0) {
+                // Read the numeric prefix, preserving hexadecimal heights such as 0x3.
+                const field = [...value.slice(separator + 1)].filter(character => character.trim() !== "").join("");
+                const height = field.toLowerCase().startsWith("0x") ? Number.parseInt(field, 16) : Number.parseFloat(field);
+                if (Number.isFinite(height)) state.trimMinSize.height = height;
+            }
+        }
+    }
+}
+
+function magickTrimSettings<T extends MagickTrimSettings>(state: T, properties: ImageMetadata["properties"]): T {
     let settings = state;
     for (const [key, value] of Object.entries(properties ?? {})) {
         const name = key.toLowerCase();
         if (name !== "artifact:trim:minsize" && name !== "artifact:trim:edges" &&
             name !== "artifact:trim:percent-background" && name !== "artifact:trim:background-color") continue;
         if (settings === state) settings = { ...state };
-        applyMagickReadSetting(["-define", `${name.slice("artifact:".length)}=${value}`], settings, 0);
+        applyMagickTrimSetting(settings, name.slice("artifact:".length), value);
     }
     return settings;
 }
@@ -13571,30 +13604,7 @@ if (t === "-intent" || t === "+intent") {
             if (defStr.toLowerCase().startsWith("bmp3:alpha=")) state.bmp3Alpha = ["true", "1", "yes", "on"].includes(defStr.split("=")[1]!.toLowerCase());
             if (defStr.toLowerCase().startsWith("hough-lines:accumulator=")) state.houghAccumulator = ["true", "1", "yes", "on"].includes(defStr.split("=")[1]!.toLowerCase());
             if (defStr.toLowerCase().startsWith("deskew:auto-crop=")) state.deskewAutoCrop = defStr.slice("deskew:auto-crop=".length).toLowerCase();
-            if (defStr.toLowerCase().startsWith("trim:percent-background=")) {
-                const value = defStr.slice("trim:percent-background=".length).trimStart();
-                const unsigned = value.startsWith("+") || value.startsWith("-") ? value.slice(1) : value;
-                state.trimPercentBackground = (unsigned.toLowerCase().startsWith("0x") ? Number.parseInt(value, 16) : Number.parseFloat(value)) || 0;
-            }
-            if (filterKey === "trim:background-color") state.trimBackgroundColor = parseColor(filterValue ?? "", true);
-            if (defStr.toLowerCase().startsWith("trim:edges=")) state.trimEdges = defStr.slice("trim:edges=".length);
-            if (defStr.toLowerCase().startsWith("trim:minsize=")) {
-                const value = defStr.slice("trim:minsize=".length).replaceAll("(", "").replaceAll(")", "").replaceAll("#", "").replace(":", "x").trimStart();
-                // Invalid geometry and leading offsets leave both minimum dimensions unset.
-                if (value.startsWith("+") || value.startsWith("-") || [...value].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) delete state.trimMinSize;
-                else {
-                    const geometry = parseMagickGeometry(value);
-                    // Native trim uses percentage geometry values as pixel minima on both axes.
-                    state.trimMinSize = geometry.isPercent ? { width: geometry.percentX!, height: geometry.percentY! } : geometry;
-                    const separator = value.toLowerCase().indexOf("x");
-                    if (separator >= 0) {
-                        // Read the numeric prefix, preserving hexadecimal heights such as 0x3.
-                        const field = [...value.slice(separator + 1)].filter(character => character.trim() !== "").join("");
-                        const height = field.toLowerCase().startsWith("0x") ? Number.parseInt(field, 16) : Number.parseFloat(field);
-                        if (Number.isFinite(height)) state.trimMinSize.height = height;
-                    }
-                }
-            }
+            applyMagickTrimSetting(state, key, separator < 0 ? undefined : defStr.slice(separator + 1));
             if (defStr.toLowerCase().startsWith("quantum:format=")) state.tiffFloatingPoint = defStr.slice("quantum:format=".length).toLowerCase() === "floating-point";
             if (defStr.toLowerCase().startsWith("quantum:format=")) state.tiffSigned = defStr.slice("quantum:format=".length).toLowerCase() === "signed";
             if (defStr.toLowerCase().startsWith("tiff:alpha=")) {

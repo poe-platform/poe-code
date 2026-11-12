@@ -319,7 +319,7 @@ const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   yellowgreen: [154, 205, 50, 255]
 };
 
-function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly number[]; space?: "b-w" } {
+function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly number[]; lab?: readonly number[]; space?: "b-w" } {
   const s = raw.trim();
   const low = s.toLowerCase();
   if (X11_NAMED_COLORS[low]) {
@@ -357,15 +357,16 @@ function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly
       if (components.length !== 3 || components.some(value => !Number.isFinite(value))) return baseParseColor(s);
       // Native percent components use the 0–255 scale, including lightness;
       // signed chroma is offset by (QuantumRange + 1) / 2.
+      const lab = [components[0]! / 100, components[1]! / 255 + 32768 / 65535, components[2]! / 255 + 32768 / 65535];
       const conversion = convertHuePixels({
         width: 1, height: 1, data: new Uint8Array(4), format: "raw", space: "srgb",
         channels: 3, depth: "ushort", density: 72, hasAlpha: false, magickColorspace: "CIELab",
-        hueSamples: new Float64Array([components[0]! / 100, components[1]! / 255 + 32768 / 65535, components[2]! / 255 + 32768 / 65535, 1]),
+        hueSamples: new Float64Array([...lab, 1]),
       }, "sRGB");
       let step = conversion.next();
       while (!step.done) step = conversion.next();
       const [r, g, b] = step.value.evaluateSamples!.slice(0, 3).map(value => round(Math.max(0, Math.min(255, value))));
-      return { r: r!, g: g!, b: b!, a: 255 };
+      return { r: r!, g: g!, b: b!, a: 255, lab };
     }
     if (kind === "hwb" || kind === "hwba") {
       const components = parts.map(part => parseFloat(part) * (part.endsWith("%") ? 255 / 100 : 1));
@@ -11513,7 +11514,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const [red = 1, green = red, blue = red, black = red] = percentages.map(percent => percent / 100);
         const alpha = (percentages[3] ?? 0) / 100;
         const blend = [red, green, blue, black];
-        const fill = state.fill.cmyk?.map(component => component * 255) ?? [state.fill.r, state.fill.g, state.fill.b, 0];
+        // Native blends the fill components without converting Lab or CMYK to sRGB.
+        const fill = (state.fill.cmyk ?? state.fill.lab)?.map(component => component * 255) ?? [state.fill.r, state.fill.g, state.fill.b];
+        fill[3] ??= 0;
         const mask = [state.channels.r, state.channels.g, state.channels.b, !state.channelExplicit || state.channels.k];
         apply = function* (image) {
             const cmyk = image.space === "cmyk";
@@ -11663,7 +11666,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         }
         const [red = 1, green = red, blue = red] = percentages.map(percent => percent / 100);
         const strengths = [red, green, blue];
-        const fill = state.fill.cmyk?.slice(0, 3).map(component => component * 255) ?? [state.fill.r, state.fill.g, state.fill.b];
+        const fill = (state.fill.cmyk ?? state.fill.lab)?.slice(0, 3).map(component => component * 255) ?? [state.fill.r, state.fill.g, state.fill.b];
         // ImageMagick subtracts the fill luminance even at zero strength.
         const intensity = 0.212656 * fill[0]! + 0.715158 * fill[1]! + 0.072186 * fill[2]!;
         const vector = fill.map((channel, index) => channel * strengths[index]! - intensity);

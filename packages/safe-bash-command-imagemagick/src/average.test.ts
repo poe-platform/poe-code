@@ -44,7 +44,7 @@ for (const mode of ["map", "sync", "retained", "command"] as const) {
             ({ exitCode, stdout, stderr } = result);
         }
         expect(exitCode).toBe(0);
-        expect(stdout).toBe("2x2 srgb(128,0,128)\n");
+        expect(stdout).toBe("2x2 srgb(50%,0%,50%)\n");
         if (operator[0] === "-average") expect(stderr).toContain('option has been replaced \'-average\', use "-evaluate-sequence Mean"');
         else expect(stderr).toBe("");
     });

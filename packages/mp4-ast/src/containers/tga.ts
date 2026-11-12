@@ -1,12 +1,13 @@
 import { MediaBudgetTracker, type MediaVideoFrame, type SerializeMediaOptions, type ParseMediaOptions } from "../types.js";
 
-/** Decode uncompressed and RLE true-color Targa images into top-left RGBA. */
+/** Decode uncompressed and RLE true-color and grayscale Targa images into top-left RGBA. */
 export function decodeTga(bytes: Uint8Array, options?: ParseMediaOptions) {
   if (bytes.length < 18) throw new Error("Truncated TGA header");
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const type = bytes[2]!, depth = bytes[16]!, descriptor = bytes[17]!;
-  if (bytes[1] !== 0 || (type !== 2 && type !== 10) ||
-      (depth !== 24 && depth !== 32) || (descriptor & 192) !== 0) {
+  const grayscale = type === 3 || type === 11;
+  if (bytes[1] !== 0 || (!grayscale && type !== 2 && type !== 10) ||
+      (grayscale ? depth !== 8 : depth !== 24 && depth !== 32) || (descriptor & 192) !== 0) {
     throw new Error("Unsupported TGA image format");
   }
   const width = view.getUint16(12, true), height = view.getUint16(14, true);
@@ -20,7 +21,7 @@ export function decodeTga(bytes: Uint8Array, options?: ParseMediaOptions) {
   while (pixel < count) {
     budget.checkCpu();
     let run = 1, repeated = false;
-    if (type === 10) {
+    if (type === 10 || type === 11) {
       if (offset >= bytes.length) throw new Error("Truncated TGA RLE packet");
       const packet = bytes[offset++]!;
       run = (packet & 127) + 1;
@@ -32,8 +33,8 @@ export function decodeTga(bytes: Uint8Array, options?: ParseMediaOptions) {
       const x = pixel % width, y = Math.floor(pixel / width);
       const target = ((descriptor & 32 ? y : height - 1 - y) * width +
         (descriptor & 16 ? width - 1 - x : x)) * 4;
-      data[target] = bytes[offset + 2]!;
-      data[target + 1] = bytes[offset + 1]!;
+      data[target] = bytes[offset + (grayscale ? 0 : 2)]!;
+      data[target + 1] = bytes[offset + (grayscale ? 0 : 1)]!;
       data[target + 2] = bytes[offset]!;
       data[target + 3] = depth === 32 ? bytes[offset + 3]! : 255;
       if (!repeated) offset += stride;

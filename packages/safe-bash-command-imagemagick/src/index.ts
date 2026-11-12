@@ -23269,6 +23269,15 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
             queuedTransforms.push({ kind: "crop", geometry, gravity: inputGravity });
         }
+        else if (t === "-page") {
+            const value = argv[++i];
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -page\n" };
+            const { width, height, x, y } = parseMagickPageGeometry(value);
+            state.page = { width, height, x, y };
+        }
+        else if (t === "+page") {
+            delete state.page;
+        }
         else if (t === "-repage" || t === "+repage") {
             const raw = t === "-repage" ? argv[++i] : undefined;
             if (t === "-repage" && raw === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -repage\n" };
@@ -23796,7 +23805,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             yield* blitOverRgbaInPlaceSteps(canvas, caption, 0, 0);
             detachRgbaBuffer(caption.data);
         }
-        canvas = { ...canvas, montage: { geometry: `${slotW}x${slotH}${originX < 0 ? "" : "+"}${originX}${originY + titleHeight < 0 ? "" : "+"}${originY + titleHeight}`, directory } };
+        canvas = { ...canvas, virtualCanvas: state.page ?? { width: 0, height: 0, x: 0, y: 0 }, montage: { geometry: `${slotW}x${slotH}${originX < 0 ? "" : "+"}${originX}${originY + titleHeight < 0 ? "" : "+"}${originY + titleHeight}`, directory } };
         if (!anyTransparent) {
             (canvas as { hasAlpha?: boolean; channels?: number }).hasAlpha = false;
             (canvas as { hasAlpha?: boolean; channels?: number }).channels = 3;
@@ -24634,7 +24643,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 canvas = await compositeStoredMagick(titled, canvas, backend, signal, 0, height, "over", undefined, false, true);
                 canvas = await compositeStoredMagick(canvas, caption, backend, signal, 0, 0, "over", undefined, false, true);
             }
-            canvas = { ...canvas, montage: { geometry: `${slotW}x${slotH}${originX < 0 ? "" : "+"}${originX}${originY + titleHeight < 0 ? "" : "+"}${originY + titleHeight}`, directory }, hasAlpha: anyTransparent, channels: anyTransparent ? 4 : 3 };
+            canvas = { ...canvas, virtualCanvas: state.page ?? { width: 0, height: 0, x: 0, y: 0 }, montage: { geometry: `${slotW}x${slotH}${originX < 0 ? "" : "+"}${originX}${originY + titleHeight < 0 ? "" : "+"}${originY + titleHeight}`, directory }, hasAlpha: anyTransparent, channels: anyTransparent ? 4 : 3 };
             if (state.units !== undefined) canvas = applyMagickUnits(canvas, state.units);
             if (state.densityGeometry !== undefined) canvas = applyMagickDensity(canvas, state.densityGeometry);
             if (outSpec.toLowerCase().startsWith("info:")) {

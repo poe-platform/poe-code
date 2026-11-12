@@ -14743,7 +14743,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const expanded = yield* formatMagickPropertyStringSteps(t === "-sigmoidal-contrast" || t === "+sigmoidal-contrast" ? value.trimEnd() : value, image, () => image, { ...(image as MagickImage)[magickInput], fxStack, sceneCount: fxStack.length, listIndex: sceneIdx++, ...(t === "-black-threshold" || t === "-white-threshold" ? { analysis } : {}), optionProperties: state.optionProperties });
                 const operationTokens = operationName === undefined ? [t, expanded] : [t, operationName, expanded];
                 const mask = image[magickInput]?.channelMask;
-                const imageSettings = t === "-evaluate" ? { ...state, channels: mask ?? createDefaultState().channels,
+                const imageSettings = t === "-evaluate" || t === "-solarize" ? { ...state, channels: mask ?? createDefaultState().channels,
                     channelExplicit: mask !== undefined, channelDefault: mask?.default ?? true } : state;
                 const operation = parseMagickPixelOperation(operationTokens, imageSettings, 0, signal)!;
                 if (operation.warning) analysis.warnings += operation.warning;
@@ -18844,7 +18844,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const expanded = await formatRetainedIdentify(token === "-sigmoidal-contrast" || token === "+sigmoidal-contrast" ? value.trimEnd() : value, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, ...(token === "-black-threshold" || token === "-white-threshold" ? { analysis } : {}), optionProperties: settings.optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 const operationTokens = operationName === undefined ? [token, expanded] : [token, operationName, expanded];
                 const mask = image[magickInput]?.channelMask;
-                const imageSettings = token === "-evaluate" ? { ...settings, channels: mask ?? createDefaultState().channels,
+                const imageSettings = token === "-evaluate" || token === "-solarize" ? { ...settings, channels: mask ?? createDefaultState().channels,
                     channelExplicit: mask !== undefined, channelDefault: mask?.default ?? true } : settings;
                 const operation = parseMagickPixelOperation(operationTokens, imageSettings, 0, signal)!;
                 if (operation.warning) analysis.warnings += operation.warning;

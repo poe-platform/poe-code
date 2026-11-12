@@ -19,7 +19,7 @@ const cases = [
     { name: "16-bit meta precision", count: 5, extra: "xc:#123412341234", depth: "16", channel: "meta0", expected: "123412341234ffff" },
     { name: "multiple meta selection", count: 6, channel: "meta0,meta1", append: true, expected: "606060ff909090ff" },
     { name: "missing second meta plane", count: 5, channel: "meta1", expected: "000000ff" },
-    { name: "separated channel count", count: 5, options: ["-combine", "-channel", "R", "-separate", "-format", "%[channels]"], output: "info:out", expected: "gray  1.0" },
+    { name: "separated channel count", count: 5, options: ["-combine", "-channel", "R", "-separate", "-format", "%[channels]"], output: "info:out", expected: "gray  2.1" },
 ];
 
 for (const mode of ["sync", "buffered", "retained", "command"] as const) {

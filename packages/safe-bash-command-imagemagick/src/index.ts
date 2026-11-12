@@ -12107,7 +12107,7 @@ function* selectMagickChannels(image: RgbaImage, channels: number[]): Generator<
 function* separateMagickChannelSteps(image: RgbaImage, channel: 0 | 1 | 2 | 3 | 4 | null, clipRed: boolean, pixelOffset = 0, imageWidth = image.width): Generator<void, RgbaImage> {
     const missingChannel = channel === null || (channel === 4 ? image.space !== "cmyk" : channel === 3 ? !(image.hasAlpha || image.alphaSeparate === true) : channel !== 0 && (image.space === "b-w" || image.space === "grey16"));
     // Extraction clips against the source selection, then retains a fully editable mask.
-    const { writeMask: ignoredMask, region: ignoredRegion, magickColorspace: ignoredSpace, hueSamples, storedHueSamples: ignoredStoredHue, metaChannels: ignoredMeta, storedMetaChannels: ignoredStoredMeta, ...components } = image;
+    const { writeMask: ignoredMask, region: ignoredRegion, magickColorspace: ignoredSpace, hueSamples, storedHueSamples: ignoredStoredHue, ...components } = image;
     const separated = { ...yield* extractChannelImageSteps(missingChannel ? yield* ensureAlphaImageSteps({ ...components, hasAlpha: false }, 0) : { ...components, hasAlpha: image.hasAlpha || image.alphaSeparate === true }, missingChannel ? 3 : channel === 4 ? 0 : channel), magickColorspace: "Gray" as const, isPalette: false, alphaBlend: false, inactiveAlpha: false };
     // CMYK stores K at working offset 3; alpha remains in the RGBA backing.
     const workingSamples = channel === 3 ? undefined : hueSamples;

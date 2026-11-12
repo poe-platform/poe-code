@@ -35,7 +35,7 @@ for(const mode of ['ok','source','cancel','short','memory'])it(`ES descriptor me
   const result=await(await runtime.dispatchFetch('https://example.test/'+mode)).json() as {result?:unknown;error?:string;reads:number;largestRead:number;largestAllocation:number;checkpoints:number;memory:number};
   expect(result.memory).toBe(0);expect(result.largestRead).toBeLessThanOrEqual(16384);expect(result.largestAllocation).toBeLessThanOrEqual(16384);
   if(mode==='ok'){
-    expect(result.error).toBeUndefined();expect(result.result).toEqual({objectTypeIndication:64,audioObjectType:2,sampleRate:44100,channelCount:2,maxBitrate:128000,avgBitrate:128000});
+    expect(result.error).toBeUndefined();expect(result.result).toEqual({objectTypeIndication:64,audioObjectType:2,sampleRate:44100,channelCount:2,maxBitrate:128000,avgBitrate:128000,decoderSpecificInfoSize:ascLength,extraDataRange:{offset:input.length-ascLength,length:ascLength}});
     expect(result.reads).toBe(3);expect(result.checkpoints).toBeGreaterThan(100);
   }else{
     expect(result.result).toBeUndefined();expect(result.error).toContain(mode==='source'?'source failed':mode==='cancel'?'cancelled descriptor':mode==='short'?'Truncated MP4 sample source':'maxMemoryBytes');

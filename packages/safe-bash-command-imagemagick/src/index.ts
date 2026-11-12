@@ -7019,11 +7019,12 @@ async function applyStoredMagickExtent(image: StoredRgbaImage, geometry: string,
     return transformStoredMagickRaster(canvas, backend,
         extentEvaluateSamples(image, layout, background, captured), signal, canvas, [image]);
 }
-function* extentEvaluateSamples(image: Pick<RgbaImage, "width" | "space" | "hasAlpha" | "inactiveAlpha" | "alphaBlend">, layout: ReturnType<typeof magickExtentLayout>, background: RgbaColor, state: MagickState): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* extentEvaluateSamples(image: Pick<RgbaImage, "width" | "space" | "hasAlpha" | "inactiveAlpha" | "alphaBlend">, layout: ReturnType<typeof magickExtentLayout>, background: ReturnType<typeof parseColor>, state: MagickState): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = image.space === "cmyk";
-    // Native CMYK canvas backgrounds are converted from linear RGB.
-    const linear = [background.r, background.g, background.b].map(value => value / 255 <= 0.04045 ? value / 255 / 12.92 : ((value / 255 + 0.055) / 1.055) ** 2.4);
-    const backgroundInks = cmyk ? rgbToCmyk(linear[0]!, linear[1]!, linear[2]!) : undefined;
+    // Gray is already linear; explicit CMYK inks need no RGB round trip.
+    const linear = [background.r, background.g, background.b].map(value => background.space === "b-w" ? value / 255
+        : value / 255 <= 0.04045 ? value / 255 / 12.92 : ((value / 255 + 0.055) / 1.055) ** 2.4);
+    const backgroundInks = cmyk ? background.cmyk ?? rgbToCmyk(linear[0]!, linear[1]!, linear[2]!) : undefined;
     const color = [background.r, background.g, background.b, background.a];
     const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
     for (let y = 0; y < layout.height; y++) for (let x = 0; x < layout.width; x += 512) {
@@ -7068,11 +7069,12 @@ function* extentEvaluateSamples(image: Pick<RgbaImage, "width" | "space" | "hasA
     }
 }
 
-function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: ReturnType<typeof magickExtentLayout>, background: RgbaColor, state: MagickState, alphaSource?: RgbaImage | StoredRgbaImage): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: ReturnType<typeof magickExtentLayout>, background: ReturnType<typeof parseColor>, state: MagickState, alphaSource?: RgbaImage | StoredRgbaImage): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = image.space === "cmyk";
-    // Native CMYK canvas backgrounds are converted from linear RGB.
-    const linear = [background.r, background.g, background.b].map(value => value / 255 <= 0.04045 ? value / 255 / 12.92 : ((value / 255 + 0.055) / 1.055) ** 2.4);
-    const backgroundInks = cmyk ? rgbToCmyk(linear[0]!, linear[1]!, linear[2]!) : undefined;
+    // Gray is already linear; explicit CMYK inks need no RGB round trip.
+    const linear = [background.r, background.g, background.b].map(value => background.space === "b-w" ? value / 255
+        : value / 255 <= 0.04045 ? value / 255 / 12.92 : ((value / 255 + 0.055) / 1.055) ** 2.4);
+    const backgroundInks = cmyk ? background.cmyk ?? rgbToCmyk(linear[0]!, linear[1]!, linear[2]!) : undefined;
     const highDepth = "data16" in image && !!image.data16 || "storedData16" in image && !!image.storedData16;
     const evaluate = "evaluateSamples" in image && !!image.evaluateSamples || "storedEvaluateSamples" in image && image.storedEvaluateSamples !== undefined;
     const compose = magickCompositeMode(state.composeRaw).name;

@@ -8248,6 +8248,10 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           const webvtt = outputFormat === "webvtt" || containerCodec === "webvtt";
           let alignments = 0;
           let position = 0;
+          // The WebVTT encoder skips only initial ASCII spaces in dialogue.
+          if (codec === "webvtt" && webvtt) {
+            while (text[position] === " ") position++;
+          }
           while (position < text.length) {
             if (codec === "subrip" && (webvtt || encodeAss) && text.startsWith("{\\", position)) {
               const end = text.indexOf("}", position + 2);

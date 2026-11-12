@@ -8252,7 +8252,7 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
                 continue;
               }
               if (codec === "subrip" && ["B", "/B", "I", "/I", "U", "/U"].includes(tag)) tag = tag.toLowerCase();
-              if (codec === "subrip" && (webvtt || outputFormat === "ass" || containerCodec === "ass")
+              if (codec === "subrip" && (webvtt || outputFormat === "lrc" || outputFormat === "ass" || containerCodec === "ass")
                 && ["br", "br/", "br /"].includes(tag.toLowerCase())) {
                 parts.push("\n");
               } else if (["b", "i", "u"].includes(tag)) {

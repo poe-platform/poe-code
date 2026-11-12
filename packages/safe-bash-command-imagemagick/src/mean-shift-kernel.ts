@@ -74,8 +74,8 @@ export function* meanShiftPixelSteps(image: Pick<RgbaImage, "width" | "height" |
                 for (let v = -ry; v <= ry; v++) for (let u = -rx; u <= rx; u++) {
                     yield;
                     if (u * u + v * v > rx * ry) continue;
-                    // MagickRound rounds ties away from zero.
-                    let x = Math.sign(mx + u) * Math.floor(Math.abs(mx + u) + 0.5), y = Math.sign(my + v) * Math.floor(Math.abs(my + v) + 0.5);
+                    // Native MagickRound chooses ceil on ties, including negative coordinates.
+                    let x = Math.round(mx + u), y = Math.round(my + v);
                     let pixel: ArrayLike<number> | undefined;
                     if (x < 0 || y < 0 || x >= width || y >= height) {
                         const index = virtualPixelIndex(x, y, width, height, virtualPixel);
@@ -100,7 +100,10 @@ export function* meanShiftPixelSteps(image: Pick<RgbaImage, "width" | "height" |
                     sx += mx + u; sy += my + v; total++;
                     for (let c = 0; c < 4; c++) sums[c]! += pixel[c]!;
                 }
-                const nx = sx / (total || 1), ny = sy / (total || 1), next = sums.map(value => value / (total || 1));
+                // Match native reciprocal multiplication: rounding at half-pixel
+                // centroids determines which source pixels the next iteration reads.
+                const gamma = 1 / (total || 1);
+                const nx = gamma * sx, ny = gamma * sy, next = sums.map(value => gamma * value);
                 const movement = (nx - mx) ** 2 + (ny - my) ** 2 + ((next[0]! - mean[0]!) ** 2 + (next[1]! - mean[1]!) ** 2 + (next[2]! - mean[2]!) ** 2) / scale ** 2;
                 mx = nx; my = ny; mean = next;
                 if (movement <= 3) break;

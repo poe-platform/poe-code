@@ -15287,6 +15287,26 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const loop = next?.split("=", 1)[0]!.split("@", 1)[0] === "aloop"
                           ? parseAloop(next.includes("=") ? next.slice(next.indexOf("=") + 1) : "")
                           : undefined;
+                        let resampleRatio = 1;
+                        let resampleFilterLength = 0;
+                        if (next?.split("=", 1)[0]!.split("@", 1)[0] === "aresample") {
+                          let rate = 0;
+                          let size = 32;
+                          let cutoff = 0;
+                          const options = next.includes("=") ? next.slice(next.indexOf("=") + 1).split(":") : [];
+                          for (const [position, option] of options.entries()) {
+                            const [key, raw] = option.split("=");
+                            if (position === 0 && raw === undefined && key ||
+                                key === "osr" || key === "out_sample_rate" || key === "sample_rate") {
+                              rate = Math.round(parseFilterExpression((raw ?? key)!, "aresample", {}));
+                            } else if (key === "filter_size") size = Number(raw);
+                            else if (key === "cutoff" || key === "resample_cutoff") cutoff = Number(raw);
+                          }
+                          const targetRate = rate || (index === undefined ? undefined : audioRate) || origRate;
+                          resampleRatio = origRate / targetRate;
+                          const support = Math.min((cutoff || 0.97) / resampleRatio, 1);
+                          resampleFilterLength = size <= support ? 1 : 2 * Math.ceil(size / 2 / support);
+                        }
                         const normalization = next?.split("=", 1)[0]!.split("@", 1)[0] === "dynaudnorm"
                           ? parseDynaudnorm(next, origRate) : undefined;
                         // The encoder requests a frame before checking a zero output limit.
@@ -15381,6 +15401,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                           } else if ((wavelet || declick) && frameLimit !== undefined) {
                             if (measuredEnd >= initialDemand) outputFrames = frameLimit;
+                          } else if (resampleRatio !== 1) {
+                            // SWR buffers complete input frames until its kernel can start.
+                            // Later frames count only when they make new output available.
+                            const produced = measuredEnd <= resampleFilterLength ? 0 : Math.max(0,
+                              Math.ceil((measuredEnd - (resampleFilterLength - Math.floor((resampleFilterLength - 1) / 2) - 1)) / resampleRatio));
+                            if (produced > pending) outputFrames++;
+                            pending = produced;
                           } else if (normalization) {
                             // The minimum and Gaussian windows buffer size frames. Native
                             // consumes the following normalization frame before emitting output.

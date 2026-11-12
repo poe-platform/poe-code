@@ -13231,7 +13231,8 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: convertCmykPixels }, signal);
         image = await transformStoredMagickRaster(image, backend, writeMaskPixelSteps(image, mask, true, false, undefined, original.hasAlpha && original.alphaBlend !== false), signal, image, original.storedWriteMask ? [image, original, original.storedWriteMask] : [image, original]);
     }
-    if (!image.hasAlpha) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: prepareInactiveAlphaOutput }, signal);
+    // Preserve fractional RGB samples while normalizing inactive alpha for export.
+    if (!image.hasAlpha) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal);
     if (format === "png" && (!pngCoder || pngCoder === "png00")) {
         const size = image.storedData16 ? 2 : 1, start = image.storedData16?.position ?? image.position;
         const length = image.width * image.height * 4, range = image.storedData16 ? 65535 : 255;

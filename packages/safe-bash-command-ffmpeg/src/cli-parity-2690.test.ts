@@ -158,7 +158,7 @@ it('resolves explicit HLS segments from cwd and creates their parent directory',
 it('honors independent input/output start numbers and reads beyond 1000 frames', async () => {
   const vfs = createTestVfs();
   const cmd = createFfmpegCommand();
-  assert.equal((await runCmd(cmd, ['-f', 'lavfi', '-i', 'color=s=1x1:r=1:d=1', '/pixel.png'], vfs)).exitCode, 0);
+  assert.equal((await runCmd(cmd, ['-f', 'lavfi', '-i', 'color=s=2x2:r=1:d=1', '/pixel.png'], vfs)).exitCode, 0);
   for (let i = 5; i < 1006; i++) vfs.store.set(`/frame_${String(i).padStart(4, '0')}.png`, vfs.store.get('/pixel.png')!);
   const result = await runCmd(cmd, ['-start_number', '5', '-i', 'frame_%04d.png', '-start_number', '20', 'out_%04d.png'], vfs);
   assert.equal(result.exitCode, 0, result.stderr);
@@ -189,7 +189,7 @@ it('matches FFmpeg 7.0.2 status zero and preserves existing output with -n', asy
 
 it('fails rather than silently truncating sequences at consumer frame limits', async () => {
   const vfs = createTestVfs();
-  await runCmd(createFfmpegCommand(), ['-f', 'lavfi', '-i', 'color=s=1x1:r=1:d=1', '/pixel.png'], vfs);
+  await runCmd(createFfmpegCommand(), ['-f', 'lavfi', '-i', 'color=s=2x2:r=1:d=1', '/pixel.png'], vfs);
   for (let i = 0; i < 4; i++) vfs.store.set(`/frame_${i}.png`, vfs.store.get('/pixel.png')!);
   const result = await runCmd(createFfmpegCommand({ limits: { maxFrames: 2 } }), ['-i', 'frame_%d.png', '/out.mp4'], vfs);
   assert.equal(result.exitCode, 1);

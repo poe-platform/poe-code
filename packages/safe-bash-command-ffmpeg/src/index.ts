@@ -773,8 +773,8 @@ function* lavfiSteps(
 
   const sizeStr = kv.size ?? kv.s ?? "320x240";
   const [wStr, hStr] = sizeStr.toLowerCase().split("x");
-  const width = parseInt(wStr ?? "320", 10) || 320;
-  const height = parseInt(hStr ?? "240", 10) || 240;
+  let width = parseInt(wStr ?? "320", 10) || 320;
+  let height = parseInt(hStr ?? "240", 10) || 240;
   const fps = parseFrameRate(kv.rate ?? kv.r ?? "25") ?? 25;
   const sar = parseFilterExpression(kv.sar ?? "1", filterName, {});
   if (!Number.isFinite(sar) || sar < 0) throw new Error(`${filterName}: invalid sample aspect ratio`);
@@ -784,6 +784,10 @@ function* lavfiSteps(
   const frameCount = Math.max(1, Math.ceil(duration * fps));
   const color = parseColorRgba(kv.color ?? kv.c ?? kv._0 ?? "black");
   if (filterName === "color") {
+    // Align the default YUV420P source to its 2x2 chroma grid.
+    width = Math.floor(width / 2) * 2;
+    height = Math.floor(height / 2) * 2;
+    if (width < 1 || height < 1) throw new Error("color: invalid size after chroma alignment");
     // The default color source is limited-range BT.601 YUV420P. Match
     // FFmpeg 7's RGB conversion, which truncates each fixed-point product.
     const [r, g, b] = color;

@@ -6,7 +6,7 @@ import { createMagickCommand, runConvertCliSync, runMagickCli } from "./index.js
 
 for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     for (const existing of [false, true]) {
-        it.each(["1/2", "1,2", "2x1oops", "garbage", "2x1+1junk", ""])(`rejects invalid splice %s without writing, ${mode}, existing=${existing}`, async geometry => {
+        it.each(["1/2", "1,2", "+1,/2", "+1,garbage", "2x1oops", "garbage", "2x1+1junk", ""])(`rejects invalid splice %s without writing, ${mode}, existing=${existing}`, async geometry => {
             const original = Uint8Array.of(1, 2, 3);
             const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
             if (existing) {
@@ -23,7 +23,7 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
                 : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
             expect(result.exitCode).toBe(1);
             expect("stderr" in result ? result.stderr : stderr).toContain(
-                geometry === "1/2" || geometry === "1,2" ? "invalid geometry" : "invalid argument for option '-splice'");
+                geometry === "1/2" || geometry === "1,2" || geometry === "+1,/2" ? "invalid geometry" : "invalid argument for option '-splice'");
             const output = mode === "retained" || mode === "command"
                 ? await filesystem.readFile("/out.png").catch(() => undefined) : files.get("out.png");
             expect(output).toEqual(existing ? original : undefined);

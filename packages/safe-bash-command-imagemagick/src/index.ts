@@ -2945,9 +2945,12 @@ function validateMagickSpliceGeometry(raw: string): void {
             throw new Error(`invalid argument for option '-splice': ${raw}`);
         }
     }
-    // Slash and comma cannot separate scalar dimensions; colon ratios remain valid.
+    // A comma ends offset-only geometry; slash and comma cannot separate scalar dimensions.
     if ((raw.includes("/") || raw.includes(",")) && !raw.toLowerCase().includes("x") && !raw.includes(":")) {
-        throw new Error(`invalid geometry: ${raw}`);
+        const geometry = parseMagickGeometry(raw.split(",", 1)[0]!.replaceAll("(", "").replaceAll(")", "").replaceAll("#", ""));
+        if (raw.includes("/") || geometry.width !== undefined || !geometry.hasOffset) {
+            throw new Error(`invalid geometry: ${raw}`);
+        }
     }
 }
 

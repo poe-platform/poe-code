@@ -1949,7 +1949,7 @@ const audioGraphFilterNames = new Set([
   "astats", "astreamselect", "asubboost", "asubcut", "asupercut", "atempo", "atilt",
   "atrim", "axcorrelate", "bandpass", "bandreject", "bass", "channelmap", "channelsplit", "chorus",
   "compand", "compensationdelay", "concat", "crossfeed", "crystalizer", "dcshift", "deesser",
-  "dialoguenhance", "dynaudnorm", "earwax", "ebur128", "equalizer", "extrastereo", "flanger", "haas",
+  "dialoguenhance", "drmeter", "dynaudnorm", "earwax", "ebur128", "equalizer", "extrastereo", "flanger", "haas",
   "headphone", "highpass", "highshelf", "join", "loudnorm", "lowpass", "lowshelf",
   "mcompand", "pan", "replaygain", "sidechaincompress", "sidechaingate", "silencedetect", "silenceremove",
   "speechnorm", "stereotools", "stereowiden", "surround", "treble", "tremolo", "vibrato",
@@ -14610,7 +14610,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredChannelNames = undefined;
                       }
                       let measuredEnd = 0;
-                      if (filterName === "astats" || filterName === "volumedetect" || filterName === "silencedetect") {
+                      if (filterName === "astats" || filterName === "volumedetect" || filterName === "silencedetect" || filterName === "drmeter") {
                         // Silence detection sees the first requested frame even when the encoder emits none.
                         const requestedFrames = filterName === "silencedetect" && maxAudioFrames === 0 ? 1 : maxAudioFrames;
                         // Reverse consumes its entire input before emitting a frame.
@@ -15971,6 +15971,82 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "replaygain" || trimmed === "replaygain=") {
                         const report = await measureReplayGain(stretched, origRate, budget, context.signal);
                         if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(report), context.signal);
+                      } else if (filterName === "drmeter") {
+                        let length = 3;
+                        const argument = trimmed.slice("drmeter".length + 1);
+                        const options = argument ? argument.split(":") : [];
+                        if (options.at(-1) === "") options.pop();
+                        for (const [index, option] of options.entries()) {
+                          const separator = option.indexOf("=");
+                          const key = separator < 0 && index === 0 ? "length" : option.slice(0, separator).trim();
+                          if (key === "enable") throw new Error("drmeter: timeline is unsupported");
+                          if (key !== "length") throw new Error(`drmeter: unsupported option ${key}`);
+                          length = parseFilterExpression(separator < 0 ? option : option.slice(separator + 1), "drmeter", {});
+                          if (!Number.isFinite(length) || length < 0.01 || length > 10) {
+                            throw new RangeError("drmeter: length must be between 0.01 and 10");
+                          }
+                        }
+                        const format = filteredSampleFormat.endsWith("p") ? "fltp" : "flt";
+                        if (!autoConversionFilters && filteredSampleFormat !== format) throw new Error(audioConversionDisabled);
+                        stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, format, budget, context.signal);
+                        filteredSampleFormat = panSampleFormat = format;
+                        if (logLevel >= 32) {
+                          // FFmpeg 7's meter uses float histograms and only prints a DR
+                          // when a partial window remains at EOF (af_drmeter.c).
+                          const window = Math.max(1, roundToEven(length * origRate));
+                          if (measuredEnd % window === 0) {
+                            volumeReports.push("No data, dynamic range not meassurable\n");
+                          } else {
+                            const bins = 32768;
+                            let report = "";
+                            let overall = 0;
+                            for (const [channelIndex, channel] of stretched.entries()) {
+                              budget.allocateMemory((bins + 1) * 2 * Uint32Array.BYTES_PER_ELEMENT);
+                              const peaks = new Uint32Array(bins + 1);
+                              const rms = new Uint32Array(bins + 1);
+                              const loudest = roundToEven(Math.fround(Math.fround(0.2) * Math.floor(measuredEnd / window)));
+                              for (let start = 0; start < measuredEnd; start += window) {
+                                const end = Math.min(start + window, measuredEnd);
+                                let sum = 0;
+                                let peak = 0;
+                                for (let i = start; i < end; i++) {
+                                  if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                                  const sample = channel[i]!;
+                                  peak = Math.max(peak, Math.abs(sample));
+                                  sum = Math.fround(sum + Math.fround(sample * sample));
+                                }
+                                const level = Math.fround(Math.sqrt(Math.fround(Math.fround(2 * sum) / (end - start))));
+                                rms[Math.max(0, Math.min(bins, roundToEven(level * bins)))]!++;
+                                peaks[Math.max(0, Math.min(bins, roundToEven(peak * bins)))]!++;
+                              }
+                              let first = false;
+                              let secondPeak = 1;
+                              let sum = 0;
+                              let count = 0;
+                              for (let bin = bins; bin >= 0; bin--) {
+                                if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                                if (peaks[bin]) {
+                                  if (first || peaks[bin]! > 1) { secondPeak = bin / bins; break; }
+                                  first = true;
+                                }
+                              }
+                              for (let bin = bins; bin >= 0 && count < loudest; bin--) {
+                                if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                                if (rms[bin]) {
+                                  sum = Math.fround(sum + Math.fround(Math.fround((bin / bins) ** 2) * rms[bin]!));
+                                  count += rms[bin]!;
+                                }
+                              }
+                              const ratio = Math.fround(secondPeak / Math.fround(Math.sqrt(Math.fround(sum / loudest))));
+                              const dr = Math.fround(20 * Math.fround(Math.log10(ratio)));
+                              overall = Math.fround(overall + dr);
+                              report += `Channel ${channelIndex + 1}: DR: ${Number.isNaN(dr) ? "-nan" : Number.isFinite(dr) ? Number(dr.toPrecision(6)) : dr < 0 ? "-inf" : "inf"}\n`;
+                            }
+                            const dr = Math.fround(overall / stretched.length);
+                            report += `Overall DR: ${Number.isNaN(dr) ? "-nan" : Number.isFinite(dr) ? Number(dr.toPrecision(6)) : dr < 0 ? "-inf" : "inf"}\n`;
+                            volumeReports.push(report);
+                          }
+                        }
                       } else if (filterName === "volumedetect") {
                         const argument = trimmed.slice("volumedetect".length + 1);
                         const options = argument ? argument.split(":") : [];
@@ -21388,6 +21464,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "reverse: timeline is unsupported") return { exitCode: 176 };
             if (msg.startsWith("reverse: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("reverse:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (msg === "drmeter: timeline is unsupported") return { exitCode: 176 };
+            if (msg.startsWith("drmeter: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("drmeter:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg === "volumedetect: timeline is unsupported") return { exitCode: 176 };
             if (msg.startsWith("volumedetect: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("volumedetect:")) return { exitCode: err instanceof RangeError ? 222 : 234 };

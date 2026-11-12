@@ -604,6 +604,12 @@ ReplayGain weighting windows and the loudest 5% of windows. Stereo audio at
 ReplayGain's standard sample rates (8–192 kHz) is supported; other rates,
 channel layouts, and filter options are rejected.
 
+`drmeter` passes audio through and reports per-channel and overall dynamic range
+at info log level. Its window defaults to 3 seconds; `drmeter=length=0.01`
+selects 10 ms (valid range: 0.01–10 seconds). Short inputs still produce all
+PCM samples and report `DR: -nan` when there are too few windows for a reading.
+At error log level, measurements are suppressed.
+
 `volumedetect` reports interleaved sample count, mean and maximum volume in dB,
 and the native peak-level histogram on stderr, measuring audio after preceding
 filters. With an output frame limit, it includes complete input frames consumed

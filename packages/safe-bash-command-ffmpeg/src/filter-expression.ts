@@ -1,5 +1,6 @@
 export function parseFilterExpression(expression: string, filter: string, variables: Record<string, number>, sampleValue?: (channel: number) => number, registers?: Float64Array, randomStates?: BigUint64Array[], print?: (value: number, level: number) => void): number {
   let offset = 0;
+  let rootEvaluations = 0;
   // FFmpeg removes ASCII whitespace before tokenizing, including inside tokens.
   let source = "";
   for (const character of expression) {
@@ -36,7 +37,8 @@ export function parseFilterExpression(expression: string, filter: string, variab
         }
         offset++;
         const coefficientStart = offset;
-        const args = [parse(0, depth + 1, evaluate && name !== "taylor")];
+        const savedRoot = name === "root" ? registers?.[0] : undefined;
+        const args = [parse(0, depth + 1, evaluate && name !== "taylor" && name !== "root")];
         while (source[offset] === ",") {
           offset++;
           // Validate both branches, but only evaluate the selected branch.
@@ -77,6 +79,55 @@ export function parseFilterExpression(expression: string, filter: string, variab
               }
             } finally {
               registers[index] = saved;
+              offset = end;
+            }
+          }
+        }
+        else if (name === "root" && args.length === 2 && registers) {
+          value = 0;
+          if (evaluate) {
+            const end = offset;
+            let low = -1, high = -1;
+            let lowValue = -Number.MAX_VALUE, highValue = Number.MAX_VALUE;
+            const maximum = args[1]!;
+            const evaluateRoot = () => {
+              // Bound total work even when root searches are nested.
+              if (++rootEvaluations > 65536) throw new RangeError(`${filter}: root evaluation limit exceeded`);
+              offset = coefficientStart;
+              return parse(0, depth + 1);
+            };
+            try {
+              for (let i = -1; i < 1024; i++) {
+                if (i < 255) {
+                  // FFmpeg visits the interval in reversed eight-bit index order.
+                  let bits = i & 255;
+                  bits = ((bits & 0x55) << 1) | ((bits >>> 1) & 0x55);
+                  bits = ((bits & 0x33) << 2) | ((bits >>> 2) & 0x33);
+                  bits = ((bits & 0x0f) << 4) | (bits >>> 4);
+                  registers[0] = bits * maximum / 255;
+                } else {
+                  registers[0] = maximum * Math.pow(0.9, i - 255);
+                  if (i & 1) registers[0] *= -1;
+                  registers[0] += i & 2 ? low : high;
+                }
+                const result = evaluateRoot();
+                if (result <= 0 && result > lowValue) { low = registers[0]!; lowValue = result; }
+                if (result >= 0 && result < highValue) { high = registers[0]!; highValue = result; }
+                if (low >= 0 && high >= 0) {
+                  for (let j = 0; j < 1000; j++) {
+                    registers[0] = (low + high) * 0.5;
+                    if (low === registers[0] || high === registers[0]) break;
+                    const result = evaluateRoot();
+                    if (result <= 0) low = registers[0]!;
+                    if (result >= 0) high = registers[0]!;
+                    if (Number.isNaN(result)) { low = high = result; break; }
+                  }
+                  break;
+                }
+              }
+              value = -lowValue < highValue ? low : high;
+            } finally {
+              registers[0] = savedRoot!;
               offset = end;
             }
           }

@@ -9824,8 +9824,8 @@ export function evalSyncFfmpeg(
       date: metadata.date ?? metadata.year ?? sourceMetadata.date,
       comment: metadata.comment ?? sourceMetadata.comment,
       genre: metadata.genre ?? sourceMetadata.genre,
-      trackNumber: metadata.track ?? sourceMetadata.trackNumber,
-      discNumber: metadata.disc ?? sourceMetadata.discNumber,
+      trackNumber: metadata.track ?? (outPlugin?.id === "flac" ? metadata.tracknumber : undefined) ?? sourceMetadata.trackNumber,
+      discNumber: metadata.disc ?? (outPlugin?.id === "flac" ? metadata.discnumber : undefined) ?? sourceMetadata.discNumber,
       encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav" || outPlugin?.id === "flac" || outPlugin?.id === "caf" || outPlugin?.id === "lrc") ? ((outPlugin.id === "ffmetadata" || outPlugin.id === "lrc" ? outputBitexact : bitexact) ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
     };
     if (outPlugin?.id === "ffmetadata") metaTags = orderFfmetadataReplacements(metaTags, sourceMetadata, metadata);
@@ -20734,8 +20734,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               date: metadata.date ?? metadata.year ?? sourceMetadata.date,
               comment: metadata.comment ?? sourceMetadata.comment,
               genre: metadata.genre ?? sourceMetadata.genre,
-              trackNumber: metadata.track ?? sourceMetadata.trackNumber,
-              discNumber: metadata.disc ?? sourceMetadata.discNumber,
+              trackNumber: metadata.track ?? (outPlugin?.id === "flac" ? metadata.tracknumber : undefined) ?? sourceMetadata.trackNumber,
+              discNumber: metadata.disc ?? (outPlugin?.id === "flac" ? metadata.discnumber : undefined) ?? sourceMetadata.discNumber,
               encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav" || outPlugin?.id === "flac" || outPlugin?.id === "caf" || outPlugin?.id === "lrc") ? ((outPlugin.id === "ffmetadata" || outPlugin.id === "lrc" ? outputBitexact : bitexact) ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder
             };
             if (outPlugin?.id === "ffmetadata") metaTags = orderFfmetadataReplacements(metaTags, sourceMetadata, metadata);

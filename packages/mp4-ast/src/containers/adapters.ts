@@ -1859,6 +1859,8 @@ export function flacAst(): MediaAstPlugin {
       for (const [key, value] of Object.entries(tags)) {
         if (["title", "artist", "album", "date", "comment", "genre", "encoder"].includes(key)) {
           Object.assign(metadata, { [key]: value });
+        } else if (key === "track" || key === "disc") {
+          Object.assign(metadata, { [key === "track" ? "trackNumber" : "discNumber"]: value });
         } else Object.defineProperty(metadata.custom, key, { value, enumerable: true, configurable: true });
       }
       return { ...doc, metadata, chapters: scanner.chapters(doc.timescale), duration, durationSeconds: duration / track.timescale,
@@ -1881,7 +1883,7 @@ export function flacAst(): MediaAstPlugin {
       const metadata = options?.metadata ?? doc.metadata;
       const tags = Object.fromEntries(Object.entries({ ...metadata.custom, ...metadata })
         .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== "")
-        .map(([key, value]) => [key === "album_artist" ? "albumArtist" : metadata.keySpellings?.[key] ?? key, value]));
+        .map(([key, value]) => [key === "trackNumber" ? "track" : key === "discNumber" ? "disc" : key === "album_artist" ? "albumArtist" : metadata.keySpellings?.[key] ?? key, value]));
       // FFmpeg converts comment to DESCRIPTION without replacing an explicit description.
       for (const key of Object.keys(tags)) {
         if (key.toLowerCase() !== "comment") continue;

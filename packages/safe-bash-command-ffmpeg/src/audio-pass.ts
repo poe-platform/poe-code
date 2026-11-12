@@ -16,6 +16,7 @@ export async function passAudio(
   const bandreject = name === "bandreject";
   const lowShelf = name === "bass" || name === "lowshelf";
   const shelf = lowShelf || name === "treble" || name === "highshelf";
+  let csg = false;
   let enable: string | undefined;
   let precision = -1;
   let normalize = false;
@@ -44,6 +45,10 @@ export async function passAudio(
     position = separator < 0 ? position + 1 : position === 0 ? 1 : 0;
     if (!optionName) throw new Error(`${name}: too many positional options`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    if (bandpass && optionName === "csg") {
+      csg = parseFilterBoolean(value, "bandpass: invalid csg");
+      continue;
+    }
     if (optionName === "enable") {
       enable = value;
       // Validate without advancing the per-filter expression state.
@@ -171,7 +176,7 @@ export async function passAudio(
     const a0 = options.poles === 1 ? 1 : 1 + alpha;
     a1 = options.poles === 1 ? -Math.exp(-angle) : -2 * Math.cos(angle) / a0;
     a2 = options.poles === 1 ? 0 : (1 - alpha) / a0;
-    b0 = bandreject ? 1 / a0 : bandpass ? alpha / a0 : options.poles === 1
+    b0 = bandreject ? 1 / a0 : bandpass ? (csg ? sine / 2 : alpha) / a0 : options.poles === 1
       ? lowpass ? 1 + a1 : (1 - a1) / 2
       : (1 + (lowpass ? -Math.cos(angle) : Math.cos(angle))) / (2 * a0);
     b1 = bandreject ? a1 : bandpass ? 0 : options.poles === 1 ? lowpass ? 0 : -b0 : (lowpass ? 2 : -2) * b0;

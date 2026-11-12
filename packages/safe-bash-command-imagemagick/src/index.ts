@@ -11251,7 +11251,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (c === "," || c === "/") value += component++ === 0 ? "x" : "+";
             else if (c.trim() !== "" && !"!#%()<>@\\^".includes(c)) value += c;
         }
-        let geometry = parseMagickGeometry(value);
+        // A trailing separator omits a component; rectangle geometry would give it zero.
+        let geometry = parseMagickGeometry(value.endsWith("+") || value.endsWith("-") ? value.slice(0, -1) : value);
         if (geometry.width !== undefined && geometry.hasOffset && !value.toLowerCase().includes("x")) {
             // Native leaves numeric fields unset when unsigned brightness runs directly
             // into offsets. Only modifier or decimal flags make that geometry valid.

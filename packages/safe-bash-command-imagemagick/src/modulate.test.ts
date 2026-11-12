@@ -54,3 +54,33 @@ for (const mode of ["buffered", "command", "sync"] as const) {
         expect([...decodeImage(output).data]).toEqual([...rgb, 255]);
     });
 }
+
+for (const mode of ["buffered", "retained", "command", "sync"] as const) {
+    // ImageMagick 7.1.2-35 Q16-HDRI: omitted hue defaults to 100; explicit zero rotates it.
+    it.each([
+        ["120,75,", "5f95ce80"],
+        ["120x75+", "5f95ce80"],
+        ["120,,", "4d95e080"],
+        ["120,75", "5f95ce80"],
+        ["120,75,100", "5f95ce80"],
+        ["120,75,0", "ce985f80"],
+    ] as const)(`defaults omitted modulation hue in %s via ${mode}`, async (value, expected) => {
+        const original = new TextEncoder().encode("KEEP");
+        const files = new Map([["/dest", original]]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/dest", original);
+        const args = ["xc:#257bd680", "-modulate", value, "-depth", "8", "rgba:/dest"];
+        const argumentValues = createCommandArguments(args);
+        let stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: argumentValues.args, argumentValues, fs: filesystem, cwd: "/", env: {},
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} }, stderr: { async write(chunk) { stderr += new TextDecoder().decode(chunk); } },
+        }) : mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        const output = mode === "command" || mode === "retained" ? await filesystem.readFile("/dest") : files.get("/dest")!;
+        expect(Buffer.from(output).toString("hex")).toBe(expected);
+    });
+}

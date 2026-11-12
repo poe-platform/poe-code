@@ -6,7 +6,8 @@ export async function adaptiveAudio(
   first: MediaTrack, desired: MediaTrack, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaTrack> {
   const name = filter.split("=", 1)[0]!;
-  const options: Record<string, number> = { order: 256, mu: 0.75, eps: 1, leakage: 0, out_mode: 2, precision: 0 };
+  const defaults: Record<string, number> = { order: 256, mu: 0.75, eps: 1, leakage: 0, out_mode: 2, precision: 0 };
+  const options = { ...defaults };
   const bounds: Record<string, readonly [number, number]> = {
     order: [1, 32767], mu: [0, 2], eps: [0, 1], leakage: [0, 1], out_mode: [0, 4], precision: [0, 2]
   };
@@ -20,8 +21,11 @@ export async function adaptiveAudio(
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (!key || !Object.hasOwn(options, key)) throw new Error(`${name}: unsupported option ${key}`);
     const choices = key === "out_mode" ? ["i", "d", "o", "n", "e"] : key === "precision" ? ["auto", "float", "double"] : [];
-    const numeric = choices.includes(value) ? choices.indexOf(value) : parseFilterExpression(value, name, {});
     const [min, max] = bounds[key]!;
+    const numeric = parseFilterExpression(value, name, {
+      min, max, default: defaults[key]!,
+      ...Object.fromEntries(choices.map((choice, index) => [choice, index]))
+    });
     if (!value || !Number.isFinite(numeric) || numeric < min || numeric > max ||
       (["order", "out_mode", "precision"].includes(key) && !Number.isInteger(numeric))) throw new Error(`${name}: invalid ${key}`);
     options[key] = Math.fround(numeric);

@@ -1413,7 +1413,9 @@ adaptive filter to input and desired PCM signals with matching sample rates and 
 Both upstream branches are evaluated, channels adapt independently, and output ends at the
 shorter input. Options are `order`, `mu`, `eps`, `leakage`, `out_mode` (`i` input, `d` desired,
 `o` residual, `n` input minus estimate, `e` estimate), and `precision` (`auto`, `float`, `double`).
-Named instances and downstream audio filters are supported.
+Named instances and downstream audio filters are supported. Both `anlmf` and `anlms`
+accept option-specific `min`, `max`, and `default` constants and arithmetic with enum
+names, for example `order=min`, `mu=default`, and `out_mode=o+1`.
 
 `[0:a][1:a]anlms=order=4:out_mode=o[out]` adaptively filters the first PCM signal against the second (desired) signal. Both inputs must have matching channel layouts and sample rates; filters on either branch run first, and output ends with the shorter branch. Supports `order`, `mu`, `eps`, `leakage`, and `out_mode`: `i` passes the input, `d` passes the desired signal, `o` returns the residual, `e` returns the filter estimate, and `n` subtracts the estimate from the input.
 

@@ -160,8 +160,8 @@ import { combineMetaPixelSteps, type MetaChannels } from "./combine-meta.js";
 import { negateMetaPixelSteps } from "./negate-meta.js";
 
 type ReadMask = Pick<BaseRgbaImage, "width" | "height"> & Partial<Pick<BaseRgbaImage, "data" | "data16" | "evaluateSamples">> & { position?: number; storedEvaluateSamples?: number | undefined };
-type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & CyclePalette & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; placementGravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; regionTransformSource?: RgbaImage | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & CyclePalette & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; placementGravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; storedRegionTransformSource?: StoredRgbaImage | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
+type RgbaImage = BaseRgbaImage & HueMetadata & MetaChannels & CyclePalette & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; placementGravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; alphaAssociated?: boolean | undefined; alphaSeparate?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; regionTransformSource?: RgbaImage | undefined; readMask?: ReadMask | undefined; writeMask?: BaseRgbaImage | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & MetaChannels & CyclePalette & { [magickInput]?: MagickFormatContext; matteColor?: RgbaColor; gravity?: GravityPosition | undefined; placementGravity?: GravityPosition | undefined; virtualPixel?: VirtualPixelMethod | undefined; alphaBlend?: boolean | undefined; alphaAssociated?: boolean | undefined; alphaSeparate?: boolean | undefined; inactiveAlpha?: boolean | undefined; region?: Region | undefined; storedRegionTransformSource?: StoredRgbaImage | undefined; readMask?: ReadMask | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined };
 type ImageMetadata = BaseImageMetadata & HueMetadata & MetaChannels & Pick<RgbaImage, "inactiveAlpha" | "alphaBlend" | "alphaSeparate">;
 
 const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
@@ -10636,7 +10636,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     // Associate creates a zero alpha channel when a later raster operation needs it.
                     if (mode === "associate" && !im.hasAlpha && !im.inactiveAlpha) out[idx + 3] = data16[idx + 3] = evaluateSamples[idx + 3] = 0;
                 }
-                return { ...im, data: out, data16, evaluateSamples, ...(hueSamples ? { hueSamples } : {}), hasAlpha: false, inactiveAlpha: initializeAlpha || im.hasAlpha || im.inactiveAlpha, alphaBlend: mode === "associate", alphaSeparate: mode === "disassociate", channels: initializeAlpha ? im.channels <= 2 ? 2 : 4 : im.channels };
+                return { ...im, data: out, data16, evaluateSamples, ...(hueSamples ? { hueSamples } : {}), hasAlpha: false, inactiveAlpha: initializeAlpha || im.hasAlpha || im.inactiveAlpha, alphaBlend: mode === "associate", alphaAssociated: mode === "associate", alphaSeparate: mode === "disassociate", channels: initializeAlpha ? im.channels <= 2 ? 2 : 4 : im.channels };
             };
         }
         else if (mode === "deactivate" || mode === "discrete") {
@@ -10647,7 +10647,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     im = { ...yield* prepareInactiveAlphaOutput({ ...im, hasAlpha: false }), alphaBlend: true, channels: im.channels <= 2 ? 2 : 4 };
                 }
                 yield;
-                return { ...im, hasAlpha: false, inactiveAlpha: true, alphaBlend: im.alphaBlend ?? im.hasAlpha, alphaSeparate: mode === "discrete" };
+                return { ...im, hasAlpha: false, inactiveAlpha: true, alphaBlend: im.alphaBlend ?? im.hasAlpha, alphaAssociated: false, alphaSeparate: mode === "discrete" };
             };
         }
         else if (mode === "background") {

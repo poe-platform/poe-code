@@ -29,7 +29,9 @@ export async function passAudio(
   if (bandpass || bandreject || equalizer) { delete aliases.poles; delete aliases.p; }
   if (shelf || equalizer) { aliases.gain = "gain"; aliases.g = "gain"; }
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  const entries = argument ? argument.split(":") : [];
+  if (entries.at(-1) === "") entries.pop();
+  for (const [index, option] of entries.entries()) {
     const separator = option.indexOf("=");
     const optionName = separator < 0 && index === 0 ? "frequency" : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();

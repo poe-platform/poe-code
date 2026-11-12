@@ -414,8 +414,8 @@ export function sequenceCanvas<T extends Pick<RgbaImage, "hasAlpha" | "space" | 
 export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick<RgbaImage, "hasAlpha" | "space" | "format" | "depth" | "isPalette"> & { inactiveAlpha?: boolean | undefined; alphaSeparate?: boolean | undefined; alphaBlend?: boolean | undefined; magickColorspace?: string; [magickInput]?: MagickFormatContext })[], raw: string, channels?: readonly boolean[], highDepth = false, seed = 0n, width = size / 4): Steps {
     const canvas = sequenceCanvas(inputs), cmyk = canvas.space === "cmyk", stride = cmyk ? 5 : 4;
     size = size / 4 * stride;
-    // Discrete alpha is editable even though it does not enable transparency.
-    const alpha = inputs.map(image => image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false);
+    // Discrete and disassociated inputs retain alpha samples even without transparency.
+    const alpha = inputs.map(image => image.hasAlpha || image.alphaSeparate === true);
     const inactiveAlpha = !canvas.hasAlpha && canvas.inactiveAlpha && (canvas.alphaSeparate ? canvas.alphaBlend === false : canvas.alphaBlend !== false);
     const frames = inputs.length, hasAlpha = !inactiveAlpha && alpha.some(Boolean);
     const hue = !!canvas.magickColorspace && canvas.magickColorspace !== "RGB" && canvas.magickColorspace !== "scRGB" && canvas.magickColorspace !== "Gray" && !cmyk;

@@ -34,3 +34,25 @@ for (const mode of ["buffered", "retained"]) {
     expect(result.stdoutBytes).toEqual(new Uint8Array([255, 0, 0, 255, 0, 0, 255, 255]));
   });
 }
+
+for (const mode of ["buffered", "retained", "command", "sync"]) {
+  it.each([
+    { operation: "OptimizeFrame", inputDisposal: "Background", firstSize: "1x1" },
+    { operation: "OptimizeFrame", inputDisposal: "None", firstSize: "1x1" },
+    { operation: "Optimize", inputDisposal: "Background", firstSize: "3x2" },
+  ])(`recomputes first-frame disposal for coincident pixels (${mode}, $operation, $inputDisposal)`, async ({ operation, inputDisposal, firstSize }) => {
+    const args = ["-size", "1x1", "(", "xc:red", "-repage", "3x2+0+0", "-set", "dispose", inputDisposal, ")",
+      "(", "xc:blue", "-repage", "3x2+0+0", ")", "-layers", operation, "-format", "%wx%h %g %D;", "info:"];
+    const filesystem = new MemoryFileSystem();
+    let stdout = "", stderr = "";
+    const result = mode === "command" ? await createMagickCommand().execute({
+      command: "magick", args: createCommandArguments(args).args, cwd: "/", env: {}, fs: filesystem,
+      stdin: (async function* () {})(), signal: new AbortController().signal,
+      stdout: { write: async chunk => { stdout += new TextDecoder().decode(chunk); } },
+      stderr: { write: async chunk => { stderr += new TextDecoder().decode(chunk); } },
+    }) : mode === "sync" ? runConvertCliSync(args, new Map()) : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : new Map());
+    expect(result.exitCode).toBe(0);
+    expect("stderr" in result ? result.stderr : stderr).toBe("");
+    expect("stdout" in result ? result.stdout : stdout).toBe(`${firstSize} 3x2+0+0 None;1x1 3x2+0+0 None;`);
+  });
+}

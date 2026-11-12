@@ -16394,7 +16394,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (frame.width !== stack[0]!.width || frame.height !== stack[0]!.height ||
                     frame.virtualCanvas?.x || frame.virtualCanvas?.y) throw new Error("image pages are not coalesced");
             }
-            stack = stack.map((frame, n) => ({ ...frame, virtualCanvas: { width: frame.virtualCanvas?.width || frame.width, height: frame.virtualCanvas?.height || frame.height, x: 0, y: 0 }, disposal: n === stack.length - 1 ? 1 : frame.disposal || 1 }));
+            stack = stack.map(frame => ({ ...frame, virtualCanvas: { width: frame.virtualCanvas?.width || frame.width, height: frame.virtualCanvas?.height || frame.height, x: 0, y: 0 }, disposal: 1 }));
             yield* optimizeFrameRectanglesSteps(stack, state.alphaFuzz, false);
             state.optimizeLayers = true; i++;
         }
@@ -18529,7 +18529,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const frame = (await stack.get(n))!;
                     if (frame.width !== first!.width || frame.height !== first!.height ||
                         frame.virtualCanvas?.x || frame.virtualCanvas?.y) throw new Error("image pages are not coalesced");
-                    await stack.set(n, { ...frame, virtualCanvas: { width: frame.virtualCanvas?.width || frame.width, height: frame.virtualCanvas?.height || frame.height, x: 0, y: 0 }, disposal: n === stack.length - 1 ? 1 : frame.disposal || 1 });
+                    await stack.set(n, { ...frame, virtualCanvas: { width: frame.virtualCanvas?.width || frame.width, height: frame.virtualCanvas?.height || frame.height, x: 0, y: 0 }, disposal: 1 });
                 }
                 await optimizeStoredFrameRectangles(stack, backend, signal, fuzz, false);
                 return stack;

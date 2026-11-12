@@ -1144,6 +1144,12 @@ function parseAloop(argument: string) {
   return values;
 }
 
+function parseAsetnsamplesSize(value: string): number {
+  const number = parseFilterExpression(value, "asetnsamples", { default: 1024, min: 1, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10));
+  if (number < 1 || number > 2147483647) throw new RangeError("asetnsamples: invalid frame size");
+  return roundToEven(number);
+}
+
 function parseAsetnsamples(argument: string) {
   let size = 1024;
   let pad = true;
@@ -1157,9 +1163,7 @@ function parseAsetnsamples(argument: string) {
     const key = separator < 0 ? ["n", "p"][index] : option.slice(0, separator);
     const value = separator < 0 ? option : option.slice(separator + 1);
     if (key === "n" || key === "nb_out_samples") {
-      const number = parseFilterExpression(value, "asetnsamples", { default: 1024, min: 1, PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10));
-      if (number < 1 || number > 2147483647) throw new RangeError("asetnsamples: invalid frame size");
-      size = roundToEven(number);
+      size = parseAsetnsamplesSize(value);
     } else if (key === "p" || key === "pad") {
       pad = parseFilterBoolean(value, "asetnsamples: invalid pad");
     } else if (key === "enable") {
@@ -14328,6 +14332,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const supported = action === "enable" && ["tremolo", "vibrato", "dcshift", "deesser"].some(name => target === name || target?.startsWith(`${name}@`))
                             || ["f", "frequency", "g", "gain"].includes(action!)
                               && ["lowpass", "highpass", "bandpass", "bandreject", "equalizer", "bass", "lowshelf", "treble", "highshelf"].includes(target?.split("@", 1)[0] ?? "")
+                            || ["n", "nb_out_samples", "p", "pad"].includes(action!) && (target === "asetnsamples" || target?.startsWith("asetnsamples@"))
                             || target === "silenceremove" || target?.startsWith("silenceremove@")
                             || action === "percent" && (target === "afwtdn" || target?.startsWith("afwtdn@"))
                             || action === "tempo" && (target === "atempo" || target?.startsWith("atempo@"))
@@ -15247,6 +15252,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         origRate = rate;
                       } else if (trimmed === "asetnsamples" || trimmed.startsWith("asetnsamples=")) {
                         const reframe = parseAsetnsamples(trimmed === "asetnsamples" ? "" : trimmed.slice("asetnsamples=".length));
+                        const commands = audioCommands.filter(command => command.target === filterName || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        audioCommands = audioCommands.filter(command => command.target !== filterName && command.target !== filterTarget);
+                        let commandIndex = 0;
+                        let inputFrameIndex = 0;
+                        let available = 0;
                         const length = stretched[0]?.length ?? 0;
                         const previous = audioTimestamps;
                         const previousMetadata = audioMetadata;
@@ -15256,14 +15267,32 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let frameIndex = 0;
                         let packetStart = 0;
                         let packetEnd = t.samples[0] ? Math.round(t.samples[0].duration * origRate / t.timescale) : 1024;
-                        // Regrouping cannot supply a frame immediately if it needs more input.
-                        if (reframe.size > (previous?.[0]?.end ?? Math.min(length, packetEnd))) {
-                          audioInitialFrameUnavailable = true;
-                        }
                         let enabled = true;
                         let padded = 0;
                         for (let start = 0; start < length;) {
                           if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          // Pull whole input frames until the current group can be emitted.
+                          // Commands can resize that group while it is waiting for more input.
+                          while (available < length && (available <= start || enabled && available < start + reframe.size)) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            while (commandIndex < commands.length && commands[commandIndex]!.sample <= available) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              const command = commands[commandIndex++]!;
+                              try {
+                                if (command.action === "n" || command.action === "nb_out_samples") {
+                                  reframe.size = parseAsetnsamplesSize(command.expression);
+                                } else if (command.action === "p" || command.action === "pad") {
+                                  reframe.pad = parseFilterBoolean(command.expression, "asetnsamples: invalid pad");
+                                }
+                              } catch { /* Rejected commands leave the current options unchanged. */ }
+                            }
+                            const packet = t.samples[inputFrameIndex];
+                            available = previous?.[inputFrameIndex]?.end ?? Math.min(length, available +
+                              (packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024));
+                            // Regrouping cannot supply a frame immediately if it needs more input.
+                            if (inputFrameIndex === 0 && reframe.size > available) audioInitialFrameUnavailable = true;
+                            inputFrameIndex++;
+                          }
                           while (previous && frameIndex + 1 < previous.length && previous[frameIndex]!.end <= start) frameIndex++;
                           while (!previous && packetEnd <= start) {
                             packetStart = packetEnd;

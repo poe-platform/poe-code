@@ -7330,7 +7330,11 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                 const angle = num() * Math.PI / 180;
                 // MVG uses sine for skewX and negative half-angle tangent for skewY.
                 next = cmd === "skewx" ? [1, 0, Math.sin(angle), 1, 0, 0] : [1, -Math.tan(angle / 2), 0, 1, 0, 0];
-            } else next = [num(), num(), num(), num(), num(), num()];
+            } else {
+                // MVG lists the x shear before the y shear; our matrix uses SVG order.
+                const sx = num(), rx = num(), ry = num(), sy = num(), tx = num(), ty = num();
+                next = [sx, ry, rx, sy, tx, ty];
+            }
             const [a, b, c, d, e, f] = affine, [g, h, j, k, l, m] = next;
             affine = [a * g + c * h, b * g + d * h, a * j + c * k, b * j + d * k, a * l + c * m + e, b * l + d * m + f];
             if (!affine.every(Number.isFinite)) throw new Error("Drawing requires a finite transform");

@@ -22645,7 +22645,6 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
       }
     }}finally{comparison.return(undefined as never);}
     const {metric:metricStr}=compared.value;
-    const exitCode = inputErrors || (regardWarnings && colorWarnings) ? 2 : compared.value.exitCode;
     const searchScore = metric === "ssim" || metric === "ncc" || metric === "dpc" || metric === "phase" ? 1 - 2 * compared.value.distortion : compared.value.distortion;
     // Native UndefinedErrorMetric prints RMSE but uses the opposite warning comparison.
     const diagnostics = verbose
@@ -22653,8 +22652,10 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             + (metricExplicit ? `    all: ${metricStr}\n` : "")
             + `${refSpec}=>${outSpec} ${inferOutputFormat(outSpec, "png").format.toUpperCase()} ${width}x${height}\n`
         : metricStr;
-    const comparisonStderr = inputErrors + diagnostics + (quiet ? "" : colorWarnings) + (subimageSearch && (metricExplicit && !["ssim", "dssim", "ncc", "psnr"].includes(metric) ? searchScore > dissimilarityThreshold : searchScore < dissimilarityThreshold)
-        ? `compare: images too dissimilar '${refSpec}'\n` : "");
+    const dissimilarityWarning = subimageSearch && (metricExplicit && !["ssim", "dssim", "ncc", "psnr"].includes(metric) ? searchScore > dissimilarityThreshold : searchScore < dissimilarityThreshold)
+        ? `compare: images too dissimilar '${refSpec}'\n` : "";
+    const exitCode = inputErrors || (regardWarnings && (colorWarnings || dissimilarityWarning)) ? 2 : compared.value.exitCode;
+    const comparisonStderr = inputErrors + diagnostics + (quiet ? "" : colorWarnings + dissimilarityWarning);
     if (state.formatStr !== undefined) {
         const image = { ...imgA, properties: { ...imgA.properties, distortion: formatMetricNum(compared.value.distortion) } };
         const context = { filePath: parseInputToken(refSpec).baseToken };

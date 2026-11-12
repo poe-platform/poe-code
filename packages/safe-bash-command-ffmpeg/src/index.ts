@@ -13399,7 +13399,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const waveformIndex = filters.findIndex(filter => filter.split("=", 1)[0]!.split("@", 1)[0] === "showwavespic");
                 if (waveformIndex < 0) throw new Error("showwavespic: invalid filter chain");
                 const upstream = filters.splice(0, waveformIndex);
-                const filteredTrack = upstream.length ? await filterAudio(track, serializeFilterChain(upstream)) : track;
+                // showwavespic accepts signed PCM16, including after upstream audio filters.
+                upstream.push("aformat=sample_fmts=s16");
+                const filteredTrack = await filterAudio(track, serializeFilterChain(upstream));
                 const audio = filteredTrack.decodedAudio ?? (filteredTrack.codecDescriptions[0]?.codecName === "aac"
                   ? decodeAacTrack(doc, filteredTrack) : undefined);
                 if (!audio) throw new Error("showwavespic requires decoded PCM audio");

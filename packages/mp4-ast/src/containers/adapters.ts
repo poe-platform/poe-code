@@ -2822,7 +2822,9 @@ export function serializeSubtitleDocument(
       : format === "srt" && codec === "pjs" ? text.trimStart()
       : format === "srt" && (codec === "ass" || doc.containerFormat === "sami")
         ? text.trimStart().replaceAll("\r\n", "\n").replaceAll("\n", "\r\n") : text.trim();
-    if (!(packet?.byteLength ?? cueText.length) && format !== "webvtt") continue;
+    // Empty timestamped LRC lines are cues, including when converted to SRT.
+    if (!(packet?.byteLength ?? cueText.length) && format !== "webvtt" &&
+      !(format === "srt" && doc.containerFormat === "lrc")) continue;
     const startMs = Math.round(s.pts * 1000 / ts);
     // SRT receives packet timestamps and durations independently rescaled by the muxer.
     const endMs = format === "srt" ? startMs + Math.round(s.duration * 1000 / ts)

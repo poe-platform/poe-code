@@ -1364,7 +1364,11 @@ function parseMagickColorMatrix(spec: string): { m: number[]; cols: number; rows
     let named: number[] | undefined;
     let namedCols: number | undefined;
     let namedRows: number | undefined;
-    if (name === "unity") named = [argument ?? 1];
+    if (name === "unity") {
+        // Unity reads an unscaled numeric prefix and defaults missing coefficients to one.
+        const coefficient = Number.parseFloat(separator < 0 ? "" : spec.slice(separator + 1));
+        named = [Number.isNaN(coefficient) ? 1 : coefficient];
+    }
     else if (name === "sobel" && (argument === undefined || Number.isFinite(argument))) {
         named = [1, 0, -1, 2, 0, -2, 1, 0, -1];
         const angle = ((argument ?? 0) % 360 + 360) % 360;

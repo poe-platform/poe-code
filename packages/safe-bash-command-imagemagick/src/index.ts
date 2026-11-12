@@ -23134,6 +23134,14 @@ function montageInputDiagnostic(image: ImageMetadata & { [magickInput]?: MagickF
     } }) + "\n";
 }
 
+function formatMontageIdentify(image: ImageMetadata & { [magickInput]?: MagickFormatContext }, count: number): string {
+    const source = image[magickInput], filename = source?.summaryFilename ?? source?.filePath ?? "";
+    const target = source?.filePath ?? filename;
+    const name = filename === target ? filename : `${filename}=>${target}`;
+    const scene = source?.sceneIdx ?? 0;
+    return formatInlineIdentify({ ...image, [magickInput]: { ...source, summaryFilename: name } }, scene, count) + "\n";
+}
+
 interface MontageInput {
     path: string;
     size: MontageArguments["sizes"][number];
@@ -23145,7 +23153,7 @@ interface MontageArguments {
     regardWarnings: boolean;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth" | "verbose" | "caption">[];
     shadow: boolean;
-    transforms: ({ kind: "polaroid"; angle: number; state: MagickState } | { kind: "strip" } | { kind: "profile"; name: string; bytes: Uint8Array | undefined } | { kind: "draw"; drawing: string; state: MagickState } | { kind: "annotate"; geometry: string; text: string; state: MagickState } | { kind: "colors"; count: number; state: MagickState } | { kind: "coalesce"; inputs: MontageInput[]; index: number } | { kind: "dispose"; sequence: object; index: number } | { kind: "disposal"; value: number } | { kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | { kind: "distort"; warp: NonNullable<ReturnType<typeof parseMagickWarpOperation>> } | MontageLayers | { kind: "flip" | "flop" | "autoOrient" } | { kind: "trim"; fuzz: number } | { kind: "adaptive-sharpen"; geometry: MagickGeometry; state: MagickState } | { kind: "unsharp"; geometry: ReturnType<typeof parseUnsharpGeometry> } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "scale"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "thumbnail"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "depth"; depth: number; channels: MagickState["channels"]; dither: boolean } | { kind: "alpha" | "transparent" | "gamma" | "colorspace" | "grayscale" | "bilevel" | "truecolor" | "truecoloralpha" | "palette" | "palettealpha"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "blur"; geometry: MagickGeometry } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
+    transforms: ({ kind: "identify"; format: string | undefined; count: number } | { kind: "polaroid"; angle: number; state: MagickState } | { kind: "strip" } | { kind: "profile"; name: string; bytes: Uint8Array | undefined } | { kind: "draw"; drawing: string; state: MagickState } | { kind: "annotate"; geometry: string; text: string; state: MagickState } | { kind: "colors"; count: number; state: MagickState } | { kind: "coalesce"; inputs: MontageInput[]; index: number } | { kind: "dispose"; sequence: object; index: number } | { kind: "disposal"; value: number } | { kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | { kind: "distort"; warp: NonNullable<ReturnType<typeof parseMagickWarpOperation>> } | MontageLayers | { kind: "flip" | "flop" | "autoOrient" } | { kind: "trim"; fuzz: number } | { kind: "adaptive-sharpen"; geometry: MagickGeometry; state: MagickState } | { kind: "unsharp"; geometry: ReturnType<typeof parseUnsharpGeometry> } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "scale"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "thumbnail"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "depth"; depth: number; channels: MagickState["channels"]; dither: boolean } | { kind: "alpha" | "transparent" | "gamma" | "colorspace" | "grayscale" | "bilevel" | "truecolor" | "truecoloralpha" | "palette" | "palettealpha"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "blur"; geometry: MagickGeometry } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>, readProfile: (path: string) => Generator<Step | void, Uint8Array | undefined, void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
@@ -23186,10 +23194,10 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         if (operands.length === groupStart) return;
         if (queuedTransforms.length) for (let index = groupStart; index < operands.length; index++) {
             if (++cooperativeWork % 64 === 0) yield;
-            transforms[index] = transforms[index]!.concat(queuedTransforms);
+            transforms[index] = transforms[index]!.concat(queuedTransforms.map(transform => transform.kind === "identify" ? { ...transform, count: operands.length - groupStart } : transform));
         }
         if (advance) queuedTransforms.length = 0;
-        else queuedTransforms = queuedTransforms.filter(transform => transform.kind !== "crop");
+        else queuedTransforms = queuedTransforms.filter(transform => transform.kind !== "crop" && transform.kind !== "identify");
         pending = false;
     }
     for (let i = 0; i < argv.length; i++) {
@@ -23210,6 +23218,9 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         }
         else if (t === "-monitor" || t === "+monitor") {
             state.monitor = t === "-monitor";
+        }
+        else if (t === "-identify" || t === "+identify") {
+            queuedTransforms.push({ kind: "identify", format: state.formatStr, count: 1 });
         }
         else if (t === "-quiet" || t === "+quiet") {
             quiet = t === "-quiet";
@@ -23979,6 +23990,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     }
     const outSpec = operands[operands.length - 1]!;
     const inPaths = operands.slice(0, -1);
+    let identifyOutput = "";
     let inputErrors = parsed.inputErrors;
     let inputDiagnostics = "";
     let firstInputFormat = "";
@@ -24224,6 +24236,11 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 return result;
             }
             if (!image) return [];
+            if (transform.kind === "identify") {
+                identifyOutput += transform.format === undefined ? formatMontageIdentify(image, transform.count)
+                    : yield* formatMagickPropertyStringSteps(transform.format, image, () => image, { ...(image as MagickImage)[magickInput], sceneCount: transform.count });
+                return yield* transformTiles(image, operations, offset + 1);
+            }
             if (transform.kind === "strip") {
                 const { gifApplications: ignoredGifApplications, properties: ignoredProperties, ...stripped } = applyMagickProfile(image, "*");
                 return yield* transformTiles(stripped, operations, offset + 1);
@@ -24510,7 +24527,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         if (path === "-") stdoutChunks.push(data);
         else files.set(path.replaceAll("%%", "%"), data);
     }
-    const stdoutBytes = new Uint8Array(stdoutChunks.reduce((size, chunk) => size + chunk.length, 0));
+    let stdoutBytes = new Uint8Array(stdoutChunks.reduce((size, chunk) => size + chunk.length, 0));
     let offset = 0;
     for (const chunk of stdoutChunks) { stdoutBytes.set(chunk, offset); offset += chunk.length; }
     if (adjoin && output.path !== "-") {
@@ -24521,7 +24538,11 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         files.set(outSpec.slice(5), new TextEncoder().encode(stdout));
         stdout = "";
     }
-    return { exitCode: inputErrors || (parsed.regardWarnings && analysis.warnings) ? 1 : 0, stdout, stderr: progress + inputDiagnostics + analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
+    if (stdoutChunks.length && identifyOutput) {
+        const text = new TextEncoder().encode(identifyOutput), combined = new Uint8Array(text.length + stdoutBytes.length);
+        combined.set(text); combined.set(stdoutBytes, text.length); stdoutBytes = combined;
+    }
+    return { exitCode: inputErrors || (parsed.regardWarnings && analysis.warnings) ? 1 : 0, stdout: identifyOutput + stdout, stderr: progress + inputDiagnostics + analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
 }
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
     return withCompareFiles(input, stdinBytes, signal, async backend => {
@@ -24598,6 +24619,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
     const variableCells = !frame && !squareCells && cellW === undefined && cellH === undefined;
     if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + "montage: missing an image filename\n" }; }
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
+    let identifyOutput = "";
     let firstInputFormat = "";
     let firstInputCmyk = false;
         let textureImage: StoredRgbaImage | undefined;
@@ -24699,6 +24721,14 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     return;
                 }
                 if (!tile) return;
+                if (transform.kind === "identify") {
+                    const text = transform.format === undefined ? formatMontageIdentify(tile, transform.count)
+                        : await formatRetainedIdentify(transform.format, tile, { ...(tile as StoredMagickImage)[magickInput], sceneCount: transform.count }, async () => ({ image: tile, storage: backend.storage }), signal);
+                    if (input.stdout) await writeIdentifyText(input.stdout, text, signal);
+                    else identifyOutput += text;
+                    yield* transformTiles(tile, operations, offset + 1);
+                    return;
+                }
                 if (transform.kind === "strip") {
                     const { gifApplications: ignoredGifApplications, properties: ignoredProperties, ...stripped } = applyMagickProfile(tile, "*");
                     yield* transformTiles(stripped, operations, offset + 1);
@@ -25070,10 +25100,14 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             if (bytes) stdoutChunks.push(bytes);
         }
         if (adjoin || n > cols * rows) await backend.publishPending();
-        const stdoutBytes = new Uint8Array(stdoutChunks.reduce((size, chunk) => size + chunk.length, 0));
+        let stdoutBytes = new Uint8Array(stdoutChunks.reduce((size, chunk) => size + chunk.length, 0));
         let offset = 0;
         for (const chunk of stdoutChunks) { stdoutBytes.set(chunk, offset); offset += chunk.length; }
-        return { exitCode: inputErrors || (parsed.regardWarnings && analysis.warnings) ? 1 : 0, stdout, stderr: progress + inputDiagnostics + analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
+        if (stdoutChunks.length && identifyOutput) {
+            const text = new TextEncoder().encode(identifyOutput), combined = new Uint8Array(text.length + stdoutBytes.length);
+            combined.set(text); combined.set(stdoutBytes, text.length); stdoutBytes = combined;
+        }
+        return { exitCode: inputErrors || (parsed.regardWarnings && analysis.warnings) ? 1 : 0, stdout: identifyOutput + stdout, stderr: progress + inputDiagnostics + analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
     });
 }
 export async function runMontageCli(argv: readonly string[], files: Map<string, Uint8Array> | ConvertFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {

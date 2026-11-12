@@ -12389,7 +12389,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 ? (await readInput(filePath)).subarray(input?.skipInitialBytes ?? 0) : undefined;
               const pipeBytes = explicitFormat === "image2pipe" || explicitFormat === "bmp_pipe" || explicitFormat === "qoi_pipe"
                 ? (await readInput(filePath)).subarray(input?.skipInitialBytes ?? 0)
-                : detectedBytes?.[0] === 66 && detectedBytes[1] === 77 ? detectedBytes : undefined;
+                : detectedBytes && (detectedBytes[0] === 66 && detectedBytes[1] === 77 ||
+                  detectedBytes[0] === 80 && [50, 51, 53, 54].includes(detectedBytes[1]!)) ? detectedBytes : undefined;
               let pipeOffset = 0;
               let globPaths: string[] | undefined;
               let globPattern = imageDemuxer && input?.patternType === "glob" ? filePath : undefined;
@@ -12518,12 +12519,31 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
                   {
                     const decoded = planeFrame
-                      ? { ...planeFrame, format: "rawvideo", hasAlpha: false, resolution: undefined }
+                      ? { ...planeFrame, format: "rawvideo", hasAlpha: false, resolution: undefined, depth: undefined, data16: undefined }
                       : decodeFfmpegImage(imgBytes);
+                    let data = decoded.data;
+                    let native = planeFrame?.native;
+                    if ((decoded.format === "ppm" || decoded.format === "pgm") && decoded.depth === "ushort" && decoded.data16) {
+                      const channels = decoded.format === "ppm" ? 3 : 1;
+                      budget.allocateMemory(decoded.width * decoded.height * channels * 2);
+                      const pixels = new Uint8Array(decoded.width * decoded.height * channels * 2);
+                      const view = new DataView(pixels.buffer);
+                      for (let pixel = 0; pixel < decoded.width * decoded.height; pixel++) {
+                        if (pixel % 4096 === 0) budget.checkCpu();
+                        for (let channel = 0; channel < channels; channel++) {
+                          view.setUint16((pixel * channels + channel) * 2, decoded.data16[pixel * 4 + channel]!);
+                        }
+                      }
+                      native = { rgba: decoded.data, pixels, width: decoded.width, height: decoded.height,
+                        format: channels === 3 ? 34 : 29, colorspace: 5, fullRange: 1 };
+                      budget.allocateMemory(data.byteLength);
+                      data = scaleVideoPicture({ ...decoded, native }, decoded.width, decoded.height)!;
+                      native = { ...native, rgba: data };
+                    }
                     if (frames.length === 0) {
                       codecName = decoded.format === "jpeg" ? "mjpeg" : decoded.format;
                       if (decoded.format === "qoi" && imgBytes[13] === 1) colorMetadata = { transfer: 8 };
-                      pixelFormat = planeFrame ? planePixelFormat : decoded.hasAlpha ? "rgba" : "rgb24";
+                      pixelFormat = planeFrame ? planePixelFormat : native ? (native.format === 34 ? "rgb48be" : "gray16be") : decoded.hasAlpha ? "rgba" : "rgb24";
                       sarWidth = decoded.resolution?.x ?? 0;
                       sarHeight = decoded.resolution?.y || 1;
                     }
@@ -12537,10 +12557,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                     if (!planeFrame) budget.recordFrame(decoded.width, decoded.height);
                     frames.push({
-                      ...(planeFrame ? { native: planeFrame.native } : {}),
+                      ...(native ? { native } : {}),
                       width: decoded.width,
                       height: decoded.height,
-                      data: decoded.data,
+                      data,
                       ptsSeconds,
                       durationSeconds: timestampScale === undefined ? 1 / fps : 1 / timestampScale,
                       keyframe: true

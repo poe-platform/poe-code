@@ -3,7 +3,7 @@ import { it } from "node:test";
 import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
-for (const block of ["STYLE", "REGION"]) {
+for (const block of ["STYLE", "REGION", "STYLE guide", "REGIONAL", "STYLES", "STYLE1", "NOTEBOOK"]) {
   it(`does not export WebVTT ${block} blocks as captions`, async () => {
     const good = "00:03.000 --> 00:04.000\nGood\n\nregion1\n00:05.000 --> 00:06.000\nCaption\n";
     const volume = Volume.fromJSON({

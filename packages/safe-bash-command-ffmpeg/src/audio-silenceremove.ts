@@ -137,7 +137,8 @@ export async function removeSilence(
     startModes[n] = Number(options.start_mode === "all");
     stopModes[n] = Number(options.stop_mode === "all");
     enabledFrames[n] = Number(enable === undefined || Math.abs(parseFilterExpression(enable, "silenceremove enable", {
-      n, t: frame.pts / sampleRate,
+      // Match FFmpeg's PTS * av_q2d(time_base), including decimal boundary rounding.
+      n, t: frame.pts * (1 / sampleRate),
       pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0, h: 0,
       PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
     }, undefined, registers, randomStates)) >= 0.5);

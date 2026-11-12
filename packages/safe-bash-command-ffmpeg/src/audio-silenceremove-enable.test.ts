@@ -5,13 +5,13 @@ import { createFfmpegCommand } from "./index.js";
 
 const samples = [0, 0, 0, 0, 9000, -9000, 0, 0, 0, 0, 4000, -4000, 0, 0, 0, 0, 0, 0, 7000, -7000, 7000, -7000, 0, 0, 0];
 
-async function run(filter: string, format = "s16le", graph = false) {
-  const input = Buffer.alloc(samples.length * 2);
-  samples.forEach((value, i) => input.writeInt16LE(value, i * 2));
+async function run(filter: string, format = "s16le", graph = false, inputSamples = samples, sampleRate = 1000) {
+  const input = Buffer.alloc(inputSamples.length * 2);
+  inputSamples.forEach((value, i) => input.writeInt16LE(value, i * 2));
   const volume = Volume.fromJSON({ "/in.raw": input, "/out.raw": "KEEP" });
   let stderr = "";
   const result = await createFfmpegCommand().execute({
-    args: ["-y", "-v", "error", "-f", "s16le", "-ar", "1000", "-ac", "1", "-i", "/in.raw",
+    args: ["-y", "-v", "error", "-f", "s16le", "-ar", String(sampleRate), "-ac", "1", "-i", "/in.raw",
       ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
       "-f", format, "/out.raw"],
     cwd: "/", env: {}, signal: new AbortController().signal,
@@ -24,6 +24,27 @@ async function run(filter: string, format = "s16le", graph = false) {
     stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
   } as never);
   return { result, stderr, output: volume.readFileSync("/out.raw") as Buffer };
+}
+
+// Native FFmpeg 7.0.2 multiplies PTS by the time base before comparing decimal times.
+for (const [sampleRate, quietIndex, boundary] of [
+  [1000, 9, "0.009"], [44100, 15, "0.0003401360544217687"]
+] as const) for (const graph of [false, true]) {
+  const inputSamples = [...Array<number>(quietIndex).fill(1000), 10, 1000];
+  for (const [enable, trim] of [
+    [`eq(t,${boundary})`, false], [`gt(t,${boundary})`, true],
+    [`eq(n,${quietIndex})`, true], ["0", false]
+  ] as const) {
+    it(`silenceremove decimal enable=${enable} at ${sampleRate} Hz (graph=${graph})`, async () => {
+      const { result, stderr, output } = await run(
+        `asetnsamples=n=1:p=0,silenceremove=stop_periods=-1:stop_threshold=0.01:window=0:enable='${enable}'`,
+        "s16le", graph, inputSamples, sampleRate);
+      assert.equal(result.exitCode, 0, stderr);
+      assert.equal(stderr, "");
+      assert.deepEqual(Array.from({ length: output.length / 2 }, (_, i) => output.readInt16LE(i * 2)),
+        trim ? inputSamples.filter((_, i) => i !== quietIndex) : inputSamples);
+    });
+  }
 }
 
 // Native FFmpeg 7.0.2: identical 1 kHz PCM input, five-sample frames.

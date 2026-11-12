@@ -14488,6 +14488,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         if (t === "-write-mask" || t === "+write-mask" || t === "-clip-mask" || t === "+clip-mask") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const path = t.startsWith("-") ? tokens[++i] : undefined;
             if (t.startsWith("-") && !path) throw new Error(`missing argument '${t}'`);
             const mask = path ? yield* parseInputOperandSteps(path, files, state, stdinBytes, analysis, registers) : undefined;
@@ -18258,6 +18259,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const path = token.startsWith("-") ? tokens[++i] : undefined, settings = { ...state };
             if (token.startsWith("-") && !path) throw new Error(`missing argument '${token}'`);
             stackStep(async (stack, backend) => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 const mask = path ? await parseStoredCompareInput(path, settings, backend, signal, { analysis, registers }) : undefined;
                 if (path && !mask) throw new Error(`unable to open image '${path}'`);
                 for (let n = 0; n < stack.length; n++) {

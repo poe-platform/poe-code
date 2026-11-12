@@ -1,4 +1,5 @@
 import { parseFilterExpression } from "./filter-expression.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export function parseTempo(argument: string): number {
   let tempo = 1;
@@ -8,6 +9,10 @@ export function parseTempo(argument: string): number {
     const separator = option.indexOf("=");
     const key = separator < 0 ? (index === 0 ? "tempo" : "") : option.slice(0, separator).trim();
     if (key === "enable") throw new Error("atempo: timeline is unsupported");
+    if (key === "threads" || key === "thread_type") {
+      validateWeaveGenericOption(key, option.slice(separator + 1), "atempo");
+      continue;
+    }
     if (key !== "tempo") throw new Error("atempo: unknown option");
     tempo = parseFilterExpression(separator < 0 ? option : option.slice(separator + 1), "atempo", { min: 0.5, max: 100, default: 1 });
     if (tempo < 0.5 || tempo > 100) {

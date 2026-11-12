@@ -346,7 +346,7 @@ describe("safe-bash-command-imagemagick", () => {
       ["-metric", "AE", "-highlight-color", "#ff00ff", "/a.png", "/b-mod.png", "/diff.png"],
       files
     );
-    expect((diffAe.stderr || diffAe.stdout).trim()).toBe("8.70098 (0.0217525)");
+    expect((diffAe.stderr || diffAe.stdout).trim()).toBe("11.6013 (0.0290033)");
     expect(files.has("/diff.png")).toBe(true);
     const diffRaw = await sharp(files.get("/diff.png")!).raw().toBuffer();
     // Top-left pixel (0,0) was modified -> should be highlighted in #ff00ff

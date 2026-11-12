@@ -20,6 +20,8 @@ for (const [filter, expected] of [
   ["lowpass=f=100,volume=1", [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 48, -48, 138, -138]],
   ["lowpass=f=100:r=f64", [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 48, -48, 138, -138]],
   ["lowpass=f=100:c=FL", [0, 2, 0, 6, 0, 10, 0, -2, 0, -6, 0, -10, 47, -32768, 138, 32767]],
+  ["lowpass=f=100:c=2c", [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 47, -47, 138, -138]],
+  ["lowpass=f=100:channels=all", [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 47, -47, 138, -138]],
   ["lowpass=f=100:m=0.5", [0, 1, 1, 3, 2, 5, 0, 0, -1, -2, -2, -4, 16407, -16407, -16314, 16314]],
   ["lowpass=f=100:b=4", [5, -5, 4, -4, 4, -4, 3, -3, 2, -2, 1, -1, 0, 0, 0, 0]],
   ["lowpass=100", [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 47, -47, 138, -138]],
@@ -38,6 +40,18 @@ for (const [filter, expected] of [
         assert.deepEqual(Array.from({ length: output.length / 2 }, (_, index) => output.readInt16LE(index * 2)), expected);
       }
     });
+  }
+}
+
+for (const name of ["lowpass", "highpass", "bandpass", "bass", "lowshelf", "treble", "highshelf"]) {
+  for (const option of ["c", "channels"]) {
+    for (const selection of ["2C", "foo", "FC"]) {
+      it(`passes stereo PCM through ${name} with ${option}=${selection}`, async () => {
+        const { output, result, stderr } = await run(`${name}=f=400:${option}=${selection}`);
+        assert.equal(result.exitCode, 0, stderr);
+        assert.deepEqual(Array.from({ length: output.length / 2 }, (_, index) => output.readInt16LE(index * 2)), samples);
+      });
+    }
   }
 }
 

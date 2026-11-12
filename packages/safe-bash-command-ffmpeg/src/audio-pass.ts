@@ -54,7 +54,8 @@ export async function passAudio(
     if (optionName === "c" || optionName === "channels") {
       selected = value === "all" ? undefined : parseAudioChannelLayout(value);
       if (selected?.some(channel => !Object.hasOwn(audioSpeakerMasks, channel))) {
-        throw new Error(`${name}: invalid channels`);
+        // Biquad channel strings without a valid speaker layout select nothing.
+        selected = [];
       }
       continue;
     }

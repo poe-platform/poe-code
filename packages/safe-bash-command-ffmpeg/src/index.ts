@@ -15909,11 +15909,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         let sumSquares = 0;
                         let peak = 0;
                         const histogram = new Float64Array(92);
+                        // Signed 32-bit input discards low bits; floating input rounds to nearest even.
+                        const quantize = filteredSampleFormat === "s32" || filteredSampleFormat === "s32p" ? Math.floor : roundToEven;
                         // FFmpeg converts to signed 16-bit PCM before measuring and forwarding it.
                         for (const channel of stretched) {
                           for (let i = 0; i < channel.length; i++) {
                             if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            const sample = Math.max(-32768, Math.min(32767, roundToEven(channel[i]! * 32768)));
+                            const sample = Math.max(-32768, Math.min(32767, quantize(channel[i]! * 32768)));
                             channel[i] = sample / 32768;
                             if (i >= measuredEnd) continue;
                             count++;

@@ -23083,7 +23083,7 @@ interface MontageArguments {
     warnings: string;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth">[];
     shadow: boolean;
-    transforms: ({ kind: "dispose"; sequence: object; index: number } | { kind: "disposal"; value: number } | { kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | MontageLayers | { kind: "flip" | "flop" } | { kind: "trim"; fuzz: number } | { kind: "unsharp"; geometry: ReturnType<typeof parseUnsharpGeometry> } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string; channels: readonly boolean[] | undefined } | { kind: "scale"; geometry: string; channels: readonly boolean[] | undefined } | { kind: "thumbnail"; geometry: string; channels: readonly boolean[] | undefined } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "blur"; geometry: MagickGeometry } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
+    transforms: ({ kind: "dispose"; sequence: object; index: number } | { kind: "disposal"; value: number } | { kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | MontageLayers | { kind: "flip" | "flop" } | { kind: "trim"; fuzz: number } | { kind: "unsharp"; geometry: ReturnType<typeof parseUnsharpGeometry> } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "scale"; geometry: string; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "thumbnail"; geometry: string; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "blur"; geometry: MagickGeometry } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
@@ -23281,10 +23281,15 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             try { i = applyMagickReadSetting(argv, state, i)!; }
             catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
         }
+        else if (t === "-filter" || t === "+filter") {
+            if (t === "-filter" && argv[i + 1] === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -filter\n" };
+            try { i = applyMagickReadSetting(argv, state, i)!; }
+            catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
+        }
         else if (t === "-resize" || t === "-scale" || t === "-thumbnail") {
             const geometry = argv[++i];
             if (geometry === undefined) return { exitCode: 1, stdout: "", stderr: `montage: missing argument for ${t}\n` };
-            queuedTransforms.push({ kind: t === "-thumbnail" ? "thumbnail" : t === "-scale" ? "scale" : "resize", geometry, channels: state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined });
+            queuedTransforms.push({ kind: t === "-thumbnail" ? "thumbnail" : t === "-scale" ? "scale" : "resize", geometry, kernel: state.kernel, channels: state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined });
         }
         else if (t === "-geometry") {
             geometry = argv[++i] ?? "+2+2";
@@ -23300,7 +23305,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             padY = discarded ? 0 : Math.max(0, Math.round(g.y));
             // Without offsets, -geometry also resizes the input before montage
             // makes its thumbnail, so percentage scaling is applied twice.
-            if (g.isPercent && !g.hasOffset) queuedTransforms.push({ kind: "resize", geometry, channels: state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined });
+            if (g.isPercent && !g.hasOffset) queuedTransforms.push({ kind: "resize", geometry, kernel: state.kernel, channels: state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined });
         }
         else if (t === "+background") {
             // Montage preserves its sheet color when the image background setting is cleared.
@@ -23939,7 +23944,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 const tiles = transform.kind === "crop"
                     ? yield* applyMagickCropToStackSteps(image, transform.geometry, transform.gravity, analysis)
                     : [yield* ("operation" in transform ? transform.operation.apply(image)
-                        : (transform.kind === "resize" || transform.kind === "scale" || transform.kind === "thumbnail") ? applyMagickResizeSteps(image, transform.geometry, state.kernel, transform.kind === "thumbnail", false, transform.kind === "scale", state.resizeFilter, undefined, false, undefined, transform.channels)
+                        : (transform.kind === "resize" || transform.kind === "scale" || transform.kind === "thumbnail") ? applyMagickResizeSteps(image, transform.geometry, transform.kernel, transform.kind === "thumbnail", false, transform.kind === "scale", state.resizeFilter, undefined, false, undefined, transform.channels)
                         : transform.kind === "unsharp" ? applyMagickRasterSteps(image, blurPixelSteps(image, transform.geometry, false, undefined, transform.geometry), signal)
                         : transform.kind === "trim" ? trimMagickSteps(image, transform.fuzz, undefined, undefined, undefined, analysis)
                         : transform.kind === "blur" ? applyMagickRasterSteps({ ...image, isPalette: false }, blurPixelSteps(image, transform.geometry, false), signal, image)
@@ -24303,7 +24308,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                                 return;
                             }
                             if (transform.kind === "resize" || transform.kind === "scale" || transform.kind === "thumbnail") {
-                                const resize = magickResizeOptions(tile, transform.geometry, state.kernel ?? (transform.kind === "thumbnail" ? "lanczossharp" : undefined));
+                                const resize = magickResizeOptions(tile, transform.geometry, transform.kernel ?? (transform.kind === "thumbnail" ? "lanczossharp" : undefined));
                                 if (resize) tile = await resizeStoredMagickImage(tile, backend, resize, signal, transform.kind === "thumbnail", false, transform.kind === "scale", state.resizeFilter, undefined, false, undefined, transform.channels);
                                 yield* transformTiles(tile, offset + 1, operations);
                                 return;

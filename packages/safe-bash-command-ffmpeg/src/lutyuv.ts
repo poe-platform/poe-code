@@ -7,9 +7,11 @@ export async function lutyuv(
 ): Promise<MediaVideoFrame[]> {
   const expressions = ["clipval", "clipval", "clipval", "clipval"];
   let sawNamed = false;
+  let enable: string | undefined;
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["c0", "c1", "c2", "c3"][index] : option.slice(0, separator);
+    if (key === "enable") { enable = option.slice(separator + 1); sawNamed = true; continue; }
     const component = [["c0", "y", "r"], ["c1", "u", "g"], ["c2", "v", "b"], ["c3", "a"]]
       .findIndex(aliases => aliases.includes(key ?? ""));
     if (component < 0 || separator < 0 && sawNamed) throw new Error("lutyuv: unknown option");
@@ -21,7 +23,8 @@ export async function lutyuv(
     const tables = new Uint8Array(1024);
     const output: MediaVideoFrame[] = [];
     let width = -1, height = -1, format = -1;
-    for (const frame of frames) {
+    const registers = new Float64Array(10);
+    for (const [n, frame] of frames.entries()) {
       await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
       const source = frame.native;
       if (!source || source.rgba !== frame.data || source.width !== frame.width || source.height !== frame.height ||
@@ -45,6 +48,14 @@ export async function lutyuv(
             if (Number.isNaN(result)) throw new Error("lutyuv: expression evaluates to NaN");
             tables[plane * 256 + val] = Math.max(0, Math.min(255, Math.trunc(result)));
           }
+        }
+      }
+      if (enable !== undefined) {
+        const variables = { n, t: frame.ptsSeconds, w: width, h: height, pos: frame.offset ?? NaN, NAN: NaN, INF: Infinity };
+        parseFilterExpression(enable, "lutyuv enable", variables, undefined, registers);
+        if (!(Math.abs(parseFilterExpression(enable, "lutyuv enable", variables, undefined, registers)) >= 0.5)) {
+          output.push(frame);
+          continue;
         }
       }
       const lumaSize = width * height;

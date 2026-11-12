@@ -4614,18 +4614,17 @@ async function applyVideoFilterChain(
       current = await lutyuv(current, argStr, budget, signal);
     } else if (name === "lutrgb" || name === "lut") {
       const gray = name === "lut";
-      const yuv = name === "lutyuv";
       if (gray && !["gray", "gray8", "gray16le", "gray16be"].includes(pixelFormat ?? "")) {
         throw new Error("lut: requires 8/16-bit grayscale input");
       }
       const channels = gray ? 1 : 4;
-      const expressions = gray || yuv ? ["clipval", "clipval", "clipval", "clipval"] : ["val", "val", "val", "val"];
+      const expressions = gray ? ["clipval", "clipval", "clipval", "clipval"] : ["val", "val", "val", "val"];
       let sawNamed = false;
       for (const [index, option] of (argStr ? positional : []).entries()) {
         const separator = option.indexOf("=");
         const key = separator < 0 ? ["c0", "c1", "c2", "c3"][index] : option.slice(0, separator);
         if (key === "enable") { sawNamed = true; continue; }
-        const channel = (yuv ? ["y", "u", "v", "a"] : ["r", "g", "b", "a"]).indexOf(key ?? "");
+        const channel = ["r", "g", "b", "a"].indexOf(key ?? "");
         const component = channel >= 0 ? channel : ["c0", "c1", "c2", "c3"].indexOf(key ?? "");
         if (component < 0 || separator < 0 && sawNamed) throw new Error(`${name}: unknown option`);
         sawNamed ||= separator >= 0;
@@ -4636,12 +4635,6 @@ async function applyVideoFilterChain(
         const registers = new Float64Array(10);
         let width = -1, height = -1;
         current = await mapWork(current, async (frame, n) => {
-          if (yuv && (!frame.native || frame.native.rgba !== frame.data ||
-              frame.native.width !== frame.width || frame.native.height !== frame.height ||
-              ![0, 4, 5, 12, 13, 14, 33, 79].includes(frame.native.format))) {
-            budget.allocateMemory(frame.width * frame.height * 8);
-            frame = await formatYuv(frame, "yuva444p", signal);
-          }
           const packed = !gray && frame.native?.rgba === frame.data && frame.native.width === frame.width &&
             frame.native.height === frame.height && [34, 35, 104, 105].includes(frame.native.format);
           const depth = packed || gray && (pixelFormat === "gray16le" || pixelFormat === "gray16be") ? 16 : 8;
@@ -4658,14 +4651,11 @@ async function applyVideoFilterChain(
             width = frame.width; height = frame.height;
             for (let channel = 0; channel < channels; channel++) {
               await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
-              const limited = yuv && channel < 3 && ![12, 13, 14].includes(frame.native!.format);
-              const minimum = limited ? 16 : 0;
-              const limit = limited ? (channel === 0 ? 235 : 240) : maximum;
               for (let value = 0; value < size; value++) {
                 if (value % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
                 const result = expressions[channel] === "val" ? value : parseFilterExpression(expressions[channel]!, name, {
-                  val: value, negval: yuv ? minimum + limit - Math.max(minimum, Math.min(value, limit)) : Math.max(0, maximum - value),
-                  minval: minimum, maxval: limit, clipval: Math.max(minimum, Math.min(value, limit)),
+                  val: value, negval: Math.max(0, maximum - value),
+                  minval: 0, maxval: maximum, clipval: Math.min(value, maximum),
                   w: width, h: height
                 });
                 tables[channel * size + value] = Math.max(0, Math.min(maximum, Math.trunc(result)));
@@ -4677,22 +4667,6 @@ async function applyVideoFilterChain(
             // FFmpeg evaluates the generic timeline before and during frame dispatch.
             parseFilterExpression(named.enable, "lutrgb enable", variables, undefined, registers);
             if (!(Math.abs(parseFilterExpression(named.enable, "lutrgb enable", variables, undefined, registers)) >= 0.5)) return frame;
-          }
-          if (yuv) {
-            const source = frame.native!;
-            const lumaSize = frame.width * frame.height;
-            const chromaSize = Math.ceil(frame.width / ([0, 4, 12, 13, 33].includes(source.format) ? 2 : 1)) *
-              Math.ceil(frame.height / ([0, 12, 33].includes(source.format) ? 2 : 1));
-            budget.allocateMemory(source.pixels.byteLength + frame.data.byteLength);
-            const pixels = source.pixels.slice();
-            for (let i = 0; i < pixels.length; i++) {
-              if (i % 65536 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-              const channel = i < lumaSize ? 0 : i < lumaSize + chromaSize ? 1 : i < lumaSize + 2 * chromaSize ? 2 : 3;
-              pixels[i] = tables[channel * size + pixels[i]!]!;
-            }
-            const native = { ...source, pixels };
-            const data = scaleVideoPicture({ ...frame, native }, frame.width, frame.height)!;
-            return { ...frame, data, native: { ...native, rgba: data } };
           }
           if (depth === 16) {
             const source = frame.native;

@@ -11,9 +11,11 @@ export async function virtualBassAudio(
   const options = { cutoff: 250, strength: 3 };
   const ranges = { cutoff: [100, 500], strength: [0.5, 3] };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+  const fields = argument.split(":");
+  if (fields.at(-1) === "") fields.pop();
   let position = 0;
-  for (const option of argument ? argument.split(":") : []) {
-    if (!option) continue;
+  for (const option of fields) {
+    if (!option) throw new Error("virtualbass: empty option field");
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["cutoff", "strength"][position] : option.slice(0, separator).trim();
     if (separator < 0) position++;

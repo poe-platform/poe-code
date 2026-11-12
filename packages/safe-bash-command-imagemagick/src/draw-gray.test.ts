@@ -34,6 +34,10 @@ it.each(cases)(`${mode}, PNG type ${base[25]}: preserves colored drawing on gray
   const output = decodeImage(bytes), offset = (point[1]! * output.width + point[0]!) * 4;
   expect(Array.from(output.data.subarray(offset, offset + 4))).toEqual(pixel);
   expect([2, 3, 6]).toContain(bytes[25]);
-  if (!args.join(" ").includes("floodfill"))
-    expect(Array.from(output.data.subarray(0, 4))).toEqual([255, 255, 255, base === opaque ? 255 : 128]);
+  if (!args.join(" ").includes("floodfill")) {
+    const corner = args.join(" ").includes("stroke blue")
+      ? base === opaque ? [226, 226, 255, 255] : [203, 203, 255, 142]
+      : [255, 255, 255, base === opaque ? 255 : 128];
+    expect(Array.from(output.data.subarray(0, 4))).toEqual(corner);
+  }
 });

@@ -5826,7 +5826,10 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
         const bytes = (yield { kind: "read", position: i, length: 4 })!;
         const hueBytes = dither && !reducePalette ? yield { kind: "read", hue: true, position: i, length: 4 } : undefined;
         const hue = hueBytes?.length ? new Float64Array(hueBytes.slice().buffer) : undefined;
-        const input = hue ? Float64Array.from(hue, value => value * 255) : bytes;
+        // Associate unclamped working RGB with alpha before clipping the dither target.
+        const evaluateBytes = dither && !hue ? yield { kind: "read", evaluate: true, position: i, length: 4 } : undefined;
+        const input = hue ? Float64Array.from(hue, value => value * 255)
+            : evaluateBytes?.length ? new Float64Array(evaluateBytes.slice().buffer) : bytes;
         // CMYK's fourth working slot is black; alpha lives in the RGBA backing.
         if (hue && img.space === "cmyk") input[3] = bytes[3]!;
         const out = new Uint8Array(4);
@@ -11195,7 +11198,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             return result;
         };
     } else if (token === "-posterize") {
-        highDepth = true;
+        highDepth = evaluate = true;
         const levels = parsePosterizeLevels(tokens[++i] ?? "");
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
         apply = function* (image) {

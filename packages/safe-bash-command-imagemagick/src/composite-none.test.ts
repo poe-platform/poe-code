@@ -38,7 +38,7 @@ for (const route of ["command", "buffered", "sync"] as const) {
       stderr: { async write() {} },
     }) : route === "sync" ? runMagickCliSync(argv, files) : await runMagickCli(argv, files);
     expect(result.exitCode).toBe(0);
-    const output = route === "command" ? Buffer.concat(chunks) : "stdoutBytes" in result ? result.stdoutBytes! : new Uint8Array();
+    const output = route === "command" ? Buffer.concat(chunks) : "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : new Uint8Array();
     expect(Buffer.from(output).toString("hex")).toBe(hex);
   });
 }

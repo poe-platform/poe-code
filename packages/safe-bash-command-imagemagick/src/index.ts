@@ -14377,8 +14377,13 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = geometries[sceneIdx++] ?? geometry;
-                const plan = warpOperation.plan(image, expanded);
+                let plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
+                if (t === "-wave" && plan.hasAlpha && !image.hasAlpha && !image.inactiveAlpha) {
+                    // Transparent wave padding activates alpha with opaque source pixels.
+                    image = { ...yield* prepareInactiveAlphaOutput(image), hasAlpha: true, alphaBlend: true };
+                    plan = warpOperation.plan(image, expanded)!;
+                }
                 let output = yield* applyMagickRasterSteps(image, plan.steps, signal, plan);
                 // Displacements clear disassociated alpha's separate-channel trait.
                 if (image.alphaBlend === false && ["-swirl", "-implode", "-wave", "-spread"].includes(t)) output.alphaSeparate = false;
@@ -18036,9 +18041,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const geometry = ["-shear", "-wave", "-swirl", "-implode", "-spread", "-distort", "+distort"].includes(token) ? tokens[i] : undefined, optionProperties = state.optionProperties;
             steps.push(async (image, backend) => {
                 if (!image) return;
-                const expanded = geometry?.includes("%") ? await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images) : geometry;
-                const plan = warpOperation.plan(image, expanded);
+                const source = image;
+                const expanded = geometry?.includes("%") ? await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image: source, storage: backend.storage }), signal, images) : geometry;
+                let plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
+                if (token === "-wave" && plan.hasAlpha && !image.hasAlpha && !image.inactiveAlpha) {
+                    image = { ...await transformStoredMagickPixels(image, backend,
+                        { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal),
+                        hasAlpha: true, alphaBlend: true };
+                    plan = warpOperation.plan(image, expanded)!;
+                }
                 let output = await transformStoredMagickRaster(image, backend, plan.steps, signal, plan);
                 // Displacements clear disassociated alpha's separate-channel trait.
                 if (image.alphaBlend === false && ["-swirl", "-implode", "-wave", "-spread"].includes(token)) output.alphaSeparate = false;

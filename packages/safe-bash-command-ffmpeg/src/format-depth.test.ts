@@ -7,32 +7,6 @@ import { createFfmpegCommand } from "./index.js";
 const pixels = Uint8Array.from([255, 0, 0, 64, 0, 255, 0, 128, 0, 0, 255, 192, 200, 100, 50, 255,
   255, 0, 0, 64, 0, 255, 0, 128, 0, 0, 255, 192, 200, 100, 50, 255]);
 
-// Native FFmpeg 7.0.2: matching format filters preserve every 16-bit PGM sample.
-for (const filter of ["null", "format=gray16be", "format=pix_fmts=gray16be", "format=gray|gray16be", "format=gray16be,format=gray16be"]) {
-  for (const format of ["gray16be", "gray16le"]) {
-    it(`preserves PGM samples through ${filter} to ${format} stdout`, async () => {
-      const volume = Volume.fromJSON({
-        "/in.pgm": Buffer.from("50350a3420310a36353533350a12343456789abcde", "hex")
-      });
-      const stdout: Uint8Array[] = [];
-      const stderr: Uint8Array[] = [];
-      const result = await createFfmpegCommand().execute({
-        args: ["-v", "error", "-i", "/in.pgm", "-vf", filter, "-pix_fmt", format, "-f", "rawvideo", "pipe:1"],
-        cwd: "/", env: {}, signal: new AbortController().signal,
-        fs: {
-          async readFile(path: string) { return volume.readFileSync(path); },
-          async stat(path: string) { return volume.statSync(path); }
-        },
-        stdin: (async function* () {})(),
-        stdout: { async write(bytes: Uint8Array) { stdout.push(bytes); } },
-        stderr: { async write(bytes: Uint8Array) { stderr.push(bytes); } }
-      } as never);
-      assert.equal(result.exitCode, 0, Buffer.concat(stderr).toString());
-      assert.equal(Buffer.concat(stdout).toString("hex"), format === "gray16be" ? "12343456789abcde" : "341256349a78debc");
-    });
-  }
-}
-
 for (const [filter, colorType, depth = 8] of [
   ["format=gray16be", 0, 16],
   ["format=pix_fmts=gray16be", 0, 16],

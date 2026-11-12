@@ -5332,7 +5332,7 @@ async function applyVideoFilterChain(
         if (key !== "pix_fmts") throw new Error(`format: unsupported option ${part}`);
         const values = (separator < 0 ? part : part.slice(separator + 1)).trim().split("|");
         for (const value of values) {
-          if (!["monob", "pal8", "rgba", "bgra", "rgb24", "bgr24", "gbrp", "gbrap", "gray", "gray8", "ya8", "rgba64be", "rgb48be", "gray16be", "gray16le", "yuv420p", "yuv422p", "yuv444p", "yuva444p"].includes(value)) {
+          if (!["monob", "pal8", "rgba", "bgra", "rgb24", "bgr24", "gbrp", "gbrap", "gray", "gray8", "ya8", "rgba64be", "rgb48be", "gray16be", "yuv420p", "yuv422p", "yuv444p", "yuva444p"].includes(value)) {
             throw new Error(`format: unsupported pixel format ${value}`);
           }
         }
@@ -5350,7 +5350,7 @@ async function applyVideoFilterChain(
             budget.checkCpu();
             return converted;
           }, signal);
-        } else if (!["gray", "gray8", "ya8", "gray16be", "gray16le"].includes(pixelFormat)) {
+        } else if (!["gray", "gray8", "ya8", "gray16be"].includes(pixelFormat)) {
           current = current.map(({ native: _native, ...frame }) => frame);
         }
         if (pixelFormat === "monob" && previousPixelFormat !== "monob") {
@@ -5429,7 +5429,7 @@ async function applyVideoFilterChain(
             return { ...f, data };
           }, signal);
         }
-        if (pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "ya8" || pixelFormat === "gray16be" || pixelFormat === "gray16le") {
+        if (pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "ya8" || pixelFormat === "gray16be") {
           const dither = [
             [36, 68, 60, 92, 34, 66, 58, 90], [100, 4, 124, 28, 98, 2, 122, 26],
             [52, 84, 44, 76, 50, 82, 42, 74], [116, 20, 108, 12, 114, 18, 106, 10],
@@ -5437,12 +5437,6 @@ async function applyVideoFilterChain(
             [48, 80, 40, 72, 54, 86, 46, 78], [112, 16, 104, 8, 118, 22, 110, 14]
           ];
           current = await mapWork(current, async ({ native, ...f }) => {
-            if ((pixelFormat === "gray16be" || pixelFormat === "gray16le") &&
-                native?.rgba === f.data && native.width === f.width && native.height === f.height &&
-                (native.format === 29 || native.format === 30)) {
-              // Keep all sample bits; native.format records the stored byte order.
-              return { ...f, native };
-            }
             const planar = native?.rgba === f.data && native.width === f.width && native.height === f.height &&
               [0, 4, 5, 12, 13, 14, 33].includes(native.format) ? native : undefined;
             const highDepthLuma = native?.rgba === f.data && native.width === f.width && native.height === f.height &&
@@ -12591,11 +12585,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       budget.allocateMemory(data.byteLength);
                       data = scaleVideoPicture({ ...decoded, native }, decoded.width, decoded.height)!;
                       native = { ...native, rgba: data };
+                    } else if (decoded.format === "pgm") {
+                      budget.allocateMemory(decoded.width * decoded.height);
+                      const pixels = new Uint8Array(decoded.width * decoded.height);
+                      for (let pixel = 0; pixel < pixels.length; pixel++) {
+                        if (pixel % 4096 === 0) budget.checkCpu();
+                        pixels[pixel] = data[pixel * 4]!;
+                      }
+                      native = { rgba: data, pixels, width: decoded.width, height: decoded.height,
+                        format: 8, colorspace: 5, fullRange: 1 };
                     }
                     if (frames.length === 0) {
                       codecName = decoded.format === "jpeg" ? "mjpeg" : decoded.format;
                       if (decoded.format === "qoi" && imgBytes[13] === 1) colorMetadata = { transfer: 8 };
-                      pixelFormat = decoded.format === "exr" ? (decoded.hasAlpha ? "gbrapf32le" : "gbrpf32le") : planeFrame ? planePixelFormat : native ? (native.format === 34 ? "rgb48be" : "gray16be") : decoded.hasAlpha ? "rgba" : "rgb24";
+                      pixelFormat = decoded.format === "exr" ? (decoded.hasAlpha ? "gbrapf32le" : "gbrpf32le") : planeFrame ? planePixelFormat : native ? (native.format === 34 ? "rgb48be" : native.format === 8 ? "gray" : "gray16be") : decoded.hasAlpha ? "rgba" : "rgb24";
                       sarWidth = decoded.resolution?.x ?? 0;
                       sarHeight = decoded.resolution?.y || 1;
                     }

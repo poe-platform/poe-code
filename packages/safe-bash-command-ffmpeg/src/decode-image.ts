@@ -1,29 +1,7 @@
-import { decodeImage, parseNetpbmHeader } from "@poe-code/image-ast/portable";
+import { decodeImage } from "@poe-code/image-ast/portable";
 
 export function decodeFfmpegImage(bytes: Uint8Array) {
   const image = decodeImage(bytes);
-  if (image.format === "pgm" && bytes[1] === 0x35) {
-    const { maxval, dataOffset } = parseNetpbmHeader(bytes);
-    const wide = maxval > 255;
-    const maximum = wide ? 65535 : 255;
-    if (maxval >= maximum) return image;
-    const shift = wide ? 15 : 7;
-    const rounding = wide ? 16384 : 64;
-    const factor = Math.floor((maximum * (2 ** shift) + Math.floor(maxval / 2)) / maxval);
-    // FFmpeg uses a fixed-point multiplier and wraps to the output sample width.
-    // In particular, MAXVAL 254/65534 maps its maximum sample back to zero.
-    for (let pixel = 0; pixel < image.width * image.height; pixel++) {
-      const offset = dataOffset + pixel * (wide ? 2 : 1);
-      const sample = wide ? ((bytes[offset] ?? 0) << 8) | (bytes[offset + 1] ?? 0) : bytes[offset] ?? 0;
-      const value = ((sample * factor + rounding) >>> shift) & maximum;
-      for (let channel = 0; channel < 3; channel++) {
-        image.data[pixel * 4 + channel] = wide ? Math.round(value / 257) : value;
-        if (image.data16) image.data16[pixel * 4 + channel] = wide ? value : value * 257;
-      }
-    }
-    delete image.evaluateSamples;
-    return image;
-  }
   if (image.format !== "bmp" || bytes.byteLength < 54) return image;
   const header = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   if (header.getUint32(14, true) < 40 || header.getUint16(28, true) !== 16) return image;

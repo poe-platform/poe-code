@@ -391,6 +391,10 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
             view.setUint16(pixel * 2, grayscale.getUint16(pixel * 2, native!.format === 30), littleEndian);
             continue;
           }
+          if (native?.format === 8) {
+            view.setUint16(pixel * 2, native.pixels[pixel]! * 257, littleEndian);
+            continue;
+          }
           // swscale's BT.601 RGB input uses 14-bit limited-range luma, then
           // expands at 19-bit precision before rounding to full-range 16-bit.
           const stride = packed && [104, 105].includes(packed.format) ? 8 : 6;

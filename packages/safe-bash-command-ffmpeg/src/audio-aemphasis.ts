@@ -19,7 +19,7 @@ export async function emphasizeAudio(
     const value = Object.hasOwn(constants, raw) ? constants[raw]! : parseFilterExpression(raw, "aemphasis", {
       ...constants, min: 0, max: maximum, default: defaults[key]!, none: 0, all: -1,
       PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2
-    }, undefined, new Float64Array(10));
+    }, undefined, new Float64Array(10), []);
     if (!Number.isFinite(value) || value < 0 || value > maximum) {
       throw new RangeError(`aemphasis: invalid ${names[key]}`);
     }

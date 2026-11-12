@@ -12870,8 +12870,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const rawLayout = input?.channelLayout ?? (audioCodec !== "copy" && rawChannels <= (input?.guessLayoutMax ?? Infinity)
                 ? [undefined, "mono", "stereo", "2.1", "4.0", "5.0", "5.1", "6.1", "7.1"][rawChannels] : undefined);
               if (rawLayout && plugin.supportedAudioCodecs.includes(`pcm_${plugin.id}`)) {
-                const channelMask = parseAudioChannelCount(rawLayout) === undefined
-                  ? parseAudioChannelLayout(rawLayout).reduce((mask, name) => mask + audioSpeakerMasks[name]!, 0) : 0;
+                const channelNames = parseAudioChannelLayout(rawLayout);
+                // A native mask cannot represent reordered speakers.
+                const channelMask = parseAudioChannelCount(rawLayout) === undefined &&
+                  channelNames.every((name, index) => index === 0 || audioSpeakerMasks[name]! > audioSpeakerMasks[channelNames[index - 1]!]!)
+                  ? channelNames.reduce((mask, name) => mask + audioSpeakerMasks[name]!, 0) : 0;
                 return { ...document, tracks: document.tracks.map(track => ({ ...track,
                   codecDescriptions: track.codecDescriptions.map(codec => ({ ...codec, channelLayout: rawLayout })),
                   ...(track.decodedAudio ? { decodedAudio: { ...track.decodedAudio, channelMask } } : {})
@@ -14544,8 +14547,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let loudnormResampling = false;
                   let filteredChannelMask = audio.channelMask;
                   const inputChannelLayout = t.codecDescriptions[0]?.channelLayout;
-                  let filteredChannelNames = inputChannelLayout && parseAudioChannelCount(inputChannelLayout) === undefined
+                  const inputChannelNames = inputChannelLayout && parseAudioChannelCount(inputChannelLayout) === undefined
                     ? parseAudioChannelLayout(inputChannelLayout) : undefined;
+                  let filteredChannelNames = inputChannelNames;
                   const inputCodec = t.codecDescriptions[0]?.codecName;
                   let filteredSampleFormat = inputCodec === "pcm_u8" ? "u8" : inputCodec === "pcm_s16le" ? "s16" : ["pcm_s24le", "pcm_s32le"].includes(inputCodec ?? "") ? "s32"
                     : inputCodec === "pcm_f32le" ? "flt" : "dbl";
@@ -14808,7 +14812,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       const inputMask = filteredChannelMask || ({ 1: 4, 2: 3, 3: 0xb, 4: 0x107, 6: 0x3f, 8: 0x63f }[stretched.length]);
                       const inputLayout = inputMask === 4 ? "mono" : inputMask === 3 ? "stereo"
                         : inputMask === 0xb ? "2.1" : inputMask === 0x33 ? "quad" : inputMask === 0x3f ? "5.1" : undefined;
-                      if (inputLayout && layouts.includes(inputLayout)) return;
+                      if (inputLayout && layouts.includes(inputLayout)) {
+                        // Explicit resampling assigns the requested layout even without remixing.
+                        if (filterName === "aresample") filteredChannelNames = undefined;
+                        return;
+                      }
+                      if (filteredChannelNames === inputChannelNames && inputChannelLayout?.includes("@")) {
+                        throw new Error("Unsupported input channel layout for remixing");
+                      }
                       const stereoExpansion = inputLayout === "stereo" && (layouts[0] === "2.1" || layouts[0] === "quad" || layouts[0] === "5.1");
                       const multichannelStereo = layouts[0] === "stereo" && inputMask !== undefined &&
                         [0x7, 0xb, 0x33, 0x107, 0x3f, 0x60f, 0x63f].includes(inputMask);
@@ -20261,7 +20272,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     const result = { ...t, timescale: origRate, duration: length, samples, editList: undefined,
                       codecDescriptions: t.codecDescriptions.map(description => ({ ...description,
                         sampleRate: origRate, channels: stretched.length,
-                        channelLayout: filteredChannelNames?.join("+") })),
+                        channelLayout: filteredChannelNames === inputChannelNames ? inputChannelLayout : filteredChannelNames?.join("+") })),
                       decodedAudio: { ...audio, sampleRate: origRate, channels: stretched.length,
                         channelMask: filteredChannelMask, channelData: stretched } };
                     audioGraphFormats.set(result, filteredSampleFormat);
@@ -20405,7 +20416,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
 
                   if (audioChannels !== undefined && audioChannels > 0 && stretched.length > 1 &&
-                      !filteredChannelMask && filteredChannelNames?.some(name => name !== "")) {
+                      (!filteredChannelMask && filteredChannelNames?.some(name => name !== "") ||
+                        audioChannels !== stretched.length && filteredChannelNames === inputChannelNames && inputChannelLayout?.includes("@"))) {
                     throw new Error("Unsupported input channel layout for remixing");
                   }
 

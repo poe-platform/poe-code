@@ -59,7 +59,9 @@ export async function passAudio(
     const key = Object.hasOwn(aliases, optionName) ? aliases[optionName] : undefined;
     if (!key) throw new Error(`${name}: unsupported option ${optionName}`);
     const widthTypes: Record<string, number> = { h: 1, o: 2, q: 3, s: 4, k: 5 };
-    const number = key === "width_type" && Object.hasOwn(widthTypes, value) ? widthTypes[value]! : Number(value);
+    const number = key === "frequency" || key === "width" || key === "gain"
+      ? parseFilterExpression(value, name, { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 })
+      : key === "width_type" && Object.hasOwn(widthTypes, value) ? widthTypes[value]! : Number(value);
     if (!value || !Number.isFinite(number)
       || key === "frequency" && (number < 0 || number > 999999)
       || key === "gain" && (number < -900 || number > 900)

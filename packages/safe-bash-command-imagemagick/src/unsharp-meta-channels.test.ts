@@ -7,6 +7,13 @@ import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js"
 for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     it.each([
         { name: "selected Meta0", operations: ["-channel", "Meta0", "-unsharp", "1x1+1+0"], output: "Meta0", expected: "0589d2" },
+        { name: "white write mask", operations: ["-channel", "Meta0", "-size", "3x1", "-write-mask", "xc:white", "-unsharp", "1x1+1+0", "+write-mask"], output: "Meta0", expected: "0d334c" },
+        { name: "black write mask", operations: ["-channel", "Meta0", "-size", "3x1", "-write-mask", "xc:black", "-unsharp", "1x1+1+0", "+write-mask"], output: "Meta0", expected: "0589d2" },
+        { name: "partial write mask", operations: ["-channel", "Meta0", "-size", "3x1", "-write-mask", "xc:#808080", "-unsharp", "1x1+1+0", "+write-mask"], output: "Meta0", expected: "0d3651" },
+        { name: "white write mask with disabled alpha", operations: ["-alpha", "off", "-channel", "Meta0", "-size", "3x1", "-write-mask", "xc:white", "-unsharp", "1x1+1+0", "+write-mask"], output: "Meta0", expected: "2080c0" },
+        { name: "center region", operations: ["-channel", "Meta0", "-region", "1x1+1+0", "-unsharp", "1x1+1+0", "+region"], output: "Meta0", expected: "0d894c" },
+        { name: "write mask without unsharp", operations: ["-channel", "Meta0", "-size", "3x1", "-write-mask", "xc:white", "+write-mask"], output: "Meta0", expected: "2080c0" },
+        { name: "region without unsharp", operations: ["-channel", "Meta0", "-region", "1x1+1+0", "+region"], output: "Meta0", expected: "2080c0" },
         { name: "unmodified Meta0", operations: [], output: "Meta0", expected: "2080c0" },
         { name: "red selection preserves Meta0", operations: ["-channel", "R", "-unsharp", "1x1+1+0"], output: "Meta0", expected: "2080c0" },
         { name: "Meta0 selection preserves red", operations: ["-channel", "Meta0", "-unsharp", "1x1+1+0"], output: "R", expected: "404040" },

@@ -16641,7 +16641,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     for (const [index, plane] of im.metaChannels.entries()) {
                         const selected = !channels || channels.default || channels.meta?.includes(index);
                         result.metaChannels.push(selected ? yield* applyMagickRasterSteps(plane,
-                            blurPixelSteps({ ...plane, region: im.region, virtualPixel: im.virtualPixel }, geometry, false, undefined, geometry), signal) : plane);
+                            blurPixelSteps({ ...plane, region: im.region, virtualPixel: im.virtualPixel }, geometry, false, undefined, geometry, im.writeMask, undefined, im), signal, plane, [plane, im.writeMask ?? plane, im]) : plane);
                     }
                 }
                 return result;
@@ -21100,7 +21100,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     result.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries())
                         result.storedMetaChannels.push(!channels || channels.default || channels.meta?.includes(index) ? await transformStoredMagickRaster(plane, backend,
-                            blurPixelSteps({ ...plane, region: image.region, virtualPixel: image.virtualPixel }, geometry, false, undefined, geometry), signal) : plane);
+                            blurPixelSteps({ ...plane, region: image.region, virtualPixel: image.virtualPixel }, geometry, false, undefined, geometry, image.storedWriteMask, undefined, image), signal, plane, [plane, image.storedWriteMask ?? plane, image]) : plane);
                 }
                 return result;
             });

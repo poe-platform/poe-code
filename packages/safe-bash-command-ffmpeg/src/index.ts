@@ -721,12 +721,24 @@ function* lavfiSteps(
     });
     const base = parseMp4(mp4Bytes);
     const audioTrack = base.tracks.find((t) => t.type === "audio")!;
+    const samples: MediaTrack["samples"][number][] = [];
+    for (let pts = 0; pts < totalSamples; pts += 1024) {
+      if (samples.length % 1024 === 0) yield;
+      budget.allocateMemory(96);
+      samples.push({ data: new Uint8Array(0), size: 0, pts, dts: pts, cts: 0,
+        duration: Math.min(1024, totalSamples - pts), isKeyframe: true, sampleDescriptionIndex: 1 });
+    }
     return {
       ...base,
+      duration: Math.round(totalSamples / sampleRate * base.timescale),
+      durationSeconds: totalSamples / sampleRate,
       tracks: [
         {
           ...audioTrack,
           id: 1,
+          timescale: sampleRate,
+          duration: totalSamples,
+          samples,
           codecDescriptions: audioTrack.codecDescriptions.map(codec => ({ ...codec, channelLayout: layout })),
           decodedAudio: { sampleRate, channels, channelData, channelMask }
         }
@@ -754,6 +766,8 @@ function* lavfiSteps(
     color[0] = Math.max(0, Math.min(255, luma + ((v * 13075) >> 13)));
     color[1] = Math.max(0, Math.min(255, luma + ((u * -3209) >> 13) + ((v * -6660) >> 13)));
     color[2] = Math.max(0, Math.min(255, luma + ((u * 16525) >> 13)));
+    // YUV420P has no alpha channel.
+    color[3] = 255;
   }
 
   const top = [[191, 191, 191], [191, 191, 0], [0, 191, 191], [0, 191, 0], [191, 0, 191], [191, 0, 0], [0, 0, 191]];

@@ -5548,7 +5548,8 @@ async function applyVideoFilterChain(
       const options: Record<string, string> = {};
       const keys = ["fps", "start_time", "round", "eof_action"];
       let position = 0;
-      for (const part of argStr ? positional : []) {
+      for (const [index, part] of (argStr ? positional : []).entries()) {
+        if (!part && index === positional.length - 1) continue;
         const separator = part.indexOf("=");
         const key = separator < 0 ? keys[position] : part.slice(0, separator).trim();
         // FFmpeg 7 restarts shorthand after named options, skipping the first

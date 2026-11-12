@@ -1,6 +1,7 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
+import { parseFilterBoolean } from "./filter-boolean.js";
 import { audioSpeakerMasks, parseAudioChannelLayout } from "./audio-channel-layout.js";
 
 export async function passAudio(
@@ -15,6 +16,7 @@ export async function passAudio(
   const shelf = lowShelf || name === "treble" || name === "highshelf";
   let enable: string | undefined;
   let precision = -1;
+  let normalize = false;
   let selected: string[] | undefined;
   const options = { frequency: lowShelf ? 100 : lowpass ? 500 : 3000, poles: 2, mix: 1, width: shelf || bandpass ? 0.5 : 0.707, width_type: 3, blocksize: 0, gain: 0 };
   const aliases: Record<string, keyof typeof options> = {
@@ -35,6 +37,10 @@ export async function passAudio(
       parseFilterExpression(enable, `${name} enable`, {
         n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2
       }, undefined, new Float64Array(10));
+      continue;
+    }
+    if (optionName === "normalize" || optionName === "n") {
+      normalize = parseFilterBoolean(value, `${name}: invalid normalize`);
       continue;
     }
     if (optionName === "precision" || optionName === "r") {
@@ -147,6 +153,11 @@ export async function passAudio(
       : (1 + (lowpass ? -Math.cos(angle) : Math.cos(angle))) / (2 * a0);
     b1 = bandpass ? 0 : options.poles === 1 ? lowpass ? 0 : -b0 : (lowpass ? 2 : -2) * b0;
     b2 = bandpass ? -b0 : options.poles === 1 ? 0 : b0;
+  }
+  // Match FFmpeg's DC normalization before rounding coefficients to float.
+  if (normalize && Math.abs(b0 + b1 + b2) > 1e-6) {
+    const factor = (1 + a1 + a2) / (b0 + b1 + b2);
+    b0 *= factor; b1 *= factor; b2 *= factor;
   }
   if (single) {
     a1 = Math.fround(a1); a2 = Math.fround(a2);

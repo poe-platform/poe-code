@@ -39,6 +39,9 @@ export async function compressAudio(
       validateWeaveGenericOption(key, value, name);
       continue;
     }
+    setOption(key, value);
+  }
+  function setOption(key: string | undefined, value: string): void {
     if (!key || !Object.hasOwn(options, key)) throw new Error(`${name}: unsupported option ${key}`);
     const range = ranges[key];
     if (range) {
@@ -62,21 +65,26 @@ export async function compressAudio(
       options[key] = values[index]!;
     }
   }
-  const level = Number(options.level_in);
-  const upward = options.mode === "upward";
-  const threshold = Math.log(Number(options.threshold));
-  let reduction = 1 - 1 / Number(options.ratio);
-  const attack = Math.min(1, 4000 / (Number(options.attack) * sampleRate));
-  const release = Math.min(1, 4000 / (Number(options.release) * sampleRate));
-  let makeup = Number(options.makeup);
-  const width = Math.log(Number(options.knee));
-  const maximum = options.link === "maximum";
-  const rms = options.detection === "rms";
-  // FFmpeg exposes level_sc on acompressor but uses level_in for its detector.
-  const sidechainLevel = Number(options.level_sc);
+  function coefficients() {
+    const level = Number(options.level_in);
+    return {
+      level,
+      upward: options.mode === "upward",
+      threshold: Math.log(Number(options.threshold)),
+      reduction: 1 - 1 / Number(options.ratio),
+      attack: Math.min(1, 4000 / (Number(options.attack) * sampleRate)),
+      release: Math.min(1, 4000 / (Number(options.release) * sampleRate)),
+      makeup: Number(options.makeup),
+      width: Math.log(Number(options.knee)),
+      maximum: options.link === "maximum",
+      rms: options.detection === "rms",
+      // FFmpeg exposes level_sc on acompressor but uses level_in for its detector.
+      detectorLevel: sidechain ? Number(options.level_sc) : level,
+      mix: Number(options.mix)
+    };
+  }
+  let settings = coefficients();
   const detector = sidechain ?? channels;
-  const detectorLevel = sidechain ? sidechainLevel : level;
-  const mix = Number(options.mix);
   const length = Math.min(channels[0]?.length ?? 0, detector[0]?.length ?? 0);
   budget.checkSamples(length);
   budget.checkDuration(length / sampleRate);
@@ -88,15 +96,12 @@ export async function compressAudio(
     if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
     while (nextCommand < commands.length && commands[nextCommand]!.sample <= i) {
       const command = commands[nextCommand++]!;
-      if (command.action !== "makeup" && command.action !== "ratio") continue;
       try {
-        const value = parseFilterExpression(command.expression, name, {});
-        const [min, max] = ranges[command.action]!;
-        if (!Number.isFinite(value) || value < min || value > max) continue;
-        if (command.action === "ratio") reduction = 1 - 1 / value;
-        else makeup = value;
+        setOption(command.action, command.expression);
+        settings = coefficients();
       } catch { /* Native asendcmd continues after a rejected command. */ }
     }
+    const { level, upward, threshold, reduction, attack, release, makeup, width, maximum, rms, detectorLevel, mix } = settings;
     let detected = 0;
     for (const channel of detector) {
       const value = Math.abs(channel[i]! * detectorLevel);

@@ -20549,12 +20549,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const surroundStereo = origCh === 6 && targetCh === 2;
                   const monoStereo = origCh === 1 && (targetCh === 2 || targetCh === 3);
                   const pcm16Output = audioCodec === "pcm_s16le" || audioCodec === undefined &&
-                    ["wav", "s16le"].includes((outputFormat === "segment" ? segmentPlugin?.id : outPlugin?.id) ?? "");
+                    (checksumOutput || ["wav", "s16le"].includes((outputFormat === "segment" ? segmentPlugin?.id : outPlugin?.id) ?? ""));
                   const stereoMono = origCh === 2 && !centerLfe && targetCh === 1;
                   const pcm16StereoMono = stereoMono && targetRate === filterRate &&
                     (filteredSampleFormat === "s16" || filteredSampleFormat === "s16p") && pcm16Output;
-                  const pcm16MonoStereo = monoStereo && !filter && targetRate === filterRate &&
-                    t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
+                  const pcm16MonoStereo = monoStereo && targetRate === filterRate &&
+                    (filteredSampleFormat === "s16" || filteredSampleFormat === "s16p") && pcm16Output;
                   const pcm16CenterDownmix = centerDownmix && !filter && targetRate === filterRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   const pcm16QuadDownmix = quadDownmix && targetCh === 2 && !filter && targetRate === filterRate &&

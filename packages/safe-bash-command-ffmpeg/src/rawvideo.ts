@@ -386,6 +386,8 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
         const grayscale = native && [29, 30].includes(native.format)
           ? new DataView(native.pixels.buffer, native.pixels.byteOffset, native.pixels.byteLength) : undefined;
         const planar = native && [0, 4, 5, 12, 13, 14].includes(native.format) ? native : undefined;
+        const packed = native && [34, 35, 104, 105].includes(native.format) ? native : undefined;
+        const rgb16 = packed ? new DataView(packed.pixels.buffer, packed.pixels.byteOffset, packed.pixels.byteLength) : undefined;
         const length = frame.width * frame.height * 2;
         budget.checkOutputBytes(size + length);
         const bytes = new Uint8Array(length);
@@ -398,7 +400,15 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
           }
           // swscale's BT.601 RGB input uses 14-bit limited-range luma, then
           // expands at 19-bit precision before rounding to full-range 16-bit.
-          const luma = planar
+          const stride = packed && [104, 105].includes(packed.format) ? 8 : 6;
+          const offset = pixel * stride;
+          const sourceLittleEndian = packed?.format === 35 || packed?.format === 105;
+          const luma = rgb16
+            // Packed RGB16 rounds to 16-bit limited luma before range expansion.
+            ? Math.floor((8414 * rgb16.getUint16(offset, sourceLittleEndian) +
+                16519 * rgb16.getUint16(offset + 2, sourceLittleEndian) +
+                3208 * rgb16.getUint16(offset + 4, sourceLittleEndian)) / 32768 + 4096.5) / 4
+            : planar
             ? planar.pixels[pixel]! * 64
             : (8414 * frame.data[pixel * 4]! + 16519 * frame.data[pixel * 4 + 1]! +
               3208 * frame.data[pixel * 4 + 2]! + 524544) >> 9;

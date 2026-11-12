@@ -8660,12 +8660,12 @@ function imageOutputFormat(codec: string | undefined, extension: string): ImageF
     case "mjpeg": case "jpg": case "jpeg": return "jpeg";
     case "libwebp": case "libwebp_anim": case "webp": return "webp";
     case "targa": case "tga": return "tga";
-    case "qoi": case "gif": case "bmp": case "pam": case "ppm": case "tiff": return format;
+    case "qoi": case "gif": case "bmp": case "ppm": case "pam": case "pgm": case "tiff": return format;
     default: return "png";
   }
 }
 
-const imageEncoders = ["png", "mjpeg", "webp", "libwebp", "libwebp_anim", "gif", "bmp", "pam", "ppm", "qoi", "targa", "tiff"];
+const imageEncoders = ["png", "mjpeg", "webp", "libwebp", "libwebp_anim", "gif", "bmp", "ppm", "pam", "pgm", "qoi", "targa", "tiff"];
 
 function validateAudioEncoder(codec: string | undefined, doc: MediaDocument, plugins: readonly MediaAstPlugin[]): void {
   if (codec === undefined || codec === "copy" || !doc.tracks.some(track => track.type === "audio")) return;
@@ -9728,7 +9728,7 @@ export function evalSyncFfmpeg(
       loadedDocs.push(scaleInputTimestamps(doc, inp.timestampScales, budget));
     }
 
-    if (outputFormat === "image2pipe") return undefined;
+    if (outputFormat === "image2pipe" || imageOutputFormat(videoCodec, outputTarget.split(".").pop()?.toLowerCase() ?? "") === "pgm") return undefined;
     synchronizeInputs(loadedDocs, inputs, inputStarts, copyTimestamps, startAtZero, budget);
     if (outPlugin?.id === "image2" && outputStartNumber !== undefined && outputStartNumber > 2147483647) return undefined;
     // These formats have no usable default subtitle encoder for automatic selection.
@@ -14144,6 +14144,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               ? parseFilterChain(vfFilters.join(",")).length : undefined;
             if (outputFps && videoCodec !== "copy" && !numberedImageOutput && outputFormat !== "rawvideo") {
               vfFilters.push(`fps=${outputFps}`);
+            }
+            if (videoCodec !== "copy" && (imageOutput || numberedImageOutput) &&
+                imageOutputFormat(videoCodec, outputTarget.split(".").pop()?.toLowerCase() ?? "") === "pgm") {
+              const format = rawPixelFormat ?? workingDoc.tracks.find(track => track.type === "video")?.codecDescriptions[0]?.pixFmt;
+              rawPixelFormat = format === "gray16be" || format === "gray16le" ? "gray16be" : "gray";
             }
             if (videoCodec !== "copy" && (rawPixelFormat === "gray" || rawPixelFormat === "gray8" || rawPixelFormat === "ya8" ||
                 ((imageOutput || numberedImageOutput) && imageOutputFormat(videoCodec, outputTarget.split(".").pop()?.toLowerCase() ?? "") === "png" &&
@@ -21522,6 +21527,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     continue;
                   }
                   const imgFmt = imageOutputFormat(videoCodec, outExt);
+                  if (imgFmt === "pgm") {
+                    const pixelFormat = rawPixelFormat === "gray16be" || rawPixelFormat === "gray16le" ? "gray16be" : "gray";
+                    const pixels = await serializeRawVideo({ ...vTrack!, decodedVideoFrames: [f] },
+                      "rawvideo", pixelFormat, budget, context.signal);
+                    const header = encodeUtf8(`P5\n${f.width} ${f.height}\n${pixelFormat === "gray16be" ? 65535 : 255}\n`);
+                    budget.checkOutputBytes(header.byteLength + pixels.byteLength);
+                    budget.allocateMemory(header.byteLength + pixels.byteLength);
+                    await writeImage(fullOutPath, concatBytes([header, pixels]));
+                    budget.releaseMemory(header.byteLength + pixels.byteLength);
+                    continue;
+                  }
                   if (imgFmt === "pam") {
                     const pixelFormat = rawPixelFormat ?? vTrack?.codecDescriptions[0]?.pixFmt ?? "rgba";
                     const highDepth = ["rgba64be", "rgba64le", "rgb48be", "rgb48le", "gray16be", "gray16le"].includes(pixelFormat);

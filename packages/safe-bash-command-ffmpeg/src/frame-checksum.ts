@@ -322,6 +322,14 @@ export function serializeFrameChecksum(
       offset += size;
       const digest = checksum(bytes);
       let annotations = "";
+      if (copy && "tags" in packet && packet.tags && (format === "framecrc" || formatVersion > 1)) {
+        const metadata = encodeUtf8(Object.entries(packet.tags).map(([key, value]) => `${key}\0${value}\0`).join(""));
+        budget.allocateMemory(metadata.length);
+        if (metadata.length) {
+          annotations = `, S=1, ${String(metadata.length).padStart(8)}`;
+          if (format !== "framecrc") annotations += `, ${checksum(metadata)}`;
+        }
+      }
       const streamInfo = flacStreamInfo.get(index);
       if (streamInfo && packet === track.samples.at(-1) && (format === "framecrc" || formatVersion > 1)) {
         annotations = `, S=1, ${String(streamInfo.length).padStart(8)}`;

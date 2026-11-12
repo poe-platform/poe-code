@@ -12,7 +12,9 @@ export function shearPlan(image: Pick<RgbaImage, "width" | "height" | "hasAlpha"
     if (!firstAngle || !Number.isFinite(Number(firstAngle)) || [...geometry].some(char => !"0123456789eExX+,-./:".includes(char))) {
         throw new Error(`invalid argument for option '-shear': ${spec}`);
     }
-    const [xAngle = 0, yAngle = xAngle] = geometry.toLowerCase().replaceAll(",", "x").replaceAll("/", "x").split("x").map(value => value === "" ? undefined : parseFloat(value) || 0);
+    const [xAngle = 0, secondAngle = xAngle] = geometry.toLowerCase().replaceAll(",", "x").replaceAll("/", "x").split("x").map(value => value === "" ? undefined : parseFloat(value) || 0);
+    // A plus sign after x starts an offset, leaving the second angle omitted.
+    const yAngle = geometry.slice(separator, separator + 2).toLowerCase() === "x+" ? xAngle : secondAngle;
     if ((xAngle !== 0 && xAngle % 90 === 0) || (yAngle !== 0 && yAngle % 90 === 0)) throw new Error("angle is discontinuous");
     const tx = -Math.tan(xAngle * Math.PI / 180), ty = Math.tan(yAngle * Math.PI / 180);
     const w = image.width, h = image.height;

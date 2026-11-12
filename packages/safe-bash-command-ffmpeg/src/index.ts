@@ -8660,12 +8660,12 @@ function imageOutputFormat(codec: string | undefined, extension: string): ImageF
     case "mjpeg": case "jpg": case "jpeg": return "jpeg";
     case "libwebp": case "libwebp_anim": case "webp": return "webp";
     case "targa": case "tga": return "tga";
-    case "qoi": case "gif": case "bmp": case "ppm": case "tiff": return format;
+    case "qoi": case "gif": case "bmp": case "pam": case "ppm": case "tiff": return format;
     default: return "png";
   }
 }
 
-const imageEncoders = ["png", "mjpeg", "webp", "libwebp", "libwebp_anim", "gif", "bmp", "ppm", "qoi", "targa", "tiff"];
+const imageEncoders = ["png", "mjpeg", "webp", "libwebp", "libwebp_anim", "gif", "bmp", "pam", "ppm", "qoi", "targa", "tiff"];
 
 function validateAudioEncoder(codec: string | undefined, doc: MediaDocument, plugins: readonly MediaAstPlugin[]): void {
   if (codec === undefined || codec === "copy" || !doc.tracks.some(track => track.type === "audio")) return;
@@ -9858,6 +9858,7 @@ export function evalSyncFfmpeg(
       const frames = vTrack?.decodedVideoFrames ?? [];
       const limit = Math.min(frames.length, maxVideoFrames ?? Infinity);
       const imgFmt = imageOutputFormat(videoCodec, outExt);
+      if (imgFmt === "pam") return undefined;
       for (let idx = 0; idx < limit; idx++) {
         const f = frames[idx]!;
         const fileName = formatImageSequence(outputTarget, idx + (outputStartNumber ?? 1)) ?? outputTarget;
@@ -21521,6 +21522,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     continue;
                   }
                   const imgFmt = imageOutputFormat(videoCodec, outExt);
+                  if (imgFmt === "pam") {
+                    const pixelFormat = rawPixelFormat ?? vTrack?.codecDescriptions[0]?.pixFmt ?? "rgba";
+                    const highDepth = ["rgba64be", "rgba64le", "rgb48be", "rgb48le", "gray16be", "gray16le"].includes(pixelFormat);
+                    const pixels = await serializeRawVideo({ ...vTrack!, decodedVideoFrames: [f] },
+                      "rawvideo", highDepth ? "rgba64be" : "rgba", budget, context.signal);
+                    const header = encodeUtf8(`P7\nWIDTH ${f.width}\nHEIGHT ${f.height}\nDEPTH 4\nMAXVAL ${highDepth ? 65535 : 255}\nTUPLTYPE RGB_ALPHA\nENDHDR\n`);
+                    budget.allocateMemory(header.length + pixels.length);
+                    const encoded = concatBytes([header, pixels]);
+                    budget.checkOutputBytes(encoded.length);
+                    await writeImage(fullOutPath, encoded);
+                    budget.releaseMemory(encoded.length);
+                    continue;
+                  }
                   let data16: Uint16Array | undefined;
                   if (imgFmt === "png" && rawPixelFormat === "rgb48be") {
                     // Use the same swscale conversion as rawvideo, retaining all 16 bits.

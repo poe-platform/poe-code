@@ -301,7 +301,7 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
           append(native.pixels);
           continue;
         }
-        const source = native && (channels === 3 ? [34, 35] : [104, 105]).includes(native.format)
+        const source = native && [34, 35, 104, 105].includes(native.format)
           ? new DataView(native.pixels.buffer, native.pixels.byteOffset, native.pixels.byteLength) : undefined;
         const yuv16 = native?.format === 49 && native.colorspace === 5 && native.fullRange === 0
           ? new DataView(native.pixels.buffer, native.pixels.byteOffset, native.pixels.byteLength) : undefined;
@@ -313,8 +313,11 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
           if (pixel % 4096 === 0) budget.checkCpu();
           const offset = pixel * channels * 2;
           if (source) {
+            const sourceChannels = native!.format === 34 || native!.format === 35 ? 3 : 4;
             for (let channel = 0; channel < channels; channel++) {
-              const sample = source.getUint16(offset + channel * 2, !littleEndian);
+              const sample = channel < sourceChannels
+                ? source.getUint16((pixel * sourceChannels + channel) * 2, native!.format === 35 || native!.format === 105)
+                : 65535;
               view.setUint16(offset + channel * 2, sample, littleEndian);
             }
             continue;

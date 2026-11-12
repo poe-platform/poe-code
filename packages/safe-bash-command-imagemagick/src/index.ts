@@ -11875,7 +11875,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         };
     }
     else if (token === "-black-threshold" || token === "-white-threshold") {
-        highDepth = true;
+        highDepth = evaluate = true;
         const raw = tokens[++i] ?? "50%";
         if (!raw.trim() || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
             throw new Error(`invalid argument for option '${token}': ${raw}`);
@@ -11909,8 +11909,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const out = new Uint8Array(im.data);
             const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
             const hueSamples = cmyk ? im.hueSamples!.slice() : undefined;
-            const evaluateSamples = cmyk ? Float64Array.from(data16 ?? out, value => data16 ? value / 257 : value) : undefined;
-            const samples = hueSamples ?? data16 ?? out, quantumScale = cmyk ? 65535 : data16 ? 1 : 257, maximum = cmyk ? 1 : data16 ? 65535 : 255;
+            const evaluateSamples = im.evaluateSamples?.slice() ?? (cmyk ? Float64Array.from(data16 ?? out, value => data16 ? value / 257 : value) : undefined);
+            const samples = hueSamples ?? evaluateSamples ?? data16 ?? out, quantumScale = cmyk ? 65535 : evaluateSamples ? 257 : data16 ? 1 : 257, maximum = cmyk ? 1 : evaluateSamples ? 255 : data16 ? 65535 : 255;
             const mask = channels
                 ? [channels.r, channels.g, channels.b, cmyk ? channels.k : channels.a && (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false)]
                 : [true, true, true, cmyk || im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false];
@@ -11923,7 +11923,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     const value = channels ? samples[idx + channel]! * quantumScale : intensity;
                     if (mask[channel] && (isBlack ? value < cutoffs[channel]! : value > cutoffs[channel]!)) {
                         samples[idx + channel] = isBlack ? 0 : maximum;
-                        if (!cmyk) out[idx + channel] = isBlack ? 0 : 255;
+                        if (!cmyk) {
+                            out[idx + channel] = isBlack ? 0 : 255;
+                            if (data16) data16[idx + channel] = isBlack ? 0 : 65535;
+                        }
                     }
                 }
                 if (hueSamples && evaluateSamples) {

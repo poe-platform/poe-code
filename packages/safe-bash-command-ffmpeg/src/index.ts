@@ -12358,7 +12358,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 let codecName = "png";
                 let pixelFormat = "rgb24";
                 let colorMetadata: MediaTrack["codecDescriptions"][number]["colorMetadata"];
-                let sarWidth = 1;
+                let sarWidth = 0;
                 let sarHeight = 1;
                 const fps = fpsHint ?? 25;
                 const timestampScale = input?.tsFromFile === 1 ? 1 : input?.tsFromFile === 2 ? 1_000_000_000 : undefined;
@@ -12423,7 +12423,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       codecName = decoded.format === "jpeg" ? "mjpeg" : decoded.format;
                       if (decoded.format === "qoi" && imgBytes[13] === 1) colorMetadata = { transfer: 8 };
                       pixelFormat = planeFrame ? planePixelFormat : decoded.hasAlpha ? "rgba" : "rgb24";
-                      sarWidth = decoded.resolution?.x || 1;
+                      sarWidth = decoded.resolution?.x ?? 0;
                       sarHeight = decoded.resolution?.y || 1;
                     }
                     packets.push({ data: imgBytes, ...(input?.exportPathMetadata && sourcePath !== undefined ? {

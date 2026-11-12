@@ -1,3 +1,4 @@
+import { saliencyCompositeSteps } from "./saliency-compose.js";
 import { distortCompositeSteps } from "./distort-compose.js";
 import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
@@ -18,6 +19,10 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
     left = Math.round(left);
     top = Math.round(top);
     const { name } = magickCompositeMode(mode);
+    if (name === "saliencyblend") {
+        yield* saliencyCompositeSteps(base, overlay, left, top, args, channels);
+        return;
+    }
     if (name === "distort") {
         yield* distortCompositeSteps(base, overlay, left, top, args, tile);
         return;

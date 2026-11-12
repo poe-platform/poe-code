@@ -36,45 +36,52 @@ export async function shiftAudioPhase(
   }
 
   const length = channels[0]?.length ?? 0;
-  const stages = options.order * 2;
+  // Keep every stage history when runtime order changes, as native FFmpeg does.
+  const capacity = 16 * 2;
   signal?.throwIfAborted();
   budget.checkCpu();
-  budget.allocateMemory((length * channels.length + stages * (channels.length * 4 + 1)) * 8);
+  budget.allocateMemory((length * channels.length + capacity * (channels.length * 4 + 1)) * 8);
   const round = format === "dblp" ? (value: number) => value : Math.fround;
-  const coefficients = new Float64Array(stages);
+  const coefficients = new Float64Array(capacity);
   // Elliptic all-pass design with a 40 Hz transition, split into even/odd paths.
   const k = Math.tan((1 - 80 / sampleRate) * Math.PI / 4) ** 2;
   const root = (1 - k * k) ** 0.25;
   const e = 0.5 * (1 - root) / (1 + root);
   const e4 = e ** 4;
   const q = e * (1 + e4 * (2 + e4 * (15 + 150 * e4)));
-  for (let stage = 0; stage < stages; stage++) {
-    const angle = (stage + 1) * Math.PI / (stages * 2 + 1);
-    let numerator = 0, denominator = 0.5;
-    for (let i = 0; i < 64; i++) {
-      const term = q ** (i * (i + 1)) * Math.sin((2 * i + 1) * angle) * (i % 2 ? -1 : 1);
-      numerator += term;
-      if (Math.abs(term) <= 1e-100) break;
+  function updateCoefficients(order: number) {
+    const stages = order * 2;
+    for (let stage = 0; stage < stages; stage++) {
+      const angle = (stage + 1) * Math.PI / (stages * 2 + 1);
+      let numerator = 0, denominator = 0.5;
+      for (let i = 0; i < 64; i++) {
+        const term = q ** (i * (i + 1)) * Math.sin((2 * i + 1) * angle) * (i % 2 ? -1 : 1);
+        numerator += term;
+        if (Math.abs(term) <= 1e-100) break;
+      }
+      for (let i = 1; i < 64; i++) {
+        const term = q ** (i * i) * Math.cos(2 * i * angle) * (i % 2 ? -1 : 1);
+        denominator += term;
+        if (Math.abs(term) <= 1e-100) break;
+      }
+      const w2 = (numerator * q ** 0.25 / denominator) ** 2;
+      const x = Math.sqrt((1 - w2 * k) * (1 - w2 / k)) / (1 + w2);
+      coefficients[Math.floor(stage / 2) + (stage % 2) * order] = round((1 - x) / (1 + x));
     }
-    for (let i = 1; i < 64; i++) {
-      const term = q ** (i * i) * Math.cos(2 * i * angle) * (i % 2 ? -1 : 1);
-      denominator += term;
-      if (Math.abs(term) <= 1e-100) break;
-    }
-    const w2 = (numerator * q ** 0.25 / denominator) ** 2;
-    const x = Math.sqrt((1 - w2 * k) * (1 - w2 / k)) / (1 + w2);
-    coefficients[Math.floor(stage / 2) + (stage % 2) * options.order] = round((1 - x) / (1 + x));
   }
   const step = round(1 / sampleRate);
   const output: Float64Array[] = [];
   let work = 0;
   for (const channel of channels) {
+    let order = options.order;
+    let stages = order * 2;
+    updateCoefficients(order);
     let level = round(options.level), shift = round(options.shift), nextCommand = 0;
     const angle = round(options.shift * Math.PI);
     let cosine = round(Math.cos(angle)), sine = round(Math.sin(angle));
     const samples = new Float64Array(length);
-    const previousInput = new Float64Array(stages), olderInput = new Float64Array(stages);
-    const previousOutput = new Float64Array(stages), olderOutput = new Float64Array(stages);
+    const previousInput = new Float64Array(capacity), olderInput = new Float64Array(capacity);
+    const previousOutput = new Float64Array(capacity), olderOutput = new Float64Array(capacity);
     let position = 0;
     for (const [n, timestamp] of frames.entries()) {
       const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, `${name} enable`, {
@@ -96,6 +103,14 @@ export async function shiftAudioPhase(
           try {
             const value = parseFilterExpression(command.expression, name, {});
             if (!Number.isFinite(value)) continue;
+            if (command.action === "order" && value >= 1 && value <= 16) {
+              const nextOrder = value % 1 === 0.5 ? Math.round(value / 2) * 2 : Math.round(value);
+              if (nextOrder !== order) {
+                order = nextOrder;
+                stages = order * 2;
+                updateCoefficients(order);
+              }
+            }
             if (command.action === "level" && value >= 0 && value <= 1) level = round(value);
             if (command.action === "shift" && Math.abs(value) <= (frequencyShift ? 2147483647 : 1)) {
               shift = round(value);
@@ -113,7 +128,7 @@ export async function shiftAudioPhase(
             signal?.throwIfAborted();
             budget.checkCpu();
           }
-          if (stage === options.order) {
+          if (stage === order) {
             inPhase = value;
             value = round(channel[frame]!);
           }

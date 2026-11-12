@@ -14160,11 +14160,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 ((imageOutput || numberedImageOutput) && imageOutputFormat(videoCodec, outputTarget.split(".").pop()?.toLowerCase() ?? "") === "qoi" &&
                   (rawPixelFormat === "rgb24" || rawPixelFormat === "rgba")) ||
                 (outPlugin?.id === "y4m" && (rawPixelFormat === "yuv420p" || rawPixelFormat === "yuv422p" || rawPixelFormat === "yuv444p")))) {
-              // QOI cannot encode gray; negotiate RGB before converting pixels.
-              const pixelFormat = (rawPixelFormat === "gray" || rawPixelFormat === "gray8") &&
+              // QOI cannot encode grayscale; negotiate RGB or RGBA before converting pixels.
+              const pixelFormat = (rawPixelFormat === "gray" || rawPixelFormat === "gray8" || rawPixelFormat === "ya8") &&
                 (imageOutput || numberedImageOutput) &&
                 imageOutputFormat(videoCodec, outputTarget.split(".").pop()?.toLowerCase() ?? "") === "qoi"
-                ? "rgb24" : rawPixelFormat;
+                ? (rawPixelFormat === "ya8" ? "rgba" : "rgb24") : rawPixelFormat;
               vfFilters.push(`format=${pixelFormat}`);
             }
 

@@ -20,8 +20,10 @@ for (const sync of [false, true]) {
         if (sync) {
           assert.equal(evalSyncFfmpeg(args, undefined,
             path => volume.readFileSync(path) as Buffer,
-            (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), "");
-        } else {
+            (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), numbered ? "" : undefined);
+          if (!numbered) assert.equal(volume.existsSync("/out.qoi"), false);
+        }
+        if (!sync || !numbered) {
           let stderr = "";
           const result = await createFfmpegCommand().execute({
             args, cwd: "/", env: {}, signal: new AbortController().signal,

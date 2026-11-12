@@ -30,8 +30,10 @@ for (const mode of ["async file", "async sequence", "async pipe", "input sequenc
       if (mode.startsWith("sync")) {
         assert.equal(evalSyncFfmpeg(args, undefined,
           path => volume.existsSync(path) ? volume.readFileSync(path) as Buffer : undefined,
-          (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), "");
-      } else {
+          (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), mode === "sync sequence" ? "" : undefined);
+        if (mode === "sync file") assert.equal(volume.existsSync(output), false);
+      }
+      if (mode !== "sync sequence") {
         let stderr = "";
         const result = await createFfmpegCommand().execute({
           args, cwd: "/", env: {}, signal: new AbortController().signal,

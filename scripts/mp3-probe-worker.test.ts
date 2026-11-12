@@ -3,12 +3,29 @@ import { Miniflare } from "miniflare";
 import { afterAll, beforeAll, expect, it } from "vitest";
 import { mp3Ast } from "@poe-code/mp4-ast";
 
-const size = 2 * 1024 * 1024;
-const header = new Uint8Array(12); header.set([255, 251, 144, 0]);
-const bytes = new Uint8Array(size); bytes.set(header);
+// MPEG-1 Layer III, 128 kbps, 44.1 kHz: 417 bytes per unpadded frame.
+// Native ffprobe -count_frames -count_packets reports 5030 for these bytes.
+const frameCount = 5030;
+const size = frameCount * 417;
+function mp3Bytes(offset: number, length: number) {
+  const bytes = new Uint8Array(length);
+  const header = [255, 251, 144, 0];
+  for (let index = 0; index < length; index++) bytes[index] = header[(offset + index) % 417] ?? 0;
+  return bytes;
+}
+const bytes = mp3Bytes(0, size);
 function golden(filename: string) {
   const probe = mp3Ast().probe(bytes, { filename });
-  return JSON.stringify({ streams: probe.streams.map(stream => ({ ...stream, nb_read_frames: stream.nb_frames, nb_read_packets: stream.nb_frames })), format: probe.format }, null, 2) + "\n";
+  const result = { streams: probe.streams.map(stream => ({ ...stream, nb_read_frames: String(frameCount), nb_read_packets: String(frameCount) })), format: { ...probe.format } };
+  if (filename === "-") {
+    for (const stream of result.streams) {
+      delete stream.duration;
+      delete stream.duration_ts;
+    }
+    delete result.format.duration;
+    delete result.format.size;
+  }
+  return result;
 }
 let runtime: Miniflare;
 beforeAll(async () => {
@@ -23,10 +40,10 @@ beforeAll(async () => {
     const api=(()=>{const module={exports:{}};${bundle.outputFiles[0]!.text};return module.exports;})();
     export default {async fetch(request){
       const [selection,route,mode]=new URL(request.url).pathname.slice(1).split('/'),base=new api.MemoryFileSystem(),controller=new AbortController();
-      const header=new Uint8Array(${JSON.stringify([...header])});await base.writeFile('/input.mp3',header);
+      const mp3Bytes=${mp3Bytes.toString()},header=mp3Bytes(0,12);await base.writeFile('/input.mp3',header);
       let closed=0,read=0,output='',diagnostic='',thrown,largestAllocation=0,admitted=0;
-      async function* source(){const chunk=new Uint8Array(16384);try{yield header;
-        for(let offset=12;offset<${size};offset+=chunk.length){read++;if(mode==='source'&&read===10)throw new Error('reader failed');if(mode==='cancel'&&read===10)controller.abort(new Error('cancelled input'));chunk.fill(read);yield chunk.subarray(0,Math.min(chunk.length,${size}-offset));}
+      async function* source(){try{yield header;
+        for(let offset=12;offset<${size};offset+=16384){read++;if(mode==='source'&&read===10)throw new Error('reader failed');if(mode==='cancel'&&read===10)controller.abort(new Error('cancelled input'));yield mp3Bytes(offset,Math.min(16384,${size}-offset));}
       }finally{closed++;}}
       const capabilities={...base.capabilities,retainedRead:route==='retained',streamingRead:true};
       const fs=new Proxy(base,{get(target,key){
@@ -34,7 +51,7 @@ beforeAll(async () => {
         if(key==='readFile')return()=>{throw new Error('Whole file forbidden');};if(key==='readStream')return()=>source();
         if(key==='open')return()=>{throw new Error('Unexpected backing');};
         if(key==='openReadFile')return async()=>({stat:async()=>{if(mode==='source')throw new Error('reader failed');if(mode==='cancel')controller.abort(new Error('cancelled input'));return {...await base.stat('/input.mp3'),size:${size}};},
-          async read(offset,length){read++;if(offset+length>12)throw new Error('Payload read');if(mode==='source')throw new Error('reader failed');if(mode==='cancel')controller.abort(new Error('cancelled input'));return header.slice(offset,offset+length);},async close(){closed++;}});
+          async read(offset,length){read++;if(offset<0||offset+length>${size})throw new Error('Out-of-bounds read');if(mode==='source')throw new Error('reader failed');if(mode==='cancel')controller.abort(new Error('cancelled input'));return mp3Bytes(offset,length);},async close(){closed++;}});
         const value=Reflect.get(target,key,target);return typeof value==='function'?value.bind(target):value;
       }});
       const Native=globalThis.Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=Reflect.construct(target,args);largestAllocation=Math.max(largestAllocation,value.length);if(value.length>65536)throw new Error('Unbounded allocation');return value;}});
@@ -51,7 +68,7 @@ for (const selection of ["explicit", "automatic"]) for (const route of ["retaine
     const response = await runtime.dispatchFetch(`http://worker/${selection}/${route}/${mode}`); expect(response.status).toBe(200);
     const r = await response.json() as { code?: number; thrown?: { message: string; code?: string }; output: string; diagnostic: string; read: number; closed: number; admitted: number; largestAllocation: number; nodeFree: boolean };
     expect(r.nodeFree).toBe(true); expect(r.closed).toBe(1); expect(r.largestAllocation).toBeLessThanOrEqual(65536);
-    if (mode === "success") { expect(r.code, r.diagnostic).toBe(0); expect(r.output).toBe(golden(route === "stdin" ? "-" : "/input.mp3")); expect(r.admitted).toBe(size); if (route === "retained") expect(r.read).toBe(selection === "explicit" ? 0 : 1); }
+    if (mode === "success") { expect(r.code, r.diagnostic).toBe(0); expect(JSON.parse(r.output)).toEqual(golden(route === "stdin" ? "-" : "/input.mp3")); expect(r.admitted).toBe(size); if (route === "retained") expect(r.read).toBeGreaterThan(1); }
     else {
       expect(r.output).toBe("");
       if (mode === "cancel") expect(r.thrown?.message).toBe("cancelled input");

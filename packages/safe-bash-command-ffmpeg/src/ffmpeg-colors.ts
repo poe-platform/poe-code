@@ -142,3 +142,32 @@ export const ffmpegColors: Readonly<Record<string, readonly [number, number, num
   yellow: [255, 255, 0],
   yellowgreen: [154, 205, 50]
 };
+
+export function parseColorRgba(colorStr: string): [number, number, number, number] {
+  const value = colorStr.trim().toLowerCase();
+  const separator = value.indexOf("@");
+  const s = separator < 0 ? value : value.slice(0, separator);
+  let alpha: number | undefined;
+  if (separator >= 0) {
+    const suffix = value.slice(separator + 1);
+    const opacity = Number(suffix);
+    const maximum = suffix.startsWith("0x") ? 255 : 1;
+    if (!suffix || !Number.isFinite(opacity) || opacity < 0 || opacity > maximum
+      || ["0b", "0o"].includes(suffix.trimStart().slice(0, 2))) {
+      throw new Error(`Invalid color alpha: ${colorStr}`);
+    }
+    alpha = Math.floor(opacity * 255 / maximum);
+  }
+  const named = Object.hasOwn(ffmpegColors, s) ? ffmpegColors[s] : undefined;
+  if (named) return [...named, alpha ?? 255];
+  const hex = s.startsWith("#") ? s.slice(1) : s.startsWith("0x") ? s.slice(2) : s;
+  if ((hex.length === 6 || hex.length === 8) && [...hex].every((digit) => "0123456789abcdef".includes(digit))) {
+    return [
+      parseInt(hex.slice(0, 2), 16) || 0,
+      parseInt(hex.slice(2, 4), 16) || 0,
+      parseInt(hex.slice(4, 6), 16) || 0,
+      alpha ?? (hex.length === 8 ? parseInt(hex.slice(6, 8), 16) : 255)
+    ];
+  }
+  throw new Error(`Invalid color: ${colorStr}`);
+}

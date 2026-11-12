@@ -22,7 +22,7 @@ import { imagePipeFrameEnd } from "./image-pipe.js";
 import { createAudioSegmentTrim, parseAudioSegment } from "./audio-asegment.js";
 import { createAudioTimestampTransform } from "./audio-clock.js";
 import { audioSpeakerMasks, parseAudioChannelCount, parseAudioChannelLayout } from "./audio-channel-layout.js";
-import { ffmpegColors } from "./ffmpeg-colors.js";
+import { parseColorRgba } from "./ffmpeg-colors.js";
 import { encodeH264PresetTrack, h264Presets } from "@poe-code/mp4-ast";
 import { parseFeedbackGraph, applyFeedback } from "./feedback.js";
 import { applyOutputColors, parseOutputColorOption, type OutputColorOption } from "./color-options.js";
@@ -52,6 +52,7 @@ import { deessAudio } from "./audio-deesser.js";
 import { declickAudio, parseDeclick } from "./audio-adeclick.js";
 import { deflicker } from "./deflicker.js";
 import { tmix } from "./tmix.js";
+import { fadeVideo } from "./video-fade.js";
 import { tmidequalizer } from "./tmidequalizer.js";
 import { lagfun } from "./lagfun.js";
 import { atadenoise } from "./atadenoise.js";
@@ -555,34 +556,6 @@ export function parseFfmpegTimestamp(spec: string): number {
 }
 
 
-function parseColorRgba(colorStr: string): [number, number, number, number] {
-  const value = colorStr.trim().toLowerCase();
-  const separator = value.indexOf("@");
-  const s = separator < 0 ? value : value.slice(0, separator);
-  let alpha: number | undefined;
-  if (separator >= 0) {
-    const suffix = value.slice(separator + 1);
-    const opacity = Number(suffix);
-    const maximum = suffix.startsWith("0x") ? 255 : 1;
-    if (!suffix || !Number.isFinite(opacity) || opacity < 0 || opacity > maximum
-      || ["0b", "0o"].includes(suffix.trimStart().slice(0, 2))) {
-      throw new Error(`Invalid color alpha: ${colorStr}`);
-    }
-    alpha = Math.floor(opacity * 255 / maximum);
-  }
-  const named = Object.hasOwn(ffmpegColors, s) ? ffmpegColors[s] : undefined;
-  if (named) return [...named, alpha ?? 255];
-  const hex = s.startsWith("#") ? s.slice(1) : s.startsWith("0x") ? s.slice(2) : s;
-  if ((hex.length === 6 || hex.length === 8) && [...hex].every((digit) => "0123456789abcdef".includes(digit))) {
-    return [
-      parseInt(hex.slice(0, 2), 16) || 0,
-      parseInt(hex.slice(2, 4), 16) || 0,
-      parseInt(hex.slice(4, 6), 16) || 0,
-      alpha ?? (hex.length === 8 ? parseInt(hex.slice(6, 8), 16) : 255)
-    ];
-  }
-  throw new Error(`Invalid color: ${colorStr}`);
-}
 
 function detachBytesBuffer(bytes: Uint8Array | undefined): void {
   if (!bytes) return;
@@ -6566,6 +6539,8 @@ async function applyVideoFilterChain(
       current = await deflicker(current, argStr, pixelFormat, budget, signal);
     } else if (name === "tmidequalizer") {
       current = await tmidequalizer(current, argStr, budget, signal);
+    } else if (name === "fade") {
+      current = await fadeVideo(current, argStr, pixelFormat, timescale, budget, signal);
     } else if (name === "tmix") {
       const instance = (eqIdx >= 0 ? filterSpec.slice(0, eqIdx) : filterSpec).trim();
       // Rejected runtime options leave the mix unchanged, without stopping rendering.
@@ -21633,6 +21608,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("lagfun: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("lagfun:")) return { exitCode: 222 };
             if (msg === "lagfun: invalid expression" || msg === "lagfun: invalid or unsupported expression") return { exitCode: 234 };
+            if (msg.startsWith("fade: unsupported option ")) return { exitCode: 8 };
+            if (msg.startsWith("fade:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("tmix: unsupported option ")) return { exitCode: 8 };
             if (err instanceof RangeError && msg.startsWith("tmix:")) return { exitCode: 222 };
             if (msg === "tmix: invalid expression" || msg === "tmix: invalid or unsupported expression" ||

@@ -6482,7 +6482,8 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     const writeMask = !!(img.writeMask || ((sample || scale) && img.region));
     kernel = options.kernel;
     const width = options.width!, height = options.height!;
-    const point = !scale && kernel === "nearest" && (!thumbnail || Math.min(img.width / width, img.height / height) < 3);
+    // CMYK filtering must resize the native ink plane together with RGB and alpha.
+    const point = (sample || img.space !== "cmyk") && !scale && kernel === "nearest" && (!thumbnail || Math.min(img.width / width, img.height / height) < 3);
     if (img.readMask) img = { ...img, readMask: yield* resizeMagickReadMaskSteps(img, width, height, point, sample, scale, sampleOffset) };
     if ((img.writeMask || img.region || channels?.some(selected => !selected)) && !sample && !scale && !point) {
         return yield* resizeMaskedMagickImageSteps(img, width, height, kernel, thumbnail, settings, channels);
@@ -6553,7 +6554,7 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: Pick<Com
     if ((thumbnail || sample || scale) && width === image.width && height === image.height) return image;
     preserveSamples ||= image.storedEvaluateSamples !== undefined || !!image.readMask || image.space === "cmyk";
     const writeMask = !!(image.storedWriteMask || ((sample || scale) && image.region));
-    const point = !scale && options.kernel === "nearest" && (!thumbnail || Math.min(image.width / width, image.height / height) < 3);
+    const point = (sample || image.space !== "cmyk") && !scale && options.kernel === "nearest" && (!thumbnail || Math.min(image.width / width, image.height / height) < 3);
     if (image.readMask) image = { ...image, readMask: await resizeStoredMagickReadMask(image, backend, width, height, signal, point, sample, scale, sampleOffset) };
     if ((image.storedWriteMask || image.region || channels?.some(selected => !selected)) && !sample && !scale && !point) {
         return resizeMaskedStoredMagickImage(image, backend, width, height, options.kernel, signal, thumbnail, settings, channels);

@@ -14806,7 +14806,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       const twoChannelStereo = layouts[0] === "stereo" && (inputMask === 0xc || inputMask === 0x60000000);
                       const centerLfeExpansion = layouts[0] === "2.1" && inputMask === 0xc;
                       const centerLfeMono = layouts[0] === "mono" && inputMask === 0xc;
-                      if (!stereoExpansion && !multichannelStereo && !twoChannelStereo && !centerLfeExpansion && !centerLfeMono &&
+                      const downmixMono = layouts[0] === "mono" && inputMask === 0x60000000;
+                      if (!stereoExpansion && !multichannelStereo && !twoChannelStereo && !centerLfeExpansion && !centerLfeMono && !downmixMono &&
                           !(inputLayout === "mono" && layouts[0] === "stereo" || inputLayout === "stereo" && layouts[0] === "mono")) {
                         throw new Error(`${filterName}: unsupported input channel layout`);
                       }
@@ -20401,7 +20402,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
                   const outputAudioPlugin = outputFormat === "segment" ? segmentPlugin : outPlugin;
                   const outputPcmFormat = sampleFormat ?? pcmSampleFormat(audioCodec ?? `pcm_${outputAudioPlugin?.id}`);
-                  if (audioChannels === 1 && stretched.length === 2 && (!filteredChannelMask || filteredChannelMask === 3) &&
+                  if (audioChannels === 1 && stretched.length === 2 && (!filteredChannelMask || filteredChannelMask === 3 || filteredChannelMask === 0x60000000) &&
                       outputPcmFormat && ["flt", "fltp", "dbl", "dblp"].includes(outputPcmFormat)) {
                     // Floating output retains equal-power gain unless normalization is requested.
                     const gain = Math.min(Math.SQRT1_2, (matrixMaxval || Infinity) / 2);
@@ -20426,7 +20427,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
                   // FFmpeg guesses 2.1 for three-channel PCM without an explicit layout.
                   const channelMask = filteredChannelMask ?? (origCh === 3 ? 11 : undefined);
-                  if (origCh === 2 && channelMask && channelMask !== 3 && channelMask !== 12 &&
+                  if (origCh === 2 && channelMask && channelMask !== 3 && channelMask !== 12 && channelMask !== 0x60000000 &&
                       audioChannels !== undefined && audioChannels > 0) {
                     throw new Error(`Unsupported input channel layout (mask ${channelMask})`);
                   }

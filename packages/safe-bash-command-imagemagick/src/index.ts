@@ -12382,7 +12382,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 if (hueSamples && evaluateSamples) {
                     // Black is the fourth ink; alpha remains in the RGBA backing.
                     const alpha = channels ? evaluateSamples[idx + 3]! * 257 : intensity;
-                    const alphaThreshold = thresholds[3]!;
+                    // Plain coordinates consume only four values; percent lists can specify CMYK alpha fifth.
+                    const alphaThreshold = !coordinates ? values[4] ?? thresholds[3]! : thresholds[3]!;
                     if ((im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false) && (!channels || channels.a) && (isBlack ? alpha < alphaThreshold : alpha > alphaThreshold)) {
                         out[idx + 3] = isBlack ? 0 : 255;
                         if (data16) data16[idx + 3] = isBlack ? 0 : 65535;

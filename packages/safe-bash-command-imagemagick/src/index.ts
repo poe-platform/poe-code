@@ -21267,6 +21267,13 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
             else if (t === ")") groupDepth--;
             continue;
         }
+        // Native composite rewrites either tile flag to a one-argument no-op,
+        // consuming an immediately following transform token during image processing.
+        if ((argv[i - 1] === "-tile" || argv[i - 1] === "+tile")
+            && (t === "-resize" || t === "-rotate" || t === "-negate")) {
+            if (t !== "-negate") i++;
+            continue;
+        }
         if (t === "-negate" || t === "-rotate" || t === "-background") {
             operations.push(t);
             if (t !== "-negate") operations.push(argv[++i] ?? "");

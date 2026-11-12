@@ -6,7 +6,7 @@ import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createConvertCommand, createMontageCommand, runMagickCli, runConvertCli, runConvertCliSync, runMontageCli, runMontageCliSync } from "./index.js";
 
-// Decoded RGBA from ImageMagick 7.1.2 Q16-HDRI: sticker.png -thumbnail SIZE png:-.
+// RGBA8 from ImageMagick 7.1.2 Q16-HDRI: sticker.png -thumbnail SIZE -depth 8 rgba:-.
 // These exercise sampling + box filtering, box filtering alone, and final filtering alone.
 for (const [size, digest] of [
     [80, "4752eee3485ad62cf3d5f3c86af83419128a8cb2611e91748a15d1578511ae09"],
@@ -34,7 +34,9 @@ for (const [size, digest] of [
         expect(result.exitCode).toBe(0);
         const output = decodeImage(mode === "buffered" || mode === "sync" ? files.get("/out.png")! : await filesystem.readFile("/out.png"));
         expect([output.width, output.height]).toEqual([size, size]);
-        expect(createHash("sha256").update(output.data).digest("hex")).toBe(digest);
+        // Quantize Q16 PNG samples like native RGBA8 export, rather than taking their high byte.
+        const rgba = output.data16 ? Uint8Array.from(output.data16, value => Math.round(value / 257)) : output.data;
+        expect(createHash("sha256").update(rgba).digest("hex")).toBe(digest);
     });
 }
 

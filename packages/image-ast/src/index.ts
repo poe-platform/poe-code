@@ -27,6 +27,7 @@ export * from "./codecs/bmp-storage.js";
 export * from "./codecs/netpbm-storage.js";
 export * from "./ast.js";
 export * from "./codecs/exif.js";
+export { readMiffHeader } from "./codecs/miff-input.js";
 export { isExrBytes, readExrHeader } from "./codecs/exr.js";
 export * from "./codecs/png.js";
 export * from "./codecs/png-storage.js";

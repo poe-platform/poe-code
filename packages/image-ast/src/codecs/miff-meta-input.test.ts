@@ -1,5 +1,5 @@
 import { expect, it, vi } from "vitest";
-import fixtures from "./miff-meta-fixtures.json";
+import fixtures from "../../../../tests/fixtures/media/miff-meta-fixtures.json";
 import { decodeMiffImage, readMiffHeader } from "./miff-input.js";
 import { decodeMiffToStorage } from "./miff-input-storage.js";
 

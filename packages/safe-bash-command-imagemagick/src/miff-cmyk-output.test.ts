@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { decodeMiffImage } from "../../image-ast/src/codecs/miff-input.js";
+import { decodeImage } from "@poe-code/image-ast";
 import { runConvertCli, runConvertCliSync } from "./index.js";
 
 for (const mode of ["sync", "buffered", "retained"] as const) {
@@ -19,7 +19,7 @@ for (const mode of ["sync", "buffered", "retained"] as const) {
                 : await runConvertCli(argv, mode === "retained" ? { filesystem, cwd: "/" } : files);
             expect(result).toMatchObject({ exitCode: 0, stderr: "" });
             const output = mode === "retained" ? await filesystem.readFile("/out.miff") : files.get("/out.miff")!;
-            const decoded = decodeMiffImage(output);
+            const decoded = decodeImage(output);
             expect(decoded).toMatchObject({ space: "cmyk", channels: 5, hasAlpha: true });
             // ImageMagick 7.1.2-35 Q16-HDRI reference: inspect inks, since RGBA hides black loss.
             expect(Buffer.from(Uint8Array.from(decoded.hueSamples!, value => Math.round(value * 255))).toString("hex")).toBe("db9200b9db6d00b92762007d");

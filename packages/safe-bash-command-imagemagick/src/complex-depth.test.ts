@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { readMiffHeader } from "../../image-ast/src/codecs/miff-input.js";
+import { readMiffHeader } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";

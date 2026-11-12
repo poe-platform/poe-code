@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { expect, it } from "vitest";
 import { decodeMiffImage, readMiffHeader } from "./miff-input.js";
 import { decodeMiffToStorage } from "./miff-input-storage.js";
-import fixtures from "./miff-paper-fixtures.json";
+import fixtures from "../../../../tests/fixtures/media/miff-paper-fixtures.json";
 
 // Native ImageMagick 7.1.2-35 Q16-HDRI generated these complete MIFF files with
 // the recorded args from P6 7x5 input: RGB byte i = (13 * i + 9) % 256.

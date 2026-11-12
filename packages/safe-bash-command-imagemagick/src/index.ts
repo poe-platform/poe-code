@@ -24779,10 +24779,10 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     await backend.publishPending();
                     stdout = "";
                 }
-            if (output.format === "pfm" || output.format === "phm") canvas = await prepareStoredMagickOutput(canvas, output.format, backend, signal);
-            if (output.format === "psd") canvas = { ...canvas, bitsPerSample: state.inputDepth ?? 16 };
                 continue;
             }
+            if (output.format === "pfm" || output.format === "phm") canvas = await prepareStoredMagickOutput(canvas, output.format, backend, signal);
+            if (output.format === "psd") canvas = { ...canvas, bitsPerSample: state.inputDepth ?? 16 };
             if (adjoinedPages) { await adjoinedPages.push(canvas); continue; }
             if (adjoin) { await pages.push(canvas); continue; }
             if (output.format === "jpeg" || output.format === "tiff" || output.format === "tga" || output.format === "psd" || output.format === "psb") {

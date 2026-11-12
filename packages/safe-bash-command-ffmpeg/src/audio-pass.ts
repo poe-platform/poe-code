@@ -15,6 +15,7 @@ export function parsePassOptions(filter: string) {
   let csg = false;
   let enable: string | undefined;
   let precision = -1;
+  let transform = 0;
   let normalize = false;
   let selected: string[] | undefined;
   const options = { frequency: equalizer ? 0 : lowShelf ? 100 : lowpass ? 500 : 3000, poles: 2, mix: 1, width: equalizer ? 1 : shelf || bandpass || bandreject ? 0.5 : 0.707, width_type: 3, blocksize: 0, gain: 0 };
@@ -69,6 +70,14 @@ export function parsePassOptions(filter: string) {
       normalize = parseFilterBoolean(value, `${name}: invalid normalize`);
       continue;
     }
+    if (optionName === "transform" || optionName === "a") {
+      const number = parseFilterExpression(value, name, {
+        di: 0, dii: 1, tdi: 2, tdii: 3, latt: 4, svf: 5, zdf: 6, min: 0, max: 6, default: 0
+      });
+      if (!value || !Number.isFinite(number) || number < 0 || number > 6) throw new Error(`${name}: invalid transform`);
+      transform = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
+      continue;
+    }
     if (optionName === "precision" || optionName === "r") {
       const number = parseFilterExpression(value, name, { auto: -1, s16: 0, s32: 1, f32: 2, f64: 3 });
       if (!value || !Number.isFinite(number) || number < -1 || number > 3) throw new Error(`${name}: invalid precision`);
@@ -100,7 +109,7 @@ export function parsePassOptions(filter: string) {
     options[key] = key === "blocksize" || key === "poles" || key === "width_type"
       ? (number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number)) : number;
   }
-  return { ...options, precision, selected, enable, normalize, csg };
+  return { ...options, precision, transform, selected, enable, normalize, csg };
 }
 
 export async function passAudio(
@@ -116,7 +125,7 @@ export async function passAudio(
   const bandreject = name === "bandreject";
   const lowShelf = name === "bass" || name === "lowshelf";
   const shelf = lowShelf || name === "treble" || name === "highshelf";
-  const { precision, selected, enable, normalize, csg, ...options } = parsePassOptions(filter);
+  const { precision, transform, selected, enable, normalize, csg, ...options } = parsePassOptions(filter);
   const inputFormat = sampleFormat;
   if (precision !== -1) sampleFormat = ["s16p", "s32p", "fltp", "dblp"][precision]!;
   else if (!sampleFormat.endsWith("p")) sampleFormat += "p";
@@ -147,7 +156,7 @@ export async function passAudio(
   budget.checkCpu();
   const initialFrequency = options.frequency;
   const initialGain = options.gain;
-  let a1 = 0, a2 = 0, b0 = 0, b1 = 0, b2 = 0;
+  let a0 = 1, a1 = 0, a2 = 0, b0 = 0, b1 = 0, b2 = 0;
   let bypass = false;
   const configure = () => {
     bypass = (options.mix === 0 || options.width === 0 || options.frequency === 0 || options.frequency > sampleRate / 2);
@@ -216,7 +225,37 @@ export async function passAudio(
       const factor = (1 + a1 + a2) / (b0 + b1 + b2);
       b0 *= factor; b1 *= factor; b2 *= factor;
     }
+    a0 = 1;
+    if (transform === 4) {
+      const k0 = a1 / (1 + a2);
+      b1 -= b2 * a1;
+      b0 = b0 - b1 * k0 - b2 * a2;
+      a1 = k0;
+    } else if (transform === 5) {
+      const directB0 = b0;
+      b0 = b1 - a1 * directB0;
+      b1 = b2 - a2 * directB0;
+      b2 = directB0;
+      a1 = -a1; a2 = -a2;
+    } else if (transform === 6) {
+      let q = options.width;
+      switch (options.width_type) {
+        case 1: q = options.frequency / options.width; break;
+        case 2: q = 1 / (2 * Math.sinh(Math.LN2 / 2 * options.width * angle / sine)); break;
+        case 4: q = 1 / Math.sqrt((amplitude + 1 / amplitude) * (1 / options.width - 1) + 2); break;
+        case 5: q = options.frequency / (options.width * 1000); break;
+      }
+      const tangent = Math.tan(angle / 2);
+      const g = shelf ? lowShelf ? tangent / Math.sqrt(amplitude) : tangent * Math.sqrt(amplitude) : tangent;
+      const k = 1 / (equalizer ? q * amplitude : q);
+      a0 = 1 / (1 + g * (g + k));
+      a1 = g * a0; a2 = g * a1;
+      b0 = shelf ? lowShelf ? 1 : amplitude * amplitude : lowpass || bandpass ? 0 : 1;
+      b1 = shelf ? lowShelf ? k * (amplitude - 1) : k * (1 - amplitude) * amplitude : equalizer ? k * (amplitude * amplitude - 1) : bandpass ? csg ? 1 : k : lowpass ? 0 : -k;
+      b2 = shelf ? lowShelf ? amplitude * amplitude - 1 : 1 - amplitude * amplitude : bandpass || bandreject || equalizer ? 0 : lowpass ? 1 : -1;
+    }
     if (single) {
+      a0 = Math.fround(a0);
       a1 = Math.fround(a1); a2 = Math.fround(a2);
       b0 = Math.fround(b0); b1 = Math.fround(b1); b2 = Math.fround(b2);
     }
@@ -226,18 +265,67 @@ export async function passAudio(
   // Native PCM16 and float modes round every operation to single precision.
   const wet = single ? Math.fround(options.mix) : options.mix;
   const dry = single ? Math.fround(1 - wet) : 1 - wet;
-  const filterSample = (input: number, x1: number, x2: number, y1: number, y2: number) => single
-    ? Math.fround(Math.fround(Math.fround(Math.fround(Math.fround(x2 * b2) + Math.fround(x1 * b1))
-      + Math.fround(input * b0)) - Math.fround(y2 * a2)) - Math.fround(y1 * a1))
-    : x2 * b2 + x1 * b1 + input * b0 - y2 * a2 - y1 * a1;
-  const mixSample = (filtered: number, input: number) => {
-    const mixed = single ? Math.fround(Math.fround(filtered * wet) + Math.fround(input * dry)) : filtered * wet + input * dry;
+  const round = single ? Math.fround : (value: number) => value;
+  const filterSample = (input: number, state: Float64Array, enabled: boolean) => {
+    const s0 = state[0]!, s1 = state[1]!, s2 = state[2]!, s3 = state[3]!;
+    let filtered: number;
+    switch (transform) {
+      case 1: { // Direct form II.
+        const w0 = round(round(input - round(a1 * s0)) - round(a2 * s1));
+        filtered = round(round(round(b0 * w0) + round(b1 * s0)) + round(b2 * s1));
+        state[0] = w0; state[1] = s0;
+        break;
+      }
+      case 2: { // Transposed direct form I also uses the feedback input for its dry mix.
+        input = round(input + s0);
+        filtered = round(round(b0 * input) + s2);
+        state[0] = round(round(-a1 * input) + s1); state[1] = round(-a2 * input);
+        state[2] = round(round(b1 * input) + s3); state[3] = round(b2 * input);
+        break;
+      }
+      case 3: // Transposed direct form II.
+        filtered = round(round(b0 * input) + s0);
+        state[0] = round(round(round(b1 * input) + s1) - round(a1 * filtered));
+        state[1] = round(round(b2 * input) - round(a2 * filtered));
+        break;
+      case 4: { // Lattice-ladder.
+        let t0 = round(input - round(a2 * s0));
+        let t1 = round(round(t0 * a2) + s0);
+        filtered = round(t1 * b2);
+        t0 = round(t0 - round(a1 * s1));
+        t1 = round(round(t0 * a1) + s1);
+        filtered = round(round(filtered + round(t1 * b1)) + round(t0 * b0));
+        state[0] = t1; state[1] = t0;
+        break;
+      }
+      case 5: // State variable.
+        filtered = round(round(b2 * input) + s0);
+        state[0] = round(round(round(b0 * input) + round(a1 * s0)) + s1);
+        state[1] = round(round(b1 * input) + round(a2 * s0));
+        break;
+      case 6: { // Zero-delay state variable.
+        const v3 = round(input - s1);
+        const v1 = round(round(a0 * s0) + round(a1 * v3));
+        const v2 = round(round(s1 + round(a1 * s0)) + round(a2 * v3));
+        state[0] = round(round(2 * v1) - s0); state[1] = round(round(2 * v2) - s1);
+        filtered = round(round(round(b0 * input) + round(b1 * v1)) + round(b2 * v2));
+        break;
+      }
+      default: // Direct form I (the native default).
+        filtered = round(round(round(round(round(s1 * b2) + round(s0 * b1))
+          + round(input * b0)) - round(s3 * a2)) - round(s2 * a1));
+        state[0] = input; state[1] = s0; state[2] = filtered; state[3] = s2;
+    }
+    const mixed = enabled ? round(round(filtered * wet) + round(input * dry)) : input;
     return scale === 1 ? mixed : Math.max(-scale, Math.min(scale - 1, Math.trunc(mixed * scale))) / scale;
   };
   const output: (Float32Array | Float64Array)[] = [];
   channelNames ??= channels.length === 1 ? ["FC"] : channels.length === 2 ? ["FL", "FR"] : [];
   const blocksize = options.blocksize;
-  budget.allocateMemory(blocksize * 2 * 8);
+  budget.allocateMemory(blocksize * 2 * 8 + 3 * 4 * 8);
+  const state = new Float64Array(4);
+  const savedState = new Float64Array(4);
+  const reverseState = new Float64Array(4);
   const block = new Float64Array(blocksize * 2);
   let work = 0;
   let enabledFrames: Uint8Array | undefined;
@@ -299,7 +387,7 @@ export async function passAudio(
     }
     budget.allocateMemory(channel.length * 8);
     const samples = new Float64Array(channel.length);
-    let x1 = 0, x2 = 0, y1 = 0, y2 = 0;
+    state.fill(0);
     if (blocksize) {
       block.fill(0);
       for (let offset = 0; offset < channel.length; offset += blocksize) {
@@ -307,7 +395,7 @@ export async function passAudio(
         const enabled = enabledFrames === undefined || enabledFrames[offset / blocksize] === 1;
         // Refilter the previous block and lookahead with the current timeline state.
         // Only the previous block's forward history persists between calls.
-        let savedX1 = x1, savedX2 = x2, savedY1 = y1, savedY2 = y2;
+        savedState.set(state);
         for (let i = 0; i < block.length; i++) {
           if (++work % 1024 === 0) {
             await yieldTurn(signal);
@@ -316,16 +404,13 @@ export async function passAudio(
           }
           const input = channel[offset - blocksize + i] ?? 0;
           if (bypass) { block[i] = input; continue; }
-          const filtered = filterSample(input, x1, x2, y1, y2);
-          x2 = x1; x1 = input;
-          y2 = y1; y1 = filtered;
-          block[i] = enabled ? mixSample(filtered, input) : input;
+          block[i] = filterSample(input, state, enabled);
           if (i === blocksize - 1) {
-            savedX1 = x1; savedX2 = x2; savedY1 = y1; savedY2 = y2;
+            savedState.set(state);
           }
         }
-        x1 = savedX1; x2 = savedX2; y1 = savedY1; y2 = savedY2;
-        let rx1 = 0, rx2 = 0, ry1 = 0, ry2 = 0;
+        state.set(savedState);
+        reverseState.fill(0);
         const last = offset + blocksize >= channel.length;
         for (let i = block.length - 1; i >= 0; i--) {
           if (++work % 1024 === 0) {
@@ -334,19 +419,18 @@ export async function passAudio(
             budget.checkCpu();
           }
           const input = block[i]!;
-          const filtered = bypass ? input : filterSample(input, rx1, rx2, ry1, ry2);
-          rx2 = rx1; rx1 = input;
-          ry2 = ry1; ry1 = filtered;
+          const filtered = bypass ? input : filterSample(input, reverseState, enabled);
           const position = offset - blocksize + i;
           // At EOF FFmpeg emits the cached second half without another pass.
           if ((i < blocksize || last) && position >= 0 && position < channel.length) {
-            samples[position] = enabled ? mixSample(filtered, input) : input;
+            samples[position] = filtered;
           }
         }
       }
       output.push(samples);
       continue;
     }
+    let frameIndex = 0;
     for (let i = 0; i < channel.length; i++) {
       applyCommands(i);
       if (++work % 1024 === 0) {
@@ -356,22 +440,10 @@ export async function passAudio(
       }
       const input = channel[i]!;
       if (bypass) { samples[i] = input; continue; }
-      const filtered = filterSample(input, x1, x2, y1, y2);
-      x2 = x1; x1 = input;
-      y2 = y1; y1 = filtered;
-      samples[i] = mixSample(filtered, input);
+      while (frameIndex + 1 < frames.length && frames[frameIndex]!.end <= i) frameIndex++;
+      samples[i] = filterSample(input, state, enabledFrames === undefined || enabledFrames[frameIndex] === 1);
     }
     output.push(samples);
-  }
-  if (enabledFrames && !blocksize) {
-    for (const [n, frame] of frames.entries()) {
-      if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-      if (enabledFrames[n]) continue;
-      // Biquads keep updating their history while disabled, returning the input.
-      for (const [c, channel] of channels.entries()) {
-        output[c]!.set(channel.subarray(frame.start, frame.end), frame.start);
-      }
-    }
   }
   return { channels: output, sampleFormat, blocksize };
 }

@@ -17044,9 +17044,18 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const first = oldStack[0]! as MagickImage;
                 const ticksPerSecond = first[magickInput]?.ticksPerSecond ?? first.ticksPerSecond, delayTicks = first[magickInput]?.delayTicks ?? first.delayTicks;
                 const timing = { ...(ticksPerSecond === undefined ? {} : { ticksPerSecond }), ...(delayTicks === undefined ? {} : { delayTicks }) };
+                const source = first[magickInput];
                 canvas.region = first.region;
                 if (first.readMask) canvas.readMask = yield* createSolidRgbaImageSteps(maxW, maxH, { r: 0, g: 0, b: 0, a: 255 });
-                stack = [{ ...canvas, ...timing, [magickInput]: { channelMask: mask, ...(first[magickInput]?.compression === undefined ? {} : { compression: first[magickInput]!.compression }), ...timing }, depth: first.depth, ...(first.bitsPerSample === undefined ? {} : { bitsPerSample: first.bitsPerSample }), ...(first.properties ? { properties: first.properties } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0] }];
+                stack = [{ ...canvas, ...timing, format: first.format, [magickInput]: {
+                    ...(source?.filePath === undefined ? {} : { filePath: source.filePath }),
+                    ...(source?.summaryFilename === undefined ? {} : { summaryFilename: source.summaryFilename }),
+                    ...(source?.inputFormat === undefined ? {} : { inputFormat: source.inputFormat }),
+                    ...(source?.byteLen === undefined ? {} : { byteLen: source.byteLen }),
+                    ...(source?.originalWidth === undefined ? {} : { originalWidth: source.originalWidth }),
+                    ...(source?.originalHeight === undefined ? {} : { originalHeight: source.originalHeight }),
+                    channelMask: mask, ...(source?.compression === undefined ? {} : { compression: source.compression }), ...timing
+                }, depth: first.depth, ...(first.bitsPerSample === undefined ? {} : { bitsPerSample: first.bitsPerSample }), ...(first.properties ? { properties: first.properties } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), delay: [first.delay?.[first[magickInput]?.sceneIdx ?? 0] ?? 0] }];
                 if (state.units !== undefined) stack[0] = applyMagickUnits(stack[0]!, state.units);
                 if (state.densityGeometry !== undefined) stack[0] = applyMagickDensity(stack[0]!, state.densityGeometry);
                 if (merge) stack[0] = { ...stack[0]!, virtualCanvas: {
@@ -19468,9 +19477,18 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const first: StoredRgbaImage = (await stack.get(0))!, scene = first[magickInput]?.sceneIdx ?? 0;
                     const ticksPerSecond = first[magickInput]?.ticksPerSecond ?? first.ticksPerSecond, delayTicks = first[magickInput]?.delayTicks ?? first.delayTicks;
                     const timing = { ...(ticksPerSecond === undefined ? {} : { ticksPerSecond }), ...(delayTicks === undefined ? {} : { delayTicks }) };
+                    const source = first[magickInput];
                     result.region = first.region;
                     if (first.readMask) result.readMask = await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal);
-                    result = { ...result, ...timing, [magickInput]: { channelMask: mask, ...(first[magickInput]?.compression === undefined ? {} : { compression: first[magickInput]!.compression }), ...timing }, ...(first.properties ? { properties: first.properties } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0] };
+                    result = { ...result, ...timing, format: first.format, [magickInput]: {
+                        ...(source?.filePath === undefined ? {} : { filePath: source.filePath }),
+                        ...(source?.summaryFilename === undefined ? {} : { summaryFilename: source.summaryFilename }),
+                        ...(source?.inputFormat === undefined ? {} : { inputFormat: source.inputFormat }),
+                        ...(source?.byteLen === undefined ? {} : { byteLen: source.byteLen }),
+                        ...(source?.originalWidth === undefined ? {} : { originalWidth: source.originalWidth }),
+                        ...(source?.originalHeight === undefined ? {} : { originalHeight: source.originalHeight }),
+                        channelMask: mask, ...(source?.compression === undefined ? {} : { compression: source.compression }), ...timing
+                    }, ...(first.properties ? { properties: first.properties } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0] };
                     if (settings.units !== undefined) result = applyMagickUnits(result, settings.units);
                     if (settings.densityGeometry !== undefined) result = applyMagickDensity(result, settings.densityGeometry);
                     if (merge) result = { ...result, virtualCanvas: {

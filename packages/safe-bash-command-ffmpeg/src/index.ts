@@ -6706,11 +6706,46 @@ async function applyVideoFilterChain(
         if (!Number.isInteger(value) || value < 0 || value > 3) throw new Error("shuffleplanes: invalid plane index");
         mapping[plane] = value;
       }
+      const rgb = ["rgb24", "bgr24", "rgba", "bgra", "gbrp", "gbrap"].includes(pixelFormat ?? "rgba");
+      const alpha = ["rgba", "bgra", "gbrap"].includes(pixelFormat ?? "rgba");
+      const packedAlpha = alpha && pixelFormat !== "gbrap";
       current = await mapWork(current, async (frame) => {
+        if (rgb) {
+          const channels = [1, 2, 0, 3]; // FFmpeg planar RGB is stored in G, B, R, A order.
+          const planes = alpha ? 4 : 3;
+          if (mapping.slice(0, planes).some(plane => plane >= planes)) {
+            throw new Error("shuffleplanes: mapped planes must exist in the input");
+          }
+          budget.allocateMemory(frame.data.byteLength);
+          const data = new Uint8Array(frame.data.length);
+          for (let offset = 0; offset < data.length; offset += 4) {
+            if (++work % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+            data[offset + 3] = 255;
+            for (let plane = 0; plane < planes; plane++) {
+              const sourceChannel = channels[mapping[plane]!]!;
+              const value = frame.data[offset + sourceChannel]!;
+              // swscale rounds alpha once when converting packed RGB to planar GBR.
+              data[offset + channels[plane]!] = packedAlpha && sourceChannel === 3
+                ? Math.min(255, Math.round(value * 257 / 256)) : value;
+            }
+          }
+          const output = { ...frame, data };
+          delete output.native;
+          return output;
+        }
         let source = frame.native;
         if (!source || source.rgba !== frame.data || source.width !== frame.width || source.height !== frame.height ||
-            ![0, 4, 5, 12, 13, 14, 49, 68].includes(source.format)) {
-          throw new Error("shuffleplanes: expected native planar YUV input");
+            ![0, 4, 5, 12, 13, 14, 33, 49, 68, 79].includes(source.format)) {
+          throw new Error("shuffleplanes: expected RGB or native planar YUV input");
+        }
+        // Luma/chroma mappings require equal-resolution planes throughout the filter.
+        if ([0, 4, 12, 13].includes(source.format) &&
+            (mapping[0] !== 0 || mapping[1] === 0 || mapping[2] === 0)) {
+          budget.allocateMemory(frame.width * frame.height * 7);
+          frame = await formatYuv(frame, "yuv444p", signal);
+          budget.checkCpu();
+          source = frame.native!;
+          pixelFormat = "yuv444p";
         }
         // Luma/chroma mappings require equal-resolution planes throughout the filter.
         if ([0, 4, 12, 13].includes(source.format) &&
@@ -6722,27 +6757,36 @@ async function applyVideoFilterChain(
           pixelFormat = "yuv444p";
         }
         const sampleBytes = [49, 68].includes(source.format) ? 2 : 1;
-        const hsub = [5, 14, 49, 68].includes(source.format) ? 1 : 2;
-        const vsub = [0, 12].includes(source.format) ? 2 : 1;
+        const hsub = [5, 14, 49, 68, 79].includes(source.format) ? 1 : 2;
+        const vsub = [0, 12, 33].includes(source.format) ? 2 : 1;
         const luma = frame.width * frame.height * sampleBytes;
         const chroma = Math.ceil(frame.width / hsub) * Math.ceil(frame.height / vsub) * sampleBytes;
         const sizes = [luma, chroma, chroma];
         const offsets = [0, luma, luma + chroma];
-        for (let plane = 0; plane < 3; plane++) {
-          if (mapping[plane]! >= 3 || sizes[mapping[plane]!] !== sizes[plane]) {
+        if (source.format === 33 || source.format === 79) {
+          sizes.push(luma);
+          offsets.push(luma + 2 * chroma);
+        }
+        for (let plane = 0; plane < sizes.length; plane++) {
+          if (sizes[mapping[plane]!] !== sizes[plane]) {
             throw new Error("shuffleplanes: mapped planes must have matching dimensions and exist in the input");
           }
         }
         budget.allocateMemory(source.pixels.byteLength + frame.data.byteLength);
         const pixels = new Uint8Array(source.pixels.length);
-        for (let plane = 0; plane < 3; plane++) {
+        for (let plane = 0; plane < sizes.length; plane++) {
           const start = offsets[mapping[plane]!]!;
-          pixels.set(source.pixels.subarray(start, start + sizes[plane]!), offsets[plane]!);
+          for (let offset = 0; offset < sizes[plane]!; offset += 65536) {
+            await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
+            const end = Math.min(offset + 65536, sizes[plane]!);
+            pixels.set(source.pixels.subarray(start + offset, start + end), offsets[plane]! + offset);
+          }
         }
         const native = { ...source, pixels };
         const data = scaleVideoPicture({ ...frame, native }, frame.width, frame.height)!;
         return { ...frame, data, native: { ...native, rgba: data } };
       }, signal);
+      if (rgb) pixelFormat = diagnostics.pixelFormat = alpha ? "gbrap" : "gbrp";
     } else if (name === "shuffleframes") {
       if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       for (const [key, value] of Object.entries(named)) {

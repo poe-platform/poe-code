@@ -139,7 +139,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { convertAudioSampleFormat, resampleAudio } from "./audio-resample.js";
 import { resampleStreamselectInput } from "./audio-astreamselect-resample.js";
 import { resampleSoxr } from "./audio-soxr.js";
-import { filterTempo, parseTempo } from "./audio-tempo.js";
+import { parseTempo } from "./audio-tempo.js";
 import { filterScheduledTempo } from "./audio-tempo-commands.js";
 import { datascopeFrame } from "./datascope.js";
 import { scaleFrame } from "./scale.js";
@@ -17942,59 +17942,41 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const inputFrame = audioTimestamps?.[0];
                         const packet = t.samples[0];
                         const inputLength = stretched[0]?.length ?? 0;
-                        const inputFrameSize = inputFrame ? inputFrame.end - inputFrame.start
-                          : Math.min(inputLength, packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024);
-                        const frameSize = Math.max(1, Math.round(inputFrameSize / tempo));
                         const tempoStartPts = inputFrame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample);
                         const commands = audioCommands.filter(command => command.target === "atempo" || command.target === filterTarget)
                           .sort((a, b) => a.sample - b.sample);
                         audioCommands = audioCommands.filter(command => command.target !== "atempo" && command.target !== filterTarget);
-                        const downstreamCommands = audioCommands.some(command => audioFilters.slice(filterIndex + 1).some(item => {
-                          const target = item.trim().split("=", 1)[0]!;
-                          return command.target === target || command.target === target.split("@", 1)[0];
-                        }));
-                        if (commands.length || downstreamCommands) {
-                          if (!audioTimestamps) {
-                            audioTimestamps = [];
-                            for (let start = 0, n = 0; start < inputLength; n++) {
-                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                              const packet = t.samples[n];
-                              const count = packet ? Math.max(0, Math.round(packet.duration * origRate / t.timescale)
-                                - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
-                              if (count === 0) continue;
-                              const end = Math.min(inputLength, start + count);
-                              const pts = packet ? packet.pts * origRate / t.timescale + (packet.skipSamples ?? 0) : audioStartSample + start;
-                              budget.allocateMemory(24);
-                              audioTimestamps.push({ start, end, pts });
-                              start = end;
-                            }
-                          }
-                          const result = await filterScheduledTempo(stretched, origRate, panSampleFormat, tempo,
-                            commands, audioTimestamps, budget, context.signal);
-                          stretched = result.channels;
-                          audioTimestamps = result.frames;
-                          // Commands reach downstream filters before this input frame is
-                          // processed, including audio still buffered by this tempo stage.
-                          audioCommands.sort((a, b) => a.sample - b.sample);
-                          let frameIndex = 0;
-                          let emitted = 0;
-                          for (const command of audioCommands) {
-                            while (frameIndex < result.frames.length && result.frames[frameIndex]!.inputEnd <= command.sample) {
-                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                              emitted = result.frames[frameIndex++]!.end;
-                            }
-                            command.sample = emitted;
-                          }
-                        } else {
-                          stretched = await filterTempo(stretched, origRate, tempo, panSampleFormat, frameSize, budget, context.signal);
-                          // atempo emits frames sized for the new tempo on a continuous output timeline.
-                          const length = stretched[0]?.length ?? 0;
-                          budget.allocateMemory(Math.ceil(length / frameSize) * 24);
+                        if (!audioTimestamps) {
                           audioTimestamps = [];
-                          for (let start = 0; start < length; start += frameSize) {
+                          for (let start = 0, n = 0; start < inputLength; n++) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                            audioTimestamps.push({ start, end: Math.min(length, start + frameSize), pts: tempoStartPts + start });
+                            const packet = t.samples[n];
+                            const count = packet ? Math.max(0, Math.round(packet.duration * origRate / t.timescale)
+                              - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
+                            if (count === 0) continue;
+                            const end = Math.min(inputLength, start + count);
+                            const pts = packet ? packet.pts * origRate / t.timescale + (packet.skipSamples ?? 0) : audioStartSample + start;
+                            budget.allocateMemory(24);
+                            audioTimestamps.push({ start, end, pts });
+                            start = end;
                           }
+                        }
+                        // Frame boundaries affect overlap and EOF flushing even without commands.
+                        const result = await filterScheduledTempo(stretched, origRate, panSampleFormat, tempo,
+                          commands, audioTimestamps, budget, context.signal);
+                        stretched = result.channels;
+                        audioTimestamps = result.frames;
+                        // Commands reach downstream filters before this input frame is
+                        // processed, including audio still buffered by this tempo stage.
+                        audioCommands.sort((a, b) => a.sample - b.sample);
+                        let frameIndex = 0;
+                        let emitted = 0;
+                        for (const command of audioCommands) {
+                          while (frameIndex < result.frames.length && result.frames[frameIndex]!.inputEnd <= command.sample) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            emitted = result.frames[frameIndex++]!.end;
+                          }
+                          command.sample = emitted;
                         }
                         const samplesPerTick = (audioTimeBase ?? 1 / origRate) * origRate;
                         for (const frame of audioTimestamps) {

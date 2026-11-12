@@ -5722,11 +5722,11 @@ describe("decoded audio editing", () => {
     }
   }
 
-  // Native FFmpeg 9.0.1 PCM16 reference digests, generated with
+  // Native FFmpeg 7.0.2 PCM16 reference digests, generated with
   // -f s16le -ar RATE -ac CHANNELS -i pipe:0 -af atempo=1 -f s16le pipe:1.
   for (const [length, channels, silent, expectedLength, hash] of [
-    [8000, 1, false, 7983, "30101832ed75ca4c55f051619ecf4c5382f9b591c56ad84e1b161ba94516c3da"],
-    [8000, 2, false, 7983, "71543292be1e5bffe6a5aab05065a4960642849beb980268abf6e19b4b8abdc6"],
+    [8000, 1, false, 7983, "132028cbad6ebb0af4ba0a5b74175ec7046eab8567c2366f454e8a6226ab953a"],
+    [8000, 2, false, 7983, "5279f8677ab33b8509b4cca0e05f5a1e07216bf91b40ff4e63ee9ce151f2f078"],
     [8000, 1, true, 7744, "787857ffbf80480c021e8ff0ca37e20fb89a00439eb18f55baa555404df9649d"],
     [80, 1, false, 0, "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"],
     [256, 1, false, 256, "ce6c7bf02f1ba651bb0b97828aa790d3ea5756660a648bd86ce246aef555e48e"],

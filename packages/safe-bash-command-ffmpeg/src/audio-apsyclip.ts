@@ -5,7 +5,7 @@ import { transform } from "./audio-fft.js";
 export async function psychoacousticClip(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
   filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
-): Promise<Float32Array[]> {
+): Promise<{ channels: Float32Array[]; frameSize: number }> {
   const options = { level_in: 1, level_out: 1, clip: 1, diff: 0, adaptive: 0.5, iterations: 10, level: 0 };
   const ranges = { level_in: [0.015625, 64], level_out: [0.015625, 64], clip: [0.015625, 1], diff: [0, 1], adaptive: [0, 1], iterations: [1, 20], level: [0, 1] };
   const names = Object.keys(options) as (keyof typeof options)[];
@@ -120,5 +120,5 @@ export async function psychoacousticClip(
       }
     }
   }
-  return output;
+  return { channels: output, frameSize: hop };
 }

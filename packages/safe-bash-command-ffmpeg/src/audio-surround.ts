@@ -13,6 +13,7 @@ export async function surroundAudio(
   commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<{ channels: Float32Array[]; frameSize: number }> {
   let size = 4096, lfe = true;
+  let windowFunction = "hann";
   let smooth = 0;
   let lfeMode = 0;
   let windowOverlap = 0.5;
@@ -91,6 +92,11 @@ export async function surroundAudio(
         throw new RangeError("surround: smooth must be between 0 and 1");
       }
       smooth = Math.fround(number);
+    } else if (key === "win_func") {
+      if (value === "rect" || value === "0") windowFunction = "rect";
+      else if (value === "hann" || value === "hanning" || value === "1") windowFunction = "hann";
+      else if (value === "hamming" || value === "2") windowFunction = "hamming";
+      else throw new Error(`surround: unsupported option ${key}`);
     } else if (key === "lfe") {
       const boolean = value.toLowerCase();
       if (["1", "true", "yes", "on", "y", "enabled"].includes(boolean)) lfe = true;
@@ -134,7 +140,7 @@ export async function surroundAudio(
   const real = channels.map(() => new Float64Array(size));
   const imaginary = channels.map(() => new Float64Array(size));
   const outReal = new Float64Array(size), outImaginary = new Float64Array(size);
-  // FFmpeg uses float spectra and a square-root Hann window.
+  // FFmpeg uses float spectra and square-root window weights.
   const f = Math.fround, pi = f(Math.PI), halfPi = f(Math.PI / 2);
   const reference = f(f(angle * pi) / 180);
   // Radius of the square soundfield boundary (FFmpeg r_distance).
@@ -142,7 +148,13 @@ export async function surroundAudio(
     const tangent = soundfieldTangent(a), inverse = f(1 / tangent);
     return Math.min(f(Math.sqrt(f(1 + f(tangent * tangent)))), f(Math.sqrt(f(1 + f(inverse * inverse)))));
   };
-  const window = Float32Array.from({ length: size }, (_, i) => Math.sqrt(f(0.5 * (1 - Math.cos(2 * Math.PI * i / (size - 1)))) / size));
+  const window = Float32Array.from({ length: size }, (_, i) => {
+    const angle = 2 * Math.PI * i / (size - 1);
+    const weight = windowFunction === "rect" ? 1
+      : windowFunction === "hamming" ? 0.54 - 0.46 * Math.cos(angle)
+      : 0.5 * (1 - Math.cos(angle));
+    return Math.sqrt(f(weight) / size);
+  });
   let max = 0;
   // Reuse the inverse workspace to sum shifted windows in native float order.
   for (let shift = 0; shift < size; shift += hop) {

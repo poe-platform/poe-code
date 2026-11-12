@@ -15,19 +15,21 @@ function* psdChunks(image: PsdImage, layers: readonly PsdImage[], depth: number,
     const layerSize = 2 + layers.reduce((size, layer) => size + 46 + (layer.hasAlpha ? 4 : 3) * (2 + lengthBytes + 2 + layer.width * layer.height * depth / 8), 0);
     const paddedLayerSize = layerSize + layerSize % 2;
     if (!Number.isSafeInteger(paddedLayerSize + lengthBytes + 4) || (!large && paddedLayerSize + 8 > 0xffffffff)) throw new Error("PSD layer data exceeds the format limit");
-    const header = new Uint8Array(62), view = new DataView(header.buffer);
+    const resolution = image.resolution;
+    const header = new Uint8Array(resolution ? 62 : 34), view = new DataView(header.buffer);
     header.set([56, 66, 80, 83]);
     view.setUint16(4, large ? 2 : 1); view.setUint16(12, channels);
     view.setUint32(14, height); view.setUint32(18, width);
     view.setUint16(22, depth); view.setUint16(24, 3);
-    view.setUint32(30, 28); // ResolutionInfo resource, with an empty Pascal name.
-    header.set([56, 66, 73, 77], 34); view.setUint16(38, 1005); view.setUint32(42, 16);
-    const resolution = image.resolution;
-    const factor = resolution?.unit === "meter" ? 0.0254 : resolution?.unit === "cm" ? 2.54 : 1;
-    view.setUint32(46, Math.round((resolution?.x ?? image.density) * factor * 65536));
-    view.setUint16(50, resolution?.unit === "cm" ? 2 : 1); view.setUint16(52, 1);
-    view.setUint32(54, Math.round((resolution?.y ?? image.density) * factor * 65536));
-    view.setUint16(58, resolution?.unit === "cm" ? 2 : 1); view.setUint16(60, 1);
+    if (resolution) {
+        view.setUint32(30, 28); // ResolutionInfo resource, with an empty Pascal name.
+        header.set([56, 66, 73, 77], 34); view.setUint16(38, 1005); view.setUint32(42, 16);
+        const factor = resolution.unit === "meter" ? 0.0254 : resolution.unit === "cm" ? 2.54 : 1;
+        view.setUint32(46, Math.round(resolution.x * factor * 65536));
+        view.setUint16(50, resolution.unit === "cm" ? 2 : 1); view.setUint16(52, 1);
+        view.setUint32(54, Math.round(resolution.y * factor * 65536));
+        view.setUint16(58, resolution.unit === "cm" ? 2 : 1); view.setUint16(60, 1);
+    }
     yield header;
 
     const section = new Uint8Array(lengthBytes * 2 + 2), sectionView = new DataView(section.buffer);

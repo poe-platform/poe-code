@@ -15425,8 +15425,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             stack = yield* remapImageListSteps(stack);
         }
-        else if (t === "-remap") {
+        else if (t === "-remap" || t === "-map") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
+            if (t === "-map") analysis.warnings += `magick: option has been replaced '-map', use "-remap" at CLI arg ${argumentOffset + i + 1}\n`;
             const palSpec = tokens[++i] ?? "";
             const palImg = palSpec.slice(0, 4).toLowerCase() === "mpr:"
                 ? registers.get(palSpec.slice(4).toLowerCase())?.[0]
@@ -19706,10 +19707,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return remapStoredImageList(stack, backend, signal, settings);
             });
-        } else if (!operandsOnly && token === "-remap") {
+        } else if (!operandsOnly && (token === "-remap" || token === "-map")) {
+            const argumentPosition = i + 1;
             const palette = tokens[++i] ?? "", settings = { ...state };
             stackStep(async stack => {
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                if (token === "-map") analysis.warnings += `magick: option has been replaced '-map', use "-remap" at CLI arg ${argumentPosition}\n`;
                 return stack;
             });
             steps.push(async (image, backend) => {
@@ -21315,7 +21318,7 @@ function* parseMogrifySteps(argv: readonly string[]): Generator<void, ({ target:
         "-color-matrix", "-cdl",
         "-channel-fx",
         "-evaluate-sequence", "-poly", "-complex",
-        "-remap",
+        "-remap", "-map",
         "-read-mask",
         "-encipher", "-decipher",
         "-splice",

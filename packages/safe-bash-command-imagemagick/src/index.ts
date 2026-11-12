@@ -21248,10 +21248,15 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
     let groupDepth = 0;
     let stegano: number | undefined;
     let stereo: string | undefined;
+    let tile = false;
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
         const t = argv[i]!;
+        // Native tiled composition starts with the destination's default mask;
+        // channel settings after the first input can change that mask.
+        if (tile && operands.length === 0 && (t === "(" || t === "-" || (!t.startsWith("-") && !t.startsWith("+"))))
+            options.push("+channel");
         if (t === "(" || groupDepth > 0) {
             if (groupDepth === 0) {
                 operands.push([]);
@@ -21266,8 +21271,11 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
             operations.push(t);
             if (t !== "-negate") operations.push(argv[++i] ?? "");
         }
-        else if (t === "-gravity" || t === "-geometry" || t === "-compose" || t === "-quality" || t === "-define" || t === "-resize" || t === "-fuzz" || t === "-depth" || t === "-endian" || t === "-interlace" || t === "-colorspace") {
+        else if (t === "-gravity" || t === "-geometry" || t === "-compose" || t === "-quality" || t === "-define" || t === "-resize" || t === "-fuzz" || t === "-depth" || t === "-endian" || t === "-interlace" || t === "-colorspace" || t === "-channel") {
             options.push(t, argv[++i] ?? "");
+        }
+        else if (t === "+channel") {
+            options.push(t);
         }
         else if (t === "-swap" || t === "+swap") {
             const spec = t === "-swap" ? argv[++i] : "-2,-1";
@@ -21297,7 +21305,8 @@ function* parseCompositeArgumentsSteps(argv: readonly string[]): Generator<void,
             stegano = undefined;
         }
         else if (t === "-tile" || t === "+tile") {
-            options.push("-define", `compose:tile=${t === "-tile"}`);
+            tile = t === "-tile";
+            options.push("-define", `compose:tile=${tile}`);
         }
         else if (t === "-displace") {
             options.push("-define", `compose:args=${argv[++i] ?? ""}`, "-compose", "Displace");

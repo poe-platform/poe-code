@@ -3194,8 +3194,8 @@ export function serializeFfmetadata(doc: MediaDocument): Uint8Array {
   const lines: string[] = [";FFMETADATA1"];
   const m = doc.metadata;
   const tags = new Map<string, string>();
-  for (const field of ["title", "artist", "album", "date", "comment", "copyright", "genre", "trackNumber", "encoder"] as const) {
-    const key = field === "trackNumber" ? "track" : field;
+  for (const field of ["title", "artist", "album", "date", "comment", "copyright", "genre", "trackNumber", "discNumber", "encoder"] as const) {
+    const key = field === "trackNumber" ? "track" : field === "discNumber" ? "disc" : field;
     const value = m[field];
     if (value !== undefined) tags.set(m.keySpellings?.[key] ?? key, value);
   }

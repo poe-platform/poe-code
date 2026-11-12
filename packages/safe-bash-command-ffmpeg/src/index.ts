@@ -9835,7 +9835,8 @@ export function evalSyncFfmpeg(
       metaTags = { ...metaTags, custom: {
         ...Object.fromEntries(Object.entries(sourceMetadata.custom ?? {})
           .filter(([key]) => !Object.hasOwn(metadata, key.toLowerCase()))),
-        ...metadata
+        ...Object.fromEntries(Object.entries(metadata)
+          .filter(([key]) => key !== "tracknumber" && key !== "discnumber"))
       } };
     }
     if (outPlugin?.id === "ffmetadata") metaTags = orderFfmetadataReplacements(metaTags, sourceMetadata, metadata);
@@ -20752,7 +20753,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               metaTags = { ...metaTags, custom: {
                 ...Object.fromEntries(Object.entries(sourceMetadata.custom ?? {})
                   .filter(([key]) => !Object.hasOwn(metadata, key.toLowerCase()))),
-                ...metadata
+                ...Object.fromEntries(Object.entries(metadata)
+                  .filter(([key]) => key !== "tracknumber" && key !== "discnumber"))
               } };
             }
             if (outPlugin?.id === "ffmetadata") metaTags = orderFfmetadataReplacements(metaTags, sourceMetadata, metadata);

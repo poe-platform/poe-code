@@ -1758,6 +1758,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   const sums = new Array<number>(channels).fill(0);
   const squares = new Array<number>(channels).fill(0);
   const means = new Array<number>(channels).fill(0), moments = new Array<number>(channels).fill(0);
+  const minima = new Array<number>(channels).fill(Number.MAX_VALUE), maxima = new Array<number>(channels).fill(-Number.MAX_VALUE);
   const histograms = statistics ? Array.from({ length: channels }, () => new Float64Array(65536)) : undefined;
   let min = 65535;
   let max = 0;
@@ -1832,7 +1833,11 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
       const v = chunk.data16 ? value : value * 257;
       if (selected) {
         sums[c]! += v; squares[c]! += v * v;
-        if (histograms) histograms[c]![Math.max(0, Math.min(65535, Math.round(v)))]!++;
+        if (histograms) {
+          minima[c] = Math.min(minima[c]!, v);
+          maxima[c] = Math.max(maxima[c]!, v);
+          histograms[c]![Math.max(0, Math.min(65535, Math.round(v)))]!++;
+        }
       }
       if (selectedChannels[c]) {
         min = Math.min(min, v);
@@ -1902,13 +1907,13 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
         cumulative += histogram[median]!;
         if (cumulative >= Math.ceil(count / 2)) break;
       }
-      statistics[`minima.${channel}`] = minimum / 65535;
-      statistics[`maxima.${channel}`] = maximum / 65535;
+      statistics[`minima.${channel}`] = minima[c]! / 65535;
+      statistics[`maxima.${channel}`] = maxima[c]! / 65535;
       statistics[`median.${channel}`] = median / 65535;
       if (selectedChannels[c]) selectedMedian += median / selectedCount;
       if (selectedChannels[c]) {
-        statistics.minima = Math.min(statistics.minima, minimum / 65535);
-        statistics.maxima = Math.max(statistics.maxima, maximum / 65535);
+        statistics.minima = Math.min(statistics.minima, minima[c]! / 65535);
+        statistics.maxima = Math.max(statistics.maxima, maxima[c]! / 65535);
         statistics.standard_deviation += deviation / selectedCount;
       }
       statistics.median += median / 65535 / channels;

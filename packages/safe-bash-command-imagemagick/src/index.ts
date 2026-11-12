@@ -23125,10 +23125,10 @@ interface MontageArguments {
     regardWarnings: boolean;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth">[];
     shadow: boolean;
-    transforms: ({ kind: "draw"; drawing: string; state: MagickState } | { kind: "annotate"; geometry: string; text: string; state: MagickState } | { kind: "colors"; count: number; state: MagickState } | { kind: "coalesce"; inputs: MontageInput[]; index: number } | { kind: "dispose"; sequence: object; index: number } | { kind: "disposal"; value: number } | { kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | { kind: "distort"; warp: NonNullable<ReturnType<typeof parseMagickWarpOperation>> } | MontageLayers | { kind: "flip" | "flop" | "autoOrient" } | { kind: "trim"; fuzz: number } | { kind: "adaptive-sharpen"; geometry: MagickGeometry; state: MagickState } | { kind: "unsharp"; geometry: ReturnType<typeof parseUnsharpGeometry> } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "scale"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "thumbnail"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "depth"; depth: number; channels: MagickState["channels"]; dither: boolean } | { kind: "alpha" | "transparent" | "gamma" | "colorspace" | "grayscale" | "bilevel" | "truecolor" | "truecoloralpha" | "palette" | "palettealpha"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "blur"; geometry: MagickGeometry } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
+    transforms: ({ kind: "strip" } | { kind: "profile"; name: string; bytes: Uint8Array | undefined } | { kind: "draw"; drawing: string; state: MagickState } | { kind: "annotate"; geometry: string; text: string; state: MagickState } | { kind: "colors"; count: number; state: MagickState } | { kind: "coalesce"; inputs: MontageInput[]; index: number } | { kind: "dispose"; sequence: object; index: number } | { kind: "disposal"; value: number } | { kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | { kind: "distort"; warp: NonNullable<ReturnType<typeof parseMagickWarpOperation>> } | MontageLayers | { kind: "flip" | "flop" | "autoOrient" } | { kind: "trim"; fuzz: number } | { kind: "adaptive-sharpen"; geometry: MagickGeometry; state: MagickState } | { kind: "unsharp"; geometry: ReturnType<typeof parseUnsharpGeometry> } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "scale"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "thumbnail"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "depth"; depth: number; channels: MagickState["channels"]; dither: boolean } | { kind: "alpha" | "transparent" | "gamma" | "colorspace" | "grayscale" | "bilevel" | "truecolor" | "truecoloralpha" | "palette" | "palettealpha"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "blur"; geometry: MagickGeometry } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; title: string | undefined; texture: string | undefined;
 }
-function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
+function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>, readProfile: (path: string) => Generator<Step | void, Uint8Array | undefined, void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
     let cooperativeWork = 63;
     let warnings = "";
     let regardWarnings = false;
@@ -23547,6 +23547,19 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         else if (t === "+depth") {
             delete state.inputDepth;
         }
+        else if (t === "-strip") {
+            queuedTransforms.push({ kind: "strip" });
+        }
+        else if (t === "-profile" || t === "+profile") {
+            const name = argv[++i];
+            if (!name) return { exitCode: 1, stdout: "", stderr: `montage: missing argument for ${t}\n` };
+            try {
+                const bytes = t === "-profile" ? yield* readProfile(name) : undefined;
+                if (t === "-profile" && !bytes) throw new Error(`unable to open profile '${name}'`);
+                applyMagickProfile({}, name, bytes);
+                queuedTransforms.push({ kind: "profile", name, bytes });
+            } catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
+        }
         else if (t === "-format") {
             state.formatStr = argv[++i];
             if (state.formatStr === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -format\n" };
@@ -23868,6 +23881,9 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const bytes = path.startsWith("@") ? files.get(path.slice(1)) : undefined;
         if (bytes) return yield* montageInputNames(bytes);
         return yield* mogrifyTargets(path, files.keys());
+    }, function* (path): Generator<void, Uint8Array | undefined, void> {
+        yield;
+        return files.get(path);
     });
     if ("exitCode" in parsed) return parsed;
     const { shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, frame, matte, title, texture } = parsed;
@@ -24122,6 +24138,18 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 return result;
             }
             if (!image) return [];
+            if (transform.kind === "strip") {
+                const { gifApplications: ignoredGifApplications, properties: ignoredProperties, ...stripped } = applyMagickProfile(image, "*");
+                return yield* transformTiles(stripped, operations, offset + 1);
+            }
+            if (transform.kind === "profile") {
+                const conversion = createIccConversion(image.icc, transform.bytes);
+                try {
+                    if (conversion) image = yield* conversion.apply(image);
+                    image = applyMagickProfile(image, transform.name, transform.bytes);
+                } finally { conversion?.close(); }
+                return yield* transformTiles(image, operations, offset + 1);
+            }
             if (transform.kind === "layers") {
                 const layers: RgbaImage[] = [];
                 for (let index = 0; index < transform.operands.length; index++) {
@@ -24452,6 +24480,19 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             if (!bytes) targets = await mogrifyFileTargets(path, input.filesystem, input.cwd, signal);
         } };
         return bytes ? yield* montageInputNames(bytes) : targets;
+    }, function* (path): Generator<IdentifyStep, Uint8Array | undefined, void> {
+        let bytes: Uint8Array | undefined;
+        yield { async run() {
+            bytes = await backend.read(path, async source => {
+                const data = new Uint8Array(source.size);
+                for (let offset = 0; offset < source.size; offset += 16384) {
+                    await yieldTurn(signal);
+                    data.set(await source.read(offset, Math.min(16384, source.size - offset), { signal }), offset);
+                }
+                return data;
+            });
+        } };
+        return bytes;
     }), signal);
     if ("exitCode" in parsed) return parsed;
     const { shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, frame, matte, title, texture } = parsed;
@@ -24560,6 +24601,21 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     return;
                 }
                 if (!tile) return;
+                if (transform.kind === "strip") {
+                    const { gifApplications: ignoredGifApplications, properties: ignoredProperties, ...stripped } = applyMagickProfile(tile, "*");
+                    yield* transformTiles(stripped, operations, offset + 1);
+                    return;
+                }
+                if (transform.kind === "profile") {
+                    const conversion = createIccConversion(tile.icc, transform.bytes);
+                    try {
+                        if (conversion) tile = await transformStoredMagickPixels(tile, backend,
+                            { end: 0, highDepth: true, evaluate: true, apply: conversion.apply }, signal);
+                        tile = applyMagickProfile(tile, transform.name, transform.bytes);
+                    } finally { conversion?.close(); }
+                    yield* transformTiles(tile, operations, offset + 1);
+                    return;
+                }
                 if (transform.kind === "layers") {
                     const layers: StoredRgbaImage[] = [];
                     for (let layerIndex = 0; layerIndex < transform.operands.length; layerIndex++) {

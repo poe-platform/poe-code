@@ -43,8 +43,8 @@ export function createIccConversion(source: Uint8Array | undefined, destination:
         sourceProfile = open(source);
         destinationProfile = open(destination);
         const sourceSpace = runtime._cmsGetColorSpace(sourceProfile), destinationSpace = runtime._cmsGetColorSpace(destinationProfile);
-        // ICC signatures: RGB, CMYK, GRAY. Alpha is kept outside the transform.
-        const channels = new Map([[0x52474220, 3], [0x434d594b, 4], [0x47524159, 1]]);
+        // ICC signatures: RGB, CMYK, GRAY, Lab. Alpha is kept outside the transform.
+        const channels = new Map([[0x52474220, 3], [0x434d594b, 4], [0x47524159, 1], [0x4c616220, 3]]);
         const sourceChannels = channels.get(sourceSpace), destinationChannels = channels.get(destinationSpace);
         if (!sourceChannels || !destinationChannels) throw new Error("unsupported ICC colorspace");
         const renderingIntent = ["perceptual", "relative", "saturation", "absolute"].indexOf(intent?.toLowerCase() ?? "perceptual");
@@ -76,7 +76,7 @@ export function createIccConversion(source: Uint8Array | undefined, destination:
                             ? rgbToCmyk(colors[offset]! / range, colors[offset + 1]! / range, colors[offset + 2]! / range) : undefined;
                         for (let channel = 0; channel < sourceChannels; channel++) {
                             const sample = inks ? inks[channel]! : colors[offset + channel]! / range;
-                            runtime.HEAPF64[input / 8 + pixel * sourceChannels + channel] = sample * (sourceChannels === 4 ? 100 : 1);
+                            runtime.HEAPF64[input / 8 + pixel * sourceChannels + channel] = sample * (sourceSpace === 0x4c616220 ? channel === 0 ? 100 : 255 : sourceChannels === 4 ? 100 : 1);
                         }
                     }
                     runtime._cmsDoTransform(transform, input, output, count);
@@ -88,7 +88,7 @@ export function createIccConversion(source: Uint8Array | undefined, destination:
                         for (let channel = 0; channel < 4; channel++) {
                             const sample = channel === 3 ? alpha[offset + 3]! / alphaRange
                                 : hueSamples ? (1 - hueSamples[offset + channel]!) * (1 - hueSamples[offset + 3]!)
-                                : Math.fround(runtime.HEAPF64[result + (destinationChannels === 1 ? 0 : channel)]! * 65535) / 65535;
+                                : Math.fround(runtime.HEAPF64[result + (destinationChannels === 1 ? 0 : channel)]! / (destinationSpace === 0x4c616220 ? channel === 0 ? 100 : 255 : 1) * 65535) / 65535;
                             evaluateSamples[offset + channel] = sample * 255;
                             data[offset + channel] = Math.round(Math.max(0, Math.min(1, sample)) * 255);
                             data16[offset + channel] = Math.round(Math.max(0, Math.min(1, sample)) * 65535);

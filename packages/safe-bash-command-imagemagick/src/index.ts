@@ -3389,6 +3389,10 @@ function clampByteVal(n: number): number {
 }
 
 function* applyMagickOpaqueSteps(img: RgbaImage, target: ReturnType<typeof parseColor>, replacement: ReturnType<typeof parseColor>, fuzz: number, invert: boolean, channels: MagickState["channels"], signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    // A translucent fill activates alpha before matching, even when no pixel matches.
+    if (replacement.a < 255 && (!img.hasAlpha || img.alphaBlend === false)) {
+        img = { ...yield* prepareInactiveAlphaOutput({ ...img, hasAlpha: false }), hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false, channels: img.channels <= 2 ? 2 : 4 };
+    }
     const cmyk = img.space === "cmyk";
     if (cmyk) img = yield* convertCmykPixels(img);
     const inks = cmyk ? target.cmyk ?? opaqueTargetCmyk(target.r / 255, target.g / 255, target.b / 255) : undefined;
@@ -3454,6 +3458,10 @@ function* applyMagickOpaqueSteps(img: RgbaImage, target: ReturnType<typeof parse
 }
 
 function* applyMagickTransparentSteps(img: RgbaImage, target: ReturnType<typeof parseColor>, fuzz: number, invert: boolean, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    // Transparent painting initializes inactive alpha before comparing target opacity.
+    if (!img.hasAlpha || img.alphaBlend === false) {
+        img = { ...yield* prepareInactiveAlphaOutput({ ...img, hasAlpha: false }), hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false, channels: img.channels <= 2 ? 2 : 4 };
+    }
     const cmyk = img.space === "cmyk";
     if (cmyk) img = yield* convertCmykPixels(img);
     const inks = cmyk ? img.hueSamples : undefined;

@@ -250,7 +250,7 @@ export async function measureAstats(
           ["Crest factor", fixed(squares ? normalizedPeak / rms : 1)], ["Flat factor", db((minRuns + maxRuns) / (minCount + maxCount))],
           ["Peak count", minCount + maxCount], ["Abs Peak count", absPeakCount],
           ["Noise floor dB", db(noise)], ["Noise floor count", noiseCount],
-          ["Entropy", fixed(entropy)], ["Bit depth", bitDepth(masks, bits).join("/")], ["Dynamic range", db(2 * peak / minNonzero)],
+          ["Entropy", entropy === 0 ? "-0.000000" : fixed(entropy)], ["Bit depth", bitDepth(masks, bits).join("/")], ["Dynamic range", db(2 * peak / minNonzero)],
           ["Zero crossings", crossings], ["Zero crossings rate", fixed(crossings / channel.length)],
           ...(floating ? [["Number of NaNs", nans], ["Number of Infs", infs], ["Number of denormals", denormals]] as [string, number][] : [])
         ], perChannel);

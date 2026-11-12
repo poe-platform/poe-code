@@ -14625,6 +14625,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // even with loop=0. Upstream detectors see whole consumed frames.
                         let initialDemand = Math.min(1024, loop?.size ?? 0);
                         const length = stretched[0]?.length ?? 0;
+                        // A short loudnorm clip is buffered through EOF and emitted as one frame.
+                        if (next?.split("=", 1)[0]!.split("@", 1)[0] === "loudnorm" && length < 3 * origRate) {
+                          initialDemand = length;
+                        }
                         const wavelet = next?.split("=", 1)[0]!.split("@", 1)[0] === "afwtdn"
                           ? parseWaveletFilter(next) : undefined;
                         if (wavelet && frameLimit !== undefined && frameLimit > 0) {
@@ -15820,6 +15824,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                       } else if (trimmed === "loudnorm" || trimmed.startsWith("loudnorm=")) {
+                        const inputRate = origRate;
+                        const firstFrame = audioTimestamps?.[0];
                         // SWR resamples integer/float input in float precision before
                         // converting to loudnorm's double format. Explicit double input
                         // keeps the double resampler used by normalizeLoudness.
@@ -15834,6 +15840,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const normalized = await normalizeLoudness(stretched, origRate,
                           trimmed === "loudnorm" ? "" : trimmed.slice("loudnorm=".length), budget, context.signal);
                         stretched = normalized.channels;
+                        const length = stretched[0]?.length ?? 0;
+                        if (length < 3 * 192000) {
+                          budget.allocateMemory(32);
+                          audioTimestamps = length === 0 ? [] : [{ start: 0, end: length,
+                            pts: Math.round((firstFrame?.pts ?? audioStartSample) * 192000 / inputRate), pos: firstFrame?.pos }];
+                          audioTimeBase = 1 / 192000;
+                        }
                         filteredSampleFormat = panSampleFormat = "dbl";
                         origRate = 192000;
                         loudnormResampling = true;

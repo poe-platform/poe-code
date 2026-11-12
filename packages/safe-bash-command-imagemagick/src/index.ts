@@ -24824,7 +24824,6 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 ? prepareStoredTiffPages(adjoinedPages, (await adjoinedPages.get(0))!, backend, signal)
                 : output.format === "psd" ? await prepareStoredPhotoshopPages(adjoinedPages, backend, signal, output.format)
                 : output.format === "ico" ? await prepareStoredIcoPages(adjoinedPages, (await adjoinedPages.get(0))!, backend, signal)
-                : output.format === "psd" ? await prepareStoredPhotoshopPages(adjoinedPages, backend, signal, output.format)
                 : await prepareStoredGifFrames(adjoinedPages, backend, signal);
             const bytes = await backend.publish(image, output.path.replaceAll("%%", "%"), { format: output.format, ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), gifVersion: output.gifVersion, tiffBig: output.tiffBig, tiffEndian: state.inputEndian === "msb" ? "msb" : "lsb", ...(state.inputDepth === undefined ? {} : { tiffIntegerDepth: state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32 }), ...(image.pageHeight === undefined ? {} : { pageHeight: image.pageHeight }), gifInterlace: state.gifInterlace, transparentColor: state.transparentColor });
             if (bytes) stdoutChunks.push(bytes);

@@ -263,6 +263,11 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
     // ImageMagick represents an empty trim with one transparent background pixel.
     const { data16: ignored, evaluateSamples: ignoredSamples, hueSamples: ignoredHue, ...metadata } = image;
     const data16 = emptyTrimPixel(image, emptyBackground);
+    if ((image.space === "b-w" || image.space === "grey16") && (data16[0] !== data16[1] || data16[1] !== data16[2])) {
+        metadata.space = "srgb";
+        metadata.gamma = 1 / 2.2;
+        delete metadata.magickColorspace;
+    }
     return { ...metadata, [magickInput]: { ...image[magickInput], imageType: undefined }, width: 1, height: 1, data16, data: Uint8Array.from(data16, value => Math.round(value / 257)), channels: 4, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false, region: undefined,
         virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };
 }
@@ -317,6 +322,11 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
     const position16 = storage.allocate(data16.byteLength);
     await storage.write(position16, new Uint8Array(data16.buffer), { signal });
     const { storedData16: ignored, storedEvaluateSamples: ignoredSamples, storedHueSamples: ignoredHue, ...metadata } = image;
+    if ((image.space === "b-w" || image.space === "grey16") && (data16[0] !== data16[1] || data16[1] !== data16[2])) {
+        metadata.space = "srgb";
+        metadata.gamma = 1 / 2.2;
+        delete metadata.magickColorspace;
+    }
     return { ...metadata, [magickInput]: { ...image[magickInput], imageType: undefined }, width: 1, height: 1, position: emptyPosition, storedData16: { position: position16, length: data16.length }, channels: 4, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false, region: undefined,
         virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };
 }

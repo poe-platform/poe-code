@@ -50,14 +50,10 @@ for (const mask of [0x30, 5]) for (const mode of ["mono", "stereo", "surround", 
         assert.equal(audio.channelMask, mask);
         assert.deepEqual(audio.channelData.map(channel => Array.from(channel, sample => sample * 32768)), [[12000, 0], [0, 12000]]);
       } else {
-        assert.notEqual(result.exitCode, 0, stderr);
+        assert.equal(result.exitCode, 234, stderr);
         assert.match(stderr, /unsupported.*channel layout/i);
-        if (mode === "extrastereo" || mode === "graph") {
-          // Native FFmpeg opens the output before stereo negotiation fails.
-          assert.equal(result.exitCode, 234);
-          assert.equal(volume.readFileSync("/out.wav").length, 0);
-        } else if (existing) assert.equal(volume.readFileSync("/out.wav", "utf8"), "existing");
-        else assert.equal(volume.existsSync("/out.wav"), false);
+        // Native FFmpeg opens the output before layout negotiation fails.
+        assert.equal(volume.readFileSync("/out.wav").length, 0);
       }
     });
   }

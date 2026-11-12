@@ -2230,8 +2230,8 @@ function* formatMagickPropertyStringSteps<Step=never>(
 function formatRgbPixel(channels: readonly number[], colorspace: string | undefined, precision?: number): string {
   const name = colorspace === "scRGB" ? "scrgb" : colorspace === "RGB" ? "rgb" : "srgb";
   const rgb = channels.slice(0, 3);
-  const fractional = rgb.some(value => Math.abs(value - Math.round(value)) > 1e-9);
-  const color = rgb.map(value => fractional ? `${formatSignificantMetric(value * 100 / 255, precision)}%` : String(Math.round(value))).join(",");
+  const percentage = rgb.some(value => value > 255 || Math.abs(value - Math.round(value)) > 1e-9);
+  const color = rgb.map(value => percentage ? `${formatSignificantMetric(value * 100 / 255, precision)}%` : String(Math.round(value))).join(",");
   return channels[3] === undefined ? `${name}(${color})` : `${name}a(${color},${formatSignificantMetric(channels[3], precision)})`;
 }
 

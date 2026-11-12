@@ -14005,6 +14005,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               vfFilters.push(`fps=${outputFps}`);
             }
             if (videoCodec !== "copy" && (rawPixelFormat === "gray" || rawPixelFormat === "gray8" || rawPixelFormat === "ya8" ||
+                ((imageOutput || numberedImageOutput) && imageOutputFormat(videoCodec, outputTarget.split(".").pop()?.toLowerCase() ?? "") === "png" &&
+                  ["rgb24", "rgba", "pal8", "monob"].includes(rawPixelFormat ?? "")) ||
                 ((imageOutput || numberedImageOutput) && imageOutputFormat(videoCodec, outputTarget.split(".").pop()?.toLowerCase() ?? "") === "qoi" &&
                   (rawPixelFormat === "rgb24" || rawPixelFormat === "rgba")) ||
                 (outPlugin?.id === "y4m" && (rawPixelFormat === "yuv420p" || rawPixelFormat === "yuv422p" || rawPixelFormat === "yuv444p")))) {
@@ -21379,6 +21381,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     continue;
                   }
                   const imgFmt = imageOutputFormat(videoCodec, outExt);
+                  let data16: Uint16Array | undefined;
+                  if (imgFmt === "png" && rawPixelFormat === "rgb48be") {
+                    // Use the same swscale conversion as rawvideo, retaining all 16 bits.
+                    budget.allocateMemory(f.width * f.height * 20);
+                    const pixels = await serializeRawVideo({ ...vTrack!, decodedVideoFrames: [f] },
+                      "rawvideo", rawPixelFormat, budget, context.signal);
+                    const view = new DataView(pixels.buffer, pixels.byteOffset, pixels.byteLength);
+                    data16 = new Uint16Array(f.width * f.height * 4);
+                    for (let pixel = 0; pixel < f.width * f.height; pixel++) {
+                      if (pixel % 4096 === 0) budget.checkCpu();
+                      for (let channel = 0; channel < 3; channel++) {
+                        data16[pixel * 4 + channel] = view.getUint16(pixel * 6 + channel * 2);
+                      }
+                      data16[pixel * 4 + 3] = 65535;
+                    }
+                  }
                   const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), imgFmt === "tga" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
                     ...(imgFmt === "qoi" ? {
                       hasAlpha: !["rgb24", "bgr24", "gbrp", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "rgba"),
@@ -21393,12 +21411,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     ...(imgFmt === "png" && vTrack?.codecDescriptions[0]?.sarWidth && vTrack.codecDescriptions[0].sarHeight &&
                       vTrack.codecDescriptions[0].sarWidth !== vTrack.codecDescriptions[0].sarHeight ? {
                       resolution: { x: vTrack.codecDescriptions[0].sarWidth, y: vTrack.codecDescriptions[0].sarHeight, unit: "unknown" as const }
-                    } : {}) }, {
+                    } : {}),
+                    ...(data16 ? { data16, space: "srgb" as const, channels: 4 as const, hasAlpha: false } : {}) }, {
                     format: imgFmt,
-                    pngPreserveColormap: vTrack?.codecDescriptions[0]?.pixFmt === "pal8",
-                    pngBitDepth: vTrack?.codecDescriptions[0]?.pixFmt === "monob" ? 1 : vTrack?.codecDescriptions[0]?.pixFmt === "pal8" ? undefined : ["rgba64be", "rgb48be", "gray16be"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "") ? 16 : 8,
-                    forceOpaque: vTrack?.codecDescriptions[0]?.pixFmt === "gbrp" || vTrack?.codecDescriptions[0]?.pixFmt === "rgb48be" || vTrack?.codecDescriptions[0]?.pixFmt === "rgb24" || vTrack?.codecDescriptions[0]?.pixFmt === "bgr24"
+                    pngPreserveColormap: !data16 && vTrack?.codecDescriptions[0]?.pixFmt === "pal8",
+                    pngBitDepth: data16 ? 16 : vTrack?.codecDescriptions[0]?.pixFmt === "monob" ? 1 : vTrack?.codecDescriptions[0]?.pixFmt === "pal8" ? undefined : ["rgba64be", "rgb48be", "gray16be"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "") ? 16 : 8,
+                    forceOpaque: data16 !== undefined || vTrack?.codecDescriptions[0]?.pixFmt === "gbrp" || vTrack?.codecDescriptions[0]?.pixFmt === "rgb48be" || vTrack?.codecDescriptions[0]?.pixFmt === "rgb24" || vTrack?.codecDescriptions[0]?.pixFmt === "bgr24"
                   }).data);
+                  if (data16) budget.releaseMemory(f.width * f.height * 20);
                   budget.checkOutputBytes(encoded.byteLength);
                   await writeImage(fullOutPath, encoded);
                 }

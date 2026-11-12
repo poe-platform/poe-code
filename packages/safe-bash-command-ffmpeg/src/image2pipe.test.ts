@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { Volume } from "memfs";
-import { encodeImage } from "@poe-code/image-ast/portable";
+import { decodeImage, encodeImage } from "@poe-code/image-ast/portable";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
+import { imagePipeFrameEnd } from "./image-pipe.js";
+import { MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 for (const target of ["/out.bin", "/out%02d.png", "pipe:1"]) {
   for (const codec of ["copy", "png"]) {
@@ -37,8 +39,17 @@ for (const target of ["/out.bin", "/out%02d.png", "pipe:1"]) {
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
         assert.equal(result.exitCode, 0, stderr);
-        assert.deepEqual(target === "pipe:1" ? Buffer.concat(stdout) : volume.readFileSync(target),
-          Buffer.concat(packets.slice(0, count)));
+        const output = target === "pipe:1" ? Buffer.concat(stdout) : volume.readFileSync(target) as Buffer;
+        if (codec === "copy") assert.deepEqual(output, Buffer.concat(packets.slice(0, count)));
+        else {
+          let offset = 0;
+          for (const packet of packets.slice(0, count)) {
+            const end = imagePipeFrameEnd(output, offset, "png", new MediaBudgetTracker());
+            assert.deepEqual(decodeImage(output.subarray(offset, end)).data, decodeImage(packet).data);
+            offset = end;
+          }
+          assert.equal(offset, output.length);
+        }
       });
     }
   }

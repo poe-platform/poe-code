@@ -23140,6 +23140,7 @@ interface MontageInput {
     transforms: MontageArguments["transforms"][number];
 }
 interface MontageArguments {
+    inputErrors: string;
     warnings: string;
     regardWarnings: boolean;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth" | "verbose">[];
@@ -23150,6 +23151,8 @@ interface MontageArguments {
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>, readProfile: (path: string) => Generator<Step | void, Uint8Array | undefined, void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
     let cooperativeWork = 63;
     let warnings = "";
+    let inputErrors = "";
+    let stdinConsumed = false;
     let regardWarnings = false;
     let quiet = false;
     const state = createDefaultState();
@@ -23885,7 +23888,15 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
                     const { baseToken, pageSpec, inlineGeom } = parseInputToken(target);
                     let path = baseToken;
                     const colon = path.indexOf(":");
-                    if (colon > 0 && extToImageFormat(path.slice(0, colon))) path = path.slice(colon + 1);
+                    const coder = colon > 0 ? extToImageFormat(path.slice(0, colon)) : undefined;
+                    if (coder) path = path.slice(colon + 1);
+                    if (path === "-") {
+                        if (stdinConsumed) {
+                            inputErrors += `montage: ${coder ? "improper image header" : "no decode delegate for this image format"} '${target}'\n`;
+                            continue;
+                        }
+                        stdinConsumed = true;
+                    }
                     const count = yield* frameCount(path);
                     if (count > 1 && inlineGeom === undefined) {
                         inputs = [];
@@ -23905,7 +23916,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         }
     }
     if (groups.length) return { exitCode: 1, stdout: "", stderr: "montage: unbalanced parenthesis\n" };
-    return { warnings, regardWarnings, shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, frame, matte, title, texture };
+    return { inputErrors, warnings, regardWarnings, shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, frame, matte, title, texture };
 }
 function montageProgress(phase: "mogrify" | "tile", path: string, index: number, count: number): string {
     const percent = Math.floor(100 * index / Math.max(1, count - 1)).toString().padStart(2, "0");
@@ -23960,7 +23971,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     }
     const outSpec = operands[operands.length - 1]!;
     const inPaths = operands.slice(0, -1);
-    let inputErrors = "";
+    let inputErrors = parsed.inputErrors;
     let inputDiagnostics = "";
     let firstInputFormat = "";
     let firstInputCmyk = false;
@@ -24590,7 +24601,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             }
             if (!textureImage) return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: unable to open image '${texture}': No such file or directory\n` };
         }
-        let inputErrors = "";
+        let inputErrors = parsed.inputErrors;
         let inputDiagnostics = "";
         const sources = new IntegerTable(backend.storage, 128), images = new StoredImageStack(backend.storage, signal);
         let fast = !shadow && !transforms.some(operations => operations.length > 0) && !frame && borderW === 0 && variableCells && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;

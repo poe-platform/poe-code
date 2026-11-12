@@ -109,7 +109,7 @@ export async function serializeFrameChecksum(
     const copy = (track.type === "video" ? videoCodec : track.type === "subtitle" ? subtitleCodec : audioCodec) === "copy";
     // Image packets use a synthetic MP4 clock internally; expose the image2 demux clock.
     if (copy) return doc.containerFormat === "image2" && track.type === "video"
-      ? videoTimeBase(track) : [1, track.timescale];
+      ? videoTimeBase(track) : encoderClock(1 / track.timescale);
     const selected = encoderTimeBases.get(index);
     if (selected !== undefined) return encoderClock(selected);
     return track.type === "video" ? videoTimeBase(track)

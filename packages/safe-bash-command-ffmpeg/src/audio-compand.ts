@@ -12,7 +12,7 @@ export class CompandError extends Error {
 
 export async function compandAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
-  warn?: (message: string) => Promise<void>, initialVolume?: number
+  warn?: (message: string) => Promise<void>, initialVolume?: number, bandDelay = 0
 ): Promise<{ channels: Float64Array[]; delay: number }> {
   const defaults: Record<string, string> = {
     attacks: "0", decays: "0.8", points: "-70/-70|-60/-20|1/0", "soft-knee": "0.01", gain: "0", volume: "0", delay: "0"
@@ -66,7 +66,7 @@ export async function compandAudio(
   const knee = numericOption("soft-knee");
   const gain = numericOption("gain");
   const initial = 10 ** ((initialVolume ?? numericOption("volume")) / 20);
-  const delay = Math.floor(numericOption("delay") * sampleRate);
+  const delay = bandDelay || Math.floor(numericOption("delay") * sampleRate);
   const items = (value: string) => value.split("|").flatMap(part => part.split(" ")).filter(Boolean);
   const attackItems = items(options.attacks!);
   const decayItems = items(options.decays!);
@@ -148,8 +148,10 @@ export async function compandAudio(
       const segment = segments[index]!;
       const offset = db - segment.x;
       multiplier = 10 ** ((gain + segment.y + offset * (segment.a * offset + segment.b)) / 20);
-      if (i >= delay) output[c]![i - delay] = channels[c]![i - delay]! * multiplier;
+      if (i >= delay) output[c]![i - delay + bandDelay] = channels[c]![i - delay]! * multiplier;
     }
+    // mcompand emits the delayed sample with the current envelope and drops the tail.
+    if (bandDelay > 0) continue;
     // Drain with the final envelope. If the delay buffer never filled, FFmpeg
     // starts in its unused silent tail and still emits only `length` samples.
     const silence = Math.max(0, delay - length);

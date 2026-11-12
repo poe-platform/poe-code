@@ -10,21 +10,28 @@ export async function multibandCompandAudio(
   let argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : defaultBands;
   if (argument.startsWith("args=")) argument = argument.slice(5);
   const length = channels[0]?.length ?? 0;
+  const bands = argument.split("|").map(band => band.trim().split(" ").filter(Boolean));
+  let delay = 0;
+  for (const fields of bands) {
+    if (fields.length < 4 || fields.length > 7) throw new Error("mcompand: expected rates, knee, points, crossover, and optional delay/volume/gain");
+    const seconds = Number(fields[4] ?? "0");
+    if (!Number.isFinite(seconds)) throw new Error("mcompand: invalid delay");
+    // Native mcompand aligns every band to the longest delay and never drains
+    // at EOF. Delays beyond the clip therefore produce only silence.
+    delay = Math.max(delay, Math.min(length, Math.floor(seconds * sampleRate)));
+  }
   budget.allocateMemory(length * channels.length * 8);
   const output = channels.map(() => new Float64Array(length));
   let remaining = channels;
-  for (const band of argument.split("|")) {
-    const fields = band.trim().split(" ").filter(Boolean);
-    if (fields.length < 4 || fields.length > 7) throw new Error("mcompand: expected rates, knee, points, crossover, and optional delay/volume/gain");
+  for (const fields of bands) {
     // FFmpeg parses the seventh (gain) field after building the transfer curve, so it has no effect.
-    const [rates, knee, points, crossover, delay = "0", volume = "-900"] = fields;
+    const [rates, knee, points, crossover, , volume = "-900"] = fields;
     const initialVolume = Number(volume);
     if (!Number.isFinite(initialVolume)) throw new Error("mcompand: invalid volume");
     const times = rates!.split(",");
     if (times.length % 2) throw new Error("mcompand: attack/decay rates must be paired");
     const frequency = Number(crossover);
     if (!Number.isFinite(frequency) || frequency < 0 || frequency >= sampleRate / 2) throw new Error("mcompand: crossover must be below half the sample rate");
-    if (Number(delay) !== 0) throw new Error("mcompand: nonzero delay is unsupported");
     let low = remaining;
     if (frequency !== 0) {
       // Fourth-order Linkwitz-Riley crossover: square the Butterworth
@@ -62,7 +69,7 @@ export async function multibandCompandAudio(
     const attacks = times.filter((_, i) => i % 2 === 0).join("|");
     const decays = times.filter((_, i) => i % 2 === 1).join("|");
     const { channels: processed } = await compandAudio(low, sampleRate,
-      `compand=${attacks}:${decays}:${points!.split(",").join("|")}:${knee}:0`, budget, signal, undefined, initialVolume);
+      `compand=${attacks}:${decays}:${points!.split(",").join("|")}:${knee}:0`, budget, signal, undefined, initialVolume, delay);
     for (let c = 0; c < channels.length; c++) {
       for (let i = 0; i < length; i++) {
         if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }

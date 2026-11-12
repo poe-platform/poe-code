@@ -15433,6 +15433,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const mask = [channels.r, channels.g, channels.b, t === "-clut" ? (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false) && (channels.a || channelMask === undefined) : channels.a || channelMask === undefined, channels.k === true || channelMask === undefined];
                 const hasAlpha = im.hasAlpha || t === "-hald-clut" || lut.hasAlpha && mask[3] === true;
                 const { magickColorspace: ignoredColorspace, ...metadata } = im;
+                if (t === "-clut") metadata.isPalette = false;
                 if (t === "-hald-clut") delete metadata.hueSamples;
                 const colorspace = t === "-hald-clut" ? lut.magickColorspace : im.magickColorspace;
                 const cmyk = (t === "-hald-clut" ? lut : im).space === "cmyk";
@@ -17840,6 +17841,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const mask = [channels.r, channels.g, channels.b, token === "-clut" ? (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false) && (channels.a || channelMask === undefined) : channels.a || channelMask === undefined, channels.k === true || channelMask === undefined];
                     const hasAlpha = image.hasAlpha || token === "-hald-clut" || lut.hasAlpha && mask[3] === true;
                     const { magickColorspace: ignoredColorspace, ...metadata } = image;
+                    if (token === "-clut") metadata.isPalette = false;
                     if (token === "-hald-clut") delete metadata.storedHueSamples;
                     const colorspace = token === "-hald-clut" ? lut.magickColorspace : image.magickColorspace;
                     const cmyk = (token === "-hald-clut" ? lut : image).space === "cmyk";

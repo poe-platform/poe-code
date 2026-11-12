@@ -15405,11 +15405,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           : filteredChannelMask && filteredChannelMask !== 3)) {
                           throw new Error("apulsator: unsupported input channel layout");
                         }
-                        if (stretched.length > 2) {
+                        if (stretched.length !== 2) {
                           if (!autoConversionFilters) throw new Error(audioConversionDisabled);
                           // Negotiate floating stereo before the effect, omitting LFE.
                           const mixed = await panAudio(
-                            `stereo|FL=FL+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BL+${Math.SQRT1_2}*SL|FR=FR+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BR+${Math.SQRT1_2}*SR`,
+                            stretched.length === 1
+                              ? `stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0`
+                              : `stereo|FL=FL+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BL+${Math.SQRT1_2}*SL|FR=FR+${Math.SQRT1_2}*FC+0.5*BC+${Math.SQRT1_2}*BR+${Math.SQRT1_2}*SR`,
                             stretched, filteredChannelMask,
                             ["dbl", "dblp", "s64", "s64p"].includes(filteredSampleFormat) ? "dbl" : "flt",
                             budget, context.signal);

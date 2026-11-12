@@ -1,0 +1,54 @@
+import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
+import { parseBilateralGeometry } from "./bilateral-blur-kernel.js";
+import type { ConvolveRequest } from "./convolve-kernel.js";
+import { warpPixelSteps, type VirtualPixelMethod } from "./warp-kernel.js";
+
+type Raster = Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "evaluateSamples" | "hueSamples" | "space">
+    & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples" | "storedHueSamples">>
+    & { virtualPixel?: VirtualPixelMethod | undefined };
+
+export function* blurCompositeSteps(base: Raster, overlay: Raster, left: number, top: number, args: string, tile: boolean, channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const geometry = parseBilateralGeometry(args);
+    const width = 2 * geometry.width!, height = 2 * (geometry.height ?? geometry.width!);
+    const evaluate = !!overlay.evaluateSamples || overlay.storedEvaluateSamples !== undefined;
+    for (let y = 0; y < base.height; y++) for (let x = 0; x < base.width;) {
+        yield;
+        const sx = tile ? x % overlay.width : x - left, sy = tile ? y % overlay.height : y - top;
+        const inside = sx >= 0 && sy >= 0 && sx < overlay.width && sy < overlay.height;
+        const count = Math.min(512, base.width - x, sx < 0 ? -sx : sx < overlay.width ? overlay.width - sx : base.width - x);
+        const bytes = inside ? (yield { kind: "read", image: 1, highDepth: true, evaluate,
+            position: (sy * overlay.width + sx) * 4, length: count * 4 })! : undefined;
+        const map = bytes === undefined ? undefined : evaluate ? new Float64Array(bytes.slice().buffer)
+            : Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257);
+        const sampler = warpPixelSteps(base, {
+            width: count, height: 1, hasAlpha: base.hasAlpha,
+            map(i) { return [x + i, y, !map]; },
+            derivatives(i) {
+                const angle = (geometry.x + (geometry.hasYOffset ? (geometry.y - geometry.x) * map![i * 4 + 2]! / 255 : 0)) * Math.PI / 180;
+                const red = width * map![i * 4]! / 255, green = height * map![i * 4 + 1]! / 255;
+                // Native scales the Gaussian ellipse by the map's red/green channels.
+                return [red * Math.cos(angle), -green * Math.sin(angle), red * Math.sin(angle), green * Math.cos(angle)];
+            }
+        }, { r: 0, g: 0, b: 0, a: 0 }, base.virtualPixel ?? "edge", "gaussian");
+        let input: Uint8Array | undefined;
+        for (;;) {
+            const next = sampler.next(input);
+            if (next.done) break;
+            const request = next.value;
+            if (request?.kind !== "write") { input = yield request; continue; }
+            const position = request.position + (y * base.width + x) * 4;
+            if (channels) {
+                const evaluate = !!base.evaluateSamples || base.storedEvaluateSamples !== undefined;
+                const originalBytes = (yield { kind: "read", highDepth: true, hue: request.hue === true, evaluate: !request.hue && evaluate, position, length: count * 4 })!;
+                const original = request.hue || evaluate ? new Float64Array(originalBytes.slice().buffer)
+                    : Float64Array.from(new Uint16Array(originalBytes.slice().buffer), value => value / 257);
+                const data = request.hue || request.evaluate ? new Float64Array(request.data.buffer, request.data.byteOffset, request.data.byteLength / 8)
+                    : request.highDepth ? new Uint16Array(request.data.buffer, request.data.byteOffset, request.data.byteLength / 2) : request.data;
+                for (let i = 0; i < data.length; i++) if (!channels[i % 4])
+                    data[i] = request.hue || request.evaluate ? original[i]! : Math.round(original[i]! * (request.highDepth ? 257 : 1));
+            }
+            input = yield { ...request, position };
+        }
+        x += count;
+    }
+}

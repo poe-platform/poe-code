@@ -16482,6 +16482,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         }
         else if (t === "-composite") {
             if (stack.length >= 2) {
+                if (!validateMagickComposeArgs(state, analysis)) { stack = [stack[0]!]; i++; continue; }
                 const base = stack[0]!;
                 // Standalone composite ignores its third-image mask when tiling.
                 const mask = analysis.composite && state.composeTile ? undefined : stack[2];
@@ -16593,15 +16594,22 @@ class ConvertExit extends Error {}
 function createConvertAnalysis(composite = false) {
     let warnings = "";
     return {
-        composite, text: "", errors: "", progress: "", bytes: [] as Uint8Array[], quiet: false, regardWarnings: false, boundsWarning: false, unknownPropertyWarning: false, pngColorTypeWarning: false,
+        composite, compositeError: false, text: "", errors: "", progress: "", bytes: [] as Uint8Array[], quiet: false, regardWarnings: false, boundsWarning: false, unknownPropertyWarning: false, pngColorTypeWarning: false,
         get warnings() { return warnings; },
         set warnings(value: string) { if (!this.quiet) warnings = value; }
     };
 }
 
+function validateMagickComposeArgs(state: MagickState, analysis: ReturnType<typeof createConvertAnalysis>): boolean {
+    if (magickCompositeMode(state.composeRaw).name !== "blur" || Number.isFinite(parseBilateralGeometry(state.composeArgs ?? "").width)) return true;
+    analysis.compositeError = true;
+    analysis.warnings += `${analysis.composite ? "composite" : "magick"}: invalid setting 'compose:args' '${state.composeArgs ?? "(null)"}' @ warning/composite.c/CompositeImage/1746.\n`;
+    return false;
+}
+
 function combineConvertOutput(result: ImageMagickCliResult, analysis: ReturnType<typeof createConvertAnalysis>): ImageMagickCliResult {
     const stdout = analysis.text + result.stdout, stderr = analysis.progress + analysis.warnings + analysis.errors + result.stderr;
-    if (analysis.errors || analysis.regardWarnings && (analysis.boundsWarning || analysis.unknownPropertyWarning || analysis.pngColorTypeWarning)) result = { ...result, exitCode: 1 };
+    if (analysis.errors || analysis.compositeError || analysis.regardWarnings && (analysis.boundsWarning || analysis.unknownPropertyWarning || analysis.pngColorTypeWarning)) result = { ...result, exitCode: 1 };
     if (!analysis.bytes.length) return { ...result, stdout, stderr };
     const chunks = [...analysis.bytes, ...(result.stdoutBytes ? [result.stdoutBytes] : stdout ? [new TextEncoder().encode(stdout)] : [])];
     const stdoutBytes = new Uint8Array(chunks.reduce((size, chunk) => size + chunk.length, 0));
@@ -18579,6 +18587,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 let result: StoredRgbaImage;
                 if (token === "-composite") {
+                    if (!validateMagickComposeArgs(settings, analysis)) { stack.length = 1; return stack; }
                     const base = (await stack.get(0))!; let overlay = (await stack.get(1))!, gx = 0, gy = 0;
                     // Standalone composite ignores its third-image mask when tiling.
                     const mask = analysis.composite && settings.composeTile ? undefined : await stack.get(2);

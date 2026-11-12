@@ -1,5 +1,6 @@
 import { saliencyCompositeSteps } from "./saliency-compose.js";
 import { distortCompositeSteps } from "./distort-compose.js";
+import { blurCompositeSteps } from "./blur-compose.js";
 import { seamlessCompositeSteps } from "./seamless-compose.js";
 import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
@@ -26,6 +27,10 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
     }
     if (name === "saliencyblend") {
         yield* saliencyCompositeSteps(base, overlay, left, top, args, channels);
+        return;
+    }
+    if (name === "blur" && args !== undefined) {
+        yield* blurCompositeSteps(base, overlay, left, top, args, tile, channels);
         return;
     }
     if (name === "distort") {

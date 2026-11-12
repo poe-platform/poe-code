@@ -620,7 +620,7 @@ export async function parseCommonMarkBlocks(
       let item = indent <= 3 && !rule(line.text, at) ? marker(line.text, at, extensions.fancy_lists) : undefined;
       if (item && top?.kind === "list" && item.marker === top.node.marker && item.style !== top.node.style) item = marker(line.text, at, extensions.fancy_lists, top.node.style);
       const task = extensions.task_lists && item && (!extensions.pandoc_task_groups || item.start === null)
-        ? taskSymbol(line.text.slice(item.content, item.content + 4), !!extensions.pandoc_task_groups) : undefined;
+        ? taskSymbol(line.text.slice(item.content, item.content + 4), extensions.pandoc_task_groups !== undefined) : undefined;
       if (top?.kind === "list" && (!item || (item.start !== null) !== (top.node.start !== null) || item.marker !== top.node.marker
           || item.style !== top.node.style || extensions.pandoc_task_groups && !!task !== !!top.node.items.at(-1)?.task)) {
         stack.pop();

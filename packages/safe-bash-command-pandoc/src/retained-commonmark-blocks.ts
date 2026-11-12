@@ -468,7 +468,7 @@ export class RetainedCommonMarkBlocks {
         if (extensions.task_lists && item && (!extensions.pandoc_task_groups || Number.isNaN(item.start)) && await line.at(item.content) === "[") {
           let prefix = "[";
           for (let i = 1; i < 4 && item.content + i < line.length; i++) prefix += await line.at(item.content + i);
-          task = taskSymbol(prefix, !!extensions.pandoc_task_groups)?.charCodeAt(0) ?? 0;
+          task = taskSymbol(prefix, extensions.pandoc_task_groups !== undefined)?.charCodeAt(0) ?? 0;
         }
         if (list && top) {
           if (!item || Number.isNaN(item.start) !== Number.isNaN(list.number) || item.marker !== list.marker || item.style !== list.style || extensions.pandoc_task_groups && !!task !== !!list.task) {

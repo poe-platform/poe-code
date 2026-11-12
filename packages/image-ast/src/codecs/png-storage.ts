@@ -2,7 +2,7 @@ import { ADAM7_PASSES } from "./png-pixels.js";
 import { PngPalette } from "./png-palette.js";
 import { GifPalette } from "./gif-output-parts.js";
 import {pngMetadataSteps} from "./png-metadata.js";
-import {PNG_SIGNATURE, validPngTransparencyLength, pngCrc32, makeChunk, gammaChunk, chromaticityChunk, canvasChunk, iccChunk, xmpChunk, textChunks} from "./png-chunks.js";
+import {PNG_SIGNATURE, validPngTransparencyLength, pngCrc32, makeChunk, gammaChunk, chromaticityChunk, backgroundChunk, canvasChunk, iccChunk, xmpChunk, textChunks} from "./png-chunks.js";
 import {buildExifApp1Segment} from "./exif.js";
 import {createByteCodec, defaultRuntime} from "@poe-code/compression";
 import {checkLimitInputPixels} from "../limits.js";
@@ -292,6 +292,10 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   }
   if (exactPalette) { yield makeChunk("PLTE", exactPalette.bytes); if (exactPalette.transparency) yield makeChunk("tRNS", exactPalette.transparency); }
   if (palette) { yield makeChunk("PLTE", pngPalette!.bytes); if (pngPalette!.transparency) yield makeChunk("tRNS", pngPalette!.transparency); }
+  if (image.backgroundColor !== undefined) {
+    const background = backgroundChunk(image.backgroundColor, header[8]!, header[9]!, exactPalette?.bytes ?? pngPalette?.bytes);
+    if (background) yield background;
+  }
   const density = options.density ?? image.density ?? 72;
   const resolution = options.density === undefined ? image.resolution : undefined;
   const scale = resolution?.unit === "inch" ? 1 / 0.0254 : resolution?.unit === "cm" ? 100 : 1;

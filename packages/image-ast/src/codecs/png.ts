@@ -2,7 +2,7 @@ import { ADAM7_PASSES } from "./png-pixels.js";
 import { PngPalette } from "./png-palette.js";
 import { GifPalette } from "./gif-output-parts.js";
 import {pngMetadataSteps} from "./png-metadata.js";
-import {PNG_SIGNATURE, validPngTransparencyLength, pngCrc32, makeChunk, gammaChunk, chromaticityChunk, canvasChunk, iccChunk, xmpChunk, textChunks} from "./png-chunks.js";
+import {PNG_SIGNATURE, validPngTransparencyLength, pngCrc32, makeChunk, gammaChunk, chromaticityChunk, backgroundChunk, canvasChunk, iccChunk, xmpChunk, textChunks} from "./png-chunks.js";
 import {paethPredictor, writePngPixel} from "./png-pixels.js";
 import { createByteCodec, transformBytes, ByteCodecError } from "@poe-code/compression";
 
@@ -476,6 +476,7 @@ export function encodePngImage(
   const exifChunk = img.exif || (options?.synthesizeExif !== false && orientation !== undefined)
     ? [makeChunk("eXIf", buildExifApp1Segment({ exif: img.exif, orientation, density, resolution }).subarray(6))]
     : orientation !== undefined ? [makeChunk("orNT", Uint8Array.of(orientation))] : [];
+  const background = img.backgroundColor === undefined ? undefined : backgroundChunk(img.backgroundColor, ihdr[8]!, colorType, exactPalette?.bytes ?? pngPalette?.bytes);
   const chunks = [
     PNG_SIGNATURE,
     makeChunk("IHDR", ihdr),
@@ -485,6 +486,7 @@ export function encodePngImage(
     ...(exactPalette ? [makeChunk("PLTE", exactPalette.bytes), ...(exactPalette.transparency ? [makeChunk("tRNS", exactPalette.transparency)] : [])] : []),
     ...(palette ? [makeChunk("PLTE", pngPalette!.bytes), ...(pngPalette!.transparency ? [makeChunk("tRNS", pngPalette!.transparency)] : [])] : []),
     ...(!options?.omitPngResolution && (resolution !== undefined || options?.density !== undefined) ? [makeChunk("pHYs", phys)] : []),
+    ...(background ? [background] : []),
     ...exifChunk,
     ...textChunks(img.properties),
     ...(img.xmp ? [xmpChunk(img.xmp)] : []),

@@ -23,14 +23,14 @@ it("preserves annotation pixel vectors", async () => {
     }
     expect(hashes).toMatchInlineSnapshot(`
       [
-        "ec7829064f8da6eb8f66ed14a91cd3cdc8695caa242db868e2bc5a8ebdc0bc1b",
-        "5f6f2512e55fef99b714f7b1be6cf94592a2d2f2ab3e56dc68cb6dbd049823be",
-        "cd48d5bb3291380b0ec1c9fb80dc4a1aaa43f1b94d008fa9fd6e89a85118bcf0",
-        "fe5729d3e981825613e73a81f85aeb8fc81930fce1b729a5118264f277d49bc2",
-        "321fbaf28b89a2a46263211f973ee8c1a40349ccd6e525928d2f7f430126a580",
+        "0e44e7d7d1ea5ef507dcebf396cfdcbe61ff5ba3c9895813768d4a86a338ea74",
+        "f14cb946031aae80a6a00e39d6e3717434f84fbe98b341f35672c677a8e5d48a",
+        "308fb3ac519b4ccd172e95fa6e29dd23f41a3a5d8d9a272d2eeb2ba4cbae806f",
+        "09a0ad1b855cd705811bc36d5d53b7a66d2dd0b7c496b11e282ab5a634c0f25a",
+        "5aac6120a757f2f67d61ba297db71329d99e38212cd0439a8e93e2bee3cd8ac0",
         "0e44e7d7d1ea5ef507dcebf396cfdcbe61ff5ba3c9895813768d4a86a338ea74",
         "0e44e7d7d1ea5ef507dcebf396cfdcbe61ff5ba3c9895813768d4a86a338ea74",
-        "f8a50a90a836acc99c9612fab5081ff364ecc1e1ef6a8e9ce143ee9a008d7677",
+        "d92482746105d247d92fbb762c287a8af2f2c3ca2ddfb36b53047d5bbd9991f8",
       ]
     `);
 });

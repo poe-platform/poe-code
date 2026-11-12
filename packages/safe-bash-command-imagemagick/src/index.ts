@@ -7908,16 +7908,16 @@ function hasAnnotationOffset(value: string): boolean {
 function* annotatePixelSteps(img: Pick<RgbaImage, "width" | "height">, offsetStr: string, text: string, state: MagickState): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const fill = state.fill;
     const g = parseMagickGeometry(offsetStr);
-    const fontSize = Math.max(8, state.pointsize);
+    const fontSize = state.pointsize;
     const estW = Math.max(8, Math.ceil(text.length * fontSize * 0.6));
     const estH = Math.max(8, Math.ceil(fontSize));
     const offset = gravityAdjustBox(img.width, img.height, estW, estH, g.x, g.y, state.gravity);
-    const x = Math.max(0, offset.x);
-    const y = Math.max(fontSize, offset.y + estH);
+    const x = offset.x;
+    const y = state.gravity === undefined ? offset.y : offset.y + estH;
     const scale = (state.density || 72) / 72;
-    const effFontSize = Math.max(6, fontSize * scale);
-    const glyphH = Math.max(7, Math.round(effFontSize * 0.76));
-    const glyphW = Math.max(5, Math.round(glyphH * (5 / 7)));
+    const effFontSize = fontSize * scale;
+    const glyphH = Math.max(1, Math.round(effFontSize * 0.76));
+    const glyphW = Math.max(1, Math.round(glyphH * (5 / 7)));
     const advanceX = Math.max(glyphW + 1, Math.round(glyphW * 1.2));
     const baseTopY = Math.round(y * scale - glyphH);
     const startX = x * scale;
@@ -7939,7 +7939,7 @@ function* annotatePixelSteps(img: Pick<RgbaImage, "width" | "height">, offsetStr
             const charTopY = baseTopY + (isDescender ? Math.max(1, Math.round(glyphH / 7)) : 0);
             const px = screenX - Math.round(startX + ci * advanceX), py = screenY - charTopY;
             if (px < 0 || px >= glyphW || py < 0 || py >= glyphH) continue;
-            const gx = Math.min(4, Math.floor(px * 5 / glyphW)), gy = Math.min(6, Math.floor(py * 7 / glyphH));
+            const gx = Math.min(4, Math.floor((px + (glyphW < 5 ? 0.5 : 0)) * 5 / glyphW)), gy = Math.min(6, Math.floor((py + (glyphH < 7 ? 0.5 : 0)) * 7 / glyphH));
             if ((FONT_5X7[glyphIdx * 5 + gx]! & (1 << gy)) === 0) continue;
             const dIdx = i * 4;
             if (fill.a === 255) {
@@ -23125,7 +23125,7 @@ interface MontageArguments {
     regardWarnings: boolean;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth">[];
     shadow: boolean;
-    transforms: ({ kind: "draw"; drawing: string; state: MagickState } | { kind: "colors"; count: number; state: MagickState } | { kind: "coalesce"; inputs: MontageInput[]; index: number } | { kind: "dispose"; sequence: object; index: number } | { kind: "disposal"; value: number } | { kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | { kind: "distort"; warp: NonNullable<ReturnType<typeof parseMagickWarpOperation>> } | MontageLayers | { kind: "flip" | "flop" } | { kind: "trim"; fuzz: number } | { kind: "adaptive-sharpen"; geometry: MagickGeometry; state: MagickState } | { kind: "unsharp"; geometry: ReturnType<typeof parseUnsharpGeometry> } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "scale"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "thumbnail"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "depth"; depth: number; channels: MagickState["channels"]; dither: boolean } | { kind: "alpha" | "transparent" | "gamma" | "colorspace" | "grayscale" | "bilevel" | "truecolor" | "truecoloralpha" | "palette" | "palettealpha"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "blur"; geometry: MagickGeometry } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
+    transforms: ({ kind: "draw"; drawing: string; state: MagickState } | { kind: "annotate"; geometry: string; text: string; state: MagickState } | { kind: "colors"; count: number; state: MagickState } | { kind: "coalesce"; inputs: MontageInput[]; index: number } | { kind: "dispose"; sequence: object; index: number } | { kind: "disposal"; value: number } | { kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | { kind: "distort"; warp: NonNullable<ReturnType<typeof parseMagickWarpOperation>> } | MontageLayers | { kind: "flip" | "flop" | "autoOrient" } | { kind: "trim"; fuzz: number } | { kind: "adaptive-sharpen"; geometry: MagickGeometry; state: MagickState } | { kind: "unsharp"; geometry: ReturnType<typeof parseUnsharpGeometry> } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "scale"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "thumbnail"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "depth"; depth: number; channels: MagickState["channels"]; dither: boolean } | { kind: "alpha" | "transparent" | "gamma" | "colorspace" | "grayscale" | "bilevel" | "truecolor" | "truecoloralpha" | "palette" | "palettealpha"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "blur"; geometry: MagickGeometry } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
@@ -23265,6 +23265,9 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             try { i = applyMagickReadSetting(argv, state, i)!; }
             catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
         }
+        else if (t === "-auto-orient") {
+            queuedTransforms.push({ kind: "autoOrient" });
+        }
         else if (t === "-flip" || t === "-flop" || t === "-transpose") {
             queuedTransforms.push({ kind: t === "-flop" ? "flop" : "flip" });
             if (t === "-transpose") queuedTransforms.push({ kind: "rotate", angle: 90 });
@@ -23285,6 +23288,13 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             if (t === "-virtual-pixel" && argv[i + 1] === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -virtual-pixel\n" };
             try { i = applyMagickReadSetting(argv, state, i)!; }
             catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
+        }
+        else if (t === "-annotate") {
+            const geometry = argv[++i], text = argv[++i];
+            if (geometry === undefined || text === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -annotate\n" };
+            try { validateMagickTransformGeometry(geometry, t); }
+            catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
+            queuedTransforms.push({ kind: "annotate", geometry, text, state: { ...state, gravity: inputGravity } });
         }
         else if (t === "-extent") {
             const geometry = argv[++i];
@@ -23356,6 +23366,14 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             if (operation.warning) warnings += operation.warning.replace("magick:", "montage:");
             queuedTransforms.push({ kind: "transparent", operation });
             i = operation.end;
+        }
+        else if (["-red-primary", "-green-primary", "-blue-primary", "-white-point", "+red-primary", "+green-primary", "+blue-primary", "+white-point"].includes(t)) {
+            try {
+                const chromaticity = parseMagickChromaticity(t, t.startsWith("-") ? argv[++i] : undefined);
+                state.chromaticity = { ...state.chromaticity, ...chromaticity };
+            } catch (error) {
+                return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` };
+            }
         }
         else if (t === "-colorspace" || t === "-gamma") {
             const value = argv[++i];
@@ -23954,7 +23972,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
         if (format === "ico" && state.iconAutoResize) canvas = yield* prepareIcoPages([canvas], state.iconAutoResize, state.kernel, state.resizeFilter);
         if ((format === "psd" || format === "psb") && state.inputDepth !== undefined) canvas = { ...canvas, bitsPerSample: state.inputDepth };
-        if (format === "png") canvas = { ...canvas, backgroundColor: state.background };
+        if (format === "png") canvas = { ...canvas, backgroundColor: state.background, chromaticity: state.chromaticity ?? {} };
         if (format === "pfm" || format === "phm") canvas = yield* prepareFloatOutput(canvas, format);
         if (format === "png") canvas = yield* prepareMagickOutput({ ...canvas, bitsPerSample: state.inputDepth ?? 16 }, format, state.dither, state.diffusionAmount, pngCoder, state.inputType);
         const { data: encoded } = encodeImage(canvas, { ...(state.psdCompression === undefined ? {} : { psdCompression: state.psdCompression }), tgaCompression: state.tgaCompression, palette: true, outputFilename: outPath, ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), format, ...(format === "gif" ? { delay: canvas.delay?.[0] ?? 0 } : {}), netpbmAscii: state.netpbmAscii ?? false, rawInterlace: state.rawInterlace, ...(state.inputDepth === undefined ? {} : { tgaDepth: state.inputDepth }), netpbmDepth: state.inputDepth ?? 16, endian: state.inputEndian, tiffEndian: state.inputEndian === "msb" ? "msb" : "lsb", miffDepth: (state.inputDepth ?? 16) <= 8 ? 8 : 16, pngCoder, gifVersion, tiffBig, bmpRenderingIntent: state.optionProperties?.intent, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4", ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), pngPreserveColormap: state.pngPreserveColormap, pngBitDepth: state.pngBitDepth ?? (state.inputDepth !== undefined && state.inputDepth <= 8 ? 8 : undefined), ...(state.jpegRestartInterval === undefined ? {} : { jpegRestartInterval: state.jpegRestartInterval }), ...(state.jpegDctMethod === undefined ? {} : { jpegDctMethod: state.jpegDctMethod }), ...(state.jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding: state.jpegOptimizeCoding }), ...(state.jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding: state.jpegArithmeticCoding }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}), consumeInput: true } as any);
@@ -24192,10 +24210,16 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     : transform.kind === "adaptive-sharpen" ? applyMagickAdaptiveSteps(image, transform.geometry, true, transform.state, signal)
                     : transform.kind === "trim" ? trimMagickSteps(image, transform.fuzz, undefined, undefined, undefined, analysis)
                     : transform.kind === "blur" ? applyMagickRasterSteps({ ...image, isPalette: false }, blurPixelSteps(image, transform.geometry, false), signal, image)
+                    : transform.kind === "annotate" ? applyMagickRasterSteps(image, annotatePixelSteps(image, transform.geometry, transform.text, transform.state), signal)
                     : transform.kind === "extent" ? applyMagickExtentSteps(image, transform.geometry, transform.state, signal)
                     : rotation ? applyMagickRasterSteps(image, rotation.steps, signal, rotation)
                     : transform.kind === "rotate" ? rotateImageSteps(image, transform.angle, state.background)
+                    : transform.kind === "autoOrient" ? applyExifOrientationSteps(image)
                     : transform.kind === "flop" ? flopImageSteps(image) : flipImageSteps(image))];
+            if (transform.kind === "autoOrient") {
+                const virtualCanvas = magickAutoOrientCanvas(image);
+                if (virtualCanvas) tiles[0] = { ...tiles[0]!, virtualCanvas };
+            }
             if (transform.kind === "alpha") for (let index = 0; index < tiles.length; index++)
                 if (!tiles[index]!.inactiveAlpha) tiles[index] = yield* prepareInactiveAlphaOutput(tiles[index]!);
             if (transform.kind === "palette" || transform.kind === "palettealpha") for (let index = 0; index < tiles.length; index++) {
@@ -24640,10 +24664,15 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                         : transform.kind === "adaptive-sharpen" ? await applyStoredMagickAdaptive(tile, transform.geometry, true, transform.state.channelDefault ? undefined : transform.state.channels, transform.state.virtualPixel, transform.state.background, backend, signal)
             : transform.kind === "trim" ? await trimStoredMagick(tile, backend.storage, transform.fuzz, signal, undefined, undefined, undefined, analysis)
                         : transform.kind === "blur" ? await transformStoredMagickRaster({ ...tile, isPalette: false }, backend, blurPixelSteps(tile, transform.geometry, false), signal, tile)
+                        : transform.kind === "annotate" ? await transformStoredMagickRaster(tile, backend, annotatePixelSteps(tile, transform.geometry, transform.text, transform.state), signal)
                         : transform.kind === "extent" ? await applyStoredMagickExtent(tile, transform.geometry, transform.state, backend, signal)
                         : rotation ? await transformStoredMagickRaster(tile, backend, rotation.steps, signal, rotation)
                         : await transformStoredImage(tile, backend.storage, transform.kind === "rotate"
                             ? { ...transform, background: state.background } : transform, signal);
+                    if (transform.kind === "autoOrient") {
+                        const virtualCanvas = magickAutoOrientCanvas(tile);
+                        if (virtualCanvas) transformed = { ...transformed, virtualCanvas };
+                    }
                     if (transform.kind === "palette" || transform.kind === "palettealpha") {
                         transformed = await transformStoredMagickRaster(transformed, backend, quantizePixelSteps(transformed.width * transformed.height * 4, 256, false, 0, transformed.hasAlpha, false, undefined,
                             state.dither ? { width: transformed.width, height: transformed.height, method: state.dither, diffusionAmount: state.diffusionAmount ?? 1 } : undefined, true, transformed.storedHueSamples ? "hue" : undefined, [{ length: transformed.width * transformed.height * 4, hasAlpha: transformed.hasAlpha }]), signal);
@@ -24843,7 +24872,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 canvas = await prepareStoredIcoPages(icons, canvas, backend, signal, state.iconAutoResize, state.kernel, state.resizeFilter);
             }
             if ((format === "psd" || format === "psb") && state.inputDepth !== undefined) canvas = { ...canvas, bitsPerSample: state.inputDepth };
-            if (format === "png") canvas = { ...canvas, backgroundColor: state.background };
+            if (format === "png") canvas = { ...canvas, backgroundColor: state.background, chromaticity: state.chromaticity ?? {} };
             if (format === "png") canvas = await prepareStoredMagickOutput({ ...canvas, bitsPerSample: state.inputDepth ?? 16 }, format, backend, signal, state.dither, state.diffusionAmount, output.pngCoder, state.inputType);
             const stdoutBytes = await (n > cols * rows ? backend.stage : backend.publish)(canvas, outputPath, { ...(state.psdCompression === undefined ? {} : { psdCompression: state.psdCompression }), ...(state.tgaCompression === undefined ? {} : { tgaCompression: state.tgaCompression }), bmpFormat: output.bmpFormat ?? state.bmpFormat ?? "bmp4", ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), format, ...(format === "gif" ? { delay: canvas.delay?.[0] ?? 0 } : {}), gifVersion: output.gifVersion, palette: true, ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), pngCoder: output.pngCoder, pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), netpbmAscii: state.netpbmAscii ?? false, rawInterlace: state.rawInterlace, ...(state.inputDepth === undefined ? {} : { tgaDepth: state.inputDepth }), netpbmDepth: state.inputDepth ?? 16, endian: state.inputEndian, tiffEndian: state.inputEndian === "msb" ? "msb" : "lsb", miffDepth: (state.inputDepth ?? 16) <= 8 ? 8 : 16, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) });
             if (stdoutBytes) stdoutChunks.push(stdoutBytes);
@@ -24858,7 +24887,6 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         if (adjoinedPages) {
             const image = output.format === "tiff"
                 ? prepareStoredTiffPages(adjoinedPages, (await adjoinedPages.get(0))!, backend, signal)
-                : output.format === "psd" ? await prepareStoredPhotoshopPages(adjoinedPages, backend, signal, output.format)
                 : output.format === "ico" ? await prepareStoredIcoPages(adjoinedPages, (await adjoinedPages.get(0))!, backend, signal)
                 : await prepareStoredGifFrames(adjoinedPages, backend, signal, false, 1, output.format);
             const bytes = await backend.publish(image, output.path.replaceAll("%%", "%"), { ...(state.psdCompression === undefined ? {} : { psdCompression: state.psdCompression }), format: output.format, ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), gifVersion: output.gifVersion, tiffBig: output.tiffBig, tiffEndian: state.inputEndian === "msb" ? "msb" : "lsb", ...(state.inputDepth === undefined ? {} : { tiffIntegerDepth: state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32 }), ...(image.pageHeight === undefined ? {} : { pageHeight: image.pageHeight }), gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, ...(output.format === "webp" ? { quality: state.quality, webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) });

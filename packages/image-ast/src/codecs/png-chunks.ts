@@ -100,6 +100,21 @@ export function decodePngIcc(compressed: Uint8Array): Uint8Array {
   }
 }
 
+export function backgroundChunk(background: NonNullable<ImageMetadata["backgroundColor"]>, depth: number, color: number, palette?: Uint8Array): Uint8Array | undefined {
+  if (color === 3) {
+    if (!palette) return;
+    for (let index = 0; index < palette.length; index += 3) {
+      if (palette[index] === background.r && palette[index + 1] === background.g && palette[index + 2] === background.b)
+        return makeChunk("bKGD", Uint8Array.of(index / 3));
+    }
+    return;
+  }
+  const samples = color === 0 || color === 4 ? [background.r] : [background.r, background.g, background.b];
+  const bytes = new Uint8Array(samples.length * 2), view = new DataView(bytes.buffer);
+  samples.forEach((sample, index) => view.setUint16(index * 2, Math.round(sample * (2 ** depth - 1) / 255)));
+  return makeChunk("bKGD", bytes);
+}
+
 export function chromaticityChunk(chromaticity: NonNullable<ImageMetadata["chromaticity"]>): Uint8Array {
   const coordinates = [...(chromaticity["white-point"] ?? [0.3127, 0.329]), ...(chromaticity["red-primary"] ?? [0.64, 0.33]), ...(chromaticity["green-primary"] ?? [0.3, 0.6]), ...(chromaticity["blue-primary"] ?? [0.15, 0.06])];
   const bytes = new Uint8Array(32), view = new DataView(bytes.buffer);

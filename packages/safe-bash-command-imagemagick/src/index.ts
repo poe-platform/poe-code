@@ -15784,6 +15784,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 // Frame composites retained alpha without activating it; Off permits a new matte alpha channel.
                 const canvas = { ...yield* applyMagickRasterSteps(im, magickFramePixels({ ...im, hasAlpha: im.hasAlpha || im.inactiveAlpha === true && im.alphaBlend !== false }, width, height, state.borderColor, im.matteColor ?? state.matteColor, fw, fh, g.x, g.y, state.composeRaw.toLowerCase() === "over", [state.channels.r, state.channels.g, state.channels.b]), signal,
                     { width, height, hasAlpha: im.hasAlpha || !im.inactiveAlpha && ((im.matteColor ?? state.matteColor).a < 255 || state.borderColor.a < 255) }), alphaBlend: !im.hasAlpha && !im.inactiveAlpha ? true : im.alphaBlend, region: undefined, writeMask, readMask, metaChannels, virtualCanvas: magickBorderCanvas(im, fw, fh) };
+                // Non-Over composition reads alpha samples directly; Off means opaque source pixels.
+                if (state.composeRaw.toLowerCase() !== "over" && !im.hasAlpha && !im.inactiveAlpha) im = yield* prepareInactiveAlphaOutput(im);
                 stack[sceneIdx] = state.composeRaw.toLowerCase() === "over" ? canvas
                     : yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, fw, fh, state.composeArgs, signal, state.alphaFuzz, true);
                 if (im.inactiveAlpha) stack[sceneIdx] = { ...stack[sceneIdx]!, hasAlpha: false };
@@ -20710,6 +20712,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const canvas = { ...await transformStoredMagickRaster(image, backend, magickFramePixels({ ...image, hasAlpha: image.hasAlpha || image.inactiveAlpha === true && image.alphaBlend !== false }, width, height, borderColor, image.matteColor ?? matteColor, left, top, geometry.x, geometry.y, composeRaw.toLowerCase() === "over", [channels.r, channels.g, channels.b]), signal,
                     { width, height, hasAlpha: image.hasAlpha || !image.inactiveAlpha && ((image.matteColor ?? matteColor).a < 255 || borderColor.a < 255) }), alphaBlend: !image.hasAlpha && !image.inactiveAlpha ? true : image.alphaBlend, region: undefined, storedWriteMask, readMask, storedMetaChannels, virtualCanvas: magickBorderCanvas(image, left, top) };
                 if (composeRaw.toLowerCase() === "over") return canvas;
+                // Non-Over composition reads alpha samples directly; Off means opaque source pixels.
+                if (!image.hasAlpha && !image.inactiveAlpha) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal);
                 const composed = await compositeStoredMagick(canvas, image, backend, signal, left, top, composeRaw, composeArgs, false, true, false, false, alphaFuzz, true);
                 return image.inactiveAlpha ? { ...composed, hasAlpha: false } : composed;
             });

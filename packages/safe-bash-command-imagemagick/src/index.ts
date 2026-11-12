@@ -23238,8 +23238,8 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
                 return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` };
             }
         }
-        else if (t === "-type") {
-            const value = argv[i + 1];
+        else if (t === "-type" || t === "-monochrome") {
+            const value = t === "-monochrome" ? "Bilevel" : argv[i + 1];
             if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -type\n" };
             const type = value.toLowerCase();
             if (type !== "grayscale" && type !== "bilevel")

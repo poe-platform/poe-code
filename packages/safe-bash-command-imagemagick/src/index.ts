@@ -23083,7 +23083,7 @@ interface MontageArguments {
     warnings: string;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth">[];
     shadow: boolean;
-    transforms: ({ kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | MontageLayers | { kind: "flip" | "flop" } | { kind: "trim"; fuzz: number } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string } | { kind: "scale"; geometry: string } | { kind: "thumbnail"; geometry: string } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
+    transforms: ({ kind: "dispose"; sequence: object; index: number } | { kind: "disposal"; value: number } | { kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | MontageLayers | { kind: "flip" | "flop" } | { kind: "trim"; fuzz: number } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string } | { kind: "scale"; geometry: string } | { kind: "thumbnail"; geometry: string } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
@@ -23369,6 +23369,20 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         else if (t === "+label") {
             label = "";
         }
+        else if (t === "-layers" && argv[i + 1]?.toLowerCase() === "dispose") {
+            i++;
+            yield* applyTransforms(true);
+            if (operands.length === groupStart) return { exitCode: 1, stdout: "", stderr: "montage: no images found for operation '-layers'\n" };
+            const sequence = {}, sourceTransforms = transforms[groupStart]!;
+            // DisposeImages repeats the first input on the canvas for each frame.
+            for (let index = groupStart; index < operands.length; index++) {
+                if (++cooperativeWork % 64 === 0) yield;
+                operands[index] = operands[groupStart]!;
+                sizes[index] = sizes[groupStart]!;
+                labels[index] = labels[groupStart]!;
+                transforms[index] = [...sourceTransforms, { kind: "dispose", sequence, index: index - groupStart }];
+            }
+        }
         else if (t === "-flatten" || t === "-layers") {
             const method = t === "-flatten" ? "flatten" : argv[++i]?.toLowerCase();
             if (method === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -layers\n" };
@@ -23509,6 +23523,11 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             const property = argv[++i];
             const value = argv[++i] ?? "";
             if (property === "label") labels.fill(value, groupStart);
+            if (property?.toLowerCase() === "dispose") {
+                yield* applyTransforms(true);
+                for (let index = groupStart; index < operands.length; index++)
+                    transforms[index] = [...transforms[index]!, { kind: "disposal", value: parseMagickDisposalSetting(value) }];
+            }
         }
         else if (t === "-pointsize") {
             state.pointsize = Math.max(1, Number(argv[++i] ?? 12));
@@ -23616,6 +23635,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     });
     if ("exitCode" in parsed) return parsed;
     const { shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, frame, matte, title, texture } = parsed;
+    const disposed = new Map<object, RgbaImage[]>();
     const analysis = { warnings: parsed.warnings };
     const squareCells = parseMagickGeometry(geometry).isPercent && !geometry.toLowerCase().includes("x");
     const variableCells = !frame && !squareCells && cellW === undefined && cellH === undefined;
@@ -23870,6 +23890,28 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     if (overlay.data !== result.data) detachRgbaBuffer(overlay.data);
                     return yield* transformTiles(result, offset + 1, operations);
                 }
+                if (transform.kind === "disposal") return yield* transformTiles({ ...image, disposal: transform.value }, offset + 1, operations);
+                if (transform.kind === "dispose") {
+                    const frames = disposed.get(transform.sequence) ?? [];
+                    disposed.set(transform.sequence, frames);
+                    let first = image;
+                    if (!first.hasAlpha) first = { ...yield* prepareInactiveAlphaOutput(first), hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false };
+                    const width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
+                    let canvas = frames.at(-1) ?? { ...yield* createSolidRgbaImageSteps(width, height, { ...(first.backgroundColor ?? state.background), a: 0 }), hasAlpha: true };
+                    while (frames.length <= transform.index) {
+                        const previous = canvas, x = first.virtualCanvas?.x ?? 0, y = first.virtualCanvas?.y ?? 0;
+                        canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, first, x, y, "over", undefined, false, 0, true), signal, canvas, [canvas, first]);
+                        if (first.disposal === 3) canvas = previous;
+                        else if (first.disposal === 2) {
+                            const clear = yield* createSolidRgbaImageSteps(first.width, first.height, { r: 0, g: 0, b: 0, a: 0 });
+                            canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, clear, x, y, "copyalpha", undefined, false, 0, true), signal, canvas, [canvas, clear]);
+                        }
+                        frames.push(canvas);
+                    }
+                    const result = frames[transform.index]!;
+                    // Copy cached pixels before thumbnail operations can detach them; montage uses quantized samples.
+                    return yield* transformTiles({ ...first, ...result, virtualCanvas: { width, height, x: 0, y: 0 }, data: result.data.slice(), ...(result.data16 ? { data16: result.data16.slice() } : {}), evaluateSamples: undefined }, offset + 1, operations);
+                }
                 if (transform.kind === "repage") {
                     image = { ...image, virtualCanvas: transform.geometry ? magickRepageCanvas(image, transform.geometry, "repage") : { width: 0, height: 0, x: 0, y: 0 } };
                     return yield* transformTiles(image, offset + 1, operations);
@@ -24089,6 +24131,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
     }), signal);
     if ("exitCode" in parsed) return parsed;
     const { shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, frame, matte, title, texture } = parsed;
+    const disposed = new Map<object, StoredRgbaImage[]>();
     const analysis = { warnings: parsed.warnings };
     const squareCells = parseMagickGeometry(geometry).isPercent && !geometry.toLowerCase().includes("x");
     const variableCells = !frame && !squareCells && cellW === undefined && cellH === undefined;
@@ -24205,6 +24248,30 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                                 const position = gravityAdjustBox(tile.width, tile.height, overlay.width, overlay.height, 0, 0, transform.gravity);
                                 tile = await compositeStoredMagick(tile, overlay, backend, signal, position.x, position.y, transform.compose);
                                 yield* transformTiles(tile, offset + 1, operations);
+                                return;
+                            }
+                            if (transform.kind === "disposal") {
+                                yield* transformTiles({ ...tile, disposal: transform.value }, offset + 1, operations);
+                                return;
+                            }
+                            if (transform.kind === "dispose") {
+                                const frames = disposed.get(transform.sequence) ?? [];
+                                disposed.set(transform.sequence, frames);
+                                let first = tile;
+                                if (!first.hasAlpha) first = { ...await transformStoredMagickPixels(first, backend, { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal), hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false };
+                                const width = first.virtualCanvas?.width || first.width, height = first.virtualCanvas?.height || first.height;
+                                let canvas = frames.at(-1) ?? { ...await createStoredCanvas(width, height, { ...(first.backgroundColor ?? state.background), a: 0 }, backend, signal), hasAlpha: true };
+                                while (frames.length <= transform.index) {
+                                    const previous = canvas, x = first.virtualCanvas?.x ?? 0, y = first.virtualCanvas?.y ?? 0;
+                                    canvas = await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, first, x, y, "over", undefined, false, 0, true), signal, canvas, [canvas, first]);
+                                    if (first.disposal === 3) canvas = previous;
+                                    else if (first.disposal === 2) {
+                                        const clear = await createStoredCanvas(first.width, first.height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
+                                        canvas = await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, clear, x, y, "copyalpha", undefined, false, 0, true), signal, canvas, [canvas, clear]);
+                                    }
+                                    frames.push(canvas);
+                                }
+                                yield* transformTiles({ ...first, ...frames[transform.index]!, virtualCanvas: { width, height, x: 0, y: 0 } }, offset + 1, operations);
                                 return;
                             }
                             if (transform.kind === "repage") {

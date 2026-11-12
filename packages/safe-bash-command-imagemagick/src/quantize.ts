@@ -50,7 +50,7 @@ interface ColorNode {
 }
 
 /** A bounded histogram and error-pruned color tree shared by both raster backends. */
-export function* quantizePixelSteps(length: number, requested: number, grayscale: boolean | "bilevel" = false, treeDepth = 0, hasAlpha = true, highDepth = false, cycle?: { amount: number; width: number; region?: Region | undefined; writeMask?: boolean; alphaActive: boolean; channels?: MaskChannels | undefined }, dither?: { width: number; height: number; method: "riemersma" | "floydsteinberg"; diffusionAmount: number }, evaluate = false, working?: "hue" | "cmyk", images?: readonly { length: number; hasAlpha: boolean }[], width?: number): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
+export function* quantizePixelSteps(length: number, requested: number, grayscale: boolean | "bilevel" = false, treeDepth = 0, hasAlpha = true, highDepth = false, cycle?: { amount: number; width: number; region?: Region | undefined; writeMask?: boolean; alphaActive: boolean; channels?: MaskChannels | undefined }, dither?: { width: number; height: number; method: "riemersma" | "floydsteinberg"; diffusionAmount: number }, evaluate = false, working?: "hue" | "cmyk", images?: readonly { length: number; hasAlpha: boolean }[], width?: number, colormap?: number[][]): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
     if (!Number.isSafeInteger(requested) || requested < 1) throw new Error("colors must be a positive integer");
     const clamp = (value: number) => Math.max(0, Math.min(255, value));
     // Keep fractional palette means alongside byte output for later arithmetic and deeper output.
@@ -480,5 +480,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
     if (working === "cmyk") for (const color of palette) for (let c = 0; c < 3; c++) color[c] = 255 - color[c]!;
     if (grayscale === "bilevel") for (const color of palette) color.fill(color[0]! >= bilevelThreshold ? 255 : 0, 0, 3);
     if (cycle) for (const color of palette) color[3] = 255;
+    // Later palette cycling needs the same fractional samples as the quantized raster.
+    if (colormap) for (const color of palette) colormap.push(color);
     return palette.map(color => Math.round(color[3]!) * 16777216 + Math.round(color[0]!) * 65536 + Math.round(color[1]!) * 256 + Math.round(color[2]!));
 }

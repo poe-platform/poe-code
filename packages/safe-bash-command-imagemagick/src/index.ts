@@ -14137,7 +14137,9 @@ function* quantizeMagickImageSteps(image: RgbaImage, count: number, state: Magic
     else if (!nativeRgb && image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray") image = yield* convertHuePixels(image, "sRGB");
     const working = colorspace === "cmyk" ? "cmyk" : (colorspace || nativeRgb) && colorspace !== "gray" && image.hueSamples ? "hue" : undefined;
     const { hueSamples: ignoredHue, ...pixels } = image;
-    const output = yield* applyMagickRasterSteps({ ...pixels, isPalette: true }, quantizePixelSteps(image.data.length, count, colorspace === "gray" || colorspace === "lineargray" && count === 2, state.treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, state.dither ? { width: image.width, height: image.height, method: state.dither, diffusionAmount: state.diffusionAmount ?? 1 } : undefined, true, working, undefined, image.width), signal, image, [image]);
+    const colormap: number[][] = [];
+    const output = yield* applyMagickRasterSteps({ ...pixels, isPalette: true }, quantizePixelSteps(image.data.length, count, colorspace === "gray" || colorspace === "lineargray" && count === 2, state.treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, state.dither ? { width: image.width, height: image.height, method: state.dither, diffusionAmount: state.diffusionAmount ?? 1 } : undefined, true, working, undefined, image.width, colormap), signal, image, [image]);
+    if (colormap.length) output.indexedColorSamples = colormap;
     if (working === "cmyk") return { ...output, space: "cmyk", channels: 4 };
     if (working) return output;
     // Native classifies the resulting colormap, even without reducing its size.
@@ -14153,7 +14155,9 @@ async function quantizeStoredMagickImage(image: StoredRgbaImage, count: number, 
     else if (image.space === "cmyk") image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!, signal);
     else if (!nativeRgb && image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray") image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: frame => convertHuePixels(frame, "sRGB") }, signal);
     const working = colorspace === "cmyk" ? "cmyk" : (colorspace || nativeRgb) && colorspace !== "gray" && image.storedHueSamples !== undefined ? "hue" : undefined;
-    const output = await transformStoredMagickRaster({ ...image, isPalette: true }, backend, quantizePixelSteps(image.width * image.height * 4, count, colorspace === "gray" || colorspace === "lineargray" && count === 2, treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true, working, undefined, image.width), signal);
+    const colormap: number[][] = [];
+    const output = await transformStoredMagickRaster({ ...image, isPalette: true }, backend, quantizePixelSteps(image.width * image.height * 4, count, colorspace === "gray" || colorspace === "lineargray" && count === 2, treeDepth, image.hasAlpha || image.inactiveAlpha === true, false, undefined, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, true, working, undefined, image.width, colormap), signal);
+    if (colormap.length) output.indexedColorSamples = colormap;
     if (working === "cmyk") return { ...output, space: "cmyk", channels: 4 };
     if (working) return output;
     if (!output.indexedColors?.every(color => (color >>> 16 & 255) === (color >>> 8 & 255) && (color >>> 8 & 255) === (color & 255))) return output;

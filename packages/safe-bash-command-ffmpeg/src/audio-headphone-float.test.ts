@@ -80,8 +80,9 @@ for (const type of ["time", "freq"]) {
       channels: [new Float64Array(12), new Float64Array(12)] })).tracks[0]!;
     const tracks = [track, track, track];
     const filter = `headphone=map=FL|FR:type=${type}`;
-    await assert.rejects(headphoneAudio(tracks, filter, new MediaBudgetTracker({ maxMemoryBytes: 192 })), /maxMemoryBytes/);
-    await assert.rejects(headphoneAudio(tracks, filter, new MediaBudgetTracker({ maxCpuMs: -1 })), /maxCpuMs/);
-    await assert.rejects(headphoneAudio(tracks, filter, new MediaBudgetTracker(), AbortSignal.abort()), { name: "AbortError" });
+    const filterAudio = async () => { assert.fail("Stereo responses need no layout conversion"); };
+    await assert.rejects(headphoneAudio(tracks, filter, filterAudio, new MediaBudgetTracker({ maxMemoryBytes: 192 })), /maxMemoryBytes/);
+    await assert.rejects(headphoneAudio(tracks, filter, filterAudio, new MediaBudgetTracker({ maxCpuMs: -1 })), /maxCpuMs/);
+    await assert.rejects(headphoneAudio(tracks, filter, filterAudio, new MediaBudgetTracker(), AbortSignal.abort()), { name: "AbortError" });
   });
 }

@@ -6,7 +6,9 @@ import { validateWeaveGenericOption } from "./weave-generic-option.js";
 import { resampleAudio } from "./audio-resample.js";
 
 export async function headphoneAudio(
-  tracks: MediaTrack[], filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
+  tracks: MediaTrack[], filter: string,
+  filterAudio: (track: MediaTrack, expression: string) => Promise<MediaTrack>,
+  budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<MediaTrack> {
   const options: Record<string, string> = { gain: "0", lfe: "0", type: "freq", size: "1024", hrir: "stereo" };
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
@@ -59,6 +61,15 @@ export async function headphoneAudio(
   const multich = options.hrir === "multich" || options.hrir === "1";
   if (tracks.length !== (multich ? 2 : mapping.length + 1)) {
     throw new Error(multich ? "headphone requires one packed impulse response input" : "headphone requires one stereo impulse response per mapped source channel");
+  }
+  if (!multich) {
+    tracks = [...tracks];
+    for (let index = 1; index < tracks.length; index++) {
+      const decoded = tracks[index]!.decodedAudio;
+      if (decoded && (decoded.channels !== 2 || (decoded.channelMask !== undefined && decoded.channelMask !== 3))) {
+        tracks[index] = await filterAudio(tracks[index]!, "aformat=sample_fmts=fltp:channel_layouts=stereo");
+      }
+    }
   }
   const audio = tracks.map((track, index) => {
     const decoded = track.decodedAudio;

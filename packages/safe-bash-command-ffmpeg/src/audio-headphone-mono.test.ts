@@ -52,7 +52,7 @@ for (const type of ["time", "freq"]) {
   });
 }
 
-for (const [channels, map, responseChannels] of [[1, "FL|FR", 2], [2, "FC", 2], [1, "FC", 1]] as const) {
+for (const [channels, map, responseChannels] of [[1, "FL|FR", 2], [2, "FC", 2]] as const) {
   it(`headphone rejects ${channels} source channels, map=${map}, ${responseChannels} response channels`, async () => {
     const { result, output } = await render(channels, map, "time", responseChannels);
     assert.notEqual(result.exitCode, 0);

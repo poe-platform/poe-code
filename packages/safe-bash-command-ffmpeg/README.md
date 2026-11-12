@@ -831,7 +831,8 @@ only the direct signal. Gains range from 0.015625 to 64; tap balances range from
 `[0:a][1:a][2:a]headphone=map=FL|FR:type=time[h]` renders a stereo source
 through separate stereo impulse responses for its left and right channels.
 `[0:a][1:a]headphone=map=FC:type=time[h]` renders a mono center source through
-one stereo impulse response. Both forms produce stereo output.
+one stereo impulse response. Both forms produce stereo output. Separate mono or
+quad impulse responses are automatically remixed to stereo before convolution.
 `type=time` uses direct convolution; `type=freq` uses FFT convolution with overlap
 addition. Both preserve native float32 arithmetic, the source frame count, sample
 rate, and timestamps, and apply native gain

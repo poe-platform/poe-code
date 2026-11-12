@@ -14934,6 +14934,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             });
         }
         else if (t === "-strip") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             state.strip = true;
             for (let index = 0; index < stack.length; index++) { const {gifApplications: ignoredGifApplications, properties: ignoredProperties, ...image} = applyMagickProfile(stack[index]!, "*"); stack[index] = image; }
         }
@@ -19590,6 +19591,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && token === "-strip") {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             state.strip = true;
             steps.push(async image => { if (!image) return image; const {gifApplications: ignoredGifApplications, properties: ignoredProperties, ...rest} = applyMagickProfile(image, "*"); return rest; });
             continue;

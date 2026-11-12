@@ -1493,9 +1493,10 @@ async function renderShowwavespic(
   const options: Record<string, string> = {};
   const parts = equals < 0 ? [] : spec.slice(equals + 1).split(":");
   if (parts.at(-1) === "") parts.pop();
-  for (const [index, part] of parts.entries()) {
+  let positionalIndex = 0;
+  for (const part of parts) {
     const separator = part.indexOf("=");
-    let key = separator < 0 ? ["size", "split_channels", "colors", "scale", "draw", "filter"][index] : part.slice(0, separator);
+    let key = separator < 0 ? ["size", "split_channels", "colors", "scale", "draw", "filter"][positionalIndex++] : part.slice(0, separator);
     if (key === "s") key = "size";
     if (!key || !["size", "split_channels", "colors", "scale", "draw", "filter"].includes(key)) {
       throw new Error(`showwavespic: unsupported option ${key ?? part}`);

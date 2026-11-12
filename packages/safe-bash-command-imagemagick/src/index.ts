@@ -10647,6 +10647,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         else if (mode === "remove") {
             highDepth = evaluate = true;
             apply = function* (im) {
+                // Non-CMYK working planes store color channels and alpha on a 0..1 scale.
+                const hueSamples = im.space === "cmyk" ? undefined : im.hueSamples?.slice();
                 const out = new Uint8Array(im.data.length);
                 const data16 = new Uint16Array(im.data.length);
                 const evaluateSamples = new Float64Array(im.data.length);
@@ -10660,18 +10662,20 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                     const compositeAlpha = alpha + backgroundAlpha;
                     for (let channel = 0; channel < 3; channel++) {
                         const bg = background[im.channels === 2 ? 0 : channel]!;
-                        const source = im.evaluateSamples ? im.evaluateSamples[idx + channel]! * 257 : im.data16 ? im.data16[idx + channel]! : im.data[idx + channel]! * 257;
+                        const source = hueSamples ? hueSamples[idx + channel]! * 65535 : im.evaluateSamples ? im.evaluateSamples[idx + channel]! * 257 : im.data16 ? im.data16[idx + channel]! : im.data[idx + channel]! * 257;
                         const blended = (source * alpha + bg * 257 * backgroundAlpha) / Math.max(compositeAlpha, 1e-12);
+                        if (hueSamples) hueSamples[idx + channel] = Math.fround(blended) / 65535;
                         evaluateSamples[idx + channel] = Math.fround(blended) / 257;
                         data16[idx + channel] = Math.round(Math.max(0, Math.min(65535, blended)));
                         // Round the unquantized blend directly for 8-bit output.
                         out[idx + channel] = clampByteVal(blended / 257);
                     }
+                    if (hueSamples) hueSamples[idx + 3] = Math.fround(compositeAlpha * 65535) / 65535;
                     out[idx + 3] = clampByteVal(compositeAlpha * 255);
                     data16[idx + 3] = Math.round(Math.max(0, Math.min(65535, compositeAlpha * 65535)));
                     evaluateSamples[idx + 3] = Math.fround(compositeAlpha * 65535) / 257;
                 }
-                return { ...im, data: out, data16, evaluateSamples, hasAlpha, inactiveAlpha: false, alphaSeparate: false, channels: hasAlpha ? im.channels : im.channels === 4 ? 3 : im.channels === 2 ? 1 : im.channels };
+                return { ...im, ...(hueSamples ? { hueSamples } : {}), data: out, data16, evaluateSamples, hasAlpha, inactiveAlpha: false, alphaSeparate: false, channels: hasAlpha ? im.channels : im.channels === 4 ? 3 : im.channels === 2 ? 1 : im.channels };
             };
         }
         else if (mode === "associate" || mode === "disassociate") {

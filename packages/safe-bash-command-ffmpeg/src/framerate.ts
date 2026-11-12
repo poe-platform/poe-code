@@ -4,11 +4,12 @@ import { parseFilterExpression } from "./filter-expression.js";
 import { validateWeaveGenericOption } from "./weave-generic-option.js";
 import { meanFrameDifference } from "./select.js";
 import { sceneChangeDifference } from "./scdet.js";
+import { formatYuv } from "./format-yuv.js";
 
 export async function interpolateFrameRate(
   frames: MediaVideoFrame[], argument: string, inputTimescale: number,
   pixelFormat: string | undefined, budget: MediaBudgetTracker, signal?: AbortSignal
-): Promise<{ frames: MediaVideoFrame[]; timescale: number; frameRate: number }> {
+): Promise<{ frames: MediaVideoFrame[]; timescale: number; frameRate: number; pixelFormat: string | undefined }> {
   const options: Record<string, string> = {};
   const keys = ["fps", "interp_start", "interp_end", "scene", "flags"];
   let position = 0;
@@ -79,7 +80,10 @@ export async function interpolateFrameRate(
   let divisor = input[0] * output[1], remainder = input[1] * output[0];
   while (remainder) [divisor, remainder] = [remainder, divisor % remainder];
   const timescale = input[1] * output[1] / divisor;
-  const gray = pixelFormat === "gray" || pixelFormat === "gray8";
+  const gray = pixelFormat === "gray" || pixelFormat === "gray8" || pixelFormat === "ya8";
+  const rgb = ["rgb24", "bgr24", "rgba", "bgra", "gbrp", "gbrap"].includes(pixelFormat ?? "");
+  const outputFormat = gray ? "yuvj444p" : rgb || pixelFormat === "yuva444p" ? "yuv444p"
+    : pixelFormat === "yuva420p" ? "yuv420p" : pixelFormat;
   const result: MediaVideoFrame[] = [];
   let previous: MediaVideoFrame | undefined, next: MediaVideoFrame | undefined;
   let start = 0, count = 0, previousDifference = 0;
@@ -108,9 +112,9 @@ export async function interpolateFrameRate(
         else if (factor <= 0 || position < interpStart) frame = previous;
         else {
           if (score === undefined && (flags & 1)) {
-            // Gray is negotiated to padded full-range YUV444 planes. Native
-            // FFmpeg 7's narrow-row SAD compares the luma row twice below 32px.
-            const difference = gray
+            // Converted frames have padded planes. Native FFmpeg 7's narrow-row
+            // SAD compares their luma row twice below 32px, without chroma bytes.
+            const difference = outputFormat !== pixelFormat
               ? await meanFrameDifference(next, previous, pixelFormat, budget, signal) * 100 / 256 * (next.width < 32 ? 2 : 1)
               : await sceneChangeDifference(next, previous, pixelFormat, budget, signal);
             score = Math.fround(Math.min(difference, Math.abs(difference - previousDifference), 100));
@@ -153,8 +157,24 @@ export async function interpolateFrameRate(
         if (i % 65536 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
         pixels[i] = frame.data[i * 4]!;
       }
-      frame = { ...frame, native: { pixels, width: frame.width, height: frame.height,
-        format: 14, fullRange: 1, colorspace: 5, rgba: frame.data } };
+      const native = { pixels, width: frame.width, height: frame.height,
+        format: 14, fullRange: 1, colorspace: 5, rgba: frame.data };
+      let data = frame.data;
+      if (pixelFormat === "ya8") {
+        budget.allocateMemory(data.length);
+        data = scaleVideoPicture({ ...frame, native }, frame.width, frame.height)!;
+      }
+      frame = { ...frame, data, native: { ...native, rgba: data } };
+    } else if (rgb) {
+      budget.allocateMemory(frame.width * frame.height * 7);
+      frame = await formatYuv(frame, "yuv444p", signal);
+    } else if (frame.native?.rgba === frame.data && [33, 79].includes(frame.native.format)) {
+      // Drop the alpha plane without a lossy round trip through clipped RGB.
+      const native = { ...frame.native, format: frame.native.format === 33 ? 0 : 5,
+        pixels: frame.native.pixels.subarray(0, frame.native.pixels.length - frame.width * frame.height) };
+      budget.allocateMemory(frame.data.length);
+      const data = scaleVideoPicture({ ...frame, native }, frame.width, frame.height)!;
+      frame = { ...frame, data, native: { ...native, rgba: data } };
     }
     if (!frame.native || frame.native.rgba !== frame.data || ![0, 4, 5, 12, 13, 14].includes(frame.native.format)) {
       throw new Error("framerate: supported input is 8-bit grayscale or planar YUV");
@@ -169,5 +189,5 @@ export async function interpolateFrameRate(
     await emit(false);
   }
   await emit(true);
-  return { frames: result, timescale, frameRate };
+  return { frames: result, timescale, frameRate, pixelFormat: outputFormat };
 }

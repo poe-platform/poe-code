@@ -5510,7 +5510,7 @@ async function applyVideoFilterChain(
       frameDuration = current[0]?.durationSeconds || 1 / timescale;
       frameRateScale = 1 / (interpolated.frameRate * frameDuration);
       frameRateKnown = true;
-      if (pixelFormat === "gray" || pixelFormat === "gray8") pixelFormat = "yuvj444p";
+      pixelFormat = interpolated.pixelFormat;
       diagnostics.pixelFormat = pixelFormat;
     } else if (name === "fps") {
       const options: Record<string, string> = {};

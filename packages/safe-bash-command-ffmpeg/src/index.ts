@@ -79,6 +79,7 @@ import { cutUltrasonicAudio } from "./audio-asupercut.js";
 import { exciteAudio } from "./audio-aexciter.js";
 import { psychoacousticClip } from "./audio-apsyclip.js";
 import { renderTestsrc } from "./testsrc.js";
+import { sineTable } from "./lavfi-sine.js";
 import { formatDate } from "safe-bash-calendar-engine/time-env/format";
 import { millisecondsInstant, TimeZone } from "safe-bash-calendar-engine/time-env/calendar";
 import { decodeMatroskaAss } from "./matroska-ass.js";
@@ -711,10 +712,13 @@ function* lavfiSteps(
     for (let channel = 0; channel < channels; channel++) {
       const arr = new Float32Array(totalSamples);
       if (filterName === "sine") {
+        const phaseStep = Math.round(freq * 2 ** 32 / sampleRate) >>> 0;
+        let phase = 0;
         let beepSample = 0;
         for (let i = 0; i < totalSamples; i++) {
           if (i % 4096 === 0) yield;
-          arr[i] = Math.sin((2 * Math.PI * freq * i) / sampleRate) * 0.125;
+          arr[i] = sineTable[phase >>> 17]! / 32768;
+          phase = (phase + phaseStep) >>> 0;
           if (i % sampleRate < beepLength) {
             // The 40ms beep repeats each second; its phase pauses between bursts.
             arr[i] = arr[i]! + Math.sin((2 * Math.PI * freq * beepFactor * beepSample++) / sampleRate) * 0.25;

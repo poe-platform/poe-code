@@ -6995,7 +6995,7 @@ function magickDrawGradientColor(gradient: MagickDrawGradient, x: number, y: num
 }
 
 type MagickDrawShape = { gradient?: MagickDrawGradient | undefined; kind: "shape"; tile: boolean | string; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "boundary"; points: readonly BoundaryPoint[]; width: number; height: number; strokeWidth: number; fill: RgbaColor } | { shape: "circle"; radius: number; angularStep: number } | { shape: "polygon"; points: readonly DrawPoint[]; width: number; height: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor; linecap: "butt" | "round" | "square" });
-type MagickDrawStep = { kind: "clip-start"; name: string; width: number; height: number } | { kind: "clip-end" } | { kind: "clip"; name: string | undefined } | { kind: "pattern-start"; name: string; width: number; height: number } | { kind: "pattern-end" } | { kind: "image"; source: string; mode: string; width: number; height: number; affine: [number, number, number, number, number, number] } | MagickDrawShape | { kind: "svg"; svg: string; tile?: boolean | string } | ({ kind: "floodfill" } | { kind: "paint-point" } | { kind: "reset" } | { kind: "replace" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
+type MagickDrawStep = { kind: "clip-start" | "mask-start"; name: string; width: number; height: number } | { kind: "clip-end" } | { kind: "clip"; name: string | undefined } | { kind: "pattern-start"; name: string; width: number; height: number } | { kind: "pattern-end" } | { kind: "image"; source: string; mode: string; width: number; height: number; affine: [number, number, number, number, number, number] } | MagickDrawShape | { kind: "svg"; svg: string; tile?: boolean | string } | ({ kind: "floodfill" } | { kind: "paint-point" } | { kind: "reset" } | { kind: "replace" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
 
 function parseMagickCopyGeometry(image: Pick<RgbaImage, "width" | "height">, geometry: string, offset: string) {
     validateMagickTransformGeometry(geometry, "-copy");
@@ -7258,10 +7258,11 @@ function* applyMagickDrawingSteps(im: RgbaImage, drawSpec: string, state: Magick
             clip = canvas.clip;
             continue;
         }
-        if (step.kind === "clip-start") {
+        if (step.kind === "clip-start" || step.kind === "mask-start") {
             canvases.push({ name: step.name, image: im, clip });
             clip = undefined;
-            im = yield* createSolidRgbaImageSteps(step.width, step.height, { r: 255, g: 255, b: 255, a: 255 });
+            const level = step.kind === "mask-start" ? 0 : 255;
+            im = yield* createSolidRgbaImageSteps(step.width, step.height, { r: level, g: level, b: level, a: 255 });
             continue;
         }
         if (step.kind === "clip-end") {
@@ -7300,7 +7301,7 @@ function* applyMagickDrawingSteps(im: RgbaImage, drawSpec: string, state: Magick
         }
         else if (step.kind === "replace") im = yield* applyMagickRasterSteps(im, drawReplacePixelSteps(im, step.x, step.y, step.color, step.alphaOnly, state.alphaFuzz, !!im.data16), signal, { ...im, hasAlpha: true });
         else if (step.kind === "floodfill") im = yield* applyMagickFloodfillSteps(im, `+${step.x}+${step.y}`, step.fillToBorder ? { ...state.borderColor, a: undefined } : undefined, step.color, state.alphaFuzz, signal, step.alphaOnly, !step.alphaOnly && state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, step.fillToBorder);
-        else {
+        else if (step.kind === "svg") {
             const fillTile = typeof step.tile === "string" ? patterns.get(step.tile) : step.tile ? tile : undefined;
             const overlay = decodeImage(new TextEncoder().encode(step.svg), { density: state.density });
             im = yield* applyMagickRasterSteps(im, drawOverlayPixelSteps(im, overlay, fillTile, state.tileOffset), signal, { ...im, hasAlpha: true }, fillTile ? [im, overlay, fillTile] : [im, overlay]);
@@ -7331,10 +7332,11 @@ async function applyStoredMagickDrawing(image: StoredRgbaImage, drawing: string,
             clip = canvas.clip;
             continue;
         }
-        if (step.kind === "clip-start") {
+        if (step.kind === "clip-start" || step.kind === "mask-start") {
             canvases.push({ name: step.name, image: image, clip });
             clip = undefined;
-            image = await createStoredCanvas(step.width, step.height, { r: 255, g: 255, b: 255, a: 255 }, backend, signal);
+            const level = step.kind === "mask-start" ? 0 : 255;
+            image = await createStoredCanvas(step.width, step.height, { r: level, g: level, b: level, a: 255 }, backend, signal);
             continue;
         }
         if (step.kind === "clip-end") {
@@ -7373,7 +7375,7 @@ async function applyStoredMagickDrawing(image: StoredRgbaImage, drawing: string,
         }
         else if (step.kind === "replace") image = await transformStoredMagickRaster(image, backend, drawReplacePixelSteps(image, step.x, step.y, step.color, step.alphaOnly, settings.alphaFuzz, !!image.storedData16), signal, { ...image, hasAlpha: true });
         else if (step.kind === "floodfill") image = await floodfillStoredImage(image, backend.storage, step.x, step.y, step.fillToBorder ? { ...settings.borderColor, a: undefined } : undefined, step.color, settings.alphaFuzz, signal, step.alphaOnly, !step.alphaOnly && settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, step.fillToBorder);
-        else {
+        else if (step.kind === "svg") {
             const fillTile = typeof step.tile === "string" ? patterns.get(step.tile) : step.tile ? tile : undefined;
             const overlay = await decodeStoredMagickSvg(step.svg, settings.density, backend, signal);
             image = await transformStoredMagickRaster(image, backend, drawOverlayPixelSteps(image, overlay, fillTile, settings.tileOffset), signal, { ...image, hasAlpha: true }, fillTile ? [image, overlay, fillTile] : [image, overlay]);
@@ -7474,7 +7476,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         if (fillOpacity !== undefined && fill.a !== 0) fillColor.a = fillOpacity * 255;
         if (strokeOpacity !== undefined && stroke.a !== 0) strokeColor.a = strokeOpacity * 255;
         const paintFill = rgbaToCss(fillColor), paintStroke = rgbaToCss(strokeColor);
-        if (svgElements.length > 0 && ((tile && ["path", "polygon", "point"].includes(cmd)) || ["push", "pop", "clip-path", "image", "line", "polyline", "circle", "rectangle", "roundrectangle"].includes(cmd) ||
+        if (svgElements.length > 0 && ((tile && ["path", "polygon", "point"].includes(cmd)) || ["push", "pop", "clip-path", "mask", "image", "line", "polyline", "circle", "rectangle", "roundrectangle"].includes(cmd) ||
             ((fillOpacity !== undefined || strokeOpacity !== undefined) && ["point", "rectangle"].includes(cmd)))) {
             yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${svgElements.join("")}</svg>` };
             svgElements.length = 0;
@@ -7507,9 +7509,9 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                 continue;
             }
             const kind = contextType;
-            if (kind !== "graphic-context" && kind !== "pattern" && kind !== "defs" && kind !== "clip-path") throw new Error(`${cmd} drawing requires graphic-context, defs or clip-path`);
+            if (kind !== "graphic-context" && kind !== "pattern" && kind !== "defs" && kind !== "clip-path" && kind !== "mask") throw new Error(`${cmd} drawing requires graphic-context, defs, clip-path or mask`);
             if (cmd === "push") {
-                const name = kind === "pattern" || kind === "clip-path" ? tokens[i++] ?? "" : "";
+                const name = kind === "pattern" || kind === "clip-path" || kind === "mask" ? tokens[i++] ?? "" : "";
                 contexts.push({ kind, image: img, name, clip, gradient, fill, fillRule, tile, stroke, strokeWidth, dashArray, dashOffset, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity });
                 if (kind === "clip-path") {
                     // Clip geometry paints a black opening in a white protection mask.
@@ -7520,6 +7522,10 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                     tile = false;
                     fillOpacity = strokeOpacity = undefined;
                     yield { kind: "clip-start", name, width: img.width, height: img.height };
+                } else if (kind === "mask") {
+                    // White mask pixels protect the canvas; black pixels allow drawing.
+                    clip = undefined;
+                    yield { kind: "mask-start", name, width: img.width, height: img.height };
                 }
                 if (kind === "pattern") {
                     num(); num(); // MVG pattern origins do not shift the repeating tile.
@@ -7537,14 +7543,14 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                     patterns.add(context.name);
                     yield { kind: "pattern-end" };
                 }
-                else if (kind === "clip-path") yield { kind: "clip-end" };
+                else if (kind === "clip-path" || kind === "mask") yield { kind: "clip-end" };
                 else if (clip !== context.clip) yield { kind: "clip", name: context.clip };
                 clip = context.clip;
                 img = context.image;
                 ({ gradient, fill, fillRule, tile, stroke, strokeWidth, dashArray, dashOffset, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity } = context);
             }
         }
-        else if (cmd === "clip-path") {
+        else if (cmd === "clip-path" || cmd === "mask") {
             const value = tokens[i++] ?? "";
             clip = value.startsWith("url(#") && value.endsWith(")") ? value.slice(5, -1) : value;
             yield { kind: "clip", name: clip };

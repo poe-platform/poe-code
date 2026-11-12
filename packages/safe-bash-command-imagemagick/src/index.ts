@@ -13070,7 +13070,7 @@ function applyMagickTrimSetting(state: MagickTrimSettings, key: string, raw: str
     if (key === "trim:minsize" && raw !== undefined) {
         const value = raw.replaceAll("(", "").replaceAll(")", "").replaceAll("#", "").replace(":", "x").trimStart();
         // Invalid geometry and leading offsets leave both minimum dimensions unset.
-        if (value.startsWith("+") || value.startsWith("-") || [...value].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) delete state.trimMinSize;
+        if (value.startsWith("+") || value.startsWith("-") || [...value].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-.:<>@\\^".includes(c))) delete state.trimMinSize;
         else {
             const geometry = parseMagickGeometry(value);
             // Native trim uses percentage geometry values as pixel minima on both axes.

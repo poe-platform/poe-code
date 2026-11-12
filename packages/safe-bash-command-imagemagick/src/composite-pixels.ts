@@ -98,6 +98,16 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                 }
                 continue;
             }
+            if (norm === "negate") {
+                // Native Negate weights RGB by destination alpha, without unpremultiplying.
+                for (let c = 0; c < 3; c++) {
+                    const source = sa > 0 ? src.data[sIdx + c]! / 255 : 0;
+                    const destination = da > 0 ? dst.data[dIdx + c]! / 255 : 0;
+                    out[dIdx + c] = clampByteVal(255 * (1 - Math.abs(1 - source - destination)) * da);
+                }
+                if (dst.hasAlpha) out[dIdx + 3] = clampByteVal(255 * (1 - sa - da));
+                continue;
+            }
             if (norm === "stereo") {
                 out[dIdx] = sr;
                 out[dIdx + 3] = clampByteVal((saByte + daByte) / 2);

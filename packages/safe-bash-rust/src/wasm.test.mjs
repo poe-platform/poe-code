@@ -9182,17 +9182,22 @@ test("qpdf rotates selected real pages in order, retaining inherited geometry an
   const fs=new MemoryFileSystem(), wasm=new RustWasmBash({cwd:"/",files:{"/in.pdf":input}});
   await fs.writeFile("/in.pdf",input);
   const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
+  await fs.writeFile("/out.pdf", input);
+  await wasm.fs.writeFile("/out.pdf", input);
   try {
     for(const [args,code] of [
       ["--rotate=+90",0],["--rotate=-90:1,1 --rotate=180:r2-z --rotate=+90:z-1:even",0],
       ["--rotate=+90:z-1,x3,3,1:odd",0],["--rotate=450: --rotate=+90:1,2,2,3:even",0],
-      ["--rotate=bogus",1],["--rotate=45:1",1],["--rotate=90:5",1],["--rotate=90:r0",1],
-      ["--rotate=45:1,x1",0],
+      ["--rotate=90:1,2-4:even",0],["--rotate=bogus",0],["--rotate=45:1",2],
+      ["--rotate=90:5",2],["--rotate=90:r0",2],["--rotate=45:1,x1",2],
     ]) {
+      const before = await fs.readFile("/out.pdf");
       const script="qpdf in.pdf "+args+" out.pdf", want=await js.exec(script), got=await wasm.exec(script);
       assert.equal(want.exitCode,code,args);
       assert.deepEqual([got.exitCode,got.stderr,got.stdout],[want.exitCode,want.stderr,want.stdout],args);
-      assert.deepEqual(Buffer.from(await wasm.fs.readFile("/out.pdf")),Buffer.from(await fs.readFile("/out.pdf")),args);
+      const written = await fs.readFile("/out.pdf");
+      if (code) assert.deepEqual(written, before);
+      assert.deepEqual(await wasm.fs.readFile("/out.pdf"), written);
     }
   } finally {wasm.dispose();}
 });
@@ -9274,9 +9279,9 @@ test("qpdf selects repeated and collated pages with their streams, resources, an
       ["cat a.pdf | qpdf --empty --pages - 1 -- result.pdf",0],
       ["cat a.pdf | qpdf - --pages . 1 -- result.pdf",0],
       ["qpdf a.pdf --pages bad.pdf 1 -- result.pdf",1],
-      ["qpdf a.pdf --pages . 9 -- a.pdf",1],
-      ["qpdf a.pdf --pages . 9 missing.pdf 1 -- result.pdf",1],
-      ["qpdf a.pdf --pages . 9 -- result.pdf",1],
+      ["qpdf a.pdf --pages . 9 -- a.pdf",2],
+      ["qpdf a.pdf --pages . 9 missing.pdf 1 -- result.pdf",2],
+      ["qpdf a.pdf --pages . 9 -- result.pdf",2],
       ["qpdf --empty --pages . 1 -- result.pdf",2],
       ["qpdf a.pdf --pages missing.pdf 1 -- result.pdf",2],
     ]) {

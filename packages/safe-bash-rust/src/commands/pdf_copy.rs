@@ -572,11 +572,10 @@ impl PageOutput {
             };
             let mut indices = Vec::new();
             super::pdf_rotation::visit_range(range, source.len(), |i| {
-                available = available.checked_sub(1)?;
+                available = available.checked_sub(1).ok_or("invalid page selection")?;
                 indices.push(i);
-                Some(())
-            })
-            .ok_or("invalid page selection")?;
+                Ok(())
+            }).map_err(|e| format!("parsing numeric range for {key}: {e}"))?;
             let mut seen = BTreeSet::new();
             if batch.is_none() {
                 output

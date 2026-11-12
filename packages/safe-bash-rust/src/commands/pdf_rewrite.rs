@@ -88,7 +88,7 @@ pub(in super::super) struct PageEdits<'a> {
     pub prune_resources: bool,
     pub flatten_rotation: bool,
     pub flatten_annotations: Option<&'a str>,
-    pub rotations: Vec<&'a str>,
+    pub rotations: Vec<(super::Rotation, &'a str)>,
     pub page_rotations: &'a [Option<super::Rotation>],
     pub split_pages: Option<usize>,
     pub info: bool,
@@ -198,7 +198,7 @@ pub(in super::super) fn rewrite(
         let mut state = super::pdf_copy::pdf_stamp::LayerState::default();
         let mut edit_limit = limit;
         state.counts = objects.reference_counts(pages, tree);
-        let rotations = super::rotations(&edits.rotations, pages.len()).ok_or("invalid page rotation")?;
+        let rotations = super::rotations(&edits.rotations, pages.len())?;
         if !edits.layers.is_empty() {
             for (i, r) in rotations.iter().copied().enumerate() {
                 if let Some(r) = r {
@@ -221,19 +221,20 @@ pub(in super::super) fn rewrite(
             let mut list = |s: &str, count| -> Result<Vec<usize>, String> {
                 let mut indices = Vec::new();
                 super::pdf_rotation::visit_range(s, count, |i| {
-                    available = available.checked_sub(1)?;
+                    available = available.checked_sub(1).ok_or("invalid layer page range")?;
                     indices.push(i);
-                    Some(())
-                })
-                .ok_or("invalid layer page range")?;
+                    Ok(())
+                })?;
                 Ok(indices)
             };
-            let from = list(layer.from, source.len())?;
-            let to = list(layer.to, pages.len())?;
+            let mode = if layer.overlay { "overlay" } else { "underlay" };
+            let source_error = |e| format!("parsing numeric range for {mode} file {}: {e}", layer.path);
+            let from = list(layer.from, source.len()).map_err(source_error)?;
+            let to = list(layer.to, pages.len()).map_err(|e| format!("parsing numeric range for {mode} \"to\" pages: {e}"))?;
             let repeats = if layer.repeat.is_empty() {
                 None
             } else {
-                Some(list(layer.repeat, source.len())?)
+                Some(list(layer.repeat, source.len()).map_err(source_error)?)
             };
             if !from.is_empty() {
                 let pairs = to.into_iter().zip(
@@ -357,7 +358,7 @@ pub(in super::super) fn rewrite(
     if edits.linearize {
         changed.insert((first_new,0), format!("<<\n/Linearized 1\n/N {}\n>>", pages.len()).into_bytes());
     }
-    let rotations=if edits.flatten_rotation || !edits.layers.is_empty() {vec![]} else {super::rotations(&edits.rotations,pages.len()).ok_or("invalid page rotation")?};
+    let rotations=if edits.flatten_rotation || !edits.layers.is_empty() {vec![]} else {super::rotations(&edits.rotations,pages.len())?};
     let (page_root, mut page_node, flatten_tree) = match catalog.get(b"Pages")
         .and_then(Value::reference).and_then(|id| Some((id, objects.object(id)?.0))) {
         Some((id, Value::Dict(fields))) => (id, fields, edits.split_pages.is_none()),

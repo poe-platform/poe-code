@@ -102,12 +102,13 @@ for (const mode of ["write", "cancel"]) it(`cleans stamp staging and preserves t
 for (const flags of [["--from=1,x1", "--to=99"], ["--repeat=99"], ["--from=99"], ["--password=wrong"]]) it(`preserves eager stamp validation: ${flags.join(" ")}`, async () => {
   const base = PdfDocument.create(), stamp = PdfDocument.create(); base.addPage(); stamp.addPage();
   const encrypted = flags[0] === "--password=wrong";
+  const diagnostic = `qpdf: parsing numeric range for overlay ${flags.includes("--to=99") ? '"to" pages' : "file stamp.pdf"}: error at * in numeric range *99: number 99 out of range\n`;
   const input = base.save(), other = stamp.save(encrypted ? { encrypt: { userPassword: "secret", ownerPassword: "owner" } } : {});
   const args = ["in.pdf", "out.pdf", "--overlay", "stamp.pdf", ...flags, "--"];
   let expected: unknown;
   try { expected = await runQpdfCli(args, new Map([["in.pdf", input], ["stamp.pdf", other]])); } catch (error) { expected = error; }
   if (encrypted) assert.ok(expected instanceof Error);
-  else assert.deepEqual(expected, { exitCode: 2, stdout: "", stderr: "qpdf: Page number '99' out of bounds (1..1)\n" });
+  else assert.deepEqual(expected, { exitCode: 2, stdout: "", stderr: diagnostic });
   const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/in.pdf", input); await fs.writeFile("/stamp.pdf", other);
   const original = Uint8Array.of(1); await fs.writeFile("/out.pdf", original);
   const carrier = createCommandArguments(args);
@@ -117,7 +118,7 @@ for (const flags of [["--from=1,x1", "--to=99"], ["--repeat=99"], ["--from=99"],
   if (expected instanceof Error) await assert.rejects(execute, { message: expected.message });
   else {
     assert.equal((await execute()).exitCode, 2);
-    assert.equal(Buffer.concat(errors).toString(), "qpdf: Page number '99' out of bounds (1..1)\n");
+    assert.equal(Buffer.concat(errors).toString(), diagnostic);
   }
   assert.deepEqual(await fs.readFile("/out.pdf"), original); assert.deepEqual(await fs.readdir("/scratch"), []);
 });

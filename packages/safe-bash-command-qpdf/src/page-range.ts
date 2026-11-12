@@ -1,31 +1,10 @@
-function parseSingleTokenPageNumber(tok: string, totalPages: number): number {
-  const trimmed = tok.trim();
-  if (trimmed === "z") return totalPages;
-  const digits = trimmed.startsWith("r") ? trimmed.slice(1) : trimmed;
-  if (digits.length === 0 || [...digits].some(char => char < "0" || char > "9")) {
-    throw new QpdfPageRangeError(`invalid range syntax: ${tok}`);
-  }
-  if (trimmed.startsWith("r")) {
-    const rev = Number(digits);
-    if (!Number.isFinite(rev) || rev < 1 || rev > totalPages) {
-      throw new QpdfPageRangeError(`Invalid reverse page number '${tok}'`);
-    }
-    return totalPages - rev + 1;
-  }
-  const num = Number(digits);
-  if (!Number.isFinite(num) || num < 1 || num > totalPages) {
-    throw new QpdfPageRangeError(`Page number '${tok}' out of bounds (1..${totalPages})`);
-  }
-  return num;
-}
-
 interface RangePart { readonly first: number; readonly last: number; readonly step: number; readonly excluded: boolean }
 
 export class QpdfPageRangeError extends Error {}
 
 /** Expand on demand. Later exclusions filter earlier ranges without a page set;
  * the compact descriptors grow only with the caller's range expression. */
-export function* iterateQpdfPageRange(rangeSpec: string, totalPages: number): Generator<number, void, void> {
+export function* iterateQpdfPageRange(rangeSpec: string, totalPages: number, label?: string): Generator<number, void, void> {
   if (rangeSpec.trim().startsWith("x")) {
     throw new QpdfPageRangeError(`error at * in numeric range *${rangeSpec}: first range group may not be an exclusion`);
   }
@@ -33,6 +12,7 @@ export function* iterateQpdfPageRange(rangeSpec: string, totalPages: number): Ge
   if (suffix !== -1 && rangeSpec.includes(",", suffix)) {
     throw new QpdfPageRangeError(`error at * in numeric range ${rangeSpec.slice(0, suffix)}*${rangeSpec.slice(suffix)}: expected :even or :odd`);
   }
+  const original = rangeSpec.trim();
   let groupParity: "odd" | "even" | undefined;
   rangeSpec = rangeSpec.trim();
   if (rangeSpec.endsWith(",")) {
@@ -41,16 +21,32 @@ export function* iterateQpdfPageRange(rangeSpec: string, totalPages: number): Ge
   if (rangeSpec.endsWith(":odd")) { groupParity = "odd"; rangeSpec = rangeSpec.slice(0, -4); }
   else if (rangeSpec.endsWith(":even")) { groupParity = "even"; rangeSpec = rangeSpec.slice(0, -5); }
   const ranges: RangePart[] = [];
-  for (const raw of rangeSpec.trim().split(",").filter(part => part.length > 0)) {
+  let offset = 0;
+  for (const raw of rangeSpec.split(",")) {
+    const start = offset;
+    offset += raw.length + 1;
+    if (!raw) continue;
+    function page(token: string): number {
+      const trimmed = token.trim();
+      if (trimmed === "z") return totalPages;
+      const digits = trimmed.startsWith("r") ? trimmed.slice(1) : trimmed;
+      if (!digits.length || [...digits].some(char => char < "0" || char > "9")) throw new QpdfPageRangeError(`invalid range syntax: ${token}`);
+      const number = trimmed.startsWith("r") ? totalPages + 1 - Number(digits) : Number(digits);
+      if (number < 1 || number > totalPages) {
+        const context = label === undefined ? "" : `parsing numeric range for ${label}: `;
+        throw new QpdfPageRangeError(`${context}error at * in numeric range ${original.slice(0, start)}*${original.slice(start)}: number ${number} out of range`);
+      }
+      return number;
+    }
     const excluded = raw.startsWith("x");
     const part = (excluded ? raw.slice(1) : raw).trim();
     if (part.includes("-")) {
       const separator = part.indexOf("-");
-      const first = parseSingleTokenPageNumber(part.slice(0, separator), totalPages), last = parseSingleTokenPageNumber(part.slice(separator + 1), totalPages), direction = first <= last ? 1 : -1;
+      const first = page(part.slice(0, separator)), last = page(part.slice(separator + 1)), direction = first <= last ? 1 : -1;
       ranges.push({ first, last, step: direction, excluded });
     } else {
-      const page = parseSingleTokenPageNumber(part, totalPages);
-      ranges.push({ first: page, last: page, step: 1, excluded });
+      const selected = page(part);
+      ranges.push({ first: selected, last: selected, step: 1, excluded });
     }
   }
   let position = 0;
@@ -72,6 +68,6 @@ export function* iterateQpdfPageRange(rangeSpec: string, totalPages: number): Ge
 }
 
 /** Buffering convenience API; retained consumers use iterateQpdfPageRange. */
-export function parseQpdfPageRange(rangeSpec: string, totalPages: number): number[] {
-  return Array.from(iterateQpdfPageRange(rangeSpec, totalPages));
+export function parseQpdfPageRange(rangeSpec: string, totalPages: number, label?: string): number[] {
+  return Array.from(iterateQpdfPageRange(rangeSpec, totalPages, label));
 }

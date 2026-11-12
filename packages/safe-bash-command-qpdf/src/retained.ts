@@ -345,8 +345,9 @@ export async function executeRetainedQpdf(context: CommandContext, options: Reta
           let sourceCount = 0; for await (const ignored of source.pages()) { void ignored; sourceCount++; }
           // The buffered command validates every range before applying stamps,
           // including unused repeat ranges and empty source selections.
-          for (const [range, count] of [[spec.fromRange, sourceCount], [spec.toRange, targetCount], [spec.repeatRange || spec.fromRange, sourceCount]] as const) {
-            const validation = iterateQpdfPageRange(range, count); try { validation.next(); } finally { validation.return(); }
+          const sourceLabel = `${spec.mode} file ${spec.file}`;
+          for (const [range, count, label] of [[spec.fromRange, sourceCount, sourceLabel], [spec.toRange, targetCount, `${spec.mode} "to" pages`], [spec.repeatRange || spec.fromRange, sourceCount, sourceLabel]] as const) {
+            const validation = iterateQpdfPageRange(range, count, label); try { validation.next(); } finally { validation.return(); }
           }
           function* pages() {
             const from = iterateQpdfPageRange(spec.fromRange, sourceCount);

@@ -6733,7 +6733,15 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             continue;
         }
         if let Some(rot_spec) = a.strip_prefix("--rotate=") {
-            edits.rotations.push(rot_spec);
+            let (angle, range) = rot_spec.split_once(':').unwrap_or((rot_spec, ""));
+            let degrees = qpdf_decimal(angle).unwrap_or(0.) % 360.;
+            if degrees % 90. != 0. {
+                return err_out(&format!("qpdf: invalid parameter to rotate (angle must be a multiple of 90): {rot_spec}\n"), 2);
+            }
+            edits.rotations.push((pdf_reader::Rotation {
+                relative: angle.starts_with(['-', '+']),
+                degrees: degrees as i32,
+            }, if range.is_empty() { "1-z" } else { range }));
             i += 1;
             continue;
         }
@@ -7377,8 +7385,9 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                         Err(e)=>return err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2),
                     };
                     let count = source.len();
-                    let Some(rotations) = pdf_reader::rotations(if edited { &[] } else { &edits.rotations }, count) else {
-                        return err_out("shell: line 1: internal error\n",1);
+                    let rotations = match pdf_reader::rotations(if edited { &[] } else { &edits.rotations }, count) {
+                        Ok(rotations) => rotations,
+                        Err(e) => return err_out(&format!("qpdf: {e}\n"), 2),
                     };
                     let mut outputs = vec![];
                     let mut remaining = limit;
@@ -7518,8 +7527,9 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         doc.pages = new_pages;
     }
 
-    let Some(rotations) = pdf_reader::rotations(&edits.rotations, doc.pages.len()) else {
-        return err_out("shell: line 1: internal error\n",1);
+    let rotations = match pdf_reader::rotations(&edits.rotations, doc.pages.len()) {
+        Ok(rotations) => rotations,
+        Err(e) => return err_out(&format!("qpdf: {e}\n"), 2),
     };
     for (pg, edit) in doc.pages.iter_mut().zip(rotations) {
         if let Some(rotation) = edit { pg.rot = rotation.apply(f64::from(pg.rot)); }

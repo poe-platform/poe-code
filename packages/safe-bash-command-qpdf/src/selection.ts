@@ -40,7 +40,7 @@ export async function copyQpdfSelections(base: PdfRetainedDocument, source: PdfF
         const password = spec.password ?? options.password;
         document = await PdfRetainedDocument.open(input, storage, { signal, recovery: "repair", ...(password === undefined ? {} : { password }) });
         const count = await validate(document, storage, signal);
-        function* indices() { for (const page of iterateQpdfPageRange(spec.range, count)) yield page - 1; }
+        function* indices() { for (const page of iterateQpdfPageRange(spec.range, count, key)) yield page - 1; }
         yield { document, indices: indices() };
       } catch (error) { failed = true; throw error; }
       finally {
@@ -73,7 +73,7 @@ async function* collatedSelections(inputs: ReadonlyMap<string, PdfFileSource | u
       let document: PdfRetainedDocument | undefined, failed = false;
       try {
         document = await PdfRetainedDocument.open(input, storage, { signal, recovery: "repair", ...(password === undefined ? {} : { password }) });
-        const indices = iterateQpdfPageRange(spec.range, await validate(document, storage, signal));
+        const indices = iterateQpdfPageRange(spec.range, await validate(document, storage, signal), key);
         const next = options.collateCounts![states.length % options.collateCounts!.length] === 0 ? indices.return() : indices.next();
         states.push({ resources: new IntegerTable(backing), input, password, indices, next });
       } catch (error) { failed = true; throw error; }

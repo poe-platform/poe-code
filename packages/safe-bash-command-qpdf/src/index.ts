@@ -1686,7 +1686,7 @@ function* executeQpdfCli(
       }
       const srcPw = spec.password ?? password;
       const srcDoc = (yield* PdfDocument.loadSteps(srcBytes, srcPw !== undefined ? { password: srcPw } : {}));
-      const pageNumbers = parseQpdfPageRange(spec.range, srcDoc.getPageCount());
+      const pageNumbers = parseQpdfPageRange(spec.range, srcDoc.getPageCount(), spec.file === "." ? inputFile : spec.file);
       loadedSpecs.push({ doc: srcDoc, indices: pageNumbers.map((p) => p - 1) });
     }
     if (collateCounts !== undefined && loadedSpecs.length > 1) {
@@ -1740,10 +1740,11 @@ function* executeQpdfCli(
     }
     const stampPw = stamp.password ?? password;
     const stampDoc = (yield* PdfDocument.loadSteps(stampBytes, stampPw !== undefined ? { password: stampPw } : {}));
-    const fromPages = parseQpdfPageRange(stamp.fromRange, stampDoc.getPageCount());
-    const toPages = parseQpdfPageRange(stamp.toRange, workingDoc.getPageCount());
+    const sourceLabel = `${stamp.mode} file ${stamp.file}`;
+    const fromPages = parseQpdfPageRange(stamp.fromRange, stampDoc.getPageCount(), sourceLabel);
+    const toPages = parseQpdfPageRange(stamp.toRange, workingDoc.getPageCount(), `${stamp.mode} "to" pages`);
     const repeatPages = stamp.repeatRange
-      ? parseQpdfPageRange(stamp.repeatRange, stampDoc.getPageCount())
+      ? parseQpdfPageRange(stamp.repeatRange, stampDoc.getPageCount(), sourceLabel)
       : [];
 
     const cloneMemo = new Map<number, PdfCosRef>();

@@ -156,89 +156,68 @@ impl Range {
     }
 }
 
-pub(in super::super) fn rotations(specs: &[&str], count: usize) -> Option<Vec<Option<Rotation>>> {
+pub(in super::super) fn rotations(specs: &[(Rotation, &str)], count: usize) -> Result<Vec<Option<Rotation>>, String> {
     if specs.is_empty() {
-        return Some(vec![]);
+        return Ok(vec![]);
     }
     let mut result: Vec<Option<Rotation>> = vec![None; count];
-    for spec in specs {
-        let (angle, range) = spec.split_once(':').unwrap_or((spec, ""));
-        let relative = angle.starts_with(['-', '+']);
-        let degrees = super::super::qpdf_decimal(angle).map(|n| {
-            (if angle.starts_with('-') {
-                -n.abs()
-            } else {
-                n.abs()
-            }) % 360.
-        });
-        visit_range(if range.is_empty() { "1-z" } else { range }, count, |p| {
-            let d = degrees.filter(|d| d % 90. == 0.)? as i32;
-            let slot = result.get_mut(p)?;
+    for &(rotation, range) in specs {
+        visit_range(range, count, |p| {
+            let slot = result.get_mut(p).ok_or("invalid page rotation")?;
             *slot = Some(match *slot {
-                Some(previous) if relative => Rotation {
+                Some(previous) if rotation.relative => Rotation {
                     relative: previous.relative,
-                    degrees: (previous.degrees + d) % 360,
+                    degrees: (previous.degrees + rotation.degrees) % 360,
                 },
-                _ => Rotation {
-                    relative,
-                    degrees: d,
-                },
+                _ => rotation,
             });
-            Some(())
+            Ok(())
         })?;
     }
-    Some(result)
+    Ok(result)
 }
 
 pub(super) fn visit_range(
     range: &str,
     count: usize,
-    mut visit: impl FnMut(usize) -> Option<()>,
-) -> Option<()> {
-    let page = |token: &str| {
+    mut visit: impl FnMut(usize) -> Result<(), String>,
+) -> Result<(), String> {
+    let page = |token: &str, at: usize| {
         let s = token.trim();
         if s == "z" {
-            return Some(count as i64);
+            return Ok(count as i64);
         }
-        let n = super::super::qpdf_decimal(s.strip_prefix('r').unwrap_or(s))?;
-        if n < 1. || n > count as f64 {
-            return None;
+        let digits = s.strip_prefix('r').unwrap_or(s);
+        if !digits.bytes().all(|b| b.is_ascii_digit()) { return Err(format!("invalid range syntax: {token}")); }
+        let n = digits.parse::<i64>().map_err(|_| format!("invalid range syntax: {token}"))?;
+        let number = if s.starts_with('r') { count as i64 + 1 - n } else { n };
+        if !(1..=count as i64).contains(&number) {
+            return Err(format!("error at * in numeric range {}*{}: number {number} out of range", &range[..at], &range[at..]));
         }
-        Some(if s.starts_with('r') {
-            count as i64 + 1 - n as i64
-        } else {
-            n as i64
-        })
+        Ok(number)
     };
     let mut ranges = Vec::new();
-    let mut group_even = None;
-    for raw in range.trim().split(',').filter(|s| !s.is_empty()) {
+    let (groups, group_even) = if let Some(groups) = range.strip_suffix(":even") {
+        (groups, Some(true))
+    } else if let Some(groups) = range.strip_suffix(":odd") {
+        (groups, Some(false))
+    } else {
+        (range, None)
+    };
+    let mut offset = 0;
+    for raw in groups.split(',') {
+        let at = offset;
+        offset += raw.len() + 1;
+        if raw.is_empty() { continue; }
         let excluded = raw.starts_with('x');
         let part = raw.strip_prefix('x').unwrap_or(raw).trim();
-        let (part, even) = if let Some(p) = part.strip_suffix(":even") {
-            (p, Some(true))
-        } else if let Some(p) = part.strip_suffix(":odd") {
-            (p, Some(false))
+        let (first, last) = if let Some((a, b)) = part.split_once('-') {
+            (page(a, at)?, page(b, at)?)
         } else {
-            (part, None)
+            let p = page(part, at)?;
+            (p, p)
         };
-        let first;
-        let last;
-        let step;
-        if let Some((a, b)) = part.split_once('-') {
-            let start = page(a)?;
-            last = page(b.split('-').next()?)?;
-            let dir = if start <= last { 1 } else { -1 };
-            first = start + if even == Some(true) { dir } else { 0 };
-            step = if even.is_some() { dir * 2 } else { dir };
-        } else {
-            first = page(part)?;
-            last = first;
-            step = 1;
-            if !excluded && even.is_some() {
-                group_even = even;
-            }
-        }
+        let step = if first <= last { 1 } else { -1 };
         ranges.push(Range {
             first,
             last,
@@ -264,8 +243,8 @@ pub(super) fn visit_range(
             if !keep {
                 continue;
             }
-            visit(usize::try_from(p - 1).ok()?)?;
+            visit(usize::try_from(p - 1).map_err(|_| "invalid page range")?)?;
         }
     }
-    Some(())
+    Ok(())
 }

@@ -5,11 +5,11 @@ import { readFileSync } from "node:fs";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createQpdfCommand, runQpdfCli, runQpdfCliSync } from "./index.js";
 
-for (const spec of ["0", "4", "r0", "r4", "1-4", "r4-1", "1-z,x4"]) {
-  const token = spec.includes("r") ? spec.split("-")[0]! : spec === "0" ? "0" : "4";
-  const diagnostic = token.startsWith("r")
-    ? `Invalid reverse page number '${token}'`
-    : `Page number '${token}' out of bounds (1..3)`;
+for (const [spec, marked, number] of [
+  ["0", "*0", 0], ["4", "*4", 4], ["r0", "*r0", 4], ["r4", "*r4", 0],
+  ["1-4", "*1-4", 4], ["r4-1", "*r4-1", 0], ["1-z,x4", "1-z,*x4", 4],
+] as const) {
+  const diagnostic = `parsing numeric range for in.pdf: error at * in numeric range ${marked}: number ${number} out of range`;
   for (const existing of [false, true]) it(`rejects out-of-bounds page range ${spec} without publishing output (existing=${existing})`, async () => {
     const input = new Uint8Array(readFileSync(new URL("./fixtures/compressed-pages.pdf", import.meta.url))), original = new TextEncoder().encode("existing output");
     const args = ["--empty", "--pages", "in.pdf", spec, "--", "out.pdf"];

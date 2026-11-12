@@ -108,7 +108,8 @@ export async function mixAudio(
   const packetIndices = tracks.map(() => 0);
   const frameEnds = tracks.map(() => 0);
   const fallbackFrameSize = 2 ** Math.floor(Math.log2(Math.max(1, Math.floor(a.sampleRate / 10))));
-  let nextPts = Math.round((tracks[0]!.samples[0]?.pts ?? 0) * a.sampleRate / tracks[0]!.timescale);
+  // An empty first input never sets the mixer clock; remaining inputs retain NOPTS.
+  let nextPts = Math.round((tracks[0]!.samples[0]?.pts ?? NaN) * a.sampleRate / tracks[0]!.timescale);
   let nextExactPts: bigint | undefined;
   for (let start = 0; start < length;) {
     await yieldTurn(signal);

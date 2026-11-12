@@ -135,7 +135,7 @@ export function* orderedDitherPixelSteps(image: Pick<RgbaImage, "width" | "heigh
                 const level = Math.trunc(scaled / (map.divisor - 1)) + (scaled % (map.divisor - 1) >= threshold ? 1 : 0);
                 // Native HDRI keeps fractional and over-range Q16 levels until encoding.
                 const value = Math.fround(level * 65535 / intervals);
-                if (working) hue[offset] = cmyk ? value / 65535 : Math.min(1, level / intervals);
+                if (working) hue[offset] = cmyk || alpha ? value / 65535 : Math.min(1, level / intervals);
                 if (!cmyk || alpha) {
                     samples[offset] = value / 257;
                     data[offset] = Math.round(Math.max(0, Math.min(maximum, samples[offset]! * maximum / 255)));

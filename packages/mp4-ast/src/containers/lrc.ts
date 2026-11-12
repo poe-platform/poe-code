@@ -99,9 +99,10 @@ export function lrcAst(): MediaAstPlugin {
       const lines: string[] = [];
       const tags: Record<string, string> = { title: "ti", artist: "ar", album: "al", author: "au", creator: "by", encoder: "re" };
       // FFmpeg's explicit metadata is already stored in custom in argument order.
-      for (const [key, value] of Object.entries({ ...doc.metadata.custom, ...doc.metadata })) {
-        const tag = Object.hasOwn(tags, key) ? tags[key] : undefined;
-        if (tag && typeof value === "string" && value) {
+      const { custom, ...metadata } = doc.metadata;
+      for (const [key, value] of Object.entries({ ...custom, ...metadata })) {
+        const tag = Object.hasOwn(tags, key) ? tags[key] : key;
+        if (typeof value === "string" && value) {
           lines.push(`[${tag}:${value.replaceAll("\n", " ")}]\n`);
           if (key === "encoder" && value.startsWith("Lavf")) lines.push(`[ve:${value.slice(4).replaceAll("\n", " ")}]\n`);
         }

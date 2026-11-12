@@ -3159,7 +3159,7 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
     for (const char of value) {
         if (char === "x" || char === "X" || char === ":") dimensions = true;
         if ((char.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(char)) ||
-            (!dimensions && ((char === "/" && option !== "-loop") || (char === "," && !forcedRegionResize && value[0] !== "+" && value[0] !== "-")))) {
+            (!dimensions && ((char === "/" && option !== "-loop") || (char === "," && !(option === "-roll" && value.toLowerCase().includes("x")) && !forcedRegionResize && value[0] !== "+" && value[0] !== "-")))) {
             throw new Error(`invalid argument for option '${option}': ${raw}`);
         }
     }
@@ -3280,7 +3280,7 @@ function parseMagickRollGeometry(raw: string): MagickGeometry {
         }
     }
     normalized = normalizeMagickOffsets(normalized);
-    // Native roll consumes at most two offsets; comma, colon or a trailing dimension ends the list.
+    // Separators end roll geometry even before offsets; x only ends it after offsets.
     let offsets = 0;
     let end = normalized.length;
     for (let i = 0; i < normalized.length; i++) {
@@ -3299,7 +3299,9 @@ function parseMagickRollGeometry(raw: string): MagickGeometry {
                 normalized = normalized.slice(0, i) + sign + normalized.slice(next);
                 end = normalized.length;
             }
-        } else if (offsets > 0 && (char === "," || char === ":" || char === "x" || char === "X")) {
+        } else if (char === ","
+            || (char === ":" && (offsets > 0 || [...normalized.slice(0, i)].some(c => "xX:".includes(c)) || !"0123456789".includes(normalized[i + 1] ?? " ")))
+            || (offsets === 0 && char === "/") || (offsets > 0 && (char === "x" || char === "X"))) {
             end = i;
             break;
         }

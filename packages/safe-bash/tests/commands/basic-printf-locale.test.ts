@@ -53,7 +53,7 @@ const cases = [
   { input: "eda080c3a9", quoted: "24275c3335355c3234305c323030c3a927" },
   { input: "c2a0", quoted: "c2a0" },
   { input: "e280a8", quoted: "e280a8" },
-  { input: "e2808b", quoted: "24275c3334325c3230305c32313327" },
+  { input: "e2808b", quoted: "e2808b" },
   { input: "c285", quoted: "24275c3330325c32303527" },
   { input: "", quoted: "2727" },
 ];

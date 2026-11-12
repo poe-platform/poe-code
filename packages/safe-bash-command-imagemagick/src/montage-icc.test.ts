@@ -10,6 +10,9 @@ for (const mode of ["sync", "buffered", "retained", "magick", "montage"] as cons
     async function run(args: string[]) {
         const files = new Map(Object.entries(fixtures).map(([name, bytes]) => [name, new Uint8Array(Buffer.from(bytes, "base64"))]));
         files.set("bad.icc", Uint8Array.of(1, 2, 3));
+        const malformed = files.get("lab.icc")!.slice();
+        new DataView(malformed.buffer).setUint32(136, 0xffffffff);
+        files.set("malformed.icc", malformed);
         files.set("existing.png", Uint8Array.of(42));
         const fs = new MemoryFileSystem();
         for (const [name, bytes] of files) await fs.writeFile(`/${name}`, bytes);
@@ -60,16 +63,22 @@ for (const mode of ["sync", "buffered", "retained", "magick", "montage"] as cons
         expect(chunks.get("bKGD")).toEqual(Buffer.from("00ff00ff00ff", "hex"));
     });
 
+    it(`converts profiles supplied before input filenames (${mode})`, async () => {
+        const result = await run(["-profile", "lab.icc", "tile.png", "tile.png", "-tile", "2x1", "-geometry", "+0+0", "png24:-"]);
+        expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+        expect(Buffer.from(decodeImage(result.stdoutBytes!).data).toString("hex")).toBe("8a5146ff8a5146ff");
+    });
+
     it(`scopes removal to a parenthesized input (${mode})`, async () => {
         const result = await run(["(", "tile.png", "-strip", ")", "tile.png", "-profile", "lab.icc", "-tile", "2x1", "-geometry", "+0+0", "png24:-"]);
         expect(result).toMatchObject({ exitCode: 0, stderr: "" });
         expect(Buffer.from(decodeImage(result.stdoutBytes!).data).toString("hex")).toBe("ff0000ff8a5146ff");
     });
 
-    it.each(["missing.icc", "bad.icc"])(`preserves output when profile %s fails (${mode})`, async profile => {
+    it.each(["missing.icc", "bad.icc", "malformed.icc"])(`preserves output when profile %s fails (${mode})`, async profile => {
         const result = await run(["tile.png", "-profile", profile, "existing.png"]);
         expect(result.exitCode).toBe(1);
-        expect(result.stderr).toContain(profile);
+        expect(result.stderr).toContain(profile === "malformed.icc" ? "invalid or unsupported ICC" : profile);
         expect(result.existing).toEqual(Uint8Array.of(42));
         expect(result.stdoutBytes?.length ?? 0).toBe(0);
     });

@@ -6,7 +6,7 @@ import { createFfmpegCommand } from "./index.js";
 
 // FFmpeg 7.0.2 on Linux, mono PCM16LE at 8 kHz.
 for (const [argument, status] of [
-  ["0.49", 222], ["101", 222], ["notanumber", 234], ["1:enable=0", 176], ["1", 0]
+  ["0.49", 222], ["101", 222], ["min/2", 222], ["max+1", 222], ["default-default", 222], ["MIN", 234], ["notanumber", 234], ["1:enable=0", 176], ["1", 0]
 ] as const) {
   for (const named of [false, true]) {
     for (const graph of [false, true]) {

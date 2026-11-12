@@ -109,7 +109,7 @@ export async function filterScheduledTempo(
     while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame.start) {
       const command = commands[nextCommand++]!;
       try {
-        const value = parseFilterExpression(command.expression, "atempo", {});
+        const value = parseFilterExpression(command.expression, "atempo", { min: 0.5, max: 100, default: 1 });
         if (value < 0.5 || value > 100) continue;
         tempo = value;
         originInput = previous.input + hop;

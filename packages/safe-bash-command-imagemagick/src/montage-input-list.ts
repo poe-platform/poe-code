@@ -5,10 +5,16 @@ export function* montageInputNames(bytes: Uint8Array): Generator<void, string[],
     const names: string[] = [];
     const text = new TextDecoder().decode(bytes);
     let name = "", quote = "";
+    let escaped = false;
     for (let position = 0; position < text.length; position++) {
         if (position % 64 === 0) yield;
         const char = text[position]!;
-        if (quote) {
+        if (escaped) {
+            name += char;
+            escaped = false;
+        }
+        else if (char === "\\" && quote !== "'") escaped = true;
+        else if (quote) {
             if (char === quote) quote = "";
             else name += char;
         }

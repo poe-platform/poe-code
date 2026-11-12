@@ -23859,6 +23859,15 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             gifPages.push(canvas);
             return;
         }
+        if (format === "jpeg") {
+            const samples = canvas.data16 ?? canvas.data;
+            let gray = true;
+            for (let offset = 0; gray && offset < samples.length; offset += 4) {
+                if (offset % 16384 === 0) yield;
+                gray = samples[offset] === samples[offset + 1] && samples[offset] === samples[offset + 2];
+            }
+            if (gray) canvas = { ...canvas, space: "b-w", channels: canvas.hasAlpha ? 2 : 1 };
+        }
         const outPath = path === "-" ? path : (sceneCount > 1 && !adjoin) || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, page) : path.replaceAll("%%", "%");
         if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
         const { data: encoded } = encodeImage(canvas, { outputFilename: outPath, format, netpbmAscii: state.netpbmAscii ?? false, rawInterlace: state.rawInterlace, netpbmDepth: state.inputDepth ?? 16, endian: state.inputEndian, miffDepth: (state.inputDepth ?? 16) <= 8 ? 8 : 16, pngCoder, gifVersion, tiffBig, bmpRenderingIntent: state.optionProperties?.intent, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4", ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), pngPreserveColormap: state.pngPreserveColormap, pngBitDepth: state.pngBitDepth ?? (state.inputDepth !== undefined && state.inputDepth <= 8 ? 8 : undefined), ...(state.jpegRestartInterval === undefined ? {} : { jpegRestartInterval: state.jpegRestartInterval }), ...(state.jpegDctMethod === undefined ? {} : { jpegDctMethod: state.jpegDctMethod }), ...(state.jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding: state.jpegOptimizeCoding }), ...(state.jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding: state.jpegArithmeticCoding }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}), consumeInput: true } as any);
@@ -24714,6 +24723,20 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             }
             if (gifPages) { await gifPages.push(canvas); continue; }
             if (adjoin) { await pages.push(canvas); continue; }
+            if (output.format === "jpeg") {
+                let gray = true;
+                const depth = canvas.storedData16 ? 2 : 1;
+                const position = canvas.storedData16?.position ?? canvas.position;
+                const size = canvas.width * canvas.height * 4 * depth;
+                for (let offset = 0; gray && offset < size; offset += 16384) {
+                    await yieldTurn(signal);
+                    const bytes = await backend.storage.read(position + offset, Math.min(16384, size - offset));
+                    const samples = depth === 2 ? new Uint16Array(bytes.slice().buffer) : bytes;
+                    for (let index = 0; gray && index < samples.length; index += 4)
+                        gray = samples[index] === samples[index + 1] && samples[index] === samples[index + 2];
+                }
+                if (gray) canvas = { ...canvas, space: "b-w", channels: canvas.hasAlpha ? 2 : 1 };
+            }
             const { format, path } = output;
             const outputPath = path === "-" ? path : n > cols * rows || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, pageStart / (cols * rows)) : path.replaceAll("%%", "%");
             const stdoutBytes = await (n > cols * rows ? backend.stage : backend.publish)(canvas, outputPath, { format, netpbmAscii: state.netpbmAscii ?? false, rawInterlace: state.rawInterlace, netpbmDepth: state.inputDepth ?? 16, endian: state.inputEndian, miffDepth: (state.inputDepth ?? 16) <= 8 ? 8 : 16, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) });

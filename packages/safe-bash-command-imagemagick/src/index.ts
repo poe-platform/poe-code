@@ -9907,7 +9907,7 @@ function* parseMagickIndexSpec(spec: string, length: number, operation: "clone" 
 
 type MagickHistogram = Float64Array[];
 type MagickChannelSums = { count: number; values: number[] };
-type MagickAnalysisOperation = { end: number; luminance: boolean; highDepth?: boolean; sepiaThreshold?: number; transform(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "region" | "alphaBlend" | "alphaSeparate" | "alphaAssociated" | "magickColorspace" | "indexedColors" | "pngPalette">, sums?: MagickChannelSums): MagickPixelOperation["apply"] };
+type MagickAnalysisOperation = { end: number; luminance: boolean; highDepth?: boolean; sepiaThreshold?: number; transform(histogram: MagickHistogram, image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "region" | "alphaBlend" | "alphaSeparate" | "inactiveAlpha" | "alphaAssociated" | "magickColorspace" | "indexedColors" | "pngPalette">, sums?: MagickChannelSums): MagickPixelOperation["apply"] };
 function* accumulateMagickHistogram(data: Uint8Array | Uint16Array, histogram: MagickHistogram, method: string, linear: boolean, selection?: Uint8Array, sepiaThreshold?: number, gray = false, image?: Pick<RgbaImage, "width" | "region" | "hasAlpha" | "alphaBlend">, pixelOffset = 0, channels?: MagickState["channels"], workingSamples?: Float64Array, hue = false, cmyk = false, sums?: MagickChannelSums, autoLevel = false): Generator<void, void, void> {
     for (let i = 0; i < data.length; i += 4) {
         if (i && i % 65536 === 0) yield;
@@ -10236,8 +10236,9 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
             // CMYK independent levels include alpha; RGB independent levels only adjust color.
             const active = [channels.r, !gray && channels.g, !gray && channels.b, cmyk && channels.a && hasAlpha, cmyk && settings.channels.k];
             if (!independent) {
-                // Default channels share the range of every ink and alpha when present.
-                const included = histogram.filter((_, channel) => channel !== 3 || hasAlpha || image.alphaSeparate === true);
+                // Associated alpha contributes to the range even though levels leave it unchanged.
+                const included = histogram.filter((_, channel) => channel !== 3 || hasAlpha || image.alphaSeparate === true
+                    || image.inactiveAlpha && image.alphaAssociated === true && image.alphaBlend !== false);
                 mins.fill(Math.min(...included.map(range => range[0]!)));
                 maxs.fill(Math.max(...included.map(range => range[1]!)));
             }
@@ -10768,8 +10769,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         else if (mode === "off" || mode === "opaque" || mode === "transparent") {
             evaluate = mode !== "transparent";
             apply = function* (im) {
-                // Off retains Copy's unblended alpha for Activate and translucent geometry.
-                if (mode === "off" && im.alphaBlend === false && (im.hasAlpha || im.inactiveAlpha))
+                // Off retains unblended or already associated alpha for subsequent operations.
+                if (mode === "off" && (im.alphaBlend === false || !im.hasAlpha && im.alphaAssociated === true) && (im.hasAlpha || im.inactiveAlpha))
                     return { ...im, hasAlpha: false, inactiveAlpha: true, alphaSeparate: false };
                 let pixelWork = 0;
                 const out = new Uint8Array(im.data);

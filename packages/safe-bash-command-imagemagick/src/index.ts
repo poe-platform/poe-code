@@ -23112,6 +23112,7 @@ interface MontageArguments {
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
     let cooperativeWork = 63;
     let warnings = "";
+    let quiet = false;
     const state = createDefaultState();
     state.gravity = "center";
     let inputGravity: MagickState["gravity"];
@@ -23164,6 +23165,9 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             const parent = groups.pop();
             if (parent === undefined) return { exitCode: 1, stdout: "", stderr: "montage: unbalanced parenthesis\n" };
             groupStart = parent;
+        }
+        else if (t === "-quiet" || t === "+quiet") {
+            quiet = t === "-quiet";
         }
         else if (t === "-adjoin" || t === "+adjoin") {
             state.adjoin = t === "-adjoin";
@@ -23424,7 +23428,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             try {
                 state.borderColor = parseColor(value);
             } catch {
-                warnings += `montage: unrecognized color \`${value}'\n`;
+                if (!quiet) warnings += `montage: unrecognized color \`${value}'\n`;
                 state.borderColor = { r: 0, g: 0, b: 0, a: 255 };
             }
         }

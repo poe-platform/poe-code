@@ -42,3 +42,35 @@ it.each([
   expect(actual.data).toEqual(new Uint8Array(Array.from({ length: 9 }, (_, pixel) =>
     pixel === 4 ? [255, 0, 0, 255] : [0, 0, blue, 255]).flat()));
 });
+
+for (const mode of ["sync", "buffered", "retained", "magick", "montage"] as const)
+it.each([
+  { options: ["-bordercolor", "NoSuchColor"], warning: true },
+  { options: ["-quiet", "-bordercolor", "NoSuchColor"], warning: false },
+  { options: ["+quiet", "-bordercolor", "NoSuchColor"], warning: true },
+  { options: ["-quiet"], warning: false },
+  { options: [], warning: false },
+  { options: ["-quiet", "+quiet", "-bordercolor", "NoSuchColor"], warning: true },
+  { options: ["+quiet", "-quiet", "-bordercolor", "NoSuchColor"], warning: false },
+])(`preserves formatted montage output with quiet options via ${mode}: $options`, async ({ options, warning }) => {
+  const args = ["xc:red", "xc:blue", "-tile", "2x1", "-geometry", "+0+0", ...options, "-format", "%w", "info:"];
+  const fs = new MemoryFileSystem();
+  const expected = { exitCode: 0, stdout: "2", stderr: warning ? "montage: unrecognized color `NoSuchColor'\n" : "" };
+  if (mode === "magick" || mode === "montage") {
+    const command = mode === "magick" ? createMagickCommand() : createMontageCommand();
+    const argumentValues = createCommandArguments(mode === "magick" ? ["montage", ...args] : args);
+    const stdout: Uint8Array[] = [], stderr: Uint8Array[] = [];
+    const result = await command.execute({
+      command: command.name, args: argumentValues.args, argumentValues, fs, cwd: "/", env: {},
+      signal: new AbortController().signal, stdin: (async function* () {})(),
+      stdout: { async write(chunk) { stdout.push(chunk); } },
+      stderr: { async write(chunk) { stderr.push(chunk); } }
+    });
+    expect({ exitCode: result.exitCode, stdout: Buffer.concat(stdout).toString(), stderr: Buffer.concat(stderr).toString() }).toEqual(expected);
+  } else {
+    const files = new Map<string, Uint8Array>();
+    const result = mode === "sync" ? runMontageCliSync(args, files)
+      : await runMontageCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+    expect(result).toMatchObject(expected);
+  }
+});

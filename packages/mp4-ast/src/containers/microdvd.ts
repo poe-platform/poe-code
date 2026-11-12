@@ -10,7 +10,16 @@ function readLine(line: string): { start: number; end: number; text: string } | 
   if (second < first + 2) return undefined;
   const startText = line.slice(1, first);
   const endText = line.slice(first + 2, second);
-  if (![...startText, ...endText].every(c => c >= "0" && c <= "9")) return undefined;
+  for (const field of [startText, endText]) {
+    if (field === "") continue; // An empty end frame leaves the cue open.
+    let offset = 0;
+    while (offset < field.length && " \t\r\n\v\f".includes(field[offset]!)) offset++;
+    if (field[offset] === "+" || field[offset] === "-") offset++;
+    if (offset === field.length) return undefined;
+    for (; offset < field.length; offset++) {
+      if (field[offset]! < "0" || field[offset]! > "9") return undefined;
+    }
+  }
   const start = Number(startText);
   const end = endText === "" ? start - 1 : Number(endText);
   if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end)) return undefined;

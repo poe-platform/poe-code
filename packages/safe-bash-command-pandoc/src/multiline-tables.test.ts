@@ -19,8 +19,8 @@ it.each([false, true])("matches native multiline table JSON (fileScope=%s)", asy
 it("preserves native HTML rows, widths and alignment", async () => {
   const html = await output(source, "markdown", "html");
   expect(html).toContain('<table style="width:25%;">');
-  expect(html).toContain("12.5%");
-  expect(html).toContain("text-align:left");
+  expect(html).toContain('<col style="width: 12%" />');
+  expect(html).toContain('style="text-align: left;"');
   for (const text of ["Header", "Right", "abc", "xyz", "def", "uvw"]) expect(html).toContain(`>${text}</`);
   expect(html).not.toContain("<hr");
 });

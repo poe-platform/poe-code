@@ -8342,6 +8342,7 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
     case "txt":
       return "txt";
     case "ico":
+    case "icon":
     case "cur":
       return "ico";
     case "mng":

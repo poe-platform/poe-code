@@ -16806,7 +16806,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         canvas = yield* applyMagickRasterSteps(canvas, overCompositePixelSteps(canvas, im, x, y, highDepth, false, channels), signal, canvas, [canvas, im]);
                         continue;
                     }
-                    canvas = yield* applyMagickCompositeLayerSteps(canvas, im, compose, x, y, state.composeArgs, signal, state.alphaFuzz, true, selected);
+                    canvas = yield* applyMagickRasterSteps(canvas,
+                        composite16PixelSteps(canvas, im, x, y, compose, state.composeArgs, false, state.alphaFuzz, true, undefined, true, selected), signal, canvas, [canvas, im]);
                 }
                 for (const im of oldStack) {
                     if (im.data.buffer !== canvas.data.buffer) detachRgbaBuffer(im.data);
@@ -19215,7 +19216,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     else if (["over", "srcover"].includes(magickCompositeMode(compose).name)) result = await transformStoredMagickRaster(result, backend,
                         overCompositePixelSteps(result, frame, (frame.virtualCanvas?.x ?? 0) - originX, (frame.virtualCanvas?.y ?? 0) - originY, highDepth, false, channels), signal, result, [result, frame]);
-                    else result = await compositeStoredMagick(result, frame, backend, signal, (frame.virtualCanvas?.x ?? 0) - originX, (frame.virtualCanvas?.y ?? 0) - originY, compose, settings.composeArgs, false, true, false, false, settings.alphaFuzz, true, selected);
+                    else result = await transformStoredMagickRaster(result, backend,
+                        composite16PixelSteps(result, frame, (frame.virtualCanvas?.x ?? 0) - originX, (frame.virtualCanvas?.y ?? 0) - originY,
+                            compose, settings.composeArgs, false, settings.alphaFuzz, true, undefined, true, selected), signal, result, [result, frame]);
                     cursor += vertical ? frame.height : frame.width;
                 }
                 if (append) {

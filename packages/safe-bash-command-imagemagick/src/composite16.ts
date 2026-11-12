@@ -99,7 +99,7 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
                     for (let c = 0; c < 3; c++) sourceSamples[i + c] = sourceInks[i + c]! * 255;
                 }
             }
-            if (inks && (name !== "copy" || sourceInks) && (!channels || channels[4])) {
+            if (inks && (!channels || channels[4])) {
                 const destination = new Float64Array(samples.length), source = new Float64Array(samples.length);
                 for (let i = 0; i < samples.length; i += 4) {
                     const j = outsideX ? 0 : i;
@@ -109,7 +109,7 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
                     source[i + 3] = overlay.hasAlpha ? sourceSamples[j + 3]! : 255;
                 }
                 const result = new Float64Array(samples.length);
-                // Black is an independent ink channel and uses the selected compose operator.
+                // Black is an independent ink channel; RGB sources supply zero, including for Copy.
                 yield* compositePixelsSteps({ ...base, width: count, height: 1, data: destination },
                     { ...overlay, width: count, height: 1, data: source }, result, mode, 0, 0, args, fuzz, clipToOverlay);
                 for (let i = 0; i < samples.length; i += 4) inks[i + 3] = result[i]! / 255;

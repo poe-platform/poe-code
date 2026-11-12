@@ -12387,7 +12387,7 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
             else {
                 const { image, position, length, hue } = next.value;
                 const source = image ? current : previous;
-                const data = hue ? source.hueSamples?.subarray(position, position + length) : (source.data16 ?? source.data).subarray(position, position + length);
+                const data = hue ? source.hueSamples?.subarray(position, position + length) : (source.evaluateSamples ?? source.data16 ?? source.data).subarray(position, position + length);
                 if (image && !hue && transparent) transparent = data!.every((value, index) => index % 4 !== 3 || value === 0);
                 next = bounds.next(data);
             }
@@ -12401,7 +12401,7 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
                 else {
                     const { image, position, length, hue } = back.value;
                     const source = image ? current : previous;
-                    back = restoring.next(hue ? source.hueSamples?.subarray(position, position + length) : (source.data16 ?? source.data).subarray(position, position + length));
+                    back = restoring.next(hue ? source.hueSamples?.subarray(position, position + length) : (source.evaluateSamples ?? source.data16 ?? source.data).subarray(position, position + length));
                 }
             }
             if (back.value) {
@@ -12423,7 +12423,7 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
                 else {
                     const { image, position, length, hue } = back.value;
                     const source = image ? current : restored;
-                    back = returning.next(hue ? source.hueSamples?.subarray(position, position + length) : (source.data16 ?? source.data).subarray(position, position + length));
+                    back = returning.next(hue ? source.hueSamples?.subarray(position, position + length) : (source.evaluateSamples ?? source.data16 ?? source.data).subarray(position, position + length));
                 }
             }
             if (!back.value) {
@@ -12462,7 +12462,8 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
             else {
                 const { image, position, length, hue } = next.value;
                 const source = image ? current : previous;
-                const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
+                const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedEvaluateSamples !== undefined
+                    ? new Float64Array((await backend.storage.read(source.storedEvaluateSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
                     ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
                     : await backend.storage.read(source.position + position, length);
                 if (image && !hue && transparent) transparent = data!.every((value, index) => index % 4 !== 3 || value === 0);
@@ -12478,7 +12479,8 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
                 else {
                     const { image, position, length, hue } = back.value;
                     const source = image ? current : previous;
-                    const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
+                    const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedEvaluateSamples !== undefined
+                        ? new Float64Array((await backend.storage.read(source.storedEvaluateSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
                         ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
                         : await backend.storage.read(source.position + position, length);
                     back = restoring.next(data);
@@ -12503,7 +12505,8 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
                 else {
                     const { image, position, length, hue } = back.value;
                     const source = image ? current : restored;
-                    const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
+                    const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedEvaluateSamples !== undefined
+                        ? new Float64Array((await backend.storage.read(source.storedEvaluateSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
                         ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
                         : await backend.storage.read(source.position + position, length);
                     back = returning.next(data);
@@ -14681,7 +14684,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         else {
                             const { image, position, length, hue } = clear.value;
                             const source = image ? current : previous;
-                            const data = hue ? source.hueSamples?.subarray(position, position + length) : (source.data16 ?? source.data).subarray(position, position + length);
+                            const data = hue ? source.hueSamples?.subarray(position, position + length) : (source.evaluateSamples ?? source.data16 ?? source.data).subarray(position, position + length);
                             if (image && !hue && transparent) transparent = data!.every((value, index) => index % 4 !== 3 || value === 0);
                             clear = clearing.next(data);
                         }
@@ -14703,7 +14706,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                             else {
                                 const { image, position, length, hue } = back.value;
                                 const source = image ? current : previous;
-                                back = restoring.next(hue ? source.hueSamples?.subarray(position, position + length) : (source.data16 ?? source.data).subarray(position, position + length));
+                                back = restoring.next(hue ? source.hueSamples?.subarray(position, position + length) : (source.evaluateSamples ?? source.data16 ?? source.data).subarray(position, position + length));
                             }
                         }
                         if (back.value) {
@@ -14738,7 +14741,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     else {
                         const { image, position, length, hue } = next.value;
                         const source = image ? comparison : previous;
-                        next = bounds.next(hue ? source.hueSamples?.subarray(position, position + length) : (source.data16 ?? source.data).subarray(position, position + length));
+                        next = bounds.next(hue ? source.hueSamples?.subarray(position, position + length) : (source.evaluateSamples ?? source.data16 ?? source.data).subarray(position, position + length));
                     }
                 }
                 if (removeDups) {
@@ -18965,7 +18968,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             else {
                                 const { image, position, length, hue } = clear.value;
                                 const source = image ? current : previous!;
-                                const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
+                                const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedEvaluateSamples !== undefined
+                                    ? new Float64Array((await backend.storage.read(source.storedEvaluateSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
                                     ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
                                     : await backend.storage.read(source.position + position, length);
                                 if (image && !hue && transparent) transparent = data!.every((value, index) => index % 4 !== 3 || value === 0);
@@ -18989,7 +18993,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                                 else {
                                     const { image, position, length, hue } = back.value;
                                     const source = image ? current : previous!;
-                                    const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
+                                    const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedEvaluateSamples !== undefined
+                                        ? new Float64Array((await backend.storage.read(source.storedEvaluateSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
                                         ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
                                         : await backend.storage.read(source.position + position, length);
                                     back = restoring.next(data);
@@ -19035,7 +19040,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         else {
                             const { image, position, length, hue } = next.value;
                             const source = image ? comparison : previous!;
-                            const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
+                            const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedEvaluateSamples !== undefined
+                                ? new Float64Array((await backend.storage.read(source.storedEvaluateSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
                                 ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
                                 : await backend.storage.read(source.position + position, length);
                             next = bounds.next(data);

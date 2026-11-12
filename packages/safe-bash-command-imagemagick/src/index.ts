@@ -23874,7 +23874,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             return;
         }
         const { format, path, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(outSpec, "png");
-        if (state.adjoin && (format === "gif" || format === "tiff") && sceneCount > 1 && !hasSceneOutputPattern(path)) {
+        if (state.adjoin && gifVersion !== "87a" && (format === "gif" || format === "tiff") && sceneCount > 1 && !hasSceneOutputPattern(path)) {
             adjoinedPages.push(canvas);
             return;
         }
@@ -24633,7 +24633,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         const output = inferOutputFormat(outSpec, "png");
         const adjoin = state.adjoin && n > cols * rows && output.path !== "-" && (output.format === "ppm" || output.format === "rgb" || output.format === "miff") && !hasSceneOutputPattern(output.path);
         const pages = new StoredImageStack(backend.storage, signal);
-        const adjoinedPages = state.adjoin && (output.format === "gif" || output.format === "tiff") && n > cols * rows && !hasSceneOutputPattern(output.path)
+        const adjoinedPages = state.adjoin && output.gifVersion !== "87a" && (output.format === "gif" || output.format === "tiff") && n > cols * rows && !hasSceneOutputPattern(output.path)
             ? new StoredImageStack(backend.storage, signal) : undefined;
         const stdoutChunks: Uint8Array[] = [];
         let stdout = "";

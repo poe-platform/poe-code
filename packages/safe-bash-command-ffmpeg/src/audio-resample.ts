@@ -57,7 +57,7 @@ export async function resampleAudio(
   if (length === 0 || outputLength === 0) return output;
   // Startup reflects around the first sample; flushing repeats the last sample.
   const period = Math.max(1, 2 * length - 1);
-  const sums = new Float64Array(channels.length);
+  const sums = new SampleArray(channels.length * 2);
   const laneCount = internalFormat === "dblp" ? 4 : 8;
   budget.allocateMemory(channels.length * laneCount * SampleArray.BYTES_PER_ELEMENT);
   const lanes = new SampleArray(channels.length * laneCount);
@@ -117,19 +117,21 @@ export async function resampleAudio(
     // Default linear interpolation blends adjacent polyphase filter responses.
     // Evaluate only those phases, without allocating a potentially huge bank.
     for (let side = 0; side < (fraction === 0 ? 1 : 2); side++) {
-      const phaseWeight = side === 0 ? 1 - fraction : fraction;
       const samplePosition = (Math.floor(phasePosition) + side) / phaseCount;
       for (let j = Math.floor(samplePosition) - center; j < Math.floor(samplePosition) - center + filterLength; j++) {
         const distance = j - samplePosition;
-        const weight = filterWeight(distance) * phaseWeight;
+        const weight = filterWeight(distance);
         // Reflect at both ends, including clips shorter than the filter support.
         const wrapped = ((j % period) + period) % period;
         const index = wrapped < length ? wrapped : period - wrapped;
         const coefficient = internalFormat === "dblp" ? weight / normalization : Math.fround(weight / normalization);
         const lane = (j - Math.floor(samplePosition) + center) % laneCount;
         for (let c = 0; c < channels.length; c++) {
-          if (interpolate) sums[c] = sums[c]! + channels[c]![index]! * weight;
-          else lanes[c * laneCount + lane] = internalFormat === "dblp"
+          if (interpolate) {
+            const sum = c * 2 + side;
+            const product = channels[c]![index]! * coefficient;
+            sums[sum] = sums[sum]! + (internalFormat === "dblp" ? product : Math.fround(product));
+          } else lanes[c * laneCount + lane] = internalFormat === "dblp"
             ? resampleMultiplyAdd(channels[c]![index]!, coefficient, lanes[c * laneCount + lane]!)
             : lanes[c * laneCount + lane]! + channels[c]![index]! * coefficient;
         }
@@ -141,8 +143,12 @@ export async function resampleAudio(
       }
     }
     for (let c = 0; c < channels.length; c++) {
-      if (interpolate) output[c]![i] = sums[c]! / normalization;
-      else {
+      if (interpolate) {
+        // SWR rounds each phase response before interpolating their difference.
+        const first = sums[c * 2]!;
+        const difference = sums[c * 2 + 1]! - first;
+        output[c]![i] = first + (internalFormat === "dblp" ? difference : Math.fround(difference)) * fraction;
+      } else {
         const base = c * laneCount;
         for (let step = laneCount / 2; step >= 1; step /= 2) {
           for (let lane = 0; lane < step; lane++) {

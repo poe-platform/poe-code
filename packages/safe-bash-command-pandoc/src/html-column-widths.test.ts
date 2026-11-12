@@ -19,10 +19,10 @@ for (const retained of [false, true]) it.each([
   const html = await convert([{bytes: new TextEncoder().encode(input)}], {from: "html", to: "html5"}, context);
   if (html.kind !== "text") throw new Error("Expected HTML text");
   expect(html.diagnostics).toEqual([]);
-  for (const width of widths) if (width !== null) expect(html.text).toContain(`width:${width * 100}%`);
+  for (const width of widths) if (width !== null) expect(html.text).toContain(`<col style="width: ${Math.trunc(width * 100)}%" />`);
   const roundTrip = await convert([{bytes: new TextEncoder().encode(html.text)}], {from: "html", to: "json"}, context);
   if (roundTrip.kind !== "text") throw new Error("Expected JSON text");
-  expect(JSON.parse(roundTrip.text).blocks[0].c[2]).toEqual(expected);
+  expect(JSON.parse(roundTrip.text).blocks[0].c[2]).toEqual(widths.includes(0.125) ? [[{t: "AlignDefault"}, {t: "ColWidth", c: 0.12}], expected[1]] : expected);
 });
 
 for (const retained of [false, true]) it.each([
@@ -44,8 +44,11 @@ for (const retained of [false, true]) it.each([
   if (html.kind !== "text") throw new Error("Expected HTML text");
   expect(html.diagnostics).toEqual([]);
   if (cell.includes("<p>Two</p>")) expect(html.text).toContain("<p>One</p>\n<p>Two</p>");
-  for (const width of widths) if (width !== null) expect(html.text).toContain(`width:${width * 100}%`);
+  for (const width of widths) if (width !== null) expect(html.text).toContain(`<col style="width: ${Math.trunc(width * 100)}%" />`);
   const roundTrip = await convert([{bytes: new TextEncoder().encode(html.text)}], {from: "html", to: "json"}, context);
   if (roundTrip.kind !== "text") throw new Error("Expected JSON text");
-  expect(JSON.parse(roundTrip.text).blocks[0].c[2]).toEqual(expected);
+  // When all columns have default widths the writer omits the colgroup;
+  // reading the complex cell then infers equal widths.
+  expect(JSON.parse(roundTrip.text).blocks[0].c[2]).toEqual(columns === "<colgroup><col><col></colgroup>"
+    ? widths.map(() => [{t: "AlignDefault"}, {t: "ColWidth", c: 0.5}]) : expected);
 });

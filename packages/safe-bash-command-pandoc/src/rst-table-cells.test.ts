@@ -24,7 +24,7 @@ it.each([
         [{t: "Plain", c: [{t: "Str", c: "2"}]}]
       ]);
     } else {
-      expect(output).toContain('<th scope="col">A</th>');
+      expect(output).toContain('<th>A</th>');
       expect(output).toContain("<td>1</td>");
       expect(output).not.toContain("<p>");
     }

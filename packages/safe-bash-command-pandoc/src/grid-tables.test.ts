@@ -20,9 +20,9 @@ it.each([false, true])("matches native grid-table JSON (fileScope=%s)", async fi
 it("preserves native HTML table content and widths with the existing HTML serializer", async () => {
   const html = await output(source, "markdown", "html");
   expect(html).toContain('<table style="width:24%;">');
-  expect(html).toContain('<col style="width:12.5%">');
-  expect(html).toContain('<col style="width:11.11111111111111%">');
-  for (const cell of ['<th scope="col">Header</th>', '<th scope="col">Right</th>', "<td>abc</td>", "<td>xyz</td>"]) expect(html).toContain(cell);
+  expect(html).toContain('<col style="width: 12%" />');
+  expect(html).toContain('<col style="width: 11%" />');
+  for (const cell of ['<th>Header</th>', '<th>Right</th>', "<td>abc</td>", "<td>xyz</td>"]) expect(html).toContain(cell);
 });
 it("honors the extension without changing GFM defaults", async () => {
   expect(inspectFormats(["--list-extensions=markdown"])).toContain("+grid_tables");

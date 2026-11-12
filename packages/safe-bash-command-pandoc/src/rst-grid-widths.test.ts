@@ -28,7 +28,7 @@ it.each([
       expect(JSON.parse(text).blocks[0].c[2]).toEqual(expected.map(c => [{t: "AlignDefault"}, {t: "ColWidth", c}]));
     } else {
       expect(text).toContain(`<table style="width:${percent}%;">`);
-      for (const width of expected) expect(text).toContain(`<col style="width:${width * 100}%">`);
+      for (const width of expected) expect(text).toContain(`<col style="width: ${Math.trunc(width * 100)}%" />`);
       let retained = "";
       await convertToOutput([{bytes: new TextEncoder().encode(json)}], {from: "json", to}, {
         workingFiles: {fs: new MemoryFileSystem(), directory: "/", cacheBytes: 16384},

@@ -23223,6 +23223,11 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
             queuedTransforms.push({ kind: "blur", geometry: parseMagickGeometry(geometry) });
         }
+        else if (t === "-virtual-pixel" || t === "+virtual-pixel") {
+            if (t === "-virtual-pixel" && argv[i + 1] === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -virtual-pixel\n" };
+            try { i = applyMagickReadSetting(argv, state, i)!; }
+            catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
+        }
         else if (t === "-extent") {
             const geometry = argv[++i];
             if (geometry === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -extent\n" };
@@ -24022,7 +24027,11 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             }
             if (transform.kind === "distort") {
                 const plan = transform.warp.plan(image);
-                if (plan) image = yield* applyMagickRasterSteps(image, plan.steps, signal, plan);
+                if (plan) {
+                    const previous = image;
+                    image = yield* applyMagickRasterSteps(image, plan.steps, signal, plan);
+                    if (image.data.buffer !== previous.data.buffer) detachRgbaBuffer(previous.data);
+                }
                 return yield* transformTiles(image, operations, offset + 1);
             }
             if (transform.kind === "repage") {

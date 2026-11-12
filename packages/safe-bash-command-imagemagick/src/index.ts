@@ -23192,6 +23192,13 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             if (argv[++i] === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -support\n" };
             // Native montage consumes this legacy option without changing the resize filter.
         }
+        else if (t === "-delay" || t === "+delay") {
+            const value = t === "+delay" ? "0" : argv[++i];
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -delay\n" };
+            try { parseDelayOption(value, 0); }
+            catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
+            state.delay = { value };
+        }
         else if (t === "-scenes") {
             const value = argv[++i];
             if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -scenes\n" };
@@ -23861,6 +23868,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             detachRgbaBuffer(caption.data);
         }
         canvas = { ...canvas, virtualCanvas: state.page ?? { width: 0, height: 0, x: 0, y: 0 }, montage: { geometry: `${slotW}x${slotH}${originX < 0 ? "" : "+"}${originX}${originY + titleHeight < 0 ? "" : "+"}${originY + titleHeight}`, directory } };
+        if (state.delay !== undefined) canvas = { ...canvas, delay: [parseDelayOption(state.delay.value, 0).milliseconds] };
         if (!anyTransparent) {
             (canvas as { hasAlpha?: boolean; channels?: number }).hasAlpha = false;
             (canvas as { hasAlpha?: boolean; channels?: number }).channels = 3;
@@ -24729,6 +24737,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 canvas = await compositeStoredMagick(canvas, caption, backend, signal, 0, 0, "over", undefined, false, true);
             }
             canvas = { ...canvas, virtualCanvas: state.page ?? { width: 0, height: 0, x: 0, y: 0 }, montage: { geometry: `${slotW}x${slotH}${originX < 0 ? "" : "+"}${originX}${originY + titleHeight < 0 ? "" : "+"}${originY + titleHeight}`, directory }, hasAlpha: anyTransparent, channels: anyTransparent ? 4 : 3 };
+            if (state.delay !== undefined) canvas = { ...canvas, delay: [parseDelayOption(state.delay.value, 0).milliseconds] };
             if (state.units !== undefined) canvas = applyMagickUnits(canvas, state.units);
             if (state.densityGeometry !== undefined) canvas = applyMagickDensity(canvas, state.densityGeometry);
             if (outSpec.toLowerCase().startsWith("info:")) {

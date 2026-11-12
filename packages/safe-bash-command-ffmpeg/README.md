@@ -97,6 +97,9 @@ The `lavfi` color source accepts positional color, size, rate, and duration:
 `color=red:4x4:1:1` is equivalent to `color=c=red:s=4x4:r=1:d=1`.
 It uses FFmpeg 7's limited-range BT.601 RGB samples: red
 becomes `(253, 0, 0)` in PNG output; existing RGB PNG inputs retain their samples.
+Its `s`/`size` option accepts numeric dimensions and case-sensitive FFmpeg aliases,
+such as `qcif` (176×144) and `qqvga` (160×120). Omitted sizes default to 320×240;
+invalid sizes fail without replacing output.
 The `testsrc` counter accepts `decimals=N` or `n=N` (0–17, default 0), displaying
 truncated ticks of 10⁻ᴺ seconds; for example, `n=2` displays `50` at 0.5 seconds.
 Use `-abort_on empty_output` to fail with status 234 when processing produces no

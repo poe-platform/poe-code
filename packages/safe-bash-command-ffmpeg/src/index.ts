@@ -776,9 +776,9 @@ function* lavfiSteps(
   }
 
   const sizeStr = kv.size ?? kv.s ?? "320x240";
-  const [wStr, hStr] = sizeStr.toLowerCase().split("x");
-  let width = parseInt(wStr ?? "320", 10) || 320;
-  let height = parseInt(hStr ?? "240", 10) || 240;
+  const dimensions = parseImageSize(sizeStr);
+  if (!dimensions) throw new Error(`${filterName}: Invalid image size '${sizeStr}'`);
+  let [width, height] = dimensions;
   const fps = parseFrameRate(kv.rate ?? kv.r ?? "25") ?? 25;
   const sar = parseFilterExpression(kv.sar ?? "1", filterName, {});
   if (!Number.isFinite(sar) || sar < 0) throw new Error(`${filterName}: invalid sample aspect ratio`);

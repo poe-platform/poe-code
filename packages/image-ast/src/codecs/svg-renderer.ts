@@ -203,7 +203,9 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
         effAlpha > 0 &&
         (tag === "polygon" || (tag === "path" && fillAttr !== "none") || attrs["fill"] !== undefined);
       if (shouldFill) {
-        const magickFill = attrs["data-magick-fill"] === "1";
+        // MVG stroke outlines use nonzero winding and half-pixel edge bounds.
+        const magickStroke = attrs["data-magick-fill"] === "2";
+        const magickFill = attrs["data-magick-fill"] === "1" || magickStroke;
         let minX = width;
         let maxX = 0;
         let minY = height;
@@ -215,8 +217,8 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
           if (py < minY) minY = py;
           if (py > maxY) maxY = py;
         }
-        const y0 = Math.max(0, Math.floor(minY));
-        const y1 = Math.min(height - 1, Math.ceil(maxY));
+        const y0 = Math.max(0, magickStroke ? Math.floor(minY + 0.5) : Math.floor(minY));
+        const y1 = Math.min(height - 1, magickStroke ? Math.floor(maxY + 0.5) : Math.ceil(maxY));
         const x0 = Math.max(0, Math.floor(minX));
         const x1 = Math.min(width - 1, Math.ceil(maxX));
         for (let y = y0; y <= y1; y++) {
@@ -225,6 +227,7 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
           if (++rasterWork % 16384 === 0) yield undefined;
             const px = x + (magickFill ? 0 : 0.5);
             let inside = false;
+            let winding = 0;
             let distance = Infinity;
             let previous = yield* point(0), start = previous;
             for (let i = 1; i <= pointCount; i++) {
@@ -233,7 +236,7 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
               const current = next && !next[2] ? next : start;
               const [xi, yi] = current;
               const [xj, yj] = previous;
-              if (magickFill) {
+              if (magickFill && (!magickStroke || py > Math.min(yi, yj) - 0.5 && py <= Math.max(yi, yj) + 0.5)) {
                 const dx = xj - xi, dy = yj - yi;
                 const lengthSquared = dx * dx + dy * dy;
                 const t = lengthSquared === 0 ? 0 : Math.max(0, Math.min(1, ((px - xi) * dx + (py - yi) * dy) / lengthSquared));
@@ -241,13 +244,14 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
               }
               if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) {
                 inside = !inside;
+                winding += yj > yi ? 1 : -1;
               }
               if (next?.[2]) start = next;
               if (next) previous = next;
             }
             // ImageMagick fills pixel centers on the boundary completely, with
             // squared distance coverage for the adjacent exterior pixels.
-            const coverage = inside ? 1 : !magickFill ? 0
+            const coverage = (magickStroke ? winding !== 0 : inside) ? 1 : !magickFill ? 0
               : attrs["shape-rendering"] === "crispEdges" ? (distance <= 0.5 ? 1 : 0)
               : Math.max(0, 1 - distance) ** 2;
             if (coverage > 0) {

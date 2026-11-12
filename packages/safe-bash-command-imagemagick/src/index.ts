@@ -1,4 +1,5 @@
 import { gaussianKernelWeights, laplacianKernel } from "./named-kernel.js";
+import { strokeOutline } from "./stroke-outline.js";
 import { readMpc } from "./mpc-input.js";
 import { htmlImageMap } from "./html-output.js";
 import { storeMpc } from "./mpc.js";
@@ -7241,10 +7242,11 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
     let tile = state.tile !== undefined;
     let stroke = state.stroke;
     let strokeWidth = state.strokeWidth;
+    let strokeLinejoin = "miter", strokeMiterlimit = 10;
     let fillOpacity: number | undefined;
     let strokeOpacity: number | undefined;
     let affine: [number, number, number, number, number, number] = [1, 0, 0, 1, 0, 0];
-    const contexts: { fill: RgbaColor; tile: boolean; stroke: RgbaColor; strokeWidth: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
+    const contexts: { fill: RgbaColor; tile: boolean; stroke: RgbaColor; strokeWidth: number; strokeLinejoin: string; strokeMiterlimit: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
     const tokens = yield* magickDrawTokensSteps(drawCmd);
     let i = 0;
     const num = () => {
@@ -7269,11 +7271,11 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         const transformed = affine.some((value, index) => value !== (index === 0 || index === 3 ? 1 : 0));
         if (cmd === "push" || cmd === "pop") {
             if (tokens[i++]?.toLowerCase() !== "graphic-context") throw new Error(`${cmd} drawing requires graphic-context`);
-            if (cmd === "push") contexts.push({ fill, tile, stroke, strokeWidth, affine, fillOpacity, strokeOpacity });
+            if (cmd === "push") contexts.push({ fill, tile, stroke, strokeWidth, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity });
             else {
                 const context = contexts.pop();
                 if (!context) throw new Error("Cannot pop graphic-context without a matching push");
-                ({ fill, tile, stroke, strokeWidth, affine, fillOpacity, strokeOpacity } = context);
+                ({ fill, tile, stroke, strokeWidth, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity } = context);
             }
         }
         else if (cmd === "viewbox") {
@@ -7305,6 +7307,15 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const opacity = Math.max(0, Math.min(1, value));
             if (cmd === "fill-opacity") fillOpacity = opacity;
             else strokeOpacity = opacity;
+        }
+        else if (cmd === "stroke-linejoin") {
+            const value = tokens[i++]?.toLowerCase();
+            if (value !== "miter" && value !== "round" && value !== "bevel") throw new Error("Invalid stroke-linejoin");
+            strokeLinejoin = value;
+        }
+        else if (cmd === "stroke-miterlimit") {
+            strokeMiterlimit = num();
+            if (strokeMiterlimit < 0) throw new Error("Invalid stroke-miterlimit");
         }
         else if (cmd === "stroke-width" || cmd === "strokewidth") {
             strokeWidth = Math.max(0, num());
@@ -7432,11 +7443,13 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                 yield { kind: "shape", shape: "line", tile: false, color: strokeColor, fill: fillColor, x: first.x, y: first.y, x1: last.x, y1: last.y, width: Math.max(1, strokeWidth), antialias: state.antialias !== false };
             } else {
                 const points = pts.map(point => `${point.x},${point.y}`).join(" ");
-                if (cmd === "polygon") {
-                    svgElements.push(`<polygon data-magick-fill="1" points="${points}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
-                } else {
-                    const lineStroke = stroke.a === 0 ? paintFill : paintStroke;
-                    svgElements.push(`<polyline points="${points}" fill="none" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
+                // Native uses joined outlines only when the stroke radius exceeds one pixel.
+                const joinedStroke = strokeColor.a > 0 && strokeWidth > 2;
+                if (cmd === "polygon") svgElements.push(`<polygon data-magick-fill="1" points="${points}" fill="${paintFill}" stroke="${joinedStroke ? "none" : paintStroke}" stroke-width="${strokeWidth}"/>`);
+                else if (!joinedStroke) svgElements.push(`<polyline points="${points}" fill="none" stroke="${strokeColor.a === 0 ? paintFill : paintStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
+                if (joinedStroke) {
+                    const outline = yield* strokeOutline(pts, strokeWidth, strokeLinejoin, strokeMiterlimit, cmd === "polygon");
+                    if (outline) svgElements.push(`<path data-magick-fill="2" d="${outline}" fill="${paintStroke}" stroke="none"/>`);
                 }
             }
         }

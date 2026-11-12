@@ -1,4 +1,5 @@
 import { expect, it } from "vitest";
+import { decodeImage } from "@poe-code/image-ast/portable";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, createMontageCommand, runMontageCli, runMontageCliSync } from "./index.js";
@@ -78,4 +79,60 @@ for (const mode of ["buffered", "sync", "retained"] as const) {
     expect(Buffer.concat(chunks).toString().trim().split(/\s+/).join(" "))
       .toBe("P3 1 1 65535 65535 0 0 P3 1 1 65535 0 0 65535");
   });
+}
+
+for (const mode of ["command", "montage-command", "retained", "buffered", "sync"] as const) {
+  for (const fileOutput of [false, true]) for (const columns of [1, 2]) {
+    it.each([
+      { options: [], tag: 1 },
+      { options: ["-compress", "None"], tag: 1 },
+      { options: ["-compress", "LZW"], tag: 5 },
+      { options: ["-compress", "Zip"], tag: 8 },
+      { options: ["-compress", "RLE"], tag: 32773 },
+      { options: ["-compress", "lZw"], tag: 5 },
+      { options: ["-compress", "LZW", "+compress"], tag: 1 }
+    ])(`${mode} preserves TIFF compression and pixels (file=${fileOutput}, columns=${columns}): $options`, async ({ options, tag }) => {
+      const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
+      const args = ["xc:red", "xc:blue", "-tile", `${columns}x1`, "-geometry", "+0+0", "-depth", "8",
+        ...options, `tiff:${fileOutput ? "/sheet.tif" : "-"}`];
+      const chunks: Uint8Array[] = [];
+      let stderr = "";
+      const command = mode === "command" ? createMagickCommand() : createMontageCommand();
+      const argumentValues = createCommandArguments(mode === "command" ? ["montage", ...args] : args);
+      const result = mode === "command" || mode === "montage-command" ? await command.execute({
+        command: command.name, args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs,
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write(bytes) { chunks.push(bytes.slice()); } },
+        stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+      }) : mode === "sync" ? runMontageCliSync(args, files)
+        : await runMontageCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+      expect("stderr" in result ? result.stderr : stderr).toBe("");
+      expect(result.exitCode).toBe(0);
+      const stdout = "stdoutBytes" in result && result.stdoutBytes instanceof Uint8Array ? result.stdoutBytes : Buffer.concat(chunks);
+      const bytes = fileOutput ? mode === "buffered" || mode === "sync" ? files.get("/sheet.tif")! : await fs.readFile("/sheet.tif") : stdout;
+      if (fileOutput) expect(stdout.length).toBe(0);
+      const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+      const littleEndian = bytes[0] === 0x49;
+      let pages = 0;
+      for (let ifd = view.getUint32(4, littleEndian); ifd !== 0;) {
+        expect(pages).toBeLessThan(2 / columns);
+        const entries = view.getUint16(ifd, littleEndian);
+        let compression: number | undefined;
+        for (let n = 0; n < entries; n++) {
+          const at = ifd + 2 + n * 12;
+          if (view.getUint16(at, littleEndian) === 259) compression = view.getUint16(at + 8, littleEndian);
+        }
+        expect(compression).toBe(tag);
+        const page = bytes.slice();
+        new DataView(page.buffer, page.byteOffset, page.byteLength).setUint32(4, ifd, littleEndian);
+        const decoded = decodeImage(page);
+        expect([decoded.width, decoded.height]).toEqual([columns, 1]);
+        expect(Buffer.from(decoded.data).toString("hex"))
+          .toBe("ff0000ff0000ffff".slice(pages * columns * 8, (pages + 1) * columns * 8));
+        pages++;
+        ifd = view.getUint32(ifd + 2 + entries * 12, littleEndian);
+      }
+      expect(pages).toBe(2 / columns);
+    });
+  }
 }

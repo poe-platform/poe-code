@@ -14387,7 +14387,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         origRate = targetRate;
                       }
                     };
-                    const silenceEvents: { frame: number; filter: number; text: string }[] = [];
+                    const audioLogEvents: { frame: number; filter: number; text: string }[] = [];
+                    const flushAudioLogs = async (): Promise<void> => {
+                      budget.checkCpu();
+                      audioLogEvents.sort((left, right) => left.frame - right.frame ||
+                        (left.frame === Number.POSITIVE_INFINITY ? right.filter - left.filter : left.filter - right.filter));
+                      for (const event of audioLogEvents) {
+                        await writeBytes(context.stderr, encodeUtf8(event.text), context.signal);
+                        budget.releaseMemory(64 + event.text.length * 2);
+                      }
+                      audioLogEvents.length = 0;
+                    };
                     for (const [filterIndex, item] of audioFilters.entries()) {
                       if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
 
@@ -14401,6 +14411,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       // These filters retain their input sample format. Other DSP filters
                       // negotiate floating-point audio before a subsequent pan mixer.
                       const filterName = trimmed.split("=", 1)[0]!;
+                      // Frame-preserving filters share a log queue; re-framing starts a new batch.
+                      if (!["anull", "acopy", "silencedetect", "ametadata"].includes(filterName)) {
+                        await flushAudioLogs();
+                      }
                       if (filterName === "adelay" && !filteredSampleFormat.endsWith("p")) {
                         // The converter required for packed input also resolves downstream rate
                         // constraints before sample-based delays. Explicit resamplers are a boundary.
@@ -14890,6 +14904,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             : comparison === "greater" ? actual > expected : false);
                         };
                         if (mode === "select") {
+                          await flushAudioLogs();
                           if (!key) throw new Error("ametadata: mode=select requires key");
                           const selected: NonNullable<typeof audioTimestamps> = [];
                           const ranges: { start: number; end: number }[] = [];
@@ -14967,12 +14982,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const pts = Math.sign(samplePts) * Math.round(Math.abs(samplePts) / (timeBase * origRate));
                           const header = `frame:${String(n).padEnd(5)}pts:${String(pts).padEnd(7)} pts_time:${Number((pts * timeBase).toPrecision(6))}\n`;
                           budget.allocateMemory(header.length * 2);
-                          report += header + tags;
+                          if (!file && logLevel >= 32) {
+                            budget.allocateMemory(64);
+                            audioLogEvents.push({ frame: n, filter: filterIndex, text: header + tags });
+                          } else report += header + tags;
                         }
                         if (mode === "delete") continue;
                         if (file === "-") await writeBytes(context.stdout, encodeUtf8(report), context.signal);
                         else if (file) await writeFileOutput(context, encodeUtf8(report), data => context.fs.writeFile(resolvePath(context.cwd, file!), data, { signal: context.signal }));
-                        else if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                         continue;
                       }
                       if (trimmed === "arealtime" || trimmed.startsWith("arealtime=")) {
@@ -15565,7 +15582,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           if (logLevel < 32) return;
                           text = detector + (logSeverity ? "[info] " : "") + text;
                           budget.allocateMemory(64 + text.length * 2);
-                          silenceEvents.push({ frame, filter: filterIndex, text });
+                          audioLogEvents.push({ frame, filter: filterIndex, text });
                         };
                         let noise = 0.001;
                         let duration = 2;
@@ -15676,24 +15693,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const end = frameEndPts;
                           const prefix = mono ? `channel: ${slot} | ` : "";
                           logSilence(Number.POSITIVE_INFINITY, `${prefix}silence_end: ${formatTime(end)} | silence_duration: ${formatTime(BigInt.asIntN(64, end - start))}\n`);
-                        }
-                        // Transparent filters preserve frame order between detectors and reverse EOF flushing.
-                        let nextFilter = filterIndex + 1;
-                        while (nextFilter < audioFilters.length) {
-                          const name = audioFilters[nextFilter]!.trim().split("=", 1)[0]!.split("@", 1)[0];
-                          if (name !== "anull" && name !== "acopy") break;
-                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                          nextFilter++;
-                        }
-                        if (audioFilters[nextFilter]?.trim().split("=", 1)[0]!.split("@", 1)[0] !== "silencedetect") {
-                          budget.checkCpu();
-                          silenceEvents.sort((left, right) => left.frame - right.frame ||
-                            (left.frame === Number.POSITIVE_INFINITY ? right.filter - left.filter : left.filter - right.filter));
-                          for (const event of silenceEvents) {
-                            await writeBytes(context.stderr, encodeUtf8(event.text), context.signal);
-                            budget.releaseMemory(64 + event.text.length * 2);
-                          }
-                          silenceEvents.length = 0;
                         }
                       } else if (trimmed === "astats" || trimmed.startsWith("astats=")) {
                         if (filteredSampleFormat === "u8" || filteredSampleFormat === "u8p") {
@@ -19452,6 +19451,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         throw new Error(`Unsupported audio filter: ${trimmed}`);
                       }
                     }
+                    await flushAudioLogs();
                     for (const report of volumeReports) {
                       await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                     }

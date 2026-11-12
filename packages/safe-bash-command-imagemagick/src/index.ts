@@ -6899,6 +6899,9 @@ function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: Retur
             if (!bytes || bytes.length !== (right - left) * 4 * (evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated extent pixels");
             const source = evaluate ? new Float64Array(bytes.slice().buffer)
                 : highDepth ? Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257) : Float64Array.from(bytes);
+            // Disabled alpha makes source samples opaque before any composition or clipping.
+            if (!image.hasAlpha && !image.inactiveAlpha)
+                for (let i = 3; i < source.length; i += 4) source[i] = 255;
             const blackSource = inks ? new Float64Array(source.length) : undefined;
             if (blackSource) {
                 const bytes = (yield { kind: "read", hue: true, position, length: source.length })!;

@@ -4199,6 +4199,8 @@ async function applyVideoFilterChain(
             const sy = plane === 0 ? 1 : vsub;
             const width = Math.ceil(f.width / sx);
             const height = Math.ceil(f.height / sy);
+            // The right border starts at the preceding horizontal chroma boundary.
+            const copyWidth = Math.floor(f.width / hsub) * hsub / sx;
             const outputWidth = Math.ceil(pw / sx);
             const outputHeight = Math.ceil(ph / sy);
             const planeSize = outputWidth * outputHeight * sampleBytes;
@@ -4212,7 +4214,7 @@ async function applyVideoFilterChain(
               if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
               const start = inputOffset + row * width * sampleBytes;
               const target = outputOffset + ((py / sy + row) * outputWidth + px / sx) * sampleBytes;
-              pixels.set(planar.pixels.subarray(start, start + width * sampleBytes), target);
+              pixels.set(planar.pixels.subarray(start, start + copyWidth * sampleBytes), target);
             }
             inputOffset += width * height * sampleBytes;
             outputOffset += planeSize;

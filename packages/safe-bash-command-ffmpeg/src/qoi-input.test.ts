@@ -19,7 +19,7 @@ for (const [index, fixture] of fixtures.entries()) {
         if (index === 1) for (let i = 3; i < expected.length; i += 4) expected[i] = 255;
         // No extension: detection must recognize the bytes themselves.
         const volume = Volume.fromJSON({ "/input": Buffer.from(fixture, "hex") });
-        const output = raw ? "/out.rgba" : "/out.png";
+        const output = raw ? "/out.rgba" : sync ? "/out%d.png" : "/out.png";
         const args = ["-y", "-v", "error", "-i", "/input", ...(raw ? ["-pix_fmt", "rgba", "-f", "rawvideo"] : []), output];
         if (sync) {
           assert.equal(evalSyncFfmpeg(args, undefined,
@@ -39,7 +39,7 @@ for (const [index, fixture] of fixtures.entries()) {
           } as never);
           assert.equal(result.exitCode, 0, stderr);
         }
-        const bytes = volume.readFileSync(output) as Buffer;
+        const bytes = volume.readFileSync(output.replace("%d", "1")) as Buffer;
         if (raw) assert.deepEqual(bytes, expected);
         else {
           const image = decodeImage(bytes);

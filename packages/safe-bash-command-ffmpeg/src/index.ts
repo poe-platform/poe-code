@@ -9669,6 +9669,8 @@ export function evalSyncFfmpeg(
         if (!rawBytes || rawBytes.byteLength > 262144) return undefined;
         budget.checkInputBytes(rawBytes.byteLength);
         rawBytes = rawBytes.subarray(inp.skipInitialBytes ?? 0);
+        if (!inp.format && [113, 111, 105, 102].every((byte, i) => rawBytes![i] === byte) &&
+            imagePipeFrameEnd(rawBytes, 0, "qoi", budget) < rawBytes.length) return undefined;
         const plugin = inp.format !== undefined
           ? registry.findByFormatName(inp.format)
           : registry.detect(rawBytes, inp.path);
@@ -12389,8 +12391,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 ? (await readInput(filePath)).subarray(input?.skipInitialBytes ?? 0) : undefined;
               const pipeBytes = explicitFormat === "image2pipe" || explicitFormat === "bmp_pipe" || explicitFormat === "qoi_pipe"
                 ? (await readInput(filePath)).subarray(input?.skipInitialBytes ?? 0)
-                : detectedBytes && (detectedBytes[0] === 66 && detectedBytes[1] === 77 ||
-                  detectedBytes[0] === 80 && [50, 51, 53, 54].includes(detectedBytes[1]!)) ? detectedBytes : undefined;
+                : detectedBytes && ((detectedBytes[0] === 66 && detectedBytes[1] === 77) ||
+                  (detectedBytes[0] === 80 && [50, 51, 53, 54].includes(detectedBytes[1]!)) ||
+                  [113, 111, 105, 102].every((byte, i) => detectedBytes[i] === byte)) ? detectedBytes : undefined;
               let pipeOffset = 0;
               let globPaths: string[] | undefined;
               let globPattern = imageDemuxer && input?.patternType === "glob" ? filePath : undefined;
@@ -12464,6 +12467,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 let sarHeight = 1;
                 const fps = fpsHint ?? 25;
                 const timestampScale = input?.tsFromFile === 1 ? 1 : input?.tsFromFile === 2 ? 1_000_000_000 : undefined;
+                const [rateNumerator, rateDenominator] = timingRatio(fps);
+                const timescale = timestampScale ?? rateNumerator;
                 let firstTimestamp: number | undefined;
                 const startNumber = input?.startNumber ?? 0;
                 const startNumberRange = input?.startNumberRange ?? 5;
@@ -12596,15 +12601,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   tracks: base.tracks.map((t) =>
                     t.type === "video" ? {
                       ...t, width: first.width, height: first.height,
-                      timescale: timestampScale ?? t.timescale,
-                      duration: Math.round(durationSeconds * (timestampScale ?? t.timescale)),
+                      timescale,
+                      duration: Math.round(durationSeconds * timescale),
                       codecDescriptions: [{ codecName, formatFourCC: codecName.padEnd(4, " ").slice(0, 4), width: first.width, height: first.height, pixFmt: pixelFormat, sarWidth, sarHeight, ...(colorMetadata ? { colorMetadata } : {}) }],
                       samples: packets.map((packet, index) => ({
                         ...packet, size: packet.data.byteLength,
-                        dts: Math.round(frames[index]!.ptsSeconds * (timestampScale ?? t.timescale)),
-                        pts: Math.round(frames[index]!.ptsSeconds * (timestampScale ?? t.timescale)), cts: 0,
-                        duration: timestampScale === undefined
-                          ? Math.round((index + 1) / fps * t.timescale) - Math.round(index / fps * t.timescale) : 1,
+                        dts: Math.round(frames[index]!.ptsSeconds * timescale),
+                        pts: Math.round(frames[index]!.ptsSeconds * timescale), cts: 0,
+                        duration: timestampScale === undefined ? rateDenominator : 1,
                         isKeyframe: true, sampleDescriptionIndex: 1
                       })),
                       decodedVideoFrames: frames

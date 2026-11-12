@@ -26,7 +26,7 @@ it.each([
         : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
     expect(result.exitCode).toBe(0);
     expect("stderr" in result ? result.stderr : stderr).toBe("");
-    const actual = mode === "command" ? stdout : info && "stdout" in result ? result.stdout
+    const actual = mode === "command" ? stdout : info && "stdout" in result && typeof result.stdout === "string" ? result.stdout
         : Buffer.from(mode === "retained" ? await fs.readFile("/out") : files.get("/out")!).toString("hex");
     expect(info ? actual.trim() : actual).toBe(expected);
 });

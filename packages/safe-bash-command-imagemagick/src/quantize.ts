@@ -56,7 +56,8 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
     // Keep fractional palette means alongside byte output for later arithmetic and deeper output.
     const round = (value: number) => highDepth ? Math.round(value * 257) / 257 : Math.fround(value * 257) / 257;
     function* readPixels(position: number, length: number): Generator<ConvolveRequest, Float64Array, Uint8Array | undefined> {
-        const samples = working === "hue" ? yield { kind: "read", hue: true, position, length } : evaluate ? yield { kind: "read", evaluate: true, position, length } : undefined;
+        // Direct-color cycling must read fractional operator results before the byte raster.
+        const samples = working === "hue" ? yield { kind: "read", hue: true, position, length } : evaluate || cycle !== undefined ? yield { kind: "read", evaluate: true, position, length } : undefined;
         let data: Float64Array;
         if (samples?.length) data = new Float64Array(samples.slice().buffer);
         else {

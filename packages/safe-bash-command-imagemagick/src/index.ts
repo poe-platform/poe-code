@@ -15015,7 +15015,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 let output = yield* applyMagickRasterSteps(image, plan.steps, signal, plan);
                 // Displacements clear disassociated alpha's separate-channel trait.
                 if (image.alphaBlend === false && ["-swirl", "-implode", "-wave", "-spread"].includes(t)) output.alphaSeparate = false;
-                if (["-swirl", "-implode", "-wave", "-spread"].includes(t)) output = { ...output, isPalette: false };
+                if (["-shear", "-swirl", "-implode", "-wave", "-spread"].includes(t)) output = { ...output, isPalette: false };
                 // Nonzero shear creates fresh meta channels at the output dimensions.
                 if (image.metaChannels?.length && t === "-shear") {
                     output.metaChannels = [];
@@ -18637,7 +18637,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let output = await transformStoredMagickRaster(image, backend, plan.steps, signal, plan);
                 // Displacements clear disassociated alpha's separate-channel trait.
                 if (image.alphaBlend === false && ["-swirl", "-implode", "-wave", "-spread"].includes(token)) output.alphaSeparate = false;
-                if (["-swirl", "-implode", "-wave", "-spread"].includes(token)) output = { ...output, isPalette: false };
+                if (["-shear", "-swirl", "-implode", "-wave", "-spread"].includes(token)) output = { ...output, isPalette: false };
                 // Nonzero shear creates fresh meta channels at the output dimensions.
                 if (image.storedMetaChannels?.length && token === "-shear") {
                     output.storedMetaChannels = [];

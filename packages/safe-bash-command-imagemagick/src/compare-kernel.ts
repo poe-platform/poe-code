@@ -91,7 +91,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     const selected = (options.channels ?? [0, 1, 2, 3, 4]).filter(channel => channel !== 4 || cmyk);
     const red = selected.includes(0), green = selected.includes(1), blue = selected.includes(2), opacity = selected.includes(3);
     const sharedChannels = selected.filter(channel => channel !== 3 || (imgA.hasAlpha && imgB.hasAlpha));
-    const numCh = Math.max(1, selected.filter(channel => channel !== 3 || hasAlpha).length);
+    const numCh = Math.max(1, sharedChannels.length);
     const correlationChannels = (metric === "ncc" || metric === "dpc") ? sharedChannels.map(channel => ({ channel,
         rawA: 0, rawB: 0, sumA: 0, sumB: 0, squareA: 0, squareB: 0, product: 0
     })) : [];

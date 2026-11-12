@@ -18400,7 +18400,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     }
                     if (planeSums && plane !== image) sums!.values.push(planeSums.values[0]!);
                 }
-                const transform = { end: analysisOperation.end, evaluate: cmykHistogram || operation.sepiaThreshold !== undefined || token === "-auto-gamma" || token === "-auto-level" || token === "-linear-stretch" || token === "-equalize", handlesWriteMask: token === "-auto-gamma" || token === "-auto-level" || token === "-linear-stretch", apply: operation.transform(histogram, image, sums) };
+                const transform = { end: analysisOperation.end, evaluate: cmykHistogram || operation.sepiaThreshold !== undefined || token === "-auto-threshold" || token === "-auto-gamma" || token === "-auto-level" || token === "-linear-stretch" || token === "-equalize", handlesWriteMask: token === "-auto-gamma" || token === "-auto-level" || token === "-linear-stretch", apply: operation.transform(histogram, image, sums) };
                 const result = await transformStoredMagickPixels(image, backend, transform, signal, analysisOperation.highDepth);
                 if (token === "-auto-threshold" && ["true", "yes", "1", "on"].includes(settings.optionProperties?.["auto-threshold:verbose"]?.toLowerCase() ?? "")) {
                     const text = result.properties!["auto-threshold:threshold"] + "\n";

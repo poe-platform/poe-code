@@ -6,6 +6,27 @@ import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js"
 // ImageMagick 7.1.2-35 Q16-HDRI, full RGB bytes and dimensions/color counts.
 for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     it.each([
+        { options: ["+segment"], position: 7 },
+        { options: ["(", "+segment", ")"], position: 8 },
+        { options: ["-segment", "1x1"], position: 0 },
+    ])(`${mode}: matches native segment status for $options`, async ({ options, position }) => {
+        const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
+        const argv = ["-size", "32x32", "xc:red", "xc:lime", "xc:blue", "+append", ...options, "-format", "COLORS=%k", "info:"];
+        const argumentValues = createCommandArguments(argv);
+        let stdout = "", stderr = "";
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: argumentValues.args, argumentValues, fs, cwd: "/", env: {},
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+        }) : mode === "sync" ? runMagickCliSync(argv, files)
+            : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        expect.soft(result.exitCode).toBe(position ? 1 : 0);
+        expect.soft("stderr" in result ? result.stderr : stderr).toBe(position
+            ? `magick: option deprecated, unable to execute '+segment' at CLI arg ${position}\n` : "");
+        expect("stdout" in result ? result.stdout : stdout).toBe(position ? "" : "COLORS=3");
+    });
+    it.each([
         { input: ["xc:red", "xc:blue", "+append"], segmented: true, pixels: "ff0000ff0000", info: "2x1 1" },
         { input: ["xc:red", "xc:blue", "+append"], segmented: false, pixels: "ff00000000ff", info: "2x1 2" },
         { input: ["-size", "12x1", "gradient:red-blue"], segmented: true, pixels: "ff0000".repeat(12), info: "12x1 1" },

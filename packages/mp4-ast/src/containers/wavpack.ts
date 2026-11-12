@@ -258,6 +258,7 @@ function parseWavpack(bytes: Uint8Array, options: ParseMediaOptions = {}): Media
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const samples: MediaSample[] = [];
   let offset = 0, duration = 0, sampleRate = 0, channels = 0, bits = 0, version = 0;
+  let group: { offset: number; count: number; channels: number } | undefined;
   for (; offset < bytes.length;) {
     budget.checkCpu();
     if (decodeFourCC(bytes, offset) === "APET" || decodeFourCC(bytes, offset).startsWith("TAG")) break;
@@ -268,19 +269,40 @@ function parseWavpack(bytes: Uint8Array, options: ParseMediaOptions = {}): Media
     const block = bytes.subarray(offset, offset + size), parts = metadata(block);
     const count = view.getUint32(offset + 20, true), flags = view.getUint32(offset + 24, true);
     if (count) {
-      if ((flags & 0x1800) !== 0x1800) throw new Error("Unsupported multichannel WavPack blocks");
+      if (flags & 0x800) {
+        if (group) throw new Error("Inconsistent WavPack block group start");
+        group = { offset, count, channels: 0 };
+        budget.checkSamples(samples.length + 1);
+      }
+      if (!group || group.count !== count) throw new Error("Inconsistent WavPack block group");
       const customRate = parts.get(0x27);
       const rate = sampleRates[(flags >>> 23) & 15] ?? (customRate?.length === 3 ? customRate[0]! + customRate[1]! * 256 + customRate[2]! * 65536 : 0);
-      const ch = flags & 4 ? 1 : 2, width = ((flags & 3) + 1) * 8;
+      const width = ((flags & 3) + 1) * 8;
       const index = view.getUint32(offset + 16, true);
-      if (!rate || index !== duration || (samples.length && (rate !== sampleRate || ch !== channels || width !== bits || blockVersion !== version))) throw new Error("Inconsistent WavPack audio blocks");
-      sampleRate = rate; channels = ch; bits = width; version = blockVersion;
-      duration += count;
-      budget.checkDuration(duration / rate); budget.checkSamples(samples.length + 1);
-      samples.push({ data: block, dts: index, pts: index, cts: 0, duration: count, size, isKeyframe: true, sampleDescriptionIndex: 1 });
+      if (!rate || index !== duration || (sampleRate && (rate !== sampleRate || width !== bits || blockVersion !== version))) throw new Error("Inconsistent WavPack audio blocks");
+      sampleRate = rate; bits = width; version = blockVersion;
+      budget.checkDuration((duration + count) / rate);
+      const channelInfo = parts.get(0x0d);
+      if (channelInfo) {
+        if (channelInfo.length < 2 || channelInfo.length > 7) throw new Error("Invalid WavPack channel information");
+        const declaredChannels = channelInfo.length < 6 ? channelInfo[0]! : 1 + channelInfo[0]! + ((channelInfo[2]! & 15) << 8);
+        if (!declaredChannels || (channels && channels !== declaredChannels)) throw new Error("Inconsistent WavPack channel count");
+        channels = declaredChannels;
+      }
+      group.channels += flags & 4 ? 1 : 2;
+      if (channels && group.channels > channels) throw new Error("Inconsistent WavPack channel count");
+      if (flags & 0x1000) {
+        if (channels && group.channels !== channels) throw new Error("Inconsistent WavPack channel count");
+        channels = group.channels;
+        duration += count;
+        const data = bytes.subarray(group.offset, offset + size);
+        samples.push({ data, dts: index, pts: index, cts: 0, duration: count, size: data.length, isKeyframe: true, sampleDescriptionIndex: 1 });
+        group = undefined;
+      }
     }
     offset += size;
   }
+  if (group) throw new Error("Incomplete WavPack block group");
   if (!samples.length) throw new Error("WavPack input has no audio blocks");
   const total = view.getUint32(12, true);
   if (total !== 0xffffffff && total !== duration) throw new Error("Truncated WavPack audio");
@@ -289,9 +311,17 @@ function parseWavpack(bytes: Uint8Array, options: ParseMediaOptions = {}): Media
     budget.allocateMemory(duration * channels * 8);
     channelData = Array.from({ length: channels }, () => new Float64Array(duration));
     for (const sample of samples) {
-      const decoded = decodeBlock(sample.data, budget);
-      for (let ch = 0; ch < channels; ch++) channelData[ch]!.set(decoded[ch]!, sample.pts);
-      budget.releaseMemory(sample.duration * channels * 8);
+      let channel = 0;
+      for (let pos = 0; pos < sample.data.length;) {
+        const blockOffset = sample.data.byteOffset + pos - bytes.byteOffset;
+        const size = view.getUint32(blockOffset + 4, true) + 8;
+        if (view.getUint32(blockOffset + 20, true)) {
+          const decoded = decodeBlock(sample.data.subarray(pos, pos + size), budget);
+          for (const data of decoded) channelData[channel++]!.set(data, sample.pts);
+          budget.releaseMemory(sample.duration * decoded.length * 8);
+        }
+        pos += size;
+      }
     }
   }
   return {

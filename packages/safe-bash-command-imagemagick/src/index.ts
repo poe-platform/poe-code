@@ -6490,7 +6490,7 @@ function* applyMagickResizeSteps(img: RgbaImage, geomStr: string, kernel: Resize
     let resized: RgbaImage = !preserveSamples && !settings && !img.data16 && !scale && (kernel === "linear")
         ? yield* resizeImageSteps(img, { ...options, kernel })
         : yield* applyMagickRasterSteps(img, point ? pointResizePixelSteps(img, width, height, sample, 4, sampleOffset, writeMask) : resizePixelSteps(img, width, height, thumbnail, scale, kernel, !!img.data16, settings, preserveSamples, writeMask), undefined, { ...img, width, height });
-    for (const key of point ? ["pngIndices", "data16", "evaluateSamples", ...(img.space !== "cmyk" ? ["hueSamples"] as const : [])] as const : []) {
+    for (const key of point ? ["pngIndices", "data16", "evaluateSamples", "hueSamples"] as const : []) {
         const samples = img[key];
         if (!samples) continue;
         const source = new Uint8Array(samples.buffer, samples.byteOffset, samples.byteLength);
@@ -6561,7 +6561,7 @@ async function resizeStoredMagickImage(image: StoredRgbaImage, backend: Pick<Com
     let resized: StoredRgbaImage = !preserveSamples && !settings && !image.storedData16 && !scale && (options.kernel === "linear")
         ? await transformStoredImage(image, backend.storage, { kind: "resize", ...options, kernel: options.kernel }, signal)
         : await transformStoredMagickRaster(image, backend, point ? pointResizePixelSteps(image, width, height, sample, 4, sampleOffset, writeMask) : resizePixelSteps(image, width, height, thumbnail, scale, options.kernel, !!image.storedData16, settings, preserveSamples, writeMask), signal, { ...image, width, height });
-    for (const [source, pixelBytes, key] of point ? [[image.storedPngIndices?.position, 1, "storedPngIndices"], [image.storedData16?.position, 8, "storedData16"], [image.storedEvaluateSamples, 32, "storedEvaluateSamples"], [image.space !== "cmyk" ? image.storedHueSamples : undefined, 32, "storedHueSamples"]] as const : []) {
+    for (const [source, pixelBytes, key] of point ? [[image.storedPngIndices?.position, 1, "storedPngIndices"], [image.storedData16?.position, 8, "storedData16"], [image.storedEvaluateSamples, 32, "storedEvaluateSamples"], [image.storedHueSamples, 32, "storedHueSamples"]] as const : []) {
         if (source === undefined) continue;
         const position = backend.storage.allocate(width * height * pixelBytes);
         const steps = pointResizePixelSteps(image, width, height, sample, pixelBytes, sampleOffset, writeMask);

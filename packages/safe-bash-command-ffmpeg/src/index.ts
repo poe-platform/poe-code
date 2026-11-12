@@ -11490,7 +11490,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             const path = args[++i] ?? "";
-            if (pendingFormat !== undefined && !["lavfi", "rawvideo", "concat", "image2", "image2pipe", "bmp_pipe"].includes(pendingFormat) &&
+            if (pendingFormat !== undefined && !["lavfi", "rawvideo", "concat", "image2", "image2pipe", "bmp_pipe", "qoi_pipe"].includes(pendingFormat) &&
                 !registry.findByFormatName(pendingFormat)?.canDemux) {
               await writeBytes(context.stderr,
                 encodeUtf8(`ffmpeg: Unknown input format: '${pendingFormat}' (AST not registered)\nError opening input file ${path}.\n`), context.signal);
@@ -12387,7 +12387,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               if (input?.tsFromFile !== undefined && !imageDemuxer) throw new Error("Option ts_from_file not found");
               const detectedBytes = !explicitFormat && !imageDemuxer
                 ? (await readInput(filePath)).subarray(input?.skipInitialBytes ?? 0) : undefined;
-              const pipeBytes = explicitFormat === "image2pipe" || explicitFormat === "bmp_pipe"
+              const pipeBytes = explicitFormat === "image2pipe" || explicitFormat === "bmp_pipe" || explicitFormat === "qoi_pipe"
                 ? (await readInput(filePath)).subarray(input?.skipInitialBytes ?? 0)
                 : detectedBytes?.[0] === 66 && detectedBytes[1] === 77 ? detectedBytes : undefined;
               let pipeOffset = 0;
@@ -12475,7 +12475,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let planeFrame: MediaVideoFrame | undefined;
                   if (pipeBytes) {
                     const start = pipeOffset;
-                    pipeOffset = imagePipeFrameEnd(pipeBytes, start, input?.videoDecoder ?? (explicitFormat === "bmp_pipe" ? "bmp" : undefined), budget);
+                    pipeOffset = imagePipeFrameEnd(pipeBytes, start, input?.videoDecoder ?? (explicitFormat === "bmp_pipe" ? "bmp" : explicitFormat === "qoi_pipe" ? "qoi" : undefined), budget);
                     imgBytes = pipeBytes.subarray(start, pipeOffset);
                   } else {
                     const formatted = globPaths ? globPaths[idx]! : literalImage ? filePath : formatImageSequence(filePath, idx, false)!;

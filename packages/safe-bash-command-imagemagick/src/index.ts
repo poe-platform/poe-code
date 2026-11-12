@@ -23351,7 +23351,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         else if (t === "-alpha") {
             const value = argv[i + 1];
             if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -alpha\n" };
-            if (!["off", "remove", "extract", "copy", "shape"].includes(value.toLowerCase()))
+            if (!["off", "remove", "associate", "disassociate", "extract", "copy", "shape"].includes(value.toLowerCase()))
                 return { exitCode: 1, stdout: "", stderr: `montage: unsupported alpha mode '${value}'\n` };
             const operation = parseMagickPixelOperation(argv, state, i)!;
             queuedTransforms.push({ kind: "alpha", operation });
@@ -24094,7 +24094,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             }
             const rotation = transform.kind === "rotate"
                 ? parseMagickWarpOperation(["-rotate", String(transform.angle)], state, 0, analysis)?.plan(image) : undefined;
-            const tiles = transform.kind === "crop"
+            const tiles: RgbaImage[] = transform.kind === "crop"
                 ? yield* applyMagickCropToStackSteps(image, transform.geometry, transform.gravity, analysis)
                 : [yield* ("operation" in transform ? transform.operation.apply(image)
                 : transform.kind === "depth" ? applyMagickRasterSteps(image, posterizePixelSteps(image, 2 ** transform.depth, false, 1, transform.channels, signal, false, transform.dither), signal)
@@ -24109,7 +24109,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     : transform.kind === "rotate" ? rotateImageSteps(image, transform.angle, state.background)
                     : transform.kind === "flop" ? flopImageSteps(image) : flipImageSteps(image))];
             if (transform.kind === "alpha") for (let index = 0; index < tiles.length; index++)
-                tiles[index] = yield* prepareInactiveAlphaOutput(tiles[index]!);
+                if (!tiles[index]!.inactiveAlpha) tiles[index] = yield* prepareInactiveAlphaOutput(tiles[index]!);
             if (transform.kind === "palette" || transform.kind === "palettealpha") for (let index = 0; index < tiles.length; index++) {
                 const tile = tiles[index]!;
                 tiles[index] = yield* applyMagickRasterSteps(tile, quantizePixelSteps(tile.width * tile.height * 4, 256, false, 0, tile.hasAlpha, false, undefined,
@@ -24144,6 +24144,8 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             }
             for (let thumb of loadedList) {
                 const loaded = thumb;
+                // Retain alpha between operators, then render disassociated tiles opaque.
+                if (thumb.inactiveAlpha && thumb.alphaBlend === false) thumb = yield* prepareInactiveAlphaOutput(thumb);
                 if (++cooperativeWork % 64 === 0) yield;
                 if (images.length === 0) firstInputFormat = (loaded as MagickImage)[magickInput]?.inputFormat ?? loaded.format.toUpperCase();
                 const isNull = (loaded as MagickImage)[magickInput]?.filePath === "null:";
@@ -24539,7 +24541,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 } else {
                     const rotation = transform.kind === "rotate"
                         ? parseMagickWarpOperation(["-rotate", String(transform.angle)], state, 0, analysis)?.plan(tile) : undefined;
-                    let transformed = "operation" in transform
+                    let transformed: StoredRgbaImage = "operation" in transform
                         ? await transformStoredMagickPixels(tile, backend, transform.operation, signal)
             : transform.kind === "depth" ? await transformStoredMagickRaster(tile, backend, posterizePixelSteps(tile, 2 ** transform.depth, false, 1, transform.channels, signal, false, transform.dither), signal)
                         : transform.kind === "colors" ? await transformStoredMagickRaster(tile, backend, quantizePixelSteps(tile.width * tile.height * 4, transform.count, false, 0, tile.hasAlpha, false, undefined, transform.dither ? { width: tile.width, height: tile.height, method: transform.dither, diffusionAmount: transform.diffusionAmount } : undefined, true, undefined, undefined, tile.width), signal)
@@ -24559,7 +24561,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                         const source = transformed.storedData16 ? { ...transformed, position: transformed.storedData16.position } : transformed;
                         transformed = await transformStoredMagickRaster(transformed, backend, bilevelPixelSteps(transformed.width * transformed.height, !!transformed.storedData16), signal, transformed, [source]);
                     }
-                    if (transform.kind === "alpha") transformed = await transformStoredMagickPixels(transformed, backend,
+                    if (transform.kind === "alpha" && !transformed.inactiveAlpha) transformed = await transformStoredMagickPixels(transformed, backend,
                         { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal);
                     yield* transformTiles(transformed, operations, offset + 1);
                 }
@@ -24569,6 +24571,8 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 const errorsBefore = inputErrors;
                 try {
                     const loaded = await loadTiles({ path, size: sizes[index]!, transforms: transforms[index]! }, async image => {
+                        if (image.inactiveAlpha && image.alphaBlend === false) image = await transformStoredMagickPixels(image, backend,
+                            { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal);
                         if (images.length === 0) firstInputFormat = (image as StoredMagickImage)[magickInput]?.inputFormat ?? image.format.toUpperCase();
                         const source = (image as StoredMagickImage)[magickInput];
                         if (cellW !== undefined || cellH !== undefined) {

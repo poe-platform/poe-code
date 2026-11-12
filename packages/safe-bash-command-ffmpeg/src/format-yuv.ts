@@ -41,12 +41,12 @@ export async function formatYuv(
     const rgba = scaleVideoPicture({ ...frame, native }, width, height)!;
     return { ...frame, data: rgba, native: { ...native, rgba } };
   }
-  if (source && [0, 4, 5, 12, 13, 14].includes(source.format) &&
+  if (source && [0, 4, 5, 12, 13, 14, 33].includes(source.format) &&
       ["yuv420p", "yuv422p", "yuv444p"].includes(format) &&
       source.rgba === data && source.width === width && source.height === height) {
     // Resample native planes without clipping luma/chroma through an RGB round trip.
-    const sourceWidth = [0, 4, 12, 13].includes(source.format) ? Math.ceil(width / 2) : width;
-    const sourceHeight = [0, 12].includes(source.format) ? Math.ceil(height / 2) : height;
+    const sourceWidth = [0, 4, 12, 13, 33].includes(source.format) ? Math.ceil(width / 2) : width;
+    const sourceHeight = [0, 12, 33].includes(source.format) ? Math.ceil(height / 2) : height;
     const horizontal = scaleWeights(sourceWidth, chromaWidth, "bicubic");
     const vertical = scaleWeights(sourceHeight, chromaHeight, "bicubic");
     // swscale normalizes horizontal coefficients to 14 bits with carried rounding error.

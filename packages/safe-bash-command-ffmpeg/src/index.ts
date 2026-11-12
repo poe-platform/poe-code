@@ -5438,7 +5438,7 @@ async function applyVideoFilterChain(
           ];
           current = await mapWork(current, async ({ native, ...f }) => {
             const planar = native?.rgba === f.data && native.width === f.width && native.height === f.height &&
-              [0, 4, 5, 12, 13, 14].includes(native.format) ? native : undefined;
+              [0, 4, 5, 12, 13, 14, 33].includes(native.format) ? native : undefined;
             const highDepthLuma = native?.rgba === f.data && native.width === f.width && native.height === f.height &&
               [45, 62].includes(native.format) && (pixelFormat === "gray" || pixelFormat === "gray8")
               ? new DataView(native.pixels.buffer, native.pixels.byteOffset, native.pixels.byteLength) : undefined;

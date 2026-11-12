@@ -191,6 +191,7 @@ export function parseY4m(bytes: Uint8Array): MediaDocument {
     else if (token === "Im") throw new Error("YUV4MPEG stream contains mixed interlaced and non-interlaced frames");
     else if (token === "C420mpeg2") chromaLocation = "left";
     else if (token === "C420jpeg") chromaLocation = "center";
+    else if (token === "C420paldv") chromaLocation = "topleft";
     else if (token === "Cmono") { pixFmt = "gray"; format = 8; }
     else if (token === "C422") { pixFmt = "yuv422p"; format = 4; }
     else if (token === "C444") { pixFmt = "yuv444p"; format = 5; }
@@ -367,7 +368,8 @@ export function serializeY4m(doc: MediaDocument): Uint8Array {
     : preserveNative && sourceFormat === 8 ? "mono"
     : preserveNative && sourceFormat === 4 ? "422 XYSCSS=422"
     : preserveNative && sourceFormat === 5 ? "444 XYSCSS=444"
-    : codec?.chromaLocation === "left" ? "420mpeg2 XYSCSS=420MPEG2" : "420jpeg XYSCSS=420JPEG";
+    : codec?.chromaLocation === "left" ? "420mpeg2 XYSCSS=420MPEG2"
+    : codec?.chromaLocation === "topleft" ? "420paldv XYSCSS=420PALDV" : "420jpeg XYSCSS=420JPEG";
   const header = encodeUtf8(`YUV4MPEG2 W${width} H${height} F${rate} I${interlace} A${codec?.sarWidth ?? 1}:${codec?.sarHeight ?? 1} C${chroma}${range}\n`);
   const frameTag = encodeUtf8("FRAME\n");
   const chunks: Uint8Array[] = [header];

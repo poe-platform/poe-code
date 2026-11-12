@@ -1,9 +1,12 @@
 import type { MediaCodecDescription, MediaDocument } from "@poe-code/mp4-ast";
 
 type ColorMetadata = NonNullable<MediaCodecDescription["colorMetadata"]>;
-export type OutputColorOption = [specifier: string, field: keyof ColorMetadata, value: number];
+export type OutputColorOption = [specifier: string, field: keyof ColorMetadata, value: number]
+  | [specifier: string, field: "chromaLocation", value: string | undefined];
 
-const colorOptions: Record<string, { field: keyof ColorMetadata; min: number; values: Record<string, number> }> = {
+const chromaLocations = ["unspecified", "left", "center", "topleft", "top", "bottomleft", "bottom"];
+
+const colorOptions: Record<string, { field: keyof ColorMetadata | "chromaLocation"; min: number; values: Record<string, number> }> = {
   "-color_primaries": { field: "primaries", min: 1, values: {
     bt709: 1, unknown: 2, unspecified: 2, bt470m: 4, bt470bg: 5, smpte170m: 6,
     smpte240m: 7, film: 8, bt2020: 9, smpte428: 10, smpte428_1: 10,
@@ -23,6 +26,9 @@ const colorOptions: Record<string, { field: keyof ColorMetadata; min: number; va
     bt2020_ncl: 9, bt2020c: 10, bt2020_cl: 10, smpte2085: 11,
     "chroma-derived-nc": 12, "chroma-derived-c": 13, ictcp: 14
   } },
+  "-chroma_sample_location": { field: "chromaLocation", min: 0, values: {
+    ...Object.fromEntries(chromaLocations.map((name, index) => [name, index])), unknown: 0
+  } },
   "-color_range": { field: "range", min: 0, values: {
     unknown: 0, unspecified: 0, tv: 1, mpeg: 1, limited: 1, pc: 2, jpeg: 2, full: 2
   } }
@@ -38,10 +44,15 @@ export function parseOutputColorOption(option: string, value: string | undefined
   const config = colorOptions[name!]!;
   const numeric = value && Object.hasOwn(config.values, value) ? config.values[value]!
     : value?.trim() ? Number(value) : NaN;
+  if (config.field === "chromaLocation" && Number.isFinite(numeric) && (numeric < 0 || numeric > 2147483647)) {
+    throw new RangeError(`Invalid ${name} value: ${value}`);
+  }
   if (!Number.isFinite(numeric) || numeric < config.min || numeric > 2147483647) {
     throw new Error(`Invalid ${name} value: ${value}`);
   }
-  return [specifier, config.field, Math.round(numeric)];
+  return config.field === "chromaLocation"
+    ? [specifier, config.field, chromaLocations[numeric % 1 === 0.5 ? 2 * Math.round(numeric / 2) : Math.round(numeric)]]
+    : [specifier, config.field, Math.round(numeric)];
 }
 
 export function applyOutputColors(doc: MediaDocument, options: readonly OutputColorOption[]): MediaDocument {
@@ -51,14 +62,17 @@ export function applyOutputColors(doc: MediaDocument, options: readonly OutputCo
     if (track.type !== "video") return track;
     const ordinal = videoIndex++;
     const overrides: ColorMetadata = {};
+    const chroma: { chromaLocation?: string | undefined } = {};
     for (const [specifier, field, value] of options) {
       const [selector, index] = specifier.split(":");
       if (selector === "v" ? index && Number(index) !== ordinal : selector && Number(selector) !== trackIndex) continue;
-      overrides[field] = value;
+      if (field === "chromaLocation") chroma.chromaLocation = value;
+      else overrides[field] = value;
     }
-    if (!Object.keys(overrides).length) return track;
+    if (!Object.keys(overrides).length && !Object.hasOwn(chroma, "chromaLocation")) return track;
     return { ...track, codecDescriptions: track.codecDescriptions.map(codec => ({
-      ...codec, colorMetadata: { ...codec.colorMetadata, ...overrides }
+      ...codec, ...chroma,
+      ...(Object.keys(overrides).length ? { colorMetadata: { ...codec.colorMetadata, ...overrides } } : {})
     })) };
   }) };
 }

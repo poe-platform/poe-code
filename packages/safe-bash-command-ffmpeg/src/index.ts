@@ -9524,7 +9524,7 @@ export function evalSyncFfmpeg(
             metadataKeySpellings[k] = kv.slice(0, eq).trim();
           }
         }
-      } else if (["-color_primaries", "-color_trc", "-colorspace", "-color_range"].includes(arg.split(":")[0]!)) {
+      } else if (["-color_primaries", "-color_trc", "-colorspace", "-color_range", "-chroma_sample_location"].includes(arg.split(":")[0]!)) {
         outputColors.push(parseOutputColorOption(arg, args[++i]));
       } else if (arg === "-aspect" || arg.startsWith("-aspect:")) {
         displayAspects.push(parseDisplayAspect(arg, args[++i]));
@@ -11938,12 +11938,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 metadataKeySpellings[k] = kv.slice(0, eq).trim();
               }
             }
-          } else if (["-color_primaries", "-color_trc", "-colorspace", "-color_range"].includes(arg.split(":")[0]!)) {
+          } else if (["-color_primaries", "-color_trc", "-colorspace", "-color_range", "-chroma_sample_location"].includes(arg.split(":")[0]!)) {
             try {
               outputColors.push(parseOutputColorOption(arg, args[++i]));
             } catch (error) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
-              return { exitCode: 234 };
+              return { exitCode: error instanceof RangeError ? 222 : 234 };
             }
           } else if (arg === "-aspect" || arg.startsWith("-aspect:")) {
             try {

@@ -12430,6 +12430,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   if (literalImage && !globPaths) break;
                 }
                 if (frames.length === 0) {
+                  if (globPaths) {
+                    throw new Error(`Could not open file : ${filePath}\nOutput file does not contain any stream\nError opening output file ${outputTarget}.\nError opening output files: Invalid argument`);
+                  }
+                  if (!pipeBytes) {
+                    throw new Error(`Could find no file with path '${filePath}' and index in the range ${startNumber}-${startNumber + startNumberRange - 1}\nError opening input: No such file or directory\nError opening input file ${filePath}.\nError opening input files: No such file or directory`);
+                  }
                   throw new Error(`${filePath}: No matching image sequence files found`);
                 }
                 const first = frames[0]!;
@@ -21662,6 +21668,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 encodeUtf8("Could not write header (incorrect codec parameters ?): Invalid argument\n"), context.signal);
               return { exitCode: 234 };
             }
+            if (msg.startsWith("Could find no file with path '")) return { exitCode: 254 };
+            if (msg.startsWith("Could not open file : ")) return { exitCode: 234 };
             if (msg.startsWith("Chapter end time ")) return { exitCode: 244 };
             if (msg.startsWith("asendcmd: Cannot read file '")) return { exitCode: 254 };
             if (msg === "asendcmd: Only one of the filename or commands options must be specified.") return { exitCode: 234 };

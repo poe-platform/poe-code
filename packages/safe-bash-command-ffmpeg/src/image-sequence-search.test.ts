@@ -4,9 +4,9 @@ import { Volume } from "memfs";
 import { decodeImage, encodeImage } from "@poe-code/image-ast/portable";
 import { createFfmpegCommand } from "./index.js";
 
-const cases: { name: string; start: number; options?: string[]; success?: boolean; gap?: boolean }[] = [
+const cases: { name: string; start: number; options?: string[]; success?: boolean; exitCode?: number; gap?: boolean }[] = [
   ...[0, 1, 2, 3, 4].map(start => ({ name: `default search finds ${start}`, start })),
-  { name: "default search excludes 5", start: 5, success: false },
+  { name: "default search excludes 5", start: 5, success: false, exitCode: 254 },
   { name: "explicit matching start", start: 5, options: ["-start_number", "5"] },
   { name: "search from explicit start", start: 7, options: ["-start_number", "5"] },
   { name: "expression start outside default search", start: 7, options: ["-start_number", "3+4"] },
@@ -15,14 +15,14 @@ const cases: { name: string; start: number; options?: string[]; success?: boolea
     name: `reject invalid start expression ${value}`, start: 0, options: ["-start_number", value], success: false
   })),
   { name: "expanded range", start: 5, options: ["-start_number_range", "6"] },
-  { name: "range one requires exact start", start: 1, options: ["-start_number_range", "1"], success: false },
+  { name: "range one requires exact start", start: 1, options: ["-start_number_range", "1"], success: false, exitCode: 254 },
   { name: "stop at subsequent gap", start: 4, gap: true },
   ...["0", "-1", "1.5", "nope", "2147483648", "", "1-1", "2147483647+1", "1/0", "4+", "3/2"].map(value => ({
     name: `reject invalid range ${value}`, start: 0, options: ["-start_number_range", value], success: false
   }))
 ];
 
-for (const { name, start, options = [], success = true, gap = false } of cases) {
+for (const { name, start, options = [], success = true, exitCode = success ? 0 : 1, gap = false } of cases) {
   it(name, async () => {
     const volume = new Volume();
     const colors = [[255, 0, 0, 255], [0, 255, 0, 255]];
@@ -46,7 +46,7 @@ for (const { name, start, options = [], success = true, gap = false } of cases) 
       stdin: (async function* () {})(), stdout: { async write() {} },
       stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
     } as never);
-    assert.equal(result.exitCode, success ? 0 : 1, Buffer.concat(errors).toString());
+    assert.equal(result.exitCode, exitCode, Buffer.concat(errors).toString());
     const outputs = volume.readdirSync("/").filter(name => String(name).startsWith("o"));
     assert.deepEqual(outputs, success ? (gap ? ["o01.png"] : ["o01.png", "o02.png"]) : []);
     outputs.forEach((name, i) => {

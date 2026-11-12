@@ -39,7 +39,7 @@ for (const [bracket, selected] of [
       stdin: (async function* () {})(), stdout: { async write() {} },
       stderr: { async write(bytes: Uint8Array) { errors.push(bytes); } }
     } as never);
-    assert.equal(result.exitCode, selected!.length ? 0 : 1, Buffer.concat(errors).toString());
+    assert.equal(result.exitCode, selected!.length ? 0 : 234, Buffer.concat(errors).toString());
     assert.deepEqual(pixels, selected);
   });
 }

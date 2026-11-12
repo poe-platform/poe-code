@@ -32,7 +32,8 @@ export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
         elevation = 1;
     }
     const a = azimuth * Math.PI / 180, e = elevation * Math.PI / 180;
-    const lightX = Math.cos(a) * Math.cos(e), lightY = Math.sin(a) * Math.cos(e), lightZ = Math.sin(e);
+    const lightX = 65535 * Math.cos(a) * Math.cos(e), lightY = 65535 * Math.sin(a) * Math.cos(e), lightZ = 65535 * Math.sin(e);
+    const normalZ = 2 * 65535, luma = new Float32Array(9);
     const { width, height } = image, highDepth = !!(image.data16 || image.storedData16), quantum = highDepth ? 65535 : 255;
     const cmyk = image.space === "cmyk", hue = !!image.hueSamples || image.storedHueSamples !== undefined;
     const alpha = image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false;
@@ -81,23 +82,34 @@ export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
                     randomPixels.set((sy + 1) * (width + 2) + sx + 1, virtualPixelIndex(sx, sy, width, height, method, random));
                 }
             }
-            let nx = 0, ny = 0;
             for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) {
                 if (dx === 0 && dy === 0) continue;
                 const pixel = yield* sample(x + dx, y + dy);
-                const luma = Math.max(0, Math.min(1, magickIntensity(pixel[0]!, pixel[1]!, pixel[2]!, intensity, quantum, image.magickColorspace === "RGB" || image.magickColorspace === "scRGB") / quantum));
-                nx -= dx * luma;
-                ny += dy * luma;
+                luma[(dy + 1) * 3 + dx + 1] = Math.max(0, Math.min(65535,
+                    magickIntensity(pixel[0]! * 65535 / quantum, pixel[1]! * 65535 / quantum, pixel[2]! * 65535 / quantum,
+                        intensity, 65535, image.magickColorspace === "RGB" || image.magickColorspace === "scRGB")));
             }
-            const shade = quantum * Math.max(0, (nx * lightX + ny * lightY + 2 * lightZ) / Math.sqrt(nx * nx + ny * ny + 4));
+            // Native Q16-HDRI sums each side before subtraction, rounding every
+            // operation to float. Even uniform colors can retain a small normal.
+            let nx = 0, ny = 0;
+            for (let j = 0; j < 3; j++) {
+                nx = Math.fround(nx + luma[j * 3]!);
+                ny = Math.fround(ny + luma[6 + j]!);
+            }
+            for (let j = 0; j < 3; j++) {
+                nx = Math.fround(nx - luma[j * 3 + 2]!);
+                ny = Math.fround(ny - luma[j]!);
+            }
+            const shade = Math.fround(Math.abs(nx) <= 1e-12 && Math.abs(ny) <= 1e-12 ? lightZ
+                : Math.max(0, (nx * lightX + ny * lightY + normalZ * lightZ) / Math.sqrt(nx * nx + ny * ny + normalZ * normalZ)));
             const center = yield* sample(x, y);
             // Retain Q16-HDRI samples for subsequent operations and write-mask blending.
-            for (let c = 0; c < 4; c++) data[i * 4 + c] = meta ? c === 3 ? 255 : Math.fround(shade * 65535 / quantum) / 257 : mask[c] ? Math.fround(shade * 65535 / quantum) / 257 : center[c]! * 255 / quantum;
+            for (let c = 0; c < 4; c++) data[i * 4 + c] = meta ? c === 3 ? 255 : shade / 257 : mask[c] ? shade / 257 : center[c]! * 255 / quantum;
             if (inks) {
                 for (let c = 0; c < 4; c++) inks[i * 4 + c] = (c === 3 ? !channels || channels.k : mask[c])
-                    ? Math.fround(shade * 65535 / quantum) / 65535 : center[c]! / quantum;
+                    ? shade / 65535 : center[c]! / quantum;
                 for (let c = 0; c < 3; c++) data[i * 4 + c] = (1 - inks[i * 4 + c]!) * (1 - inks[i * 4 + 3]!) * 255;
-                data[i * 4 + 3] = mask[3] ? Math.fround(shade * 65535 / quantum) / 257 : alpha![i * 4 + 3]! / 257;
+                data[i * 4 + 3] = mask[3] ? shade / 257 : alpha![i * 4 + 3]! / 257;
             }
         }
         if (inks) yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(inks.buffer) };

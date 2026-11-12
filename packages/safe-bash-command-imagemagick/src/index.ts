@@ -12347,7 +12347,19 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const scale = raw.includes("%") && !coordinates ? 65535 / 100 : 1;
         // Geometry parsing discards parentheses after the plain-coordinate check.
         // Only the first x separates threshold components; subsequent x values are ignored.
-        const values = scalarOffset ? [0] : (parts.length > 1 ? parts : geometry.toLowerCase().replace("/", "x").split("x").slice(0, 2)).map(part => parseFloat(part.replaceAll("(", "").replaceAll(")", "")) * scale);
+        const fields = parts.length > 1 ? parts : geometry.toLowerCase().replace("/", "x").split("x").slice(0, 2);
+        if (parts.length === 1 && fields.length === 2) {
+            const height = fields.pop()!;
+            let start = 0;
+            for (let index = 1; index < height.length && fields.length < 3; index++) {
+                if ("+-".includes(height[index]!) && height[index - 1] !== "e") {
+                    fields.push(height.slice(start, index));
+                    start = index;
+                }
+            }
+            fields.push(height.slice(start));
+        }
+        const values = scalarOffset ? [0] : fields.map(part => parseFloat(part.replaceAll("(", "").replaceAll(")", "")) * scale);
         const thresh = geometry.toLowerCase().startsWith("x") ? values[1]! : values[0]!;
         const thresholds = [thresh, values[1] ?? thresh, values[2] ?? thresh, values[3] ?? 100 * scale];
         const isBlack = token === "-black-threshold";

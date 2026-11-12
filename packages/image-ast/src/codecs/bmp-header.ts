@@ -39,8 +39,8 @@ export function createBmpHeader(img:Pick<RgbaImage,"width"|"height"|"resolution"
    for (let i=0;i<(dibSize===40?3:4);i++) view.setUint32(54+i*4,masks[i]!,true);
   }
   if (dibSize === 124) {
-   if (bytesPerPixel === 4) {
-    view.setUint32(30, 3, true);
+   if (bytesPerPixel === 4 || bitDepth === 24) {
+    if (bytesPerPixel === 4) view.setUint32(30, 3, true);
     view.setUint32(54, 0xff0000, true); view.setUint32(58, 0xff00, true);
     view.setUint32(62, 0xff, true); view.setUint32(66, 0xff000000, true);
    }

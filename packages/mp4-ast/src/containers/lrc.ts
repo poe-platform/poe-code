@@ -97,14 +97,15 @@ export function lrcAst(): MediaAstPlugin {
     serialize(doc) {
       const track = doc.tracks.find(t => t.type === "subtitle");
       const lines: string[] = [];
-      for (const [tag, value] of [
-        ["ti", doc.metadata.title], ["ar", doc.metadata.artist],
-        ["al", doc.metadata.album], ["au", doc.metadata.custom?.author],
-        ["by", doc.metadata.custom?.creator],
-        ["re", doc.metadata.encoder],
-        ["ve", doc.metadata.encoder?.startsWith("Lavf") ? doc.metadata.encoder.slice(4) : undefined]
-      ]) {
-        if (value) lines.push(`[${tag}:${value.replaceAll("\n", " ")}]\n`);
+      const tags: Record<string, string> = { title: "ti", artist: "ar", album: "al", author: "au", creator: "by", encoder: "re" };
+      // FFmpeg's explicit metadata is already stored in custom in argument order.
+      const { custom, ...metadata } = doc.metadata;
+      for (const [key, value] of Object.entries({ ...custom, ...metadata })) {
+        const tag = Object.hasOwn(tags, key) ? tags[key] : key;
+        if (typeof value === "string" && value) {
+          lines.push(`[${tag}:${value.replaceAll("\n", " ")}]\n`);
+          if (key === "encoder" && value.startsWith("Lavf")) lines.push(`[ve:${value.slice(4)}]\n`);
+        }
       }
       lines.push("\n");
       for (const sample of track?.samples ?? []) {

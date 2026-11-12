@@ -342,8 +342,8 @@ export function serializeFrameChecksum(
         if (Number.isNaN(dts)) dts = pts;
         nextAudioPts = pts + duration;
       }
-      // FFmpeg corrects backward audio DTS before interleaving; negative starts remain valid.
-      if (track.type === "audio" && dts < previousDts) {
+      // FFmpeg corrects backward audio/video DTS before interleaving; negative starts remain valid.
+      if ((track.type === "audio" || video) && dts < previousDts) {
         dts = previousDts;
         pts = Math.max(pts, dts);
       }

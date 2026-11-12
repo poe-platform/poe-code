@@ -2168,7 +2168,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       if (filters[0] === "headphone" || filters[0]?.startsWith("headphone=")) {
         for (const source of sources) {
           if (source.expression && source.expression !== "anull") {
-            source.track = await filterAudio(source.track, source.expression);
+            source.track = await filterAudio(source.track, source.expression, undefined, "headphone");
           }
         }
         const track = await headphoneAudio(sources.map(source => source.track), filters[0]!, filterAudio, budget, signal);
@@ -18411,7 +18411,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const argument = trimmed.slice("aformat=".length);
                         const options = argument ? argument.split(":") : [];
                         if (options.at(-1) === "") options.pop();
-                        const nextFilter = audioFilters[filterIndex + 1]?.trim().split("=", 1)[0]!.split("@", 1)[0];
+                        const nextFilter = audioFilters[filterIndex + 1]?.trim().split("=", 1)[0]!.split("@", 1)[0] ?? downstreamFilter;
                         const hasSampleFormat = options.some((option, index) => {
                           const separator = option.indexOf("=");
                           const key = separator < 0 ? (index === 0 ? "sample_fmts" : undefined) : option.slice(0, separator).trim();
@@ -18419,8 +18419,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         });
                         // These filters require doubles; negotiate before rematrixing unconstrained aformat input.
                         if ((nextFilter === "haas" || nextFilter === "apulsator" || nextFilter === "stereotools") && !hasSampleFormat) options.unshift("sample_fmts=dbl");
+                        // Headphone requires float input before an unconstrained channel remix.
+                        if (nextFilter === "headphone" && !hasSampleFormat) options.unshift("sample_fmts=fltp");
                         // Widen integer input before an unconstrained remix into a PCM32 sink.
-                        if (!hasSampleFormat && filterIndex === audioFilters.length - 1 &&
+                        if (!hasSampleFormat && !nextFilter && filterIndex === audioFilters.length - 1 &&
                             ["u8", "u8p", "s16", "s16p"].includes(filteredSampleFormat)) {
                           const plugin = outputFormat === "segment" ? segmentPlugin : outPlugin;
                           const codec = audioCodec ?? (plugin?.supportedAudioCodecs.includes(`pcm_${plugin.id}`) ? `pcm_${plugin.id}` : undefined);

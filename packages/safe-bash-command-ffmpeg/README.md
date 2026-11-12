@@ -842,6 +842,8 @@ rate, and timestamps, and apply native gain
 Use `map=FR|FL` to reverse the stereo response assignments. All inputs must be
 PCM; impulse responses are resampled to the source sample rate. Filters on the source and
 on either impulse-response branch apply independently before convolution.
+Layout-only `aformat=channel_layouts=stereo` on an impulse branch negotiates float
+precision before mixing in both processing modes.
 For a packed HRIR file, use `[0:a][1:a]headphone=map=FL|FR:hrir=multich[h]`
 (or `hrir=1`): consecutive channel pairs supply the left/right response for each
 mapped source channel. The response must have at least two channels per mapped

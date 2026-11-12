@@ -3993,11 +3993,12 @@ function sampleFxImage(
       : [gray, gray, gray, method === "transparent" ? 0 : 255], 0, ch);
   }
   const idx = pixel * 4;
-  if (img.space === "cmyk" && (ch < 3 || ch === 8)) {
+  if (img.space === "cmyk" && (ch < 3 || ch === 4 || ch === 8)) {
     const channel = ch === 8 ? 3 : ch;
-    if (img.hueSamples) return img.hueSamples[idx + channel]!;
+    if (img.hueSamples) return ch === 4 ? sampleFxPixel(img.hueSamples, idx, ch, 1) : img.hueSamples[idx + channel]!;
     const input = img.data16 ?? img.data!, range = img.data16 ? 65535 : 255;
-    return rgbToCmyk(input[idx]! / range, input[idx + 1]! / range, input[idx + 2]! / range)[channel]!;
+    const cmyk = rgbToCmyk(input[idx]! / range, input[idx + 1]! / range, input[idx + 2]! / range);
+    return ch === 4 ? sampleFxPixel(cmyk, 0, ch, 1) : cmyk[channel]!;
   }
   if ((img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HSI" || img.magickColorspace === "HWB" || img.magickColorspace === "LMS" || img.magickColorspace === "CAT02LMS" || img.magickColorspace === "XYZ" || img.magickColorspace === "DisplayP3" || img.magickColorspace === "xyY" || img.magickColorspace === "ProPhoto" || img.magickColorspace === "Jzazbz" || (img.magickColorspace === "YPbPr" || img.magickColorspace === "YCbCr") || img.magickColorspace === "Rec601YCbCr" || img.magickColorspace === "YCC" || img.magickColorspace === "Rec709YCbCr" || img.magickColorspace === "Log" || img.magickColorspace === "Adobe98" || img.magickColorspace === "OHTA" || img.magickColorspace === "CMY" || img.magickColorspace === "YUV" || img.magickColorspace === "YIQ" || img.magickColorspace === "YDbDr" || img.magickColorspace === "Oklab" || img.magickColorspace === "Luv" || img.magickColorspace === "Oklch" || img.magickColorspace === "LCH" || img.magickColorspace === "LCHab" || img.magickColorspace === "LCHuv" || img.magickColorspace === "CIELab") && img.hueSamples && ch < 4) return img.hueSamples[idx + ch]!;
   // Converted color channels retain fractional samples outside the integer encoding planes.

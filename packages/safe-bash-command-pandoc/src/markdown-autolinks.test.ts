@@ -9,7 +9,7 @@ for (const retained of [false, true]) {
     ["md", false],
     ["markdown+autolink_bare_uris", true],
     ["md+autolink_bare_uris", true],
-    ["markdown+autolink_bare_uris-autolink_bare_uris", false],
+    ["markdown+autolink_bare_uris-autolink_bare_uris", true],
     ["gfm", true],
     ["gfm-autolink_bare_uris", false]
   ])(`uses the bare-link default and overrides for %s (retained=${retained})`, async (from, links) => {

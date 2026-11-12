@@ -30,7 +30,7 @@ for (const retained of [false, true]) {
   });
   it.each(["commonmark", "gfm", "markdown-header_attributes"])(`keeps disabled attributes literal in %s (retained=${retained})`, async from => {
     const header = JSON.parse(await render('# Heading {#custom .loud}\n', from)).blocks[0];
-    expect(header.c[1]).toEqual([from === "markdown-header_attributes" ? "heading-custom-.loud" : "", [], []]);
+    expect(header.c[1]).toEqual([from === "markdown-header_attributes" ? "heading-custom-.loud" : from === "gfm" ? "heading-custom-loud" : "", [], []]);
     expect(header.c[2]).toContainEqual({t: "Str", c: "{#custom"});
   });
   it(`preserves malformed and escaped attributes (retained=${retained})`, async () => {

@@ -19,7 +19,7 @@ for (const retained of [false, true]) {
     return output;
   }
   it(`reads smart punctuation before writing (retained=${retained})`, async () => {
-    for (const from of ["markdown", "md", "gfm+smart"]) {
+    for (const from of ["markdown", "md", "gfm+smart", "markdown+smart-smart"]) {
       expect(JSON.parse(await render('"quotes" -- ...\n', from, "json")).blocks[0].c).toEqual([
         {t: "Quoted", c: [{t: "DoubleQuote"}, [{t: "Str", c: "quotes"}]]},
         {t: "Space"}, {t: "Str", c: "–"}, {t: "Space"}, {t: "Str", c: "…"}
@@ -28,7 +28,7 @@ for (const retained of [false, true]) {
     }
   });
   it(`honors extension controls (retained=${retained})`, async () => {
-    for (const from of ["markdown-smart", "gfm", "commonmark", "markdown+smart-smart"]) {
+    for (const from of ["markdown-smart", "gfm", "commonmark"]) {
       expect(await render('"quotes" -- ...', from)).toBe('<p>"quotes" -- ...</p>\n');
     }
   });

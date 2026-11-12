@@ -7,7 +7,8 @@ import { audioSpeakerMasks, parseAudioChannelLayout } from "./audio-channel-layo
 export async function passAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   sampleFormat: string, budget: MediaBudgetTracker, signal?: AbortSignal, channelNames?: readonly string[],
-  frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[] = [{ start: 0, end: channels[0]?.length ?? 0, pts: 0 }]
+  frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[] = [{ start: 0, end: channels[0]?.length ?? 0, pts: 0 }],
+  commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<{ channels: (Float32Array | Float64Array)[]; sampleFormat: string }> {
   const name = filter.split("=", 1)[0]!.split("@", 1)[0]!;
   const lowpass = name === "lowpass";
@@ -120,77 +121,84 @@ export async function passAudio(
   }
   signal?.throwIfAborted();
   budget.checkCpu();
-  // Native FFmpeg bypasses an out-of-band cutoff when configuring the filter.
-  if (options.mix === 0 || options.width === 0 || options.frequency === 0 || options.frequency > sampleRate / 2) return { channels: [...channels], sampleFormat };
-  const angle = 2 * Math.PI * options.frequency / sampleRate;
-  const sine = Math.sin(angle);
-  const amplitude = Math.pow(10, options.gain / 40);
-  let alpha = sine / (2 * options.width);
-  switch (options.width_type) {
-    case 1: alpha = sine * options.width / (2 * options.frequency); break;
-    case 2: alpha = sine * Math.sinh(Math.LN2 / 2 * options.width * angle / sine); break;
-    case 4: alpha = sine / 2 * Math.sqrt(shelf || equalizer
-      ? (amplitude + 1 / amplitude) * (1 / options.width - 1) + 2 : 2 / options.width); break;
-    case 5: alpha = sine * options.width * 1000 / (2 * options.frequency); break;
-  }
-  let a1, a2, b0, b1, b2;
-  if (equalizer) {
-    const denominator = 1 + alpha / amplitude;
-    a1 = -2 * Math.cos(angle) / denominator;
-    a2 = (1 - alpha / amplitude) / denominator;
-    b0 = (1 + alpha * amplitude) / denominator;
-    b1 = a1;
-    b2 = (1 - alpha * amplitude) / denominator;
-  } else if (shelf) {
-    const cosine = Math.cos(angle);
-    const direction = lowShelf ? 1 : -1;
-    // bass and treble retain the legacy shelf slope; the shelf aliases use RBJ coefficients.
-    const beta = name === "bass" || name === "treble"
-      ? Math.sqrt((amplitude * amplitude + 1) - (amplitude - 1) * (amplitude - 1))
-      : 2 * Math.sqrt(amplitude);
-    let denominator;
-    if (options.poles === 1) {
-      const gain = Math.pow(10, options.gain / 20);
-      const ro = -direction * Math.sin(angle / 2 - Math.PI / 4) / Math.sin(angle / 2 + Math.PI / 4);
-      const n = (gain + 1) / (gain - 1);
-      const alpha1 = gain === 1 ? 0 : n - Math.sign(n) * Math.sqrt(n * n - 1);
-      const beta0 = ((1 + gain) + (1 - gain) * alpha1) * 0.5;
-      const beta1 = ((1 - gain) + (1 + gain) * alpha1) * 0.5;
-      denominator = 1 + ro * alpha1;
-      a1 = -direction * (ro + alpha1);
-      a2 = 0;
-      b0 = beta0 + ro * beta1;
-      b1 = -direction * (beta1 + ro * beta0);
-      b2 = 0;
-    } else {
-      denominator = (amplitude + 1) + direction * (amplitude - 1) * cosine + beta * alpha;
-      a1 = -2 * (direction * (amplitude - 1) + (amplitude + 1) * cosine);
-      a2 = (amplitude + 1) + direction * (amplitude - 1) * cosine - beta * alpha;
-      b0 = amplitude * ((amplitude + 1) - direction * (amplitude - 1) * cosine + beta * alpha);
-      b1 = 2 * amplitude * (direction * (amplitude - 1) - (amplitude + 1) * cosine);
-      b2 = amplitude * ((amplitude + 1) - direction * (amplitude - 1) * cosine - beta * alpha);
+  const initialFrequency = options.frequency;
+  const initialGain = options.gain;
+  let a1 = 0, a2 = 0, b0 = 0, b1 = 0, b2 = 0;
+  let bypass = false;
+  const configure = () => {
+    bypass = (options.mix === 0 || options.width === 0 || options.frequency === 0 || options.frequency > sampleRate / 2);
+    if (bypass) return;
+    const angle = 2 * Math.PI * options.frequency / sampleRate;
+    const sine = Math.sin(angle);
+    const amplitude = Math.pow(10, options.gain / 40);
+    let alpha = sine / (2 * options.width);
+    switch (options.width_type) {
+      case 1: alpha = sine * options.width / (2 * options.frequency); break;
+      case 2: alpha = sine * Math.sinh(Math.LN2 / 2 * options.width * angle / sine); break;
+      case 4: alpha = sine / 2 * Math.sqrt(shelf || equalizer
+        ? (amplitude + 1 / amplitude) * (1 / options.width - 1) + 2 : 2 / options.width); break;
+      case 5: alpha = sine * options.width * 1000 / (2 * options.frequency); break;
     }
-    a1 /= denominator; a2 /= denominator;
-    b0 /= denominator; b1 /= denominator; b2 /= denominator;
-  } else {
-    const a0 = options.poles === 1 ? 1 : 1 + alpha;
-    a1 = options.poles === 1 ? -Math.exp(-angle) : -2 * Math.cos(angle) / a0;
-    a2 = options.poles === 1 ? 0 : (1 - alpha) / a0;
-    b0 = bandreject ? 1 / a0 : bandpass ? (csg ? sine / 2 : alpha) / a0 : options.poles === 1
-      ? lowpass ? 1 + a1 : (1 - a1) / 2
-      : (1 + (lowpass ? -Math.cos(angle) : Math.cos(angle))) / (2 * a0);
-    b1 = bandreject ? a1 : bandpass ? 0 : options.poles === 1 ? lowpass ? 0 : -b0 : (lowpass ? 2 : -2) * b0;
-    b2 = bandpass ? -b0 : options.poles === 1 ? 0 : b0;
-  }
-  // Match FFmpeg's DC normalization before rounding coefficients to float.
-  if (normalize && Math.abs(b0 + b1 + b2) > 1e-6) {
-    const factor = (1 + a1 + a2) / (b0 + b1 + b2);
-    b0 *= factor; b1 *= factor; b2 *= factor;
-  }
-  if (single) {
-    a1 = Math.fround(a1); a2 = Math.fround(a2);
-    b0 = Math.fround(b0); b1 = Math.fround(b1); b2 = Math.fround(b2);
-  }
+    if (equalizer) {
+      const denominator = 1 + alpha / amplitude;
+      a1 = -2 * Math.cos(angle) / denominator;
+      a2 = (1 - alpha / amplitude) / denominator;
+      b0 = (1 + alpha * amplitude) / denominator;
+      b1 = a1;
+      b2 = (1 - alpha * amplitude) / denominator;
+    } else if (shelf) {
+      const cosine = Math.cos(angle);
+      const direction = lowShelf ? 1 : -1;
+      // bass and treble retain the legacy shelf slope; the shelf aliases use RBJ coefficients.
+      const beta = name === "bass" || name === "treble"
+        ? Math.sqrt((amplitude * amplitude + 1) - (amplitude - 1) * (amplitude - 1))
+        : 2 * Math.sqrt(amplitude);
+      let denominator;
+      if (options.poles === 1) {
+        const gain = Math.pow(10, options.gain / 20);
+        const ro = -direction * Math.sin(angle / 2 - Math.PI / 4) / Math.sin(angle / 2 + Math.PI / 4);
+        const n = (gain + 1) / (gain - 1);
+        const alpha1 = gain === 1 ? 0 : n - Math.sign(n) * Math.sqrt(n * n - 1);
+        const beta0 = ((1 + gain) + (1 - gain) * alpha1) * 0.5;
+        const beta1 = ((1 - gain) + (1 + gain) * alpha1) * 0.5;
+        denominator = 1 + ro * alpha1;
+        a1 = -direction * (ro + alpha1);
+        a2 = 0;
+        b0 = beta0 + ro * beta1;
+        b1 = -direction * (beta1 + ro * beta0);
+        b2 = 0;
+      } else {
+        denominator = (amplitude + 1) + direction * (amplitude - 1) * cosine + beta * alpha;
+        a1 = -2 * (direction * (amplitude - 1) + (amplitude + 1) * cosine);
+        a2 = (amplitude + 1) + direction * (amplitude - 1) * cosine - beta * alpha;
+        b0 = amplitude * ((amplitude + 1) - direction * (amplitude - 1) * cosine + beta * alpha);
+        b1 = 2 * amplitude * (direction * (amplitude - 1) - (amplitude + 1) * cosine);
+        b2 = amplitude * ((amplitude + 1) - direction * (amplitude - 1) * cosine - beta * alpha);
+      }
+      a1 /= denominator; a2 /= denominator;
+      b0 /= denominator; b1 /= denominator; b2 /= denominator;
+    } else {
+      const a0 = options.poles === 1 ? 1 : 1 + alpha;
+      a1 = options.poles === 1 ? -Math.exp(-angle) : -2 * Math.cos(angle) / a0;
+      a2 = options.poles === 1 ? 0 : (1 - alpha) / a0;
+      b0 = bandreject ? 1 / a0 : bandpass ? (csg ? sine / 2 : alpha) / a0 : options.poles === 1
+        ? lowpass ? 1 + a1 : (1 - a1) / 2
+        : (1 + (lowpass ? -Math.cos(angle) : Math.cos(angle))) / (2 * a0);
+      b1 = bandreject ? a1 : bandpass ? 0 : options.poles === 1 ? lowpass ? 0 : -b0 : (lowpass ? 2 : -2) * b0;
+      b2 = bandpass ? -b0 : options.poles === 1 ? 0 : b0;
+    }
+    // Match FFmpeg's DC normalization before rounding coefficients to float.
+    if (normalize && Math.abs(b0 + b1 + b2) > 1e-6) {
+      const factor = (1 + a1 + a2) / (b0 + b1 + b2);
+      b0 *= factor; b1 *= factor; b2 *= factor;
+    }
+    if (single) {
+      a1 = Math.fround(a1); a2 = Math.fround(a2);
+      b0 = Math.fround(b0); b1 = Math.fround(b1); b2 = Math.fround(b2);
+    }
+  };
+  configure();
+  if (bypass && commands.length === 0) return { channels: [...channels], sampleFormat };
   // Native PCM16 and float modes round every operation to single precision.
   const wet = single ? Math.fround(options.mix) : options.mix;
   const dry = single ? Math.fround(1 - wet) : 1 - wet;
@@ -231,6 +239,25 @@ export async function passAudio(
     }
   }
   for (const [index, channel] of channels.entries()) {
+    options.frequency = initialFrequency;
+    options.gain = initialGain;
+    configure();
+    let nextCommand = 0;
+    const applyCommands = (sample: number) => {
+      while (nextCommand < commands.length && commands[nextCommand]!.sample <= sample) {
+        budget.checkCpu();
+        const command = commands[nextCommand++]!;
+        const key = command.action === "f" || command.action === "frequency" ? "frequency"
+          : (command.action === "g" || command.action === "gain") && (shelf || equalizer) ? "gain" : undefined;
+        if (!key) continue;
+        try {
+          const value = parseFilterExpression(command.expression, name, { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 });
+          if (!Number.isFinite(value) || (key === "frequency" ? value < 0 || value > 999999 : value < -900 || value > 900)) continue;
+          options[key] = value;
+          configure();
+        } catch { /* Native asendcmd keeps the previous setting after a rejected command. */ }
+      }
+    };
     if (selected && !selected.includes(channelNames[index] ?? "")) {
       if (blocksize) {
         budget.allocateMemory(channel.length * 8);
@@ -252,6 +279,7 @@ export async function passAudio(
     if (blocksize) {
       block.fill(0);
       for (let offset = 0; offset < channel.length; offset += blocksize) {
+        applyCommands(offset);
         const enabled = enabledFrames === undefined || enabledFrames[offset / blocksize] === 1;
         // Refilter the previous block and lookahead with the current timeline state.
         // Only the previous block's forward history persists between calls.
@@ -263,6 +291,7 @@ export async function passAudio(
             budget.checkCpu();
           }
           const input = channel[offset - blocksize + i] ?? 0;
+          if (bypass) { block[i] = input; continue; }
           const filtered = filterSample(input, x1, x2, y1, y2);
           x2 = x1; x1 = input;
           y2 = y1; y1 = filtered;
@@ -281,7 +310,7 @@ export async function passAudio(
             budget.checkCpu();
           }
           const input = block[i]!;
-          const filtered = filterSample(input, rx1, rx2, ry1, ry2);
+          const filtered = bypass ? input : filterSample(input, rx1, rx2, ry1, ry2);
           rx2 = rx1; rx1 = input;
           ry2 = ry1; ry1 = filtered;
           const position = offset - blocksize + i;
@@ -295,12 +324,14 @@ export async function passAudio(
       continue;
     }
     for (let i = 0; i < channel.length; i++) {
+      applyCommands(i);
       if (++work % 1024 === 0) {
         await yieldTurn(signal);
         signal?.throwIfAborted();
         budget.checkCpu();
       }
       const input = channel[i]!;
+      if (bypass) { samples[i] = input; continue; }
       const filtered = filterSample(input, x1, x2, y1, y2);
       x2 = x1; x1 = input;
       y2 = y1; y1 = filtered;

@@ -14224,6 +14224,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             : action === "delays" ? "adelay"
                             : action === "start_threshold" || action === "stop_threshold" ? "silenceremove" : requestedTarget;
                           const supported = action === "enable" && ["tremolo", "vibrato", "dcshift", "deesser"].some(name => target === name || target?.startsWith(`${name}@`))
+                            || ["f", "frequency", "g", "gain"].includes(action!)
+                              && ["lowpass", "highpass", "bandpass", "bandreject", "equalizer", "bass", "lowshelf", "treble", "highshelf"].includes(target?.split("@", 1)[0] ?? "")
                             || target === "silenceremove" || target?.startsWith("silenceremove@")
                             || action === "percent" && (target === "afwtdn" || target?.startsWith("afwtdn@"))
                             || action === "tempo" && (target === "atempo" || target?.startsWith("atempo@"))
@@ -15280,7 +15282,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const mask = filteredChannelMask ?? [0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][stretched.length] ?? 0;
                         const names = filteredChannelNames ?? Object.keys(audioSpeakerMasks)
                           .filter(name => Math.floor(mask / audioSpeakerMasks[name]!) % 2 === 1);
-                        const filtered = await passAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal, names, audioTimestamps);
+                        const commands = audioCommands.filter(command => command.target === filterName || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        audioCommands = audioCommands.filter(command => command.target !== filterName && command.target !== filterTarget);
+                        const filtered = await passAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal, names, audioTimestamps, commands);
                         stretched = filtered.channels;
                         filteredSampleFormat = filtered.sampleFormat;
                         panSampleFormat = filteredSampleFormat;

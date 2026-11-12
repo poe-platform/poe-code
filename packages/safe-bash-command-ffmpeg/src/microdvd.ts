@@ -19,6 +19,9 @@ export function decodeMicrodvd(text: string): string {
     return output;
   };
   const transition = (next: string[]) => {
+    // Keep active spans outside newly introduced styles.
+    const order = [...opened, ...next];
+    next.sort((left, right) => order.indexOf(left) - order.indexOf(right));
     let common = 0;
     while (common < opened.length && opened[common] === next[common]) common++;
     for (let index = opened.length - 1; index >= common; index--) {

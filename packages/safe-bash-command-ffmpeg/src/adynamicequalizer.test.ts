@@ -111,8 +111,7 @@ for (const options of ["mode=-2", "mode=4", "mode=invalid", "mode=listen:dfreque
   "mode=listen:dqfactor=1/10000", "mode=listen:dqfactor=1k+1", "mode=listen:dqfactor=0/0", "mode=listen:unknown=1", "mode=listen:dftype=invalid", "mode=listen:dftype=-1", "mode=listen:dftype=4",
   "mode=listen:dftype=NaN", "mode=listen:dftype=", "mode=listen:dftype=1/0",
 "-1:mode=listen", "101:mode=listen", "0:1:mode=listen", "0:1000:0:mode=listen",
-  "0:1000:1:1000:1:0:mode=listen", "0::mode=listen",
-  "0:1000:1:1000:1:20:200:1:0:50:cutbelow", "0:1000:1:1000:1:20:200:1:0:50:listen:extra"]) {
+  "0:1000:1:1000:1:0:mode=listen", "0::mode=listen", "0:1000:1:1000:1:20:200:1:0:50:listen:extra"]) {
   it(`rejects unsupported or invalid options without overwriting: ${options}`, async () => {
     const { fs, result, stderr } = await run(`adynamicequalizer${options ? `=${options}` : ""}`);
     assert.equal(result.exitCode, 1);

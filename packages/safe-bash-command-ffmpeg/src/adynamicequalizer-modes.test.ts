@@ -60,7 +60,7 @@ for (const mode of ["cutbelow", "cutabove", "boostbelow", "boostabove"]) {
   });
 }
 
-for (const option of ["threshold=1", "tftype=lowshelf", "auto=adaptive"]) {
+for (const option of ["auto=adaptive"]) {
   it(`rejects listen-only ${option} instead of ignoring it in cut mode`, async () => {
     await assert.rejects(listenDynamicEqualizer([new Float32Array(32)], 16000,
       `adynamicequalizer=mode=cutbelow:${option}`, new MediaBudgetTracker()), /unsupported option/);

@@ -104,7 +104,7 @@ export function lrcAst(): MediaAstPlugin {
         ["re", doc.metadata.encoder],
         ["ve", doc.metadata.encoder?.startsWith("Lavf") ? doc.metadata.encoder.slice(4) : undefined]
       ]) {
-        if (value) lines.push(`[${tag}:${value}]\n`);
+        if (value) lines.push(`[${tag}:${value.replaceAll("\n", " ")}]\n`);
       }
       lines.push("\n");
       for (const sample of track?.samples ?? []) {

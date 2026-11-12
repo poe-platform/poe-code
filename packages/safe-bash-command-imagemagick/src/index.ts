@@ -23228,6 +23228,20 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         else if (t === "+compress") {
             delete state.netpbmAscii;
         }
+        else if (t === "-distort") {
+            const method = argv[i + 1], geometry = argv[i + 2];
+            if (method === undefined || geometry === undefined)
+                return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -distort\n" };
+            if (method.toLowerCase() !== "affineprojection")
+                return { exitCode: 1, stdout: "", stderr: `montage: unsupported distortion method '${method}'\n` };
+            try {
+                const warp = parseMagickWarpOperation(argv, state, i, { warnings: "" })!;
+                queuedTransforms.push({ kind: "distort", warp });
+                i = warp.end;
+            } catch (error) {
+                return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` };
+            }
+        }
         else if (t === "-crop") {
             const geometry = argv[++i];
             if (geometry === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -crop\n" };
@@ -23958,6 +23972,11 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     // Copy cached pixels before thumbnail operations can detach them; montage uses quantized samples.
                     return yield* transformTiles({ ...first, ...result, virtualCanvas: { width, height, x: 0, y: 0 }, data: result.data.slice(), ...(result.data16 ? { data16: result.data16.slice() } : {}), evaluateSamples: undefined }, offset + 1, operations);
                 }
+                if (transform.kind === "distort") {
+                    const plan = transform.warp.plan(image);
+                    if (plan) image = yield* applyMagickRasterSteps(image, plan.steps, signal, plan);
+                    return yield* transformTiles(image, offset + 1, operations);
+                }
                 if (transform.kind === "repage") {
                     image = { ...image, virtualCanvas: transform.geometry ? magickRepageCanvas(image, transform.geometry, "repage") : { width: 0, height: 0, x: 0, y: 0 } };
                     return yield* transformTiles(image, offset + 1, operations);
@@ -24324,6 +24343,12 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                                     frames.push(canvas);
                                 }
                                 yield* transformTiles({ ...first, ...frames[transform.index]!, virtualCanvas: { width, height, x: 0, y: 0 } }, offset + 1, operations);
+                                return;
+                            }
+                            if (transform.kind === "distort") {
+                                const plan = transform.warp.plan(tile);
+                                if (plan) tile = await transformStoredMagickRaster(tile, backend, plan.steps, signal, plan);
+                                yield* transformTiles(tile, offset + 1, operations);
                                 return;
                             }
                             if (transform.kind === "repage") {

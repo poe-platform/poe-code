@@ -239,21 +239,27 @@ export function* connectedComponentsSteps(image: RgbaImage & HueMetadata, connec
   else if (region === "pixels") next = steps.next(image.hueSamples ? image.hueSamples[index]! * 255 : image.evaluateSamples ? image.evaluateSamples[index]! : image.data16 ? image.data16[index]! / 257 : image.data[index]!);
   else { const data = region === "labels" ? labels : queue; if (value !== undefined) data[index] = value; next = steps.next(data[index]!); }
  }
+ const evaluateSamples = meanColor && image.evaluateSamples ? new Float64Array(count * 4) : undefined;
+ // CMYK labels set C, M and Y to the ID and K to zero; the backing stays RGBA.
+ const labelInks = !meanColor && image.space === "cmyk" ? new Float64Array(count * 4) : undefined;
  const text = verbose ? yield* reportSteps(next.value, sort, excludeHeader, excludeIds, image, sortOrder, precision) : "", data = new Uint8Array(count * 4), data16 = new Uint16Array(count * 4);
  for (let i = 0; i < count; i++) {
   if (i % 1024 === 0) yield;
-  const id = labels[i]! - 1, value = Math.round(id / 257);
+  const id = labels[i]! - 1, quantum = labelInks ? 65535 - id : id, value = Math.round(quantum / 257);
+  labelInks?.set([id / 65535, id / 65535, id / 65535, 0], i * 4);
   const component = next.value[id]!;
   const color = component.color.map(channel => channel / component.area);
   if (image.space === "cmyk") for (let channel = 0; channel < 3; channel++) color[channel] = (1 - color[channel]! / 255) * (255 - color[4]!);
   color.length = 4;
-  data16.set(meanColor ? color.map(channel => Math.round(channel * 257)) : [id, id, id, 65535], i * 4);
+  evaluateSamples?.set(color, i * 4);
+  data16.set(meanColor ? color.map(channel => Math.round(channel * 257)) : [quantum, quantum, quantum, 65535], i * 4);
   data.set(meanColor ? color.map(channel => Math.round(channel)) : [value, value, value, 255], i * 4);
  }
+ // Drop source sample planes so later conversions read the label raster.
  const { evaluateSamples: ignoredEvaluate, ...output } = image;
  const { hueSamples: ignoredSamples, storedHueSamples: ignoredStored, ...metadata } = output;
  if (!meanColor) { delete metadata.pngPalette; delete metadata.pngIndices; }
- return { image: { ...(!meanColor || image.space === "cmyk" ? metadata : output), ...(!meanColor ? componentLabelPalette(next.value.length) : {}), data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
+ return { image: { ...(!meanColor || image.space === "cmyk" ? metadata : output), ...(!meanColor ? componentLabelPalette(next.value.length) : {}), ...(labelInks ? { hueSamples: labelInks } : {}), ...(evaluateSamples ? { evaluateSamples } : {}), data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: labelInks ? "cmyk" : "srgb" }, text };
 }
 
 export async function connectedComponentsStored(image: StoredRgbaImage & HueMetadata, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold?: number[], keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: ConnectedComponentsSort, angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], eccentricityThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[], keepColors?: RgbaColor[], precision = 6): Promise<{ image: StoredRgbaImage & CyclePalette; text: string }> {
@@ -292,24 +298,32 @@ export async function connectedComponentsStored(image: StoredRgbaImage & HueMeta
  }
  await cache.flush();
  const position = storage.allocate(size), storedData16 = { position: storage.allocate(size * 2), length: size };
+ const storedEvaluateSamples = meanColor && image.storedEvaluateSamples !== undefined ? storage.allocate(size * 8) : undefined;
+ const storedLabelInks = !meanColor && image.space === "cmyk" ? storage.allocate(size * 8) : undefined;
  for (let offset = 0; offset < size; offset += 4096) {
   await yieldTurn(signal);
   const bytes = new Uint8Array(await storage.read(regions.labels.position + offset, Math.min(4096, size - offset), { signal })), view = new DataView(bytes.buffer);
   const data16 = new Uint16Array(bytes.length);
+  const evaluateSamples = storedEvaluateSamples === undefined ? undefined : new Float64Array(bytes.length);
+  const labelInks = storedLabelInks === undefined ? undefined : new Float64Array(bytes.length);
   for (let i = 0; i < bytes.length; i += 4) {
-   const id = view.getUint32(i, true) - 1, value = Math.round(id / 257);
+   const id = view.getUint32(i, true) - 1, quantum = labelInks ? 65535 - id : id, value = Math.round(quantum / 257);
+   labelInks?.set([id / 65535, id / 65535, id / 65535, 0], i);
    const component = next.value[id]!;
    const color = component.color.map(channel => channel / component.area);
    if (image.space === "cmyk") for (let channel = 0; channel < 3; channel++) color[channel] = (1 - color[channel]! / 255) * (255 - color[4]!);
    color.length = 4;
-   data16.set(meanColor ? color.map(channel => Math.round(channel * 257)) : [id, id, id, 65535], i);
+   evaluateSamples?.set(color, i);
+   data16.set(meanColor ? color.map(channel => Math.round(channel * 257)) : [quantum, quantum, quantum, 65535], i);
    bytes.set(meanColor ? color.map(channel => Math.round(channel)) : [value, value, value, 255], i);
   }
+  if (evaluateSamples) await storage.write(storedEvaluateSamples! + offset * 8, new Uint8Array(evaluateSamples.buffer), { signal });
+  if (labelInks) await storage.write(storedLabelInks! + offset * 8, new Uint8Array(labelInks.buffer), { signal });
   await storage.write(position + offset, bytes, { signal });
   await storage.write(storedData16.position + offset * 2, new Uint8Array(data16.buffer), { signal });
  }
  const { storedEvaluateSamples: ignoredStoredEvaluate, ...output } = image;
  const { hueSamples: ignoredSamples, storedHueSamples: ignoredStored, ...metadata } = output;
  if (!meanColor) { delete metadata.pngPalette; delete metadata.storedPngIndices; }
- return { image: { ...(!meanColor || image.space === "cmyk" ? metadata : output), ...(!meanColor ? componentLabelPalette(next.value.length) : {}), position, storedData16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
+ return { image: { ...(!meanColor || image.space === "cmyk" ? metadata : output), ...(!meanColor ? componentLabelPalette(next.value.length) : {}), ...(storedLabelInks === undefined ? {} : { storedHueSamples: storedLabelInks }), ...(storedEvaluateSamples === undefined ? {} : { storedEvaluateSamples }), position, storedData16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: storedLabelInks === undefined ? "srgb" : "cmyk" }, text };
 }

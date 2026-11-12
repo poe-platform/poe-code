@@ -7281,6 +7281,12 @@ function* drawPointPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space
 
 function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape: MagickDrawShape, highDepth = false, tile?: Pick<RgbaImage, "width" | "height">, tileOffset?: MagickState["tileOffset"]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const edges = shape.shape === "boundary" ? yield* boundaryEdges(shape.points) : undefined;
+    // Native composites even zero-coverage pixels inside the drawing bounds.
+    // With a transparent destination, that clears RGB hidden behind zero alpha.
+    const bounds = shape.shape === "boundary" ? [shape.x, shape.y, shape.x + shape.width, shape.y + shape.height]
+        : shape.shape === "line" ? [Math.min(shape.x, shape.x1) - shape.width / 2 - 1, Math.min(shape.y, shape.y1) - shape.width / 2 - 1,
+            Math.max(shape.x, shape.x1) + shape.width / 2 + 1, Math.max(shape.y, shape.y1) + shape.width / 2 + 1] : undefined;
+    const clearBounds = bounds?.map((value, index) => index < 2 ? Math.ceil(value - 0.5) : Math.floor(value + 0.5));
     const radius = shape.shape === "circle" ? shape.radius : shape.shape === "line" ? shape.width / 2 * (shape.linecap === "square" ? Math.SQRT2 : 1) : 0;
     const x0 = Math.max(0, Math.floor((shape.shape === "rectangle" || shape.shape === "polygon" || shape.shape === "boundary") ? shape.x : Math.min(shape.x, shape.shape === "line" ? shape.x1 : shape.x) - radius - 1));
     const y0 = Math.max(0, Math.floor((shape.shape === "rectangle" || shape.shape === "polygon" || shape.shape === "boundary") ? shape.y : Math.min(shape.y, shape.shape === "line" ? shape.y1 : shape.y) - radius - 1));
@@ -7297,6 +7303,9 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
         const quantum = !evaluate && highDepth ? 65535 : 255, scale = !evaluate && highDepth ? 257 : 1;
         for (let i = 0; i < count; i++) {
             const x = (start + i) % image.width, y = Math.floor((start + i) / image.width);
+            if (clearBounds && data[i * 4 + 3] === 0 && x >= clearBounds[0]! && y >= clearBounds[1]! && x <= clearBounds[2]! && y <= clearBounds[3]!) {
+                data[i * 4] = data[i * 4 + 1] = data[i * 4 + 2] = 0;
+            }
             if (x < x0 || x >= x1 || y < y0 || y >= y1) continue;
             let coverage = shape.shape === "polygon" ? polygonFillCoverage(shape.points, x, y) : 1;
             if (shape.shape === "polygon" && shape.antialias === false) coverage = coverage >= 0.5 ? 1 : 0;
@@ -7871,7 +7880,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             if (transformed) {
                 // Transform endpoint geometry before rasterizing inclusive pixel boundaries.
                 svgElements.push(`<path data-magick-fill="1" d="M ${rx},${ry} H ${rx + rw - 1} V ${ry + rh - 1} H ${rx} Z" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
-            } else if (fill.a !== 0 && (strokeColor.a === 0 || strokeWidth <= 0) && svgElements.length === 0) {
+            } else if ((tile || gradient) && fill.a !== 0 && (strokeColor.a === 0 || strokeWidth <= 0) && svgElements.length === 0) {
                 yield { kind: "shape", shape: "rectangle", gradient, tile, color: fillColor, x: rx, y: ry, width: rw, height: rh };
             } else {
                 const margin = strokeWidth / 2 + 1;

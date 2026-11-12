@@ -6883,6 +6883,10 @@ function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: Retur
     const highDepth = "data16" in image && !!image.data16 || "storedData16" in image && !!image.storedData16;
     const evaluate = "evaluateSamples" in image && !!image.evaluateSamples || "storedEvaluateSamples" in image && image.storedEvaluateSamples !== undefined;
     const compose = magickCompositeMode(state.composeRaw).name;
+    // Color-only operators leave auxiliary channels on the canvas untouched.
+    // Their grayscale backing must not be composed as if it were RGB.
+    const area = alphaSource && ["copyred", "copygreen", "copyblue", "colorize", "hue", "saturate",
+        "luminize", "darkenintensity", "lightenintensity", "modulate"].includes(compose) ? undefined : layout.area;
     const clippedCopy = compose === "copy"
         && (layout.area?.width !== image.width || layout.area.height !== image.height);
     const color = backgroundInks ? [backgroundInks[0]! * 255, backgroundInks[1]! * 255, backgroundInks[2]! * 255, background.a]
@@ -6894,7 +6898,7 @@ function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: Retur
         for (let i = 0; i < samples.length; i += 4) samples.set(color, i);
         const inks = cmyk ? new Float64Array(count * 4) : undefined;
         if (inks) for (let i = 0; i < inks.length; i += 4) inks.set(backgroundInks!, i);
-        const area = layout.area, left = Math.max(x, layout.left), right = Math.min(x + count, layout.left + (area?.width ?? 0));
+        const left = Math.max(x, layout.left), right = Math.min(x + count, layout.left + (area?.width ?? 0));
         if (area && y >= layout.top && y < layout.top + area.height && right > left) {
             const position = ((area.top + y - layout.top) * image.width + area.left + left - layout.left) * 4;
             const bytes = yield { kind: "read", evaluate, highDepth, position, length: (right - left) * 4 };

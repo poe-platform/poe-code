@@ -12370,9 +12370,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             if (cmyk) im = yield* convertCmykPixels(im);
             const out = new Uint8Array(im.data);
             const data16 = im.data16 ? new Uint16Array(im.data16) : undefined;
-            const hueSamples = cmyk ? im.hueSamples!.slice() : undefined;
+            const hueSamples = im.hueSamples?.slice();
             const evaluateSamples = im.evaluateSamples?.slice() ?? (cmyk ? Float64Array.from(data16 ?? out, value => data16 ? value / 257 : value) : undefined);
-            const samples = hueSamples ?? evaluateSamples ?? data16 ?? out, quantumScale = cmyk ? 65535 : evaluateSamples ? 257 : data16 ? 1 : 257, maximum = cmyk ? 1 : evaluateSamples ? 255 : data16 ? 65535 : 255;
+            const samples = hueSamples ?? evaluateSamples ?? data16 ?? out, quantumScale = hueSamples ? 65535 : evaluateSamples ? 257 : data16 ? 1 : 257, maximum = hueSamples ? 1 : evaluateSamples ? 255 : data16 ? 65535 : 255;
             const mask = channels
                 ? [channels.r, channels.g, channels.b, cmyk ? channels.k : channels.a && (im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false)]
                 : [true, true, true, cmyk || im.hasAlpha || im.alphaSeparate === true && im.alphaBlend !== false];
@@ -12387,11 +12387,12 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                         samples[idx + channel] = isBlack ? 0 : maximum;
                         if (!cmyk) {
                             out[idx + channel] = isBlack ? 0 : 255;
+                            if (evaluateSamples) evaluateSamples[idx + channel] = isBlack ? 0 : 255;
                             if (data16) data16[idx + channel] = isBlack ? 0 : 65535;
                         }
                     }
                 }
-                if (hueSamples && evaluateSamples) {
+                if (cmyk && hueSamples && evaluateSamples) {
                     // Black is the fourth ink; alpha remains in the RGBA backing.
                     const alpha = channels ? evaluateSamples[idx + 3]! * 257 : intensity;
                     // Plain coordinates consume only four values; percent lists can specify CMYK alpha fifth.

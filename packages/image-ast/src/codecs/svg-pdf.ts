@@ -241,8 +241,8 @@ export function* svgRasterSteps(
     return pts;
   };
 
-  const parsePathPoints = (dRaw: string | undefined): { readonly pts: SvgPathPoint[]; readonly closed: boolean } => {
-    const tokens = svgPathTokens(dRaw ?? ""), steps = svgPathSteps(), pts: SvgPathPoint[] = [];
+  const parsePathPoints = (dRaw: string | undefined, magickFill: boolean): { readonly pts: SvgPathPoint[]; readonly closed: boolean } => {
+    const tokens = svgPathTokens(dRaw ?? ""), steps = svgPathSteps(magickFill), pts: SvgPathPoint[] = [];
     let next = steps.next();
     while (!next.done) {
       if (next.value === undefined) next = steps.next(tokens.next().value);
@@ -283,7 +283,7 @@ export function* svgRasterSteps(
     const elemTransform = getAttr(attrs, "transform");
     const prevCtm = ctmStack[ctmStack.length - 1]!;
     activeCtm = elemTransform ? multiplySvgMatrices(prevCtm, parseTransformAttr(elemTransform)) : prevCtm;
-    const parsed = tag === "path" ? parsePathPoints(getAttr(attrs, "d")) : undefined;
+    const parsed = tag === "path" ? parsePathPoints(getAttr(attrs, "d"), getAttr(attrs, "data-magick-fill") === "1") : undefined;
     const points = parsed?.pts ?? (tag === "polygon" || tag === "polyline" ? parsePointsList(getAttr(attrs, "points")) : []);
     const fields: Record<string,string|undefined> = {};
     for (const name of ["data-magick-fill", "shape-rendering", "cx", "cy", "fill", "fill-rule", "fill-opacity", "font-size", "height", "opacity", "r", "rx", "ry", "stroke", "stroke-opacity", "stroke-width", "text-anchor", "width", "x", "x1", "x2", "y", "y1", "y2"]) fields[name] = getAttr(attrs, name) ?? styleStack[styleStack.length-1]![name];

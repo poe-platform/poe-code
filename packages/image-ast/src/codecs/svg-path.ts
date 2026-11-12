@@ -4,9 +4,10 @@ import {SvgNumber} from "./svg-number.js";
 export type SvgPathToken = string | number;
 export type SvgPathPoint = readonly [x: number, y: number, move?: 0 | 1];
 
-/** Shared path evaluation. Undefined requests one token; points use the existing
- * fixed curve subdivisions. The return value preserves any close-path command. */
-export function* svgPathSteps(): Generator<SvgPathPoint | undefined, boolean, SvgPathToken | undefined> {
+/** Shared path evaluation. Undefined requests one token; ImageMagick paths use bounded,
+ * control-span subdivisions, while ordinary SVG retains fixed subdivisions.
+ * The return value preserves any close-path command. */
+export function* svgPathSteps(magickFill = false): Generator<SvgPathPoint | undefined, boolean, SvgPathToken | undefined> {
     let curX = 0;
     let curY = 0;
     let startX = 0;
@@ -77,8 +78,13 @@ export function* svgPathSteps(): Generator<SvgPathPoint | undefined, boolean, Sv
         const y2 = relative ? curY + (yield* readNum()) : (yield* readNum());
         const x3 = relative ? curX + (yield* readNum()) : (yield* readNum());
         const y3 = relative ? curY + (yield* readNum()) : (yield* readNum());
-        for (let s = 1; s <= 12; s++) {
-          const t = s / 12;
+        // TraceBezier uses the largest axis span, divided by the control
+        // point count, with at most 200 subdivisions per control point.
+        const segments = magickFill ? 4 * Math.min(200, Math.floor(Math.max(4,
+          Math.max(curX, x1, x2, x3) - Math.min(curX, x1, x2, x3),
+          Math.max(curY, y1, y2, y3) - Math.min(curY, y1, y2, y3)) / 4)) : 12;
+        for (let s = 1; s <= segments; s++) {
+          const t = s / segments;
           const mt = 1 - t;
           const bx = mt * mt * mt * curX + 3 * mt * mt * t * x1 + 3 * mt * t * t * x2 + t * t * t * x3;
           const by = mt * mt * mt * curY + 3 * mt * mt * t * y1 + 3 * mt * t * t * y2 + t * t * t * y3;
@@ -94,8 +100,11 @@ export function* svgPathSteps(): Generator<SvgPathPoint | undefined, boolean, Sv
         const y1 = command === "T" ? (reflect ? 2 * curY - controlY : curY) : (relative ? curY : 0) + (yield* readNum());
         const x2 = relative ? curX + (yield* readNum()) : (yield* readNum());
         const y2 = relative ? curY + (yield* readNum()) : (yield* readNum());
-        for (let s = 1; s <= 10; s++) {
-          const t = s / 10;
+        const segments = magickFill ? 3 * Math.min(200, Math.floor(Math.max(3,
+          Math.max(curX, x1, x2) - Math.min(curX, x1, x2),
+          Math.max(curY, y1, y2) - Math.min(curY, y1, y2)) / 3)) : 10;
+        for (let s = 1; s <= segments; s++) {
+          const t = s / segments;
           const mt = 1 - t;
           const bx = mt * mt * curX + 2 * mt * t * x1 + t * t * x2;
           const by = mt * mt * curY + 2 * mt * t * y1 + t * t * y2;

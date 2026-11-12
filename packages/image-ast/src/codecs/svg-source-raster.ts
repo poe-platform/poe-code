@@ -144,7 +144,7 @@ export async function* svgSourcePixels(source:ImageByteSource,storage:ImageByteS
   const mapPoint=(x:number,y:number,move:0|1=0):readonly[number,number,0|1]=>[matrix[0]*x+matrix[2]*y+matrix[4],matrix[1]*x+matrix[3]*y+matrix[5],move];
   const points=new SvgRecords(3,storage,signal),text=new SvgRecords(1,storage,signal);let closed=false;
   if(tag==='path'&&spans.has('d')){
-   const tokens=pathTokens(reader,spans.get('d')!),steps=svgPathSteps();let next=steps.next();
+   const tokens=pathTokens(reader,spans.get('d')!),steps=svgPathSteps(attrs["data-magick-fill"] === "1");let next=steps.next();
    try{while(!next.done){if(next.value===undefined)next=steps.next((await tokens.next()).value);else{await points.push(mapPoint(...next.value));next=steps.next();}}closed=next.value;}finally{steps.return(false);await tokens.return(undefined);}
   }else if((tag==='polygon'||tag==='polyline')&&spans.has('points')){
    let x:number|undefined;for await(const number of numbers(source,spans.get('points')!,signal))if(Number.isFinite(number)){if(x===undefined)x=number;else{await points.push(mapPoint(x,number));x=undefined;}}

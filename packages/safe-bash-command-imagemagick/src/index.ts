@@ -23194,6 +23194,9 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             if (parent === undefined) return { exitCode: 1, stdout: "", stderr: "montage: unbalanced parenthesis\n" };
             groupStart = parent;
         }
+        else if (t === "-monitor" || t === "+monitor") {
+            state.monitor = t === "-monitor";
+        }
         else if (t === "-quiet" || t === "+quiet") {
             quiet = t === "-quiet";
         }
@@ -23886,6 +23889,10 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
     if (groups.length) return { exitCode: 1, stdout: "", stderr: "montage: unbalanced parenthesis\n" };
     return { warnings, regardWarnings, shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, frame, matte, title, texture };
 }
+function montageProgress(phase: "mogrify" | "tile", path: string, index: number, count: number): string {
+    const percent = Math.floor(100 * index / Math.max(1, count - 1)).toString().padStart(2, "0");
+    return `${phase} image[${path}]: ${index} of ${count}, ${percent}% complete\r${index === count - 1 ? "\n" : ""}`;
+}
 function montageTitleSvg(title: string, width: number, state: MagickState, padY: number): { svg: string; height: number } {
     // Montage doubles the title point size and reserves twice the normal line metrics.
     // Arial-compatible layout metrics; glyphs still use the portable bitmap renderer.
@@ -23915,6 +23922,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const highDepthBackground = [state.background.r, state.background.g, state.background.b, state.background.a].some(value => !Number.isInteger(value));
     const disposed = new Map<object, RgbaImage[]>();
     const analysis = { warnings: parsed.warnings };
+    let progress = "";
     const squareCells = parseMagickGeometry(geometry).isPercent && !geometry.toLowerCase().includes("x");
     const variableCells = !frame && !squareCells && cellW === undefined && cellH === undefined;
     if (operands.length < 2) {
@@ -24043,6 +24051,10 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
 
     if (canStreamTiles && fastMetaDims.length === inPaths.length) {
         const n = fastMetaDims.length;
+        if (state.monitor) for (let index = 0; index < n; index++) {
+            if (++cooperativeWork % 64 === 0) yield;
+            progress += montageProgress("mogrify", inPaths[index]!, index, n);
+        }
         const cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n)))));
         const rows = tileRows ?? Math.ceil(n / cols);
         const maxThumbW = Math.max(0, ...fastMetaDims.map((d) => d.width));
@@ -24076,6 +24088,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 const col = (idx - pageStart) % cols;
                 const row = Math.floor((idx - pageStart) / cols);
                 const p = inPaths[idx]!;
+                if (state.monitor) progress += montageProgress("tile", p, idx, n);
                 const effW = fastMetaDims[idx]!.width;
                 const effH = fastMetaDims[idx]!.height;
                 if (variableCells && col === 0) {
@@ -24350,6 +24363,10 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             }
         }
         const n = images.length;
+        if (state.monitor) for (let index = 0; index < n; index++) {
+            if (++cooperativeWork % 64 === 0) yield;
+            progress += montageProgress("mogrify", directory[index]!, index, n);
+        }
         if (!n) return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors };
         try { inferOutputFormat(outSpec, "png", firstInputFormat); }
         catch (error) { return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: ${(error as Error).message}\n` }; }
@@ -24387,6 +24404,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 const col = (idx - pageStart) % cols;
                 const row = Math.floor((idx - pageStart) / cols);
                 let im = images[idx]!;
+                if (state.monitor) progress += montageProgress("tile", directory[idx]!, idx, n);
                 images[idx] = undefined as unknown as RgbaImage;
                 if (!anyTransparent) {
                     for (let k = 3; k < im.data.length; k += 4) {
@@ -24457,7 +24475,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         files.set(outSpec.slice(5), new TextEncoder().encode(stdout));
         stdout = "";
     }
-    return { exitCode: inputErrors || (parsed.regardWarnings && analysis.warnings) ? 1 : 0, stdout, stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
+    return { exitCode: inputErrors || (parsed.regardWarnings && analysis.warnings) ? 1 : 0, stdout, stderr: progress + analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
 }
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
     return withCompareFiles(input, stdinBytes, signal, async backend => {
@@ -24529,6 +24547,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
     const highDepthBackground = [state.background.r, state.background.g, state.background.b, state.background.a].some(value => !Number.isInteger(value));
     const disposed = new Map<object, StoredRgbaImage[]>();
     const analysis = { warnings: parsed.warnings };
+    let progress = "";
     const squareCells = parseMagickGeometry(geometry).isPercent && !geometry.toLowerCase().includes("x");
     const variableCells = !frame && !squareCells && cellW === undefined && cellH === undefined;
     if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + "montage: missing an image filename\n" }; }
@@ -24813,6 +24832,13 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             }
         }
         const n = fast ? paths.length : images.length;
+        if (state.monitor) for (let index = 0; index < n; index++) {
+            await yieldTurn(signal);
+            const path = fast ? paths[index]! : (await images.get(index) as StoredMagickImage)[magickInput]?.filePath ?? paths[index]!;
+            const text = montageProgress("mogrify", path, index, n);
+            if (input.stderr) await writeIdentifyText(input.stderr, text, signal);
+            else progress += text;
+        }
         if (!n) return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors };
         const cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n))))), rows = tileRows ?? Math.ceil(n / cols);
         const slotW = maxThumbW + padX * 2 + (frame ? frame.size * 2 : 0), slotH = maxThumbH + padY * 2 + (frame ? frame.size * 2 : 0) + (shadow ? 4 : 0);
@@ -24872,6 +24898,11 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 if ((output.format === "psd" || output.format === "psb") && image.space === "cmyk") image = await transformStoredMagickPixels(image, backend,
                     { end: 0, highDepth: true, evaluate: true, apply: function* (image) { return { ...yield* copyCmykChannelsToRgb(image), evaluateSamples: undefined }; } }, signal);
                 directory.push((image as StoredMagickImage)[magickInput]?.filePath ?? paths[pageStart + index]!);
+                if (state.monitor) {
+                    const text = montageProgress("tile", directory.at(-1)!, pageStart + index, n);
+                    if (input.stderr) await writeIdentifyText(input.stderr, text, signal);
+                    else progress += text;
+                }
                 if (variableCells && col === 0) {
                     tileX = 0;
                     rowHeight = 0;
@@ -24990,7 +25021,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         const stdoutBytes = new Uint8Array(stdoutChunks.reduce((size, chunk) => size + chunk.length, 0));
         let offset = 0;
         for (const chunk of stdoutChunks) { stdoutBytes.set(chunk, offset); offset += chunk.length; }
-        return { exitCode: inputErrors || (parsed.regardWarnings && analysis.warnings) ? 1 : 0, stdout, stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
+        return { exitCode: inputErrors || (parsed.regardWarnings && analysis.warnings) ? 1 : 0, stdout, stderr: progress + analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
     });
 }
 export async function runMontageCli(argv: readonly string[], files: Map<string, Uint8Array> | ConvertFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {

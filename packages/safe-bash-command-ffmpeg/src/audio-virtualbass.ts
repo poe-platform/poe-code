@@ -23,7 +23,7 @@ export async function virtualBassAudio(
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "enable") {
       // Native advertises an internal timeline but always synthesizes the LFE.
-      parseFilterExpression(value, "virtualbass enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 });
+      parseFilterExpression(value, "virtualbass enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 }, undefined, new Float64Array(10), []);
     } else if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
       validateWeaveGenericOption(key, value, "virtualbass");
     } else {

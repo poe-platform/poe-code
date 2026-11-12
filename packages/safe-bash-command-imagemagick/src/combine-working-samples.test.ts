@@ -21,7 +21,7 @@ it.each([
     { name: "unscaled meta divide control", inputs: metaColors, separate: separateMeta, after: ["divide", "3"], expected: "2f19" },
     { name: "positive meta output clipping", inputs: metaColors, before: ["multiply", "3"], separate: separateMeta, expected: "ffff" },
     { name: "negative meta output clipping", inputs: metaColors, before: ["subtract", "90%"], separate: separateMeta, expected: "0000" },
-    { name: "mixed samples and extents across chunks", inputs: ["(", "-size", "513x2", colors[0]!, "-evaluate", "multiply", "3", ")", "(", "-size", "1x1", "xc:#505050", ")", "(", "-size", "513x2", colors[2]!, "-evaluate", "multiply", "3", ")"], after: ["divide", "3"], expected: "bc1bc0ff" + "bcbcc0ff".repeat(1025) },
+    { name: "mixed samples and extents across chunks", inputs: ["(", "-size", "513x2", colors[0]!, "-evaluate", "multiply", "3", ")", "(", "-size", "1x1", "xc:#505050", ")", "(", "-size", "513x2", colors[2]!, "-evaluate", "multiply", "3", ")"], after: ["divide", "3"], expected: ("bc1bc0ff" + "bcbcc0ff".repeat(512)).repeat(2) },
     { name: "working meta across chunks and rows", inputs: ["-size", "513x2", ...metaColors], before: ["multiply", "3"], separate: separateMeta, after: ["divide", "3"], expected: "8d4a".repeat(1026) },
 ])(`${mode}: $name`, async ({ inputs, before = [], separate = [], after = [], expected }) => {
     const files = new Map<string, Uint8Array>([["/out", Buffer.from("KEEP")]]);

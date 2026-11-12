@@ -29,7 +29,7 @@ for (const [width, height, sourceWidth, sourceHeight] of [[2, 1, 1, 2], [2, 2, 1
             const offset = (y * width + x) * 4;
             const intensity = Math.round((0.212656 * base[offset]! + 0.715158 * base[offset + 1]! + 0.072186 * base[offset + 2]!) * scale);
             expected[offset] = expected[offset + 2] = intensity;
-            expected[offset + 1] = (x < sourceWidth && y < sourceHeight ? other[(y * sourceWidth + x) * 4]! : base[offset + 1]!) * scale;
+            expected[offset + 1] = (x < sourceWidth ? other[(Math.min(y, sourceHeight - 1) * sourceWidth + x) * 4]! : base[offset + 1]!) * scale;
             expected[offset + 3] = 255 * scale;
         }
         expect(Array.from(highDepth ? output.data16! : output.data)).toEqual(expected);

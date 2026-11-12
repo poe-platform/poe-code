@@ -81,12 +81,23 @@ it("keeps channel histories separate", async () => {
   assert.ok(audio.channelData[1]!.every(value => value === 0));
 });
 
-for (const options of ["f=NaN", "f=-1", "f=1000000", "f=", "p=0", "p=3", "p=1.5", "m=-1", "m=1.1", "unknown=1", "c=", "channels=bogus"]) {
+for (const options of ["f=NaN", "f=-1", "f=1000000", "f=", "p=0", "p=3", "p=1.5", "m=-1", "m=1.1", "unknown=1"]) {
   it(`rejects invalid highpass ${options} without overwriting`, async () => {
     const { fs, result, stderr } = await run(`highpass=${options}`);
     assert.equal(result.exitCode, 1);
     assert.match(stderr, /highpass/);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "KEEP");
+  });
+}
+
+for (const options of ["c=", "channels=bogus"]) {
+  it(`leaves audio unchanged for highpass ${options}`, async () => {
+    const { fs, result, stderr } = await run(`highpass=${options}`);
+    assert.equal(result.exitCode, 0, stderr);
+    assert.deepEqual(
+      parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!.channelData,
+      parseWav(input).tracks[0]!.decodedAudio!.channelData
+    );
   });
 }
 

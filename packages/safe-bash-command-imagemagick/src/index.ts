@@ -8405,15 +8405,15 @@ function inferOutputFormat(spec: string, fallback: ImageFormat = "png", inputFor
     }
   }
   const dotIdx = spec.lastIndexOf(".");
-  if (dotIdx >= 0) {
+  if (dotIdx > spec.lastIndexOf("/") + 1) {
     const ext = spec.slice(dotIdx + 1).toLowerCase();
     const fmt = extToImageFormat(ext);
     if (fmt) return { ...inferOutputFormat(`${ext}:${spec}`, fallback), path: spec };
   }
-  if (prefixMatch && inputFormat === "XC" && !["info", "null"].includes(prefixMatch[1]!.toLowerCase())) {
+  if (inputFormat === "XC" && !["info", "null"].includes(prefixMatch?.[1]?.toLowerCase() ?? "")) {
     throw new Error("no encode delegate for this image format 'XC'");
   }
-  if (spec === "-" && inputFormat) {
+  if (inputFormat) {
     if (inputFormat === "PATTERN" || inputFormat === "HALD") throw new Error(`no encode delegate for this image format '${inputFormat}'`);
     fallback = extToImageFormat(inputFormat) ?? fallback;
   }
@@ -23988,8 +23988,8 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
     }
 
-    const output = inferOutputFormat(outSpec, "png");
-    const adjoin = state.adjoin && (output.format === "ppm" || output.format === "rgb" || output.format === "miff") && !hasSceneOutputPattern(output.path);
+    let output = inferOutputFormat(outSpec, "png", firstInputFormat);
+    let adjoin = state.adjoin && (output.format === "ppm" || output.format === "rgb" || output.format === "miff") && !hasSceneOutputPattern(output.path);
     const adjoinedPages: MagickImage[] = [];
     const stdoutChunks: Uint8Array[] = [];
     let stdout = "";
@@ -24024,7 +24024,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             detachRgbaBuffer(canvas.data);
             return;
         }
-        const { format, path, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(outSpec, "png");
+        const { format, path, pngCoder, bmpFormat, gifVersion, tiffBig } = output;
         if (format === "psd" || format === "psb") {
             if (firstInputCmyk) canvas = yield* convertCmykPixels(canvas);
             canvas = { ...canvas, bitsPerSample: state.inputDepth ?? 16 };
@@ -24394,8 +24394,9 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             progress += montageProgress("mogrify", directory[index]!, index, n);
         }
         if (!n) return { exitCode: 1, stdout: "", stderr: inputDiagnostics + analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors };
-        try { inferOutputFormat(outSpec, "png", firstInputFormat); }
+        try { output = inferOutputFormat(outSpec, "png", firstInputFormat); }
         catch (error) { return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: ${(error as Error).message}\n` }; }
+        adjoin = state.adjoin && (output.format === "ppm" || output.format === "rgb" || output.format === "miff") && !hasSceneOutputPattern(output.path);
         const cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n)))));
         const rows = tileRows ?? Math.ceil(n / cols);
         const maxThumbW = Math.max((cellW ?? 0) + (frame ? 0 : borderW * 2), ...images.map((im) => im.width));

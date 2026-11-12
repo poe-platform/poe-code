@@ -170,6 +170,7 @@ import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import {
   compositeImage,
   decodeImage,
+  readImageMetadata,
   encodeImage,
   extendImage,
   extractImage,
@@ -11492,7 +11493,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             const path = args[++i] ?? "";
-            if (pendingFormat !== undefined && !["lavfi", "rawvideo", "concat", "image2", "image2pipe", "bmp_pipe", "qoi_pipe"].includes(pendingFormat) &&
+            if (pendingFormat !== undefined && !["lavfi", "rawvideo", "concat", "image2", "image2pipe", "exr_pipe", "bmp_pipe", "qoi_pipe"].includes(pendingFormat) &&
                 !registry.findByFormatName(pendingFormat)?.canDemux) {
               await writeBytes(context.stderr,
                 encodeUtf8(`ffmpeg: Unknown input format: '${pendingFormat}' (AST not registered)\nError opening input file ${path}.\n`), context.signal);
@@ -12622,6 +12623,24 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 throw new Error("Option pattern_type not found");
               }
 
+
+              if (explicitFormat === "exr_pipe") {
+                if (videoCodec !== "copy") throw new Error("exr_pipe input currently requires -c:v copy");
+                const { format, width, height } = readImageMetadata(rawBytes);
+                if (format !== "exr") throw new Error("Invalid exr_pipe input");
+                budget.recordFrame(width, height);
+                budget.checkSamples(1);
+                const fps = fpsHint ?? 25;
+                return {
+                  containerFormat: "image2", timescale: fps, duration: 1,
+                  durationSeconds: 1 / fps, byteLength: rawBytes.length, metadata: {},
+                  tracks: [{ id: 1, type: "video", handlerType: "vide", timescale: fps, duration: 1,
+                    language: "und", enabled: true, width, height,
+                    codecDescriptions: [{ codecName: "exr", formatFourCC: "exr ", width, height, sarWidth: 0, sarHeight: 1 }],
+                    samples: [{ data: rawBytes, size: rawBytes.length, dts: 0, pts: 0, cts: 0,
+                      duration: 1, isKeyframe: true, sampleDescriptionIndex: 1 }] }]
+                };
+              }
 
               if (explicitFormat === "rawvideo") {
                 return parseRawVideo(rawBytes, input?.videoSize, input?.pixelFormat, fpsHint ?? 25, budget, videoCodec !== "copy");

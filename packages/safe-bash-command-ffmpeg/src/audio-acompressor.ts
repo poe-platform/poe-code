@@ -6,7 +6,7 @@ import { validateWeaveGenericOption } from "./weave-generic-option.js";
 export async function compressAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
   sidechain?: readonly (Float32Array | Float64Array)[],
-  commands: readonly { sample: number; expression: string }[] = []
+  commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<Float64Array[]> {
   const name = sidechain ? "sidechaincompress" : "acompressor";
   const defaults: Record<string, string> = {
@@ -60,7 +60,7 @@ export async function compressAudio(
   const level = Number(options.level_in);
   const upward = options.mode === "upward";
   const threshold = Math.log(Number(options.threshold));
-  const reduction = 1 - 1 / Number(options.ratio);
+  let reduction = 1 - 1 / Number(options.ratio);
   const attack = Math.min(1, 4000 / (Number(options.attack) * sampleRate));
   const release = Math.min(1, 4000 / (Number(options.release) * sampleRate));
   let makeup = Number(options.makeup);
@@ -83,9 +83,13 @@ export async function compressAudio(
     if (i % 4096 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
     while (nextCommand < commands.length && commands[nextCommand]!.sample <= i) {
       const command = commands[nextCommand++]!;
+      if (command.action !== "makeup" && command.action !== "ratio") continue;
       try {
         const value = parseFilterExpression(command.expression, name, {});
-        if (Number.isFinite(value) && value >= 1 && value <= 64) makeup = value;
+        const [min, max] = ranges[command.action]!;
+        if (!Number.isFinite(value) || value < min || value > max) continue;
+        if (command.action === "ratio") reduction = 1 - 1 / value;
+        else makeup = value;
       } catch { /* Native asendcmd continues after a rejected command. */ }
     }
     let detected = 0;

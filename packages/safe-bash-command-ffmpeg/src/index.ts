@@ -14245,6 +14245,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || ["p", "peak"].includes(action!) && (target === "dynaudnorm" || target?.startsWith("dynaudnorm@"))
                             || ["limit", "level_in", "level_out", "level", "enable"].includes(action!) && (target === "alimiter" || target?.startsWith("alimiter@"))
                             || action === "makeup" && ["agate", "acompressor"].some(name => target === name || target?.startsWith(`${name}@`))
+                            || action === "ratio" && (target === "acompressor" || target?.startsWith("acompressor@"))
                             || target === "atilt" || target?.startsWith("atilt@")
                             || target === "aexciter" || target?.startsWith("aexciter@")
                             || action === "range" && (target === "sidechaingate" || target?.startsWith("sidechaingate@"))

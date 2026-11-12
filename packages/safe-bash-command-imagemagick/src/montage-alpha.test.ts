@@ -6,6 +6,14 @@ import { createMagickCommand, createMontageCommand, runMontageCli, runMontageCli
 // ImageMagick 7.1.2-35 Q16-HDRI RGBA8 output for translucent color tiles.
 for (const mode of ["sync", "buffered", "retained", "magick", "montage"] as const) {
   it.each([
+    { background: "none", inputs: ["xc:#dc502080", "-alpha", "opaque"], hex: "dc5020ff" },
+    { background: "none", inputs: ["xc:#dc502080", "-alpha", "transparent"], hex: "00000000" },
+    { background: "none", inputs: ["xc:#dc502080", "-alpha", "on"], hex: "dc502080" },
+    { background: "none", inputs: ["xc:#dc502080", "-alpha", "set"], hex: "dc502080" },
+    { background: "none", inputs: ["xc:#dc502080", "-alpha", "activate"], hex: "dc502080" },
+    { background: "none", inputs: ["xc:#dc502080", "-alpha", "deactivate"], hex: "dc502080" },
+    { background: "navy", inputs: ["xc:#dc502000", "-alpha", "background", "-alpha", "off"], hex: "000080ff" },
+    { background: "navy", inputs: ["xc:#dc502000", "-alpha", "off"], hex: "dc5020ff" },
     { background: "none", inputs: ["xc:#dc502080", "-alpha", "extract"], hex: "808080ff" },
     { background: "none", inputs: ["xc:#dc502080", "-alpha", "copy"], hex: "dc50206a" },
     { background: "none", inputs: ["xc:#dc502080", "-alpha", "shape"], hex: "0000006a" },

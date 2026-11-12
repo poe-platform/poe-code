@@ -15604,9 +15604,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           } else option += char;
                         }
                         if (optionStart < argument.length) options.push(option);
-                        for (const [index, option] of options.entries()) {
+                        let optionPosition = 0;
+                        for (const option of options) {
                           const separator = option.indexOf("=");
-                          const key = separator < 0 ? ["noise", "duration", "mono"][index] : option.slice(0, separator).trim();
+                          const key = separator < 0 ? ["noise", "duration", "mono"][optionPosition] : option.slice(0, separator).trim();
+                          // Native restarts shorthand after named options, skipping the first slot
+                          // only when that slot was just visited, regardless of the named key.
+                          if (separator < 0) optionPosition++;
+                          else optionPosition = optionPosition === 0 ? 1 : 0;
                           const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
                           if (key === "noise" || key === "n") {
                             noise = parseFilterExpression(value, "silencedetect", {

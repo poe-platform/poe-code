@@ -22,7 +22,7 @@ export async function decorrelateAudio(
     // FFmpeg restarts shorthand after named options, skipping the first slot
     // when it was just visited. The named key does not select the next slot.
     optionPosition = separator < 0 ? optionPosition + 1 : optionPosition === 0 ? 1 : 0;
-    if (key === "threads") {
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
       validateWeaveGenericOption(key, option.slice(separator + 1).trim(), "adecorrelate");
       continue;
     }

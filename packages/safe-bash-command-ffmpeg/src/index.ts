@@ -21480,7 +21480,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "volume: invalid expression" || msg === "volume: invalid or unsupported expression" ||
                 msg === "volume: invalid gain") return { exitCode: 234 };
             if (msg.startsWith("adecorrelate: unsupported option ")) return { exitCode: 8 };
-            if (err instanceof RangeError && msg.startsWith("adecorrelate:")) return { exitCode: 222 };
+            if (msg.startsWith("adecorrelate:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("aemphasis: unsupported ")) return { exitCode: 8 };
             if (msg.startsWith("aemphasis:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("Unknown input format:")) return { exitCode: 234 };

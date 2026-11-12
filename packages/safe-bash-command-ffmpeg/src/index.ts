@@ -2702,14 +2702,15 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       }
       if (filters[0] === "amerge" || filters[0]?.startsWith("amerge=")) {
         // Split outputs share their inputs array. A downstream reverse drains that
-        // shared upstream to EOF, queuing the other branch before amerge runs.
+        // shared upstream to EOF. Only passthrough filters forward that queue to
+        // amerge; other branch filters schedule their own output packets.
         const paths = node.inputs.map(label => {
-          const path = new Map<string[], boolean>();
+          const path = new Map<string[], { buffered: boolean; passthrough: boolean }>();
           let buffered = false;
           let passthrough = true;
           let upstream = nodes.get(label);
           while (upstream) {
-            path.set(upstream.inputs, buffered);
+            path.set(upstream.inputs, { buffered, passthrough });
             const filters = parseFilterChain(upstream.expression)
               .map(filter => filter.split("=", 1)[0]!.split("@", 1)[0]);
             buffered ||= filters.includes("areverse");
@@ -2726,7 +2727,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         const queued = paths.map(({ path, passthrough, input }) =>
           passthrough && input !== undefined && input < lastInput ||
           paths.some(other => other.path !== path && Array.from(path)
-            .some(([inputs, buffered]) => !buffered && other.path.get(inputs) === true)));
+            .some(([inputs, state]) => state.passthrough && other.path.get(inputs)?.buffered === true)));
         for (const source of sources) {
           if (source.expression && source.expression !== "anull") {
             source.track = await filterAudio(source.track, source.expression);

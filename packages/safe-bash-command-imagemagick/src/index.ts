@@ -23104,6 +23104,7 @@ interface MontageInput {
 }
 interface MontageArguments {
     warnings: string;
+    regardWarnings: boolean;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth">[];
     shadow: boolean;
     transforms: ({ kind: "colors"; count: number; dither: MagickState["dither"]; diffusionAmount: number } | { kind: "coalesce"; inputs: MontageInput[]; index: number } | { kind: "dispose"; sequence: object; index: number } | { kind: "disposal"; value: number } | { kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | { kind: "distort"; warp: NonNullable<ReturnType<typeof parseMagickWarpOperation>> } | MontageLayers | { kind: "flip" | "flop" } | { kind: "trim"; fuzz: number } | { kind: "adaptive-sharpen"; geometry: MagickGeometry; state: MagickState } | { kind: "unsharp"; geometry: ReturnType<typeof parseUnsharpGeometry> } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "scale"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "thumbnail"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "depth"; depth: number; channels: MagickState["channels"]; dither: boolean } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "blur"; geometry: MagickGeometry } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
@@ -23112,6 +23113,7 @@ interface MontageArguments {
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
     let cooperativeWork = 63;
     let warnings = "";
+    let regardWarnings = false;
     let quiet = false;
     const state = createDefaultState();
     state.gravity = "center";
@@ -23168,6 +23170,10 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         }
         else if (t === "-quiet" || t === "+quiet") {
             quiet = t === "-quiet";
+        }
+        else if (t === "-regard-warnings" || t === "+regard-warnings") {
+            // Native enables warning failures globally; the plus form does not undo it.
+            if (t === "-regard-warnings") regardWarnings = true;
         }
         else if (t === "-adjoin" || t === "+adjoin") {
             state.adjoin = t === "-adjoin";
@@ -23735,7 +23741,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         }
     }
     if (groups.length) return { exitCode: 1, stdout: "", stderr: "montage: unbalanced parenthesis\n" };
-    return { warnings, shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, frame, matte, title, texture };
+    return { warnings, regardWarnings, shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, frame, matte, title, texture };
 }
 function montageTitleSvg(title: string, width: number, state: MagickState, padY: number): { svg: string; height: number } {
     // Montage doubles the title point size and reserves twice the normal line metrics.
@@ -24250,7 +24256,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         files.set(outSpec.slice(5), new TextEncoder().encode(stdout));
         stdout = "";
     }
-    return { exitCode: inputErrors ? 1 : 0, stdout, stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
+    return { exitCode: inputErrors || (parsed.regardWarnings && analysis.warnings) ? 1 : 0, stdout, stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
 }
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
     return withCompareFiles(input, stdinBytes, signal, async backend => {
@@ -24706,7 +24712,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         const stdoutBytes = new Uint8Array(stdoutChunks.reduce((size, chunk) => size + chunk.length, 0));
         let offset = 0;
         for (const chunk of stdoutChunks) { stdoutBytes.set(chunk, offset); offset += chunk.length; }
-        return { exitCode: inputErrors ? 1 : 0, stdout, stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
+        return { exitCode: inputErrors || (parsed.regardWarnings && analysis.warnings) ? 1 : 0, stdout, stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
     });
 }
 export async function runMontageCli(argv: readonly string[], files: Map<string, Uint8Array> | ConvertFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {

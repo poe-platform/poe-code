@@ -22654,8 +22654,10 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         : metricStr;
     const dissimilarityWarning = subimageSearch && (metricExplicit && !["ssim", "dssim", "ncc", "psnr"].includes(metric) ? searchScore > dissimilarityThreshold : searchScore < dissimilarityThreshold)
         ? `compare: images too dissimilar '${refSpec}'\n` : "";
-    const exitCode = inputErrors || (regardWarnings && (colorWarnings || dissimilarityWarning)) ? 2 : compared.value.exitCode;
-    const comparisonStderr = inputErrors + diagnostics + (quiet ? "" : colorWarnings + dissimilarityWarning);
+    const warnings = colorWarnings + dissimilarityWarning + (compared.value.constantColor
+        ? `compare: search metric is unreliable for constant-color images (${metric.toUpperCase()})\n` : "");
+    const exitCode = inputErrors || (regardWarnings && warnings) ? 2 : compared.value.exitCode;
+    const comparisonStderr = inputErrors + diagnostics + (quiet ? "" : warnings);
     if (state.formatStr !== undefined) {
         const image = { ...imgA, properties: { ...imgA.properties, distortion: formatMetricNum(compared.value.distortion) } };
         const context = { filePath: parseInputToken(refSpec).baseToken };

@@ -48,6 +48,7 @@ export interface CompareResult {
     readonly metric: string;
     readonly exitCode: number;
     readonly distortion: number;
+    readonly constantColor: boolean;
 }
 function* readCompareMaskSteps(info: CompareImage, image: 0 | 1, left: number, y: number, count: number): Generator<CompareRequest | undefined, Uint8Array | undefined, CompareSamples | undefined> {
     const mask = info.readMask;
@@ -95,6 +96,12 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
     const correlationChannels = (metric === "ncc" || metric === "dpc") ? sharedChannels.map(channel => ({ channel,
         rawA: 0, rawB: 0, sumA: 0, sumB: 0, squareA: 0, squareB: 0, product: 0
     })) : [];
+    // Native GetImageRange pools the candidate's selected channels, without
+    // alpha association or read-mask filtering. Reuse the bounded pixel reads.
+    const rangeChannels = ["ncc", "dpc", "phase"].includes(metric)
+        ? (options.channels ?? [0, 1, 2, 3, 4]).filter(channel => channel === 3 ? imgB.hasAlpha : channel !== 4 || strideB === 5)
+        : [];
+    let minimum = Infinity, maximum = -Infinity;
     for (let y = 0; y < height; y++) {
         if ((y & 511) === 511)
             yield;
@@ -168,6 +175,11 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
                     diffData[outOff + 2] = blue ? color.b * alpha + bA * (1 - alpha) : strideA === 5 ? 0 : color.b;
                     diffData[outOff + 3] = composeSrc || options.compose ? color.a : 255;
                     if (strideA === 5) diffData[outOff + 4] = selected.includes(4) ? dataA[offA + 4]! * (1 - alpha) : 0;
+                }
+                for (const channel of rangeChannels) {
+                    const sample = dataB[offB + channel]!;
+                    minimum = Math.min(minimum, sample);
+                    maximum = Math.max(maximum, sample);
                 }
                 if (!included) continue;
                 selectedPixels++;
@@ -346,7 +358,7 @@ export function* compareImageSteps(imgA: CompareImage, imgB: CompareImage, optio
             metricStr = `${formatSignificantMetric(rmseNorm * 65535, options.precision)} (${formatSignificantMetric(rmseNorm, options.precision)})`;
             break;
     }
-    return { width, height, metric: metricStr, exitCode, distortion };
+    return { width, height, metric: metricStr, exitCode, distortion, constantColor: Math.abs(maximum - minimum) < 1e-12 / 257 };
 }
 // Reuse the metric kernel on a virtual crop; translate bounded reads back to
 // the reference image so filesystem-backed searches never materialize a crop.

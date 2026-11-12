@@ -3,7 +3,7 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { transform } from "./audio-fft.js";
 import { parseFilterExpression } from "./filter-expression.js";
 
-// Window normalization and overlap-add follow FFmpeg 7's af_afftfilt.c
+// Windows, normalization and overlap-add follow FFmpeg 7's window_func.h and af_afftfilt.c
 // (LGPL-2.1-or-later), Copyright (c) 2016 Paul B Mahol.
 export async function filterFft(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
@@ -11,6 +11,7 @@ export async function filterFft(
   budget: MediaBudgetTracker, signal?: AbortSignal
 ) {
   let size = 4096, overlap = 0.75, realExpression = "re", imaginaryExpression = "im";
+  let windowFunction = "hann";
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const options = argument ? argument.split(":") : [];
   if (options.at(-1) === "") options.pop();
@@ -27,11 +28,17 @@ export async function filterFft(
       if (value < min || value > max) throw new RangeError(`afftfilt: invalid ${key}`);
       if (key === "win_size") size = value % 1 === 0.5 ? 2 * Math.round(value / 2) : Math.round(value);
       else overlap = Math.fround(value);
-    } else if (key !== "win_func" || (raw !== "hann" && raw !== "hanning" && raw !== "1")) {
+    } else if (key === "win_func") {
+      if (raw === "rect" || raw === "0") windowFunction = "rect";
+      else if (raw === "hann" || raw === "hanning" || raw === "1") windowFunction = "hann";
+      else if (raw === "hamming" || raw === "2") windowFunction = "hamming";
+      else if (raw === "blackman" || raw === "3") windowFunction = "blackman";
+      else throw new Error(`afftfilt: unsupported option ${key}`);
+    } else {
       throw new Error(`afftfilt: unsupported option ${key}`);
     }
   }
-  if (overlap === 1) overlap = 0.5; // Recommended overlap for the Hann window.
+  if (overlap === 1) overlap = windowFunction === "rect" ? 0 : windowFunction === "blackman" ? Math.fround(0.661) : 0.5;
   const hop = Math.trunc(Math.fround(size * Math.fround(1 - overlap)));
   if (hop <= 0) throw new Error("afftfilt: invalid overlap");
   const length = channels[0]?.length ?? 0;
@@ -40,8 +47,14 @@ export async function filterFft(
     + Math.ceil(length / hop) * 32 + channels.length * 160);
   signal?.throwIfAborted(); budget.checkCpu();
   const output = channels.map(() => new Float32Array(length));
-  const window = Float32Array.from({ length: size }, (_, i) =>
-    Math.sqrt(Math.fround(Math.fround(0.5 * (1 - Math.cos(2 * Math.PI * i / (size - 1)))) / size)));
+  const window = Float32Array.from({ length: size }, (_, i) => {
+    const angle = 2 * Math.PI * i / (size - 1);
+    const weight = windowFunction === "rect" ? 1
+      : windowFunction === "hamming" ? 0.54 - 0.46 * Math.cos(angle)
+      : windowFunction === "blackman" ? 0.42659 - 0.49656 * Math.cos(angle) + 0.076849 * Math.cos(2 * angle)
+      : 0.5 * (1 - Math.cos(angle));
+    return Math.sqrt(Math.fround(Math.fround(weight) / size));
+  });
   const real = new Float64Array(size), imaginary = new Float64Array(size);
   const scratch = new Float64Array(scratchLength), buffer = new Float32Array(size);
   const factor = Math.fround(Math.sqrt(Math.fround(1 - overlap)));

@@ -197,6 +197,14 @@ describe("workspace graph admission", () => {
     } finally { owned.remove(); }
   });
 
+  it("builds a local optional peer when it satisfies the declared range", () => {
+    const owned = fixture();
+    try {
+      owned.write("alpha", { name: "alpha", peerDependencies: { beta: "*" }, peerDependenciesMeta: { beta: { optional: true } } });
+      expect(createWorkspaceBuildPlan(owned.root).edges).toEqual([{ from: "alpha", to: "beta" }]);
+    } finally { owned.remove(); }
+  });
+
   it("does not derive task edges from nested package-lock installations", () => {
     const owned = fixture();
     try {

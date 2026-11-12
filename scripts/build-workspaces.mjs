@@ -6,7 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 
 const gitLocalVariablesByPath = new Map();
-const dependencyFields = ["dependencies", "devDependencies", "optionalDependencies"];
+const dependencyFields = ["dependencies", "devDependencies", "optionalDependencies", "peerDependencies"];
 const identityFields = ["dev", "ino", "mode", "size", "nlink", "mtimeMs", "ctimeMs"];
 const compareNames = (left, right) => left < right ? -1 : left > right ? 1 : 0;
 
@@ -146,15 +146,13 @@ export function createWorkspaceBuildPlan(rootDirectory, fileSystem = fs) {
       for (const [name, specifier] of Object.entries(entries)) {
         assert.equal(typeof specifier, "string", `Invalid dependency: ${workspace.name} -> ${name}`);
         if (!byName.has(name)) continue;
+        if (field === "peerDependencies") assert.ok(workspace.manifest.peerDependenciesMeta?.[name]?.optional === true, `Unsupported internal peer dependency: ${name}`);
         if (references.has(name)) assert.equal(references.get(name), specifier, `Conflicting local dependency ranges: ${name}`);
         references.set(name, specifier);
         if (!matchesWorkspaceRange(specifier, byName.get(name).version)) continue;
         dependencies.get(workspace.name).add(name);
       }
     }
-    const peers = workspace.manifest.peerDependencies ?? {};
-    assert.ok(peers && typeof peers === "object" && !Array.isArray(peers));
-    for (const name of Object.keys(peers)) assert.ok(!byName.has(name), `Unsupported internal peer dependency: ${name}`);
     for (const name of dependencies.get(workspace.name)) edges.push({ from: workspace.name, to: name });
   }
   const dependencyBuildEvents = new Map();

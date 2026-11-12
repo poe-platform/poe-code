@@ -15787,8 +15787,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 // Non-Over composition reads alpha samples directly; Off means opaque source pixels.
                 if (state.composeRaw.toLowerCase() !== "over" && !im.hasAlpha && !im.inactiveAlpha) im = yield* prepareInactiveAlphaOutput(im);
                 stack[sceneIdx] = state.composeRaw.toLowerCase() === "over" ? canvas
+<<<<<<< HEAD
                     : yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, fw, fh, state.composeArgs, signal, state.alphaFuzz, true);
                 if (im.inactiveAlpha) stack[sceneIdx] = { ...stack[sceneIdx]!, hasAlpha: false };
+=======
+                    : im.space === "cmyk"
+                        ? yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, im, fw, fh, state.composeRaw, state.composeArgs, false, state.alphaFuzz, true, undefined, true), signal, canvas, [canvas, im])
+                        : yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, fw, fh, state.composeArgs, signal, state.alphaFuzz, true);
+>>>>>>> 7f98622748 (fix(imagemagick): compose CMYK frames in ink channels)
             }
         }
         else if (t === "-deskew") {
@@ -20714,8 +20720,14 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (composeRaw.toLowerCase() === "over") return canvas;
                 // Non-Over composition reads alpha samples directly; Off means opaque source pixels.
                 if (!image.hasAlpha && !image.inactiveAlpha) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal);
+<<<<<<< HEAD
                 const composed = await compositeStoredMagick(canvas, image, backend, signal, left, top, composeRaw, composeArgs, false, true, false, false, alphaFuzz, true);
                 return image.inactiveAlpha ? { ...composed, hasAlpha: false } : composed;
+=======
+                if (image.space === "cmyk") return transformStoredMagickRaster(canvas, backend,
+                    composite16PixelSteps(canvas, image, left, top, composeRaw, composeArgs, false, alphaFuzz, true, undefined, true), signal, canvas, [canvas, image]);
+                return compositeStoredMagick(canvas, image, backend, signal, left, top, composeRaw, composeArgs, false, true, false, false, alphaFuzz, true);
+>>>>>>> 7f98622748 (fix(imagemagick): compose CMYK frames in ink channels)
             });
         } else if (!operandsOnly && token === "-border") {
             const raw = tokens[++i] ?? "", defaultBorderColor = state.borderColor, compose = state.composeRaw, composeArgs = state.composeArgs, fuzz = state.alphaFuzz, optionProperties = state.optionProperties;

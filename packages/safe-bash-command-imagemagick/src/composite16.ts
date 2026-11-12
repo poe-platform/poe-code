@@ -1,5 +1,6 @@
 import { saliencyCompositeSteps } from "./saliency-compose.js";
 import { distortCompositeSteps } from "./distort-compose.js";
+import { seamlessCompositeSteps } from "./seamless-compose.js";
 import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
@@ -19,6 +20,10 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
     left = Math.round(left);
     top = Math.round(top);
     const { name } = magickCompositeMode(mode);
+    if (name === "seamlessblend") {
+        yield* seamlessCompositeSteps(base, overlay, left, top, args, tile, channels);
+        return;
+    }
     if (name === "saliencyblend") {
         yield* saliencyCompositeSteps(base, overlay, left, top, args, channels);
         return;

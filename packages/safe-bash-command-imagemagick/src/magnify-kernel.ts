@@ -25,7 +25,7 @@ export function parseMagnifyMethod(value: string): MagnifyMethod {
 
 // Bounded row neighborhoods serve both in-memory and retained rasters.
 // Copy complete pixels, including active floating-point colorspace channels.
-export function* magnifyPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedHueSamples" | "storedEvaluateSamples">>, method: MagnifyMethod = "scale2x", background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", intensityMethod = "rec709luma"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* magnifyPixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "hueSamples" | "evaluateSamples"> & Partial<Pick<StoredRgbaImage, "storedHueSamples" | "storedEvaluateSamples">>, method: MagnifyMethod = "scale2x", background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge", intensityMethod = "rec709luma", channels?: readonly boolean[]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const hue = image.space !== "cmyk" && (!!image.hueSamples || image.storedHueSamples !== undefined);
     const evaluate = !hue && (!!image.evaluateSamples || image.storedEvaluateSamples !== undefined);
     const Samples = hue || evaluate ? Float64Array : Uint16Array;
@@ -162,6 +162,10 @@ export function* magnifyPixelSteps(image: Pick<RgbaImage, "width" | "height" | "
         for (let dy = 0; dy < factor; dy++) {
             const position = ((y * factor + dy) * image.width * factor + left * factor) * 4;
             const samples = output[dy]!;
+            // Native leaves unselected channels zero in the newly allocated raster.
+            if (channels) for (let offset = 0; offset < samples.length; offset++) {
+                if (!channels[offset % 4] && (offset % 4 !== 3 || image.hasAlpha)) samples[offset] = 0;
+            }
             if (hue) {
                 yield { kind: "write", hue: true, position, data: new Uint8Array(Float64Array.from(samples, value => value / 65535).buffer) };
             }

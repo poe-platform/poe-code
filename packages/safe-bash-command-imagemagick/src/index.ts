@@ -15691,7 +15691,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 if (image.space === "cmyk" || image.magickColorspace && !["RGB", "scRGB", "Gray", "DisplayP3", "Adobe98", "ProPhoto"].includes(image.magickColorspace)) image = yield* conversion.apply(image);
                 const width = image.width * factor, height = image.height * factor;
-                const output = yield* applyMagickRasterSteps({ ...image, isPalette: false }, magnifyPixelSteps(image, state.magnifyMethod, state.background, state.virtualPixel, state.intensity), signal, { ...image, width, height });
+                const output = yield* applyMagickRasterSteps({ ...image, isPalette: false }, magnifyPixelSteps(image, state.magnifyMethod, state.background, state.virtualPixel, state.intensity, state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined), signal, { ...image, width, height });
                 if (image.alphaBlend === false) output.alphaSeparate = false;
                 if (image.metaChannels) {
                     output.metaChannels = [];
@@ -20200,11 +20200,12 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
             const method = state.magnifyMethod, factor = method === "scale3x" || method === "eagle3x" ? 3 : 2, background = state.background, virtualPixel = state.virtualPixel, intensity = state.intensity;
             const conversion = parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!;
+            const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 if (image.space === "cmyk" || image.magickColorspace && !["RGB", "scRGB", "Gray", "DisplayP3", "Adobe98", "ProPhoto"].includes(image.magickColorspace)) image = await transformStoredMagickPixels(image, backend, conversion, signal);
                 const width = image.width * factor, height = image.height * factor;
-                const output = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, magnifyPixelSteps(image, method, background, virtualPixel, intensity), signal, { ...image, width, height });
+                const output = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, magnifyPixelSteps(image, method, background, virtualPixel, intensity, channels), signal, { ...image, width, height });
                 if (image.alphaBlend === false) output.alphaSeparate = false;
                 if (image.storedMetaChannels) {
                     output.storedMetaChannels = [];

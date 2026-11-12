@@ -15639,7 +15639,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     sortPixelSteps(image, state.intensity, image.readMask), signal, { ...image.readMask as RgbaImage, width: image.width, height: image.height }, [image, image.readMask as RgbaImage]);
                 if (image.writeMask) {
                     // Clip sorted pixels at the destination before carrying their mask forward.
-                    result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, image.writeMask, !!(result.data16 || image.data16), false, state.channels, image.hasAlpha && image.alphaBlend !== false), signal, result, [result, image, image.writeMask]);
+                    result = yield* applyMagickRasterSteps(result, writeMaskPixelSteps(result, image.writeMask, !!(result.data16 || image.data16), false, state.channels, (image.hasAlpha || image.inactiveAlpha === true) && image.alphaBlend !== false), signal, result, [result, image, image.writeMask]);
                     result.writeMask = yield* applyMagickRasterSteps(image.writeMask, sortPixelSteps(image, state.intensity, image.writeMask), signal, image.writeMask, [image, image.writeMask]);
                 }
                 // Sorting drops the alpha channel whose trait Disassociate disabled.
@@ -20098,7 +20098,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (image.readMask) result.readMask = await transformStoredMagickRaster(image.readMask as StoredRgbaImage, backend,
                     sortPixelSteps(image, intensity, image.readMask), signal, { ...image.readMask as StoredRgbaImage, width: image.width, height: image.height }, [image, image.readMask as StoredRgbaImage]);
                 if (image.storedWriteMask) {
-                    result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!(result.storedData16 || image.storedData16), false, channels, image.hasAlpha && image.alphaBlend !== false), signal, result, [result, image, image.storedWriteMask]);
+                    result = await transformStoredMagickRaster(result, backend, writeMaskPixelSteps(result, image.storedWriteMask, !!(result.storedData16 || image.storedData16), false, channels, (image.hasAlpha || image.inactiveAlpha === true) && image.alphaBlend !== false), signal, result, [result, image, image.storedWriteMask]);
                     result.storedWriteMask = await transformStoredMagickRaster(image.storedWriteMask, backend, sortPixelSteps(image, intensity, image.storedWriteMask), signal, image.storedWriteMask, [image, image.storedWriteMask]);
                 }
                 // Sorting drops the alpha channel whose trait Disassociate disabled.

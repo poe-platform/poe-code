@@ -10652,23 +10652,26 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 const evaluateSamples = new Float64Array(im.data.length);
                 const color = state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background;
                 const background = [color.r, color.g, color.b];
+                const hasAlpha = im.hasAlpha && color.a < 255;
                 for (let idx = 0; idx < out.length; idx += 4) {
                     if (idx % 65536 === 0) yield;
                     const alpha = im.hasAlpha ? (im.evaluateSamples ? im.evaluateSamples[idx + 3]! / 255 : im.data16 ? im.data16[idx + 3]! / 65535 : im.data[idx + 3]! / 255) : 1;
+                    const backgroundAlpha = color.a / 255 * (1 - alpha);
+                    const compositeAlpha = alpha + backgroundAlpha;
                     for (let channel = 0; channel < 3; channel++) {
                         const bg = background[im.channels === 2 ? 0 : channel]!;
                         const source = im.evaluateSamples ? im.evaluateSamples[idx + channel]! * 257 : im.data16 ? im.data16[idx + channel]! : im.data[idx + channel]! * 257;
-                        const blended = source * alpha + bg * 257 * (1 - alpha);
+                        const blended = (source * alpha + bg * 257 * backgroundAlpha) / Math.max(compositeAlpha, 1e-12);
                         evaluateSamples[idx + channel] = Math.fround(blended) / 257;
                         data16[idx + channel] = Math.round(Math.max(0, Math.min(65535, blended)));
                         // Round the unquantized blend directly for 8-bit output.
                         out[idx + channel] = clampByteVal(blended / 257);
                     }
-                    out[idx + 3] = 255;
-                    data16[idx + 3] = 65535;
-                    evaluateSamples[idx + 3] = 255;
+                    out[idx + 3] = clampByteVal(compositeAlpha * 255);
+                    data16[idx + 3] = Math.round(Math.max(0, Math.min(65535, compositeAlpha * 65535)));
+                    evaluateSamples[idx + 3] = Math.fround(compositeAlpha * 65535) / 257;
                 }
-                return { ...im, data: out, data16, evaluateSamples, hasAlpha: false, inactiveAlpha: false, alphaSeparate: false, channels: im.channels === 4 ? 3 : im.channels === 2 ? 1 : im.channels };
+                return { ...im, data: out, data16, evaluateSamples, hasAlpha, inactiveAlpha: false, alphaSeparate: false, channels: hasAlpha ? im.channels : im.channels === 4 ? 3 : im.channels === 2 ? 1 : im.channels };
             };
         }
         else if (mode === "associate" || mode === "disassociate") {

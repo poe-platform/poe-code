@@ -6961,7 +6961,7 @@ async function createStoredCanvas(width: number, height: number, color: RgbaColo
     return image;
 }
 
-type MagickDrawShape = { kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor });
+type MagickDrawShape = { kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number; angularStep: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor });
 type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string } | ({ kind: "floodfill" } | { kind: "paint-point" } | { kind: "reset" } | { kind: "replace" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
 
 function parseMagickCopyGeometry(image: Pick<RgbaImage, "width" | "height">, geometry: string, offset: string) {
@@ -7069,7 +7069,7 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
             if (shape.shape === "circle") {
                 // ImageMagick traces circles with angular steps of 1/(8r), then
                 // fills boundary pixels and squares the exterior distance fade.
-                const px = x - shape.x, py = y - shape.y, step = 1 / (8 * shape.radius);
+                const px = x - shape.x, py = y - shape.y, step = shape.angularStep;
                 const angle = (Math.atan2(py, px) + 2 * Math.PI) % (2 * Math.PI);
                 const start = Math.floor(angle / step) * step, end = Math.min(start + step, 2 * Math.PI);
                 const ax = shape.radius * Math.cos(start), ay = shape.radius * Math.sin(start);
@@ -7367,8 +7367,12 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const px = num();
             const py = num();
             const r = Math.max(1, Math.hypot(px - cx, py - cy));
-            if (fill.a !== 0 && (strokeColor.a === 0 || strokeWidth <= 0) && svgElements.length === 0 && !transformed) {
-                yield { kind: "shape", shape: "circle", tile, color: fillColor, x: cx, y: cy, radius: r, antialias: state.antialias !== false };
+            if (fill.a !== 0 && (strokeColor.a === 0 || strokeWidth <= 0) && svgElements.length === 0 &&
+                affine[1] === 0 && affine[2] === 0 && affine[0] === affine[3] && affine[0] > 0) {
+                // Native traces before transforming: scaling retains the original angular step.
+                yield { kind: "shape", shape: "circle", tile, color: fillColor,
+                    x: cx * affine[0] + affine[4], y: cy * affine[3] + affine[5],
+                    radius: r * affine[0], angularStep: 1 / (8 * r), antialias: state.antialias !== false };
             } else {
                 svgElements.push(`<circle cx="${cx}" cy="${cy}" r="${r}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
             }

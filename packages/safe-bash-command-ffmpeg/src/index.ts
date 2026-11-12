@@ -15262,7 +15262,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const reverse = audioFilters.slice(filterIndex + 1)
                           .some(filter => filter.trim().split("=", 1)[0]!.split("@", 1)[0] === "areverse");
                         let frameLimit = reverse && requestedFrames !== 0 ? undefined : requestedFrames;
-                        const duration = filterName === "silencedetect" && outputCut && !reverse
+                        const duration = (filterName === "silencedetect" || filterName === "volumedetect") && outputCut && !reverse
                           ? outputDuration ?? (outputTo === undefined ? undefined : outputTo - (outputSs ?? 0))
                           : undefined;
                         let outputEndPts: number | undefined;

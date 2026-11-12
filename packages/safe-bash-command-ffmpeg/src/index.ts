@@ -14574,7 +14574,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     ? parseAudioChannelLayout(inputChannelLayout) : undefined;
                   let filteredChannelNames = inputChannelNames;
                   const inputCodec = t.codecDescriptions[0]?.codecName;
-                  let filteredSampleFormat = inputCodec === "pcm_u8" ? "u8" : inputCodec === "pcm_s16le" ? "s16" : ["pcm_s24le", "pcm_s32le"].includes(inputCodec ?? "") ? "s32"
+                  let filteredSampleFormat = inputCodec === "pcm_u8" ? "u8" : inputCodec === "pcm_s16le" ? "s16" : ["pcm_s24le", "pcm_s24be", "pcm_s32le", "pcm_s32be"].includes(inputCodec ?? "") ? "s32"
                     : inputCodec === "pcm_f32le" ? "flt" : "dbl";
                   if (!autoConversionFilters) filteredSampleFormat = pcmSampleFormat(inputCodec) ?? filteredSampleFormat;
                   let panSampleFormat = inputCodec === "pcm_s16be" ? "s16" : filteredSampleFormat;

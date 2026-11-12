@@ -7464,9 +7464,25 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const cy = num();
             const rx = num();
             const ry = num();
-            num();
-            num();
-            svgElements.push(`<ellipse cx="${cx}" cy="${cy}" rx="${rx}" ry="${ry}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
+            const start = num();
+            let end = num();
+            if (rx < 0 || ry < 0) throw new Error("Ellipse radii must be nonnegative");
+            if (rx < 1e-12 || ry < 1e-12) continue;
+            if (end < start) end += Math.ceil((start - end) / 360) * 360;
+            // MVG traces ellipses at 1/(8 * max radius) radian intervals.
+            // Fill closes the arc with a chord; the stroke follows only the arc.
+            const step = 1 / (8 * Math.max(rx, ry)), finish = end * Math.PI / 180;
+            let angle = start * Math.PI / 180;
+            if (!Number.isFinite(finish) || angle + step <= angle) throw new Error("Ellipse angular interval is too large");
+            const points: string[] = [];
+            while (angle < finish) {
+                if (++cooperativeWork % 65536 === 0) yield;
+                if (points.length >= 1048576) throw new Error("Ellipse boundary exceeds resource limits");
+                points.push(`${cx + rx * Math.cos(angle % (2 * Math.PI))},${cy + ry * Math.sin(angle % (2 * Math.PI))}`);
+                angle += step;
+            }
+            points.push(`${cx + rx * Math.cos(finish % (2 * Math.PI))},${cy + ry * Math.sin(finish % (2 * Math.PI))}`);
+            svgElements.push(`<path fill-rule="${fillRule}" data-magick-fill="1" d="M ${points.join(" L ")}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
         }
         else if (cmd === "line") {
             const x0 = num();

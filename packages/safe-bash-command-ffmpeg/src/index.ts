@@ -2069,6 +2069,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       if (!connected) throw new Error("No available stream for unlabeled audio filter input");
     }
   }
+  let invalidData = false;
   const resolve = async (label: string, visiting = new Set<string>()): Promise<{ track: MediaTrack; expression: string }> => {
     if (visiting.has(label)) throw new Error("Audio filter graph contains a cycle");
     const node = nodes.get(label);
@@ -2119,6 +2120,12 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
           }
           segments.push({ ...docs[0]!, tracks: [track], duration: track.duration,
             timescale: track.timescale, durationSeconds: track.duration / track.timescale });
+          // The current segment is emitted, but an unknown end cannot start the next.
+          if (segment < concat.n - 1 && tracks.slice(segment * concat.a, (segment + 1) * concat.a)
+            .every(source => Number.isNaN(source.samples.at(-1)?.pts))) {
+            invalidData = true;
+            break;
+          }
         }
         const joined = concatMp4(segments, { budget });
         const track = joined.tracks[0]!;
@@ -2749,11 +2756,11 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
   if (!outputs.length && unlabeled.length && !maps.length) {
     return { outputs: selectAutomaticStreams(docs).flatMap(doc => doc.tracks)
       .filter(track => track.type === "audio").map(track => ({ track, expression: "" })),
-      sinks: await Promise.all(sinks.map(label => resolve(label))) };
+      sinks: await Promise.all(sinks.map(label => resolve(label))), invalidData };
   }
   if (!outputs.length) throw new Error("Audio filter graph has no output");
   return { outputs: await Promise.all(outputs.map(label => resolve(label))),
-    sinks: await Promise.all(sinks.map(label => resolve(label))) };
+    sinks: await Promise.all(sinks.map(label => resolve(label))), invalidData };
 }
 
 function timingRatio(ratio: number): [number, number] {
@@ -12574,6 +12581,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const loadedDocs: MediaDocument[] = [];
             const inputStarts: (number | undefined)[] = [];
             let demuxExitCode = 0;
+            let filterInvalidData = false;
             for (const inp of inputs) {
               await yieldTurn(context.signal);
               context.signal.throwIfAborted();
@@ -13608,7 +13616,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   loadedDocs.some((_, index) => filterComplex?.includes(`[${index}:a`));
                 if (audioGraph) {
                   if (afFilters.length) throw new Error("Cannot combine simple and complex audio filters");
-                  const { outputs, sinks } = await resolveAudioGraph(filterComplex, loadedDocs, maps, audioOutputMaps, mappedAudioLabels, filterAudio, graphCommands, budget, context.signal, outputAudioFormat);
+                  const { outputs, sinks, invalidData } = await resolveAudioGraph(filterComplex, loadedDocs, maps, audioOutputMaps, mappedAudioLabels, filterAudio, graphCommands, budget, context.signal, outputAudioFormat);
+                  filterInvalidData ||= invalidData;
                   audioSinks = sinks;
                   workingDoc = await muxMp4Cooperatively(
                     [{ ...loadedDocs[0]!, tracks: outputs.map(output => output.track) }],
@@ -14133,6 +14142,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   if (filter?.expression.includes(";")) {
                     const graph = await resolveAudioGraph(filter.expression, [{ ...workingDoc, tracks: [t] }],
                       [], new Set(), new Set(), filterAudio, graphCommands, budget, context.signal, outputAudioFormat, true);
+                    filterInvalidData ||= graph.invalidData;
                     t = graph.outputs[0]!.track;
                     filter = { ...filter, expression: graph.outputs[0]!.expression };
                   }
@@ -20304,7 +20314,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 encodeH264PresetTrack(track, videoPreset ?? "medium", budget, forceKeyFrames, maxBFrames, videoQp, videoBitrate, zeroLatency, crf), context.signal) };
             }
 
-            let decodeExitCode = demuxExitCode;
+            if (filterInvalidData && logLevel >= 16) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid data found when processing input\n"), context.signal);
+            }
+            let decodeExitCode = filterInvalidData ? 183 : demuxExitCode;
             for (const track of workingDoc.tracks) {
               if ((track.type === "subtitle" ? subtitleCodec : audioCodec) === "copy") continue;
               for (const error of track.decodeErrors ?? []) {

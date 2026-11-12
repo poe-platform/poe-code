@@ -73,7 +73,7 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
     const stroke = strokeAttr && strokeAttr !== "none" ? parseColor(strokeAttr) : { r: 0, g: 0, b: 0, a: 0 };
     const strokeW = parseSvgCoord(attrs["stroke-width"], 1, vbW) * ((effScaleX + effScaleY) / 2);
 
-    if (tag === "text" && effAlpha > 0 && textLength > 0) {
+    if (tag === "text" && (effAlpha > 0 || stroke.a > 0) && textLength > 0) {
       const [a,b,c,d] = activeCtm;
       const determinant = a*d-b*c;
       if (!Number.isFinite(determinant) || determinant === 0) return;
@@ -112,9 +112,7 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
             const gx=Math.floor(Math.floor(px)*5/glyphW),gy=Math.floor(Math.floor(py)*7/glyphH);
             if ((FONT_5X7[glyphIdx*5+gx]! & (1<<gy)) !== 0) yield* blendPixel(screenX,screenY,fill.r,fill.g,fill.b,effAlpha);
           }
-          continue;
-        }
-        for (let py = 0; py < glyphH; py++) {
+        } else for (let py = 0; py < glyphH; py++) {
           const gy = Math.min(6, Math.floor((py * 7) / glyphH));
           const screenY = charTopY + py;
           if (screenY < 0 || screenY >= height) continue;
@@ -128,6 +126,43 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
                 yield* blendPixel(screenX, screenY, fill.r, fill.g, fill.b, effAlpha);
               }
             }
+          }
+        }
+        const strokeAlpha = stroke.a * (Number.isFinite(opAttr) ? opAttr : 1) * parseSvgCoord(attrs["stroke-opacity"], 1, 1);
+        if (strokeAlpha > 0 && strokeW > 0) {
+          // Outline only exposed bitmap cell edges, never the grid inside a glyph.
+          const ink = (x: number, y: number) => x >= 0 && x < 5 && y >= 0 && y < 7 && (FONT_5X7[glyphIdx * 5 + x]! & (1 << y)) !== 0;
+          const edges: [number, number, number, number][] = [];
+          const position = (x: number, y: number): [number, number] => transformed
+            ? [tx + (a * x + c * y) / effScaleY, ty + (b * x + d * y) / effScaleY] : [x, y];
+          for (let gy = 0; gy < 7; gy++) for (let gx = 0; gx < 5; gx++) {
+            if (!ink(gx, gy)) continue;
+            const x0 = charLeftX + Math.ceil(gx * glyphW / 5), x1 = charLeftX + Math.ceil((gx + 1) * glyphW / 5);
+            const y0 = charTopY + Math.ceil(gy * glyphH / 7), y1 = charTopY + Math.ceil((gy + 1) * glyphH / 7);
+            if (!ink(gx - 1, gy)) edges.push([...position(x0, y0), ...position(x0, y1)]);
+            if (!ink(gx + 1, gy)) edges.push([...position(x1, y0), ...position(x1, y1)]);
+            if (!ink(gx, gy - 1)) edges.push([...position(x0, y0), ...position(x1, y0)]);
+            if (!ink(gx, gy + 1)) edges.push([...position(x0, y1), ...position(x1, y1)]);
+          }
+          const radius = strokeW / 2;
+          const x0 = Math.max(0, Math.floor(Math.min(...edges.flatMap(edge => [edge[0], edge[2]])) - radius));
+          const x1 = Math.min(width, Math.ceil(Math.max(...edges.flatMap(edge => [edge[0], edge[2]])) + radius));
+          const y0 = Math.max(0, Math.floor(Math.min(...edges.flatMap(edge => [edge[1], edge[3]])) - radius));
+          const y1 = Math.min(height, Math.ceil(Math.max(...edges.flatMap(edge => [edge[1], edge[3]])) + radius));
+          for (let y = y0; y < y1; y++) for (let x = x0; x < x1; x++) {
+            if (++rasterWork % 1024 === 0) yield undefined;
+            let coverage = 0;
+            for (const sy of [0.25, 0.75]) for (const sx of [0.25, 0.75]) {
+              for (const [ax, ay, bx, by] of edges) {
+                const dx = bx - ax, dy = by - ay;
+                const t = Math.max(0, Math.min(1, ((x + sx - ax) * dx + (y + sy - ay) * dy) / (dx * dx + dy * dy)));
+                if ((x + sx - ax - t * dx) ** 2 + (y + sy - ay - t * dy) ** 2 <= radius ** 2) {
+                  coverage++;
+                  break;
+                }
+              }
+            }
+            yield* blendPixel(x, y, stroke.r, stroke.g, stroke.b, Math.round(strokeAlpha * coverage / 4));
           }
         }
       }

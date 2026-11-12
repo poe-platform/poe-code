@@ -154,7 +154,7 @@ import {
 import { readBytes, writeBytes, type ByteSink } from "safe-bash-contracts/io";
 import { createOutputOperation } from "safe-bash-contracts/output";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
-import { resolveMagickPageGeometry, readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodePngToCanvas, FONT_5X7, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extendImageSteps, extractChannelImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, resizeImageSteps, rotateImageSteps } from "@poe-code/image-ast/portable";
+import { resolveMagickPageGeometry, readImageMetadataFromSource, decodeImageToStorage, transformStoredImage,type StoredRgbaImage as BaseStoredRgbaImage, UnsupportedStoredResource, decodePngToCanvas, FONT_5X7, readImageMetadata, parseColor as baseParseColor, type BlendMode, type CompositeLayer, type GravityPosition, type ImageMetadata as BaseImageMetadata, type ImageByteSource, type RgbaColor, type RgbaImage as BaseRgbaImage, applyExifOrientationSteps, compositeImageSteps, computeImageStatsSteps, ensureAlphaImageSteps, extractChannelImageSteps, extractImageSteps, flipImageSteps, flopImageSteps, resizeImageSteps, rotateImageSteps } from "@poe-code/image-ast/portable";
 
 import { combineMetaPixelSteps, type MetaChannels } from "./combine-meta.js";
 import { negateMetaPixelSteps } from "./negate-meta.js";
@@ -6246,7 +6246,7 @@ function createLabelSvg(text: string, state: MagickState): string {
       : state.gravity === "south" || state.gravity === "southwest" || state.gravity === "southeast"
         ? Math.round(h - fontSize * 0.25)
         : Math.round(h * 0.75);
-  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${bg}<text x="${textX}" y="${textY}"${anchor} font-size="${fontSize}" fill="${rgbaToCss(state.fill)}">${escapeXml(text)}</text></svg>`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${w}" height="${h}">${bg}<text x="${textX}" y="${textY}"${anchor} font-size="${fontSize}" fill="${rgbaToCss(state.fill)}" stroke="${rgbaToCss(state.stroke)}" stroke-width="${state.strokeWidth}">${escapeXml(text)}</text></svg>`;
   return svg;
 }
 
@@ -23821,6 +23821,11 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         else if (t === "-fill") {
             state.fill = parseColor(argv[++i] ?? "#000000");
         }
+        else if (t === "-stroke" || t === "+stroke") {
+            const value = t === "+stroke" ? "none" : argv[++i];
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -stroke\n" };
+            state.stroke = parseColor(value, true);
+        }
         else if (t === "-mattecolor") {
             matte = parseColor(argv[++i] ?? "#bdbdbd");
         }
@@ -23908,7 +23913,7 @@ function montageTitleSvg(title: string, width: number, state: MagickState, padY:
     const lineHeight = 2 * (Math.ceil(state.pointsize * 1854 / 2048) + Math.ceil(state.pointsize * 434 / 2048));
     const lines = title.split("\n");
     const height = lines.length * lineHeight + padY * 2;
-    const text = lines.map((line, index) => `<text x="${width / 2}" y="${padY + index * lineHeight + Math.ceil(state.pointsize * 2 * 1854 / 2048)}" text-anchor="middle" font-size="${state.pointsize * 2}" fill="${rgbaToCss(state.fill)}">${escapeXml(line)}</text>`).join("");
+    const text = lines.map((line, index) => `<text x="${width / 2}" y="${padY + index * lineHeight + Math.ceil(state.pointsize * 2 * 1854 / 2048)}" text-anchor="middle" font-size="${state.pointsize * 2}" fill="${rgbaToCss(state.fill)}" stroke="${rgbaToCss(state.stroke)}" stroke-width="${state.strokeWidth}">${escapeXml(line)}</text>`).join("");
     return { height, svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">${text}</svg>` };
 }
 function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Array>, stdinBytes?: Uint8Array, signal?: AbortSignal): Generator<void, ImageMagickCliResult, void> {
@@ -23993,7 +23998,9 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             titleHeight = height;
             const caption = decodeImage(new TextEncoder().encode(svg));
             const previous = canvas;
-            canvas = yield* extendImageSteps(canvas, { top: height, bottom: 0, left: 0, right: 0, background: state.background, extendWith: "background" });
+            const background = yield* createSolidRgbaImageSteps(previous.width, previous.height + height, state.background, !!previous.data16);
+            canvas = { ...previous, ...background, evaluateSamples: background.evaluateSamples, density: previous.density };
+            yield* blitOverRgbaInPlaceSteps(canvas, previous, 0, height);
             detachRgbaBuffer(previous.data);
             yield* blitOverRgbaInPlaceSteps(canvas, caption, 0, 0);
             detachRgbaBuffer(caption.data);
@@ -24364,7 +24371,8 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     const height = Math.ceil(Math.max(8, state.pointsize) * 1.4);
                     const caption = decodeImage(new TextEncoder().encode(createLabelSvg(text, { ...state, hasSize: true, sizeWidth: thumb.width, sizeHeight: height, gravity: "center" })));
                     const previous = thumb;
-                    thumb = yield* extendImageSteps(thumb, { top: 0, bottom: height, left: 0, right: 0, background: state.background, extendWith: "background" });
+                    thumb = yield* createSolidRgbaImageSteps(previous.width, previous.height + height, state.background, !!previous.data16);
+                    yield* blitOverRgbaInPlaceSteps(thumb, previous, 0, 0);
                     if (thumb !== previous) detachRgbaBuffer(previous.data);
                     yield* blitOverRgbaInPlaceSteps(thumb, caption, 0, thumb.height - height);
                     detachRgbaBuffer(caption.data);
@@ -24834,7 +24842,8 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                             const text = await formatRetainedIdentify(labels[index]!, image, { filePath: parseInputToken(path).baseToken }, async () => ({ image: labeled, storage: backend.storage }), signal);
                             const height = Math.ceil(Math.max(8, state.pointsize) * 1.4);
                             const caption = await decodeStoredMagickSvg(createLabelSvg(text, { ...state, hasSize: true, sizeWidth: image.width, sizeHeight: height, gravity: "center" }), 72, backend, signal);
-                            image = await transformStoredImage(image, backend.storage, { kind: "extend", top: 0, bottom: height, left: 0, right: 0, background: state.background, extendWith: "background" }, signal);
+                            const background = await createStoredCanvas(image.width, image.height + height, state.background, backend, signal, !!image.storedData16);
+                            image = await compositeStoredMagick(background, image, backend, signal, 0, 0, "over", undefined, false, true);
                             image = await compositeStoredMagick(image, caption, backend, signal, 0, image.height - height, "over", undefined, false, true);
                         }
                         if (source) (image as StoredMagickImage)[magickInput] = source;

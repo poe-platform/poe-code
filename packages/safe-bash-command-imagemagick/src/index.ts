@@ -6479,7 +6479,8 @@ function magickBorderCanvas(image: Pick<RgbaImage, "width" | "height" | "virtual
 
 function magickCropCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, left: number, top: number) {
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
-    return { width: page.width || image.width, height: page.height || image.height, x: page.x + left, y: page.y + top };
+    const { width, height } = page.width && page.height ? page : image;
+    return { width, height, x: page.x + left, y: page.y + top };
 }
 
 function magickCropViewport<T extends Pick<RgbaImage, "width" | "height" | "virtualCanvas">>(image: T, crop: T, geometry: string, gravity: GravityPosition | undefined): T {

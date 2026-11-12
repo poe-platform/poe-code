@@ -192,7 +192,7 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
     else if (target === "html5") await writeRetainedHtml(document.tree, context, working, includes ? {...options, standalone: includes.standalone} : options, includes, undefined, sidecars);
     else if (target === "commonmark" || target === "gfm") await writeRetainedMarkdown(document.tree, context, working, options, createFormatRegistry().resolve(options.to, "write"));
     else {
-      if (resourceCount || sidecars?.language !== undefined || sidecars?.direction !== undefined) throw new PandocError("E_UNSUPPORTED_FEATURE", "write", "Pandoc JSON cannot represent resources, language or direction document fields", "json", "$");
+      if (sidecars?.language !== undefined || sidecars?.direction !== undefined) throw new PandocError("E_UNSUPPORTED_FEATURE", "write", "Pandoc JSON cannot represent language or direction document fields", "json", "$");
       const diagnostics = context.snapshotDiagnostics();
       if (options.failIfWarnings && diagnostics.length) {
         const first = diagnostics[0]!;

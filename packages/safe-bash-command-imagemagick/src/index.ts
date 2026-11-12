@@ -7343,7 +7343,10 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const ry = Math.min(y0, y1);
             const rw = Math.max(1, Math.abs(x1 - x0) + 1);
             const rh = Math.max(1, Math.abs(y1 - y0) + 1);
-            if (fill.a !== 0 && (strokeColor.a === 0 || strokeWidth <= 0) && svgElements.length === 0 && !transformed) {
+            if (transformed) {
+                // Transform endpoint geometry before rasterizing inclusive pixel boundaries.
+                svgElements.push(`<path data-magick-fill="1" d="M ${rx},${ry} H ${rx + rw - 1} V ${ry + rh - 1} H ${rx} Z" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
+            } else if (fill.a !== 0 && (strokeColor.a === 0 || strokeWidth <= 0) && svgElements.length === 0) {
                 yield { kind: "shape", shape: "rectangle", tile, color: fillColor, x: rx, y: ry, width: rw, height: rh };
             } else {
                 if (fill.a !== 0) {
@@ -7365,14 +7368,30 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const ry = Math.min(y0, y1);
             const rw = Math.max(1, Math.abs(x1 - x0) + 1);
             const rh = Math.max(1, Math.abs(y1 - y0) + 1);
-            if (fill.a !== 0) {
+            if (transformed) {
+                const right = rx + rw - 1, bottom = ry + rh - 1;
+                const cx = Math.min(Math.abs(wc), (rw - 1) / 2), cy = Math.min(Math.abs(hc), (rh - 1) / 2);
+                const points: string[] = [];
+                for (let corner = 0; corner < 4; corner++) {
+                    const x = corner === 0 || corner === 3 ? right - cx : rx + cx;
+                    const y = corner < 2 ? bottom - cy : ry + cy;
+                    // Match native ellipse subdivision before applying the affine matrix.
+                    const end = (corner + 1) * Math.PI / 2, step = 1 / (8 * Math.max(cx, cy));
+                    for (let angle = corner * Math.PI / 2; angle < end; angle += step) {
+                        if (++cooperativeWork % 65536 === 0) yield;
+                        points.push(`${x + cx * Math.cos(angle)},${y + cy * Math.sin(angle)}`);
+                    }
+                    points.push(`${x + cx * Math.cos(end)},${y + cy * Math.sin(end)}`);
+                }
+                svgElements.push(`<polygon data-magick-fill="1" points="${points.join(" ")}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
+            } else if (fill.a !== 0) {
                 svgElements.push(`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" rx="${wc}" ry="${hc}" fill="${paintFill}"/>`);
             }
-            if (stroke.a > 0 && strokeWidth > 0) {
+            if (!transformed && stroke.a > 0 && strokeWidth > 0) {
                 svgElements.push(`<polygon points="${rx},${ry} ${rx + rw - 1},${ry} ${rx + rw - 1},${ry + rh - 1} ${rx},${ry + rh - 1}" fill="none" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
             }
         }
-        else if (cmd === "circle") {
+            else if (cmd === "circle") {
             const cx = num();
             const cy = num();
             const px = num();

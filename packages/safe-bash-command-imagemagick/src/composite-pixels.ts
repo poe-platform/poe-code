@@ -456,6 +456,18 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                 out[dIdx + 3] = clampByteVal(alpha * 255);
                 continue;
             }
+            if (norm === "softdodge") {
+                const alpha = sa + da - sa * da;
+                for (let c = 0; c < 3; c++) {
+                    // Native SoftDodge divides premultiplied colors, then unpremultiplies.
+                    const sc = Math.max(0, Math.min(1, src.data[sIdx + c]! / 255 * sa));
+                    const dc = Math.max(0, Math.min(1, dst.data[dIdx + c]! / 255 * da));
+                    const blend = sc <= 0 ? dc : dc >= 1 ? 1 : Math.min(1, dc / (1 - sc));
+                    out[dIdx + c] = alpha === 0 ? 0 : clampByteVal(255 * blend / alpha);
+                }
+                out[dIdx + 3] = clampByteVal(alpha * 255);
+                continue;
+            }
             if (norm === "softlight") {
                 const alpha = sa + da - sa * da;
                 for (let c = 0; c < 3; c++) {

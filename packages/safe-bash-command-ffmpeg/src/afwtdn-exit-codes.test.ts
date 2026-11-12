@@ -8,10 +8,11 @@ import { createFfmpegCommand } from "./index.js";
 // Native FFmpeg 7.0.2: identical PCM16 input and raw s16le stdout.
 const input = encodeWav({ sampleRate: 8000,
   channels: [Float64Array.from({ length: 1200 }, (_, i) => ((i * 13129) % 30001 - 15000) / 32768)] });
-const base = "afwtdn=samples=512:levels=2:wavet=sym2:sigma=0.1";
+for (const base of ["afwtdn=samples=512:levels=2:wavet=sym2:sigma=0.1", "afwtdn=0.1:2:sym2:85:0:0:512:1"])
 for (const graph of [false, true]) for (const [suffix, exitCode] of [
-  [":levels=13", 222], [":wavet=foo", 234], [":foo=1", 8], ["", 0]
-] as const) it(`afwtdn returns native status for ${suffix || "valid options"} (graph=${graph})`, async () => {
+  [":levels=13", 222], [":wavet=foo", 234], [":foo=1", 8], ["", 0], [":", 0],
+  ["::", base.includes("sigma=") ? 234 : 8]
+] as const) it(`afwtdn returns native status for ${base + suffix} (graph=${graph})`, async () => {
   const fs = Volume.fromJSON({});
   fs.writeFileSync("/in.wav", input);
   const stdout: Buffer[] = [];
@@ -33,6 +34,7 @@ for (const graph of [false, true]) for (const [suffix, exitCode] of [
   const pcm = Buffer.concat(stdout);
   assert.equal(pcm.length, exitCode === 0 ? 3054 : 0);
   if (exitCode === 0) {
+    assert.equal(stderr, "");
     assert.equal(createHash("sha256").update(pcm).digest("hex"),
       "2f2ba9f7bee86dd971296640edace24e1665063b4b55e640804c503b7b4de795");
   } else {

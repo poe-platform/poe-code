@@ -75,8 +75,10 @@ export function parseWaveletFilter(filter: string) {
   const waveletNames = Object.keys(wavelets) as (keyof typeof wavelets)[];
   let enable: string | undefined;
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+  const parts = argument ? argument.split(":") : [];
+  if (argument.endsWith(":")) parts.pop();
   let positional = 0;
-  for (const part of argument ? argument.split(":") : []) {
+  for (const part of parts) {
     const separator = part.indexOf("=");
     const key = (separator < 0 ? names[positional++] : part.slice(0, separator).trim()) as keyof typeof options | "threads" | "thread_type" | "extra_hw_frames" | "enable";
     const raw = (separator < 0 ? part : part.slice(separator + 1)).trim();

@@ -5141,7 +5141,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     const kernel = distort ? state.kernel : undefined, filter = distort ? state.resizeFilter : undefined;
     const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined;
     const compose = state.composeRaw, composeArgs = state.composeArgs, fuzz = state.alphaFuzz, seed = state.seed ?? 0n;
-    return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "inactiveAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas" | "properties">, geometry = distort ? args : spec) => {
+    return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "inactiveAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas" | "properties">, geometry = distort ? args : spec, samplingBackground = background) => {
         const viewport = distort ? image.properties?.["artifact:distort:viewport"] ?? optionViewport : undefined;
         if (token === "-shear") {
             const plan = shearPlan(image, geometry);
@@ -5184,7 +5184,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
         let plan = magickWarpPlan(image, token, distort ? spec : geometry, distort ? geometry : args);
         if (plan && (token === "-swirl" || token === "-implode")) {
             plan = { ...plan, interpolation, channels,
-                hasAlpha: plan.hasAlpha || virtualPixel === "transparent" || background.a < 255 };
+                hasAlpha: plan.hasAlpha || virtualPixel === "transparent" || samplingBackground.a < 255 };
         }
         const depolar = distort && spec.toLowerCase().replaceAll("-", "").replaceAll("_", "") === "depolar" ? plan : undefined;
         const samplingOrigin = plan?.virtualCanvas;
@@ -5223,7 +5223,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
         // DePolar samples local output coordinates, ignoring viewport/page offsets.
         if (plan && depolar) plan = { ...plan, interpolation, derivatives: depolar.derivatives!,
             map: (x, y) => depolar.map((x + 0.5) / (scale ?? 1) - 0.5, (y + 0.5) / (scale ?? 1) - 0.5) };
-        return plan ? { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel, kernel, filter, seed) } : undefined;
+        return plan ? { ...plan, steps: warpPixelSteps(image, plan, samplingBackground, virtualPixel, kernel, filter, seed) } : undefined;
     } };
 }
 
@@ -14401,7 +14401,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 if (image.metaChannels?.length && (t === "-swirl" || t === "-implode")) {
                     output.metaChannels = [];
                     for (const plane of image.metaChannels) {
-                        const metaPlan = warpOperation.plan(plane, expanded)!;
+                        // Background colors have no samples in extra channels.
+                        const metaPlan = warpOperation.plan(plane, expanded, { r: 0, g: 0, b: 0, a: 255 })!;
                         output.metaChannels.push(yield* applyMagickRasterSteps(plane, metaPlan.steps, signal, metaPlan));
                     }
                 }
@@ -18073,7 +18074,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (image.storedMetaChannels?.length && (token === "-swirl" || token === "-implode")) {
                     output.storedMetaChannels = [];
                     for (const plane of image.storedMetaChannels) {
-                        const metaPlan = warpOperation.plan(plane, expanded)!;
+                        // Background colors have no samples in extra channels.
+                        const metaPlan = warpOperation.plan(plane, expanded, { r: 0, g: 0, b: 0, a: 255 })!;
                         output.storedMetaChannels.push(await transformStoredMagickRaster(plane, backend, metaPlan.steps, signal, metaPlan));
                     }
                 }

@@ -6096,7 +6096,7 @@ async function applyVideoFilterChain(
         n: 0, t: NaN, pts: NaN, TB: 1 / timescale, start_pts: NaN, key: 0, selected_n: 0, scene: NaN,
         prev_selected_n: NaN, prev_selected_pts: NaN, prev_selected_t: NaN,
         prev_pts: NaN, prev_t: NaN,
-        start_t: NaN
+        start_t: NaN, concatdec_select: NaN
       };
       const registers = new Float64Array(10);
       const randomStates: BigUint64Array[] = [];
@@ -6126,6 +6126,14 @@ async function applyVideoFilterChain(
           variables.pos = f.offset ?? NaN;
           variables.pict_type = f.pictureType ?? 0;
           variables.interlace_type = f.interlaced ? (f.topFieldFirst ? 1 : 2) : 0;
+          const start = f.filterMetadata?.["lavf.concatdec.start_time"];
+          const duration = f.filterMetadata?.["lavf.concatdec.duration"];
+          // Concat segment boundaries are integer microseconds, with an exclusive end.
+          const pts = Number.isNaN(f.ptsSeconds) ? -(2 ** 63)
+            : Math.sign(f.ptsSeconds) * Math.round(Math.abs(f.ptsSeconds) * 1_000_000);
+          const startTime = Number.parseInt(start ?? "", 10) || 0;
+          variables.concatdec_select = start === undefined ? NaN : pts < startTime ? 0
+            : duration === undefined || pts < startTime + (Number.parseInt(duration, 10) || 0) ? -1 : 0;
           const selected = parseFilterExpression(expr, "select", variables, undefined, registers, randomStates) !== 0;
           variables.prev_pts = variables.pts;
           variables.prev_t = f.ptsSeconds;

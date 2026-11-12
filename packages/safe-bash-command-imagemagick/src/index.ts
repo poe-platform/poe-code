@@ -119,6 +119,7 @@ import { cannyPixelSteps } from "./canny-kernel.js";
 import { shadowPixelSteps, vignetteLayout, vignettePixelSteps, raisePixelSteps } from "./effects-kernel.js";
 import { shearPlan, shearPixelSteps } from "./shear-kernel.js";
 import { compositePixelsSteps, magickCompositeMode, magickComposeNames } from "./composite-pixels.js";
+import { drawImageOverSteps } from "./draw-image.js";
 import { composite16PixelSteps } from "./composite16.js";
 import { steganoPixelSteps } from "./stegano.js";
 import { stereoPixelSteps } from "./stereo.js";
@@ -6994,7 +6995,7 @@ function magickDrawGradientColor(gradient: MagickDrawGradient, x: number, y: num
 }
 
 type MagickDrawShape = { gradient?: MagickDrawGradient | undefined; kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "boundary"; points: readonly BoundaryPoint[]; width: number; height: number; strokeWidth: number; fill: RgbaColor } | { shape: "circle"; radius: number; angularStep: number } | { shape: "polygon"; points: readonly DrawPoint[]; width: number; height: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor; linecap: "butt" | "round" | "square" });
-type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string; tile?: boolean } | ({ kind: "floodfill" } | { kind: "paint-point" } | { kind: "reset" } | { kind: "replace" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
+type MagickDrawStep = { kind: "image"; source: string; mode: string; width: number; height: number; affine: [number, number, number, number, number, number] } | MagickDrawShape | { kind: "svg"; svg: string; tile?: boolean } | ({ kind: "floodfill" } | { kind: "paint-point" } | { kind: "reset" } | { kind: "replace" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
 
 function parseMagickCopyGeometry(image: Pick<RgbaImage, "width" | "height">, geometry: string, offset: string) {
     validateMagickTransformGeometry(geometry, "-copy");
@@ -7237,12 +7238,23 @@ function* drawOverlayPixelSteps(image: Pick<RgbaImage, "width" | "height">, over
     }
 }
 
-function* applyMagickDrawingSteps(im: RgbaImage, drawSpec: string, state: MagickState, tile?: RgbaImage, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+function* applyMagickDrawingSteps(im: RgbaImage, drawSpec: string, state: MagickState, files: Map<string, Uint8Array>, tile?: RgbaImage, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     for (const step of magickDrawSteps(im, drawSpec, state)) {
         if (!step) { yield; continue; }
         if ((im.space === "b-w" || im.space === "grey16") && !((step.kind === "floodfill" || step.kind === "paint-point" || step.kind === "reset" || step.kind === "replace") && step.alphaOnly))
             im = { ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 };
-        if (step.kind === "shape") im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step, !!im.data16, tile, state.tileOffset), signal, { ...im, hasAlpha: true }, tile ? [im, tile] : [im]);
+        if (step.kind === "image") {
+            let source = yield* parseInputOperandSteps(step.source, files, createDefaultState());
+            if (!source) throw new Error(`Unable to read drawing image '${step.source}'`);
+            if ((step.width !== 0 && step.width !== source.width) || (step.height !== 0 && step.height !== source.height))
+                source = yield* applyMagickResizeSteps(source, `${step.width}x${step.height}!`, state.kernel, false, false, false, state.resizeFilter, undefined, true);
+            const [,,,, x, y] = step.affine;
+            im = yield* applyMagickRasterSteps(im, step.mode === "over" || step.mode === "srcover"
+                ? drawImageOverSteps(im, source, step.affine, state.interpolation)
+                : composite16PixelSteps({ ...im, hasAlpha: im.hasAlpha || source.hasAlpha }, source, x, y, step.mode, undefined, false, 0, true), signal,
+                { ...im, hasAlpha: im.hasAlpha || source.hasAlpha }, [im, source]);
+        }
+        else if (step.kind === "shape") im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step, !!im.data16, tile, state.tileOffset), signal, { ...im, hasAlpha: true }, tile ? [im, tile] : [im]);
         else if (step.kind === "paint-point" || step.kind === "reset") {
             im = yield* applyMagickRasterSteps(im, drawPointPixelSteps(im, step, !!im.data16), signal, { ...im, hasAlpha: im.hasAlpha || step.color.a < 255 });
             if (step.kind === "paint-point") im = { ...im, hasAlpha: true, alphaBlend: true, inactiveAlpha: false, alphaSeparate: false };
@@ -7263,7 +7275,18 @@ async function applyStoredMagickDrawing(image: StoredRgbaImage, drawing: string,
         if (!step) { await yieldTurn(signal); continue; }
         if ((image.space === "b-w" || image.space === "grey16") && !((step.kind === "floodfill" || step.kind === "paint-point" || step.kind === "reset" || step.kind === "replace") && step.alphaOnly))
             image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
-        if (step.kind === "shape") image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step, !!image.storedData16, tile, settings.tileOffset), signal, { ...image, hasAlpha: true }, tile ? [image, tile] : [image]);
+        if (step.kind === "image") {
+            let source = await parseStoredCompareInput(step.source, createDefaultState(), backend, signal);
+            if (!source) throw new Error(`Unable to read drawing image '${step.source}'`);
+            if ((step.width !== 0 && step.width !== source.width) || (step.height !== 0 && step.height !== source.height))
+                source = await resizeStoredMagickImage(source, backend, magickResizeOptions(source, `${step.width}x${step.height}!`, settings.kernel), signal, false, false, false, settings.resizeFilter, undefined, true);
+            const [,,,, x, y] = step.affine;
+            image = await transformStoredMagickRaster(image, backend, step.mode === "over" || step.mode === "srcover"
+                ? drawImageOverSteps(image, source, step.affine, settings.interpolation)
+                : composite16PixelSteps({ ...image, hasAlpha: image.hasAlpha || source.hasAlpha }, source, x, y, step.mode, undefined, false, 0, true), signal,
+                { ...image, hasAlpha: image.hasAlpha || source.hasAlpha }, [image, source]);
+        }
+        else if (step.kind === "shape") image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step, !!image.storedData16, tile, settings.tileOffset), signal, { ...image, hasAlpha: true }, tile ? [image, tile] : [image]);
         else if (step.kind === "paint-point" || step.kind === "reset") {
             image = await transformStoredMagickRaster(image, backend, drawPointPixelSteps(image, step, !!image.storedData16), signal, { ...image, hasAlpha: image.hasAlpha || step.color.a < 255 });
             if (step.kind === "paint-point") image = { ...image, hasAlpha: true, alphaBlend: true, inactiveAlpha: false, alphaSeparate: false };
@@ -7367,7 +7390,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         if (fillOpacity !== undefined && fill.a !== 0) fillColor.a = fillOpacity * 255;
         if (strokeOpacity !== undefined && stroke.a !== 0) strokeColor.a = strokeOpacity * 255;
         const paintFill = rgbaToCss(fillColor), paintStroke = rgbaToCss(strokeColor);
-        if (svgElements.length > 0 && ((tile && ["path", "polygon", "point"].includes(cmd)) || ["line", "polyline", "circle", "rectangle", "roundrectangle"].includes(cmd) ||
+        if (svgElements.length > 0 && ((tile && ["path", "polygon", "point"].includes(cmd)) || ["image", "line", "polyline", "circle", "rectangle", "roundrectangle"].includes(cmd) ||
             ((fillOpacity !== undefined || strokeOpacity !== undefined) && ["point", "rectangle"].includes(cmd)))) {
             yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${svgElements.join("")}</svg>` };
             svgElements.length = 0;
@@ -7608,6 +7631,18 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             if (!Number.isFinite(x) || !Number.isFinite(y)) throw new Error("Drawing requires finite point coordinates");
             if ((tile || !transformed) && svgElements.length === 0) yield { kind: "shape", shape: "rectangle", tile, color: fillColor, x, y, width: 1, height: 1 };
             else svgElements.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${paintFill}"/>`);
+        }
+        else if (cmd === "image") {
+            const mode = tokens[i++]?.toLowerCase() ?? "";
+            if (!magickComposeNames.some(name => name.toLowerCase() === mode)) throw new Error(`Unrecognized drawing compose operator '${mode}'`);
+            const x = num(), y = num(), width = num(), height = num();
+            const source = tokens[i++];
+            if (!source) throw new Error("Image drawing requires a source filename");
+            if (width < 0 || height < 0 || !Number.isSafeInteger(Math.ceil(width) * Math.ceil(height) * 8) || Math.max(width, height, width * height * 8) > 0x7fffffff)
+                throw new Error("Drawing image dimensions exceed resource limits");
+            const tx = Math.ceil(affine[0] * x + affine[2] * y + affine[4] - 0.5), ty = Math.ceil(affine[1] * x + affine[3] * y + affine[5] - 0.5);
+            if (!Number.isFinite(tx) || !Number.isFinite(ty)) throw new Error("Drawing requires finite image coordinates");
+            yield { kind: "image", source, mode, width, height, affine: [affine[0], affine[1], affine[2], affine[3], tx, ty] };
         }
         else if (cmd === "text") {
             const x = num();
@@ -8497,7 +8532,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         const drawing = new TextDecoder().decode(bytes);
         const { width, height } = yield* mvgCanvasSizeSteps(drawing, state);
         const tile = state.tile === undefined ? undefined : yield* parseInputOperandSteps(state.tile, files, state, stdinBytes, analysis);
-        const image = yield* applyMagickDrawingSteps(yield* createSolidRgbaImageSteps(width, height, state.background), drawing, state, tile);
+        const image = yield* applyMagickDrawingSteps(yield* createSolidRgbaImageSteps(width, height, state.background), drawing, state, files, tile);
         return yield* applyMod([Object.assign(image, { [magickInput]: { filePath: path, byteLen: bytes.length, inputFormat: "MVG" } })]);
     }
     if (lower.startsWith("cube:")) {
@@ -16020,7 +16055,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             const drawSpec = tokens[++i] ?? "";
             const tile = state.tile === undefined ? undefined : yield* parseInputOperandSteps(state.tile, files, state, stdinBytes, analysis);
             if (state.tile !== undefined && !tile) throw new Error(`Unable to read drawing tile '${state.tile}'`);
-            stack = yield* mapMagickImagesSteps(stack, im => applyMagickDrawingSteps(im, drawSpec, state, tile, signal));
+            stack = yield* mapMagickImagesSteps(stack, im => applyMagickDrawingSteps(im, drawSpec, state, files, tile, signal));
         }
         else if (t === "-annotate") {
             const offsetOrText = tokens[++i] ?? "+0+0";

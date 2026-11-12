@@ -11,7 +11,7 @@ type Steps = Generator<ConvolveRequest | undefined, void, Uint8Array | undefined
 
 export type LookupInterpolation = "background" | "blend" | "bilinear" | "nearest" | "integer" | "average" | "average9" | "average16" | "mesh" | "catrom" | "spline";
 
-function* sampleLookup(lut: Pick<RgbaImage, "width" | "height" | "hasAlpha"> & { inactiveAlpha?: boolean | undefined }, x: number, y: number, highDepth: boolean, interpolation: LookupInterpolation, background: RgbaColor = { r: 255, g: 255, b: 255, a: 255 }, virtualPixel: VirtualPixelMethod = "edge", cmyk = false): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
+export function* sampleLookup(lut: Pick<RgbaImage, "width" | "height" | "hasAlpha"> & { inactiveAlpha?: boolean | undefined }, x: number, y: number, highDepth: boolean, interpolation: LookupInterpolation, background: RgbaColor = { r: 255, g: 255, b: 255, a: 255 }, virtualPixel: VirtualPixelMethod = "edge", cmyk = false): Generator<ConvolveRequest, number[], Uint8Array | undefined> {
     if (interpolation === "background") return [background.r, background.g, background.b, background.a].map(value => value * (highDepth ? 257 : 1));
     const nearest = interpolation === "nearest", single = nearest || interpolation === "integer";
     const averageSize = interpolation === "average" ? 2 : interpolation === "average9" ? 3 : interpolation === "average16" ? 4 : 0;

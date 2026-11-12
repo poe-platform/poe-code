@@ -1,5 +1,4 @@
 import { expect, it } from "vitest";
-import { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
@@ -92,7 +91,7 @@ for (const mode of ["buffered", "command", "sync"] as const) {
     it.each(samples)(`modulates %s %s %s via ${mode}`, async (space, color, value, expected) => {
         const files = new Map<string, Uint8Array>();
         const filesystem = new MemoryFileSystem();
-        const args = ["-size", "1x1", `xc:${color}`, "-define", `modulate:colorspace=${space}`, "-modulate", value, "out.png"];
+        const args = ["-size", "1x1", `xc:${color}`, "-define", `modulate:colorspace=${space}`, "-modulate", value, "-depth", "8", "rgba:out.rgba"];
         const argumentValues = createCommandArguments(args);
         const result = mode === "command" ? await createMagickCommand().execute({
             command: "magick", args: argumentValues.args, argumentValues, fs: filesystem, cwd: "/", env: {},
@@ -100,15 +99,15 @@ for (const mode of ["buffered", "command", "sync"] as const) {
             stdout: { async write() {} }, stderr: { async write() {} },
         }) : mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, files);
         expect(result).toMatchObject({ exitCode: 0 });
-        const output = mode === "command" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
-        expect([...decodeImage(output).data]).toEqual(expected);
+        const output = mode === "command" ? await filesystem.readFile("/out.rgba") : files.get("out.rgba")!;
+        expect([...output]).toEqual(expected);
     });
 }
 
 it("captures each modulation definition and restores HSL with +define", async () => {
     const files = new Map<string, Uint8Array>();
-    const result = await runConvertCli(["-size", "1x1", "xc:#1964dc", "-define", "modulate:colorspace=hSb", "-modulate", "80,60,120", "-write", "hsb.png", "+delete", "-size", "1x1", "xc:#1964dc", "+define", "modulate:colorspace", "-modulate", "80,60,120", "hsl.png"], files);
+    const result = await runConvertCli(["-size", "1x1", "xc:#1964dc", "-define", "modulate:colorspace=hSb", "-modulate", "80,60,120", "-depth", "8", "-write", "rgba:hsb.rgba", "+delete", "-size", "1x1", "xc:#1964dc", "+define", "modulate:colorspace", "-modulate", "80,60,120", "rgba:hsl.rgba"], files);
     expect(result.exitCode).toBe(0);
-    expect([...decodeImage(files.get("hsb.png")!).data]).toEqual([103, 82, 176, 255]);
-    expect([...decodeImage(files.get("hsl.png")!).data]).toEqual([71, 51, 145, 255]);
+    expect([...files.get("hsb.rgba")!]).toEqual([103, 82, 176, 255]);
+    expect([...files.get("hsl.rgba")!]).toEqual([71, 51, 145, 255]);
 });

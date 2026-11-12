@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import { decodeImage, encodeImage } from "@poe-code/image-ast";
+import { encodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
@@ -38,11 +38,11 @@ for (const mode of ["buffered", "command", "sync"] as const) {
     ] as const)(`accepts native modulation geometry %s via ${mode}`, async (value, rgb) => {
         const files = new Map<string, Uint8Array>();
         const filesystem = new MemoryFileSystem();
-        const args = ["-size", "1x1", "xc:#1964dc", "-modulate", value, "out.png"];
+        const args = ["-size", "1x1", "xc:#1964dc", "-modulate", value, "-depth", "8", "rgba:out.rgba"];
         const result = mode === "sync" ? runConvertCliSync(args, files)
             : await runConvertCli(args, mode === "command" ? { filesystem, cwd: "/" } : files);
         expect(result.exitCode).toBe(0);
-        const output = mode === "command" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
-        expect([...decodeImage(output).data]).toEqual([...rgb, 255]);
+        const output = mode === "command" ? await filesystem.readFile("/out.rgba") : files.get("out.rgba")!;
+        expect([...output]).toEqual([...rgb, 255]);
     });
 }

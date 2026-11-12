@@ -10003,6 +10003,7 @@ interface InputSpec {
   readonly fps?: number | undefined;
   readonly startNumber?: number | undefined;
   readonly startNumberRange?: number | undefined;
+  readonly exportPathMetadata?: boolean | undefined;
   readonly patternType?: "glob" | "glob_sequence" | "none" | "sequence" | undefined;
 }
 
@@ -10095,6 +10096,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingStartNumber: number | undefined;
       let pendingStartNumberRange: number | undefined;
       let pendingPatternType: InputSpec["patternType"];
+      let pendingExportPathMetadata: boolean | undefined;
       let pendingGuessLayoutMax: number | undefined;
       let pendingChannelLayout: string | undefined;
       let overwrite: boolean | undefined;
@@ -11194,6 +11196,17 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             } else {
               outputDuration = val;
             }
+          } else if (arg === "-export_path_metadata") {
+            const value = args[++i];
+            try {
+              if (value === undefined || !args.slice(i + 1).includes("-i")) {
+                throw new Error("-export_path_metadata requires a boolean before an input");
+              }
+              pendingExportPathMetadata = parseFilterBoolean(value, "Invalid export_path_metadata boolean");
+            } catch (error) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-pattern_type") {
             const selector = args[++i];
             const value = selector === "1" ? "glob" : selector === "2" ? "sequence" : selector === "3" ? "none" : selector;
@@ -11409,6 +11422,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               pixelFormat: pendingPixelFormat,
               startNumber: pendingStartNumber,
               patternType: pendingPatternType,
+              exportPathMetadata: pendingExportPathMetadata,
               startNumberRange: pendingStartNumberRange
             });
             pendingDumpAttachments = [];
@@ -11449,6 +11463,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingStartNumber = undefined;
             pendingStartNumberRange = undefined;
             pendingPatternType = undefined;
+            pendingExportPathMetadata = undefined;
           } else if (arg === "-c" || arg === "-codec") {
             const val = args[++i];
             videoCodec = val;
@@ -12296,7 +12311,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               // Literal image inputs bypass numbered-pattern expansion.
               if (planeInput || pipeBytes || globPaths || (imageDemuxer && input?.patternType !== "none" && formatImageSequence(filePath, input?.startNumber ?? 0) !== undefined)) {
                 const frames: MediaVideoFrame[] = [];
-                const packets: Uint8Array[] = [];
+                const packets: Pick<MediaTrack["samples"][number], "data" | "tags">[] = [];
                 let codecName = "png";
                 let pixelFormat = "rgb24";
                 let colorMetadata: MediaTrack["codecDescriptions"][number]["colorMetadata"];
@@ -12309,6 +12324,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   budget.checkCpu();
                   context.signal.throwIfAborted();
                   let imgBytes: Uint8Array;
+                  let sourcePath: string | undefined;
                   let planeFrame: MediaVideoFrame | undefined;
                   if (pipeBytes) {
                     const start = pipeOffset;
@@ -12316,6 +12332,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     imgBytes = pipeBytes.subarray(start, pipeOffset);
                   } else {
                     const formatted = globPaths ? globPaths[idx]! : literalPlane ? filePath : formatImageSequence(filePath, idx, false)!;
+                    sourcePath = formatted;
                     const resolved = resolvePath(context.cwd, formatted);
                     try {
                       imgBytes = await readInput(resolved);
@@ -12356,7 +12373,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       sarWidth = decoded.resolution?.x || 1;
                       sarHeight = decoded.resolution?.y || 1;
                     }
-                    packets.push(imgBytes);
+                    packets.push({ data: imgBytes, ...(input?.exportPathMetadata && sourcePath !== undefined ? {
+                      tags: { "lavf.image2dec.source_path": sourcePath,
+                        "lavf.image2dec.source_basename": sourcePath.slice(sourcePath.lastIndexOf("/") + 1) }
+                    } : {}) });
                     if (decoded.width * decoded.height >= 16384) {
                       const gc = (globalThis as { gc?: () => void }).gc;
                       if (typeof gc === "function") { gc(); gc(); }
@@ -12397,8 +12417,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       ...t, width: first.width, height: first.height,
                       duration: Math.round(frames.length / fps * t.timescale),
                       codecDescriptions: [{ codecName, formatFourCC: codecName.padEnd(4, " ").slice(0, 4), width: first.width, height: first.height, pixFmt: pixelFormat, sarWidth, sarHeight, ...(colorMetadata ? { colorMetadata } : {}) }],
-                      samples: packets.map((data, index) => ({
-                        data, size: data.byteLength,
+                      samples: packets.map((packet, index) => ({
+                        ...packet, size: packet.data.byteLength,
                         dts: Math.round(index / fps * t.timescale),
                         pts: Math.round(index / fps * t.timescale), cts: 0,
                         duration: Math.round((index + 1) / fps * t.timescale) - Math.round(index / fps * t.timescale),
@@ -12605,6 +12625,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 limits: options.limits,
                 budget
               });
+              if (input?.exportPathMetadata && plugin.id === "image2" && !isStdin(filePath)) {
+                return { ...document, tracks: document.tracks.map(track => ({ ...track,
+                  samples: track.samples.map(sample => ({ ...sample, tags: {
+                    ...sample.tags, "lavf.image2dec.source_path": filePath,
+                    "lavf.image2dec.source_basename": filePath.slice(filePath.lastIndexOf("/") + 1)
+                  } }))
+                })) };
+              }
               const rawChannels = document.tracks[0]?.codecDescriptions[0]?.channels ?? 0;
               const rawLayout = input?.channelLayout ?? (audioCodec !== "copy" && rawChannels <= (input?.guessLayoutMax ?? Infinity)
                 ? [undefined, "mono", "stereo", "2.1", "4.0", "5.0", "5.1", "6.1", "7.1"][rawChannels] : undefined);

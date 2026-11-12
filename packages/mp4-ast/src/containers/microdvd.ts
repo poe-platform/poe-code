@@ -21,10 +21,12 @@ function parseMicrodvd(bytes: Uint8Array, options?: ParseMediaOptions): MediaDoc
   let timescale = options?.subtitleFrameRate ?? 24000 / 1001;
   let duration = 0;
   let samples: MediaSample[] = [];
+  let recordCount = 0;
   for (const line of decodeUtf8(bytes).replaceAll("\r", "\n").split("\n")) {
+    if (line.length > 0) recordCount++;
     const cue = readLine(line);
     if (!cue) continue;
-    if (samples.length === 0 && (cue.start === 0 || cue.start === 1) && (cue.end === 0 || cue.end === 1)) {
+    if (recordCount <= 3 && (cue.start === 0 || cue.start === 1) && (cue.end === 0 || cue.end === 1)) {
       const rate = Number.parseFloat(cue.text);
       if (rate > 3 && rate < 100) {
         timescale = rate;

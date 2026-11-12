@@ -29,9 +29,9 @@ for (const header of ["fps", "0 fps", "-25 fps", "Infinity fps", "1e999 fps"]) {
   });
 }
 
-it("preserves numeric text outside a leading frame-rate header", () => {
+it("preserves numeric text after the first three records", () => {
   const plugin = microdvdAst();
-  const input = "{1}{2}25 fps\n{1}{1}50 fps\n{25}{50}Hello\n";
+  const input = "{0}{0}Intro\n{0}{1}Next\n{1}{2}25 fps\n{1}{1}50 fps\n{25}{50}Hello\n";
   const doc = plugin.parse(new TextEncoder().encode(input));
   assert.equal(doc.timescale, 24000 / 1001);
   assert.equal(new TextDecoder().decode(plugin.serialize(doc)), input);

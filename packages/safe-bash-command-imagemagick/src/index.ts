@@ -1,4 +1,4 @@
-import { boundaryCoverage, roundRectanglePoints, type BoundaryPoint } from "./draw-boundary.js";
+import { boundaryCoverage, boundaryEdges, roundRectanglePoints, type BoundaryPoint } from "./draw-boundary.js";
 import { gaussianKernelWeights, laplacianKernel } from "./named-kernel.js";
 import { strokeOutline } from "./stroke-outline.js";
 import { readMpc } from "./mpc-input.js";
@@ -6963,7 +6963,7 @@ async function createStoredCanvas(width: number, height: number, color: RgbaColo
     return image;
 }
 
-type MagickDrawShape = { kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number; angularStep: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor; linecap: "butt" | "round" | "square" });
+type MagickDrawShape = { kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "boundary"; points: readonly BoundaryPoint[]; width: number; height: number; strokeWidth: number; fill: RgbaColor } | { shape: "circle"; radius: number; angularStep: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor; linecap: "butt" | "round" | "square" });
 type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string } | ({ kind: "floodfill" } | { kind: "paint-point" } | { kind: "reset" } | { kind: "replace" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
 
 function parseMagickCopyGeometry(image: Pick<RgbaImage, "width" | "height">, geometry: string, offset: string) {
@@ -7054,11 +7054,12 @@ function* drawPointPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space
 
 function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape: MagickDrawShape, highDepth = false, tile?: Pick<RgbaImage, "width" | "height">, tileOffset?: MagickState["tileOffset"]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const quantum = highDepth ? 65535 : 255, scale = highDepth ? 257 : 1;
+    const edges = shape.shape === "boundary" ? yield* boundaryEdges(shape.points) : undefined;
     const radius = shape.shape === "circle" ? shape.radius : shape.shape === "line" ? shape.width / 2 * (shape.linecap === "square" ? Math.SQRT2 : 1) : 0;
-    const x0 = Math.max(0, Math.floor(shape.shape === "rectangle" ? shape.x : Math.min(shape.x, shape.shape === "line" ? shape.x1 : shape.x) - radius - 1));
-    const y0 = Math.max(0, Math.floor(shape.shape === "rectangle" ? shape.y : Math.min(shape.y, shape.shape === "line" ? shape.y1 : shape.y) - radius - 1));
-    const x1 = Math.min(image.width, Math.ceil(shape.shape === "rectangle" ? shape.x + shape.width : Math.max(shape.x, shape.shape === "line" ? shape.x1 : shape.x) + radius + 1));
-    const y1 = Math.min(image.height, Math.ceil(shape.shape === "rectangle" ? shape.y + shape.height : Math.max(shape.y, shape.shape === "line" ? shape.y1 : shape.y) + radius + 1));
+    const x0 = Math.max(0, Math.floor((shape.shape === "rectangle" || shape.shape === "boundary") ? shape.x : Math.min(shape.x, shape.shape === "line" ? shape.x1 : shape.x) - radius - 1));
+    const y0 = Math.max(0, Math.floor((shape.shape === "rectangle" || shape.shape === "boundary") ? shape.y : Math.min(shape.y, shape.shape === "line" ? shape.y1 : shape.y) - radius - 1));
+    const x1 = Math.min(image.width, Math.ceil((shape.shape === "rectangle" || shape.shape === "boundary") ? shape.x + shape.width : Math.max(shape.x, shape.shape === "line" ? shape.x1 : shape.x) + radius + 1));
+    const y1 = Math.min(image.height, Math.ceil((shape.shape === "rectangle" || shape.shape === "boundary") ? shape.y + shape.height : Math.max(shape.y, shape.shape === "line" ? shape.y1 : shape.y) + radius + 1));
     for (let start = 0; start < image.width * image.height; start += 1024) {
         yield;
         const count = Math.min(1024, image.width * image.height - start), bytes = yield { kind: "read", position: start * 4, length: count * 4, highDepth };
@@ -7087,7 +7088,7 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
             if (shape.shape === "line" || shape.shape === "boundary") {
                 let fillCoverage: number;
                 if (shape.shape === "boundary") {
-                    [fillCoverage, coverage] = yield* boundaryCoverage(shape.points, x, y, shape.strokeWidth / 2);
+                    [fillCoverage, coverage] = yield* boundaryCoverage(edges!, x, y, shape.strokeWidth / 2);
                     if (shape.antialias === false) {
                         fillCoverage = fillCoverage >= 1 / 3 ? 1 : 0;
                         coverage = coverage >= 1 / 3 ? 1 : 0;

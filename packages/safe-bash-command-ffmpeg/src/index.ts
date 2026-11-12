@@ -79,6 +79,7 @@ import { cutUltrasonicAudio } from "./audio-asupercut.js";
 import { exciteAudio } from "./audio-aexciter.js";
 import { psychoacousticClip } from "./audio-apsyclip.js";
 import { renderTestsrc } from "./testsrc.js";
+import { renderSmpteHdBars } from "./smptehdbars.js";
 import { renderSmptebars } from "./smptebars.js";
 import { sineTable } from "./lavfi-sine.js";
 import { renderTestsrc2Alpha } from "./testsrc2-alpha.js";
@@ -816,6 +817,10 @@ function* lavfiSteps(
   for (let i = 0; i < frameCount; i++) {
     yield;
     budget.recordFrame(width, height);
+    if (filterName === "smptehdbars") {
+      frames.push(yield* renderSmpteHdBars(width, height, i / fps, 1 / fps, budget));
+      continue;
+    }
     if (filterName === "smptebars") {
       frames.push({ width, height, ...yield* renderSmptebars(width, height, budget),
         ptsSeconds: i / fps, durationSeconds: 1 / fps, keyframe: true });

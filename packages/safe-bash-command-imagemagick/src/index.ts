@@ -13677,7 +13677,7 @@ if (t === "-intent" || t === "+intent") {
             state.strokeWidth = Math.max(0, Number(tokens[++i] ?? 1));
         }
         else if (t === "-mattecolor" || t === "+mattecolor") {
-            state.matteColor = parseColor(t === "+mattecolor" ? "#bdbdbd" : tokens[++i] ?? "#bdbdbd");
+            state.matteColor = parseColor(t === "+mattecolor" ? "#bdbdbd" : tokens[++i] ?? "#bdbdbd", true);
         }
         else if (t === "-bordercolor" || t === "+bordercolor") {
             state.borderColor = parseColor(t === "+bordercolor" ? "#dfdfdf" : tokens[++i] ?? "#dfdfdf", true);
@@ -14101,7 +14101,7 @@ if (t === "-intent" || t === "+intent") {
                 state.scene = Number(v);
                 if (!Number.isSafeInteger(state.scene)) throw new Error("invalid scene number");
             }
-            if (k === "option:mattecolor") state.matteColor = parseColor(v);
+            if (k === "option:mattecolor") state.matteColor = parseColor(v, true);
             if (k === "option:bordercolor") state.borderColor = parseColor(v, true);
             if (k === "option:background") {
                 state.background = parseColor(v, true);

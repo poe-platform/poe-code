@@ -5,6 +5,41 @@ import { decodeWebpImage } from "./codecs/webp.js";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import webpFixtures from "../../../tests/fixtures/media/webp-fixtures.json";
 
+for (const [width, height] of [[2, 2], [2, 1], [1, 2]] as const) {
+  for (const reverse of [false, true]) {
+    it(`averages lossy chroma across ${width}x${height} pixels (reverse=${reverse})`, () => {
+      const data = Uint8Array.from(Array.from({ length: width * height }, (_, i) =>
+        (i % 2 === 0) !== reverse ? [255, 0, 0, 255] : [0, 0, 255, 255]
+      ).flat());
+      const encoded = sharp(data, { raw: { width, height, channels: 4 } }).webp({ quality: 90, lossless: false }).toBufferSync();
+      const decoded = decodeWebpImage(encoded);
+      for (let i = 0; i < data.length; i += 4) {
+        // Native libwebp produces approximately (138,32,138) for red and
+        // (94,0,94) for blue: allow conversion/quantization differences,
+        // while requiring purple chroma regardless of order.
+        const expected = data[i] === 255 ? [138, 32, 138] : [94, 0, 94];
+        for (let c = 0; c < 3; c++) {
+          expect(Math.abs(decoded.data[i + c]! - expected[c]!)).toBeLessThanOrEqual(20);
+        }
+        expect(decoded.data[i + 3]).toBe(255);
+      }
+    });
+  }
+}
+
+for (const [width, height] of [[1, 1], [2, 1], [1, 2], [3, 3]] as const) {
+  for (const color of [[255, 0, 0, 255], [0, 0, 255, 255]]) {
+    it(`preserves uniform lossy ${color} at ${width}x${height}`, () => {
+      const data = Uint8Array.from(Array.from({ length: width * height }, () => color).flat());
+      const encoded = sharp(data, { raw: { width, height, channels: 4 } }).webp({ quality: 90, lossless: false }).toBufferSync();
+      const decoded = decodeWebpImage(encoded);
+      for (let i = 0; i < data.length; i++) {
+        expect(Math.abs(decoded.data[i]! - data[i]!)).toBeLessThanOrEqual(3);
+      }
+    });
+  }
+}
+
 // Fixtures: native magick encodes a 64x48 grid with RGB =
 // ((17*x+7*y)%256, (13*x+23*y)%256, (9*x+11*y)%256),
 // alpha = x%7 === 0 ? 0 : (5*x+11*y)%256. RGB uses -alpha off;

@@ -225,9 +225,18 @@ function rgbToYuv420(rgba: Uint8Array, width: number, height: number, paddedW: n
             const yv = ((66 * r + 129 * g + 25 * b + 128) >> 8) + 16;
             Y[y * paddedW + x]! = yv < 0 ? 0 : yv > 255 ? 255 : yv;
             if ((y & 1) === 0 && (x & 1) === 0) {
-                const avgR = r;
-                const avgG = g;
-                const avgB = b;
+                // Extend the final chroma block into padding, not its last RGB pixel.
+                const left = Math.min(x, (width - 1) & ~1);
+                const top = Math.min(y, (height - 1) & ~1);
+                const topLeft = (top * width + left) * 4;
+                const right = Math.min(left + 1, width - 1);
+                const bottom = Math.min(top + 1, height - 1);
+                const topRight = (top * width + right) * 4;
+                const bottomLeft = (bottom * width + left) * 4;
+                const bottomRight = (bottom * width + right) * 4;
+                const avgR = (rgba[topLeft]! + rgba[topRight]! + rgba[bottomLeft]! + rgba[bottomRight]!) / 4;
+                const avgG = (rgba[topLeft + 1]! + rgba[topRight + 1]! + rgba[bottomLeft + 1]! + rgba[bottomRight + 1]!) / 4;
+                const avgB = (rgba[topLeft + 2]! + rgba[topRight + 2]! + rgba[bottomLeft + 2]! + rgba[bottomRight + 2]!) / 4;
                 const uv = ((-38 * avgR - 74 * avgG + 112 * avgB + 128) >> 8) + 128;
                 const vv = ((112 * avgR - 94 * avgG - 18 * avgB + 128) >> 8) + 128;
                 U[(y >> 1) * (paddedW >> 1) + (x >> 1)]! = uv < 0 ? 0 : uv > 255 ? 255 : uv;

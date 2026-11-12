@@ -13305,7 +13305,7 @@ function updateMagickProperty(properties: ImageMetadata["properties"], key: stri
     if (key.toLowerCase().startsWith("property:")) key = key.slice(9);
     const normalized = key.toLowerCase();
     // Native -set does not store these reserved names as string properties.
-    if (["gravity", "intent", "interpolate"].includes(normalized)) return { ...properties };
+    if (["gravity", "intent", "rendering-intent", "interpolate"].includes(normalized)) return { ...properties };
     if (normalized === "compose") {
         const mode = value === undefined ? undefined : magickCompositeMode(value).name;
         const compose = magickComposeNames.find(name => name.toLowerCase() === mode);

@@ -1,4 +1,4 @@
-import { encodeImage } from "@poe-code/image-ast";
+import { decodeImage, encodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { expect, it } from "vitest";
@@ -43,6 +43,39 @@ for (const mode of ["sync", "buffered", "retained", "magick", "montage"] as cons
     }
     expect(Buffer.from(output).toString("hex")).toBe(hex);
   });
+
+  it.each([[], ["-scenes", "4"], ["-scenes", "4-5"], ["-scenes", "1-2"]].map(options => ({ options })))(
+    `${mode} preserves completed page numbering with trailing scene options $options`, async ({ options }) => {
+      const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
+      const args = ["xc:red", "xc:blue", "-tile", "1x1", "-geometry", "+0+0", ...options, "/page-%02d.png"];
+      if (mode === "magick" || mode === "montage") {
+        const command = mode === "magick" ? createMagickCommand() : createMontageCommand();
+        const argumentValues = createCommandArguments(mode === "magick" ? ["montage", ...args] : args);
+        const errors: Uint8Array[] = [];
+        const result = await command.execute({
+          command: command.name, args: argumentValues.args, argumentValues, fs, cwd: "/", env: {},
+          signal: new AbortController().signal, stdin: (async function* () {})(),
+          stdout: { async write() {} }, stderr: { async write(chunk) { errors.push(chunk); } }
+        });
+        expect(Buffer.concat(errors).toString()).toBe("");
+        expect(result.exitCode).toBe(0);
+      } else {
+        const result = mode === "sync" ? runMontageCliSync(args, files)
+          : await runMontageCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
+        expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+      }
+      const retained = mode === "retained" || mode === "magick" || mode === "montage";
+      const names = retained ? (await fs.readdir("/")).map(entry => `/${entry.name}`) : [...files.keys()];
+      expect(names.sort()).toEqual(["/page-00.png", "/page-01.png"]);
+      for (const [page, pixel] of [[255, 0, 0, 255], [0, 0, 255, 255]].entries()) {
+        const name = `/page-0${page}.png`;
+        const image = decodeImage(retained ? await fs.readFile(name) : files.get(name)!);
+        expect(image.format).toBe("png");
+        expect([image.width, image.height]).toEqual([1, 1]);
+        expect(Array.from(image.data)).toEqual(pixel);
+      }
+    }
+  );
 
   it.each([
     { options: ["-scenes"], error: "missing argument for -scenes" },

@@ -23243,9 +23243,10 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         else if (t === "-scenes") {
             const value = argv[++i];
             if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -scenes\n" };
-            if (!value || [...value].some(char => char < "0" || char > "9"))
+            const bounds = value.split("-");
+            if (bounds.length > 2 || bounds.some(bound => !bound || [...bound].some(char => char < "0" || char > "9")))
                 return { exitCode: 1, stdout: "", stderr: `montage: invalid argument '${value}' for -scenes\n` };
-            // A single scene number does not filter frames in an existing input file.
+            // Scene settings do not change already loaded inputs or completed page numbering.
         }
         else if (t === "-density" || t === "+density") {
             if (t === "-density" && argv[i + 1] === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -density\n" };

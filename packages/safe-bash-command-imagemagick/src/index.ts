@@ -6994,7 +6994,7 @@ function magickDrawGradientColor(gradient: MagickDrawGradient, x: number, y: num
 }
 
 type MagickDrawShape = { gradient?: MagickDrawGradient | undefined; kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "boundary"; points: readonly BoundaryPoint[]; width: number; height: number; strokeWidth: number; fill: RgbaColor } | { shape: "circle"; radius: number; angularStep: number } | { shape: "polygon"; points: readonly DrawPoint[]; width: number; height: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor; linecap: "butt" | "round" | "square" });
-type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string } | ({ kind: "floodfill" } | { kind: "paint-point" } | { kind: "reset" } | { kind: "replace" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
+type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string; tile?: boolean } | ({ kind: "floodfill" } | { kind: "paint-point" } | { kind: "reset" } | { kind: "replace" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
 
 function parseMagickCopyGeometry(image: Pick<RgbaImage, "width" | "height">, geometry: string, offset: string) {
     validateMagickTransformGeometry(geometry, "-copy");
@@ -7203,7 +7203,7 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
     }
 }
 
-function* drawOverlayPixelSteps(image: Pick<RgbaImage, "width" | "height">, overlay: Pick<RgbaImage, "width" | "height">): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* drawOverlayPixelSteps(image: Pick<RgbaImage, "width" | "height">, overlay: Pick<RgbaImage, "width" | "height">, tile?: Pick<RgbaImage, "width" | "height">, tileOffset?: MagickState["tileOffset"]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     for (let start = 0; start < image.width * image.height; start += 1024) {
         yield;
         const count = Math.min(1024, image.width * image.height - start), bytes = yield { kind: "read", position: start * 4, length: count * 4 };
@@ -7212,8 +7212,15 @@ function* drawOverlayPixelSteps(image: Pick<RgbaImage, "width" | "height">, over
         for (let i = 0; i < count; i++) {
             const x = (start + i) % image.width, y = Math.floor((start + i) / image.width);
             if (x >= overlay.width || y >= overlay.height) continue;
-            const source = yield { kind: "read", image: 1, position: (y * overlay.width + x) * 4, length: 4 };
+            let source = yield { kind: "read", image: 1, position: (y * overlay.width + x) * 4, length: 4 };
             if (!source || source.length !== 4) throw new Error("Truncated drawing overlay");
+            if (tile && source[3]) {
+                const tx = ((x - (tileOffset?.x ?? 0)) % tile.width + tile.width) % tile.width;
+                const ty = ((y - (tileOffset?.y ?? 0)) % tile.height + tile.height) % tile.height;
+                const sample = yield { kind: "read", image: 2, position: (ty * tile.width + tx) * 4, length: 4 };
+                if (!sample || sample.length !== 4) throw new Error("Truncated drawing tile");
+                source = new Uint8Array([sample[0]!, sample[1]!, sample[2]!, Math.round(sample[3]! * source[3]! / 255)]);
+            }
             const sa = source[3]!, offset = i * 4;
             if (sa === 255) data.set(source, offset);
             else if (sa > 0) {
@@ -7239,7 +7246,7 @@ function* applyMagickDrawingSteps(im: RgbaImage, drawSpec: string, state: Magick
         else if (step.kind === "floodfill") im = yield* applyMagickFloodfillSteps(im, `+${step.x}+${step.y}`, step.fillToBorder ? { ...state.borderColor, a: undefined } : undefined, step.color, state.alphaFuzz, signal, step.alphaOnly, undefined, step.fillToBorder);
         else {
             const overlay = decodeImage(new TextEncoder().encode(step.svg), { density: state.density });
-            im = yield* applyMagickRasterSteps(im, drawOverlayPixelSteps(im, overlay), signal, { ...im, hasAlpha: true }, [im, overlay]);
+            im = yield* applyMagickRasterSteps(im, drawOverlayPixelSteps(im, overlay, step.tile ? tile : undefined, state.tileOffset), signal, { ...im, hasAlpha: true }, step.tile && tile ? [im, overlay, tile] : [im, overlay]);
             detachRgbaBuffer(overlay.data);
         }
     }
@@ -7257,7 +7264,7 @@ async function applyStoredMagickDrawing(image: StoredRgbaImage, drawing: string,
         else if (step.kind === "floodfill") image = await floodfillStoredImage(image, backend.storage, step.x, step.y, step.fillToBorder ? { ...settings.borderColor, a: undefined } : undefined, step.color, settings.alphaFuzz, signal, step.alphaOnly, undefined, step.fillToBorder);
         else {
             const overlay = await decodeStoredMagickSvg(step.svg, settings.density, backend, signal);
-            image = await transformStoredMagickRaster(image, backend, drawOverlayPixelSteps(image, overlay), signal, { ...image, hasAlpha: true }, [image, overlay]);
+            image = await transformStoredMagickRaster(image, backend, drawOverlayPixelSteps(image, overlay, step.tile ? tile : undefined, settings.tileOffset), signal, { ...image, hasAlpha: true }, step.tile && tile ? [image, overlay, tile] : [image, overlay]);
         }
     }
     return image;
@@ -7352,11 +7359,12 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         if (fillOpacity !== undefined && fill.a !== 0) fillColor.a = fillOpacity * 255;
         if (strokeOpacity !== undefined && stroke.a !== 0) strokeColor.a = strokeOpacity * 255;
         const paintFill = rgbaToCss(fillColor), paintStroke = rgbaToCss(strokeColor);
-        if (svgElements.length > 0 && (["line", "polyline", "circle", "rectangle", "roundrectangle"].includes(cmd) ||
+        if (svgElements.length > 0 && ((tile && ["path", "polygon", "point"].includes(cmd)) || ["line", "polyline", "circle", "rectangle", "roundrectangle"].includes(cmd) ||
             ((fillOpacity !== undefined || strokeOpacity !== undefined) && ["point", "rectangle"].includes(cmd)))) {
             yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${svgElements.join("")}</svg>` };
             svgElements.length = 0;
         }
+        let tileFill: string | undefined;
         const elementStart = svgElements.length;
         const transformed = affine.some((value, index) => value !== (index === 0 || index === 3 ? 1 : 0));
         if (cmd === "push" || cmd === "pop") {
@@ -7597,7 +7605,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const px = num(), py = num();
             const x = affine[0] * px + affine[2] * py + affine[4], y = affine[1] * px + affine[3] * py + affine[5];
             if (!Number.isFinite(x) || !Number.isFinite(y)) throw new Error("Drawing requires finite point coordinates");
-            if (!transformed && svgElements.length === 0) yield { kind: "shape", shape: "rectangle", tile: false, color: fillColor, x, y, width: 1, height: 1 };
+            if ((tile || !transformed) && svgElements.length === 0) yield { kind: "shape", shape: "rectangle", tile, color: fillColor, x, y, width: 1, height: 1 };
             else svgElements.push(`<rect x="${x}" y="${y}" width="1" height="1" fill="${paintFill}"/>`);
         }
         else if (cmd === "text") {
@@ -7631,7 +7639,10 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                 const points = pts.map(point => `${point.x},${point.y}`).join(" ");
                 // Native uses joined outlines only when the stroke radius exceeds one pixel.
                 const joinedStroke = strokeColor.a > 0 && strokeWidth > 2;
-                if (cmd === "polygon") svgElements.push(`<polygon fill-rule="${fillRule}" data-magick-fill="1" points="${points}" fill="${paintFill}" stroke="${joinedStroke ? "none" : paintStroke}" stroke-width="${strokeWidth}"/>`);
+                if (cmd === "polygon") {
+                    if (tile) tileFill = `<polygon fill-rule="${fillRule}" data-magick-fill="1" points="${points}" fill="${paintFill}" stroke="none"/>`;
+                    svgElements.push(`<polygon fill-rule="${fillRule}" data-magick-fill="1" points="${points}" fill="${tile ? "none" : paintFill}" stroke="${joinedStroke ? "none" : paintStroke}" stroke-width="${strokeWidth}"/>`);
+                }
                 else if (!joinedStroke) svgElements.push(`<polyline points="${points}" fill="none" stroke="${strokeColor.a === 0 ? paintFill : paintStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
                 if (joinedStroke) {
                     const outline = yield* strokeOutline(pts, strokeWidth, strokeLinejoin, strokeMiterlimit, cmd === "polygon");
@@ -7660,10 +7671,15 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         }
         else if (cmd === "path") {
             const d = tokens[i++] ?? "";
-            svgElements.push(`<path fill-rule="${fillRule}" data-magick-fill="1" d="${escapeXml(d)}" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
+            if (tile) tileFill = `<path fill-rule="${fillRule}" data-magick-fill="1" d="${escapeXml(d)}" fill="${paintFill}" stroke="none"/>`;
+            svgElements.push(`<path fill-rule="${fillRule}" data-magick-fill="1" d="${escapeXml(d)}" fill="${tile ? "none" : paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
         }
         else {
             throw new Error(`Unsupported drawing primitive: ${cmd}`);
+        }
+        if (tileFill) {
+            if (transformed) tileFill = `<g transform="matrix(${affine.join(" ")})">${tileFill}</g>`;
+            yield { kind: "svg", tile: true, svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${tileFill}</svg>` };
         }
         if (transformed && cmd !== "point" && svgElements.length > elementStart) {
             const elements = svgElements.splice(elementStart);

@@ -164,7 +164,11 @@ export async function measureAstats(
         differences += difference;
         differenceSquares += difference * difference;
       }
-      const integer = scale === 1 ? Math.round(value * 2147483648) | 0 : value;
+      const scaled = scale === 1 ? value * 2147483648 : value;
+      const lower = Math.floor(scaled);
+      // FFmpeg uses llrint (ties to even) and takes the magnitude before
+      // selecting the low 32 bits, including for samples above full scale.
+      const integer = scaled - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(scaled);
       masks[0]! |= Math.abs(integer);
       masks[1]! |= integer;
       masks[2]! &= integer;

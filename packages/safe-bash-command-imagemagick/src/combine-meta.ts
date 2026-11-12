@@ -3,6 +3,7 @@ import type { ConvolveRequest } from "./convolve-kernel.js";
 import type { HueMetadata } from "./colorspace-hue.js";
 import { magickIntensity } from "./intensity.js";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
+import { magickInput, type MagickFormatContext } from "./stored-stack.js";
 
 export interface MetaChannels {
     metaChannels?: RgbaImage[] | undefined;
@@ -10,7 +11,8 @@ export interface MetaChannels {
 }
 
 /** Extra combine inputs use the first image's extent, just like the color planes. */
-export function* combineMetaPixelSteps(extent: Pick<RgbaImage, "width" | "height">, source: Pick<RgbaImage, "width" | "height" | "space" | "gamma"> & HueMetadata, highDepth: boolean, intensity: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* combineMetaPixelSteps(extent: Pick<RgbaImage, "width" | "height">, source: Pick<RgbaImage, "width" | "height" | "space" | "gamma"> & HueMetadata & { [magickInput]?: MagickFormatContext }, highDepth: boolean, intensity: string): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    const method = source[magickInput]?.intensity ?? intensity;
     const maximum = highDepth ? 65535 : 255;
     const linear = source.magickColorspace === "RGB" || source.magickColorspace === "scRGB"
         || (source.space === "b-w" || source.space === "grey16") && source.gamma === 1 && source.magickColorspace !== "Gray";
@@ -30,8 +32,8 @@ export function* combineMetaPixelSteps(extent: Pick<RgbaImage, "width" | "height
         for (let offset = 0; offset < length; offset += 4) {
             const channels = offset < count && source.space === "cmyk" ? inks?.subarray(offset, offset + 3)
                 ?? rgbToCmyk(samples[offset]! / maximum, samples[offset + 1]! / maximum, samples[offset + 2]! / maximum) : undefined;
-            const value = channels ? magickIntensity(channels[0]!, channels[1]!, channels[2]!, intensity, 1, false) * maximum
-                : offset < count ? magickIntensity(samples[offset]!, samples[offset + 1]!, samples[offset + 2]!, intensity, maximum, linear) : 0;
+            const value = channels ? magickIntensity(channels[0]!, channels[1]!, channels[2]!, method, 1, false) * maximum
+                : offset < count ? magickIntensity(samples[offset]!, samples[offset + 1]!, samples[offset + 2]!, method, maximum, linear) : 0;
             data[offset] = data[offset + 1] = data[offset + 2] = Math.round(Math.max(0, Math.min(maximum, value)));
             working[offset] = working[offset + 1] = working[offset + 2] = value * 255 / maximum;
             working[offset + 3] = 255;

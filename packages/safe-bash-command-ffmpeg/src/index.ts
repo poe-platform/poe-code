@@ -14334,7 +14334,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               && ["lowpass", "highpass", "bandpass", "bandreject", "equalizer", "bass", "lowshelf", "treble", "highshelf"].includes(target?.split("@", 1)[0] ?? "")
                             || ["n", "nb_out_samples", "p", "pad"].includes(action!) && (target === "asetnsamples" || target?.startsWith("asetnsamples@"))
                             || target === "silenceremove" || target?.startsWith("silenceremove@")
-                            || action === "percent" && (target === "afwtdn" || target?.startsWith("afwtdn@"))
+                            || ["sigma", "softness", "profile", "adaptive", "percent"].includes(action!) && (target === "afwtdn" || target?.startsWith("afwtdn@"))
                             || action === "tempo" && (target === "atempo" || target?.startsWith("atempo@"))
                             || action === "volume" && (target === "volume" || target?.startsWith("volume@"))
                             || action === "m" && (target === "extrastereo" || target?.startsWith("extrastereo@"))

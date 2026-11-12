@@ -122,7 +122,7 @@ export async function denoiseWavelets(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
   filter: string, frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[],
   budget: MediaBudgetTracker, signal?: AbortSignal,
-  commands: readonly { sample: number; expression: string }[] = []
+  commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<{ channels: Float64Array[]; frames: { start: number; end: number; pts: number }[] }> {
   const options = parseWaveletFilter(filter);
   const { levels, overlapSize, enable } = options;
@@ -159,7 +159,8 @@ export async function denoiseWavelets(
   const measuredDeviation = new Float64Array(levels + 1), measuredAbsmean = new Float64Array(levels + 1);
   try {
     for (const [c, channel] of channels.entries()) {
-      let mix = options.percent * 0.01;
+      const currentOptions = { ...options };
+      let gotProfile = false;
       let nextCommand = 0;
       overlap.fill(0); deviation.fill(0); absmean.fill(0);
       // Native starts the decimation phase at sample 1, pads with silence and
@@ -192,15 +193,17 @@ export async function denoiseWavelets(
           }
         }
         // Commands arrive as input frames fill this window, before its transform.
-        // Keep the last accepted mix through the EOF flush and preserve overlap.
+        // Keep accepted options through the EOF flush and preserve overlap.
         while (nextCommand < commands.length && commands[nextCommand]!.sample < Math.min(start + size, length)) {
           const command = commands[nextCommand++]!;
           try {
-            const percent = parseFilterExpression(command.expression, "afwtdn", { min: 0, max: 100, default: 85 });
-            if (Number.isFinite(percent) && percent >= 0 && percent <= 100) mix = percent * 0.01;
+            const { action, expression } = command;
+            if (action === "sigma" || action === "softness" || action === "profile" || action === "adaptive" || action === "percent") {
+              currentOptions[action] = parseWaveletFilter(`afwtdn=${action}=${expression}`)[action];
+            }
           } catch { /* Native retains the previous value after a rejected command. */ }
         }
-        const windowMix = enabled[start / size] ? mix : 0;
+        const windowMix = enabled[start / size] ? currentOptions.percent * 0.01 : 0;
         const sn = start + 1;
         const extension = (period - 1) * (taps - 2) + sn % period;
         const counts = bandSizes.map((_, level) => {
@@ -243,19 +246,20 @@ export async function denoiseWavelets(
           measuredDeviation[level] = Math.sqrt(variance / count);
           measuredAbsmean[level] = absolute / count;
           const scale = Math.sqrt(2 * Math.log(count));
-          if (options.profile && start === 0) {
+          if (!gotProfile && currentOptions.profile) {
             deviation[level] = measuredDeviation[level]! * scale;
             absmean[level] = measuredAbsmean[level]! * scale;
-          } else if (!options.profile && !options.adaptive) {
-            deviation[level] = absmean[level] = 0.5 * options.sigma * scale;
+          } else if (!gotProfile && !currentOptions.profile && !currentOptions.adaptive) {
+            deviation[level] = absmean[level] = 0.5 * currentOptions.sigma * scale;
           }
           const vad = measuredAbsmean[level]! <= 2 ** -23 ? 1 : measuredDeviation[level]! / measuredAbsmean[level]!;
           if (level < levels) noise += (vad - 1.232) ** 2;
         }
+        if (currentOptions.profile) gotProfile = true;
         noise *= sampleRate / size;
         for (let level = 0; level <= levels; level++) {
           const count = counts[level]!;
-          if (options.adaptive && noise < 0.05) {
+          if (currentOptions.adaptive && noise < 0.05) {
             const scale = Math.sqrt(2 * Math.log(count));
             deviation[level] = measuredDeviation[level]! * scale;
             absmean[level] = measuredAbsmean[level]! * scale;
@@ -266,7 +270,7 @@ export async function denoiseWavelets(
             if (i % 2048 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
             const value = band[i]!;
             const filtered = measuredDeviation[level]! <= deviation[level]! || Math.abs(value) <= threshold ? 0
-              : value - Math.sign(value) * threshold / Math.exp(3 * options.softness * (Math.abs(value) - threshold) / threshold);
+              : value - Math.sign(value) * threshold / Math.exp(3 * currentOptions.softness * (Math.abs(value) - threshold) / threshold);
             band[i] = windowMix * filtered + value * (1 - windowMix);
           }
         }

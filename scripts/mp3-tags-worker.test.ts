@@ -16,7 +16,7 @@ const tail = new Uint8Array(metadata.length + audio.length);tail.set(metadata);t
 const prefix=Uint8Array.from([73,68,51,4,0,0,...sync(11+repeated+metadata.length),84,73,84,50,...sync(1+repeated),0,2,0]);
 const valueStart=prefix.length,size=valueStart+repeated+tail.length,bytes=new Uint8Array(size);bytes.set(prefix);
 for(let i=0;i<repeated;i++)bytes[valueStart+i]=pattern[i%pattern.length]!;bytes.set(tail,valueStart+repeated);
-const writers = ["json", "default", "flat", "compact:s=||", "csv:s=||"];
+const writers = ["json", "default", "flat", "compact:s=|", "csv:s=|"];
 function fingerprint(text: string) { const bytes = new TextEncoder().encode(text); let hash = 2166136261; for (const byte of bytes) hash = Math.imul(hash ^ byte, 16777619) >>> 0; return [bytes.length, hash]; }
 const golden = Object.fromEntries(["retained", "stdin", "stream"].flatMap(route => writers.map(writer => [route + writer, fingerprint(probe(bytes, ["-of", writer, "-show_streams", "-show_format", "-show_entries", "stream:format:stream_tags:format_tags", route === "stdin" ? "-" : "/input.mp3"]))])));
 let runtime: Miniflare;

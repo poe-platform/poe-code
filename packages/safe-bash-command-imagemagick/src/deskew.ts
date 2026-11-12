@@ -125,8 +125,8 @@ export function deskewPlan(image: Pick<RgbaImage, "width" | "height" | "hasAlpha
     const width = Math.ceil(Math.max(...corners.map(p => p[0]!))) - x + 1, height = Math.ceil(Math.max(...corners.map(p => p[1]!))) - y + 1;
     const degrees = radians * 180 / Math.PI;
     // Native affine distortion scales the original page when cloning the raster.
-    const canvasWidth = page?.width ? Math.round(width / image.width * page.width) : width;
-    const canvasHeight = page?.height ? Math.round(height / image.height * page.height) : height;
+    const canvasWidth = page ? Math.round(width / image.width * page.width) : width;
+    const canvasHeight = page ? Math.round(height / image.height * page.height) : height;
     return { width, height, hasAlpha: image.hasAlpha || background.a < 255, virtualCanvas: { width: canvasWidth, height: canvasHeight, x, y },
         properties: { ...image.properties, "artifact:deskew:angle": Object.is(degrees, -0) ? "-0" : degrees.toPrecision(17) },
         // Point disables elliptical filtering and uses the selected interpolation method.

@@ -9859,6 +9859,7 @@ export function evalSyncFfmpeg(
       const frames = vTrack?.decodedVideoFrames ?? [];
       const limit = Math.min(frames.length, maxVideoFrames ?? Infinity);
       const imgFmt = imageOutputFormat(videoCodec, outExt);
+      if (imgFmt === "ppm") return undefined;
       if (imgFmt === "pam") return undefined;
       for (let idx = 0; idx < limit; idx++) {
         const f = frames[idx]!;
@@ -21530,6 +21531,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     continue;
                   }
                   const imgFmt = imageOutputFormat(videoCodec, outExt);
+                  if (imgFmt === "ppm") {
+                    const pixelFormat = rawPixelFormat ?? vTrack?.codecDescriptions[0]?.pixFmt;
+                    const highDepth = pixelFormat === "rgb48be" || pixelFormat === "rgb48le";
+                    const header = encodeUtf8(`P6\n${f.width} ${f.height}\n${highDepth ? 65535 : 255}\n`);
+                    const size = header.byteLength + f.width * f.height * (highDepth ? 6 : 3);
+                    budget.checkOutputBytes(size);
+                    budget.allocateMemory(size * 2);
+                    const pixels = await serializeRawVideo({ ...vTrack!, decodedVideoFrames: [f] },
+                      undefined, highDepth ? "rgb48be" : "rgb24", budget, context.signal);
+                    await writeImage(fullOutPath, concatBytes([header, pixels]));
+                    budget.releaseMemory(size * 2);
+                    continue;
+                  }
                   if (imgFmt === "pgm") {
                     const pixelFormat = rawPixelFormat === "gray16be" || rawPixelFormat === "gray16le" ? "gray16be" : "gray";
                     const pixels = await serializeRawVideo({ ...vTrack!, decodedVideoFrames: [f] },

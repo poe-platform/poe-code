@@ -48,6 +48,7 @@ import { formatYuv } from "./format-yuv.js";
 import { swapUv } from "./swapuv.js";
 import { swapRect } from "./swaprect.js";
 import { colorcorrect } from "./colorcorrect.js";
+import { lutyuv } from "./lutyuv.js";
 import { deessAudio } from "./audio-deesser.js";
 import { declickAudio, parseDeclick } from "./audio-adeclick.js";
 import { deflicker } from "./deflicker.js";
@@ -4599,7 +4600,9 @@ async function applyVideoFilterChain(
         return { width, height, data, ptsSeconds: f.ptsSeconds,
           durationSeconds: f.durationSeconds, keyframe: true };
       }, signal);
-    } else if (name === "lutrgb" || name === "lut" || name === "lutyuv") {
+    } else if (name === "lutyuv") {
+      current = await lutyuv(current, argStr, budget, signal);
+    } else if (name === "lutrgb" || name === "lut") {
       const gray = name === "lut";
       const yuv = name === "lutyuv";
       if (gray && !["gray", "gray8", "gray16le", "gray16be"].includes(pixelFormat ?? "")) {

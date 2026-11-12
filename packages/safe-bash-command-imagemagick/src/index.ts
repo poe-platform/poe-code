@@ -7052,7 +7052,7 @@ function* drawPointPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space
     }
 }
 
-function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape: MagickDrawShape, highDepth = false, tile?: Pick<RgbaImage, "width" | "height">): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape: MagickDrawShape, highDepth = false, tile?: Pick<RgbaImage, "width" | "height">, tileOffset?: MagickState["tileOffset"]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const quantum = highDepth ? 65535 : 255, scale = highDepth ? 257 : 1;
     const radius = shape.shape === "circle" ? shape.radius : shape.shape === "line" ? shape.width / 2 * (shape.linecap === "square" ? Math.SQRT2 : 1) : 0;
     const x0 = Math.max(0, Math.floor(shape.shape === "rectangle" ? shape.x : Math.min(shape.x, shape.shape === "line" ? shape.x1 : shape.x) - radius - 1));
@@ -7145,7 +7145,9 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
                 }
             }
             if (shape.tile && tile) {
-                const source = yield { kind: "read", image: 1, position: ((y % tile.height) * tile.width + x % tile.width) * 4, length: 4 };
+                const sx = ((x + (tileOffset?.x ?? 0)) % tile.width + tile.width) % tile.width;
+                const sy = ((y + (tileOffset?.y ?? 0)) % tile.height + tile.height) % tile.height;
+                const source = yield { kind: "read", image: 1, position: (sy * tile.width + sx) * 4, length: 4 };
                 if (!source || source.length !== 4) throw new Error("Truncated drawing tile");
                 color = { r: source[0]!, g: source[1]!, b: source[2]!, a: source[3]! * shape.color.a / 255 };
             }
@@ -7198,7 +7200,7 @@ function* applyMagickDrawingSteps(im: RgbaImage, drawSpec: string, state: Magick
         if (!step) { yield; continue; }
         if ((im.space === "b-w" || im.space === "grey16") && !((step.kind === "floodfill" || step.kind === "paint-point" || step.kind === "reset" || step.kind === "replace") && step.alphaOnly))
             im = { ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 };
-        if (step.kind === "shape") im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step, !!im.data16, tile), signal, { ...im, hasAlpha: true }, tile ? [im, tile] : [im]);
+        if (step.kind === "shape") im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step, !!im.data16, tile, state.tileOffset), signal, { ...im, hasAlpha: true }, tile ? [im, tile] : [im]);
         else if (step.kind === "paint-point" || step.kind === "reset") im = yield* applyMagickRasterSteps(im, drawPointPixelSteps(im, step, !!im.data16), signal, { ...im, hasAlpha: im.hasAlpha || step.color.a < 255 });
         else if (step.kind === "replace") im = yield* applyMagickRasterSteps(im, drawReplacePixelSteps(im, step.x, step.y, step.color, step.alphaOnly, state.alphaFuzz, !!im.data16), signal, { ...im, hasAlpha: true });
         else if (step.kind === "floodfill") im = yield* applyMagickFloodfillSteps(im, `+${step.x}+${step.y}`, step.fillToBorder ? state.borderColor : undefined, step.color, state.alphaFuzz, signal, step.alphaOnly, undefined, step.fillToBorder);
@@ -7216,7 +7218,7 @@ async function applyStoredMagickDrawing(image: StoredRgbaImage, drawing: string,
         if (!step) { await yieldTurn(signal); continue; }
         if ((image.space === "b-w" || image.space === "grey16") && !((step.kind === "floodfill" || step.kind === "paint-point" || step.kind === "reset" || step.kind === "replace") && step.alphaOnly))
             image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
-        if (step.kind === "shape") image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step, !!image.storedData16, tile), signal, { ...image, hasAlpha: true }, tile ? [image, tile] : [image]);
+        if (step.kind === "shape") image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step, !!image.storedData16, tile, settings.tileOffset), signal, { ...image, hasAlpha: true }, tile ? [image, tile] : [image]);
         else if (step.kind === "paint-point" || step.kind === "reset") image = await transformStoredMagickRaster(image, backend, drawPointPixelSteps(image, step, !!image.storedData16), signal, { ...image, hasAlpha: image.hasAlpha || step.color.a < 255 });
         else if (step.kind === "replace") image = await transformStoredMagickRaster(image, backend, drawReplacePixelSteps(image, step.x, step.y, step.color, step.alphaOnly, settings.alphaFuzz, !!image.storedData16), signal, { ...image, hasAlpha: true });
         else if (step.kind === "floodfill") image = await floodfillStoredImage(image, backend.storage, step.x, step.y, step.fillToBorder ? settings.borderColor : undefined, step.color, settings.alphaFuzz, signal, step.alphaOnly, undefined, step.fillToBorder);

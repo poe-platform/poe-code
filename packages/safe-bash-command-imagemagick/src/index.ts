@@ -24115,6 +24115,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         }
     }
     } catch (error) {
+        if (error instanceof CompareInputFailure) throw error.reason;
         return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` };
     }
     if (groups.length) return { exitCode: 1, stdout: "", stderr: "montage: unbalanced parenthesis\n" };
@@ -24749,16 +24750,18 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
     const parsed = await drainIdentifySteps(parseMontageArguments(argv, function* (path): Generator<IdentifyStep, number, void> {
         let count = 1;
         yield { async run() {
-            // Repeated operands still count toward cumulative input admission.
-            if (snapshots.has(path)) await backend.read(path, async () => {});
-            const source = await snapshotInput(path);
-            if (source) {
-                const prefix = await source.read(0, Math.min(6, source.size));
-                if (prefix[0] === 0x47 || prefix[0] === 0x50) {
-                    try { count = (await readImageMetadataFromSource(source, signal, undefined, backend.storage)).pages ?? 1; }
-                    catch { signal.throwIfAborted(); } // The image reader reports malformed headers.
+            try {
+                // Repeated operands still count toward cumulative input admission.
+                if (snapshots.has(path)) await backend.read(path, async () => {});
+                const source = await snapshotInput(path);
+                if (source) {
+                    const prefix = await source.read(0, Math.min(6, source.size));
+                    if (prefix[0] === 0x47 || prefix[0] === 0x50) {
+                        try { count = (await readImageMetadataFromSource(source, signal, undefined, backend.storage)).pages ?? 1; }
+                        catch { signal.throwIfAborted(); } // The image reader reports malformed headers.
+                    }
                 }
-            }
+            } catch (error) { throw new CompareInputFailure(error); }
         } };
         return count;
     }, function* (path): Generator<IdentifyStep, string[], void> {

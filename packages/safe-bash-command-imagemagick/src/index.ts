@@ -8317,7 +8317,8 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
         : Math.max(...stack.map((im) => im.height));
     const background: ReturnType<typeof parseColor> = state.backgroundExplicit ? state.background : stack[0]!.backgroundColor ?? state.background;
     let canvas = (yield* createSolidRgbaImageSteps(totalW, totalH, background, stack.some(im => !!im.data16) || [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value))));
-    if (stack.some(im => !!im.evaluateSamples)) {
+    const sameColorspace = stack.every(image => image.magickColorspace === stack[0]!.magickColorspace);
+    if (stack.some(im => !!im.evaluateSamples || !sameColorspace && im.space !== "cmyk" && !!im.hueSamples)) {
         canvas.evaluateSamples = new Float64Array(canvas.data.length);
         const color = [background.r, background.g, background.b, background.a];
         for (let offset = 0; offset < canvas.data.length; offset += 4) {
@@ -8326,7 +8327,7 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
         }
     }
     const cmyk = stack.every(image => image.space === "cmyk");
-    if (!cmyk && stack.every(image => image.magickColorspace === stack[0]!.magickColorspace && image.hueSamples !== undefined && image.space !== "cmyk")) {
+    if (!cmyk && sameColorspace && stack.every(image => image.hueSamples !== undefined && image.space !== "cmyk")) {
         canvas.hueSamples = new Float64Array(canvas.data.length);
         const color = [background.r, background.g, background.b, background.a].map(value => value / 255);
         for (let offset = 0; offset < canvas.data.length; offset += 4) {
@@ -8356,8 +8357,10 @@ function* appendStackImagesSteps(stack: RgbaImage[], vertical: boolean, state: M
                 if (canvas.data16) canvas.data16.set(im.data16?.subarray(start, start + Math.min(4096, im.width - x) * 4) ?? Uint16Array.from(im.data.subarray(start, start + Math.min(4096, im.width - x) * 4), value => value * 257), ((top + y) * totalW + left + x) * 4);
                 if (canvas.evaluateSamples) {
                     const end = start + Math.min(4096, im.width - x) * 4;
-                    const samples = im.evaluateSamples?.subarray(start, end)
-                        ?? Float64Array.from((im.data16 ?? im.data).subarray(start, end), value => im.data16 ? value / 257 : value);
+                    const samples = !sameColorspace && im.space !== "cmyk" && im.hueSamples
+                        ? Float64Array.from(im.hueSamples.subarray(start, end), value => value * 255)
+                        : im.evaluateSamples?.subarray(start, end)
+                            ?? Float64Array.from((im.data16 ?? im.data).subarray(start, end), value => im.data16 ? value / 257 : value);
                     canvas.evaluateSamples.set(samples, ((top + y) * totalW + left + x) * 4);
                 }
                 if (canvas.hueSamples) canvas.hueSamples.set(im.hueSamples!.subarray(start, start + Math.min(4096, im.width - x) * 4), ((top + y) * totalW + left + x) * 4);
@@ -19032,7 +19035,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         ...(image.readMask ? { readMask: await createStoredCanvas(image.width, image.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) } : {}) } as StoredRgbaImage);
                     return stack;
                 }
-                let width = 0, height = 0, highDepth = false, cmyk = false, nonCmyk = false, gray = true, evaluate = false, sameColorspace = true, hue = true;
+                let width = 0, height = 0, highDepth = false, cmyk = false, nonCmyk = false, gray = true, evaluate = false, sameColorspace = true, hue = true, anyHue = false;
                 const firstFrame = (await stack.get(0))! as StoredRgbaImage;
                 const firstColorspace = firstFrame.magickColorspace;
                 if (mosaic) {
@@ -19049,6 +19052,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     cmyk ||= frame.space === "cmyk"; nonCmyk ||= frame.space !== "cmyk"; highDepth ||= !!frame.storedData16;
                     evaluate ||= frame.storedEvaluateSamples !== undefined;
                     hue &&= frame.storedHueSamples !== undefined;
+                    anyHue ||= frame.space !== "cmyk" && frame.storedHueSamples !== undefined;
                     if (merge) {
                         const x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
                         const left = n ? Math.min(originX, x) : x, top = n ? Math.min(originY, y) : y;
@@ -19098,7 +19102,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             result.storedMetaChannels.push(await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal));
                     }
                     result = { ...result, ...(first.orientation !== undefined ? { orientation: first.orientation } : {}), ...(sameColorspace && first.magickColorspace !== undefined ? { magickColorspace: first.magickColorspace } : {}), delay: [await first.storedDelay?.at(scene, { signal }) ?? first.delay?.[scene] ?? 0], ...(first.disposal !== undefined ? { disposal: first.disposal } : {}), ...(first.icc ? { icc: first.icc } : {}), ...(first.exif ? { exif: first.exif } : {}), ...(first.gamma !== undefined ? { gamma: first.gamma } : {}), hasAlpha: background.a < 255, ...(first.properties ? { properties: first.properties } : {}), density: first.density, ...(first.resolution ? { resolution: first.resolution } : {}), virtualCanvas: first.virtualCanvas ?? { width: first.width, height: first.height, x: 0, y: 0 } };
-                    if (evaluate) {
+                    if (evaluate || !sameColorspace && anyHue) {
                         result.storedEvaluateSamples = backend.storage.allocate(width * height * 32);
                         const color = [background.r, background.g, background.b, background.a];
                         for (let offset = 0; offset < width * height * 4; offset += 2048) {
@@ -19156,9 +19160,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                                     await backend.storage.write(result.storedData16.position + ((top + y) * width + left + x) * 8, bytes);
                                 }
                                 if (result.storedEvaluateSamples !== undefined) {
-                                    const bytes = frame.storedEvaluateSamples !== undefined
-                                        ? await backend.storage.read(frame.storedEvaluateSamples + (y * frame.width + x) * 32, pixels.length * 8)
-                                        : new Uint8Array(Float64Array.from(original ? new Uint16Array(original.slice().buffer) : pixels, value => original ? value / 257 : value).buffer);
+                                    const hue = !sameColorspace && frame.space !== "cmyk" ? frame.storedHueSamples : undefined;
+                                    const bytes = hue !== undefined
+                                        ? await backend.storage.read(hue + (y * frame.width + x) * 32, pixels.length * 8)
+                                        : frame.storedEvaluateSamples !== undefined
+                                            ? await backend.storage.read(frame.storedEvaluateSamples + (y * frame.width + x) * 32, pixels.length * 8)
+                                            : new Uint8Array(Float64Array.from(original ? new Uint16Array(original.slice().buffer) : pixels, value => original ? value / 257 : value).buffer);
+                                    if (hue !== undefined) {
+                                        const samples = new Float64Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 8);
+                                        for (let i = 0; i < samples.length; i++) samples[i] *= 255;
+                                    }
                                     if (!frame.hasAlpha && frame.alphaBlend !== true) {
                                         const samples = new Float64Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 8);
                                         for (let i = 3; i < samples.length; i += 4) samples[i] = 255;

@@ -20,6 +20,18 @@ it("matches FFmpeg 7.0.2 default lavfi red RGB PNG samples in both frames", asyn
 });
 
 // FFmpeg 7's default limited-range BT.601 source and x86 RGB conversion.
+for (const [options, pixel] of [
+  ["", "000000ff"], ["c=black:", "000000ff"], ["c=blue:", "0000feff"]
+] as const) {
+  it(`matches native RGBA stdout for color=${options}s=4x4:r=1:d=1`, async () => {
+    const output = await run(Volume.fromJSON({}), [
+      "-v", "error", "-f", "lavfi", "-i", `color=${options}s=4x4:r=1:d=1`,
+      "-frames:v", "1", "-c:v", "rawvideo", "-pix_fmt", "rgba", "-f", "rawvideo", "pipe:1"
+    ]);
+    assert.deepEqual(output, Buffer.from(pixel.repeat(16), "hex"));
+  });
+}
+
 for (const [color, expected] of [
   ["0xff0000", [253, 0, 0]], ["blue", [0, 0, 254]],
   ["green", [0, 127, 0]], ["white", [255, 255, 255]], ["black", [0, 0, 0]]
@@ -48,6 +60,7 @@ it("preserves exact RGB samples when copying an existing red PNG", async () => {
 
 async function run(volume: Volume, args: string[]) {
   let stderr = "";
+  const stdout: Buffer[] = [];
   const result = await createFfmpegCommand().execute({
     args, cwd: "/", env: {}, signal: new AbortController().signal,
     fs: {
@@ -55,8 +68,10 @@ async function run(volume: Volume, args: string[]) {
       async writeFile(path: string, bytes: Uint8Array) { volume.writeFileSync(path, bytes); },
       async stat(path: string) { return volume.statSync(path); }
     },
-    stdin: (async function* () {})(), stdout: { async write() {} },
+    stdin: (async function* () {})(),
+    stdout: { async write(bytes: Uint8Array) { stdout.push(Buffer.from(bytes)); } },
     stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
   } as never);
   assert.equal(result.exitCode, 0, stderr);
+  return Buffer.concat(stdout);
 }

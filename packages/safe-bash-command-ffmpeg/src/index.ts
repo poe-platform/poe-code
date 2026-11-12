@@ -754,7 +754,7 @@ function* lavfiSteps(
   const duration =
     durationOverride ?? (parseHlsDuration(kv.duration ?? kv.d ?? "1") || 1);
   const frameCount = Math.max(1, Math.ceil(duration * fps));
-  const color = parseColorRgba(kv.color ?? kv.c ?? kv._0 ?? "blue");
+  const color = parseColorRgba(kv.color ?? kv.c ?? kv._0 ?? "black");
   if (filterName === "color") {
     // The default color source is limited-range BT.601 YUV420P. Match
     // FFmpeg 7's RGB conversion, which truncates each fixed-point product.

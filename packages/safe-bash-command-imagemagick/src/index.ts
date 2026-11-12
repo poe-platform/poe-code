@@ -5910,12 +5910,12 @@ function* compositeMaskPixelSteps(image: Pick<RgbaImage, "width" | "height">, ma
     }
 }
 
-function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal, fuzz = 0, clipToOverlay = false, channels?: readonly boolean[]): Generator<void, RgbaImage, void> {
+function* applyMagickCompositeLayerSteps(dst: RgbaImage, src: RgbaImage, modeRaw: string, left: number, top: number, composeArgs?: string, signal?: AbortSignal, fuzz = 0, clipToOverlay = false, channels?: readonly boolean[], tile = false): Generator<void, RgbaImage, void> {
     const { name, delegated, preservesAlpha } = magickCompositeMode(modeRaw);
     if (name === "dst" || name === "dest") return dst;
-    if (clipToOverlay || channels || !delegated || dst.data16 || src.data16 || dst.evaluateSamples || src.evaluateSamples) {
+    if (tile || clipToOverlay || channels || !delegated || dst.data16 || src.data16 || dst.evaluateSamples || src.evaluateSamples) {
         const hasAlpha = dst.hasAlpha || (!delegated && !preservesAlpha);
-        return yield* applyMagickRasterSteps(dst, composite16PixelSteps(dst, src, left, top, modeRaw, composeArgs, false, fuzz, clipToOverlay, undefined, false, channels), signal,
+        return yield* applyMagickRasterSteps(dst, composite16PixelSteps(dst, src, left, top, modeRaw, composeArgs, tile, fuzz, clipToOverlay, undefined, false, channels), signal,
             { ...dst, hasAlpha }, [dst, src]);
     }
     const ox = Math.round(left);
@@ -16500,22 +16500,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     gx = g.x;
                     gy = g.y;
                 }
-                if (state.composeTile) {
-                    const tiled = yield* createSolidRgbaImageSteps(base.width, base.height, { r: 0, g: 0, b: 0, a: 0 }, !!overlay.data16);
-                    for (let y = 0; y < base.height; y++) {
-                        for (let x = 0; x < base.width; x++) {
-                            if ((y * base.width + x) % 4096 === 0) yield;
-                            const source = ((y % overlay.height) * overlay.width + x % overlay.width) * 4;
-                            tiled.data.set(overlay.data.subarray(source, source + 4), (y * base.width + x) * 4);
-                            if (overlay.data16) tiled.data16!.set(overlay.data16.subarray(source, source + 4), (y * base.width + x) * 4);
-                        }
-                    }
-                    detachRgbaBuffer(overlay.data);
-                    overlay = tiled;
-                }
-                const pos = gravityAdjustBox(base.width, base.height, overlay.width, overlay.height, gx, gy, state.gravity);
+                const pos = state.composeTile ? { x: 0, y: 0 }
+                    : gravityAdjustBox(base.width, base.height, overlay.width, overlay.height, gx, gy, state.gravity);
                 const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined;
-                let composed = (yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, pos.x, pos.y, state.composeArgs, signal, state.alphaFuzz, false, channels));
+                let composed = (yield* applyMagickCompositeLayerSteps(base, overlay, state.composeRaw, pos.x, pos.y, state.composeArgs, signal, state.alphaFuzz, false, channels, state.composeTile));
                 if (maskedCopy) {
                     // Native channel copies apply the mask to the completed canvas.
                     const masked = yield* applyMagickCompositeLayerSteps(composed, mask!, "CopyAlpha", 0, 0, undefined, signal);

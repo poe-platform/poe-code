@@ -141,6 +141,11 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
                     for (let channel = 0; channel < 3; channel++) result[i + channel] = alpha ? result[i + channel]! / alpha : 0;
                     result[i + 3] = alpha * (src.hasAlpha ? src.data[i + 3]! : 255);
                 }
+            } else if (name === "intensity" && tile && (x - sourceX + overlay.width > base.width || y - sourceY + overlay.height > base.height)) {
+                // Native Intensity falls back to source RGB and opaque alpha for clipped tiles.
+                result.set(src.data);
+                for (let i = 3; i < result.length; i += 4)
+                    result[i] = 255;
             } else {
                 yield* compositePixelsSteps(dst, src, result, mode, 0, 0, args, fuzz, clipToOverlay);
             }

@@ -18425,6 +18425,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         });
                         // These filters require doubles; negotiate before rematrixing unconstrained aformat input.
                         if ((nextFilter === "haas" || nextFilter === "apulsator" || nextFilter === "stereotools" || nextFilter === "deesser") && !hasSampleFormat) options.unshift("sample_fmts=dbl");
+                        if (nextFilter === "virtualbass" && !hasSampleFormat) options.unshift("sample_fmts=dblp");
                         // Headphone requires float input before an unconstrained channel remix.
                         if (nextFilter === "headphone" && !hasSampleFormat) options.unshift("sample_fmts=fltp");
                         // Widen integer input before an unconstrained remix into a PCM32 sink.

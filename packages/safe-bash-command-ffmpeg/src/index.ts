@@ -740,7 +740,7 @@ function* lavfiSteps(
   const height = parseInt(hStr ?? "240", 10) || 240;
   const fps = parseFrameRate(kv.rate ?? kv.r ?? "25") ?? 25;
   const duration =
-    durationOverride ?? (parseFloat(kv.duration ?? kv.d ?? "1") || 1);
+    durationOverride ?? (parseHlsDuration(kv.duration ?? kv.d ?? "1") || 1);
   const frameCount = Math.max(1, Math.ceil(duration * fps));
   const color = parseColorRgba(kv.color ?? kv.c ?? kv._0 ?? "blue");
   if (filterName === "color") {

@@ -4,12 +4,7 @@ import { parseFilterExpression } from "./filter-expression.js";
 import { parseFilterBoolean } from "./filter-boolean.js";
 import { audioSpeakerMasks, parseAudioChannelLayout } from "./audio-channel-layout.js";
 
-export async function passAudio(
-  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  sampleFormat: string, budget: MediaBudgetTracker, signal?: AbortSignal, channelNames?: readonly string[],
-  frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[] = [{ start: 0, end: channels[0]?.length ?? 0, pts: 0 }],
-  commands: readonly { sample: number; action: string; expression: string }[] = []
-): Promise<{ channels: (Float32Array | Float64Array)[]; sampleFormat: string }> {
+export function parsePassOptions(filter: string) {
   const name = filter.split("=", 1)[0]!.split("@", 1)[0]!;
   const lowpass = name === "lowpass";
   const bandpass = name === "bandpass";
@@ -105,6 +100,23 @@ export async function passAudio(
     options[key] = key === "blocksize" || key === "poles" || key === "width_type"
       ? (number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number)) : number;
   }
+  return { ...options, precision, selected, enable, normalize, csg };
+}
+
+export async function passAudio(
+  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
+  sampleFormat: string, budget: MediaBudgetTracker, signal?: AbortSignal, channelNames?: readonly string[],
+  frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[] = [{ start: 0, end: channels[0]?.length ?? 0, pts: 0 }],
+  commands: readonly { sample: number; action: string; expression: string }[] = []
+): Promise<{ channels: (Float32Array | Float64Array)[]; sampleFormat: string; blocksize: number }> {
+  const name = filter.split("=", 1)[0]!.split("@", 1)[0]!;
+  const lowpass = name === "lowpass";
+  const bandpass = name === "bandpass";
+  const equalizer = name === "equalizer";
+  const bandreject = name === "bandreject";
+  const lowShelf = name === "bass" || name === "lowshelf";
+  const shelf = lowShelf || name === "treble" || name === "highshelf";
+  const { precision, selected, enable, normalize, csg, ...options } = parsePassOptions(filter);
   const inputFormat = sampleFormat;
   if (precision !== -1) sampleFormat = ["s16p", "s32p", "fltp", "dblp"][precision]!;
   else if (!sampleFormat.endsWith("p")) sampleFormat += "p";
@@ -210,7 +222,7 @@ export async function passAudio(
     }
   };
   configure();
-  if (bypass && commands.length === 0) return { channels: [...channels], sampleFormat };
+  if (bypass && commands.length === 0) return { channels: [...channels], sampleFormat, blocksize: options.blocksize };
   // Native PCM16 and float modes round every operation to single precision.
   const wet = single ? Math.fround(options.mix) : options.mix;
   const dry = single ? Math.fround(1 - wet) : 1 - wet;
@@ -361,5 +373,5 @@ export async function passAudio(
       }
     }
   }
-  return { channels: output, sampleFormat };
+  return { channels: output, sampleFormat, blocksize };
 }

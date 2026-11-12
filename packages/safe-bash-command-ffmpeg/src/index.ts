@@ -72,7 +72,7 @@ import { sceneChangeDifference } from "./scdet.js";
 import { parseDecimateGraph } from "./decimate-graph.js";
 import { cutSubAudio } from "./audio-asubcut.js";
 import { boostSubAudio } from "./audio-asubboost.js";
-import { passAudio } from "./audio-pass.js";
+import { parsePassOptions, passAudio } from "./audio-pass.js";
 import { cutUltrasonicAudio } from "./audio-asupercut.js";
 import { exciteAudio } from "./audio-aexciter.js";
 import { psychoacousticClip } from "./audio-apsyclip.js";
@@ -14664,6 +14664,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           // window-sized blocks, rounded up again to whole upstream frames.
                           initialDemand = Math.min(length, Math.ceil(((frameLimit - 1) * hop - skip + size) / size) * size);
                         }
+                        const pass = next && ["highpass", "lowpass", "bandpass", "bandreject", "equalizer", "bass", "lowshelf", "treble", "highshelf"]
+                          .includes(next.split("=", 1)[0]!.split("@", 1)[0]!) ? parsePassOptions(next) : undefined;
                         let pending = 0;
                         let pendingPts = 0;
                         let pendingPos: number | undefined;
@@ -14709,6 +14711,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             // consumes the following normalization frame before emitting output.
                             const size = normalization.size + (normalization.size % 2 === 0 ? 1 : 0);
                             outputFrames = Math.max(0, Math.floor(measuredEnd / normalization.frameSize) - size);
+                          } else if (pass?.blocksize) {
+                            // Each reverse-filter output block needs one block of lookahead.
+                            // A cutoff bypass still regroups frames, but does not buffer lookahead.
+                            const lookahead = Number(pass.width > 0 && pass.frequency > 0 && pass.frequency <= origRate / 2);
+                            outputFrames = Math.max(0, Math.floor(measuredEnd / pass.blocksize) - lookahead);
                           } else if (reframe && frameLimit !== undefined) {
                             // Output groups may split one input frame or consume several.
                             // The detector still measures each consumed input frame in full.
@@ -15287,6 +15294,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         audioCommands = audioCommands.filter(command => command.target !== filterName && command.target !== filterTarget);
                         const filtered = await passAudio(stretched, origRate, trimmed, filteredSampleFormat, budget, context.signal, names, audioTimestamps, commands);
                         stretched = filtered.channels;
+                        if (filtered.blocksize > 0) {
+                          const previous = audioTimestamps;
+                          const length = stretched[0]?.length ?? 0;
+                          budget.allocateMemory(Math.ceil(length / filtered.blocksize) * 32);
+                          audioTimestamps = [];
+                          let frameIndex = 0;
+                          for (let start = 0; start < length; start += filtered.blocksize) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            while (frameIndex + 1 < previous.length && previous[frameIndex]!.end <= start) frameIndex++;
+                            const frame = previous[frameIndex]!;
+                            audioTimestamps.push({ start, end: Math.min(length, start + filtered.blocksize),
+                              pts: frame.pts + start - frame.start, pos: frame.pos });
+                          }
+                        }
                         filteredSampleFormat = filtered.sampleFormat;
                         panSampleFormat = filteredSampleFormat;
                       } else if (trimmed === "asupercut" || trimmed.startsWith("asupercut=")) {

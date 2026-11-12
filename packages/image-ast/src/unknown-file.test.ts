@@ -17,7 +17,7 @@ it(`rejects unknown file resources without buffering: ${operation}/${failureMode
             return { stat, async read(position: number, length: number) {
                 expect(length).toBeLessThanOrEqual(16384); readBytes += length;
                 if (position >= 16384) { if (failureMode === "read") throw failure; if (failureMode === "cancel") controller.abort(failure); }
-                return new Uint8Array(length);
+                return new Uint8Array(length).fill(0x7e); // No supported image signature (two zero bytes indicate WBMP).
             }, async close() { closed++; if (failureMode === "close") throw failure; } };
         };
         if (key === "stat" || key === "lstat") return async (...args: Parameters<typeof fs.stat>) => args[0] === "/input" ? stat() : fs[key](...args);

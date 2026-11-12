@@ -20,6 +20,8 @@ export function* extendEdgePixelSteps(source: { width: number; height: number; s
         const fill = new Uint8Array(stride);
         const view = new DataView(fill.buffer);
         const values = hue ? source.space === "cmyk" ? rgbToCmyk(color.r / 255, color.g / 255, color.b / 255) : [color.r, color.g, color.b, color.a].map(value => value / 255) : [color.r, color.g, color.b, color.a];
+        // Black/White virtual pixels fill native channel samples, including K.
+        if (hue && source.space === "cmyk" && (method === "black" || method === "white")) values.fill(gray / 255);
         for (const [channel, value] of values.entries()) {
             if (hue || evaluate) view.setFloat64(channel * 8, value, true);
             else if (highDepth) view.setUint16(channel * 2, Math.round(value * 257), true);

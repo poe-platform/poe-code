@@ -12378,8 +12378,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 (filePath.endsWith(".Y") || (registry.findById("image2")?.extensions.includes(filePath.split(".").pop()?.toLowerCase() ?? "") &&
                   (input?.tsFromFile !== undefined || formatImageSequence(filePath, 0) !== undefined || filePath.includes("*") || filePath.includes("?")))));
               if (input?.tsFromFile !== undefined && !imageDemuxer) throw new Error("Option ts_from_file not found");
-              const pipeBytes = explicitFormat === "image2pipe"
+              const detectedBytes = !explicitFormat && !imageDemuxer
                 ? (await readInput(filePath)).subarray(input?.skipInitialBytes ?? 0) : undefined;
+              const pipeBytes = explicitFormat === "image2pipe"
+                ? (await readInput(filePath)).subarray(input?.skipInitialBytes ?? 0)
+                : detectedBytes?.[0] === 66 && detectedBytes[1] === 77 ? detectedBytes : undefined;
               let pipeOffset = 0;
               let globPaths: string[] | undefined;
               let globPattern = imageDemuxer && input?.patternType === "glob" ? filePath : undefined;
@@ -12583,7 +12586,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 };
               }
 
-              const rawBytes = (await readInput(filePath)).subarray(input?.skipInitialBytes ?? 0);
+              const rawBytes = detectedBytes ?? (await readInput(filePath)).subarray(input?.skipInitialBytes ?? 0);
               if (input?.patternType !== undefined && !imageDemuxer) {
                 throw new Error("Option pattern_type not found");
               }

@@ -5437,6 +5437,9 @@ async function applyVideoFilterChain(
             [48, 80, 40, 72, 54, 86, 46, 78], [112, 16, 104, 8, 118, 22, 110, 14]
           ];
           current = await mapWork(current, async ({ native, ...f }) => {
+            // A matching 16-bit format must retain samples instead of rebuilding from RGBA8.
+            if (pixelFormat === "gray16be" && native?.format === 29 && native.rgba === f.data &&
+                native.width === f.width && native.height === f.height) return { ...f, native };
             const planar = native?.rgba === f.data && native.width === f.width && native.height === f.height &&
               [0, 4, 5, 12, 13, 14, 33].includes(native.format) ? native : undefined;
             const highDepthLuma = native?.rgba === f.data && native.width === f.width && native.height === f.height &&

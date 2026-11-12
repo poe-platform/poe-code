@@ -2755,7 +2755,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     sinks: await Promise.all(sinks.map(label => resolve(label))) };
 }
 
-function videoTimingRatio(ratio: number): [number, number] {
+function timingRatio(ratio: number): [number, number] {
   // Link timing is stored in seconds; recover its reduced rational form.
   let value = ratio;
   let numerator = 1, denominator = 0, previousNumerator = 0, previousDenominator = 1;
@@ -3226,7 +3226,7 @@ async function applyVideoFilterChain(
       }
       if (diagnostics.logLevel < 32) continue;
       const [timeBase, frameRate] = [1 / timescale, frameRateKnown ? 1 / (frameDuration * frameRateScale) : 0]
-        .map(ratio => videoTimingRatio(ratio).join("/"));
+        .map(ratio => timingRatio(ratio).join("/"));
       await diagnostics.write(`[showinfo] config in time_base: ${timeBase}, frame_rate: ${frameRate}\n` +
         "[showinfo] config out time_base: 0/0, frame_rate: 0/0\n");
       const checksumEnabled = !["0", "false", "no", "off"].includes(option ?? "");
@@ -5715,8 +5715,8 @@ async function applyVideoFilterChain(
       const count = cols * rows;
       // setpts advertises 1/0 fps, so all cells retain the sheet timestamp.
       const interval = frameRateKnown ? frameDuration * frameRateScale / count : 0;
-      const [inputNumerator, inputDenominator] = videoTimingRatio(1 / timescale);
-      const [intervalNumerator, intervalDenominator] = videoTimingRatio(interval);
+      const [inputNumerator, inputDenominator] = timingRatio(1 / timescale);
+      const [intervalNumerator, intervalDenominator] = timingRatio(interval);
       let numerator = inputNumerator, remainder = intervalNumerator;
       while (remainder) [numerator, remainder] = [remainder, numerator % remainder];
       let divisor = inputDenominator;
@@ -19518,9 +19518,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         if (filterName === "asettb") {
                           const samplesPerTick = audioTimeBase! * origRate;
+                          const [numerator, denominator] = timingRatio(timeBase / audioTimeBase!);
                           for (const frame of audioTimestamps) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                             delete frame.exactPts;
+                            if (audioTimeBase !== timeBase && (Number.isNaN(frame.pts) || frame.exactTimestamp?.timeBase === timeBase)) {
+                              // Native av_rescale_q treats NOPTS numerically, clipping its
+                              // magnitude to INT64_MAX before rounding; overflow restores NOPTS.
+                              const input = Number.isNaN(frame.pts) ? -9223372036854775807n : frame.exactTimestamp!.pts;
+                              const magnitude = input < 0n ? -input : input;
+                              const ticks = (magnitude * BigInt(numerator) + BigInt(denominator) / 2n) / BigInt(denominator);
+                              const pts = input < 0n ? -ticks : ticks;
+                              frame.exactTimestamp = ticks > 9223372036854775807n ? undefined : { pts, timeBase: audioTimeBase! };
+                              frame.pts = frame.exactTimestamp ? Number(pts) * samplesPerTick : NaN;
+                              continue;
+                            }
                             if (frame.exactTimestamp?.timeBase !== audioTimeBase) delete frame.exactTimestamp;
                             frame.pts = Math.sign(frame.pts) * Math.round(Math.abs(frame.pts) / samplesPerTick) * samplesPerTick;
                           }

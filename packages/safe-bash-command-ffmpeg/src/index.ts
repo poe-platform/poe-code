@@ -17768,13 +17768,22 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               window, undefined, stageFilterSize, cutoff, stagePhaseShift, stageLinearInterp, stageExactRational, { ends, outputEnds }, internalFormat);
                             // Resampling produces floats; later filters and encoders must round
                             // these samples rather than narrow the original integer PCM.
-                            const nextFilter = audioFilters[filterIndex + 1]?.trim().split("=", 1)[0]!.split("@", 1)[0] ?? downstreamFilter;
+                            let nextFilter = downstreamFilter;
+                            for (let nextIndex = filterIndex + 1; nextIndex < audioFilters.length; nextIndex++) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              const name = audioFilters[nextIndex]!.trim().split("=", 1)[0]!.split("@", 1)[0];
+                              if (["anull", "acopy", "ashowinfo"].includes(name!)) continue;
+                              nextFilter = name;
+                              break;
+                            }
                             // Resamplers and fades negotiate their connecting format from the input.
                             // Materialize it before the next stage consumes fractional samples.
                             if (!autoConversionFilters || nextFilter === "aresample" || nextFilter === "afade" || nextFilter === "acrossfade" ||
                                 !nextFilter && audioRate !== undefined && audioRate !== targetRate) {
                               format ??= filteredSampleFormat;
                             }
+                            // Format-preserving observers share the encoder's negotiated format.
+                            if (!nextFilter) format ??= outputAudioFormat ?? filteredSampleFormat;
                             // Keep the internal planar format until atempo negotiates its
                             // packed input with downstream filters and the output encoder.
                             filteredSampleFormat = panSampleFormat = nextFilter === "atempo"

@@ -23083,7 +23083,7 @@ interface MontageArguments {
     warnings: string;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth">[];
     shadow: boolean;
-    transforms: ({ kind: "dispose"; sequence: object; index: number } | { kind: "disposal"; value: number } | { kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | MontageLayers | { kind: "flip" | "flop" } | { kind: "trim"; fuzz: number } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string; channels: readonly boolean[] | undefined } | { kind: "scale"; geometry: string; channels: readonly boolean[] | undefined } | { kind: "thumbnail"; geometry: string; channels: readonly boolean[] | undefined } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "blur"; geometry: MagickGeometry } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
+    transforms: ({ kind: "dispose"; sequence: object; index: number } | { kind: "disposal"; value: number } | { kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | MontageLayers | { kind: "flip" | "flop" } | { kind: "trim"; fuzz: number } | { kind: "unsharp"; geometry: ReturnType<typeof parseUnsharpGeometry> } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string; channels: readonly boolean[] | undefined } | { kind: "scale"; geometry: string; channels: readonly boolean[] | undefined } | { kind: "thumbnail"; geometry: string; channels: readonly boolean[] | undefined } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "blur"; geometry: MagickGeometry } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
@@ -23263,6 +23263,12 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             const operation = parseMagickPixelOperation(argv, state, i)!;
             queuedTransforms.push({ kind: "alpha", operation });
             i = operation.end;
+        }
+        else if (t === "-unsharp") {
+            const value = argv[++i];
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -unsharp\n" };
+            try { queuedTransforms.push({ kind: "unsharp", geometry: parseUnsharpGeometry(value) }); }
+            catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
         }
         else if (t === "-trim") {
             queuedTransforms.push({ kind: "trim", fuzz: state.alphaFuzz });
@@ -23934,6 +23940,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     ? yield* applyMagickCropToStackSteps(image, transform.geometry, transform.gravity, analysis)
                     : [yield* ("operation" in transform ? transform.operation.apply(image)
                         : (transform.kind === "resize" || transform.kind === "scale" || transform.kind === "thumbnail") ? applyMagickResizeSteps(image, transform.geometry, state.kernel, transform.kind === "thumbnail", false, transform.kind === "scale", state.resizeFilter, undefined, false, undefined, transform.channels)
+                        : transform.kind === "unsharp" ? applyMagickRasterSteps(image, blurPixelSteps(image, transform.geometry, false, undefined, transform.geometry), signal)
                         : transform.kind === "trim" ? trimMagickSteps(image, transform.fuzz, undefined, undefined, undefined, analysis)
                         : transform.kind === "blur" ? applyMagickRasterSteps({ ...image, isPalette: false }, blurPixelSteps(image, transform.geometry, false), signal, image)
                         : transform.kind === "extent" ? applyMagickExtentSteps(image, transform.geometry, transform.state, signal)
@@ -24317,6 +24324,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                                     ? parseMagickWarpOperation(["-rotate", String(transform.angle)], state, 0, analysis)?.plan(tile) : undefined;
                                 let transformed = "operation" in transform
                                     ? await transformStoredMagickPixels(tile, backend, transform.operation, signal)
+                                    : transform.kind === "unsharp" ? await transformStoredMagickRaster(tile, backend, blurPixelSteps(tile, transform.geometry, false, undefined, transform.geometry), signal)
                                     : transform.kind === "trim" ? await trimStoredMagick(tile, backend.storage, transform.fuzz, signal, undefined, undefined, undefined, analysis)
                                     : transform.kind === "blur" ? await transformStoredMagickRaster({ ...tile, isPalette: false }, backend, blurPixelSteps(tile, transform.geometry, false), signal, tile)
                                     : transform.kind === "extent" ? await applyStoredMagickExtent(tile, transform.geometry, transform.state, backend, signal)

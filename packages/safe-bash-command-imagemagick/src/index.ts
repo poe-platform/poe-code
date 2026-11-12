@@ -23491,9 +23491,9 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
                 state.borderColor = { r: 0, g: 0, b: 0, a: 255 };
             }
         }
-        else if (t === "-border") {
+        else if (t === "-border" || t === "-borderwidth") {
             const value = argv[++i];
-            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -border\n" };
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: `montage: missing argument for ${t}\n` };
             try { validateMagickTransformGeometry(value, t); }
             catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
             borderW = Math.max(0, Math.trunc(parseMagickGeometry(value).width ?? 0));

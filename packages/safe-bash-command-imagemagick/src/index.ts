@@ -23589,6 +23589,32 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             transforms[groupStart]!.push({ kind: "composite", inputs, compose: state.composeRaw, gravity: inputGravity });
             operands.length = labels.length = sizes.length = transforms.length = groupStart + 1;
         }
+        else if (t === "-shuffle") {
+            const strategy = argv[++i];
+            if (strategy === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -shuffle\n" };
+            const order = strategy.toLowerCase();
+            if (order !== "ascending" && order !== "descending")
+                return { exitCode: 1, stdout: "", stderr: `montage: unrecognized image shuffle '${strategy}'\n` };
+            yield* applyTransforms(true);
+            const inputs = [];
+            for (let index = groupStart; index < operands.length; index++) {
+                if (++cooperativeWork % 64 === 0) yield;
+                let name = parseInputToken(operands[index]!).baseToken.toLowerCase();
+                const colon = name.indexOf(":");
+                if (colon > 0 && (extToImageFormat(name.slice(0, colon)) || name.startsWith("xc:") || name.startsWith("canvas:"))) name = name.slice(colon + 1);
+                inputs.push({ path: operands[index]!, name,
+                    label: labels[index]!, size: sizes[index]!, transforms: transforms[index]! });
+            }
+            inputs.sort((a, b) => (a.name < b.name ? -1 : a.name > b.name ? 1 : 0) * (order === "ascending" ? 1 : -1));
+            for (let index = 0; index < inputs.length; index++) {
+                if (++cooperativeWork % 64 === 0) yield;
+                const input = inputs[index]!, destination = groupStart + index;
+                operands[destination] = input.path;
+                labels[destination] = input.label;
+                sizes[destination] = input.size;
+                transforms[destination] = input.transforms;
+            }
+        }
         else if (t === "-reverse") {
             yield* applyTransforms(true);
             for (let left = groupStart, right = operands.length - 1; left < right; left++, right--) {

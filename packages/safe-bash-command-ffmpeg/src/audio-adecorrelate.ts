@@ -8,7 +8,8 @@ import { parseFilterExpression } from "./filter-expression.js";
 export async function decorrelateAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[],
-  budget: MediaBudgetTracker, signal?: AbortSignal
+  budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { sample: number; expression: string }[] = []
 ): Promise<Float64Array[]> {
   const options = { stages: 6, seed: -1 };
   let enable: string | undefined;
@@ -51,11 +52,21 @@ export async function decorrelateAudio(
   const enabled = new Uint8Array(frames.length);
   const registers = new Float64Array(10);
   const randomStates: BigUint64Array[] = [];
+  let commandIndex = 0;
   for (const [n, frame] of frames.entries()) {
     if (n % 1024 === 0) {
       budget.checkCpu();
       await yieldTurn(signal);
       signal?.throwIfAborted();
+    }
+    while (commandIndex < commands.length && commands[commandIndex]!.sample <= frame.start) {
+      const command = commands[commandIndex++]!;
+      try {
+        parseFilterExpression(command.expression, "adecorrelate enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 }, undefined, new Float64Array(10), []);
+        enable = command.expression;
+        registers.fill(0);
+        randomStates.length = 0;
+      } catch { /* Native retains the previous expression after a rejected command. */ }
     }
     if (enable === undefined) enabled[n] = 1;
     else {

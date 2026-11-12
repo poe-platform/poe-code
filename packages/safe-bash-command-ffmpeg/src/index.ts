@@ -14329,7 +14329,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             : action === "bits" ? "acrusher"
                             : action === "delays" ? "adelay"
                             : action === "start_threshold" || action === "stop_threshold" ? "silenceremove" : requestedTarget;
-                          const supported = action === "enable" && ["tremolo", "vibrato", "dcshift", "deesser"].some(name => target === name || target?.startsWith(`${name}@`))
+                          const supported = action === "enable" && ["tremolo", "vibrato", "dcshift", "deesser", "adecorrelate"].some(name => target === name || target?.startsWith(`${name}@`))
                             || ["f", "frequency", "g", "gain"].includes(action!)
                               && ["lowpass", "highpass", "bandpass", "bandreject", "equalizer", "bass", "lowshelf", "treble", "highshelf"].includes(target?.split("@", 1)[0] ?? "")
                             || ["n", "nb_out_samples", "p", "pad"].includes(action!) && (target === "asetnsamples" || target?.startsWith("asetnsamples@"))
@@ -15650,7 +15650,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           stretched = await adenormAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal, commands);
                           filteredSampleFormat = "dblp";
                         } else if (filterName === "adecorrelate") {
-                          stretched = await decorrelateAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
+                          const commands = audioCommands.filter(command => (command.target === "adecorrelate" || command.target === filterTarget) && command.action === "enable")
+                            .sort((a, b) => a.sample - b.sample);
+                          audioCommands = audioCommands.filter(command => command.target !== "adecorrelate" && command.target !== filterTarget);
+                          stretched = await decorrelateAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal, commands);
                           filteredSampleFormat = "dblp";
                         } else if (filterName === "adynamicsmooth") {
                           if (!autoConversionFilters && filteredSampleFormat !== "dblp") throw new Error(audioConversionDisabled);

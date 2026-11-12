@@ -14287,6 +14287,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     for (const plane of image.metaChannels) result.metaChannels.push(yield* createSolidRgbaImageSteps(result.width, 1, { r: 0, g: 0, b: 0, a: 255 }, !!plane.data16));
                 }
                 // Native creates a fresh, zero-valued write-mask channel on the palette.
+                if (image.region) result.region = { x: 0, y: 0, width: result.width, height: 1 };
                 return { ...result, writeMask: image.writeMask ? yield* createSolidRgbaImageSteps(result.width, 1, { r: 0, g: 0, b: 0, a: 255 }) : undefined };
             });
         }
@@ -18116,6 +18117,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     result.storedMetaChannels = [];
                     for (const plane of image.storedMetaChannels) result.storedMetaChannels.push(await createStoredCanvas(result.width, 1, { r: 0, g: 0, b: 0, a: 255 }, backend, signal, !!plane.storedData16));
                 }
+                if (image.region) result.region = { x: 0, y: 0, width: result.width, height: 1 };
                 return { ...result, storedWriteMask: image.storedWriteMask ? await createStoredCanvas(result.width, 1, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined };
             });
             continue;

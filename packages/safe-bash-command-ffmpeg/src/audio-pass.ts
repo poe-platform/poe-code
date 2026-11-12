@@ -12,6 +12,7 @@ export async function passAudio(
   const name = filter.split("=", 1)[0]!.split("@", 1)[0]!;
   const lowpass = name === "lowpass";
   const bandpass = name === "bandpass";
+  const equalizer = name === "equalizer";
   const bandreject = name === "bandreject";
   const lowShelf = name === "bass" || name === "lowshelf";
   const shelf = lowShelf || name === "treble" || name === "highshelf";
@@ -19,14 +20,14 @@ export async function passAudio(
   let precision = -1;
   let normalize = false;
   let selected: string[] | undefined;
-  const options = { frequency: lowShelf ? 100 : lowpass ? 500 : 3000, poles: 2, mix: 1, width: shelf || bandpass || bandreject ? 0.5 : 0.707, width_type: 3, blocksize: 0, gain: 0 };
+  const options = { frequency: equalizer ? 0 : lowShelf ? 100 : lowpass ? 500 : 3000, poles: 2, mix: 1, width: equalizer ? 1 : shelf || bandpass || bandreject ? 0.5 : 0.707, width_type: 3, blocksize: 0, gain: 0 };
   const aliases: Record<string, keyof typeof options> = {
     frequency: "frequency", f: "frequency", poles: "poles", p: "poles", mix: "mix", m: "mix",
     width: "width", w: "width", width_type: "width_type", t: "width_type",
     blocksize: "blocksize", b: "blocksize"
   };
-  if (bandpass || bandreject) { delete aliases.poles; delete aliases.p; }
-  if (shelf) { aliases.gain = "gain"; aliases.g = "gain"; }
+  if (bandpass || bandreject || equalizer) { delete aliases.poles; delete aliases.p; }
+  if (shelf || equalizer) { aliases.gain = "gain"; aliases.g = "gain"; }
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
@@ -111,12 +112,19 @@ export async function passAudio(
   switch (options.width_type) {
     case 1: alpha = sine * options.width / (2 * options.frequency); break;
     case 2: alpha = sine * Math.sinh(Math.LN2 / 2 * options.width * angle / sine); break;
-    case 4: alpha = sine / 2 * Math.sqrt(shelf
+    case 4: alpha = sine / 2 * Math.sqrt(shelf || equalizer
       ? (amplitude + 1 / amplitude) * (1 / options.width - 1) + 2 : 2 / options.width); break;
     case 5: alpha = sine * options.width * 1000 / (2 * options.frequency); break;
   }
   let a1, a2, b0, b1, b2;
-  if (shelf) {
+  if (equalizer) {
+    const denominator = 1 + alpha / amplitude;
+    a1 = -2 * Math.cos(angle) / denominator;
+    a2 = (1 - alpha / amplitude) / denominator;
+    b0 = (1 + alpha * amplitude) / denominator;
+    b1 = a1;
+    b2 = (1 - alpha * amplitude) / denominator;
+  } else if (shelf) {
     const cosine = Math.cos(angle);
     const direction = lowShelf ? 1 : -1;
     // bass and treble retain the legacy shelf slope; the shelf aliases use RBJ coefficients.

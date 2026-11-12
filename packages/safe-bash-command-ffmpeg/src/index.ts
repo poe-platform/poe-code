@@ -13388,7 +13388,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   : doc?.tracks[Number(selector)];
                 if (!doc || !track || track.type !== "audio") throw new Error(`showwavespic: invalid audio input ${input}`);
                 const filters = parseFilterChain(expression);
-                const waveformIndex = filters.findIndex(filter => filter.split("=", 1)[0] === "showwavespic");
+                const waveformIndex = filters.findIndex(filter => filter.split("=", 1)[0]!.split("@", 1)[0] === "showwavespic");
                 if (waveformIndex < 0) throw new Error("showwavespic: invalid filter chain");
                 const upstream = filters.splice(0, waveformIndex);
                 const filteredTrack = upstream.length ? await filterAudio(track, serializeFilterChain(upstream)) : track;

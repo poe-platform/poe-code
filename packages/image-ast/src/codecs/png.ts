@@ -261,6 +261,7 @@ export function encodePngImage(
     readonly pngExcludeChunks?: readonly string[];
     readonly pngPreserveColormap?: boolean | undefined;
     readonly pngInterlace?: boolean | undefined;
+    readonly pngPrediction?: number | undefined;
     readonly pngBitDepth?: 1 | 8 | 16 | undefined;
     readonly pngColorType?: 0 | 2 | 3 | 4 | 6 | undefined;
     readonly pngCoder?: "png00" | "png8" | "png24" | "png32" | "png48" | "png64" | undefined;
@@ -390,48 +391,49 @@ export function encodePngImage(
         }
         continue;
       }
-      raw[dstRow] = 1;
       for (let x = 0; x < passWidth; x++) {
         const srcIdx = rowBase + (x0 + x * dx) * 4;
-        const prevIdx = x > 0 ? srcIdx - dx * 4 : -1;
         const outCol = dstRow + 1 + x * bpp;
         if (palette) {
-          const value = pngPalette!.indices[palette.index(srcRowData[srcIdx]!, srcRowData[srcIdx + 1]!, srcRowData[srcIdx + 2]!, srcRowData[srcIdx + 3]!)]!;
-          const previous = prevIdx < 0 ? 0 : pngPalette!.indices[palette.index(srcRowData[prevIdx]!, srcRowData[prevIdx + 1]!, srcRowData[prevIdx + 2]!, srcRowData[prevIdx + 3]!)]!;
-          raw[outCol] = (value - previous) & 255;
-        } else if (data16) {
-          for (let channel = 0; channel < channels.length; channel++) {
-            const value = data16[srcIdx + channels[channel]!]!;
-            const previous = prevIdx >= 0 ? data16[prevIdx + channels[channel]!]! : 0;
-            raw[outCol + channel * 2] = ((value >>> 8) - (previous >>> 8)) & 255;
-            raw[outCol + channel * 2 + 1] = ((value & 255) - (previous & 255)) & 255;
-          }
-        } else if (isBw) {
-          const g = srcRowData[srcIdx]!;
-          const pg = prevIdx >= 0 ? srcRowData[prevIdx]! : 0;
-          raw[outCol] = (g - pg) & 0xff;
-          if (hasAlpha) {
-            const a = srcRowData[srcIdx + 3]!;
-            const pa = prevIdx >= 0 ? srcRowData[prevIdx + 3]! : 0;
-            raw[outCol + 1] = (a - pa) & 0xff;
-          }
+          raw[outCol] = pngPalette!.indices[palette.index(srcRowData[srcIdx]!, srcRowData[srcIdx + 1]!, srcRowData[srcIdx + 2]!, srcRowData[srcIdx + 3]!)]!;
         } else {
-          const r = srcRowData[srcIdx]!;
-          const g = srcRowData[srcIdx + 1]!;
-          const b = srcRowData[srcIdx + 2]!;
-          const pr = prevIdx >= 0 ? srcRowData[prevIdx]! : 0;
-          const pg = prevIdx >= 0 ? srcRowData[prevIdx + 1]! : 0;
-          const pb = prevIdx >= 0 ? srcRowData[prevIdx + 2]! : 0;
-          raw[outCol] = (r - pr) & 0xff;
-          raw[outCol + 1] = (g - pg) & 0xff;
-          raw[outCol + 2] = (b - pb) & 0xff;
-          if (hasAlpha) {
-            const a = srcRowData[srcIdx + 3]!;
-            const pa = prevIdx >= 0 ? srcRowData[prevIdx + 3]! : 0;
-            raw[outCol + 3] = (a - pa) & 0xff;
+          for (let channel = 0; channel < channels.length; channel++) {
+            const value = (data16 ?? srcRowData)[srcIdx + channels[channel]!]!;
+            if (data16) {
+              raw[outCol + channel * 2] = value >>> 8;
+              raw[outCol + channel * 2 + 1] = value & 255;
+            } else raw[outCol + channel] = value;
           }
         }
       }
+    }
+    const prediction = options?.pngPrediction ?? (exactPalette || packedGray || paletteDepth < 8 ? 0 : 1);
+    // Work backwards so predictors can read unfiltered bytes without row copies.
+    for (let row = passHeight - 1; row >= 0; row--) {
+      const offset = passOffset + row * rowSize;
+      const scanline = raw.subarray(offset + 1, offset + rowSize);
+      const previous = row > 0 ? raw.subarray(offset - rowSize + 1, offset) : undefined;
+      const pixelBytes = exactPalette || packedGray || palette ? 1 : bpp;
+      const residual = (index: number, filter: number) => {
+        const a = index >= pixelBytes ? scanline[index - pixelBytes]! : 0;
+        const b = previous?.[index] ?? 0;
+        const c = index >= pixelBytes ? previous?.[index - pixelBytes] ?? 0 : 0;
+        return (scanline[index]! - (filter === 1 ? a : filter === 2 ? b : filter === 3 ? (a + b) >>> 1 : filter === 4 ? paethPredictor(a, b, c) : 0)) & 255;
+      };
+      let filter = row === 0 && prediction > 0 && options?.pngPrediction !== undefined ? 1 : prediction;
+      if (filter === 5) {
+        let best = Infinity;
+        for (let candidate = 0; candidate <= 4; candidate++) {
+          let score = 0;
+          for (let i = 0; i < scanline.length; i++) {
+            const value = residual(i, candidate);
+            score += Math.min(value, 256 - value);
+          }
+          if (score < best) { best = score; filter = candidate; }
+        }
+      }
+      raw[offset] = filter;
+      for (let i = scanline.length - 1; i >= 0; i--) scanline[i] = residual(i, filter);
     }
     passOffset += passHeight * rowSize;
   }

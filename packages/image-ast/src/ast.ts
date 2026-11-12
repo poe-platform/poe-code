@@ -552,6 +552,7 @@ export interface OutputEncodeOptions {
   readonly pngInterlace?: boolean | undefined;
   readonly gifInterlace?: boolean | undefined;
   readonly globalPalette?: boolean | undefined;
+  readonly pngPrediction?: number | undefined;
   readonly pngBitDepth?: 1 | 8 | 16 | undefined;
   readonly consumeInput?: boolean;
   readonly format?: ImageFormat;

@@ -8956,6 +8956,7 @@ export function evalSyncFfmpeg(
     let pageDuration: number | undefined;
     let apngPlays = 1;
     let finalDelay: number | undefined;
+    let pngPrediction = 0;
     let rle: boolean | undefined;
     let globalPalette: boolean | undefined;
     let mpegtsServiceId: number | undefined;
@@ -9323,6 +9324,13 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         compressionLevel = value?.trim() ? Number(value) : NaN;
         if (!Number.isInteger(compressionLevel)) throw new Error("invalid compression_level value");
+      } else if (arg === "-pred") {
+        const value = args[++i];
+        const named = ["none", "sub", "up", "avg", "paeth", "mixed"].indexOf(value ?? "");
+        pngPrediction = named >= 0 ? named : value?.trim() ? Number(value) : NaN;
+        if (!Number.isInteger(pngPrediction) || pngPrediction < 0 || pngPrediction > 5) {
+          throw new Error("Invalid PNG prediction");
+        }
       } else if (arg === "-rle") {
         const value = args[++i];
         if (value !== "0" && value !== "1") throw new Error("rle must be 0 or 1");
@@ -9775,7 +9783,8 @@ export function evalSyncFfmpeg(
       const bytes = encodeApngFrames(track.decodedVideoFrames.slice(0, maxVideoFrames), apngPlays, budget);
       return writeFileSync(outputTarget, bytes) ? "" : undefined;
     }
-    if (formatImageSequence(outputTarget, outputStartNumber ?? 1) !== undefined) {
+    if (formatImageSequence(outputTarget, outputStartNumber ?? 1) !== undefined ||
+        (outPlugin?.id === "image2" && videoCodec !== "copy" && imageOutputFormat(videoCodec, outputTarget.split(".").pop()?.toLowerCase() ?? "") === "png")) {
       if (videoCodec !== undefined && videoCodec !== "copy" && !imageEncoders.includes(videoCodec)) return undefined;
       const outExt = outputTarget.split(".").pop()?.toLowerCase() ?? "png";
       const vTrack = workingDoc.tracks.find((t) => t.type === "video");
@@ -9785,7 +9794,7 @@ export function evalSyncFfmpeg(
       const imgFmt = imageOutputFormat(videoCodec, outExt);
       for (let idx = 0; idx < limit; idx++) {
         const f = frames[idx]!;
-        const fileName = formatImageSequence(outputTarget, idx + (outputStartNumber ?? 1))!;
+        const fileName = formatImageSequence(outputTarget, idx + (outputStartNumber ?? 1)) ?? outputTarget;
         const encoded = imgFmt === "tga" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
                     ...(imgFmt === "qoi" ? {
                       hasAlpha: !["rgb24", "bgr24", "gbrp", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "rgba"),
@@ -9800,7 +9809,7 @@ export function evalSyncFfmpeg(
                     ...(imgFmt === "png" && vTrack?.codecDescriptions[0]?.sarWidth && vTrack.codecDescriptions[0].sarHeight &&
                       vTrack.codecDescriptions[0].sarWidth !== vTrack.codecDescriptions[0].sarHeight ? {
                       resolution: { x: vTrack.codecDescriptions[0].sarWidth, y: vTrack.codecDescriptions[0].sarHeight, unit: "unknown" as const }
-                    } : {}) }, { format: imgFmt, pngBitDepth: vTrack?.codecDescriptions[0]?.pixFmt === "monob" ? 1 : undefined, pngPreserveColormap: vTrack?.codecDescriptions[0]?.pixFmt === "pal8" }).data;
+                    } : {}) }, { format: imgFmt, pngPrediction, pngBitDepth: vTrack?.codecDescriptions[0]?.pixFmt === "monob" ? 1 : undefined, pngPreserveColormap: vTrack?.codecDescriptions[0]?.pixFmt === "pal8" }).data;
         if (!writeFileSync!(fileName, encoded)) return undefined;
       }
       return "";
@@ -10337,6 +10346,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let pageDuration: number | undefined;
         let apngPlays = 1;
         let finalDelay: number | undefined;
+        let pngPrediction = 0;
         let rle: boolean | undefined;
         let globalPalette: boolean | undefined;
         let mpegtsServiceId: number | undefined;
@@ -11652,6 +11662,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             compressionLevel = value?.trim() ? Number(value) : NaN;
             if (!Number.isInteger(compressionLevel)) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid compression_level value\n"), context.signal);
+              return { exitCode: 1 };
+            }
+          } else if (arg === "-pred") {
+            const value = args[++i];
+            const named = ["none", "sub", "up", "avg", "paeth", "mixed"].indexOf(value ?? "");
+            pngPrediction = named >= 0 ? named : value?.trim() ? Number(value) : NaN;
+            if (!Number.isInteger(pngPrediction) || pngPrediction < 0 || pngPrediction > 5) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Invalid PNG prediction\n"), context.signal);
               return { exitCode: 1 };
             }
           } else if (arg === "-rle") {
@@ -21414,6 +21432,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     } : {}),
                     ...(data16 ? { data16, space: "srgb" as const, channels: 4 as const, hasAlpha: false } : {}) }, {
                     format: imgFmt,
+                    pngPrediction,
                     pngPreserveColormap: !data16 && vTrack?.codecDescriptions[0]?.pixFmt === "pal8",
                     pngBitDepth: data16 ? 16 : vTrack?.codecDescriptions[0]?.pixFmt === "monob" ? 1 : vTrack?.codecDescriptions[0]?.pixFmt === "pal8" ? undefined : ["rgba64be", "rgb48be", "gray16be"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "") ? 16 : 8,
                     forceOpaque: data16 !== undefined || vTrack?.codecDescriptions[0]?.pixFmt === "gbrp" || vTrack?.codecDescriptions[0]?.pixFmt === "rgb48be" || vTrack?.codecDescriptions[0]?.pixFmt === "rgb24" || vTrack?.codecDescriptions[0]?.pixFmt === "bgr24"

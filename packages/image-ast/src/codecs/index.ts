@@ -580,6 +580,7 @@ export function encodeImage(
         pngColorType: options.pngColorType,
         pngPreserveColormap: options.pngPreserveColormap,
         pngBitDepth: options.pngBitDepth,
+        pngPrediction: options.pngPrediction,
         ...(options.forceOpaque ? { forceOpaque: true } : {}),
         ...(options.omitPngResolution ? { omitPngResolution: true } : {}),
         ...(options.compressionLevel !== undefined

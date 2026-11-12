@@ -1,9 +1,10 @@
+import { isExrBytes, readExrHeader } from "@poe-code/image-ast";
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 /** Find one encoded packet without mistaking signatures inside pixel data for frames. */
 export function imagePipeFrameEnd(bytes: Uint8Array, start: number, decoder: string | undefined, budget: MediaBudgetTracker): number {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
-  const codec = decoder ?? (bytes[start] === 137 ? "png" : bytes[start] === 66 ? "bmp"
+  const codec = decoder ?? (isExrBytes(bytes.subarray(start)) ? "exr" : bytes[start] === 137 ? "png" : bytes[start] === 66 ? "bmp"
     : bytes[start] === 113 ? "qoi" : bytes[start] === 255 ? "mjpeg"
     : bytes[start + 1] === 49 || bytes[start + 1] === 52 ? "pbm"
     : bytes[start + 1] === 53 || bytes[start + 1] === 50 ? "pgm" : "ppm");
@@ -12,6 +13,25 @@ export function imagePipeFrameEnd(bytes: Uint8Array, start: number, decoder: str
     if (!Number.isSafeInteger(length) || length < 0 || offset + length > bytes.length) throw invalid();
   };
   let offset = start;
+  if (codec === "exr") {
+    const header = readExrHeader(bytes.subarray(start));
+    const rows = header.compression === 4 ? 32 : header.compression === 3 ? 16 : 1;
+    const count = Math.ceil(header.metadata.height / rows);
+    const table = start + header.offset;
+    requireBytes(table, count * 8);
+    let end = table + count * 8;
+    for (let block = 0; block < count; block++) {
+      budget.checkCpu();
+      const relative = Number(view.getBigUint64(table + block * 8, true));
+      if (!Number.isSafeInteger(relative) || relative < header.offset + count * 8) throw invalid();
+      const position = start + relative;
+      requireBytes(position, 8);
+      const length = view.getUint32(position + 4, true);
+      requireBytes(position + 8, length);
+      end = Math.max(end, position + 8 + length);
+    }
+    return end;
+  }
   if (codec === "png") {
     if (![137, 80, 78, 71, 13, 10, 26, 10].every((byte, i) => bytes[start + i] === byte)) throw invalid();
     offset += 8;

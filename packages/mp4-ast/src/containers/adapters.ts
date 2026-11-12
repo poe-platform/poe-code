@@ -5,6 +5,8 @@ import { ac3Ast } from "./ac3.js";
 import { wavpackAst } from "./wavpack.js";
 export { wavpackAst } from "./wavpack.js";
 import { vocAst } from "./voc.js";
+import { decodeExr } from "./exr.js";
+import { isExrBytes } from "@poe-code/image-ast/portable";
 import { decodeTga, encodeTga } from "./tga.js";
 import { icoAst } from "./ico.js";
 export { icoAst } from "./ico.js";
@@ -2321,15 +2323,15 @@ export function image2Ast(): MediaAstPlugin {
     id: "image2",
     formatName: "image2",
     formatLongName: "image2 sequence",
-    extensions: ["png", "jpg", "jpeg", "webp", "bmp", "ppm", "pgm", "pbm", "pam", "tga", "tiff", "tif", "qoi"],
+    extensions: ["png", "jpg", "jpeg", "webp", "bmp", "ppm", "pgm", "pbm", "pam", "tga", "tiff", "tif", "qoi", "exr"],
     mimeTypes: ["image/png", "image/jpeg", "image/webp", "image/bmp", "image/x-portable-pixmap", "image/x-portable-bitmap"],
     canDemux: true,
     canMux: true,
-    supportedVideoCodecs: ["png", "mjpeg", "webp", "bmp", "ppm", "pgm", "pbm", "qoi"],
+    supportedVideoCodecs: ["png", "mjpeg", "webp", "bmp", "ppm", "pgm", "pbm", "qoi", "exr"],
     supportedAudioCodecs: [],
     detect(bytes, filename) {
       if (apngAst().detect(bytes)) return false;
-      if (isPngSignature(bytes) || isJpegSignature(bytes) || isWebpSignature(bytes) || isPpmSignature(bytes) || isPbmSignature(bytes) || isPamSignature(bytes) || isQoiSignature(bytes)) {
+      if (isExrBytes(bytes) || isPngSignature(bytes) || isJpegSignature(bytes) || isWebpSignature(bytes) || isPpmSignature(bytes) || isPbmSignature(bytes) || isPamSignature(bytes) || isQoiSignature(bytes)) {
         return true;
       }
       if (filename && /\.(png|jpe?g|webp|bmp|pp[gm]|tga|tiff?)$/i.test(filename) && bytes.byteLength >= 4) {
@@ -2343,6 +2345,8 @@ export function image2Ast(): MediaAstPlugin {
       let codecName = "png";
       let rgba: Uint8Array = new Uint8Array(64 * 64 * 4).fill(180);
       const tga = options?.filename?.toLowerCase().endsWith(".tga");
+      const exrInput = isExrBytes(bytes) || options?.filename?.toLowerCase().endsWith(".exr");
+      let native: MediaVideoFrame["native"];
       let pixFmt = "rgb24";
       if (isPngSignature(bytes) && bytes.byteLength >= 29) {
         const depth = bytes[24];
@@ -2355,7 +2359,9 @@ export function image2Ast(): MediaAstPlugin {
         }
       }
       try {
-        const img = tga ? decodeTga(bytes, options) : decodeImage(bytes);
+        const exr = exrInput ? decodeExr(bytes, options) : undefined;
+        const img = exr ?? (tga ? decodeTga(bytes, options) : decodeImage(bytes));
+        if (exr) { native = exr.native; pixFmt = exr.hasAlpha ? "gbrapf32le" : "gbrpf32le"; }
         width = img.width;
         height = img.height;
         rgba = img.data;
@@ -2364,7 +2370,7 @@ export function image2Ast(): MediaAstPlugin {
         if (img.format === "qoi") pixFmt = bytes[12] === 4 ? "rgba" : "rgb24";
         if (img.format === "pam" && "hasAlpha" in img) pixFmt = img.hasAlpha ? "rgba" : "rgb24";
       } catch (error) {
-        if (tga || isQoiSignature(bytes) || isPbmSignature(bytes) || isPamSignature(bytes)) throw error;
+        if (tga || exrInput || isQoiSignature(bytes) || isPbmSignature(bytes) || isPamSignature(bytes)) throw error;
         if (isPngSignature(bytes) && bytes.byteLength >= 24) {
           const view = new DataView(bytes.buffer, bytes.byteOffset + 16, 8);
           width = view.getUint32(0, false) || 64;
@@ -2423,6 +2429,7 @@ export function image2Ast(): MediaAstPlugin {
                 width,
                 height,
                 data: rgba,
+                ...(native ? { native } : {}),
                 ptsSeconds: 0,
                 durationSeconds: 0.04,
                 keyframe: true

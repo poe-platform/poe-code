@@ -1,3 +1,4 @@
+import { decodeExr } from "@poe-code/mp4-ast";
 import { encodeBmp } from "./bmp.js";
 import { deflate } from "./deflate.js";
 import { decodeFfmpegImage } from "./decode-image.js";
@@ -169,6 +170,7 @@ import { writeBytes } from "safe-bash-contracts/io";
 import type { VirtualShellPlugin } from "safe-bash-contracts/plugin";
 import {
   compositeImage,
+  isExrBytes,
   decodeImage,
   readImageMetadata,
   encodeImage,
@@ -12524,11 +12526,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                   }
                   {
+                    const exr = !planeFrame && isExrBytes(imgBytes) ? decodeExr(imgBytes, { budget }) : undefined;
                     const decoded = planeFrame
                       ? { ...planeFrame, format: "rawvideo", hasAlpha: false, resolution: undefined, depth: undefined, data16: undefined }
-                      : decodeFfmpegImage(imgBytes);
+                      : exr ?? decodeFfmpegImage(imgBytes);
                     let data = decoded.data;
-                    let native = planeFrame?.native;
+                    let native = exr?.native ?? planeFrame?.native;
                     if ((decoded.format === "ppm" || decoded.format === "pgm") && decoded.depth === "ushort" && decoded.data16) {
                       const channels = decoded.format === "ppm" ? 3 : 1;
                       budget.allocateMemory(decoded.width * decoded.height * channels * 2);
@@ -12549,7 +12552,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     if (frames.length === 0) {
                       codecName = decoded.format === "jpeg" ? "mjpeg" : decoded.format;
                       if (decoded.format === "qoi" && imgBytes[13] === 1) colorMetadata = { transfer: 8 };
-                      pixelFormat = planeFrame ? planePixelFormat : native ? (native.format === 34 ? "rgb48be" : "gray16be") : decoded.hasAlpha ? "rgba" : "rgb24";
+                      pixelFormat = decoded.format === "exr" ? (decoded.hasAlpha ? "gbrapf32le" : "gbrpf32le") : planeFrame ? planePixelFormat : native ? (native.format === 34 ? "rgb48be" : "gray16be") : decoded.hasAlpha ? "rgba" : "rgb24";
                       sarWidth = decoded.resolution?.x ?? 0;
                       sarHeight = decoded.resolution?.y || 1;
                     }
@@ -12561,7 +12564,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       const gc = (globalThis as { gc?: () => void }).gc;
                       if (typeof gc === "function") { gc(); gc(); }
                     }
-                    if (!planeFrame) budget.recordFrame(decoded.width, decoded.height);
+                    if (!planeFrame && decoded.format !== "exr") budget.recordFrame(decoded.width, decoded.height);
                     frames.push({
                       ...(native ? { native } : {}),
                       width: decoded.width,

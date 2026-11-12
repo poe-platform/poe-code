@@ -10,7 +10,9 @@ for (const graph of [false, true]) {
     ["alimiter=latency=1,aselect=eq(n\\,0)", 0, 473, 0],
     ["alimiter=latency=1,aselect=eq(n\\,1)", 473, 512, 0],
     ["alimiter=latency=1,aselect=eq(n\\,7)", 3048, 39, 0],
-    ["alimiter=latency=1,aselect=eq(t\\,0.059125)", 473, 512, 0],
+    // Native t multiplies integer PTS by TB; decimal 0.059125 differs by one ULP.
+    ["alimiter=latency=1,aselect=eq(t\\,0.059125)", 0, 0, 0],
+    ["alimiter=latency=1,aselect=eq(t\\,473*TB)", 473, 512, 0],
     ["alimiter=latency=1,volume=0:enable=eq(n\\,0)", 0, 3087, 473],
     ["alimiter=latency=1,volume=0:enable=eq(n\\,7)", 0, 3087, 0],
     ["alimiter=latency=0,aselect=eq(n\\,0)", 0, 512, 39],

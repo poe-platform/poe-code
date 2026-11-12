@@ -66,7 +66,7 @@ export async function readImageMetadataFromSource(source:ImageByteSource,signal:
  else if(isSgiBytes(prefix))metadata=readSgiHeader(prefix,source.size).metadata;
  else if(isPcxBytes(prefix))metadata=readPcxHeader(prefix,source.size).metadata;
  else if(await detectHeifFormatFromSource(source,signal))metadata=await readHeifMetadataFromSource(source,signal);
- else if(await isXbmSource(source,signal))metadata=await readXbmFromSource(source,undefined,signal,options);
+ else if(await isXbmSource(source,signal,prefix))metadata=await readXbmFromSource(source,undefined,signal,options);
  else if(isDdsBytes(prefix))metadata=await readDdsMetadataFromSource(source,signal);
  else if(isSixelBytes(prefix))metadata=(await readSixelFromSource(source,signal,options)).metadata;
  else if(isFitsBytes(prefix))metadata=(await readFitsFromSource(source,signal)).metadata;

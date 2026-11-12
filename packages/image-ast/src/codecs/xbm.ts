@@ -41,10 +41,11 @@ export function isXbmBytes(bytes: Uint8Array): boolean {
   return next.value;
 }
 
-export async function isXbmSource(source: ImageByteSource, signal: AbortSignal): Promise<boolean> {
+export async function isXbmSource(source: ImageByteSource, signal: AbortSignal, prefix?: Uint8Array): Promise<boolean> {
+  signal.throwIfAborted();
   const reader = new SourceBytes(source, signal, "XBM"), steps = xbmSignature();
   let next = steps.next();
-  while (!next.done) next = steps.next(await reader.at(next.value));
+  while (!next.done) next = steps.next(prefix && next.value < prefix.length ? prefix[next.value] : await reader.at(next.value));
   return next.value;
 }
 

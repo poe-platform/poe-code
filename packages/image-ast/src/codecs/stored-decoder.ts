@@ -66,7 +66,7 @@ export async function storedImageDecoder(source:ImageByteSource,signal:AbortSign
  if(isPfmBytes(prefix))return decodePfmToStorage;
  if(isFarbfeldBytes(prefix))return decodeFarbfeldToStorage;
  if(isPhmBytes(prefix))return decodePhmToStorage;
- if(await isXbmSource(source,signal))return readXbmFromSource;
+ if(await isXbmSource(source,signal,prefix))return readXbmFromSource;
  if(isXpmBytes(prefix))return readXpmFromSource;
  if(isTxtBytes(prefix))return readTxtFromSource;
  if(isTgaBytes(prefix))return decodeTgaToStorage;

@@ -8249,7 +8249,13 @@ function* overCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height" | "
             const start = Math.max(x, left), end = Math.min(x + count, left + frame.width);
             if (y >= top && y < top + frame.height && start < end) {
                 const input = (yield { kind: "read", image: 1, position: ((y - top) * frame.width + start - left) * 4, length: (end - start) * 4, highDepth })!;
-                const working = yield { kind: "read", image: 1, position: ((y - top) * frame.width + start - left) * 4, length: (end - start) * 4, hue: sourceHue, evaluate: !sourceHue };
+                let working = yield { kind: "read", image: 1, position: ((y - top) * frame.width + start - left) * 4, length: (end - start) * 4, hue: sourceHue, evaluate: !sourceHue };
+                let workingHue = sourceHue;
+                if (sourceHue && !sourceCmyk && !working?.length) {
+                    // RGB sources keep unrounded channel samples in the arithmetic buffer.
+                    working = yield { kind: "read", image: 1, position: ((y - top) * frame.width + start - left) * 4, length: (end - start) * 4, evaluate: true };
+                    workingHue = false;
+                }
                 const integers = highDepth ? new Uint16Array(input.slice().buffer) : input;
                 const samples = working?.length ? new Float64Array(working.slice().buffer) : Float64Array.from(integers, value => value / (highDepth ? 65535 : 255) * quantum);
                 if (alphaSource && frame.hasAlpha) {
@@ -8259,8 +8265,8 @@ function* overCompositePixelSteps(canvas: Pick<RgbaImage, "width" | "height" | "
                     const alpha = workingAlpha?.length ? new Float64Array(alphaBytes.slice().buffer) : highDepth ? new Uint16Array(alphaBytes.slice().buffer) : alphaBytes;
                     for (let i = 3; i < samples.length; i += 4) samples[i] = alpha[i]! * (workingAlpha?.length ? 1 : highDepth ? 255 / 65535 : 1);
                 }
-                if (working?.length && sourceHue !== hue) {
-                    for (let i = 0; i < samples.length; i++) samples[i] = samples[i]! * (sourceHue ? 255 : 1 / 255);
+                if (working?.length && workingHue !== hue) {
+                    for (let i = 0; i < samples.length; i++) samples[i] = samples[i]! * (workingHue ? 255 : 1 / 255);
                 }
                 if (sourceCmyk && !working?.length) {
                     for (let i = 0; i < samples.length; i += 4) samples.set(rgbToCmyk(samples[i]! / quantum, samples[i + 1]! / quantum, samples[i + 2]! / quantum).map(value => value * quantum), i);

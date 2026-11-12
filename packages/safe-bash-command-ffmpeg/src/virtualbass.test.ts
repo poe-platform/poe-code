@@ -90,3 +90,43 @@ it("accounts for the LFE allocation and honors cancellation", async () => {
   await assert.rejects(virtualBassAudio(channels, 8000, "virtualbass",
     new MediaBudgetTracker(), AbortSignal.abort()));
 });
+
+// Native FFmpeg 7.0.2 statuses and raw PCM hashes for empty option fields.
+for (const [filter, hash] of [
+  ["virtualbass=cutoff=250::", null],
+  ["virtualbass=cutoff=250::strength=1", null],
+  ["virtualbass=:250", null],
+  ["virtualbass=cutoff=250:", "8a9b2d61432a352de91e63c3a32eb0dc1a4efabb5491f0a941c153c5246136ce"],
+  ["virtualbass=cutoff=250:strength=1", "1f6ba1e24b870769f6c0c9bd8e037696a0d3a1acadcc5352ec4728e2cd78906f"],
+  ["virtualbass", "8a9b2d61432a352de91e63c3a32eb0dc1a4efabb5491f0a941c153c5246136ce"]
+] as const) for (const graph of [false, true]) {
+  it(`${filter} matches native option parsing and raw PCM (graph=${graph})`, async () => {
+    const input = Buffer.alloc(2400 * 2);
+    for (let i = 0; i < 2400; i++) input.writeInt16LE(i * 7919 % 22001 - 11000, i * 2);
+    const fs = Volume.fromJSON({ "/in.raw": input });
+    const stdout: Buffer[] = [];
+    let stderr = "";
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "error", "-f", "s16le", "-ar", "8000", "-ch_layout", "stereo", "-i", "/in.raw",
+        ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]),
+        "-f", "s16le", "pipe:1"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: { async readFile(p: string) { return fs.readFileSync(p); },
+        async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); },
+        async stat(p: string) { return fs.statSync(p); } },
+      stdin: (async function* () {})(),
+      stdout: { async write(b: Uint8Array) { stdout.push(Buffer.from(b)); } },
+      stderr: { async write(b: Uint8Array) { stderr += new TextDecoder().decode(b); } }
+    } as never);
+    const output = Buffer.concat(stdout);
+    assert.equal(result.exitCode, hash === null ? 234 : 0, stderr);
+    if (hash === null) {
+      assert.equal(output.length, 0);
+      assert.ok(stderr.includes("virtualbass"), stderr);
+    } else {
+      assert.equal(stderr, "");
+      assert.equal(output.length, 7200);
+      assert.equal(createHash("sha256").update(output).digest("hex"), hash);
+    }
+  });
+}

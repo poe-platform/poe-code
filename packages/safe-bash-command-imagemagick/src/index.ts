@@ -15687,7 +15687,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-magnify") {
             if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const factor = state.magnifyMethod === "scale3x" || state.magnifyMethod === "eagle3x" ? 3 : 2;
+            const conversion = parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
+                if (image.space === "cmyk" || image.magickColorspace && !["RGB", "scRGB", "Gray", "DisplayP3", "Adobe98", "ProPhoto"].includes(image.magickColorspace)) image = yield* conversion.apply(image);
                 const width = image.width * factor, height = image.height * factor;
                 const output = yield* applyMagickRasterSteps({ ...image, isPalette: false }, magnifyPixelSteps(image, state.magnifyMethod, state.background, state.virtualPixel, state.intensity), signal, { ...image, width, height });
                 if (image.alphaBlend === false) output.alphaSeparate = false;
@@ -20197,8 +20199,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             const method = state.magnifyMethod, factor = method === "scale3x" || method === "eagle3x" ? 3 : 2, background = state.background, virtualPixel = state.virtualPixel, intensity = state.intensity;
+            const conversion = parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0, signal)!;
             steps.push(async (image, backend) => {
                 if (!image) return;
+                if (image.space === "cmyk" || image.magickColorspace && !["RGB", "scRGB", "Gray", "DisplayP3", "Adobe98", "ProPhoto"].includes(image.magickColorspace)) image = await transformStoredMagickPixels(image, backend, conversion, signal);
                 const width = image.width * factor, height = image.height * factor;
                 const output = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, magnifyPixelSteps(image, method, background, virtualPixel, intensity), signal, { ...image, width, height });
                 if (image.alphaBlend === false) output.alphaSeparate = false;

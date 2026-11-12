@@ -7292,13 +7292,17 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         else if (cmd === "viewbox") {
             for (let coordinate = 0; coordinate < 4; coordinate++) num();
         }
-        else if (cmd === "translate" || cmd === "scale" || cmd === "rotate" || cmd === "affine") {
+        else if (cmd === "translate" || cmd === "scale" || cmd === "rotate" || cmd === "affine" || cmd === "skewx" || cmd === "skewy") {
             let next: typeof affine;
             if (cmd === "translate") next = [1, 0, 0, 1, num(), num()];
             else if (cmd === "scale") next = [num(), 0, 0, num(), 0, 0];
             else if (cmd === "rotate") {
                 const angle = (num() % 360) * Math.PI / 180, cosine = Math.cos(angle), sine = Math.sin(angle);
                 next = [cosine, sine, -sine, cosine, 0, 0];
+            } else if (cmd === "skewx" || cmd === "skewy") {
+                const angle = num() * Math.PI / 180;
+                // MVG uses sine for skewX and negative half-angle tangent for skewY.
+                next = cmd === "skewx" ? [1, 0, Math.sin(angle), 1, 0, 0] : [1, -Math.tan(angle / 2), 0, 1, 0, 0];
             } else next = [num(), num(), num(), num(), num(), num()];
             const [a, b, c, d, e, f] = affine, [g, h, j, k, l, m] = next;
             affine = [a * g + c * h, b * g + d * h, a * j + c * k, b * j + d * k, a * l + c * m + e, b * l + d * m + f];

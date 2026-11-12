@@ -10,6 +10,12 @@ for (const mode of ["map", "filesystem", "command"]) {
         ["scale 2,2 translate 1,0 point 1,1", [[4, 2]]],
         ["affine 2,0,0,2,1,0 point 1,1", [[3, 2]]],
         ["rotate 90 point 1,-2", [[2, 1]]],
+        ["skewX -90 point 3,2", [[1, 2]]],
+        ["skewY -90 point 2,1", [[2, 3]]],
+        ["translate 1,0 skewX 90 point 1,1", [[3, 1]]],
+        ["skewX 90 translate 0,1 point 1,1", [[3, 2]]],
+        ["skewX 90 push graphic-context skewY 0 point 1,1 pop graphic-context point 2,1", [[2, 1], [3, 1]]],
+        ["push graphic-context skewX 90 point 1,1 pop graphic-context point 1,1", [[2, 1], [1, 1]]],
         ["translate 1,0 affine 2,0,0,2,1,0 point 1,1", [[4, 2]]],
         ["affine 1,0,1,1,0,0 point 1,2", [[3, 2]]],
         ["translate 2,1 rectangle 0,0 1,1", [[2, 1], [3, 1], [2, 2], [3, 2]]],
@@ -30,7 +36,7 @@ for (const mode of ["map", "filesystem", "command"]) {
         const image = decodeImage(mode === "map" ? files.get("out.png")! : await fs.readFile("/out.png"));
         expect([...image.data]).toEqual(Array.from({ length: 35 }, (_, i) => redPixels.some(([x, y]) => x === i % 7 && y === Math.floor(i / 7)) ? [255, 0, 0, 255] : [255, 255, 255, 255]).flat());
     });
-    it.each(["translate 1", "scale 2,NaN", "rotate Infinity", "affine 1,0,0,1,0", "scale 1e308,1e308 scale 1e308,1e308", "point 0,0 translate bad,0"])(`${mode}: preserves output after invalid %s`, async draw => {
+    it.each(["skewX", "skewY NaN", "skewX Infinity", "translate 1", "scale 2,NaN", "rotate Infinity", "affine 1,0,0,1,0", "scale 1e308,1e308 scale 1e308,1e308", "point 0,0 translate bad,0"])(`${mode}: preserves output after invalid %s`, async draw => {
         const original = new TextEncoder().encode("keep"), fs = new MemoryFileSystem(), files = new Map([["out.png", original]]);
         await fs.writeFile("/out.png", original);
         const args = ["-size", "7x5", "xc:white", "-draw", draw, "out.png"], argumentValues = createCommandArguments(args);

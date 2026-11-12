@@ -15442,7 +15442,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             for (const [sceneIdx, im] of stack.entries()) {
                 if (++cooperativeWork % 65536 === 0)
                     yield;
-                const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, optionProperties: state.optionProperties });
+                const settings = magickTrimSettings(state, im.properties);
+                const expanded = yield* formatMagickPropertyStringSteps(geom, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx, optionProperties: state.optionProperties, fuzz: settings.alphaFuzz, trimEdges: settings.trimEdges, trimPercentBackground: settings.trimPercentBackground, trimBackgroundColor: settings.trimBackgroundColor });
                 validateMagickTransformGeometry(expanded, t);
                 nextStack.push(...(yield* applyMagickCropToStackSteps(im, expanded, state.gravity, analysis, expanded, state.background)).map(crop => magickCropViewport(im, crop, expanded, state.gravity)));
             }
@@ -20478,11 +20479,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             });
         } else if (!operandsOnly && token === "-crop") {
             const geometry = tokens[++i] ?? "100%", gravity = state.gravity, optionProperties = state.optionProperties, background = state.background;
+            const captured = { ...state };
             stackStep(async (stack, backend) => {
                 const frames = new StoredImageStack(backend.storage, signal);
                 for (let n = 0; n < stack.length; n++) {
                     const image = (await stack.get(n))! as StoredRgbaImage & StoredMagickImage;
-                    const expanded = await formatRetainedIdentify(geometry, image, { ...image[magickInput], sceneCount: stack.length, listIndex: n, optionProperties }, async () => ({ image, storage: backend.storage }), signal, stack);
+                    const settings = magickTrimSettings(captured, image.properties);
+                    const expanded = await formatRetainedIdentify(geometry, image, { ...image[magickInput], sceneCount: stack.length, listIndex: n, optionProperties, fuzz: settings.alphaFuzz, trimEdges: settings.trimEdges, trimPercentBackground: settings.trimPercentBackground, trimBackgroundColor: settings.trimBackgroundColor }, async () => ({ image, storage: backend.storage }), signal, stack);
                     validateMagickTransformGeometry(expanded, token);
                     image[magickInput] = { ...image[magickInput], blobSize: 0 };
                     for (const area of magickCropAreas(image, expanded, gravity)) {

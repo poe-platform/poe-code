@@ -15,11 +15,15 @@ for (const mode of ["buffered", "sync", "retained", "command", "montage-command"
         options: [...(depth === undefined ? [] : ["-depth", String(depth)]), "-format", "%wx%h:%z:%[depth]"],
         expected: `2x1:${depth ?? 16}:${depth ?? 16}`
       })),
+      { inputs: ["xc:red", "xc:blue"], tile: "2x1", options: ["-format", "a%[no-such-tag]b"], expected: "ab", warning: "montage: unknown image property '%[no-such-tag]'\n" },
+      { inputs: ["xc:red", "xc:blue"], tile: "2x1", options: ["-format", "%[colorspace]"], expected: "sRGB" },
+      { inputs: ["xc:red", "xc:blue"], tile: "2x1", options: ["-format", "%[pixel:p{1,0}]"], expected: "srgb(0,0,255)" },
       { inputs: ["xc:red"], tile: "1x1", options: ["-format", ""], expected: "" },
       { inputs: ["xc:red"], tile: "1x1", options: [], expected: "1x1 sRGB 8-bit\n" },
       { inputs: ["xc:red"], tile: "1x1", options: ["-format", "ignored", "+format"], expected: "1x1 sRGB 8-bit\n" },
       { inputs: ["xc:red", "xc:blue"], tile: "2x1", options: ["-geometry", "3x2+1+1!", "-format", "%wx%h"], expected: "10x4" },
-    ])(`${mode} writes completed montage geometry to ${target}: $expected`, async ({ inputs, tile, options, expected }) => {
+    ])(`${mode} writes completed montage geometry to ${target}: $expected`, async test => {
+      const { inputs, tile, options, expected } = test;
       const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
       const args = [...inputs, "-tile", tile, "-geometry", "+0+0", ...options, target];
       let result;
@@ -37,7 +41,7 @@ for (const mode of ["buffered", "sync", "retained", "command", "montage-command"
       } else result = mode === "sync" ? runMontageCliSync(args, files)
         : await runMontageCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
       const fileOutput = target === "info:/sheet.txt";
-      expect(result).toEqual({ exitCode: 0, stdout: fileOutput ? "" : expected, stderr: "" });
+      expect(result).toEqual({ exitCode: 0, stdout: fileOutput ? "" : expected, stderr: "warning" in test ? test.warning : "" });
       if (fileOutput) expect(new TextDecoder().decode(mode === "buffered" || mode === "sync"
         ? files.get("/sheet.txt") : await fs.readFile("/sheet.txt"))).toBe(expected);
     });

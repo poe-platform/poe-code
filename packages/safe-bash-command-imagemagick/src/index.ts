@@ -23799,7 +23799,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         if (outSpec.toLowerCase().startsWith("info:")) {
             canvas = { ...canvas, bitsPerSample: state.inputDepth ?? 16 };
             stdout += state.formatStr !== undefined
-                ? yield* formatMagickPropertyStringSteps(state.formatStr, canvas, () => canvas, { outputFilePath: outSpec.slice(5), sceneIdx: page, outputScene: page, sceneCount, quality: state.quality })
+                ? yield* formatMagickPropertyStringSteps(state.formatStr, canvas, () => canvas, { analysis, outputFilePath: outSpec.slice(5), sceneIdx: page, outputScene: page, sceneCount, quality: state.quality })
                 : `${canvas.width}x${canvas.height} ${canvas.magickColorspace ?? "sRGB"} 8-bit\n`;
             detachRgbaBuffer(canvas.data);
             return;
@@ -24632,7 +24632,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 canvas = { ...canvas, bitsPerSample: state.inputDepth ?? 16 };
                 const target = outSpec.slice(5), page = pageStart / (cols * rows);
                 const text = state.formatStr !== undefined
-                    ? await formatRetainedIdentify(state.formatStr, canvas, { outputFilePath: target, sceneIdx: page, outputScene: page, sceneCount: Math.ceil(n / (cols * rows)), quality: state.quality }, async () => ({ image: canvas, storage: backend.storage }), signal)
+                    ? await formatRetainedIdentify(state.formatStr, canvas, { analysis, outputFilePath: target, sceneIdx: page, outputScene: page, sceneCount: Math.ceil(n / (cols * rows)), quality: state.quality }, async () => ({ image: canvas, storage: backend.storage }), signal)
                     : `${canvas.width}x${canvas.height} ${canvas.magickColorspace ?? "sRGB"} 8-bit\n`;
                 if ((!target || target === "-") && input.stdout) await writeIdentifyText(input.stdout, text, signal);
                 else stdout += text;

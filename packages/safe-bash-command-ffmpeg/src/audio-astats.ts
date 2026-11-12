@@ -68,11 +68,13 @@ function measurements(title: string, fields: [string, string | number][], mask?:
 // Default astats measurements follow FFmpeg 7's af_astats.c, including its
 // completed extrema runs and value-based eviction of sliding noise peaks.
 export async function measureAstats(
-  channels: MediaAudioData["channelData"], sampleRate: number, scale: number, length: number,
+  channels: MediaAudioData["channelData"], sampleRate: number, scale: number, sampleFormat: string, length: number,
   budget: MediaBudgetTracker, signal?: AbortSignal,
   perChannel?: number, overall?: number,
   metadata?: { end: number; tags: Map<string, string> }[]
 ): Promise<string> {
+  const floating = ["flt", "fltp", "dbl", "dblp"].includes(sampleFormat);
+  const minNormal = sampleFormat === "flt" || sampleFormat === "fltp" ? 2 ** -126 : 2 ** -1022;
   const window = Math.max(1, Math.floor(sampleRate * length + 0.5));
   const decay = Math.exp(-1 / length / sampleRate);
   const bits = scale === 32768 / 32767 ? 16 : 32;
@@ -83,9 +85,9 @@ export async function measureAstats(
   const peaks = new Float64Array(window);
   const setMetadata = (tags: Map<string, string>, section: string, values: Record<string, string | number>, mask?: number) => {
     for (const [name, value] of Object.entries(values)) {
-      const flag = measurementFlags[name.startsWith("Bit_depth") ? "Bit_depth" : name]!;
+      const flag = measurementFlags[name.startsWith("Bit_depth") ? "Bit_depth" : name.replaceAll(" ", "_")]!;
       if (mask !== undefined && (mask & flag) === 0) continue;
-      const key = `lavfi.astats.${section}.${name}`;
+      const key = `lavfi.astats.${section ? `${section}.` : ""}${name}`;
       const formatted = typeof value === "number" ? fixed(value) : value;
       budget.allocateMemory(64 + 2 * (key.length + formatted.length));
       updateAudioMetadata(tags, key, formatted);
@@ -93,7 +95,7 @@ export async function measureAstats(
   };
   budget.allocateMemory((metadata?.length ?? 1) * 256);
   const totals = Array.from({ length: metadata?.length ?? 1 }, () => ({
-    count: 0, sum: 0, squares: 0, min: Infinity, max: -Infinity,
+    nans: 0, infs: 0, denormals: 0, count: 0, sum: 0, squares: 0, min: Infinity, max: -Infinity,
     minDiff: Infinity, maxDiff: 0, differences: 0, differenceSquares: 0,
     minRms: Infinity, maxRms: -Infinity, peak: 0, runs: 0, peakCount: 0,
     absPeakCount: 0, noise: 0, noiseCount: 0, entropy: 0, masks: [0, 0, -1, 0]
@@ -114,6 +116,7 @@ export async function measureAstats(
     let minDiff = Number.MAX_VALUE, maxDiff = 0, differences = 0, differenceSquares = 0;
     let last = NaN, lastInteger = 0, lastNonzero = 0, crossings = 0;
     const masks = [0, 0, -1, 0];
+    let nans = 0, infs = 0, denormals = 0;
     let frameIndex = 0;
     for (let i = 0; i < channel.length; i++) {
       if (++work % 1024 === 0) {
@@ -121,7 +124,13 @@ export async function measureAstats(
         await yieldTurn(signal);
         signal?.throwIfAborted();
       }
-      const value = channel[i]! * unit;
+      const sample = channel[i]!;
+      if (floating) {
+        if (Number.isNaN(sample)) nans++;
+        else if (!Number.isFinite(sample)) infs++;
+        else if (sample !== 0 && Math.abs(sample) < minNormal) denormals++;
+      }
+      const value = sample * unit;
       const normalized = channel[i]! * scale;
       const absolute = Math.abs(value);
       const amplitude = Math.abs(normalized);
@@ -224,6 +233,9 @@ export async function measureAstats(
           Bit_depth: depth[0]!, Bit_depth2: depth[1]!, Bit_depth3: depth[2]!, Bit_depth4: depth[3]!,
           Dynamic_range: db(2 * peak / minNonzero), Zero_crossings: crossings, Zero_crossings_rate: crossings / length
         }, perChannel);
+        if (floating) setMetadata(frame.tags, String(channelIndex + 1), {
+          "Number of NaNs": nans, "Number of Infs": infs, "Number of denormals": denormals
+        }, perChannel);
       }
       if (length === channel.length) {
         report += measurements(`Channel: ${channelIndex + 1}`, [
@@ -237,9 +249,13 @@ export async function measureAstats(
           ["Peak count", minCount + maxCount], ["Abs Peak count", absPeakCount],
           ["Noise floor dB", db(noise)], ["Noise floor count", noiseCount],
           ["Entropy", fixed(entropy)], ["Bit depth", bitDepth(masks, bits).join("/")], ["Dynamic range", db(2 * peak / minNonzero)],
-          ["Zero crossings", crossings], ["Zero crossings rate", fixed(crossings / channel.length)]
+          ["Zero crossings", crossings], ["Zero crossings rate", fixed(crossings / channel.length)],
+          ...(floating ? [["Number of NaNs", nans], ["Number of Infs", infs], ["Number of denormals", denormals]] as [string, number][] : [])
         ], perChannel);
       }
+      total.nans += nans;
+      total.infs += infs;
+      total.denormals += denormals;
       total.count += length;
       if (Math.abs(sum) > Math.abs(total.sum)) total.sum = sum;
       total.squares += squares;
@@ -284,6 +300,11 @@ export async function measureAstats(
         Bit_depth: depth[0]!, Bit_depth2: depth[1]!, Bit_depth3: depth[2]!, Bit_depth4: depth[3]!,
         Number_of_samples: total.count / count
       }, overall);
+      // FFmpeg omits the Overall section in these three metadata keys.
+      if (floating) setMetadata(frame.tags, "", {
+        "Number of NaNs": total.nans / count, "Number of Infs": total.infs / count,
+        "Number of denormals": total.denormals / count
+      }, overall);
     }
     if (frameIndex !== totals.length - 1) continue;
     report += measurements("Overall", [
@@ -297,7 +318,9 @@ export async function measureAstats(
       ["Flat factor", db(total.runs / total.peakCount)], ["Peak count", fixed(total.peakCount / count)],
       ["Abs Peak count", fixed(total.absPeakCount / count)], ["Noise floor dB", db(total.noise)],
       ["Noise floor count", fixed(total.noiseCount / count)], ["Entropy", fixed(total.entropy / count)],
-      ["Bit depth", bitDepth(total.masks, bits).join("/")], ["Number of samples", total.count / count]
+      ["Bit depth", bitDepth(total.masks, bits).join("/")], ["Number of samples", total.count / count],
+      ...(floating ? [["Number of NaNs", fixed(total.nans / count)], ["Number of Infs", fixed(total.infs / count)],
+        ["Number of denormals", fixed(total.denormals / count)]] as [string, string][] : [])
     ], overall);
   }
   return report;

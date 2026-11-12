@@ -15779,7 +15779,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             frames.push({ end: end - intervalStart, tags: frame.tags });
                             if (end === length || reset > 0 && (n + 1) % reset === 0) {
                               report = await measureAstats(stretched.map(channel => channel.subarray(intervalStart, end)),
-                                origRate, statsScale, rmsLength, budget, context.signal, perChannel, overall, frames);
+                                origRate, statsScale, filteredSampleFormat, rmsLength, budget, context.signal, perChannel, overall, frames);
                               intervalStart = end;
                               frames = [];
                             }
@@ -15800,7 +15800,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               start += count;
                             }
                           }
-                          report = await measureAstats(stretched.map(channel => channel.subarray(statsStart, measuredEnd)), origRate, statsScale, rmsLength, budget, context.signal, perChannel, overall);
+                          report = await measureAstats(stretched.map(channel => channel.subarray(statsStart, measuredEnd)), origRate, statsScale, filteredSampleFormat, rmsLength, budget, context.signal, perChannel, overall);
                         }
                         if (logLevel >= 32) await writeBytes(context.stderr, encodeUtf8(report), context.signal);
                       } else if (trimmed === "loudnorm" || trimmed.startsWith("loudnorm=")) {

@@ -1,6 +1,7 @@
 import { concatBytes, scaleVideoPicture, yuv420pToRgba, type MediaDocument, type MediaSample, type MediaVideoFrame, type MediaTrack, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { formatYuv } from "./format-yuv.js";
+import { scaleFrame } from "./scale.js";
 
 // Ordered dither for full-range 16-to-10-bit grayscale conversion.
 const gray10Dither = [
@@ -170,8 +171,17 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
     }
   } else {
     const format = pixelFormat ?? track.codecDescriptions[0]?.pixFmt ?? "yuv420p";
-    for (const frame of track.decodedVideoFrames ?? []) {
+    const first = track.decodedVideoFrames?.[0];
+    for (let frame of track.decodedVideoFrames ?? []) {
       budget.checkCpu();
+      // The rawvideo encoder keeps the first output frame's dimensions.
+      if (first && (frame.width !== first.width || frame.height !== first.height)) {
+        budget.recordFrame(first.width, first.height);
+        budget.allocateMemory(first.width * first.height * 4);
+        const data = scaleVideoPicture(frame, first.width, first.height)
+          ?? await scaleFrame(frame.data, frame.width, frame.height, first.width, first.height, signal);
+        frame = { ...frame, width: first.width, height: first.height, data };
+      }
       if (format === "yuv422p" || format === "yuv444p" || format === "yuv444p10le" || format === "yuv444p16le" || format === "yuv420p16le") {
         const shift = format === "yuv444p10le" ? 2 : format === "yuv444p16le" || format === "yuv420p16le" ? 8 : 0;
         const chromaWidth = format === "yuv422p" || format === "yuv420p16le" ? Math.ceil(frame.width / 2) : frame.width;

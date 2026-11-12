@@ -872,6 +872,9 @@ such as `0x3` or `0X3`; binary prefixes are rejected. Explicit layouts must matc
 speaker metadata, including `1:FR` and `0|1|1|0:quad`. Speaker lists preserve
 their explicit order when resolving named destinations and subsequent channel maps;
 `channelmap=0|1:FR+FL,channelmap=FL` selects the second input channel.
+Custom orders, repeated speakers, and user labels can be written directly to PCM.
+Remixing them with `-ac`, `aformat=channel_layouts`, or `aresample=ochl` returns
+status `234` with no PCM; remap to a standard layout with `channelmap` first.
 Count-only layouts such as `2C` and `2 channels` keep channels unnamed:
 `channelmap=FR|FL:2C` swaps stereo samples, but a subsequent `channelmap=FL`
 fails because the output has no speaker assignments. Lowercase `2c` assigns stereo speakers.

@@ -14288,6 +14288,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredChannelMask = 4;
                         filteredChannelNames = undefined;
                       }
+                      if (!filteredChannelMask && filteredChannelNames?.some(name => name !== "")) {
+                        throw new Error("Unsupported input channel layout for remixing");
+                      }
                       const inputMask = filteredChannelMask || ({ 1: 4, 2: 3, 3: 0xb, 4: 0x107, 6: 0x3f, 8: 0x63f }[stretched.length]);
                       const inputLayout = inputMask === 4 ? "mono" : inputMask === 3 ? "stereo"
                         : inputMask === 0xb ? "2.1" : inputMask === 0x33 ? "quad" : inputMask === 0x3f ? "5.1" : undefined;
@@ -18972,7 +18975,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         stretched = selected;
                         filteredChannelNames = outputNames;
-                        filteredChannelMask = outputNames.every((name, index) => speakers.includes(name) &&
+                        // User labels keep the layout custom even when speakers are in native order.
+                        filteredChannelMask = !layout?.includes("@") && outputNames.every((name, index) => speakers.includes(name) &&
                           (index === 0 || speakers.indexOf(name) > speakers.indexOf(outputNames![index - 1]!)))
                           ? outputNames.reduce((mask, name) => mask + audioSpeakerMasks[name]!, 0) : undefined;
                       } else if (trimmed === "channelsplit" || trimmed.startsWith("channelsplit=")) {
@@ -19598,6 +19602,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   if (!segmentAudioPackets && !checksumOutput && !filter && audioRate === undefined && audioChannels === undefined && audioCodec !== "adpcm_ima_wav" && audioCodec !== "adpcm_ms") {
                     return { ...t, duration: (stretched[0]?.length ?? 0) * t.timescale / origRate,
                       samples: [], decodedAudio: { ...audio, channelData: stretched } };
+                  }
+
+                  if (audioChannels !== undefined && audioChannels > 0 && stretched.length > 1 &&
+                      !filteredChannelMask && filteredChannelNames?.some(name => name !== "")) {
+                    throw new Error("Unsupported input channel layout for remixing");
                   }
 
                   const outputAudioPlugin = outputFormat === "segment" ? segmentPlugin : outPlugin;
@@ -21112,6 +21121,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if ((overwrite && msg === "aecho: delay is too small") ||
                 msg === "aphaser: delay is too small" ||
                 msg === "surround: unsupported transform size" ||
+                msg.startsWith("Unsupported input channel layout ") ||
                 msg === "extrastereo: unsupported input channel layout" ||
                 msg === "stereotools: unsupported input channel layout" ||
                 msg.startsWith("channelsplit: unsupported input channel order ") ||

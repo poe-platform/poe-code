@@ -59,9 +59,9 @@ export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, 
         const gray = image.space === "b-w" || image.space === "grey16";
         return mask ? [mask.r, gray || mask.g, gray || mask.b, mask.a, mask.k === true] : undefined;
     }) : undefined;
-    // The first image supplies the output channel selection; each term also
+    // The color canvas supplies the output channel selection; each term also
     // requires that channel to be selected on its own source image.
-    if (sourceChannels) channels = sourceChannels[0];
+    if (sourceChannels) channels = sourceChannels[inputs.indexOf(canvas)];
     // Float64 reads must fit the 16 KiB storage page limit.
     for (let position = 0; position < size; position += 2048) {
         yield;

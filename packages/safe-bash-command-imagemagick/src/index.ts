@@ -11323,12 +11323,21 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         const geometry = [...raw].filter(c => !"!#%()<>@\\^".includes(c)).join("").replaceAll(",", "x").replaceAll("/", "x").replaceAll(":", "x");
         const separator = geometry.indexOf("x");
         const denominator = separator < 0 ? "" : geometry.slice(separator + 1);
-        for (const [index, field] of (separator < 0 ? [geometry] : [geometry.slice(0, separator), denominator]).entries()) {
+        const fields = [separator < 0 ? geometry : geometry.slice(0, separator)];
+        if (separator >= 0) {
+            let start = 0;
+            for (let position = 0; position <= denominator.length; position++) {
+                if (position < denominator.length && (denominator[position] !== "x" || (position === start + 1 && denominator[start] === "0"))) continue;
+                fields.push(denominator.slice(start, position));
+                start = position + 1;
+            }
+        }
+        for (const [index, field] of fields.entries()) {
             // Only a complete brightness/contrast pair may have trailing offsets.
             const offset = index === 0 ? -1 : [...field].findIndex((c, position) =>
                 position > 0 && "+-".includes(c) && !"eE".includes(field[position - 1]!));
             const number = offset < 0 ? field : field.slice(0, offset);
-            if ((!number && index === 0) || (number && (!Number.isFinite(Number(number)) || (index === 1 && number.startsWith("0x") ? Number.parseInt(number, 16) : Number.parseFloat(number)) !== Number(number)))) {
+            if ((!number && index === 0) || (number && (!Number.isFinite(Number(number)) || (index > 0 && number.startsWith("0x") ? Number.parseInt(number, 16) : Number.parseFloat(number)) !== Number(number)))) {
                 throw new Error(`invalid argument for option '${token}': ${raw}`);
             }
         }

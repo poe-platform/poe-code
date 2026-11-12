@@ -37,7 +37,7 @@ export async function floodfillStoredImage(image: StoredRgbaImage & HueMetadata,
     const k = targetChannels ? targetChannels[3]! : seed[4]!;
     // Draw filltoborder supplies border RGB while retaining the seed opacity.
     const a = ((fillToBorder || !alphaOnly) ? target?.a : undefined) ?? seed[3]!;
-    const matches = (pixel: readonly number[]) => fillToBorder !== ((image.space !== "cmyk" || (pixel[4]! - k) ** 2 <= fuzz ** 2 + (target ? 0 : fuzz ** 2)) && matchesAlphaFloodfill(pixel[0]!, pixel[1]!, pixel[2]!, pixel[3]!, r, g, b, a, fuzz, target ? 0 : fuzz));
+    const matches = (pixel: readonly number[]) => fillToBorder !== ((image.space !== "cmyk" || (pixel[4]! - k) ** 2 <= fuzz ** 2 + (target ? 0 : fuzz ** 2)) && matchesAlphaFloodfill(pixel[0]!, pixel[1]!, pixel[2]!, image.hasAlpha ? pixel[3]! : 255, r, g, b, image.hasAlpha ? a : 255, fuzz, target ? 0 : fuzz));
     if (!matches(seed)) return replacement.a < 255 ? { ...image, hasAlpha: true } : image;
     const visited = await cache.allocate(count), stack = await cache.allocate(count * 4);
     let tail = 1;

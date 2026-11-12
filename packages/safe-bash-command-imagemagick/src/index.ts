@@ -1213,8 +1213,8 @@ function* applyMagickFloodfillSteps(
       inks ? inks[off]! * 255 : samples[off]! / scale,
       inks ? inks[off + 1]! * 255 : samples[off + 1]! / scale,
       inks ? inks[off + 2]! * 255 : samples[off + 2]! / scale,
-      samples[off + 3]! / scale, refR, refG, refB,
-      ((fillToBorder || !alphaOnly) ? targetColor?.a : undefined) ?? samples[seedOff + 3]! / scale, fuzz, targetColor ? 0 : fuzz));
+      img.hasAlpha ? samples[off + 3]! / scale : 255, refR, refG, refB,
+      !img.hasAlpha ? 255 : ((fillToBorder || !alphaOnly) ? targetColor?.a : undefined) ?? samples[seedOff + 3]! / scale, fuzz, targetColor ? 0 : fuzz));
   };
 
   const startIdx = sy * w + sx;

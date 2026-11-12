@@ -221,7 +221,7 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                     out[dIdx + 1] = clampByteVal(dg * intensity);
                     out[dIdx + 2] = clampByteVal(db * intensity);
                 }
-                out[dIdx + 3] = clampByteVal(daByte * intensity);
+                if (dst.hasAlpha) out[dIdx + 3] = clampByteVal(daByte * intensity);
                 continue;
             }
             if (norm === "dividesrc") {
@@ -401,7 +401,7 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                     out[dIdx + c] = clampByteVal((channel + 255) % 255);
                 }
                 const alpha = saByte - daByte;
-                out[dIdx + 3] = alpha < 0 ? alpha + 255 : alpha;
+                if (dst.hasAlpha) out[dIdx + 3] = alpha < 0 ? alpha + 255 : alpha;
                 continue;
             }
             if (norm === "modulusadd" || norm === "add") {

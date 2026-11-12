@@ -6757,7 +6757,7 @@ describe("animated GIF and lavfi source regressions", () => {
     const { decodeImage } = await import("@poe-code/image-ast/portable");
     const image = decodeImage(vfs.store.get("/smptebars_1.ppm")!);
     const pixel = (x: number, y: number) => [...image.data.slice((y * image.width + x) * 4, (y * image.width + x) * 4 + 3)];
-    assert.deepEqual(pixel(0, 0), [191, 191, 191]);
+    assert.deepEqual(pixel(0, 0), [190, 190, 190]);
     assert.deepEqual(pixel(0, 8), [0, 0, 191]);
     assert.deepEqual(pixel(7, 11), [255, 255, 255]);
   });

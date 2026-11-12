@@ -79,6 +79,7 @@ import { cutUltrasonicAudio } from "./audio-asupercut.js";
 import { exciteAudio } from "./audio-aexciter.js";
 import { psychoacousticClip } from "./audio-apsyclip.js";
 import { renderTestsrc } from "./testsrc.js";
+import { renderSmptebars } from "./smptebars.js";
 import { sineTable } from "./lavfi-sine.js";
 import { renderTestsrc2Alpha } from "./testsrc2-alpha.js";
 import { formatDate } from "safe-bash-calendar-engine/time-env/format";
@@ -806,13 +807,6 @@ function* lavfiSteps(
     color[3] = 255;
   }
 
-  const top = [[191, 191, 191], [191, 191, 0], [0, 191, 191], [0, 191, 0], [191, 0, 191], [191, 0, 0], [0, 0, 191]];
-  const middle = [[0, 0, 191], [19, 19, 19], [191, 0, 191], [19, 19, 19], [0, 191, 191], [19, 19, 19], [191, 191, 191]];
-  const lower = [[0, 33, 76], [255, 255, 255], [50, 0, 106], [19, 19, 19], [9, 9, 9], [19, 19, 19], [29, 29, 29], [19, 19, 19]];
-  // Native SMPTE bars round each patch width onto the YUV420 chroma grid.
-  const barWidth = Math.ceil(Math.ceil(width / 7) / 2) * 2;
-  const patchWidth = Math.ceil(Math.floor(barWidth * 5 / 4) / 2) * 2;
-  const plugeWidth = Math.ceil(Math.floor(barWidth / 3) / 2) * 2;
   const frames: MediaVideoFrame[] = [];
   const sourceFormat = sourceFilters.slice(1).find(filter => filter.startsWith("format="))?.slice(7);
   const alpha = filterName === "testsrc2" &&
@@ -822,6 +816,11 @@ function* lavfiSteps(
   for (let i = 0; i < frameCount; i++) {
     yield;
     budget.recordFrame(width, height);
+    if (filterName === "smptebars") {
+      frames.push({ width, height, ...yield* renderSmptebars(width, height, budget),
+        ptsSeconds: i / fps, durationSeconds: 1 / fps, keyframe: true });
+      continue;
+    }
     const rgba = new Uint8Array(width * height * 4);
     if (filterName === "testsrc") {
       yield* renderTestsrc(rgba, width, height, i, fps, decimals);
@@ -831,16 +830,7 @@ function* lavfiSteps(
         if (++work % 1024 === 0) yield;
 
         const idx = (y * width + x) * 4;
-        if (filterName === "smptebars") {
-          const column = Math.min(6, Math.floor(x / barWidth));
-          const bottomColumn = x < barWidth * 5 ? Math.min(3, Math.floor(x / patchWidth))
-            : x < barWidth * 5 + plugeWidth * 3 ? 4 + Math.floor((x - barWidth * 5) / plugeWidth) : 7;
-          const pixel = y < height * 2 / 3 ? top[column]! : y < height * 3 / 4 ? middle[column]! : lower[bottomColumn]!;
-          rgba[idx] = pixel[0]!;
-          rgba[idx + 1] = pixel[1]!;
-          rgba[idx + 2] = pixel[2]!;
-          rgba[idx + 3] = 255;
-        } else if (filterName.startsWith("testsrc")) {
+        if (filterName.startsWith("testsrc")) {
           const bar = Math.floor((x / Math.max(1, width)) * 7);
           const palette: [number, number, number][] = [
             [255, 255, 255],

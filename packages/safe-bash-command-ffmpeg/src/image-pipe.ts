@@ -5,6 +5,7 @@ export function imagePipeFrameEnd(bytes: Uint8Array, start: number, decoder: str
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const codec = decoder ?? (bytes[start] === 137 ? "png" : bytes[start] === 66 ? "bmp"
     : bytes[start] === 113 ? "qoi" : bytes[start] === 255 ? "mjpeg"
+    : bytes[start + 1] === 49 || bytes[start + 1] === 52 ? "pbm"
     : bytes[start + 1] === 53 || bytes[start + 1] === 50 ? "pgm" : "ppm");
   const invalid = () => new Error(`Invalid or truncated image2pipe ${codec} frame`);
   const requireBytes = (offset: number, length: number) => {
@@ -35,9 +36,9 @@ export function imagePipeFrameEnd(bytes: Uint8Array, start: number, decoder: str
     requireBytes(start, length);
     return start + length;
   }
-  if (codec === "ppm" || codec === "pgm") {
+  if (codec === "ppm" || codec === "pgm" || codec === "pbm") {
     const magic = bytes[start + 1];
-    if (bytes[start] !== 80 || !(codec === "ppm" ? [51, 54] : [50, 53]).includes(magic!)) throw invalid();
+    if (bytes[start] !== 80 || !(codec === "ppm" ? [51, 54] : codec === "pbm" ? [49, 52] : [50, 53]).includes(magic!)) throw invalid();
     offset += 2;
     const whitespace = (byte: number | undefined) => byte === 32 || byte !== undefined && byte >= 9 && byte <= 13;
     const number = () => {
@@ -58,13 +59,13 @@ export function imagePipeFrameEnd(bytes: Uint8Array, start: number, decoder: str
       if (offset === begin || offset < bytes.length && !whitespace(bytes[offset]) && bytes[offset] !== 35) throw invalid();
       return value;
     };
-    const width = number(), height = number(), max = number();
+    const width = number(), height = number(), max = codec === "pbm" ? 1 : number();
     const samples = width * height * (codec === "ppm" ? 3 : 1);
     if (!width || !height || !Number.isSafeInteger(samples) || max < 1 || max > 65535) throw invalid();
-    if (magic === 53 || magic === 54) {
+    if (magic === 52 || magic === 53 || magic === 54) {
       if (!whitespace(bytes[offset])) throw invalid();
       offset += bytes[offset] === 13 && bytes[offset + 1] === 10 ? 2 : 1;
-      const length = samples * (max > 255 ? 2 : 1);
+      const length = magic === 52 ? Math.ceil(width / 8) * height : samples * (max > 255 ? 2 : 1);
       requireBytes(offset, length);
       return offset + length;
     }

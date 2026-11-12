@@ -2303,6 +2303,10 @@ export function gifAst(): MediaAstPlugin {
   };
 }
 
+function isPbmSignature(bytes: Uint8Array): boolean {
+  return bytes.byteLength >= 3 && bytes[0] === 80 && (bytes[1] === 49 || bytes[1] === 52);
+}
+
 function isQoiSignature(bytes: Uint8Array): boolean {
   return bytes[0] === 113 && bytes[1] === 111 && bytes[2] === 105 && bytes[3] === 102;
 }
@@ -2317,15 +2321,15 @@ export function image2Ast(): MediaAstPlugin {
     id: "image2",
     formatName: "image2",
     formatLongName: "image2 sequence",
-    extensions: ["png", "jpg", "jpeg", "webp", "bmp", "ppm", "pgm", "pam", "tga", "tiff", "tif", "qoi"],
-    mimeTypes: ["image/png", "image/jpeg", "image/webp", "image/bmp", "image/x-portable-pixmap"],
+    extensions: ["png", "jpg", "jpeg", "webp", "bmp", "ppm", "pgm", "pbm", "pam", "tga", "tiff", "tif", "qoi"],
+    mimeTypes: ["image/png", "image/jpeg", "image/webp", "image/bmp", "image/x-portable-pixmap", "image/x-portable-bitmap"],
     canDemux: true,
     canMux: true,
-    supportedVideoCodecs: ["png", "mjpeg", "webp", "bmp", "ppm", "pgm", "qoi"],
+    supportedVideoCodecs: ["png", "mjpeg", "webp", "bmp", "ppm", "pgm", "pbm", "qoi"],
     supportedAudioCodecs: [],
     detect(bytes, filename) {
       if (apngAst().detect(bytes)) return false;
-      if (isPngSignature(bytes) || isJpegSignature(bytes) || isWebpSignature(bytes) || isPpmSignature(bytes) || isPamSignature(bytes) || isQoiSignature(bytes)) {
+      if (isPngSignature(bytes) || isJpegSignature(bytes) || isWebpSignature(bytes) || isPpmSignature(bytes) || isPbmSignature(bytes) || isPamSignature(bytes) || isQoiSignature(bytes)) {
         return true;
       }
       if (filename && /\.(png|jpe?g|webp|bmp|pp[gm]|tga|tiff?)$/i.test(filename) && bytes.byteLength >= 4) {
@@ -2356,10 +2360,11 @@ export function image2Ast(): MediaAstPlugin {
         height = img.height;
         rgba = img.data;
         codecName = img.format === "jpeg" ? "mjpeg" : img.format;
+        if (img.format === "pbm") pixFmt = "monow";
         if (img.format === "qoi") pixFmt = bytes[12] === 4 ? "rgba" : "rgb24";
         if (img.format === "pam" && "hasAlpha" in img) pixFmt = img.hasAlpha ? "rgba" : "rgb24";
       } catch (error) {
-        if (tga || isQoiSignature(bytes) || isPamSignature(bytes)) throw error;
+        if (tga || isQoiSignature(bytes) || isPbmSignature(bytes) || isPamSignature(bytes)) throw error;
         if (isPngSignature(bytes) && bytes.byteLength >= 24) {
           const view = new DataView(bytes.buffer, bytes.byteOffset + 16, 8);
           width = view.getUint32(0, false) || 64;

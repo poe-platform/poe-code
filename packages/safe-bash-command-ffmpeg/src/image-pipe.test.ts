@@ -39,6 +39,8 @@ for (const [codec, bytes] of [
   ["mjpeg", [255, 216, 255, 254, 0, 1]],
   ["qoi", [113, 111, 105, 102, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 193, 0, 0, 0, 0, 0, 0, 0, 1]],
   ["ppm", [...Buffer.from("P6\n9007199254740992 2\n255\n")]],
+  ["pbm", [...Buffer.from("P1\n1 1\n2\n")]],
+  ["pbm", [...Buffer.from("P4\n9 2\n"), 0, 0, 0]],
   ["pgm", [...Buffer.from("P5\n1 1\n0\n\0")]]
 ] as const) {
   it(`rejects invalid ${codec} frame lengths`, () => {

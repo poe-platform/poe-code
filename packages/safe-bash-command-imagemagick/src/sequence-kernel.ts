@@ -591,6 +591,8 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 const bytes = yield* read(image, position, length);
                 for (let offset = 0; offset < length; offset++) {
                     if (offset % stride >= inputChannels[image]!) continue;
+                    // RGB inputs do not visit the CMYK output's black or alpha channels.
+                    if (cmyk && inputs[image]!.space !== "cmyk" && offset % stride >= 3) continue;
                     // Native truncates the incoming Q16 sample and rounds the accumulator mask.
                     const sample = bytes[offset]! * scale, mask = Math.trunc(data[offset]! * scale + 0.5);
                     if (operation === "and") data[offset] = (sample & mask) / scale;
@@ -621,6 +623,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 for (let offset = 0; offset < length; offset++) {
                     if (offset % stride === 3 && !hasAlpha) continue;
                     if (offset % stride >= inputChannels[image]!) continue;
+                    if (cmyk && inputs[image]!.space !== "cmyk" && offset % stride >= 3) continue;
                     // Each incoming sample uses the accumulated result as its threshold.
                     const sample = bytes[offset]!, threshold = data[offset]!;
                     if (operation === "threshold") data[offset] = sample <= threshold ? 0 : range;

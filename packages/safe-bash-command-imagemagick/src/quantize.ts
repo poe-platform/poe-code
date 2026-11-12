@@ -50,7 +50,7 @@ interface ColorNode {
 }
 
 /** A bounded histogram and error-pruned color tree shared by both raster backends. */
-export function* quantizePixelSteps(length: number, requested: number, grayscale = false, treeDepth = 0, hasAlpha = true, highDepth = false, cycle?: { amount: number; width: number; region?: Region | undefined; writeMask?: boolean; alphaActive: boolean; channels?: MaskChannels | undefined }, dither?: { width: number; height: number; method: "riemersma" | "floydsteinberg"; diffusionAmount: number }, evaluate = false, working?: "hue" | "cmyk", images?: readonly { length: number; hasAlpha: boolean }[]): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
+export function* quantizePixelSteps(length: number, requested: number, grayscale: boolean | "bilevel" = false, treeDepth = 0, hasAlpha = true, highDepth = false, cycle?: { amount: number; width: number; region?: Region | undefined; writeMask?: boolean; alphaActive: boolean; channels?: MaskChannels | undefined }, dither?: { width: number; height: number; method: "riemersma" | "floydsteinberg"; diffusionAmount: number }, evaluate = false, working?: "hue" | "cmyk", images?: readonly { length: number; hasAlpha: boolean }[]): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
     if (!Number.isSafeInteger(requested) || requested < 1) throw new Error("colors must be a positive integer");
     const clamp = (value: number) => Math.max(0, Math.min(255, value));
     // Keep fractional palette means alongside byte output for later arithmetic and deeper output.
@@ -67,7 +67,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         for (let i = 0; i < data.length; i += 4) {
             if (working === "hue" && samples?.length) for (let c = 0; c < 4; c++) data[i + c]! *= 255;
             if (!hasAlpha) data[i + 3] = 255;
-            if (grayscale) {
+            if (grayscale === true) {
                 const luma = 0.212656 * data[i]! + 0.715158 * data[i + 1]! + 0.072186 * data[i + 2]!;
                 // Keep Q16-HDRI gray samples fractional when accumulating palette means.
                 data[i] = data[i + 1] = data[i + 2] = requested === 2 ? (luma >= 127.5 ? 255 : 0) : Math.fround(luma * 257) / 257;
@@ -94,7 +94,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
     for (let position = 0; position < length; position += chunkSize) {
         yield;
         const size = Math.min(chunkSize, length - position), data = yield* readPixels(position, size);
-        if (grayscale && requested === 2) {
+        if (grayscale === true && requested === 2) {
             yield { kind: "write", pngIndices: true, position: position / 4, data: Uint8Array.from({ length: size / 4 }, (_, i) => data[i * 4]! / 255) };
             yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(data, value => Math.round(value * 257)).buffer) : Uint8Array.from(data) };
             continue;
@@ -136,7 +136,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             bins = reduced;
         }
     }
-    if (grayscale && requested === 2) return [0xff000000, 0xffffffff];
+    if (grayscale === true && requested === 2) return [0xff000000, 0xffffffff];
     const palette: number[][] = [];
     let findDitherColor: ((pixel: Float64Array) => Generator<undefined, number[]>) | undefined;
     let work = 0;
@@ -295,7 +295,15 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             bin.color = yield* nearestColor(pixel, bin.alpha === false ? 3 : channels);
         }
     }
+    // A masked Gray channel skips normalization and thresholding. Quantization
+    // still assigns/diffuses the original grays before making its palette bilevel.
+    // Native measures a lone Gray palette entry through sRGB gamma.
+    const bilevelThreshold = palette.length === 1 ? 255 * ((0.5 + 0.055) / 1.055) ** 2.4
+        : (palette[0]![0]! + palette[1]![0]!) / 2;
     function* writeWorkingPixels(position: number, data: Float64Array): Generator<ConvolveRequest, void, Uint8Array | undefined> {
+        if (grayscale === "bilevel") for (let i = 0; i < data.length; i += 4) {
+            data[i] = data[i + 1] = data[i + 2] = data[i]! >= bilevelThreshold ? 255 : 0;
+        }
         if (working === "hue") yield { kind: "write", hue: true, position, data: new Uint8Array(data.map(value => value / 255).buffer) };
         if (working === "cmyk") {
             const inks = new Float64Array(data.length);
@@ -423,6 +431,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(data, value => Math.round(value * 257)).buffer) : Uint8Array.from(data, Math.round) };
     }
     if (working === "cmyk") for (const color of palette) for (let c = 0; c < 3; c++) color[c] = 255 - color[c]!;
+    if (grayscale === "bilevel") for (const color of palette) color.fill(color[0]! >= bilevelThreshold ? 255 : 0, 0, 3);
     if (cycle) for (const color of palette) color[3] = 255;
     return palette.map(color => Math.round(color[3]!) * 16777216 + Math.round(color[0]!) * 65536 + Math.round(color[1]!) * 256 + Math.round(color[2]!));
 }

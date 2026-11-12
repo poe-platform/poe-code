@@ -14330,6 +14330,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                     }
                 }
                 if (t === "-monochrome" || t === "-type" && tokens[i]?.toLowerCase() === "bilevel") {
+                    if (!settings.channels.r) return yield* applyMagickRasterSteps(converted,
+                        quantizePixelSteps(converted.width * converted.height * 4, 2, "bilevel", 0, false, false, undefined,
+                            settings.dither ? { width: converted.width, height: converted.height, method: settings.dither, diffusionAmount: settings.diffusionAmount ?? 1 } : undefined, true), signal);
                     const source = converted.data16 ? { ...converted, data: new Uint8Array(converted.data16.buffer, converted.data16.byteOffset, converted.data16.byteLength) } : converted;
                     return yield* applyMagickRasterSteps(converted, bilevelPixelSteps(converted.width * converted.height, !!converted.data16), signal, converted, [source]);
                 }
@@ -18324,6 +18327,9 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 if (token === "-white-threshold") await whiteThresholdStoredMetaChannels(image, converted, backend, imageSettings, signal);
                 if (bilevel) {
+                    if (!imageSettings.channels.r) return transformStoredMagickRaster(converted, backend,
+                        quantizePixelSteps(converted.width * converted.height * 4, 2, "bilevel", 0, false, false, undefined,
+                            settings.dither ? { width: converted.width, height: converted.height, method: settings.dither, diffusionAmount: settings.diffusionAmount ?? 1 } : undefined, true), signal);
                     const source = converted.storedData16 ? { ...converted, position: converted.storedData16.position } : converted;
                     return transformStoredMagickRaster(converted, backend, bilevelPixelSteps(converted.width * converted.height, !!converted.storedData16), signal, converted, [source]);
                 }

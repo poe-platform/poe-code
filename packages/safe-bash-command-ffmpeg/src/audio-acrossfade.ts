@@ -193,17 +193,16 @@ export async function acrossfadeAudio(
       if (pcm16 && secondPcm32 && ratio === 1 && !remix) {
         secondSample = Math.floor(secondSample * 32768) / 32768;
       }
-      // Materialize PCM32 before the fade's truncating cast, rounding ties to even.
-      if (pcm32) {
-        const scaled = secondSample * 2147483648;
+      // Materialize integer PCM before the fade's truncating cast. Conversion
+      // rounds ties to even; S16 rematrixing retains its half-up rounding.
+      if (pcm16 || pcm32) {
+        const scale = pcm16 ? 32768 : 2147483648;
+        const scaled = secondSample * scale;
         const lower = Math.floor(scaled);
-        const rounded = scaled - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(scaled);
-        secondSample = Math.max(-2147483648, Math.min(2147483647, rounded)) / 2147483648;
+        const rounded = (!remix || pcm32) && scaled - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(scaled);
+        secondSample = Math.max(-scale, Math.min(scale - 1, rounded)) / scale;
       }
-      // Explicit and automatic rate/layout conversion both negotiate S16.
-      const secondValue = (pcm16
-        ? Math.max(-32768, Math.min(32767, Math.round(secondSample * 32768))) / 32768
-        : secondSample) * secondGain;
+      const secondValue = secondSample * secondGain;
       // Store the mixed sample at the negotiated precision before output conversion.
       const value = firstValue + secondValue;
       if (pcm32) {

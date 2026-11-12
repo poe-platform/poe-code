@@ -23123,6 +23123,14 @@ async function coalesceStoredImages(stack: StoredImageStack, dispose: boolean, b
     return frames;
 }
 
+function montageInputDiagnostic(image: ImageMetadata & { [magickInput]?: MagickFormatContext }, path: string): string {
+    const source = image[magickInput];
+    const filename = source?.filePath ?? path;
+    return formatInlineIdentify({ ...image, [magickInput]: { ...source,
+        filePath: filename === path ? path : `${path}=>${filename}`
+    } }) + "\n";
+}
+
 interface MontageInput {
     path: string;
     size: MontageArguments["sizes"][number];
@@ -23131,7 +23139,7 @@ interface MontageInput {
 interface MontageArguments {
     warnings: string;
     regardWarnings: boolean;
-    sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth">[];
+    sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth" | "verbose">[];
     shadow: boolean;
     transforms: ({ kind: "polaroid"; angle: number; state: MagickState } | { kind: "strip" } | { kind: "profile"; name: string; bytes: Uint8Array | undefined } | { kind: "draw"; drawing: string; state: MagickState } | { kind: "annotate"; geometry: string; text: string; state: MagickState } | { kind: "colors"; count: number; state: MagickState } | { kind: "coalesce"; inputs: MontageInput[]; index: number } | { kind: "dispose"; sequence: object; index: number } | { kind: "disposal"; value: number } | { kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | { kind: "distort"; warp: NonNullable<ReturnType<typeof parseMagickWarpOperation>> } | MontageLayers | { kind: "flip" | "flop" | "autoOrient" } | { kind: "trim"; fuzz: number } | { kind: "adaptive-sharpen"; geometry: MagickGeometry; state: MagickState } | { kind: "unsharp"; geometry: ReturnType<typeof parseUnsharpGeometry> } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "scale"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "thumbnail"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "depth"; depth: number; channels: MagickState["channels"]; dither: boolean } | { kind: "alpha" | "transparent" | "gamma" | "colorspace" | "grayscale" | "bilevel" | "truecolor" | "truecoloralpha" | "palette" | "palettealpha"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "blur"; geometry: MagickGeometry } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; title: string | undefined; texture: string | undefined;
@@ -23210,6 +23218,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         else if (t === "-synchronize" || t === "+synchronize") {
             // Writes already complete before returning; the virtual filesystem has no disk flush setting.
         }
+        else if (t === "-verbose" || t === "+verbose") state.verbose = t === "-verbose";
         else if (t === "-support") {
             if (argv[++i] === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -support\n" };
             // Native montage consumes this legacy option without changing the resize filter.
@@ -23881,7 +23890,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
                     operands.push(input);
                     transforms.push([]);
                     labels.push(label);
-                    sizes.push({ hasSize: state.hasSize, sizeWidth: state.sizeWidth, sizeHeight: state.sizeHeight, inputOffset: state.inputOffset ?? 0, inputDepth: state.inputDepth ?? 16 });
+                    sizes.push({ verbose: state.verbose ?? false, hasSize: state.hasSize, sizeWidth: state.sizeWidth, sizeHeight: state.sizeHeight, inputOffset: state.inputOffset ?? 0, inputDepth: state.inputDepth ?? 16 });
                 }
             }
         }
@@ -23943,6 +23952,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const outSpec = operands[operands.length - 1]!;
     const inPaths = operands.slice(0, -1);
     let inputErrors = "";
+    let inputDiagnostics = "";
     let firstInputFormat = "";
     let firstInputCmyk = false;
     const fastMetaDims: { width: number; height: number }[] = [];
@@ -24105,7 +24115,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 const dstX = cellX + off.left;
                 const dstY = cellY + off.top;
                 const rawTileBytes = files.get(p);
-                const directPng = rawTileBytes && state.composeRaw.toLowerCase() === "over" ? decodePngToCanvas(rawTileBytes, canvas, dstX + borderW, dstY + borderW) : undefined;
+                const directPng = !sizes[idx]?.verbose && rawTileBytes && state.composeRaw.toLowerCase() === "over" ? decodePngToCanvas(rawTileBytes, canvas, dstX + borderW, dstY + borderW) : undefined;
                 if (directPng) {
                     if (directPng.anyTransparent) anyTransparent = true;
                     continue;
@@ -24130,6 +24140,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                         stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: unable to open image '${p}': No such file or directory\n`
                     };
                 }
+                if (sizes[idx]?.verbose) inputDiagnostics += montageInputDiagnostic(im, p);
                 if (!anyTransparent) {
                     for (let k = 3; k < im.data.length; k += 4) {
                         if (im.data[k]! < 255) { anyTransparent = true; break; }
@@ -24151,7 +24162,10 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             });
             if (!loaded) return;
             const result: RgbaImage[] = [];
-            for (const image of loaded) result.push(...yield* transformTiles(image, input.transforms));
+            for (const image of loaded) {
+                if (input.size.verbose) inputDiagnostics += montageInputDiagnostic(image, input.path);
+                result.push(...yield* transformTiles(image, input.transforms));
+            }
             return result;
         }
         function* transformTiles(image: RgbaImage | undefined, operations: MontageInput["transforms"], offset = 0): Generator<void, RgbaImage[], void> {
@@ -24367,7 +24381,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             if (++cooperativeWork % 64 === 0) yield;
             progress += montageProgress("mogrify", directory[index]!, index, n);
         }
-        if (!n) return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors };
+        if (!n) return { exitCode: 1, stdout: "", stderr: inputDiagnostics + analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors };
         try { inferOutputFormat(outSpec, "png", firstInputFormat); }
         catch (error) { return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: ${(error as Error).message}\n` }; }
         const cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n)))));
@@ -24475,7 +24489,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         files.set(outSpec.slice(5), new TextEncoder().encode(stdout));
         stdout = "";
     }
-    return { exitCode: inputErrors || (parsed.regardWarnings && analysis.warnings) ? 1 : 0, stdout, stderr: progress + analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
+    return { exitCode: inputErrors || (parsed.regardWarnings && analysis.warnings) ? 1 : 0, stdout, stderr: progress + inputDiagnostics + analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
 }
 async function runMontageFiles(argv: readonly string[], input: ConvertFileInput, stdinBytes: Uint8Array | undefined, signal: AbortSignal): Promise<ImageMagickCliResult> {
     return withCompareFiles(input, stdinBytes, signal, async backend => {
@@ -24564,6 +24578,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             if (!textureImage) return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: unable to open image '${texture}': No such file or directory\n` };
         }
         let inputErrors = "";
+        let inputDiagnostics = "";
         const sources = new IntegerTable(backend.storage, 128), images = new StoredImageStack(backend.storage, signal);
         let fast = !shadow && !transforms.some(operations => operations.length > 0) && !frame && borderW === 0 && variableCells && !labels.some(Boolean), maxThumbW = cellW ?? 0, maxThumbH = cellH ?? 0;
         const sourceAt = async (index: number): Promise<ImageByteSource | null> => {
@@ -24626,6 +24641,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 const loaded = await parseStoredCompareInput(input.path, { ...state, ...input.size }, backend, signal, { analysis, source: snapshots.get(path) ?? null, onInvalidIndex: invalidIndex => {
                     inputErrors += `montage: invalid image index ${invalidIndex} '${parseInputToken(input.path).baseToken}'\n`;
                 }, visit: async frame => {
+                    if (input.size.verbose) inputDiagnostics += montageInputDiagnostic(frame, input.path);
                     for await (const image of transformTiles(frame, input.transforms)) await visit(image);
                 } });
                 return !!loaded;
@@ -24839,7 +24855,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             if (input.stderr) await writeIdentifyText(input.stderr, text, signal);
             else progress += text;
         }
-        if (!n) return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors };
+        if (!n) return { exitCode: 1, stdout: "", stderr: inputDiagnostics + analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors };
         const cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n))))), rows = tileRows ?? Math.ceil(n / cols);
         const slotW = maxThumbW + padX * 2 + (frame ? frame.size * 2 : 0), slotH = maxThumbH + padY * 2 + (frame ? frame.size * 2 : 0) + (shadow ? 4 : 0);
         let output: ReturnType<typeof inferOutputFormat>;
@@ -24893,6 +24909,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                         return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: improper image header '${path}': ${(error as Error).message}\n` };
                     }
                     if (!image) return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: unable to open image '${path}': No such file or directory\n` };
+                    if (sizes[pageStart + index]?.verbose) inputDiagnostics += montageInputDiagnostic(image, path);
                     directPng = await sources.get(BigInt((pageStart + index) * 5 + 4)) === 1n;
                 } else image = (await images.get(pageStart + index))!;
                 if ((output.format === "psd" || output.format === "psb") && image.space === "cmyk") image = await transformStoredMagickPixels(image, backend,
@@ -25021,7 +25038,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         const stdoutBytes = new Uint8Array(stdoutChunks.reduce((size, chunk) => size + chunk.length, 0));
         let offset = 0;
         for (const chunk of stdoutChunks) { stdoutBytes.set(chunk, offset); offset += chunk.length; }
-        return { exitCode: inputErrors || (parsed.regardWarnings && analysis.warnings) ? 1 : 0, stdout, stderr: progress + analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
+        return { exitCode: inputErrors || (parsed.regardWarnings && analysis.warnings) ? 1 : 0, stdout, stderr: progress + inputDiagnostics + analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors, ...(stdoutChunks.length ? { stdoutBytes } : {}) };
     });
 }
 export async function runMontageCli(argv: readonly string[], files: Map<string, Uint8Array> | ConvertFileInput, stdinBytes?: Uint8Array, signal?: AbortSignal): Promise<ImageMagickCliResult> {

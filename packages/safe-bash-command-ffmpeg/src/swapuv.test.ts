@@ -35,6 +35,10 @@ async function run(input: Buffer, format: string, filter: string, size = "2x2", 
 // Native FFmpeg 7: preserve Y and exchange the complete U and V planes.
 for (const [format, size, inputHex, expectedHex] of [
   ["yuv420p", "2x2", "101a242e3842", "101a242e4238"],
+  ["yuva420p", "4x2", "111c27323d48535e69747f8a95a0abb6c1ccd7e2", "111c27323d48535e7f8a697495a0abb6c1ccd7e2"],
+  ["yuva420p", "3x3", "000102030405060708090a0b0c0d0e0f10007f80feff11223344", "0001020304050607080d0e0f10090a0b0c007f80feff11223344"],
+  ["yuva420p", "1x1", "1080ff80", "10ff8080"],
+  ["yuva444p", "2x2", "101a242e38424c56606a747e007f80ff", "101a242e606a747e38424c56007f80ff"],
   ["yuv422p", "2x2", "101a242e38424c56", "101a242e4c563842"],
   ["yuv444p", "2x2", "101a242e38424c56606a747e", "101a242e606a747e38424c56"],
   ["yuv420p", "3x3", "101a242e38424c5660606a747e88929ca6", "101a242e38424c566088929ca6606a747e"],

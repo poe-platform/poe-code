@@ -24,15 +24,15 @@ export async function swapUv(
     return { ...frame, native: { ...source, pixels, format: 14, fullRange: 1 } };
   }
   if (!source || source.rgba !== frame.data || source.width !== frame.width || source.height !== frame.height ||
-      ![0, 4, 5, 12, 13, 14, 49, 68, 79].includes(source.format)) {
+      ![0, 4, 5, 12, 13, 14, 33, 49, 68, 79].includes(source.format)) {
     budget.allocateMemory(frame.width * frame.height * 8);
     frame = await formatYuv(frame, "yuva444p", signal);
     source = frame.native!;
   }
   const sampleBytes = source.format === 49 || source.format === 68 ? 2 : 1;
   const lumaSize = frame.width * frame.height * sampleBytes;
-  const chromaSize = Math.ceil(frame.width / ([0, 4, 12, 13].includes(source.format) ? 2 : 1)) *
-    Math.ceil(frame.height / ([0, 12].includes(source.format) ? 2 : 1)) * sampleBytes;
+  const chromaSize = Math.ceil(frame.width / ([0, 4, 12, 13, 33].includes(source.format) ? 2 : 1)) *
+    Math.ceil(frame.height / ([0, 12, 33].includes(source.format) ? 2 : 1)) * sampleBytes;
   budget.allocateMemory(source.pixels.length + frame.width * frame.height * 4);
   const pixels = new Uint8Array(source.pixels.length);
   // Copy in bounded chunks, preserving the original buffer and every sample bit.
@@ -42,8 +42,9 @@ export async function swapUv(
     budget.checkCpu();
     const end = Math.min(offset + 65536, lumaSize);
     pixels.set(source.pixels.subarray(offset, end), offset);
-    if (source.format === 79) {
-      pixels.set(source.pixels.subarray(lumaSize * 3 + offset, lumaSize * 3 + end), lumaSize * 3 + offset);
+    if (source.format === 33 || source.format === 79) {
+      const alphaOffset = lumaSize + chromaSize * 2;
+      pixels.set(source.pixels.subarray(alphaOffset + offset, alphaOffset + end), alphaOffset + offset);
     }
   }
   for (let offset = 0; offset < chromaSize; offset += 65536) {

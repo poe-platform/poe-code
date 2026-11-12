@@ -240,6 +240,11 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
       } else if (format === "yuva420p") {
         const lumaSize = frame.width * frame.height;
         budget.checkOutputBytes(size + 2 * lumaSize + 2 * Math.ceil(frame.width / 2) * Math.ceil(frame.height / 2));
+        const native = frame.native;
+        if (native?.format === 33 && native.rgba === frame.data && native.width === frame.width && native.height === frame.height) {
+          append(native.pixels);
+          continue;
+        }
         append((await formatYuv(frame, "yuv420p", signal)).native!.pixels);
         const alpha = new Uint8Array(lumaSize);
         for (let pixel = 0; pixel < lumaSize; pixel++) {

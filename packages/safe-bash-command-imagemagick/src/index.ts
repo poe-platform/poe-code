@@ -6995,7 +6995,7 @@ function magickDrawGradientColor(gradient: MagickDrawGradient, x: number, y: num
 }
 
 type MagickDrawShape = { gradient?: MagickDrawGradient | undefined; kind: "shape"; tile: boolean | string; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "boundary"; points: readonly BoundaryPoint[]; width: number; height: number; strokeWidth: number; fill: RgbaColor } | { shape: "circle"; radius: number; angularStep: number } | { shape: "polygon"; points: readonly DrawPoint[]; width: number; height: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor; linecap: "butt" | "round" | "square" });
-type MagickDrawStep = { kind: "pattern-start"; name: string; width: number; height: number } | { kind: "pattern-end" } | { kind: "image"; source: string; mode: string; width: number; height: number; affine: [number, number, number, number, number, number] } | MagickDrawShape | { kind: "svg"; svg: string; tile?: boolean | string } | ({ kind: "floodfill" } | { kind: "paint-point" } | { kind: "reset" } | { kind: "replace" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
+type MagickDrawStep = { kind: "clip-start"; name: string; width: number; height: number } | { kind: "clip-end" } | { kind: "clip"; name: string | undefined } | { kind: "pattern-start"; name: string; width: number; height: number } | { kind: "pattern-end" } | { kind: "image"; source: string; mode: string; width: number; height: number; affine: [number, number, number, number, number, number] } | MagickDrawShape | { kind: "svg"; svg: string; tile?: boolean | string } | ({ kind: "floodfill" } | { kind: "paint-point" } | { kind: "reset" } | { kind: "replace" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
 
 function parseMagickCopyGeometry(image: Pick<RgbaImage, "width" | "height">, geometry: string, offset: string) {
     validateMagickTransformGeometry(geometry, "-copy");
@@ -7240,11 +7240,14 @@ function* drawOverlayPixelSteps(image: Pick<RgbaImage, "width" | "height">, over
 
 function* applyMagickDrawingSteps(im: RgbaImage, drawSpec: string, state: MagickState, files: Map<string, Uint8Array>, tile?: RgbaImage, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     const patterns = new Map<string, RgbaImage>();
-    const canvases: { name: string; image: RgbaImage }[] = [];
+    const clips = new Map<string, RgbaImage>();
+    let clip: RgbaImage | undefined;
+    const canvases: { name: string; image: RgbaImage; clip: RgbaImage | undefined }[] = [];
     for (const step of magickDrawSteps(im, drawSpec, state)) {
         if (!step) { yield; continue; }
         if (step.kind === "pattern-start") {
-            canvases.push({ name: step.name, image: im });
+            canvases.push({ name: step.name, image: im, clip });
+            clip = undefined;
             im = yield* createSolidRgbaImageSteps(step.width, step.height, { r: 0, g: 0, b: 0, a: 0 });
             continue;
         }
@@ -7252,8 +7255,28 @@ function* applyMagickDrawingSteps(im: RgbaImage, drawSpec: string, state: Magick
             const canvas = canvases.pop()!;
             patterns.set(canvas.name, im);
             im = canvas.image;
+            clip = canvas.clip;
             continue;
         }
+        if (step.kind === "clip-start") {
+            canvases.push({ name: step.name, image: im, clip });
+            clip = undefined;
+            im = yield* createSolidRgbaImageSteps(step.width, step.height, { r: 255, g: 255, b: 255, a: 255 });
+            continue;
+        }
+        if (step.kind === "clip-end") {
+            const canvas = canvases.pop()!;
+            clips.set(canvas.name, im);
+            im = canvas.image;
+            clip = canvas.clip;
+            continue;
+        }
+        if (step.kind === "clip") {
+            clip = step.name === undefined ? undefined : clips.get(step.name);
+            if (step.name !== undefined && !clip) throw new Error(`Unknown drawing clip path: ${step.name}`);
+            continue;
+        }
+        const original = im;
         if ((im.space === "b-w" || im.space === "grey16") && !((step.kind === "floodfill" || step.kind === "paint-point" || step.kind === "reset" || step.kind === "replace") && step.alphaOnly))
             im = { ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 };
         if (step.kind === "image") {
@@ -7283,17 +7306,21 @@ function* applyMagickDrawingSteps(im: RgbaImage, drawSpec: string, state: Magick
             im = yield* applyMagickRasterSteps(im, drawOverlayPixelSteps(im, overlay, fillTile, state.tileOffset), signal, { ...im, hasAlpha: true }, fillTile ? [im, overlay, fillTile] : [im, overlay]);
             detachRgbaBuffer(overlay.data);
         }
+        if (clip) im = yield* applyMagickRasterSteps(im, writeMaskPixelSteps(im, clip, !!(im.data16 || original.data16)), signal, im, [im, original, clip]);
     }
     return canvases[0]?.image ?? im;
 }
 
 async function applyStoredMagickDrawing(image: StoredRgbaImage, drawing: string, settings: MagickState, backend: CompareFileSession, signal: AbortSignal, tile?: StoredRgbaImage): Promise<StoredRgbaImage> {
     const patterns = new Map<string, StoredRgbaImage>();
-    const canvases: { name: string; image: StoredRgbaImage }[] = [];
+    const clips = new Map<string, StoredRgbaImage>();
+    let clip: StoredRgbaImage | undefined;
+    const canvases: { name: string; image: StoredRgbaImage; clip: StoredRgbaImage | undefined }[] = [];
     for (const step of magickDrawSteps(image, drawing, settings)) {
         if (!step) { await yieldTurn(signal); continue; }
         if (step.kind === "pattern-start") {
-            canvases.push({ name: step.name, image: image });
+            canvases.push({ name: step.name, image: image, clip });
+            clip = undefined;
             image = await createStoredCanvas(step.width, step.height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
             continue;
         }
@@ -7301,8 +7328,28 @@ async function applyStoredMagickDrawing(image: StoredRgbaImage, drawing: string,
             const canvas = canvases.pop()!;
             patterns.set(canvas.name, image);
             image = canvas.image;
+            clip = canvas.clip;
             continue;
         }
+        if (step.kind === "clip-start") {
+            canvases.push({ name: step.name, image: image, clip });
+            clip = undefined;
+            image = await createStoredCanvas(step.width, step.height, { r: 255, g: 255, b: 255, a: 255 }, backend, signal);
+            continue;
+        }
+        if (step.kind === "clip-end") {
+            const canvas = canvases.pop()!;
+            clips.set(canvas.name, image);
+            image = canvas.image;
+            clip = canvas.clip;
+            continue;
+        }
+        if (step.kind === "clip") {
+            clip = step.name === undefined ? undefined : clips.get(step.name);
+            if (step.name !== undefined && !clip) throw new Error(`Unknown drawing clip path: ${step.name}`);
+            continue;
+        }
+        const original = image;
         if ((image.space === "b-w" || image.space === "grey16") && !((step.kind === "floodfill" || step.kind === "paint-point" || step.kind === "reset" || step.kind === "replace") && step.alphaOnly))
             image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
         if (step.kind === "image") {
@@ -7331,6 +7378,7 @@ async function applyStoredMagickDrawing(image: StoredRgbaImage, drawing: string,
             const overlay = await decodeStoredMagickSvg(step.svg, settings.density, backend, signal);
             image = await transformStoredMagickRaster(image, backend, drawOverlayPixelSteps(image, overlay, fillTile, settings.tileOffset), signal, { ...image, hasAlpha: true }, fillTile ? [image, overlay, fillTile] : [image, overlay]);
         }
+        if (clip) image = await transformStoredMagickRaster(image, backend, writeMaskPixelSteps(image, clip, !!(image.storedData16 || original.storedData16)), signal, image, [image, original, clip]);
     }
     return canvases[0]?.image ?? image;
 }
@@ -7396,7 +7444,8 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
     let fillOpacity: number | undefined;
     let strokeOpacity: number | undefined;
     let affine: [number, number, number, number, number, number] = [1, 0, 0, 1, 0, 0];
-    const contexts: { kind: string; image: typeof img; name: string; gradient: MagickDrawGradient | undefined; fill: RgbaColor; fillRule: string; tile: boolean | string; stroke: RgbaColor; strokeWidth: number; dashArray: number[]; dashOffset: number; linecap: "butt" | "round" | "square"; strokeLinejoin: string; strokeMiterlimit: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
+    let clip: string | undefined;
+    const contexts: { kind: string; clip: string | undefined; image: typeof img; name: string; gradient: MagickDrawGradient | undefined; fill: RgbaColor; fillRule: string; tile: boolean | string; stroke: RgbaColor; strokeWidth: number; dashArray: number[]; dashOffset: number; linecap: "butt" | "round" | "square"; strokeLinejoin: string; strokeMiterlimit: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
     const tokens = yield* magickDrawTokensSteps(drawCmd);
     let i = 0;
     const num = () => {
@@ -7425,7 +7474,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         if (fillOpacity !== undefined && fill.a !== 0) fillColor.a = fillOpacity * 255;
         if (strokeOpacity !== undefined && stroke.a !== 0) strokeColor.a = strokeOpacity * 255;
         const paintFill = rgbaToCss(fillColor), paintStroke = rgbaToCss(strokeColor);
-        if (svgElements.length > 0 && ((tile && ["path", "polygon", "point"].includes(cmd)) || ["push", "pop", "image", "line", "polyline", "circle", "rectangle", "roundrectangle"].includes(cmd) ||
+        if (svgElements.length > 0 && ((tile && ["path", "polygon", "point"].includes(cmd)) || ["push", "pop", "clip-path", "image", "line", "polyline", "circle", "rectangle", "roundrectangle"].includes(cmd) ||
             ((fillOpacity !== undefined || strokeOpacity !== undefined) && ["point", "rectangle"].includes(cmd)))) {
             yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${svgElements.join("")}</svg>` };
             svgElements.length = 0;
@@ -7457,29 +7506,48 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                 gradients.set(name, definition);
                 continue;
             }
-            if (contextType !== "graphic-context" && contextType !== "pattern") throw new Error(`${cmd} drawing requires graphic-context or pattern`);
+            const kind = contextType;
+            if (kind !== "graphic-context" && kind !== "pattern" && kind !== "defs" && kind !== "clip-path") throw new Error(`${cmd} drawing requires graphic-context, defs or clip-path`);
             if (cmd === "push") {
-                const name = contextType === "pattern" ? tokens[i++] ?? "" : "";
-                contexts.push({ kind: contextType, image: img, name, gradient, fill, fillRule, tile, stroke, strokeWidth, dashArray, dashOffset, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity });
-                if (contextType === "pattern") {
+                const name = kind === "pattern" || kind === "clip-path" ? tokens[i++] ?? "" : "";
+                contexts.push({ kind, image: img, name, clip, gradient, fill, fillRule, tile, stroke, strokeWidth, dashArray, dashOffset, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity });
+                if (kind === "clip-path") {
+                    // Clip geometry paints a black opening in a white protection mask.
+                    clip = undefined;
+                    gradient = undefined;
+                    fill = { r: 0, g: 0, b: 0, a: 255 };
+                    stroke = { r: 0, g: 0, b: 0, a: 0 };
+                    tile = false;
+                    fillOpacity = strokeOpacity = undefined;
+                    yield { kind: "clip-start", name, width: img.width, height: img.height };
+                }
+                if (kind === "pattern") {
                     num(); num(); // MVG pattern origins do not shift the repeating tile.
                     const width = Math.floor(num() + 0.5), height = Math.floor(num() + 0.5);
                     if (width <= 0 || height <= 0 || !Number.isSafeInteger(width * height * 8) || width * height * 8 > 0x7fffffff)
                         throw new Error("Pattern dimensions exceed resource limits");
                     img = { width, height };
+                    clip = undefined;
                     yield { kind: "pattern-start", name, width, height };
                 }
-            }
-            else {
+            } else {
                 const context = contexts.pop();
-                if (!context || context.kind !== contextType) throw new Error(`Cannot pop ${contextType} without a matching push`);
-                if (contextType === "pattern") {
+                if (!context || context.kind !== kind) throw new Error(`Cannot pop ${kind} without a matching push`);
+                if (kind === "pattern") {
                     patterns.add(context.name);
                     yield { kind: "pattern-end" };
                 }
+                else if (kind === "clip-path") yield { kind: "clip-end" };
+                else if (clip !== context.clip) yield { kind: "clip", name: context.clip };
+                clip = context.clip;
                 img = context.image;
                 ({ gradient, fill, fillRule, tile, stroke, strokeWidth, dashArray, dashOffset, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity } = context);
             }
+        }
+        else if (cmd === "clip-path") {
+            const value = tokens[i++] ?? "";
+            clip = value.startsWith("url(#") && value.endsWith(")") ? value.slice(5, -1) : value;
+            yield { kind: "clip", name: clip };
         }
         else if (cmd === "viewbox") {
             for (let coordinate = 0; coordinate < 4; coordinate++) num();

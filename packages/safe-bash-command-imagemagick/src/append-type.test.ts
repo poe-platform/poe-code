@@ -3,13 +3,15 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js";
 
-const first = ["(", "-size", "2x1", "xc:#2060b080"];
-const second = ["(", "-size", "1x2", "xc:#c04020ed", ")"];
+const first = ["(", "-size", "2x1", "xc:#173e5970", "-colorspace", "sRGB"];
+const second = ["(", "-size", "1x2", "xc:#b56829cf", "-colorspace", "sRGB", ")"];
 
 // Native ImageMagick 7.1.2-35 Q16-HDRI applies unscoped type settings at output.
 for (const mode of ["command", "retained", "buffered", "sync"] as const)
 for (const direction of ["-append", "+append"])
 it.each([
+    { name: "grayscale property on first input", format: "%[type] %r %k", args: [...first, "-set", "type", "Grayscale", ")", ...second], type: "PaletteAlpha DirectClass sRGB Alpha 3" },
+    { name: "bilevel property on first input", format: "%[type] %r %k", args: [...first, "-set", "type", "Bilevel", ")", ...second], type: "PaletteAlpha DirectClass sRGB Alpha 3" },
     { name: "scoped grayscale", args: [...first, "-type", "Grayscale", ")", ...second], type: "Grayscale" },
     { name: "global grayscale", args: [...first, ")", ...second, "-type", "Grayscale"], type: "Grayscale" },
     { name: "single grayscale", args: [...first, "-type", "Grayscale", ")"], type: "Grayscale" },
@@ -18,12 +20,12 @@ it.each([
     { name: "scoped grayscale alpha", args: [...first, "-type", "GrayscaleAlpha", ")", ...second], type: "GrayscaleAlpha" },
     { name: "reset scoped grayscale", args: [...first, "-type", "Grayscale", "-type", "TrueColorAlpha", ")", ...second], type: "PaletteAlpha" },
     { name: "no explicit type", args: [...first, ")", ...second], type: "PaletteAlpha" },
-])(`${mode} ${direction}: $name`, async ({ args, type }) => {
+])(`${mode} ${direction}: $name`, async ({ args, type, format = "%[type]" }) => {
     const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
     const previous = new TextEncoder().encode("KEEP");
     await fs.writeFile("/out", previous);
     files.set("/out", previous);
-    const argv = [...args, direction, "-format", "%[type]", "info:/out"];
+    const argv = [...args, direction, "-format", format, "info:/out"];
     const argumentValues = createCommandArguments(argv);
     let stderr = "";
     const result = mode === "command" ? await createMagickCommand().execute({

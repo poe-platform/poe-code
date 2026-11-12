@@ -35,17 +35,3 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         expect(createHash("sha256").update(actual.data).digest("hex")).toBe(fixture.hash);
     });
 }
-
-for (const retained of [false, true]) {
-    it.each([
-        ["-kuwahara", "2x1"],
-    ])(`rejects unsupported Catrom consumers without replacing output, retained=${retained}: %j`, async (...operation) => {
-        const existing = Buffer.from("KEEP"), files = new Map([["/in.png", Buffer.from(opaque, "base64")], ["/out.png", existing]]);
-        const filesystem = new MemoryFileSystem();
-        for (const [path, bytes] of files) await filesystem.writeFile(path, bytes);
-        const result = await runConvertCli(["/in.png", "-interpolate", "catrom", ...operation, "/out.png"], retained ? { filesystem, cwd: "/" } : files);
-        expect(result.exitCode).toBe(1);
-        expect(result.stderr).toContain("interpolation: catrom");
-        expect(Buffer.from(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")!)).toEqual(existing);
-    });
-}

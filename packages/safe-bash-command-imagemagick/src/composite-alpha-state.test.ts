@@ -23,7 +23,7 @@ for (const mode of modes) {
     const fs = createMemoryFileSystem();
     const files = new Map<string, Uint8Array>();
     const args = ["-size", "1x1", `xc:${base}`, ...(alphaOn ? ["-alpha", "on"] : []),
-      "-size", "1x1", `xc:${source}`, "-define", "compose:args=50", "-compose", mode, "-composite"];
+      "-size", "1x1", `xc:${source}`, "-define", "compose:args=50", "-compose", mode, "-composite", "-depth", "8"];
     const result = route === "command"
       ? await createMagickCommand().execute({
         command: "magick", args: createCommandArguments([...args, "/out.png"]).args, cwd: "/", env: {}, fs,

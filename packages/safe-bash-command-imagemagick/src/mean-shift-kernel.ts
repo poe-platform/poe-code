@@ -33,6 +33,9 @@ export function parseMeanShiftGeometry(raw: string): { width: number; height: nu
 
 /** Native mean shift: circular neighborhood, moving centroid, at most 100 iterations. */
 export function* meanShiftPixelSteps(image: Pick<RgbaImage, "width" | "height" | "data16" | "evaluateSamples" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedEvaluateSamples" | "storedHueSamples">>, geometry: ReturnType<typeof parseMeanShiftGeometry>, background: RgbaColor, virtualPixel: VirtualPixelMethod = "edge"): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+    // Gray tile borders write RGB into one shared sample; the final blue write wins.
+    if ((image.space === "b-w" || image.space === "grey16") && virtualPixel.endsWith("-tile"))
+        background = { ...background, r: background.b, g: background.b };
     const hue = image.space !== "cmyk" && (!!image.hueSamples || image.storedHueSamples !== undefined);
     const evaluate = !hue && (!!image.evaluateSamples || image.storedEvaluateSamples !== undefined);
     const { width, height } = image, cmyk = image.space === "cmyk", highDepth = cmyk || !!(image.data16 || image.storedData16), scale = hue ? 1 / 255 : !evaluate && !cmyk && highDepth ? 257 : 1;

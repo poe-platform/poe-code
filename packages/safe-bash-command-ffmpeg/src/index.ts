@@ -14633,7 +14633,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           initialDemand = Math.min(length,
                             (Math.floor(wavelet.overlapSize / wavelet.samples) + frameLimit) * wavelet.samples);
                         }
-                        if (filterName === "silencedetect" && frameLimit !== undefined && frameLimit > 0 && audioTimestamps &&
+                        if (frameLimit !== undefined && frameLimit > 0 && audioTimestamps &&
                           next?.split("=", 1)[0]!.split("@", 1)[0] === "atempo") {
                           // Tempo may load several fragments before filling an output frame.
                           // Use its scheduler's actual demand, then measure whole input frames.

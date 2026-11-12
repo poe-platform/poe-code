@@ -23,8 +23,9 @@ export async function probeFlacSource(source: AudioProbeSource, options: { signa
     if (bytes.length !== length) throw new Error("Truncated or invalid audio structure");
     return new Reader(bytes);
   };
-  const prefix = id3HeaderSize((await read(0, Math.min(10, source.size))).bytes);
-  if ((await read(prefix, 4)).text(0, 4) !== "fLaC") throw new Error("Expected FLAC signature");
+  const signature = (await read(0, 4)).text(0, 4);
+  const prefix = signature.startsWith("ID3") ? id3HeaderSize((await read(0, Math.min(10, source.size))).bytes) : 0;
+  if ((prefix ? (await read(prefix, 4)).text(0, 4) : signature) !== "fLaC") throw new Error("Expected FLAC signature");
   let offset = prefix + 4, last = false, stream: AudioStream | undefined;
   const tags: AudioTags = {};
   while (!last) {

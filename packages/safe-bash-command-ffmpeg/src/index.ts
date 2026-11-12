@@ -8513,6 +8513,21 @@ function applyInputDisplayTransforms(doc: MediaDocument, transforms: readonly Di
   }) };
 }
 
+// Match FFmpeg's display-matrix decomposition into its existing video filters.
+function inputDisplayFilter(track: MediaTrack): string {
+  if (track.type !== "video") return "";
+  const matrix = track.matrix ?? matrixForRotation(track.rotation ?? 0);
+  const scaleX = Math.hypot(matrix[0]!, matrix[3]!);
+  const scaleY = Math.hypot(matrix[1]!, matrix[4]!);
+  if (!scaleX || !scaleY) return "";
+  const angle = (Math.atan2(matrix[1]! / scaleY, matrix[0]! / scaleX) * 180 / Math.PI + 360) % 360;
+  if (Math.abs(angle - 90) < 1) return `transpose=${matrix[3]! > 0 ? "cclock_flip" : "clock"}`;
+  if (Math.abs(angle - 180) < 1) return [matrix[0]! < 0 ? "hflip" : "", matrix[4]! < 0 ? "vflip" : ""].filter(Boolean).join(",");
+  if (Math.abs(angle - 270) < 1) return `transpose=${matrix[3]! < 0 ? "clock_flip" : "cclock"}`;
+  if (angle > 1 && angle < 359) return `rotate=${angle}*PI/180`;
+  return matrix[4]! < 0 ? "vflip" : "";
+}
+
 function parseAudioChannels(option: string, value: string | undefined): [string, number | undefined] {
   const specifier = option === "-ac" ? "" : option.slice("-ac:".length);
   const parts = specifier.split(":");
@@ -9665,6 +9680,7 @@ export function evalSyncFfmpeg(
       inputStarts.push(sourceStart);
       if ((videoCodec === "copy" || audioCodec === "copy") && (!copyTimestamps || startAtZero)) doc = shiftTimestamps(doc, -(sourceStart ?? 0), budget);
       doc = applyInputDisplayTransforms(doc, inp.displayTransforms);
+      if (videoCodec !== "copy" && doc.tracks.some(track => inputDisplayFilter(track))) return undefined;
       if (inp.subtitleCharsets?.length && subtitleCodec !== "copy") doc = recodeSubtitles(doc, inp.subtitleCharsets, inp.subtitleCharencModes);
       if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
       // Standalone text subtitles have cue bounds, but no demuxer duration for -sseof.
@@ -13107,6 +13123,30 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               // Input timestamp scaling includes the offset, after seeking and before filtering.
               // Slicing clamps negative seeks to zero; retain their requested timeline origin.
               doc = shiftTimestamps(doc, (inp.timestampOffset ?? 0) - (copyTimestamps ? 0 : Math.min(0, startSeconds ?? 0)), budget);
+              if (videoCodec !== "copy" && !stripVideo) {
+                doc = { ...doc, tracks: await mapWork(doc.tracks, async track => {
+                  const filter = inputDisplayFilter(track);
+                  if (!filter) return track;
+                  if (features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
+                  const decoded = await ensureDecodedFrames(track, doc.timescale, budget, context.signal);
+                  const codec = track.codecDescriptions[0];
+                  const diagnostics: Parameters<typeof applyVideoFilterChain>[3] = {
+                    frameDuration: decoded[0]?.durationSeconds ?? 1 / track.timescale,
+                    timescale: track.timescale,
+                    sarWidth: codec?.sarWidth ?? 1, sarHeight: codec?.sarHeight || 1,
+                    sar: (codec?.sarWidth || 1) / (codec?.sarHeight || 1),
+                    pixelFormat: codec?.pixFmt, chromaLocation: codec?.chromaLocation,
+                    logLevel, write: async () => {}, writeReport: async () => {}
+                  };
+                  const frames = await applyVideoFilterChain(decoded, filter, budget, diagnostics, readInput, registry, context.signal);
+                  const width = frames[0]?.width ?? track.width;
+                  const height = frames[0]?.height ?? track.height;
+                  return { ...track, width, height, rotation: undefined, matrix: undefined,
+                    samples: [], decodedVideoFrames: frames,
+                    codecDescriptions: track.codecDescriptions.map(description => ({ ...description, width, height,
+                      sarWidth: diagnostics.sarWidth, sarHeight: diagnostics.sarHeight, pixFmt: diagnostics.pixelFormat })) };
+                }, context.signal) };
+              }
               loadedDocs.push(scaleInputTimestamps(doc, inp.timestampScales, budget));
             }
 

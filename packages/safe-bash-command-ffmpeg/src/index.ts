@@ -647,6 +647,14 @@ const pal8Palette = Uint8Array.from({ length: 768 }, (_, i) => {
   return i % 3 === 0 ? (index & 7) * 36 : i % 3 === 1 ? ((index >> 3) & 7) * 36 : (index >> 6) * 85;
 });
 
+function pngResolution(dpi: number, dpm: number, codec: MediaTrack["codecDescriptions"][number] | undefined): NonNullable<RgbaImage["resolution"]> {
+  if (dpi && dpm) throw new Error("Only one of 'dpi' or 'dpm' options should be set");
+  const pixelsPerMeter = dpm || Math.trunc(dpi * 10000 / 254);
+  return pixelsPerMeter
+    ? { x: pixelsPerMeter, y: pixelsPerMeter, unit: "meter" }
+    : { x: codec?.sarWidth ?? 0, y: codec?.sarHeight || 1, unit: "unknown" };
+}
+
 function makeRgbaImg(width: number, height: number, data: Uint8Array): RgbaImage {
   return {
     width,
@@ -8975,6 +8983,8 @@ export function evalSyncFfmpeg(
     let pageDuration: number | undefined;
     let videoFlags = 0;
     let apngPlays = 1;
+    let pngDpi = 0;
+    let pngDpm = 0;
     let finalDelay: number | undefined;
     let pngPrediction = 0;
     let rle: boolean | undefined;
@@ -9366,6 +9376,12 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         finalDelay = value?.trim() ? Number(value) : NaN;
         if (!Number.isInteger(finalDelay) || finalDelay < -1 || finalDelay > 65535) throw new Error("Invalid final_delay: expected an integer from -1 to 65535");
+      } else if (arg === "-dpi" || arg === "-dpm") {
+        const value = args[++i];
+        const density = value?.trim() ? Number(value) : NaN;
+        if (!Number.isInteger(density) || density < 0 || density > 65536) throw new Error(`Invalid ${arg.slice(1)}: expected an integer from 0 to 65536`);
+        if (arg === "-dpi") pngDpi = density;
+        else pngDpm = density;
       } else if (arg === "-plays") {
         const value = args[++i];
         apngPlays = value?.trim() ? Number(value) : NaN;
@@ -9829,16 +9845,15 @@ export function evalSyncFfmpeg(
                       ? { space: "b-w" as const, channels: 1 as const, hasAlpha: false }
                       : vTrack?.codecDescriptions[0]?.pixFmt === "ya8"
                         ? { space: "b-w" as const, channels: 2 as const, hasAlpha: true } : {}),
-                    ...(imgFmt === "png" && vTrack?.codecDescriptions[0]?.sarWidth && vTrack.codecDescriptions[0].sarHeight &&
-                      vTrack.codecDescriptions[0].sarWidth !== vTrack.codecDescriptions[0].sarHeight ? {
-                      resolution: { x: vTrack.codecDescriptions[0].sarWidth, y: vTrack.codecDescriptions[0].sarHeight, unit: "unknown" as const }
-                    } : {}) }, { format: imgFmt, pngInterlace: (videoFlags & 262144) !== 0, pngPrediction, pngBitDepth: vTrack?.codecDescriptions[0]?.pixFmt === "monob" ? 1 : undefined, pngPreserveColormap: vTrack?.codecDescriptions[0]?.pixFmt === "pal8" }).data;
+                    ...(imgFmt === "png" ? { resolution: pngResolution(pngDpi, pngDpm, vTrack?.codecDescriptions[0]) } : {}) }, { format: imgFmt, pngInterlace: (videoFlags & 262144) !== 0, pngPrediction, pngBitDepth: vTrack?.codecDescriptions[0]?.pixFmt === "monob" ? 1 : undefined, pngPreserveColormap: vTrack?.codecDescriptions[0]?.pixFmt === "pal8" }).data;
         if (!writeFileSync!(fileName, encoded)) return undefined;
       }
       return "";
     }
     if (!outPlugin || !outPlugin.canMux || outPlugin.id === "dash" || outPlugin.id === "hls") return undefined;
     if (outPlugin.id === "image2" && maxVideoFrames === 0) return "";
+    // Single-image encoding needs the same PNG metadata and codec options as image sequences.
+    if (outPlugin.id === "image2" && videoCodec !== "copy") return undefined;
     const outExt = outputTarget.split(".").pop()?.toLowerCase();
     if (workingDoc.tracks.some(track => track.decodeErrors?.length)) return undefined;
     workingDoc = { ...workingDoc, tracks: filterBitstream(filterBitstream(filterBitstream(workingDoc.tracks, videoBitstreamFilter, budget, "video", workingDoc.timescale), audioBitstreamFilter, budget, "audio", workingDoc.timescale), subtitleBitstreamFilter, budget, "subtitle", workingDoc.timescale) };
@@ -10369,6 +10384,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let pageDuration: number | undefined;
         let videoFlags = 0;
         let apngPlays = 1;
+        let pngDpi = 0;
+        let pngDpm = 0;
         let finalDelay: number | undefined;
         let pngPrediction = 0;
         let rle: boolean | undefined;
@@ -11725,6 +11742,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: invalid final_delay: expected an integer from -1 to 65535\n"), context.signal);
               return { exitCode: 1 };
             }
+          } else if (arg === "-dpi" || arg === "-dpm") {
+            const value = args[++i];
+            const density = value?.trim() ? Number(value) : NaN;
+            if (!Number.isInteger(density) || density < 0 || density > 65536) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid ${arg.slice(1)}: expected an integer from 0 to 65536\n`), context.signal);
+              return { exitCode: 1 };
+            }
+            if (arg === "-dpi") pngDpi = density;
+            else pngDpm = density;
           } else if (arg === "-plays") {
             const value = args[++i];
             apngPlays = value?.trim() ? Number(value) : NaN;
@@ -21458,10 +21484,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       ? { space: "b-w" as const, channels: 1 as const, hasAlpha: false }
                       : vTrack?.codecDescriptions[0]?.pixFmt === "ya8"
                         ? { space: "b-w" as const, channels: 2 as const, hasAlpha: true } : {}),
-                    ...(imgFmt === "png" && vTrack?.codecDescriptions[0]?.sarWidth && vTrack.codecDescriptions[0].sarHeight &&
-                      vTrack.codecDescriptions[0].sarWidth !== vTrack.codecDescriptions[0].sarHeight ? {
-                      resolution: { x: vTrack.codecDescriptions[0].sarWidth, y: vTrack.codecDescriptions[0].sarHeight, unit: "unknown" as const }
-                    } : {}),
+                    ...(imgFmt === "png" ? { resolution: pngResolution(pngDpi, pngDpm, vTrack?.codecDescriptions[0]) } : {}),
                     ...(data16 ? { data16, space: "srgb" as const, channels: 4 as const, hasAlpha: false } : {}) }, {
                     format: imgFmt,
                     pngInterlace: (videoFlags & 262144) !== 0,

@@ -947,7 +947,10 @@ equivalent to `timestamps=1ms` (sample 8 at 8 kHz).
 Its `threads`, `thread_type`, and `extra_hw_frames` scheduling options accept
 FFmpeg values without changing the split points or PCM samples.
 Audio `concat=n=2:v=0:a=1` joins connected branches in pad order, including
-multiple branches from one input. Positional `concat=2:0:1` and mixed
+multiple branches from one input. With `a=2` or more, inputs are grouped by
+segment and each audio output stays separate. Shorter streams are padded with
+silence to the longest stream in each segment except the last; map each output
+label or consume it with `anullsink`. Positional `concat=2:0:1` and mixed
 `concat=n=2:0:1` select the same audio layout. Named options restart shorthand
 binding as in FFmpeg; `concat=v=0:2:0:1` and `concat=2:v=0:1` cannot join
 these audio branches and fail without writing output. Its `threads`, `thread_type`, and

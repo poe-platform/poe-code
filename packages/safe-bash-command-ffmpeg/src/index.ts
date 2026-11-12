@@ -1954,7 +1954,7 @@ const audioGraphFilterNames = new Set([
 
 // Resolve audio graph inputs and transitions before the PCM filter evaluator runs.
 async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: string[], outputMaps: Set<string>, mappedLabels: Set<string>, filterAudio: (track: MediaTrack, expression: string, index?: number, downstreamFilter?: string) => Promise<MediaTrack>, graphCommands: { time: number; target: string; action: string; expression: string }[], budget: MediaBudgetTracker, signal?: AbortSignal, outputSampleFormat?: string, simple = false) {
-  const nodes = new Map<string, { inputs: string[]; expression: string; asplit?: boolean }>();
+  const nodes = new Map<string, { inputs: string[]; expression: string; asplit?: boolean; concatOutput?: number }>();
   const inputTrack = (label: string): MediaTrack => {
     const [input, selector, ordinal, ...extra] = label.split(":");
     const numeric = selector === "a" ? [input, ordinal ?? "0"] : [input, selector ?? "0"];
@@ -2013,8 +2013,9 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     const last = filters.at(-1)!;
     const split = last === "channelsplit" || last.startsWith("channelsplit=") || last.startsWith("channelsplit@") ? parseChannelSplit(last) : undefined;
     const segments = last.split("=", 1)[0]!.split("@", 1)[0] === "asegment" ? parseAudioSegment(last) : undefined;
+    const concat = parseConcatOptions(last);
     const sink = last.split("=", 1)[0]!.split("@", 1)[0] === "anullsink";
-    let outputCount = sink ? 0 : segments?.length ?? split?.selected.length ?? 1;
+    let outputCount = sink ? 0 : segments?.length ?? split?.selected.length ?? concat?.a ?? 1;
     if (sink) {
       if (last.includes("=") && last.indexOf("=") !== last.length - 1) throw new Error("anullsink does not accept options");
       // Internal sink nodes run through the same evaluator, but never become output streams.
@@ -2043,7 +2044,8 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       // Each graph edge evaluates the preceding chain, then selects its own PCM range or channel.
       const selected = segments ? serializeFilterChain([...filters.slice(0, -1), segments[index]!])
         : split ? expression + (last.endsWith(":") ? "" : last.includes("=") ? ":" : "=") + `channels=${split.selected[index]}` : expression;
-      nodes.set(output, { inputs, expression: selected, asplit: last === "asplit" || last.startsWith("asplit=") });
+      nodes.set(output, { inputs, expression: selected, asplit: last === "asplit" || last.startsWith("asplit="),
+        ...(concat ? { concatOutput: index } : {}) });
     }
     for (const input of inputs) {
       if (consumed.has(input)) reused.add(input);
@@ -2054,8 +2056,9 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
   for (const { inputs, expression } of nodes.values()) {
     const filter = parseFilterChain(expression)[0]!;
     const first = filter.split("=", 1)[0]?.split("@", 1)[0];
+    const concat = parseConcatOptions(filter);
     const inputCount = first === "amerge" ? parseAmergeInputs(filter)
-      : first === "astreamselect" ? parseAstreamselectOptions(filter).count : (first === "acrossfade" || first === "anlmf" || first === "anlms") ? 2 : parseConcatOptions(filter)?.n ?? 1;
+      : first === "astreamselect" ? parseAstreamselectOptions(filter).count : (first === "acrossfade" || first === "anlmf" || first === "anlms") ? 2 : concat ? concat.n * concat.a : 1;
     if (first === "amerge" && inputs.length > inputCount) {
       throw new Error(`amerge requires ${inputCount} inputs (inputs=${inputCount})`);
     }
@@ -2104,19 +2107,37 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
       }
       const concat = parseConcatOptions(filters[0]!);
       if (concat !== undefined) {
-        if (concat.v !== 0 || concat.a !== 1) throw new Error("concat: incompatible audio pad layout");
-        if (sources.length !== concat.n) throw new Error(`concat requires ${concat.n} inputs`);
-        const segments: MediaDocument[] = [];
-        for (const source of sources) {
+        if (concat.v !== 0 || concat.a < 1) throw new Error("concat: incompatible audio pad layout");
+        if (sources.length !== concat.n * concat.a) throw new Error(`concat requires ${concat.n * concat.a} inputs`);
+        const tracks: MediaTrack[] = [];
+        for (const [index, source] of sources.entries()) {
           let track = source.expression && source.expression !== "anull"
             ? await filterAudio(source.track, source.expression) : source.track;
-          const target = segments[0]?.tracks[0]?.decodedAudio;
+          const target = tracks[index % concat.a]?.decodedAudio;
           if (target?.channels === 2 && (!target.channelMask || target.channelMask === 3) &&
               track.decodedAudio?.channels === 1) {
             track = await filterAudio(track, "aformat=channel_layouts=stereo");
           }
           if (target && track.decodedAudio?.sampleRate !== target.sampleRate) {
             track = await filterAudio(track, `aresample=${target.sampleRate}`);
+          }
+          tracks.push(track);
+        }
+        const segments: MediaDocument[] = [];
+        for (let segment = 0; segment < concat.n; segment++) {
+          let track = tracks[segment * concat.a + (node.concatOutput ?? 0)]!;
+          if (concat.a > 1 && segment < concat.n - 1) {
+            let end = 0;
+            for (let output = 0; output < concat.a; output++) {
+              const source = tracks[segment * concat.a + output]!;
+              const last = source.samples.at(-1);
+              end = Math.max(end, last ? (last.pts + last.duration) / source.timescale : 0);
+            }
+            const last = track.samples.at(-1);
+            const trackEnd = last ? (last.pts + last.duration) / track.timescale : 0;
+            const padding = Math.round((end - trackEnd) * (track.decodedAudio?.sampleRate ?? track.timescale));
+            // Related streams share segment boundaries, but the last segment is never padded.
+            if (padding > 0) track = await filterAudio(track, `apad=pad_len=${padding}`);
           }
           segments.push({ ...docs[0]!, tracks: [track], duration: track.duration,
             timescale: track.timescale, durationSeconds: track.duration / track.timescale });
@@ -12837,7 +12858,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   language: "und", enabled: true, width: frame.width, height: frame.height,
                   codecDescriptions: [], samples: [], decodedVideoFrames: [frame]
                 }] };
-              } else if (concat && (concat.v !== 0 || concat.a !== 1)) {
+              } else if (concat && (concat.v !== 0 || concat.a === 0)) {
                 workingDoc = concatMp4(loadedDocs, { limits: options.limits, budget });
                 if (concat.a === 0) {
                   workingDoc = {

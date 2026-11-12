@@ -3,7 +3,7 @@ import { discardDisassociatedAlpha } from "./alpha-state.js";
 import { cropReadMaskSteps, cropStoredReadMask } from "./crop-read-mask.js";
 import { extractImageSteps, transformStoredImage, type ImageByteStorage, type GravityPosition, type RgbaColor, type RgbaImage as BaseRgbaImage, type StoredRgbaImage as BaseStoredRgbaImage } from "@poe-code/image-ast/portable";
 import { yieldTurn } from "safe-bash-contracts/yield";
-import { rgbToCmyk } from "./colorspace-cmyk.js";
+import { opaqueTargetCmyk, rgbToCmyk } from "./colorspace-cmyk.js";
 import type { HueMetadata } from "./colorspace-hue.js";
 import type { Region } from "./region.js";
 
@@ -191,17 +191,26 @@ export function* formatTrimBoundsSteps<Step = never>(
         : `${area.width}x${area.height}+${area.left}+${area.top}`;
 }
 
-function emptyTrimPixel(image: RgbaImage | StoredRgbaImage, background?: RgbaColor): Uint16Array {
-    if (background) return Uint16Array.from([background.r, background.g, background.b, 0], value => Math.round(value * 257));
+function emptyTrimPixel(image: RgbaImage | StoredRgbaImage, background?: RgbaColor): { data16: Uint16Array; hueSamples?: Float64Array; evaluateSamples?: Float64Array } {
+    if (image.space === "cmyk") {
+        const color: RgbaColor & { cmyk?: readonly number[]; space?: "b-w" } = background ?? image.backgroundColor ?? { r: 255, g: 255, b: 255, a: 255 };
+        // Native background PixelInfo converts sRGB through linear RGB; explicit
+        // gray and CMYK colors already describe their working channel values.
+        const inks = color.cmyk ?? (color.space === "b-w" ? rgbToCmyk : opaqueTargetCmyk)(color.r / 255, color.g / 255, color.b / 255);
+        const hueSamples = Float64Array.from(inks, value => Math.fround(value * 65535) / 65535);
+        const evaluateSamples = Float64Array.from([0, 1, 2, 3], channel => channel === 3 ? 0 : Math.fround((1 - hueSamples[channel]!) * (1 - hueSamples[3]!) * 65535) / 257);
+        return { hueSamples, evaluateSamples, data16: Uint16Array.from(evaluateSamples, value => Math.round(value * 257)) };
+    }
+    if (background) return { data16: Uint16Array.from([background.r, background.g, background.b, 0], value => Math.round(value * 257)) };
     // Native PNG reading leaves sub-byte grayscale bKGD samples unscaled.
     const value = image.format === "png" && image.space === "b-w" && image.backgroundColor && (image.bitsPerSample ?? 8) < 8
         ? Math.round(image.backgroundColor.b * (2 ** image.bitsPerSample! - 1) / 255)
         : undefined;
     if (value === undefined && image.backgroundColor) {
         const { r, g, b } = image.backgroundColor;
-        return Uint16Array.from([r, g, b, 0], value => Math.round(value * 257));
+        return { data16: Uint16Array.from([r, g, b, 0], value => Math.round(value * 257)) };
     }
-    return Uint16Array.from([value ?? 255, value ?? 255, value ?? 255, 0], value => value * 257);
+    return { data16: Uint16Array.from([value ?? 255, value ?? 255, value ?? 255, 0], value => value * 257) };
 }
 
 export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor, emptyBackground?: RgbaColor, gravity?: GravityPosition): Generator<void, RgbaImage, void> {
@@ -262,13 +271,14 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
     if (next.value.width > 0 && next.value.height > 0) return image;
     // ImageMagick represents an empty trim with one transparent background pixel.
     const { data16: ignored, evaluateSamples: ignoredSamples, hueSamples: ignoredHue, ...metadata } = image;
-    const data16 = emptyTrimPixel(image, emptyBackground);
+    const pixel = emptyTrimPixel(image, emptyBackground);
+    const { data16 } = pixel;
     if ((image.space === "b-w" || image.space === "grey16") && (data16[0] !== data16[1] || data16[1] !== data16[2])) {
         metadata.space = "srgb";
         metadata.gamma = 1 / 2.2;
         delete metadata.magickColorspace;
     }
-    return { ...metadata, [magickInput]: { ...image[magickInput], imageType: undefined }, width: 1, height: 1, data16, data: Uint8Array.from(data16, value => Math.round(value / 257)), channels: 4, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false, region: undefined,
+    return { ...metadata, [magickInput]: { ...image[magickInput], imageType: undefined }, width: 1, height: 1, ...pixel, data: Uint8Array.from(data16, value => Math.round(value / 257)), channels: 4, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false, region: undefined,
         virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };
 }
 
@@ -317,16 +327,26 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
     // Bounds outside the raster leave the original image and virtual page intact.
     if (next.value.width > 0 && next.value.height > 0) return image;
     const emptyPosition = storage.allocate(4);
-    const data16 = emptyTrimPixel(image, emptyBackground);
+    const pixel = emptyTrimPixel(image, emptyBackground);
+    const { data16 } = pixel;
     await storage.write(emptyPosition, Uint8Array.from(data16, value => Math.round(value / 257)), { signal });
     const position16 = storage.allocate(data16.byteLength);
     await storage.write(position16, new Uint8Array(data16.buffer), { signal });
+    const samples: Pick<StoredRgbaImage, "storedEvaluateSamples" | "storedHueSamples"> = {};
+    if (pixel.evaluateSamples) {
+        samples.storedEvaluateSamples = storage.allocate(pixel.evaluateSamples.byteLength);
+        await storage.write(samples.storedEvaluateSamples, new Uint8Array(pixel.evaluateSamples.buffer), { signal });
+    }
+    if (pixel.hueSamples) {
+        samples.storedHueSamples = storage.allocate(pixel.hueSamples.byteLength);
+        await storage.write(samples.storedHueSamples, new Uint8Array(pixel.hueSamples.buffer), { signal });
+    }
     const { storedData16: ignored, storedEvaluateSamples: ignoredSamples, storedHueSamples: ignoredHue, ...metadata } = image;
     if ((image.space === "b-w" || image.space === "grey16") && (data16[0] !== data16[1] || data16[1] !== data16[2])) {
         metadata.space = "srgb";
         metadata.gamma = 1 / 2.2;
         delete metadata.magickColorspace;
     }
-    return { ...metadata, [magickInput]: { ...image[magickInput], imageType: undefined }, width: 1, height: 1, position: emptyPosition, storedData16: { position: position16, length: data16.length }, channels: 4, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false, region: undefined,
+    return { ...metadata, [magickInput]: { ...image[magickInput], imageType: undefined }, width: 1, height: 1, position: emptyPosition, ...samples, storedData16: { position: position16, length: data16.length }, channels: 4, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false, region: undefined,
         virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };
 }

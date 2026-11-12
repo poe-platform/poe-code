@@ -28,6 +28,28 @@ async function run(filter: string, pixels = source, width = 1, height = 1, graph
   return { ...result, stderr, stdout: Buffer.concat(stdout), bytes: volume.readFileSync("/out.gray") };
 }
 
+// Native FFmpeg exits successfully and emits these exact bytes for each flag set.
+for (const [flags, expected] of [
+  ["-scd", "0b0b0b0b181818182525252525252525"],
+  ["none", "0b0b0b0b181818182525252525252525"],
+  ["all", "0b0b0b0b0b0b0b0b2525252525252525"],
+  ["0", "0b0b0b0b181818182525252525252525"],
+  ["1", "0b0b0b0b0b0b0b0b2525252525252525"],
+  ["all-scd", "0b0b0b0b181818182525252525252525"],
+  ["-scene_change_detect", "0b0b0b0b181818182525252525252525"],
+  ["none+scene_change_detect", "0b0b0b0b0b0b0b0b2525252525252525"],
+  ["+scd", "0b0b0b0b0b0b0b0b2525252525252525"],
+  ["scd+scd", "0b0b0b0b0b0b0b0b2525252525252525"],
+  ["2", "0b0b0b0b181818182525252525252525"],
+  ["4294967295", "0b0b0b0b0b0b0b0b2525252525252525"]
+]) {
+  it(`matches native scene detection flags=${flags}`, async () => {
+    const result = await run(`framerate=8:flags=${flags}`, [11, 37], 2, 2);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.deepEqual(result.bytes, Buffer.from(expected!, "hex"));
+  });
+}
+
 for (const graph of [false, true]) {
   it(`interpolates grayscale frames at 5 fps (graph=${graph})`, async () => {
     const result = await run("framerate=fps=5", source, 1, 1, graph);

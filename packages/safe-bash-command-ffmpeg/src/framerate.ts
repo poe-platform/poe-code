@@ -25,19 +25,35 @@ export async function interpolateFrameRate(
     qntsc: 30000 / 1001, qpal: 25, sntsc: 30000 / 1001, spal: 25
   });
   if (frameRate <= 0 || frameRate > 2147483647) throw new Error("framerate: invalid frame rate");
-  const values = ["interp_start", "interp_end", "scene", "flags"].map((key, index) => {
-    const defaults = [15, 240, 8.2, 1];
-    const max = [255, 255, 100, 2147483647][index]!;
+  const values = ["interp_start", "interp_end", "scene"].map((key, index) => {
+    const defaults = [15, 240, 8.2];
+    const max = [255, 255, 100][index]!;
     const value = parseFilterExpression(options[key] ?? String(defaults[index]), "framerate", {
-      default: defaults[index]!, min: 0, max,
-      ...(key === "flags" ? { scd: 1, scene_change_detect: 1 } : {})
+      default: defaults[index]!, min: 0, max
     });
     if (value < 0 || value > max) throw new RangeError(`framerate: ${key} out of range`);
     if (key === "scene") return value;
     const lower = Math.floor(value);
     return value - lower === 0.5 ? lower + lower % 2 : Math.round(value);
   });
-  const [interpStart, interpEnd, scene, flags] = values as [number, number, number, number];
+  const [interpStart, interpEnd, scene] = values as [number, number, number];
+  const expression = options.flags ?? "1";
+  let flags = expression.startsWith("+") || expression.startsWith("-") ? 1 : 0;
+  let offset = 0;
+  do {
+    const remove = expression[offset] === "-";
+    if (remove || expression[offset] === "+") offset++;
+    const start = offset;
+    if (expression[offset] === "+" || expression[offset] === "-") offset++;
+    while (offset < expression.length && expression[offset] !== "+" && expression[offset] !== "-") offset++;
+    const bits = parseFilterExpression(expression.slice(start, offset), "framerate", {
+      scd: 1, scene_change_detect: 1, none: 0, all: -1, default: 1, min: 0, max: 2147483647
+    });
+    if (!Number.isInteger(bits) || bits < -2147483648 || bits > 4294967295) {
+      throw new RangeError("framerate: flags out of range");
+    }
+    flags = remove ? flags & ~bits : flags | bits;
+  } while (offset < expression.length);
 
   // Use the common tick of the input clock and requested output period.
   const ratios = [1 / inputTimescale, 1 / frameRate].map(ratio => {

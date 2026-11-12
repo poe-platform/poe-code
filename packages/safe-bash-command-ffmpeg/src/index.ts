@@ -1488,7 +1488,7 @@ function serializeFilterChain(filters: string[]): string {
 
 async function renderShowwavespic(
   audio: MediaAudioData, spec: string, budget: MediaBudgetTracker, signal?: AbortSignal
-): Promise<MediaVideoFrame | undefined> {
+): Promise<MediaTrack> {
   const equals = spec.indexOf("=");
   const options: Record<string, string> = {};
   const parts = equals < 0 ? [] : spec.slice(equals + 1).split(":");
@@ -1530,9 +1530,14 @@ async function renderShowwavespic(
   const colors = (options.colors ?? "red|green|blue|yellow|orange|lime|0xffc0cb|magenta|0xa52a2a").split("|");
   const channels = audio.channelData;
   const count = channels[0]?.length ?? 0;
-  if (!count) throw new Error("showwavespic: no audio samples");
+  const frames: MediaVideoFrame[] = [];
+  const track: MediaTrack = {
+    id: 1, type: "video", handlerType: "vide", timescale: 1, duration: count < width ? 0 : 1,
+    language: "und", enabled: true, width, height,
+    codecDescriptions: [], samples: [], decodedVideoFrames: frames
+  };
+  if (count < width) return track;
   const rowHeight = split ? Math.floor(height / channels.length) : height;
-  if (count < width) return undefined;
   budget.recordFrame(width, height);
   budget.allocateMemory(width * height * 4);
   const data = new Uint8Array(width * height * 4);
@@ -1575,7 +1580,8 @@ async function renderShowwavespic(
       }
     }
   }
-  return { width: width, height: height, data, ptsSeconds: 0, durationSeconds: 1, keyframe: true };
+  frames.push({ width, height, data, ptsSeconds: 0, durationSeconds: 1, keyframe: true });
+  return track;
 }
 
 function parseChannelSplit(spec: string): { input: string[]; selected: string[] } {
@@ -13312,6 +13318,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               throw new Error("invalid start_number: expected an integer from 0 to 2147483647");
             }
             // Combine inputs according to `-filter_complex`, `-map`, or default mux
+            const imagePipe = outputFormat === "image2pipe";
+            const imageOutput = imagePipe || (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
             let workingDoc: MediaDocument;
             let videoEndTimeSeconds: number | undefined;
             let audioOrdinal = 0;
@@ -13405,20 +13413,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 const audio = filteredTrack.decodedAudio ?? (filteredTrack.codecDescriptions[0]?.codecName === "aac"
                   ? decodeAacTrack(doc, filteredTrack) : undefined);
                 if (!audio) throw new Error("showwavespic requires decoded PCM audio");
-                const frame = await renderShowwavespic(audio, filters.shift() ?? "", budget, context.signal);
-                if (!frame) {
-                  if (logLevel >= 16) await writeBytes(context.stderr, encodeUtf8("showwavespic: Too few samples.\n"), context.signal);
-                  hasEmptyOutput = true;
-                  emptyOutputStreams.push(`${progressOutputIndex}:0`);
-                  options.onMetrics?.(budget.getStats());
-                  return { exitCode: 0 };
+                const waveform = await renderShowwavespic(audio, filters.shift() ?? "", budget, context.signal);
+                if (!waveform.decodedVideoFrames?.length) {
+                  if (audio.channelData[0]?.length && logLevel >= 16) {
+                    await writeBytes(context.stderr, encodeUtf8("showwavespic: Too few samples.\n"), context.signal);
+                  }
+                  if (imageOutput) {
+                    hasEmptyOutput = true;
+                    emptyOutputStreams.push(`${progressOutputIndex}:0`);
+                    options.onMetrics?.(budget.getStats());
+                    return { exitCode: 0 };
+                  }
                 }
                 vfFilters.push(...filters);
-                workingDoc = { ...doc, duration: doc.timescale, durationSeconds: 1, tracks: [{
-                  id: 1, type: "video", handlerType: "vide", timescale: 1, duration: 1,
-                  language: "und", enabled: true, width: frame.width, height: frame.height,
-                  codecDescriptions: [], samples: [], decodedVideoFrames: [frame]
-                }] };
+                workingDoc = { ...doc, duration: waveform.duration * doc.timescale,
+                  durationSeconds: waveform.duration, tracks: [waveform] };
               } else if (concat && (concat.v !== 0 || concat.a === 0)) {
                 workingDoc = concatMp4(loadedDocs, { limits: options.limits, budget });
                 if (concat.a === 0) {
@@ -14265,8 +14274,6 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 218 };
             }
 
-            const imagePipe = outputFormat === "image2pipe";
-            const imageOutput = imagePipe || (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
             const planeOutput = imageOutput && !imagePipe && outputTarget.endsWith(".Y") && (videoCodec === undefined || videoCodec === "rawvideo");
             const numberedImageOutput = !imagePipe && formatImageSequence(outputTarget, outputStartNumber ?? 1) !== undefined;
             if ((imageOutput || numberedImageOutput) && !planeOutput && videoCodec !== undefined && videoCodec !== "copy" && !imageEncoders.includes(videoCodec)) {

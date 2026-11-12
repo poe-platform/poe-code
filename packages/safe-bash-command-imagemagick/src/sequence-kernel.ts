@@ -403,8 +403,7 @@ export function sequenceCanvas<T extends Pick<RgbaImage, "hasAlpha" | "space" | 
     for (const image of inputs) {
         const hasAlpha = image.hasAlpha || image.inactiveAlpha && (image.alphaBlend !== false || image.alphaSeparate);
         const gray = image.space === "b-w" || image.space === "grey16";
-        const indexed = image.isPalette || gray && !hasAlpha && image.format === "png" && image.depth === "uchar";
-        const count = (gray ? 1 : image.space === "cmyk" ? 4 : 3) + Number(!!hasAlpha) + Number(!!indexed);
+        const count = (gray ? 1 : image.space === "cmyk" ? 4 : 3) + Number(!!hasAlpha) + Number(!!image.isPalette);
         if (count > maximum) { canvas = image; maximum = count; }
     }
     return canvas;
@@ -451,9 +450,9 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
     // Native visits input slots through the output channel map. GrayAlpha has two
     // slots, so only output red and green contribute; absent channels start at zero.
     const inputChannels = inputs.map((image, index) => colorOutput && (image.space === "b-w" || image.space === "grey16")
-        && ["mean", "sum", "max", "min", "add", "subtract", "divide", "and", "or", "xor", "rms", "rootmeansquare", "threshold", "thresholdblack", "thresholdwhite"].includes(operation)
+        && ["mean", "sum", "max", "min", "add", "subtract", "divide", "multiply", "and", "or", "xor", "rms", "rootmeansquare", "threshold", "thresholdblack", "thresholdwhite"].includes(operation)
         // An opaque 8-bit gray PNG also has a palette-index slot.
-        ? 1 + Number(alpha[index] || (image.format === "png" && image.depth === "uchar")) : stride);
+        ? 1 + Number(!!alpha[index]) + Number(!!image.isPalette) : stride);
     function* read(image: number, position: number, length: number, retainWorking = retainRange || fractional): Generator<ConvolveRequest, Uint8Array | Uint16Array | Float64Array, Uint8Array | undefined> {
         const storagePosition = position / stride * 4, storageLength = length / stride * 4;
         const working = retainWorking ? yield { kind: "read", evaluate: true, image, position: storagePosition, length: storageLength } : undefined;
@@ -537,8 +536,7 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
         // palette slots alias red and still consume randomness.
         const inputSlots = inputs.map((image, index) => {
             const gray = image.space === "b-w" || image.space === "grey16";
-            const indexed = image.isPalette || gray && !alpha[index] && image.format === "png" && image.depth === "uchar";
-            return (gray ? 1 : image.space === "cmyk" ? 4 : 3) + Number(alpha[index]) + Number(!!indexed);
+            return (gray ? 1 : image.space === "cmyk" ? 4 : 3) + Number(alpha[index]) + Number(!!image.isPalette);
         });
         const slots = inputSlots.reduce((count, value) => Math.max(count, value), outputChannels.length);
         // Native consumes randomness row first, then frame, pixel and channel.
@@ -739,7 +737,11 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
                 if (++work % 64 === 0) yield;
                 const bytes = yield* read(image, position, length);
                 for (let offset = 0; offset < length; offset++) {
-                    if (image > 0 && offset % stride >= inputChannels[image]!) continue;
+                    if (image > 0 && offset % stride >= inputChannels[image]!) {
+                        // Multiply normalizes once per input even for absent channels.
+                        if (multiplication) values[offset]! /= 65535;
+                        continue;
+                    }
                     if (image > 0 && cmyk && inputs[image]!.space !== "cmyk" && offset % stride >= 3) continue;
                     if (image > 0 && sourceChannels?.[image] && !sourceChannels[image]![offset % stride]) {
                         // Multiply normalizes once per input even when its channel is skipped.

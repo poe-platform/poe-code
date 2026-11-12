@@ -28,7 +28,7 @@ for (const graph of [false, true]) {
       stdin: (async function* () {})(), stdout: { async write() {} }, stderr: { async write(b: Uint8Array) { stderr += new TextDecoder().decode(b); } }
     } as never);
     assert.equal(result.exitCode, 0, stderr);
-    const frames = stderr.trim().split("\n");
+    const frames = stderr.trim().split("\n").filter(line => line.startsWith("[ashowinfo]"));
     assert.equal(frames.length, 9);
     const description = `fmt:${format} channels:${channels} chlayout:${channels === 1 ? "mono" : "stereo"} rate:8000`;
     assert.equal(frames[0], `[ashowinfo] n:0 pts:0 pts_time:0 ${description} nb_samples:512 checksum:${checksum} plane_checksums: [ ${planes} ]`);

@@ -4013,11 +4013,19 @@ async function applyVideoFilterChain(
             // Even exact crops address chroma at the containing subsampled pixel.
             const x = Math.floor(left / sx) * pixelBytes;
             const y = Math.floor(top / sy);
+            // NV12/NV21 exact crops shift the interleaved plane by left bytes.
+            // Our storage is planar, so an odd shift swaps U/V and advances one plane.
+            const shiftedChroma = plane > 0 && left % 2 !== 0 &&
+              (pixelFormat === "nv12" || pixelFormat === "nv21");
+            const sourceOffset = shiftedChroma
+              ? f.width * f.height + (plane === 1 ? width * height : 0) +
+                (plane === (pixelFormat === "nv12" ? 2 : 1) ? 1 : 0)
+              : offset;
             for (let row = 0; row < outputHeight; row++) {
               await yieldTurn(signal);
               signal?.throwIfAborted();
               budget.checkCpu();
-              const start = offset + (y + row) * width + x;
+              const start = sourceOffset + (y + row) * width + x;
               pixels.set(source.pixels.subarray(start, start + outputWidth), outputOffset + row * outputWidth);
             }
             offset += width * height;

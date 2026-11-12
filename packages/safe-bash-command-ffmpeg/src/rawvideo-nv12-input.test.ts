@@ -26,6 +26,23 @@ async function run(input: Buffer, source = "nv12", size = "2x4", outputArgs = ["
 
 // Full native FFmpeg 7.0.2 stdout: NV12 UV pairs become separate U and V planes.
 const input = Buffer.from("11589fe62d74bb024990d71e", "hex");
+// Native FFmpeg 7.0.2 crops the interleaved chroma plane at a byte offset.
+for (const source of ["nv12", "nv21", "yuv420p"]) {
+  for (const [filter, expected] of [
+    ["crop=2:2:1:0:exact=1", source === "yuv420p" ? "1c275e69195b" : "1c275e69242f"],
+    ["crop=2:2:2:0:exact=1", source === "yuv420p" ? "273269742466" : "273269742f3a"],
+    ["crop=2:2:1:0:exact=0", source === "yuv420p" ? "111c535e195b" : "111c535e1924"]
+  ]) {
+    it(`matches native ${source} bytes for ${filter}`, async () => {
+      const bytes = Buffer.from(Array.from({ length: 36 }, (_, i) => (11 * i + 17) % 256));
+      const result = await run(bytes, source, "6x4", ["-vf", filter!, "-pix_fmt", source]);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.stderr, "");
+      assert.equal(result.output.toString("hex"), expected);
+    });
+  }
+}
+
 for (const [format, expected] of [
   ["nv12", "11589fe62d74bb0249d7901e"],
   ["yuv420p", "11589fe62d74bb024990d71e"]

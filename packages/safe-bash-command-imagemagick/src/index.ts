@@ -18668,13 +18668,18 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const planeSums = sums && plane !== image ? { count: 0, values: [0, 0, 0, 0, 0] } : sums;
                     const original = analysisOperation.highDepth ? plane.storedData16 : undefined;
                     const workingPosition = cmykHistogram || operation.sepiaThreshold !== undefined || token === "-auto-level" || token === "-auto-threshold" && plane.space === "cmyk" || token === "-equalize" || token === "-normalize" || token === "-contrast-stretch" || sums ? plane.storedHueSamples ?? plane.storedEvaluateSamples : undefined;
-                    const chunkSize = workingPosition !== undefined ? 2048 : original ? 8192 : 16384;
+                    const chunkSize = workingPosition !== undefined || sums && image.readMask?.storedEvaluateSamples !== undefined ? 2048 : original ? 8192 : 16384;
                     for (let offset = 0; offset < size; offset += chunkSize) {
                         if (offset % 1048576 === 0) await yieldTurn(signal);
                         const bytes = await backend.storage.read((original?.position ?? plane.position) + offset * (original ? 2 : 1), Math.min(chunkSize, size - offset) * (original ? 2 : 1));
-                        const selection = token === "-auto-gamma" ? await drainIdentifySteps(readMaskSelectionSteps(image as StoredRgbaImage, offset, Math.min(chunkSize, size - offset), function* (position, length): Generator<IdentifyStep, Uint8Array, void> {
-                            let data!: Uint8Array;
-                            yield { async run() { data = await backend.storage.read((image as StoredRgbaImage).readMask!.position! + position, length); } };
+                        const selection = token === "-auto-gamma" ? await drainIdentifySteps(readMaskSelectionSteps(image as StoredRgbaImage, offset, Math.min(chunkSize, size - offset), function* (position, length): Generator<IdentifyStep, Uint8Array | Float64Array, void> {
+                            let data!: Uint8Array | Float64Array;
+                            yield { async run() {
+                                const mask = image.readMask!;
+                                // Preserve exact-half samples instead of selecting their rounded byte values.
+                                data = mask.storedEvaluateSamples === undefined ? await backend.storage.read(mask.position! + position, length)
+                                    : new Float64Array((await backend.storage.read(mask.storedEvaluateSamples + position * 8, length * 8)).slice().buffer);
+                            } };
                             return data;
                         }), signal) : undefined;
                         const workingBytes = workingPosition !== undefined ? await backend.storage.read(workingPosition + offset * 8, Math.min(chunkSize, size - offset) * 8) : undefined;

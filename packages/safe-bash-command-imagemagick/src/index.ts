@@ -2611,6 +2611,11 @@ function resolveMagickSpliceGeometry(raw: string, image: Pick<RgbaImage, "width"
         // A zero numerator, including 0:0, inserts no columns; a zero denominator inserts no rows.
         const numerator = dimensions.width ?? 0;
         g = { ...g, aspectRatio: numerator === 0 ? 0 : numerator / (dimensions.height ?? 1) };
+        if (offsetStart === 0) {
+            // A leading signed ratio numerator also supplies the horizontal offset.
+            const offsets = parseMagickGeometry(normalized.slice(0, normalized.indexOf(":")));
+            g = { ...g, x: offsets.x, y: offsets.y };
+        }
     }
     // A leading offset keeps both band dimensions at their virtual-page defaults.
     const hasDimensions = dimensionSeparator >= 0 && offsetStart !== 0;

@@ -20543,6 +20543,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const quadToFour = audioChannels === 4 && origCh === 4 && channelMask === 0x33;
                   const centerDownmix = (threeChannelDownmix || centerToLfe) && channelMask === 7;
                   const quadDownmix = origCh === 4 && channelMask === 0x33 && (targetCh === 1 || targetCh === 2);
+                  const fourStereo = origCh === 4 && channelMask === 0x107 && targetCh === 2;
                   const surroundExpansion = origCh === 6 && targetCh === 8 &&
                     (channelMask === 0x3f || channelMask === 0x60f);
                   const surroundMono = origCh === 6 && targetCh === 1;
@@ -20561,6 +20562,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
                   const pcm16SurroundStereo = surroundStereo && !filter && targetRate === filterRate &&
                     t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output;
+                  // 4.0 has a shared back center, split equally between left and right.
+                  const fourMatrix = !fourStereo ? undefined : [0, 1].map(output => {
+                    const row = [output === 0 ? 1 : 0, output === 1 ? 1 : 0,
+                      mixLevel ?? Math.SQRT1_2, (surroundLevel ?? Math.SQRT1_2) * Math.SQRT1_2];
+                    const normalization = Math.max(1, row.reduce((sum, gain) => sum + Math.abs(gain), 0) / (matrixMaxval || 1));
+                    return row.map(gain => !filter && targetRate === filterRate &&
+                      t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output
+                      ? Math.round(gain / normalization * 32768) / 32768 : gain / normalization);
+                  });
                   const sevenOneDownmix = origCh === 8 && channelMask === 0x63f && [1, 2, 6].includes(targetCh);
                   // Use the requested mix gains and renormalize every contributing speaker.
                   const centerMatrix = (matrixMaxval === undefined && mixLevel === undefined && surroundLevel === undefined && lfeLevel === undefined) || !(centerDownmix || surroundMono || surroundStereo ||
@@ -20602,7 +20612,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         input === output ? pcm16SevenOne ? 19195 : 1 / (1 + Math.SQRT1_2)
                           : output >= 4 && input === output + 2 ? pcm16SevenOne ? 13573 : Math.SQRT1_2 / (1 + Math.SQRT1_2) : 0));
                   const monoSurround = origCh === 1 && targetCh >= 4 && targetCh <= 8;
-                  if (targetCh !== origCh && origCh > 2 && !sevenOneDownmix && !surroundUpmix && !threeChannelDownmix && !quadDownmix && !surroundExpansion &&
+                  if (targetCh !== origCh && origCh > 2 && !sevenOneDownmix && !surroundUpmix && !threeChannelDownmix && !quadDownmix && !fourStereo && !surroundExpansion &&
                       (!(surroundMono || surroundStereo) || (channelMask && channelMask !== 0x3f && channelMask !== 0x60f))) {
                     throw new Error(`Unsupported audio channel layout conversion: ${origCh} channels (mask ${channelMask ?? 0}) to ${targetCh}`);
                   }
@@ -20611,6 +20621,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   // values ask swresample to normalize the largest coefficient to -1/volume.
                   const remixMatrix = remixVolume === 0 || remixVolume === 1 ? undefined : Array.from({ length: targetCh }, (_, output) =>
                     Array.from({ length: origCh }, (_, input) => {
+                      if (fourMatrix) return fourMatrix[output]![input]!;
                       if (centerMatrix) return centerMatrix[output]![input]!;
                       if (sevenOneDownmix) return sevenOneMatrix[output]![input]! / (pcm16SevenOne ? 32768 : 1);
                       if (surroundMono) return [Math.SQRT1_2, Math.SQRT1_2, 1, 0, 0.5, 0.5][input]! / (2 + Math.SQRT2);
@@ -20701,7 +20712,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           sum + stretched[speaker]![srcIdx]! * gain, 0);
                         const remixSample = remixMatrix?.[c]?.reduce((sum, gain, speaker) =>
                           sum + stretched[speaker]![srcIdx]! * gain, 0);
-                        let matrixSample = remixSample ?? centerSample;
+                        const fourSample = fourMatrix?.[c]?.reduce((sum, gain, speaker) =>
+                          sum + stretched[speaker]![srcIdx]! * gain, 0);
+                        let matrixSample = remixSample ?? centerSample ?? fourSample;
+                        if (matrixSample !== undefined && fourStereo && !filter && targetRate === filterRate &&
+                            t.codecDescriptions[0]?.codecName === "pcm_s16le" && pcm16Output) {
+                          matrixSample = Math.floor(matrixSample * 32768 + 0.5) / 32768;
+                        }
                         if (matrixSample !== undefined && pcm16StereoMono) matrixSample = Math.floor(matrixSample * 32768 + 0.5) / 32768;
                         const scaled = (matrixSample ?? (sevenOneSample === undefined ? mixed : pcm16SevenOne
                           ? Math.floor(sevenOneSample + 0.5) / 32768 : sevenOneSample)) * volFactor;

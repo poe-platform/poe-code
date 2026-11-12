@@ -21943,7 +21943,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               minPartitionOrder, maxPartitionOrder, exactRiceParameters };
             const serializedBytes = checksumOutput
               ? (frameChecksumOutput
-                ? serializeFrameChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion, videoCodec, subtitleCodec, outputBitexact, copyTimestamps && !startAtZero, encoderTimeBases, audioCodecs, registry.findByFormatName("flac"), checksumEncoderOptions)
+                ? await serializeFrameChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "framemd5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget, frameHashVersion, videoCodec, subtitleCodec, outputBitexact, copyTimestamps && !startAtZero, encoderTimeBases, audioCodecs, registry.findByFormatName("flac"), checksumEncoderOptions, rawPixelFormat, context.signal)
                 : serializeChecksum(workingDoc, outputFormat!, hashAlgorithm ?? (outputFormat === "md5" ? "md5" : "sha256"), audioCodec, registry.findByFormatName("s16le"), budget,
                   registry, checksumEncoderOptions, audioCodecs))
               : serializeLimitedWav(workingDoc, outPlugin!, {

@@ -1,10 +1,11 @@
+import { serializeRawVideo } from "./rawvideo.js";
 import { encodeFlacChecksumTrack } from "./flac-checksum.js";
 import { murmur3 } from "./murmur3.js";
 import { ripemd128, ripemd256, ripemd320 } from "./ripemd.js";
 import { md5, sha1, ripemd160 } from "@noble/hashes/legacy.js";
 import { sha224, sha256, sha384, sha512, sha512_224, sha512_256 } from "@noble/hashes/sha2.js";
 import { bytesToHex } from "@noble/hashes/utils.js";
-import { encodeWavpackTrack, encodeAlacTrack, demuxVorbisTrack, decodeAacFrames, decodeVorbisFrames, encodeUtf8, concatBytes, rgbaToYuv420p, type SerializeMediaOptions, type MediaTrack, type MediaVideoFrame, type MediaDocument, type MediaAstPlugin, type MediaBudgetTracker } from "@poe-code/mp4-ast";
+import { encodeWavpackTrack, encodeAlacTrack, demuxVorbisTrack, decodeAacFrames, decodeVorbisFrames, encodeUtf8, type SerializeMediaOptions, type MediaTrack, type MediaDocument, type MediaAstPlugin, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 export const crc32Table = Uint32Array.from({ length: 256 }, (_, value) => {
   for (let bit = 0; bit < 8; bit++) value = (value >>> 1) ^ (value & 1 ? 0xedb88320 : 0);
@@ -32,26 +33,6 @@ function encoderClock(timeBase: number): [number, number] {
   return [numerator, denominator];
 }
 
-function videoBytes(frame: MediaVideoFrame, format: string, budget: MediaBudgetTracker): Uint8Array {
-  const native = frame.native;
-  if (native && native.rgba === frame.data && native.width === frame.width && native.height === frame.height) {
-    return native.pixels;
-  }
-  if (format === "yuv420p") {
-    const { y, u, v } = rgbaToYuv420p(frame.data, frame.width, frame.height);
-    return concatBytes([y, u, v]);
-  }
-  const channels = ({ rgba: [0, 1, 2, 3], rgb24: [0, 1, 2], bgr24: [2, 1, 0],
-    bgra: [2, 1, 0, 3], gray: [0], gray8: [0], ya8: [0, 3] } as Record<string, number[]>)[format];
-  if (!channels) throw new Error(`Unsupported rawvideo pixel format '${format}'`);
-  const bytes = new Uint8Array(frame.width * frame.height * channels.length);
-  for (let i = 0; i < frame.width * frame.height; i++) {
-    if (i % 4096 === 0) budget.checkCpu();
-    for (const [j, channel] of channels.entries()) bytes[i * channels.length + j] = frame.data[i * 4 + channel]!;
-  }
-  return bytes;
-}
-
 function adler32(bytes: Uint8Array, budget: MediaBudgetTracker, initial: number): string {
   let a = initial, b = 0;
   for (let i = 0; i < bytes.length; i++) {
@@ -62,7 +43,7 @@ function adler32(bytes: Uint8Array, budget: MediaBudgetTracker, initial: number)
   return ((b * 65536 + a) >>> 0).toString(16).padStart(8, "0");
 }
 
-export function serializeFrameChecksum(
+export async function serializeFrameChecksum(
   doc: MediaDocument,
   format: string,
   algorithm: string,
@@ -77,8 +58,10 @@ export function serializeFrameChecksum(
   encoderTimeBases: ReadonlyMap<number, number> = new Map(),
   audioCodecs: ReadonlyMap<number, string> = new Map(),
   encoder?: MediaAstPlugin,
-  encoderOptions?: SerializeMediaOptions
-): Uint8Array {
+  encoderOptions?: SerializeMediaOptions,
+  pixelFormat?: string,
+  signal?: AbortSignal
+): Promise<Uint8Array> {
   const flacStreamInfo = new Map<number, Uint8Array>();
   doc = { ...doc, tracks: doc.tracks.map((track, index) => {
     const audioCodec = audioCodecs.get(index) ?? defaultAudioCodec;
@@ -317,7 +300,8 @@ export function serializeFrameChecksum(
       // Encoded video packets occupy at least one tick, including partial tile sheets.
       const durationTicks = Math.round(packet.duration * clockRate / track.timescale);
       const duration = "frame" in packet ? Math.max(1, durationTicks) : durationTicks;
-      const bytes = "frame" in packet ? videoBytes(packet.frame, track.codecDescriptions[0]?.pixFmt ?? "rgba", budget)
+      const bytes = "frame" in packet ? await serializeRawVideo(
+        { ...track, decodedVideoFrames: [packet.frame] }, videoCodec, pixelFormat ?? codec?.pixFmt ?? "rgba", budget, signal)
         : track.type !== "audio" || decodedAudioPackets || encodedAudio ? packet.data : payload.subarray(offset, offset + (copy ? packet.data.length : Math.min(payload.length - offset, Math.round(sampleCount * bytesPerFrame))));
       const size = bytes.length;
       offset += size;

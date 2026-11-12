@@ -41,10 +41,10 @@ for (const format of ["framemd5", "framehash", "framecrc"]) {
   }
 }
 
-it("hashes video without requiring an audio AST and preserves fractional frame rates", () => {
+it("hashes video without requiring an audio AST and preserves fractional frame rates", async () => {
   const doc = parseY4m(Buffer.concat([Buffer.from("YUV4MPEG2 W2 H2 F30000:1001 Ip A1:1 C420jpeg\n"),
     ...frames.flatMap(frame => [Buffer.from("FRAME\n"), frame])]));
-  const output = new TextDecoder().decode(serializeFrameChecksum(doc, "framemd5", "md5", undefined, undefined, new MediaBudgetTracker()));
+  const output = new TextDecoder().decode(await serializeFrameChecksum(doc, "framemd5", "md5", undefined, undefined, new MediaBudgetTracker()));
   assert.ok(output.includes("#tb 0: 1001/30000\n"), output);
   assert.deepEqual(output.split("\n").filter(line => line && !line.startsWith("#"))
     .map(line => line.split(",").map(field => field.trim())), [

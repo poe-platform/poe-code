@@ -1,3 +1,4 @@
+import { encodeWavpackTrack } from "../wavpack-encoder.js";
 import { rawAudioAsts } from "./raw-audio.js";
 import { demuxVorbisTrack } from "../vorbis.js";
 import { decodeH264Samples } from "../h264.js";
@@ -856,7 +857,8 @@ export function serializeMkv(
 
   for (let idx = 0; idx < doc.tracks.length; idx++) {
     const sourceTrack = doc.tracks[idx]!;
-    const trk = sourceTrack.codecDescriptions[0]?.codecName === "vorbis" && !sourceTrack.codecDescriptions[0].extraData
+    const trk = sourceTrack.type === "audio" && options.audioCodec === "wavpack"
+      ? encodeWavpackTrack(sourceTrack, budget) : sourceTrack.codecDescriptions[0]?.codecName === "vorbis" && !sourceTrack.codecDescriptions[0].extraData
       ? demuxVorbisTrack(sourceTrack) : sourceTrack;
     const trackNum = idx + 1;
     const ts = trk.timescale || 1000;
@@ -982,6 +984,7 @@ export function serializeMkv(
       else if (desc?.codecName === "vorbis") codecId = "A_VORBIS";
       else if (desc?.codecName === "mp3") codecId = "A_MPEG/L3";
       else if (desc?.codecName === "flac") codecId = "A_FLAC";
+      else if (desc?.codecName === "wavpack") codecId = "A_WAVPACK4";
       else if (desc?.codecName === "pcm_mulaw" || desc?.codecName === "pcm_alaw") {
         codecId = "A_MS/ACM";
         codecPrivate = new Uint8Array(18);
@@ -1093,7 +1096,7 @@ export function serializeMkv(
         trackNum,
         data: WEBVTT_KINDS[codecId]
           ? concatBytes([encodeUtf8(`${s.webvtt?.identifier ?? ""}\n${s.webvtt?.settings ?? ""}\n`), s.data])
-          : s.data,
+          : codecId === "A_WAVPACK4" ? s.data.subarray(20) : s.data,
         isKeyframe: s.isKeyframe
       });
     }
@@ -1438,7 +1441,7 @@ export function mkvAst(): MediaAstPlugin {
     canDemux: true,
     canMux: true,
     supportedVideoCodecs: ["h264", "hevc", "vp8", "vp9", "av1", "mpeg4"],
-    supportedAudioCodecs: ["aac", "opus", "vorbis", "mp3", "flac", "pcm_s16le"],
+    supportedAudioCodecs: ["aac", "opus", "vorbis", "mp3", "flac", "wavpack", "pcm_s16le"],
     supportedSubtitleCodecs: ["subrip", "ass", "webvtt"],
     detect(bytes, filename) {
       if (isMkvSignature(bytes)) {

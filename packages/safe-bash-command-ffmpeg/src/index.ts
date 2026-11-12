@@ -186,6 +186,7 @@ import {
 import {
   encodeTga,
   encodeAlacTrack,
+  encodeWavpackTrack,
   matrixForRotation,
   allMediaAsts,
   cloudflareWorkerLimits,
@@ -309,8 +310,8 @@ function serializeChecksum(
       }
       continue;
     }
-    if (codec === "alac") {
-      const encodedTrack = encodeAlacTrack(track, budget);
+    if (codec === "alac" || codec === "wavpack") {
+      const encodedTrack = codec === "wavpack" ? encodeWavpackTrack(track, budget) : encodeAlacTrack(track, budget);
       for (const packet of encodedTrack.samples) {
         budget.checkCpu();
         packets.push({ dts: packet.dts, timescale: encodedTrack.timescale, bytes: packet.data });

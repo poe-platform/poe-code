@@ -30,7 +30,7 @@ import { decodeFourCC, decodeUtf8 } from "../binary.js";
 import { buildProbeResultFromDoc } from "../mp4.js";
 import { MediaBudgetTracker, type MediaAstPlugin, type MediaDocument, type MediaSample, type ParseMediaOptions } from "../types.js";
 
-const sampleRates = [6000, 8000, 9600, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000, 64000, 88200, 96000, 192000];
+export const sampleRates = [6000, 8000, 9600, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000, 64000, 88200, 96000, 192000];
 
 function metadata(block: Uint8Array): Map<number, Uint8Array> {
   const result = new Map<number, Uint8Array>();

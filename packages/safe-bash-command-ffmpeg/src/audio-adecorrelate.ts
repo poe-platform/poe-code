@@ -7,7 +7,7 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function decorrelateAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  frames: readonly { start: number; end: number; pts: number }[],
+  frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[],
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
   const options = { stages: 6, seed: -1 };
@@ -28,7 +28,7 @@ export async function decorrelateAudio(
     }
     if (key === "enable") {
       enable = option.slice(separator + 1).trim();
-      parseFilterExpression(enable, "adecorrelate enable", { n: 0, t: 0 }, undefined, new Float64Array(10), []);
+      parseFilterExpression(enable, "adecorrelate enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 }, undefined, new Float64Array(10), []);
       continue;
     }
     if (key !== "stages" && key !== "seed") throw new Error(`adecorrelate: unsupported option ${key}: Option not found`);
@@ -59,7 +59,8 @@ export async function decorrelateAudio(
     }
     if (enable === undefined) enabled[n] = 1;
     else {
-      const variables = { n, t: frame.pts / sampleRate };
+      const variables = { n, t: frame.pts / sampleRate,
+        pos: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN, w: 0, h: 0 };
       // Generic timelines evaluate on consumption and again before filter_frame.
       parseFilterExpression(enable, "adecorrelate enable", variables, undefined, registers, randomStates);
       enabled[n] = Number(Math.abs(parseFilterExpression(enable, "adecorrelate enable", variables, undefined, registers, randomStates)) >= 0.5);

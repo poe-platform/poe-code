@@ -349,6 +349,14 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                 out[dIdx + 3] = dst.hasAlpha ? clampByteVal(saByte * wSrc + daByte * wDst) : daByte;
                 continue;
             }
+            if (norm === "replace") {
+                // Native Replace writes source RGB premultiplied by source opacity.
+                out[dIdx] = clampByteVal(sr * sa);
+                out[dIdx + 1] = clampByteVal(sg * sa);
+                out[dIdx + 2] = clampByteVal(sb * sa);
+                out[dIdx + 3] = saByte;
+                continue;
+            }
             if (norm === "src" || norm === "source" || norm === "copy") {
                 out[dIdx] = sr;
                 out[dIdx + 1] = sg;

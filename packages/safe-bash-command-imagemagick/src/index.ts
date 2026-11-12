@@ -6473,7 +6473,8 @@ function magickAutoOrientCanvas(image: Pick<RgbaImage, "width" | "height" | "vir
 
 function magickBorderCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, width: number, height: number) {
     const page = image.virtualCanvas ?? { width: image.width, height: image.height, x: 0, y: 0 };
-    return { ...page, width: page.width ? page.width + width * 2 : 0, height: page.height ? page.height + height * 2 : 0 };
+    if (!page.width || !page.height) return page;
+    return { ...page, width: page.width + width * 2, height: page.height + height * 2 };
 }
 
 function magickCropCanvas(image: Pick<RgbaImage, "width" | "height" | "virtualCanvas">, left: number, top: number) {

@@ -40,7 +40,7 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
     const clippedCopy = clipToOverlay && !tile && name === "copy"
         && (left < 0 || top < 0 || left + overlay.width > base.width || top + overlay.height > base.height);
     const maskDestination = ["dstin", "destin", "srcin", "in", "srcout", "out", "dstatop", "destatop"].includes(name);
-    const extendSource = !clipToOverlay && (maskDestination || ["src", "source", "copy"].includes(name));
+    const extendSource = !clipToOverlay && (maskDestination || ["clear", "src", "source", "copy"].includes(name));
     for (let y = 0; y < base.height; y++) for (let x = 0; x < base.width;) {
         yield;
         const sourceX = tile ? x % overlay.width : Math.max(0, Math.min(overlay.width - 1, x - left));

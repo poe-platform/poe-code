@@ -23,7 +23,7 @@ export function magickCompositeMode(mode: string): { name: string; delegated: bo
     else if (name === "copyyellow") name = "copyblue";
     // Source-over creates fractional samples even when both inputs are 8-bit.
     return { name, delegated: name === "add",
-        preservesAlpha: ["over", "srcover", "lightenintensity", "darkenintensity", "intensity", "difference", "src", "source", "copy", "xor", "blend", "dissolve", "in", "srcin", "out", "srcout", "dstin", "destin", "dstout", "destout"].includes(name) };
+        preservesAlpha: ["clear", "over", "srcover", "lightenintensity", "darkenintensity", "intensity", "difference", "src", "source", "copy", "xor", "blend", "dissolve", "in", "srcin", "out", "srcout", "dstin", "destin", "dstout", "destout"].includes(name) };
 }
 
 export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster, out: Uint8Array | Float64Array, modeRaw: string, left: number, top: number, composeArgs?: string, fuzz = 0, clipToOverlay = false): Generator<undefined, void, unknown> {
@@ -45,7 +45,7 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
     const sw = src.width;
     const sh = src.height;
     const maskDestination = ["dstin", "destin", "srcin", "in", "srcout", "out", "dstatop", "destatop"].includes(norm);
-    const extendSource = !clipToOverlay && (maskDestination || ["src", "source", "copy"].includes(norm));
+    const extendSource = !clipToOverlay && (maskDestination || ["clear", "src", "source", "copy"].includes(norm));
     for (let sy = extendSource ? -top : 0; sy < (extendSource ? dh - top : sh); sy++) {
         if (++cooperativeWork % 65536 === 0)
             yield;
@@ -418,7 +418,7 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                 out[dIdx] = 0;
                 out[dIdx + 1] = 0;
                 out[dIdx + 2] = 0;
-                out[dIdx + 3] = 0;
+                out[dIdx + 3] = dst.hasAlpha ? 0 : 255;
                 continue;
             }
             if (norm === "copyopacity" || norm === "copyalpha") {

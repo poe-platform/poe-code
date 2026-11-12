@@ -15870,7 +15870,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(spec, im, () => im, { ...(im as MagickImage)[magickInput], fxStack: stack, sceneCount: stack.length, listIndex: sceneIdx++, optionProperties: state.optionProperties });
                 const channels = im[magickInput]?.channelMask;
-                const result = yield* applyMagickRasterSteps({ ...im, isPalette: false }, shadePixelSteps(im, expanded, argumentOffset + i, state.background, state.virtualPixel, channels, state.intensity, state.seed), signal);
+                const result = yield* applyMagickRasterSteps({ ...discardDisassociatedAlpha(im), isPalette: false }, shadePixelSteps(im, expanded, argumentOffset + i, state.background, state.virtualPixel, channels, state.intensity, state.seed), signal);
                 if (im.metaChannels?.length) {
                     result.metaChannels = [];
                     for (const [index, plane] of im.metaChannels.entries()) {
@@ -20303,7 +20303,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(spec, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image, storage: backend.storage }), signal, images);
                 const channels = image[magickInput]?.channelMask;
-                const result = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, shadePixelSteps(image, expanded, argument, background, virtualPixel, channels, intensity, seed), signal);
+                const result = await transformStoredMagickRaster({ ...discardDisassociatedAlpha(image), isPalette: false }, backend, shadePixelSteps(image, expanded, argument, background, virtualPixel, channels, intensity, seed), signal);
                 if (image.storedMetaChannels?.length) {
                     result.storedMetaChannels = [];
                     for (const [index, plane] of image.storedMetaChannels.entries()) {

@@ -26,7 +26,7 @@
  * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
  * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
-import { decodeFourCC } from "../binary.js";
+import { decodeFourCC, decodeUtf8 } from "../binary.js";
 import { buildProbeResultFromDoc } from "../mp4.js";
 import { MediaBudgetTracker, type MediaAstPlugin, type MediaDocument, type MediaSample, type ParseMediaOptions } from "../types.js";
 
@@ -256,16 +256,39 @@ function parseWavpack(bytes: Uint8Array, options: ParseMediaOptions = {}): Media
   const budget = options.budget ?? new MediaBudgetTracker(options.limits);
   budget.checkInputBytes(bytes.length); budget.checkStreams(1);
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+  const tags: Record<string, string> = Object.create(null);
+  let audioEnd = bytes.length;
+  const footer = bytes.length - 32;
+  if (footer >= 0 && decodeUtf8(bytes.subarray(footer, footer + 8)) === "APETAGEX") {
+    const size = view.getUint32(footer + 12, true);
+    const count = view.getUint32(footer + 16, true);
+    if (size < 32 || size > bytes.length) throw new Error("Invalid APE tag size");
+    let pos = bytes.length - size;
+    audioEnd = pos;
+    if (pos >= 32 && decodeUtf8(bytes.subarray(pos - 32, pos - 24)) === "APETAGEX") audioEnd -= 32;
+    for (let i = 0; i < count; i++) {
+      budget.checkCpu();
+      if (pos + 8 > footer) throw new Error("Truncated APE tag item");
+      const length = view.getUint32(pos, true), flags = view.getUint32(pos + 4, true);
+      pos += 8;
+      const keyEnd = bytes.indexOf(0, pos);
+      if (keyEnd < pos || keyEnd >= footer || length > footer - keyEnd - 1) throw new Error("Invalid APE tag item");
+      const key = decodeUtf8(bytes.subarray(pos, keyEnd)).toLowerCase();
+      pos = keyEnd + 1;
+      if ((flags & 6) === 0) tags[key] = decodeUtf8(bytes.subarray(pos, pos + length));
+      pos += length;
+    }
+  }
   const samples: MediaSample[] = [];
   let offset = 0, duration = 0, sampleRate = 0, channels = 0, bits = 0, version = 0;
   let group: { offset: number; count: number; channels: number } | undefined;
-  for (; offset < bytes.length;) {
+  for (; offset < audioEnd;) {
     budget.checkCpu();
     if (decodeFourCC(bytes, offset) === "APET" || decodeFourCC(bytes, offset).startsWith("TAG")) break;
-    if (offset + 32 > bytes.length || decodeFourCC(bytes, offset) !== "wvpk") throw new Error("Invalid WavPack block header");
+    if (offset + 32 > audioEnd || decodeFourCC(bytes, offset) !== "wvpk") throw new Error("Invalid WavPack block header");
     const size = view.getUint32(offset + 4, true) + 8;
     const blockVersion = view.getUint16(offset + 8, true);
-    if (size < 32 || offset + size > bytes.length || blockVersion < 0x402 || blockVersion > 0x410) throw new Error("Invalid WavPack block size or version");
+    if (size < 32 || offset + size > audioEnd || blockVersion < 0x402 || blockVersion > 0x410) throw new Error("Invalid WavPack block size or version");
     const block = bytes.subarray(offset, offset + size), parts = metadata(block);
     const count = view.getUint32(offset + 20, true), flags = view.getUint32(offset + 24, true);
     if (count) {
@@ -325,7 +348,7 @@ function parseWavpack(bytes: Uint8Array, options: ParseMediaOptions = {}): Media
     }
   }
   return {
-    containerFormat: "wv", timescale: sampleRate, duration, durationSeconds: duration / sampleRate, byteLength: bytes.length, metadata: {},
+    containerFormat: "wv", timescale: sampleRate, duration, durationSeconds: duration / sampleRate, byteLength: bytes.length, metadata: tags,
     tracks: [{ id: 1, type: "audio", handlerType: "soun", timescale: sampleRate, duration, language: "und", enabled: true,
       codecDescriptions: [{ formatFourCC: "wvpk", codecName: "wavpack", sampleRate, channels, bitsPerSample: bits, extraData: Uint8Array.of(version & 255, version >>> 8) }],
       samples, ...(channelData ? { decodedAudio: { sampleRate, channels, channelData } } : {}) }]

@@ -20760,8 +20760,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     ...(filter ? filteredPcm[packedFormat] : {}),
                     sampleRate: targetRate,
                     channels: targetCh,
-                    ...(outputChannelMask === undefined ? {} : { channelLayout: Object.keys(audioSpeakerMasks)
-                      .filter(name => Math.floor(outputChannelMask / audioSpeakerMasks[name]!) % 2 === 1).join("+") })
+                    channelLayout: outputChannelMask === undefined
+                      ? targetCh === origCh && (audioChannels === undefined || audioChannels < 0) ? d.channelLayout : undefined
+                      : Object.keys(audioSpeakerMasks)
+                        .filter(name => Math.floor(outputChannelMask / audioSpeakerMasks[name]!) % 2 === 1).join("+")
                   }));
 
                   // Identity and reverse filters must not round signed PCM64 through

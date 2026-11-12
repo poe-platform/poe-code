@@ -5141,7 +5141,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     const kernel = distort ? state.kernel : undefined, filter = distort ? state.resizeFilter : undefined;
     const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined;
     const compose = state.composeRaw, composeArgs = state.composeArgs, fuzz = state.alphaFuzz, seed = state.seed ?? 0n;
-    return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "inactiveAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas" | "properties">, geometry = distort ? args : spec, samplingBackground = background) => {
+    return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "inactiveAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas" | "properties">, geometry = distort ? args : spec, samplingBackground = background, meta = false) => {
         const viewport = distort ? image.properties?.["artifact:distort:viewport"] ?? optionViewport : undefined;
         if (token === "-shear") {
             const plan = shearPlan(image, geometry);
@@ -5161,9 +5161,9 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             if (!Number.isSafeInteger(width)) throw new Error("Spread radius exceeds limit");
             const random = createMagickRandom(seed);
             const plan: WarpPlan = { width: image.width, height: image.height, hasAlpha: image.hasAlpha,
-                interpolation, channels,
+                interpolation, channels: meta ? undefined : channels,
                 map: (x, y) => [x + width * (random() - 0.5), y + width * (random() - 0.5)] };
-            return { ...plan, steps: warpPixelSteps(image, plan, background, virtualPixel, undefined, undefined, seed) };
+            return { ...plan, steps: warpPixelSteps(image, plan, meta ? { r: 0, g: 0, b: 0, a: background.a } : background, virtualPixel, undefined, undefined, seed) };
         }
         if (distort && spec.toLowerCase() === "resize") {
             try { validateMagickTransformGeometry(geometry, token); }
@@ -5217,7 +5217,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             // Native adds alpha for a transparent background only when no alpha channel exists.
             // Keep RGB output inactive so PNG32/64 enables alpha through its write mask.
             plan = { ...plan, hasAlpha: image.hasAlpha || !image.inactiveAlpha && color.a < 255, interpolation };
-            return { ...plan, space: gray && virtualPixel === "background" ? "srgb" as const : image.space, steps: warpPixelSteps(image, { ...plan, channels }, color, "background") };
+            return { ...plan, space: gray && virtualPixel === "background" ? "srgb" as const : image.space, steps: warpPixelSteps(image, { ...plan, channels: meta ? undefined : channels }, meta ? { r: 0, g: 0, b: 0, a: color.a } : color, "background") };
         }
         if (plan && scale !== undefined) plan = scaleMagickWarpPlan(plan, image, scale);
         // DePolar samples local output coordinates, ignoring viewport/page offsets.
@@ -14392,11 +14392,25 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 // Displacements clear disassociated alpha's separate-channel trait.
                 if (image.alphaBlend === false && ["-swirl", "-implode", "-wave", "-spread"].includes(t)) output.alphaSeparate = false;
                 if (["-swirl", "-implode", "-wave", "-spread"].includes(t)) output = { ...output, isPalette: false };
-                // Wave, spread and nonzero shear create fresh meta channels at the output dimensions.
-                if (image.metaChannels?.length && (t === "-wave" || t === "-spread" || t === "-shear")) {
+                // Nonzero shear creates fresh meta channels at the output dimensions.
+                if (image.metaChannels?.length && t === "-shear") {
                     output.metaChannels = [];
                     for (const plane of image.metaChannels)
                         output.metaChannels.push(yield* createSolidRgbaImageSteps(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, !!plane.data16));
+                }
+                if (image.metaChannels?.length && (t === "-wave" || t === "-spread")) {
+                    output.metaChannels = [];
+                    for (const plane of image.metaChannels) {
+                        // Extra channels use the source image's alpha during interpolation.
+                        const sources = [{ ...plane, hasAlpha: true }, image];
+                        const alpha = image.hasAlpha && image.alphaBlend !== false
+                            ? { image: 1, target: 3, source: 3, activateAlpha: true }
+                            : { image: 0, target: 3, value: 255 };
+                        const source = yield* applyMagickRasterSteps({ ...plane, hasAlpha: true },
+                            channelFxPixelSteps(sources, [alpha], !!plane.data16), signal, { ...plane, hasAlpha: true }, sources);
+                        const metaPlan = warpOperation.plan(source, expanded, undefined, true)!;
+                        output.metaChannels.push({ ...yield* applyMagickRasterSteps(source, metaPlan.steps, signal, metaPlan), hasAlpha: false });
+                    }
                 }
                 if (image.metaChannels?.length && (t === "-swirl" || t === "-implode")) {
                     output.metaChannels = [];
@@ -18065,11 +18079,25 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 // Displacements clear disassociated alpha's separate-channel trait.
                 if (image.alphaBlend === false && ["-swirl", "-implode", "-wave", "-spread"].includes(token)) output.alphaSeparate = false;
                 if (["-swirl", "-implode", "-wave", "-spread"].includes(token)) output = { ...output, isPalette: false };
-                // Wave, spread and nonzero shear create fresh meta channels at the output dimensions.
-                if (image.storedMetaChannels?.length && (token === "-wave" || token === "-spread" || token === "-shear")) {
+                // Nonzero shear creates fresh meta channels at the output dimensions.
+                if (image.storedMetaChannels?.length && token === "-shear") {
                     output.storedMetaChannels = [];
                     for (const plane of image.storedMetaChannels)
                         output.storedMetaChannels.push(await createStoredCanvas(plan.width, plan.height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal, !!plane.storedData16));
+                }
+                if (image.storedMetaChannels?.length && (token === "-wave" || token === "-spread")) {
+                    output.storedMetaChannels = [];
+                    for (const plane of image.storedMetaChannels) {
+                        // Extra channels use the source image's alpha during interpolation.
+                        const sources = [{ ...plane, hasAlpha: true }, image];
+                        const alpha = image.hasAlpha && image.alphaBlend !== false
+                            ? { image: 1, target: 3, source: 3, activateAlpha: true }
+                            : { image: 0, target: 3, value: 255 };
+                        const source = await transformStoredMagickRaster({ ...plane, hasAlpha: true }, backend,
+                            channelFxPixelSteps(sources, [alpha], !!plane.storedData16), signal, { ...plane, hasAlpha: true }, sources);
+                        const metaPlan = warpOperation.plan(source, expanded, undefined, true)!;
+                        output.storedMetaChannels.push({ ...await transformStoredMagickRaster(source, backend, metaPlan.steps, signal, metaPlan), hasAlpha: false });
+                    }
                 }
                 if (image.storedMetaChannels?.length && (token === "-swirl" || token === "-implode")) {
                     output.storedMetaChannels = [];

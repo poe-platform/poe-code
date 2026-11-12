@@ -111,6 +111,14 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                 if (dst.hasAlpha) out[dIdx + 3] = clampByteVal(255 * (1 - sa - da));
                 continue;
             }
+            if (norm === "stamp") {
+                // Native Stamp adds premultiplied colors and uses a separate alpha equation.
+                for (let c = 0; c < 3; c++) {
+                    out[dIdx + c] = clampByteVal(src.data[sIdx + c]! * sa + dst.data[dIdx + c]! * da - 255);
+                }
+                out[dIdx + 3] = clampByteVal(255 * (sa + da * da - 1));
+                continue;
+            }
             if (norm === "stereo") {
                 out[dIdx] = sr;
                 out[dIdx + 3] = clampByteVal((saByte + daByte) / 2);

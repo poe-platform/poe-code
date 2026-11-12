@@ -13,7 +13,7 @@ export function* montageInputNames(bytes: Uint8Array): Generator<void, string[],
             else name += char;
         }
         else if (char === '"' || char === "'") quote = char;
-        else if (char.trim() === "") {
+        else if (" \t\n\v\f\r".includes(char)) {
             if (name) names.push(name);
             name = "";
         }

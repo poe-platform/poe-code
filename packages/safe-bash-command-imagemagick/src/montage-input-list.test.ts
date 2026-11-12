@@ -5,16 +5,16 @@ import { createMagickCommand, createMontageCommand, runMontageCli, runMontageCli
 
 for (const mode of ["magick", "montage", "retained", "buffered", "sync"] as const)
 for (const surround of [false, true])
-for (const quoted of ['"two words.ppm"', "'two words.ppm'"])
+for (const quoted of ['"two words.ppm"', "'two words.ppm'", "a\u00a0b.ppm", "a\u202fb.ppm"])
 it(`expands ordered montage filename lists via ${mode}, surrounding inputs: ${surround}, ${quoted}`, async () => {
   const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
   const encoder = new TextEncoder();
-  for (const [name, pixel] of [["a.ppm", [255, 0, 0]], ["b.ppm", [0, 255, 0]], ["two words.ppm", [0, 0, 255]]] as const) {
+  for (const [name, pixel] of [["a.ppm", [255, 0, 0]], ["b.ppm", [0, 255, 0]], ["two words.ppm", [0, 0, 255]], ["a\u00a0b.ppm", [0, 0, 255]], ["a\u202fb.ppm", [0, 0, 255]]] as const) {
     const bytes = new Uint8Array([...encoder.encode("P6\n1 1\n255\n"), ...pixel]);
     files.set(name, bytes);
     await fs.writeFile("/" + name, bytes);
   }
-  const list = encoder.encode(`b.ppm\n${quoted}\na.ppm\nb.ppm\n`);
+  const list = encoder.encode(`b.ppm ${quoted}\ta.ppm\vb.ppm\f\r\n`);
   files.set("photos.txt", list);
   await fs.writeFile("/photos.txt", list);
   const args = ["-geometry", "1x1+0+0", "-tile", "x1", ...(surround ? ["b.ppm"] : []), "@photos.txt", ...(surround ? ["a.ppm"] : []), "-depth", "8", "rgb:-"];

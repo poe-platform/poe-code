@@ -7066,7 +7066,7 @@ function* copyMagickPixelSteps(image: Pick<RgbaImage, "width" | "height">, area:
     }
 }
 
-function* drawPointPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space">, point: { kind: "paint-point" | "reset"; x: number; y: number; color: RgbaColor; alphaOnly: boolean }, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* drawPointPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space" | "hasAlpha">, point: { kind: "paint-point" | "reset"; x: number; y: number; color: RgbaColor; alphaOnly: boolean }, highDepth: boolean): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const seed = point.y * image.width + point.x;
     for (let start = 0; start < image.width * image.height; start += 1024) {
         yield;
@@ -7074,6 +7074,8 @@ function* drawPointPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space
         const bytes = yield { kind: "read", position: start * 4, length: count * 4, highDepth };
         if (!bytes || bytes.length !== count * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated drawing pixels");
         const data = highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
+        if (point.kind === "paint-point" && !image.hasAlpha)
+            for (let offset = 3; offset < data.length; offset += 4) data[offset] = highDepth ? 65535 : 255;
         const selected = new Uint8Array(count);
         if (point.kind === "reset") selected.fill(1);
         else if (seed >= start && seed < start + count) selected[seed - start] = 1;
@@ -7241,7 +7243,10 @@ function* applyMagickDrawingSteps(im: RgbaImage, drawSpec: string, state: Magick
         if ((im.space === "b-w" || im.space === "grey16") && !((step.kind === "floodfill" || step.kind === "paint-point" || step.kind === "reset" || step.kind === "replace") && step.alphaOnly))
             im = { ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 };
         if (step.kind === "shape") im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step, !!im.data16, tile, state.tileOffset), signal, { ...im, hasAlpha: true }, tile ? [im, tile] : [im]);
-        else if (step.kind === "paint-point" || step.kind === "reset") im = yield* applyMagickRasterSteps(im, drawPointPixelSteps(im, step, !!im.data16), signal, { ...im, hasAlpha: im.hasAlpha || step.color.a < 255 });
+        else if (step.kind === "paint-point" || step.kind === "reset") {
+            im = yield* applyMagickRasterSteps(im, drawPointPixelSteps(im, step, !!im.data16), signal, { ...im, hasAlpha: im.hasAlpha || step.color.a < 255 });
+            if (step.kind === "paint-point") im = { ...im, hasAlpha: true, alphaBlend: true, inactiveAlpha: false, alphaSeparate: false };
+        }
         else if (step.kind === "replace") im = yield* applyMagickRasterSteps(im, drawReplacePixelSteps(im, step.x, step.y, step.color, step.alphaOnly, state.alphaFuzz, !!im.data16), signal, { ...im, hasAlpha: true });
         else if (step.kind === "floodfill") im = yield* applyMagickFloodfillSteps(im, `+${step.x}+${step.y}`, step.fillToBorder ? { ...state.borderColor, a: undefined } : undefined, step.color, state.alphaFuzz, signal, step.alphaOnly, !step.alphaOnly && state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, step.fillToBorder);
         else {
@@ -7259,7 +7264,10 @@ async function applyStoredMagickDrawing(image: StoredRgbaImage, drawing: string,
         if ((image.space === "b-w" || image.space === "grey16") && !((step.kind === "floodfill" || step.kind === "paint-point" || step.kind === "reset" || step.kind === "replace") && step.alphaOnly))
             image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
         if (step.kind === "shape") image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step, !!image.storedData16, tile, settings.tileOffset), signal, { ...image, hasAlpha: true }, tile ? [image, tile] : [image]);
-        else if (step.kind === "paint-point" || step.kind === "reset") image = await transformStoredMagickRaster(image, backend, drawPointPixelSteps(image, step, !!image.storedData16), signal, { ...image, hasAlpha: image.hasAlpha || step.color.a < 255 });
+        else if (step.kind === "paint-point" || step.kind === "reset") {
+            image = await transformStoredMagickRaster(image, backend, drawPointPixelSteps(image, step, !!image.storedData16), signal, { ...image, hasAlpha: image.hasAlpha || step.color.a < 255 });
+            if (step.kind === "paint-point") image = { ...image, hasAlpha: true, alphaBlend: true, inactiveAlpha: false, alphaSeparate: false };
+        }
         else if (step.kind === "replace") image = await transformStoredMagickRaster(image, backend, drawReplacePixelSteps(image, step.x, step.y, step.color, step.alphaOnly, settings.alphaFuzz, !!image.storedData16), signal, { ...image, hasAlpha: true });
         else if (step.kind === "floodfill") image = await floodfillStoredImage(image, backend.storage, step.x, step.y, step.fillToBorder ? { ...settings.borderColor, a: undefined } : undefined, step.color, settings.alphaFuzz, signal, step.alphaOnly, !step.alphaOnly && settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, step.fillToBorder);
         else {

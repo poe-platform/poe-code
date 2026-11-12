@@ -68,7 +68,7 @@ export function orientRegion(region: Region, image: { width: number; height: num
 }
 
 /** Apply a white write mask outside the selected rectangle in bounded chunks. */
-export function* regionPixelSteps(image: { width: number; height: number; hasAlpha: boolean; alphaBlend?: boolean | undefined; space?: string }, region: Region, highDepth = false, channels?: MaskChannels & { k?: boolean }, replaceAlpha = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* regionPixelSteps(image: { width: number; height: number; hasAlpha: boolean; alphaBlend?: boolean | undefined; space?: string }, region: Region, highDepth = false, channels?: MaskChannels & { k?: boolean }, replaceAlpha = false, copyOrigin = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     // Gray's single intensity channel occupies all three RGB storage slots.
     if (channels && (image.space === "b-w" || image.space === "grey16")) channels = { ...channels, g: channels.r, b: channels.r };
     // Either source can supply normalized colors; every output span must fill that plane.
@@ -87,7 +87,9 @@ export function* regionPixelSteps(image: { width: number; height: number; hasAlp
     for (let y = 0; y < image.height; y++) {
         yield;
         const relativeY = region.wrap ? (y - originY + region.wrap.height) % region.wrap.height : y - originY;
-        const spans = relativeY < 0 || relativeY >= region.height ? [[0, image.width, 1]] : selectedSpans;
+        let spans = relativeY < 0 || relativeY >= region.height ? [[0, image.width, 1]] : selectedSpans;
+        // Native geometric copies after roll write the origin even outside the mask.
+        if (copyOrigin && y === 0) spans = [[0, 1, 0], ...spans.map(([start, end, selection]) => [Math.max(1, start!), end!, selection!])];
         for (const [start, end, selection] of spans) {
             // Alpha replacement preserves the rectangle and writes outside it.
             const source = replaceAlpha ? 1 - selection! : selection!;

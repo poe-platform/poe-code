@@ -5715,7 +5715,7 @@ function* applyMagickRasterSteps(img: RgbaImage, steps: Generator<ConvolveReques
 function* preserveRegionTransformSteps(image: RgbaImage, result: RgbaImage, signal?: AbortSignal): Generator<void, RgbaImage, void> {
     const source = image.region && image.regionTransformSource;
     if (!source?.region || result.data === image.data || source.width * source.height !== result.width * result.height) return result;
-    result = yield* applyMagickRasterSteps(result, regionPixelSteps(source, source.region, !!(result.data16 || source.data16)), signal, result, [result, source]);
+    result = yield* applyMagickRasterSteps(result, regionPixelSteps(source, source.region, !!(result.data16 || source.data16), undefined, false, true), signal, result, [result, source]);
     result.regionTransformSource = { ...result, regionTransformSource: undefined };
     return result;
 }
@@ -5723,7 +5723,7 @@ function* preserveRegionTransformSteps(image: RgbaImage, result: RgbaImage, sign
 async function preserveStoredRegionTransform(image: StoredRgbaImage, result: StoredRgbaImage, backend: CompareFileSession, signal: AbortSignal): Promise<StoredRgbaImage> {
     const source = image.region && image.storedRegionTransformSource;
     if (!source?.region || result.position === image.position || source.width * source.height !== result.width * result.height) return result;
-    result = await transformStoredMagickRaster(result, backend, regionPixelSteps(source, source.region, !!(result.storedData16 || source.storedData16)), signal, result, [result, source]);
+    result = await transformStoredMagickRaster(result, backend, regionPixelSteps(source, source.region, !!(result.storedData16 || source.storedData16), undefined, false, true), signal, result, [result, source]);
     result.storedRegionTransformSource = { ...result, storedRegionTransformSource: undefined };
     return result;
 }

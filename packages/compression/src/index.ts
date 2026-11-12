@@ -200,8 +200,14 @@ export function createCompressionCodec(runtime: CodecRuntime = defaultRuntime): 
         const consumed = before - stream.avail_in;
         const produced = stream.next_out - filled;
         filled = stream.next_out;
-        if (status !== Z_OK && status !== Z_STREAM_END && status !== Z_BUF_ERROR)
+        if (status !== Z_OK && status !== Z_STREAM_END && status !== Z_BUF_ERROR) {
+          // Python gzip text streams return the decoded member before reporting its bad trailer.
+          if (filled && options.mode === "gunzip" && options.padding === "members" && status === Z_DATA_ERROR
+              && (stream.msg === "incorrect data check" || stream.msg === "incorrect length check")) {
+            yield output.subarray(0, filled);
+          }
           throw codecError(status, stream.msg);
+        }
         if (filled === chunkSize || (status === Z_STREAM_END && filled)) {
           yield output.subarray(0, filled);
           output = new Uint8Array(chunkSize);

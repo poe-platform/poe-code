@@ -37,6 +37,26 @@ for (const [length, impulse, options, expected] of [
   });
 }
 
+// Native FFmpeg 7.0.2 shifts unselected speakers by one lookahead block.
+for (const [options, expected] of [
+  ["c=FR:b=4", [0, 1126, 5000, 1281, -3000, 1325, 1000, 1219, 0, 977, 0, 645, 0, 300, 0, 68]],
+  ["c=FL:b=4", [1064, 0, 996, 15000, 866, 0, 700, 1000, 510, 0, 311, 0, 135, 0, 29, 0]],
+  ["c=FC:b=4", [0, 0, 5000, 15000, -3000, 0, 1000, 1000, 0, 0, 0, 0, 0, 0, 0, 0]],
+  ["c=FR:b=0", [12000, -120, 0, -409, -8000, -239, 7000, 630, 0, 1379, 5000, 1970, -3000, 2792, 1000, 3417]],
+  ["c=all:b=4", [1064, 1126, 996, 1281, 866, 1325, 700, 1219, 510, 977, 311, 645, 135, 300, 29, 68]]
+] as const) {
+  for (const graph of [false, true]) it(`matches lowpass speaker block timing ${options} (graph=${graph})`, async () => {
+    const channels = [[12000, 0, -8000, 7000, 0, 5000, -3000, 1000], [-6000, 1000, 20000, -4000, 0, 15000, 0, 1000]]
+      .map(samples => Float64Array.from(samples, value => value / 32768));
+    const { fs, result, stderr } = await run(`lowpass=f=400:${options}`, graph,
+      encodeWav({ sampleRate: 8000, channels }));
+    assert.equal(result.exitCode, 0, stderr);
+    const audio = parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio!;
+    assert.equal(audio.channelData[0]!.length, 8);
+    assert.deepEqual(Array.from({ length: 16 }, (_, i) => audio.channelData[i % 2]![Math.floor(i / 2)]! * 32768), expected);
+  });
+}
+
 it("accounts for reverse-filter scratch memory and cancellation", async () => {
   await assert.rejects(passAudio([new Float64Array(1)], 8000, "highpass=f=1000:b=32768", "s16",
     new MediaBudgetTracker({ maxMemoryBytes: 1024 })), /maxMemoryBytes/);

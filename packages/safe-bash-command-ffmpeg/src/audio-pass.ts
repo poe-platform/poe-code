@@ -215,7 +215,18 @@ export async function passAudio(
   }
   for (const [index, channel] of channels.entries()) {
     if (selected && !selected.includes(channelNames[index] ?? "")) {
-      output.push(channel);
+      if (blocksize) {
+        budget.allocateMemory(channel.length * 8);
+        const samples = new Float64Array(channel.length);
+        // Native bypass copies the lookahead block, then flushes silence at EOF.
+        for (let i = 0; i + blocksize < channel.length; i++) {
+          if (++work % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+          samples[i] = channel[i + blocksize]!;
+        }
+        output.push(samples);
+      } else {
+        output.push(channel);
+      }
       continue;
     }
     budget.allocateMemory(channel.length * 8);

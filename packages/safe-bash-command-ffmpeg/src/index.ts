@@ -8851,6 +8851,12 @@ function validateBitstreamFilters(value: string | undefined): void {
   }
 }
 
+function parseTargaRle(expression: string): boolean {
+  const value = parseFilterExpression(expression, "rle", { min: 0, max: 1, default: 1 });
+  if (value < 0 || value > 1) throw new RangeError("rle: value must be between 0 and 1");
+  return roundToEven(value) === 1;
+}
+
 export function evalSyncFfmpeg(
   inBytesOrArgs: Uint8Array | readonly string[] | undefined,
   maybeArgs?: readonly string[],
@@ -9381,9 +9387,7 @@ export function evalSyncFfmpeg(
           throw new Error("Invalid PNG prediction");
         }
       } else if (arg === "-rle") {
-        const value = args[++i];
-        if (value !== "0" && value !== "1") throw new Error("rle must be 0 or 1");
-        rle = value === "1";
+        rle = parseTargaRle(args[++i] ?? "");
       } else if (arg === "-flags" || arg === "-flags:v" || arg === "-flags:v:0") {
         const flags = parseVideoFlags(args[++i] ?? "", videoFlags);
         if (!args.slice(i + 1).includes("-i")) videoFlags = flags;
@@ -11749,12 +11753,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
           } else if (arg === "-rle") {
-            const value = args[++i];
-            if (value !== "0" && value !== "1") {
-              await writeBytes(context.stderr, encodeUtf8("ffmpeg: rle must be 0 or 1\n"), context.signal);
-              return { exitCode: 1 };
+            try {
+              rle = parseTargaRle(args[++i] ?? "");
+            } catch (error) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${error instanceof Error ? error.message : String(error)}\n`), context.signal);
+              return { exitCode: error instanceof RangeError ? 222 : 234 };
             }
-            rle = value === "1";
           } else if (arg === "-global_palette") {
             const value = args[++i];
             if (value !== "0" && value !== "1") {

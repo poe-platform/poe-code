@@ -5,7 +5,7 @@ import type {AdapterContext, ReaderCapability, WriterCapability, Resource} from 
 import {PandocError} from "./errors.js";
 import {literalInlines} from "./literal-inlines.js";
 import {imageLength} from "./image-dimensions.js";
-import {headingIdentifier} from "./heading-attributes.js";
+import {headingText} from "./heading-attributes.js";
 interface RichRun extends DocxRunInput {
   readonly code?: boolean;
   readonly raw?: string;
@@ -182,11 +182,15 @@ export const docxReader: ReaderCapability = {format: "docx", async read(input, c
           return {t: "HorizontalRule"};
       }
       if (level >= 1 && level <= 6) {
-        const base = headingIdentifier(inlines, ctx);
-        let id = base;
-        for (let suffix = identifiers.get(base) ?? 1; identifiers.has(id); suffix++) {ctx.checkpoint(); id = `${base}-${suffix}`;}
+        const base = headingText(inlines, ctx).normalize("NFC").toLowerCase().replace(/[^\p{L}\p{N}\s._-]/gu, "")
+          .replace(/^[^\p{L}]*/u, "").trimEnd().replace(/\s+/gu, "-") || "section";
+        let id = base, suffix = identifiers.get(base) ?? 0;
+        if (suffix) {
+          do {ctx.checkpoint(); id = `${base}-${suffix++}`;} while (identifiers.has(id));
+          identifiers.set(base, suffix);
+        }
         ctx.charge("references", 1); ctx.charge("retainedBytes", id.length * 2);
-        identifiers.set(base, (identifiers.get(base) ?? 0) + 1); identifiers.set(id, 1);
+        identifiers.set(id, 1);
         return {t: "Header", c: [level, [id, [], []], inlines]};
       }
       return {t: "Para", c: inlines};

@@ -13,7 +13,7 @@ export function headingAttributes(text: string, context: AdapterContext) {
   }
 }
 
-export function headingIdentifier(inlines: readonly import("./ast-types.js").Inline[], context: AdapterContext, gfm = false): string {
+export function headingText(inlines: readonly import("./ast-types.js").Inline[], context: AdapterContext): string {
   let text = "";
   const append = (nodes: typeof inlines) => {
     for (const node of nodes) {
@@ -30,6 +30,11 @@ export function headingIdentifier(inlines: readonly import("./ast-types.js").Inl
   };
   append(inlines);
   context.charge("retainedBytes", text.length * 4);
+  return text;
+}
+
+export function headingIdentifier(inlines: readonly import("./ast-types.js").Inline[], context: AdapterContext, gfm = false): string {
+  const text = headingText(inlines, context);
   let id = "", started = false;
   for (const char of text.toLowerCase()) {
     context.checkpoint();

@@ -67,11 +67,14 @@ export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, 
         const inks = cmyk ? new Float64Array(length) : undefined;
         for (let image = 0; image < Math.min(inputs.length, terms.length / 2); image++) {
             yield;
-            const evaluated = (yield { kind: "read", evaluate: true, image, position, length })!;
-            const bytes = evaluated.length ? evaluated : (yield { kind: "read", highDepth, image, position, length })!;
-            const samples = evaluated.length ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
-            const range = !evaluated.length && highDepth ? 65535 : 255;
             const input = inputs[image]!;
+            const evaluated = (yield { kind: "read", evaluate: true, image, position, length })!;
+            // Converted colors retain fractional samples in their colorspace plane.
+            const colors = !evaluated.length && input.space !== "cmyk" && input.magickColorspace && input.magickColorspace !== "RGB" && input.magickColorspace !== "scRGB" && input.magickColorspace !== "Gray"
+                ? yield { kind: "read", hue: true, image, position, length } : undefined;
+            const bytes = evaluated.length ? evaluated : colors?.length ? colors : (yield { kind: "read", highDepth, image, position, length })!;
+            const samples = evaluated.length || colors?.length ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+            const range = evaluated.length ? 255 : colors?.length ? 1 : highDepth ? 65535 : 255;
             const sourceMask = sourceChannels?.[image];
             // Association retains source alpha for polynomial terms; Deactivate does not.
             const sourceAlpha = input.hasAlpha || input.alphaSeparate === true || input.inactiveAlpha && input.alphaAssociated === true && input.alphaBlend !== false;

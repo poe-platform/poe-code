@@ -6994,8 +6994,8 @@ function magickDrawGradientColor(gradient: MagickDrawGradient, x: number, y: num
     return low.color;
 }
 
-type MagickDrawShape = { gradient?: MagickDrawGradient | undefined; kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "boundary"; points: readonly BoundaryPoint[]; width: number; height: number; strokeWidth: number; fill: RgbaColor } | { shape: "circle"; radius: number; angularStep: number } | { shape: "polygon"; points: readonly DrawPoint[]; width: number; height: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor; linecap: "butt" | "round" | "square" });
-type MagickDrawStep = { kind: "image"; source: string; mode: string; width: number; height: number; affine: [number, number, number, number, number, number] } | MagickDrawShape | { kind: "svg"; svg: string; tile?: boolean } | ({ kind: "floodfill" } | { kind: "paint-point" } | { kind: "reset" } | { kind: "replace" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
+type MagickDrawShape = { gradient?: MagickDrawGradient | undefined; kind: "shape"; tile: boolean | string; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "boundary"; points: readonly BoundaryPoint[]; width: number; height: number; strokeWidth: number; fill: RgbaColor } | { shape: "circle"; radius: number; angularStep: number } | { shape: "polygon"; points: readonly DrawPoint[]; width: number; height: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor; linecap: "butt" | "round" | "square" });
+type MagickDrawStep = { kind: "pattern-start"; name: string; width: number; height: number } | { kind: "pattern-end" } | { kind: "image"; source: string; mode: string; width: number; height: number; affine: [number, number, number, number, number, number] } | MagickDrawShape | { kind: "svg"; svg: string; tile?: boolean | string } | ({ kind: "floodfill" } | { kind: "paint-point" } | { kind: "reset" } | { kind: "replace" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
 
 function parseMagickCopyGeometry(image: Pick<RgbaImage, "width" | "height">, geometry: string, offset: string) {
     validateMagickTransformGeometry(geometry, "-copy");
@@ -7239,8 +7239,21 @@ function* drawOverlayPixelSteps(image: Pick<RgbaImage, "width" | "height">, over
 }
 
 function* applyMagickDrawingSteps(im: RgbaImage, drawSpec: string, state: MagickState, files: Map<string, Uint8Array>, tile?: RgbaImage, signal?: AbortSignal): Generator<void, RgbaImage, void> {
+    const patterns = new Map<string, RgbaImage>();
+    const canvases: { name: string; image: RgbaImage }[] = [];
     for (const step of magickDrawSteps(im, drawSpec, state)) {
         if (!step) { yield; continue; }
+        if (step.kind === "pattern-start") {
+            canvases.push({ name: step.name, image: im });
+            im = yield* createSolidRgbaImageSteps(step.width, step.height, { r: 0, g: 0, b: 0, a: 0 });
+            continue;
+        }
+        if (step.kind === "pattern-end") {
+            const canvas = canvases.pop()!;
+            patterns.set(canvas.name, im);
+            im = canvas.image;
+            continue;
+        }
         if ((im.space === "b-w" || im.space === "grey16") && !((step.kind === "floodfill" || step.kind === "paint-point" || step.kind === "reset" || step.kind === "replace") && step.alphaOnly))
             im = { ...im, space: "srgb", channels: im.hasAlpha ? 4 : 3 };
         if (step.kind === "image") {
@@ -7254,7 +7267,10 @@ function* applyMagickDrawingSteps(im: RgbaImage, drawSpec: string, state: Magick
                 : composite16PixelSteps({ ...im, hasAlpha: im.hasAlpha || source.hasAlpha }, source, x, y, step.mode, undefined, false, 0, true), signal,
                 { ...im, hasAlpha: im.hasAlpha || source.hasAlpha }, [im, source]);
         }
-        else if (step.kind === "shape") im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step, !!im.data16, tile, state.tileOffset), signal, { ...im, hasAlpha: true }, tile ? [im, tile] : [im]);
+        else if (step.kind === "shape") {
+            const fillTile = typeof step.tile === "string" ? patterns.get(step.tile) : tile;
+            im = yield* applyMagickRasterSteps(im, drawShapePixelSteps(im, step, !!im.data16, fillTile, state.tileOffset), signal, { ...im, hasAlpha: true }, fillTile ? [im, fillTile] : [im]);
+        }
         else if (step.kind === "paint-point" || step.kind === "reset") {
             im = yield* applyMagickRasterSteps(im, drawPointPixelSteps(im, step, !!im.data16), signal, { ...im, hasAlpha: im.hasAlpha || step.color.a < 255 });
             if (step.kind === "paint-point") im = { ...im, hasAlpha: true, alphaBlend: true, inactiveAlpha: false, alphaSeparate: false };
@@ -7262,17 +7278,31 @@ function* applyMagickDrawingSteps(im: RgbaImage, drawSpec: string, state: Magick
         else if (step.kind === "replace") im = yield* applyMagickRasterSteps(im, drawReplacePixelSteps(im, step.x, step.y, step.color, step.alphaOnly, state.alphaFuzz, !!im.data16), signal, { ...im, hasAlpha: true });
         else if (step.kind === "floodfill") im = yield* applyMagickFloodfillSteps(im, `+${step.x}+${step.y}`, step.fillToBorder ? { ...state.borderColor, a: undefined } : undefined, step.color, state.alphaFuzz, signal, step.alphaOnly, !step.alphaOnly && state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a] : undefined, step.fillToBorder);
         else {
+            const fillTile = typeof step.tile === "string" ? patterns.get(step.tile) : step.tile ? tile : undefined;
             const overlay = decodeImage(new TextEncoder().encode(step.svg), { density: state.density });
-            im = yield* applyMagickRasterSteps(im, drawOverlayPixelSteps(im, overlay, step.tile ? tile : undefined, state.tileOffset), signal, { ...im, hasAlpha: true }, step.tile && tile ? [im, overlay, tile] : [im, overlay]);
+            im = yield* applyMagickRasterSteps(im, drawOverlayPixelSteps(im, overlay, fillTile, state.tileOffset), signal, { ...im, hasAlpha: true }, fillTile ? [im, overlay, fillTile] : [im, overlay]);
             detachRgbaBuffer(overlay.data);
         }
     }
-    return im;
+    return canvases[0]?.image ?? im;
 }
 
 async function applyStoredMagickDrawing(image: StoredRgbaImage, drawing: string, settings: MagickState, backend: CompareFileSession, signal: AbortSignal, tile?: StoredRgbaImage): Promise<StoredRgbaImage> {
+    const patterns = new Map<string, StoredRgbaImage>();
+    const canvases: { name: string; image: StoredRgbaImage }[] = [];
     for (const step of magickDrawSteps(image, drawing, settings)) {
         if (!step) { await yieldTurn(signal); continue; }
+        if (step.kind === "pattern-start") {
+            canvases.push({ name: step.name, image: image });
+            image = await createStoredCanvas(step.width, step.height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal);
+            continue;
+        }
+        if (step.kind === "pattern-end") {
+            const canvas = canvases.pop()!;
+            patterns.set(canvas.name, image);
+            image = canvas.image;
+            continue;
+        }
         if ((image.space === "b-w" || image.space === "grey16") && !((step.kind === "floodfill" || step.kind === "paint-point" || step.kind === "reset" || step.kind === "replace") && step.alphaOnly))
             image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
         if (step.kind === "image") {
@@ -7286,7 +7316,10 @@ async function applyStoredMagickDrawing(image: StoredRgbaImage, drawing: string,
                 : composite16PixelSteps({ ...image, hasAlpha: image.hasAlpha || source.hasAlpha }, source, x, y, step.mode, undefined, false, 0, true), signal,
                 { ...image, hasAlpha: image.hasAlpha || source.hasAlpha }, [image, source]);
         }
-        else if (step.kind === "shape") image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step, !!image.storedData16, tile, settings.tileOffset), signal, { ...image, hasAlpha: true }, tile ? [image, tile] : [image]);
+        else if (step.kind === "shape") {
+            const fillTile = typeof step.tile === "string" ? patterns.get(step.tile) : tile;
+            image = await transformStoredMagickRaster(image, backend, drawShapePixelSteps(image, step, !!image.storedData16, fillTile, settings.tileOffset), signal, { ...image, hasAlpha: true }, fillTile ? [image, fillTile] : [image]);
+        }
         else if (step.kind === "paint-point" || step.kind === "reset") {
             image = await transformStoredMagickRaster(image, backend, drawPointPixelSteps(image, step, !!image.storedData16), signal, { ...image, hasAlpha: image.hasAlpha || step.color.a < 255 });
             if (step.kind === "paint-point") image = { ...image, hasAlpha: true, alphaBlend: true, inactiveAlpha: false, alphaSeparate: false };
@@ -7294,11 +7327,12 @@ async function applyStoredMagickDrawing(image: StoredRgbaImage, drawing: string,
         else if (step.kind === "replace") image = await transformStoredMagickRaster(image, backend, drawReplacePixelSteps(image, step.x, step.y, step.color, step.alphaOnly, settings.alphaFuzz, !!image.storedData16), signal, { ...image, hasAlpha: true });
         else if (step.kind === "floodfill") image = await floodfillStoredImage(image, backend.storage, step.x, step.y, step.fillToBorder ? { ...settings.borderColor, a: undefined } : undefined, step.color, settings.alphaFuzz, signal, step.alphaOnly, !step.alphaOnly && settings.channelExplicit ? [settings.channels.r, settings.channels.g, settings.channels.b, settings.channels.a] : undefined, step.fillToBorder);
         else {
+            const fillTile = typeof step.tile === "string" ? patterns.get(step.tile) : step.tile ? tile : undefined;
             const overlay = await decodeStoredMagickSvg(step.svg, settings.density, backend, signal);
-            image = await transformStoredMagickRaster(image, backend, drawOverlayPixelSteps(image, overlay, step.tile ? tile : undefined, settings.tileOffset), signal, { ...image, hasAlpha: true }, step.tile && tile ? [image, overlay, tile] : [image, overlay]);
+            image = await transformStoredMagickRaster(image, backend, drawOverlayPixelSteps(image, overlay, fillTile, settings.tileOffset), signal, { ...image, hasAlpha: true }, fillTile ? [image, overlay, fillTile] : [image, overlay]);
         }
     }
-    return image;
+    return canvases[0]?.image ?? image;
 }
 
 function* magickDrawTokensSteps(drawCmd: string): Generator<undefined, string[], void> {
@@ -7348,7 +7382,8 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
     let cooperativeWork = 0;
     const svgElements: string[] = [];
     let fill = state.fill;
-    let tile = state.tile !== undefined;
+    let tile: boolean | string = state.tile !== undefined;
+    const patterns = new Set<string>();
     let stroke = state.stroke;
     let strokeWidth = state.strokeWidth;
     let dashArray: number[] = [], dashOffset = 0;
@@ -7361,7 +7396,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
     let fillOpacity: number | undefined;
     let strokeOpacity: number | undefined;
     let affine: [number, number, number, number, number, number] = [1, 0, 0, 1, 0, 0];
-    const contexts: { gradient: MagickDrawGradient | undefined; fill: RgbaColor; fillRule: string; tile: boolean; stroke: RgbaColor; strokeWidth: number; dashArray: number[]; dashOffset: number; linecap: "butt" | "round" | "square"; strokeLinejoin: string; strokeMiterlimit: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
+    const contexts: { kind: string; image: typeof img; name: string; gradient: MagickDrawGradient | undefined; fill: RgbaColor; fillRule: string; tile: boolean | string; stroke: RgbaColor; strokeWidth: number; dashArray: number[]; dashOffset: number; linecap: "butt" | "round" | "square"; strokeLinejoin: string; strokeMiterlimit: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
     const tokens = yield* magickDrawTokensSteps(drawCmd);
     let i = 0;
     const num = () => {
@@ -7390,7 +7425,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         if (fillOpacity !== undefined && fill.a !== 0) fillColor.a = fillOpacity * 255;
         if (strokeOpacity !== undefined && stroke.a !== 0) strokeColor.a = strokeOpacity * 255;
         const paintFill = rgbaToCss(fillColor), paintStroke = rgbaToCss(strokeColor);
-        if (svgElements.length > 0 && ((tile && ["path", "polygon", "point"].includes(cmd)) || ["image", "line", "polyline", "circle", "rectangle", "roundrectangle"].includes(cmd) ||
+        if (svgElements.length > 0 && ((tile && ["path", "polygon", "point"].includes(cmd)) || ["push", "pop", "image", "line", "polyline", "circle", "rectangle", "roundrectangle"].includes(cmd) ||
             ((fillOpacity !== undefined || strokeOpacity !== undefined) && ["point", "rectangle"].includes(cmd)))) {
             yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${svgElements.join("")}</svg>` };
             svgElements.length = 0;
@@ -7422,11 +7457,27 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                 gradients.set(name, definition);
                 continue;
             }
-            if (contextType !== "graphic-context") throw new Error(`${cmd} drawing requires graphic-context`);
-            if (cmd === "push") contexts.push({ gradient, fill, fillRule, tile, stroke, strokeWidth, dashArray, dashOffset, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity });
+            if (contextType !== "graphic-context" && contextType !== "pattern") throw new Error(`${cmd} drawing requires graphic-context or pattern`);
+            if (cmd === "push") {
+                const name = contextType === "pattern" ? tokens[i++] ?? "" : "";
+                contexts.push({ kind: contextType, image: img, name, gradient, fill, fillRule, tile, stroke, strokeWidth, dashArray, dashOffset, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity });
+                if (contextType === "pattern") {
+                    num(); num(); // MVG pattern origins do not shift the repeating tile.
+                    const width = Math.floor(num() + 0.5), height = Math.floor(num() + 0.5);
+                    if (width <= 0 || height <= 0 || !Number.isSafeInteger(width * height * 8) || width * height * 8 > 0x7fffffff)
+                        throw new Error("Pattern dimensions exceed resource limits");
+                    img = { width, height };
+                    yield { kind: "pattern-start", name, width, height };
+                }
+            }
             else {
                 const context = contexts.pop();
-                if (!context) throw new Error("Cannot pop graphic-context without a matching push");
+                if (!context || context.kind !== contextType) throw new Error(`Cannot pop ${contextType} without a matching push`);
+                if (contextType === "pattern") {
+                    patterns.add(context.name);
+                    yield { kind: "pattern-end" };
+                }
+                img = context.image;
                 ({ gradient, fill, fillRule, tile, stroke, strokeWidth, dashArray, dashOffset, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity } = context);
             }
         }
@@ -7456,8 +7507,8 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         else if (cmd === "fill") {
             const paint = tokens[i++] ?? "#000000";
             gradient = gradients.get(paint);
-            fill = gradient ? { r: 0, g: 0, b: 0, a: 255 } : parseColor(paint, true);
-            tile = false;
+            tile = patterns.has(paint) ? paint : false;
+            fill = gradient || tile ? { r: 0, g: 0, b: 0, a: 255 } : parseColor(paint, true);
         }
         else if (cmd === "stroke") {
             stroke = parseColor(tokens[i++] ?? "#000000", true);

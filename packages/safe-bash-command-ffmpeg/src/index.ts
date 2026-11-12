@@ -79,6 +79,7 @@ import { cutUltrasonicAudio } from "./audio-asupercut.js";
 import { exciteAudio } from "./audio-aexciter.js";
 import { psychoacousticClip } from "./audio-apsyclip.js";
 import { renderTestsrc } from "./testsrc.js";
+import { renderTestsrc2 } from "./testsrc2.js";
 import { renderSmpteHdBars } from "./smptehdbars.js";
 import { renderSmptebars } from "./smptebars.js";
 import { sineTable } from "./lavfi-sine.js";
@@ -781,6 +782,11 @@ function* lavfiSteps(
   const dimensions = parseImageSize(sizeStr);
   if (!dimensions) throw new Error(`${filterName}: Invalid image size '${sizeStr}'`);
   let [width, height] = dimensions;
+  if (filterName === "testsrc2") {
+    width -= width % 2;
+    height -= height % 2;
+    if (width < 2 || height < 2) throw new Error("testsrc2: dimensions must be at least 2x2");
+  }
   const fps = parseFrameRate(kv.rate ?? kv.r ?? "25") ?? 25;
   const sar = parseFilterExpression(kv.sar ?? "1", filterName, {});
   if (!Number.isFinite(sar) || sar < 0) throw new Error(`${filterName}: invalid sample aspect ratio`);
@@ -826,6 +832,12 @@ function* lavfiSteps(
         ptsSeconds: i / fps, durationSeconds: 1 / fps, keyframe: true });
       continue;
     }
+    if (filterName === "testsrc2") {
+      const frame = yield* renderTestsrc2(width, height, i, fps, budget);
+      if (alpha !== 255) yield* renderTestsrc2Alpha(frame.data, width, height, i / fps, alpha);
+      frames.push(frame);
+      continue;
+    }
     const rgba = new Uint8Array(width * height * 4);
     if (filterName === "testsrc") {
       yield* renderTestsrc(rgba, width, height, i, fps, decimals);
@@ -861,7 +873,6 @@ function* lavfiSteps(
         }
       }
     }
-    if (alpha !== 255) yield* renderTestsrc2Alpha(rgba, width, height, i / fps, alpha);
     frames.push({
       width,
       height,

@@ -31,9 +31,11 @@ export function* sampleLookup(lut: Pick<RgbaImage, "width" | "height" | "hasAlph
     if (interpolation === "mesh") {
         for (let row = 0; row < 2; row++) for (let column = 0; column < 2; column++) {
             const position = (Math.max(0, Math.min(lut.height - 1, top + row)) * lut.width + Math.max(0, Math.min(lut.width - 1, left + column))) * 4;
-            const working = yield { kind: "read", evaluate: true, image: 1, position, length: 4 };
+            const hue = cmyk ? undefined : yield { kind: "read", hue: true, image: 1, position, length: 4 };
+            const working = hue?.length ? hue : yield { kind: "read", evaluate: true, image: 1, position, length: 4 };
             const bytes = working?.length ? working : (yield { kind: "read", highDepth, image: 1, position, length: 4 })!;
-            meshPixels.push(working?.length ? new Float64Array(bytes.slice().buffer).map(value => highDepth ? value * 257 : value)
+            meshPixels.push(hue?.length ? new Float64Array(bytes.slice().buffer).map(value => value * range)
+                : working?.length ? new Float64Array(bytes.slice().buffer).map(value => highDepth ? value * 257 : value)
                 : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes);
         }
         const luma = meshPixels.map(p => 0.212656 * p[0]! + 0.715158 * p[1]! + 0.072186 * p[2]!);
@@ -63,10 +65,12 @@ export function* sampleLookup(lut: Pick<RgbaImage, "width" | "height" | "hasAlph
                 : [gray, gray, gray, virtualPixel === "transparent" ? 0 : 255];
             pixel = highDepth ? color.map(value => value * 257) : color;
         } else if (!pixel) {
-            // Evaluated lookup samples retain fractional colors and alpha before quantization.
-            const working = yield { kind: "read", evaluate: true, image: 1, position, length: 4 };
+            // Working colorspace and evaluated samples retain fractions before quantization.
+            const hue = cmyk ? undefined : yield { kind: "read", hue: true, image: 1, position, length: 4 };
+            const working = hue?.length ? hue : yield { kind: "read", evaluate: true, image: 1, position, length: 4 };
             const bytes = working?.length ? working : (yield { kind: "read", highDepth, image: 1, position, length: 4 })!;
-            pixel = working?.length ? new Float64Array(bytes.slice().buffer).map(value => highDepth ? value * 257 : value)
+            pixel = hue?.length ? new Float64Array(bytes.slice().buffer).map(value => value * range)
+                : working?.length ? new Float64Array(bytes.slice().buffer).map(value => highDepth ? value * 257 : value)
                 : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
         }
         // Native cubic interpolation retains premultiplied colors without dividing by alpha.

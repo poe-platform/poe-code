@@ -23145,6 +23145,10 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         else if (t === "-adjoin" || t === "+adjoin") {
             state.adjoin = t === "-adjoin";
         }
+        else if (t === "-support") {
+            if (argv[++i] === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -support\n" };
+            // Native montage consumes this legacy option without changing the resize filter.
+        }
         else if (t === "-scenes") {
             const value = argv[++i];
             if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -scenes\n" };

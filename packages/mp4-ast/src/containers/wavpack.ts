@@ -366,13 +366,44 @@ function parseWavpack(bytes: Uint8Array, options: ParseMediaOptions = {}): Media
 export function wavpackAst(): MediaAstPlugin {
   return {
     id: "wv", formatName: "wv", formatLongName: "WavPack", extensions: ["wv"], mimeTypes: ["audio/wavpack"],
-    canDemux: true, canMux: false, supportedVideoCodecs: [], supportedAudioCodecs: ["wavpack"],
+    canDemux: true, canMux: true, supportedVideoCodecs: [], supportedAudioCodecs: ["wavpack"],
     detect(bytes) { return bytes.length >= 32 && decodeFourCC(bytes, 0) === "wvpk"; },
     parse: parseWavpack,
     probe(bytes, options = {}) {
       return buildProbeResultFromDoc(parseWavpack(bytes, { ...options, decodeAudio: false }), bytes.length, options.filename,
         { ...options, formatName: "wv", formatLongName: "WavPack" });
     },
-    serialize() { throw new Error("WavPack encoding is not supported"); }
+    serialize(doc, options = {}) {
+      const budget = options.budget ?? new MediaBudgetTracker(options.limits);
+      const track = doc.tracks[0];
+      if (doc.tracks.length !== 1 || track?.type !== "audio") {
+        throw new Error("WavPack output requires exactly one audio stream");
+      }
+      if (track.codecDescriptions[0]?.codecName !== "wavpack" ||
+          track.codecDescriptions.some(description => description.codecName !== "wavpack")) {
+        throw new Error("WavPack output requires compressed WavPack packets");
+      }
+      if (options.audioCodec !== "copy" && (options.audioCodec !== undefined || track.decodedAudio)) {
+        throw new Error("WavPack encoding is not supported");
+      }
+      budget.checkStreams(1);
+      budget.checkSamples(track.samples.length);
+      budget.checkDuration(doc.durationSeconds);
+      let size = 0;
+      for (const sample of track.samples) {
+        budget.checkCpu();
+        size += sample.data.length;
+      }
+      budget.checkOutputBytes(size);
+      budget.allocateMemory(size);
+      const bytes = new Uint8Array(size);
+      let offset = 0;
+      for (const sample of track.samples) {
+        budget.checkCpu();
+        bytes.set(sample.data, offset);
+        offset += sample.data.length;
+      }
+      return bytes;
+    }
   };
 }

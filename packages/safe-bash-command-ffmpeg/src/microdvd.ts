@@ -63,6 +63,7 @@ export function decodeMicrodvd(text: string): string {
     const lineTags = tags();
     if (line[position] === "/") {
       position++;
+      if (line[position] === "/") position++;
       if (!lineTags.includes("<i>")) lineTags.push("<i>");
     }
     transition(lineTags);

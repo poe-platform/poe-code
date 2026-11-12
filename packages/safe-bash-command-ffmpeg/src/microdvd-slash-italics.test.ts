@@ -9,7 +9,12 @@ const cues = [
   ["A/B", "A/B"],
   ["/A|B", "<i>A</i>\nB"],
   ["/A|/B", "<i>A</i>\n<i>B</i>"],
-  ["//Hello", "<i>/Hello</i>"]
+  ["//Hello", "<i>Hello</i>"],
+  ["//first//", "<i>first//</i>"],
+  ["///first", "<i>/first</i>"],
+  ["////first", "<i>//first</i>"],
+  ["A|//B", "A\n<i>B</i>"],
+  ["A//B", "A//B"]
 ];
 
 for (const sync of [false, true]) {
@@ -50,3 +55,27 @@ for (const sync of [false, true]) {
     }
   }
 }
+
+it("preserves single-slash italics and plain dialogue without a frame-rate header", async () => {
+  const volume = Volume.fromJSON({
+    "/input.sub": "{25}{50}/first\n{25}{50}First\n{75}{100}Last\n"
+  });
+  let stdout = "";
+  let stderr = "";
+  const result = await createFfmpegCommand().execute({
+    args: ["-v", "error", "-f", "microdvd", "-i", "/input.sub", "-f", "srt", "pipe:1"],
+    cwd: "/", env: {}, signal: new AbortController().signal,
+    fs: {
+      async readFile(path: string) { return volume.readFileSync(path); },
+      async stat(path: string) { return volume.statSync(path); }
+    },
+    stdin: (async function* () {})(),
+    stdout: { async write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } },
+    stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+  } as never);
+  assert.equal(result.exitCode, 0, stderr);
+  assert.equal(stderr, "");
+  assert.equal(stdout, "1\n00:00:01,043 --> 00:00:02,086\n<i>first</i>\n\n"
+    + "2\n00:00:01,043 --> 00:00:02,086\nFirst\n\n"
+    + "3\n00:00:03,128 --> 00:00:04,171\nLast\n\n");
+});

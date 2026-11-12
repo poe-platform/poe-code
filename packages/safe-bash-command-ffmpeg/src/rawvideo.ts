@@ -153,7 +153,7 @@ export function parseRawVideo(bytes: Uint8Array, size: string | undefined, pixel
   };
 }
 
-export async function serializeRawVideo(track: MediaTrack, codec: string | undefined, pixelFormat: string | undefined, budget: MediaBudgetTracker, signal?: AbortSignal): Promise<Uint8Array> {
+export async function serializeRawVideo(track: MediaTrack, codec: string | undefined, pixelFormat: string | undefined, budget: MediaBudgetTracker, signal?: AbortSignal, autoscale = true): Promise<Uint8Array> {
   if (codec !== undefined && codec !== "copy" && codec !== "rawvideo") throw new Error(`Unsupported rawvideo encoder '${codec}'`);
   const chunks: Uint8Array[] = [];
   let size = 0;
@@ -174,8 +174,8 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
     const first = track.decodedVideoFrames?.[0];
     for (let frame of track.decodedVideoFrames ?? []) {
       budget.checkCpu();
-      // The rawvideo encoder keeps the first output frame's dimensions.
-      if (first && (frame.width !== first.width || frame.height !== first.height)) {
+      // Automatic output scaling keeps the first frame's dimensions.
+      if (autoscale && first && (frame.width !== first.width || frame.height !== first.height)) {
         budget.recordFrame(first.width, first.height);
         budget.allocateMemory(first.width * first.height * 4);
         const data = scaleVideoPicture(frame, first.width, first.height)

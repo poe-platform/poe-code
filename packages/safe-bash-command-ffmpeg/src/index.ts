@@ -10481,6 +10481,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let outputFps: number | undefined;
         let videoSync = "auto";
         let outputSize: string | undefined;
+        let autoscale = true;
         const maps: string[] = [];
         const streamIds = new Map<number, number>();
         let useStreamIdsAsTrackIds = false;
@@ -12180,6 +12181,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 234 };
             }
+          } else if (arg === "-noautoscale") {
+            if (args.slice(i + 1).includes("-i")) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -noautoscale must follow the inputs\n"), context.signal);
+              return { exitCode: 234 };
+            }
+            autoscale = false;
           } else if (arg === "-noautorotate") {
             if (!args.slice(i + 1).includes("-i")) {
               await writeBytes(context.stderr, encodeUtf8("ffmpeg: -noautorotate must precede an input\n"), context.signal);
@@ -21788,7 +21795,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 if (features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
                 track = { ...track, decodedVideoFrames: await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, maxVideoFrames) };
               }
-              const bytes = await serializeRawVideo(track, videoCodec, rawPixelFormat, budget, context.signal);
+              const bytes = await serializeRawVideo(track, videoCodec, rawPixelFormat, budget, context.signal, autoscale);
               if (firstOutput) progressSize = bytes.byteLength;
               context.signal?.throwIfAborted();
               await writeMediaOutput(context, outputTarget, bytes, budget);

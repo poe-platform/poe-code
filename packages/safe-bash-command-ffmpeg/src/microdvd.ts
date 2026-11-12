@@ -5,13 +5,14 @@ export function decodeMicrodvd(text: string): string {
   let result = "";
   const tags = () => {
     const style = (directives.get("Y")?.value ?? "") + (directives.get("y")?.value ?? "");
-    const output = ["i", "b", "u", "s"].filter(tag => style.includes(tag)).map(tag => `<${tag}>`);
+    const output: string[] = [];
     const color = directives.get("c")?.value;
     if (color) output.push(`<font color="#${color}">`);
     const face = directives.get("f")?.value;
     if (face) output.push(`<font face="${face}">`);
     const size = directives.get("s")?.value;
     if (size) output.push(`<font size="${size}">`);
+    output.push(...["i", "b", "u", "s"].filter(tag => style.includes(tag)).map(tag => `<${tag}>`));
     return output;
   };
   const transition = (next: string[]) => {

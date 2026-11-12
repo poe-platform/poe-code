@@ -75,7 +75,7 @@ export class GifPalette {
     return this.used.size === 1 ? this.used.values().next().value! : 0;
   }
   /** PNG has no fixed table size: omit unused entries and remap raster indices. */
-  finishPng() {
+  finishPng(backgroundColor?: RgbaImage["backgroundColor"]) {
     this.finish();
     const used = this.quantized ? new Set<number>() : this.used;
     if (this.quantized) {
@@ -90,7 +90,7 @@ export class GifPalette {
     const bytes = new Uint8Array(entries.length * 3);
     entries.forEach((entry, index) => {
       indices[entry] = index;
-      bytes.set(entry === 255 ? [255, 255, 255] : this.bytes.subarray(entry * 3, entry * 3 + 3), index * 3);
+      bytes.set(entry === 255 ? [backgroundColor?.r ?? 255, backgroundColor?.g ?? 255, backgroundColor?.b ?? 255] : this.bytes.subarray(entry * 3, entry * 3 + 3), index * 3);
     });
     const transparency = this.hasTransparentColor ? new Uint8Array(entries.length).fill(255) : undefined;
     if (transparency) transparency[indices[255]!] = 0;

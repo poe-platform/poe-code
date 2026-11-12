@@ -277,7 +277,7 @@ export function encodePngImage(
   if (palette) {
     for (let i = 0; i < data.length; i += 4) palette.add(data[i]!, data[i + 1]!, data[i + 2]!, data[i + 3]!);
   }
-  const pngPalette = palette?.finishPng();
+  const pngPalette = palette?.finishPng(img.backgroundColor);
   const paletteDepth = requestedColor === 3 && options?.pngBitDepth === undefined
     ? pngPalette!.bytes.length <= 6 ? 1 : pngPalette!.bytes.length <= 12 ? 2 : pngPalette!.bytes.length <= 48 ? 4 : 8
     : 8;

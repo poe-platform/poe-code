@@ -23204,6 +23204,9 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         else if (t === "-adjoin" || t === "+adjoin") {
             state.adjoin = t === "-adjoin";
         }
+        else if (t === "-synchronize" || t === "+synchronize") {
+            // Writes already complete before returning; the virtual filesystem has no disk flush setting.
+        }
         else if (t === "-support") {
             if (argv[++i] === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -support\n" };
             // Native montage consumes this legacy option without changing the resize filter.

@@ -22656,7 +22656,7 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             + (metricExplicit ? `    all: ${metricStr}\n` : "")
             + `${refSpec}=>${outSpec} ${inferOutputFormat(outSpec, "png").format.toUpperCase()} ${width}x${height}\n`
         : metricStr;
-    const comparisonStderr = inputErrors + diagnostics + (quiet ? "" : colorWarnings) + (subimageSearch && (metricExplicit ? searchScore > dissimilarityThreshold : searchScore < dissimilarityThreshold)
+    const comparisonStderr = inputErrors + diagnostics + (quiet ? "" : colorWarnings) + (subimageSearch && (metricExplicit && !["ssim", "dssim", "ncc", "psnr"].includes(metric) ? searchScore > dissimilarityThreshold : searchScore < dissimilarityThreshold)
         ? `compare: images too dissimilar '${refSpec}'\n` : "");
     if (state.formatStr !== undefined) {
         const image = { ...imgA, properties: { ...imgA.properties, distortion: formatMetricNum(compared.value.distortion) } };

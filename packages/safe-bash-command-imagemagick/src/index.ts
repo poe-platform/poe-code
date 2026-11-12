@@ -23199,6 +23199,16 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
             state.delay = { value };
         }
+        else if (t === "+dispose") {
+            delete state.disposal;
+        }
+        else if (t === "-dispose") {
+            const value = argv[++i];
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -dispose\n" };
+            const disposal = parseMagickDisposalSetting(value);
+            if (disposal < 0) return { exitCode: 1, stdout: "", stderr: `montage: unrecognized dispose method '-dispose' '${value}'\n` };
+            state.disposal = disposal;
+        }
         else if (t === "-scenes") {
             const value = argv[++i];
             if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -scenes\n" };
@@ -23868,6 +23878,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             detachRgbaBuffer(caption.data);
         }
         canvas = { ...canvas, virtualCanvas: state.page ?? { width: 0, height: 0, x: 0, y: 0 }, montage: { geometry: `${slotW}x${slotH}${originX < 0 ? "" : "+"}${originX}${originY + titleHeight < 0 ? "" : "+"}${originY + titleHeight}`, directory } };
+        if (state.disposal !== undefined) canvas = { ...canvas, disposal: state.disposal };
         if (state.delay !== undefined) canvas = { ...canvas, delay: [parseDelayOption(state.delay.value, 0).milliseconds] };
         if (!anyTransparent) {
             (canvas as { hasAlpha?: boolean; channels?: number }).hasAlpha = false;
@@ -24737,6 +24748,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 canvas = await compositeStoredMagick(canvas, caption, backend, signal, 0, 0, "over", undefined, false, true);
             }
             canvas = { ...canvas, virtualCanvas: state.page ?? { width: 0, height: 0, x: 0, y: 0 }, montage: { geometry: `${slotW}x${slotH}${originX < 0 ? "" : "+"}${originX}${originY + titleHeight < 0 ? "" : "+"}${originY + titleHeight}`, directory }, hasAlpha: anyTransparent, channels: anyTransparent ? 4 : 3 };
+            if (state.disposal !== undefined) canvas = { ...canvas, disposal: state.disposal };
             if (state.delay !== undefined) canvas = { ...canvas, delay: [parseDelayOption(state.delay.value, 0).milliseconds] };
             if (state.units !== undefined) canvas = applyMagickUnits(canvas, state.units);
             if (state.densityGeometry !== undefined) canvas = applyMagickDensity(canvas, state.densityGeometry);

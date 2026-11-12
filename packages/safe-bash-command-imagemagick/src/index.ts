@@ -8270,6 +8270,9 @@ function inferOutputFormat(spec: string, fallback: ImageFormat = "png", inputFor
     const fmt = extToImageFormat(ext);
     if (fmt) return { ...inferOutputFormat(`${ext}:${spec}`, fallback), path: spec };
   }
+  if (prefixMatch && inputFormat === "XC" && prefixMatch[1]!.toLowerCase() !== "info") {
+    throw new Error("no encode delegate for this image format 'XC'");
+  }
   if (spec === "-" && inputFormat) {
     if (inputFormat === "PATTERN" || inputFormat === "HALD") throw new Error(`no encode delegate for this image format '${inputFormat}'`);
     fallback = extToImageFormat(inputFormat) ?? fallback;
@@ -24219,6 +24222,8 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         const n = images.length;
         if (!n) return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors };
+        try { inferOutputFormat(outSpec, "png", firstInputFormat); }
+        catch (error) { return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: ${(error as Error).message}\n` }; }
         const cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n)))));
         const rows = tileRows ?? Math.ceil(n / cols);
         const maxThumbW = Math.max((cellW ?? 0) + (frame ? 0 : borderW * 2), ...images.map((im) => im.width));
@@ -24649,7 +24654,9 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         if (!n) return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + inputErrors };
         const cols = tileCols ?? Math.ceil(n / (tileRows ?? Math.max(1, Math.floor(Math.sqrt(n))))), rows = tileRows ?? Math.ceil(n / cols);
         const slotW = maxThumbW + padX * 2 + (frame ? frame.size * 2 : 0), slotH = maxThumbH + padY * 2 + (frame ? frame.size * 2 : 0) + (shadow ? 4 : 0);
-        const output = inferOutputFormat(outSpec, "png");
+        let output: ReturnType<typeof inferOutputFormat>;
+        try { output = inferOutputFormat(outSpec, "png", firstInputFormat); }
+        catch (error) { return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: ${(error as Error).message}\n` }; }
         const adjoin = state.adjoin && n > cols * rows && output.path !== "-" && (output.format === "ppm" || output.format === "rgb" || output.format === "miff") && !hasSceneOutputPattern(output.path);
         const pages = new StoredImageStack(backend.storage, signal);
         const adjoinedPages = state.adjoin && output.gifVersion !== "87a" && (output.format === "gif" || output.format === "tiff") && n > cols * rows && !hasSceneOutputPattern(output.path)

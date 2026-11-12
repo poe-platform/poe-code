@@ -15694,6 +15694,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           silenceEvents.length = 0;
                         }
                       } else if (trimmed === "astats" || trimmed.startsWith("astats=")) {
+                        if (filteredSampleFormat === "u8" || filteredSampleFormat === "u8p") {
+                          if (!autoConversionFilters) throw new Error(audioConversionDisabled);
+                          const format = filteredSampleFormat === "u8p" ? "s16p" : "s16";
+                          stretched = await convertAudioSampleFormat(stretched, filteredSampleFormat, format, budget, context.signal);
+                          filteredSampleFormat = panSampleFormat = format;
+                        }
                         // Normalize integer PCM using the format reaching this filter.
                         const statsScale = filteredSampleFormat === "s16" || filteredSampleFormat === "s16p" ? 32768 / 32767
                           : filteredSampleFormat === "s32" || filteredSampleFormat === "s32p" ? 2147483648 / 2147483647 : 1;

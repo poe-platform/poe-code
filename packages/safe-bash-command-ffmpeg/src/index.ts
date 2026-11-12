@@ -5442,6 +5442,9 @@ async function applyVideoFilterChain(
             const highDepthLuma = native?.rgba === f.data && native.width === f.width && native.height === f.height &&
               [45, 62].includes(native.format) && (pixelFormat === "gray" || pixelFormat === "gray8")
               ? new DataView(native.pixels.buffer, native.pixels.byteOffset, native.pixels.byteLength) : undefined;
+            const gray16 = native?.rgba === f.data && native.width === f.width && native.height === f.height &&
+              [29, 30].includes(native.format) && (pixelFormat === "gray" || pixelFormat === "gray8")
+              ? new DataView(native.pixels.buffer, native.pixels.byteOffset, native.pixels.byteLength) : undefined;
             const data = f.data.slice();
             const pixels = pixelFormat === "gray" || pixelFormat === "gray8"
               ? new Uint8Array(f.width * f.height) : undefined;
@@ -5455,7 +5458,12 @@ async function applyVideoFilterChain(
               // RGB sources use full-range BT.601 luminance.
               // swscale uses 15-bit intermediate luma, range expansion, then ordered dithering.
               const luma = highDepthLuma ? Math.floor(highDepthLuma.getUint16(i / 2, true) * (native!.format === 62 ? 32 : 0.5)) : 0;
-              const gray = highDepthLuma
+              const sample = gray16?.getUint16(i / 2, native!.format === 30) ?? 0;
+              // Unscaled full-range depth reduction adjusts endpoints and restarts dithering per slice.
+              const row = Math.floor(i / 4 / f.width) % Math.ceil(f.height / 16);
+              const gray = gray16
+                ? (sample - (sample >> 8) + dither[row & 7]![i / 4 % f.width & 7]!) >> 8
+                : highDepthLuma
                 ? Math.max(0, Math.min(255, ((native!.fullRange ? luma :
                   (Math.min(luma, 30189) * 19077 - 39057361) >> 14) +
                   dither[Math.floor(i / 4 / f.width) & 7]![i / 4 % f.width & 7]!) >> 7))

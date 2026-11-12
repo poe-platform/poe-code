@@ -49,6 +49,26 @@ export async function formatYuv(
     const rgba = scaleVideoPicture({ ...frame, native }, width, height)!;
     return { ...frame, data: rgba, native: { ...native, rgba } };
   }
+  if (source && [29, 30].includes(source.format) &&
+      ["yuv420p", "yuv422p", "yuv444p"].includes(format) &&
+      source.rgba === data && source.width === width && source.height === height) {
+    const input = new DataView(source.pixels.buffer, source.pixels.byteOffset, source.pixels.byteLength);
+    pixels.fill(128, lumaSize);
+    for (let y = 0; y < height; y++) {
+      await yieldTurn(signal);
+      signal?.throwIfAborted();
+      for (let x = 0; x < width; x++) {
+        const offset = y * width + x;
+        const sample = input.getUint16(offset * 2, source.format === 30);
+        // swscale converts full-range gray at 15-bit precision before ordered dithering.
+        const luma = ((sample >> 1) * 14071 + 33561947) >> 14;
+        pixels[offset] = (luma + filteredDither[y & 7]![x & 7]!) >> 7;
+      }
+    }
+    const native = { ...source, pixels, format: nativeFormat, fullRange: 0 };
+    const rgba = scaleVideoPicture({ ...frame, native }, width, height)!;
+    return { ...frame, data: rgba, native: { ...native, rgba } };
+  }
   if (source && ((format === "yuv444p" && [49, 68].includes(source.format)) ||
       (format === "yuv420p" && source.format === 62)) &&
       source.rgba === data && source.width === width && source.height === height) {

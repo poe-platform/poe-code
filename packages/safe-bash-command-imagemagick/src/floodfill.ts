@@ -16,9 +16,12 @@ export async function floodfillStoredImage(image: StoredRgbaImage & HueMetadata,
         image = { ...image, space: "srgb", channels: image.hasAlpha ? 4 : 3 };
     const count = image.width * image.height, source = { position: image.storedData16?.position ?? image.position, length: count * (image.storedData16 ? 8 : 4) }, cache = new RasterBackingCache(storage, signal);
     const inks = image.space === "cmyk" && image.storedHueSamples !== undefined ? { position: image.storedHueSamples, length: count * 32 } : undefined;
+    const evaluated = image.storedEvaluateSamples === undefined ? undefined : { position: image.storedEvaluateSamples, length: count * 32 };
     const readPixel = async (index: number): Promise<readonly number[]> => {
         let rgba: number[];
-        if (image.storedData16) {
+        if (evaluated) {
+            rgba = [await cache.float64(evaluated, index * 32), await cache.float64(evaluated, index * 32 + 8), await cache.float64(evaluated, index * 32 + 16), await cache.float64(evaluated, index * 32 + 24)];
+        } else if (image.storedData16) {
             const rg = await cache.uint32(source, index * 8), ba = await cache.uint32(source, index * 8 + 4);
             rgba = [(rg & 65535) / 257, (rg >>> 16) / 257, (ba & 65535) / 257, (ba >>> 16) / 257];
         } else {

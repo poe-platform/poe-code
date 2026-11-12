@@ -1197,8 +1197,8 @@ function* applyMagickFloodfillSteps(
   const paint = [replacement.r, replacement.g, replacement.b, replacement.a];
   const data16 = img.data16 ? new Uint16Array(img.data16)
     : paint.some(value => !Number.isInteger(value)) ? Uint16Array.from(img.data, value => value * 257) : undefined;
-  const samples = img.data16 ?? img.data;
-  const scale = img.data16 ? 257 : 1;
+  const samples = img.evaluateSamples ?? img.data16 ?? img.data;
+  const scale = !img.evaluateSamples && img.data16 ? 257 : 1;
   const seedOff = (sy * w + sx) * 4;
   const target = inks && targetColor?.cmyk ? targetColor.cmyk.map(value => value * 255)
     : targetColor ? [targetColor.r, targetColor.g, targetColor.b, 0] : undefined;

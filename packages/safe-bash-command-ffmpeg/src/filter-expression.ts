@@ -106,7 +106,7 @@ export function parseFilterExpression(expression: string, filter: string, variab
           value = args[0]!;
           if (evaluate) print?.(value, Math.trunc(args[1] ?? 32));
         }
-        else if (filter === "lutrgb" && name === "gammaval" && args.length === 1) {
+        else if ((filter === "lutrgb" || filter === "lutyuv") && name === "gammaval" && args.length === 1) {
           const min = variables.minval!, max = variables.maxval!;
           value = Math.pow((variables.clipval! - min) / (max - min), args[0]!) * (max - min) + min;
         }

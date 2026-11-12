@@ -39,6 +39,63 @@ for (const [format, input, output, expected] of [
   });
 }
 
+// FFmpeg 7.0.2 exits successfully and produces these exact native YUV planes.
+for (const [format, expected] of [
+  ["yuv420p", "252526258125"],
+  ["yuv422p", "2525262581822524"],
+  ["yuv444p", "252526258182828125252425"]
+]) {
+  for (const filter of ["null", `format=${format}`]) {
+    it(`reduces 10-bit YUV420 directly to ${format} with ${filter}`, async () => {
+      const result = await run(Buffer.from("950095009500950006029300", "hex"), "yuv420p10le",
+        ["-vf", filter, "-fps_mode", "passthrough", "-pix_fmt", format!, "-bitexact"], {}, "2x2");
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.output.toString("hex"), expected);
+    });
+  }
+}
+
+it("preserves both 10-bit frames through null filtering", async () => {
+  const bytes = Buffer.from("2d002d002d002d0082009301950095009500950006029300", "hex");
+  const result = await run(bytes, "yuv420p10le",
+    ["-vf", "null", "-fps_mode", "passthrough", "-pix_fmt", "yuv420p10le", "-bitexact"], {}, "2x2");
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.deepEqual(result.output, bytes);
+});
+
+// Native FFmpeg 7.0.2 references cover odd planes, every dither row, slice
+// boundaries, multi-tap chroma filtering, and the scalar bottom-edge fallback.
+for (const [width, height, hashes] of [
+  [3, 3, ["99a0162bffffaeaf0850b74d242bd906ee43712a1e801b926d482343551cd831",
+    "312a8fe9e5b59b8b658139b87d8a374b464f80224204843440e37c9832278b85",
+    "6e2cb3ff2a343be231489d8e4396fc44a7642da760ff6dc02a0f3504d3d6514e"]],
+  [16, 16, ["ad8a6b542b7206c7ac768abeb338f035e81e3714ce2c89ea76a5c79959e0eab2",
+    "48d86c12b15f182ca48fa2b4c8d7b777a96be9689ca31aba5d587a3f7e3c597a",
+    "0a6421d7dfff61a002a79b0e142b5adcfd04835013576e718d4fd7c91197e068"]],
+  [16, 64, ["9e10e48f0a77db9a641206c21c14046ac705a2b422912e770740362eafe7ff8b",
+    "cc2f393f80e0c4a528f3f73a130021d8c7dae130de284538ddde8678a9dbc6e9",
+    "dbbb58ef3991c0b5300c142cb1aaffcd0beb9f0126536aee9ce16479022f4f72"]]
+] as const) {
+  for (const [index, format] of ["yuv420p", "yuv422p", "yuv444p"].entries()) {
+    it(`matches native ${format} depth reduction for ${width}x${height}`, async () => {
+      const bytes = Buffer.alloc((width * height + 2 * Math.ceil(width / 2) * Math.ceil(height / 2)) * 2);
+      for (let i = 0; i < bytes.length / 2; i++) bytes.writeUInt16LE((i * 79 + 1) % 1024, i * 2);
+      const result = await run(bytes, "yuv420p10le",
+        ["-vf", `format=${format}`, "-fps_mode", "passthrough", "-pix_fmt", format, "-bitexact"], {}, `${width}x${height}`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(createHash("sha256").update(result.output).digest("hex"), hashes[index]);
+    });
+  }
+}
+
+it("enforces 8-bit YUV output limits before replacing the destination", async () => {
+  const result = await run(Buffer.from("950095009500950006029300", "hex"), "yuv420p10le",
+    ["-vf", "null", "-pix_fmt", "yuv420p"], { limits: { maxOutputBytes: 5 } }, "2x2");
+  assert.notEqual(result.exitCode, 0);
+  assert.match(result.stderr, /maxOutputBytes/);
+  assert.equal(result.output.toString(), "KEEP");
+});
+
 for (const filter of ["null", "format=gray"]) {
   it(`converts 10-bit luma to native gray samples with ${filter}`, async () => {
     const result = await run(Buffer.from("400080000002aa033901ee02", "hex"), "yuv420p10le",

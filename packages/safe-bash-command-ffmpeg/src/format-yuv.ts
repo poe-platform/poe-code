@@ -2,6 +2,14 @@ import { scaleVideoPicture, type MediaVideoFrame } from "@poe-code/mp4-ast";
 import { scaleWeights } from "./scale.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 
+// swscale's ordered dither for 15-bit filtered samples reduced to 8 bits.
+const filteredDither = [
+  [36, 68, 60, 92, 34, 66, 58, 90], [100, 4, 124, 28, 98, 2, 122, 26],
+  [52, 84, 44, 76, 50, 82, 42, 74], [116, 20, 108, 12, 114, 18, 106, 10],
+  [32, 64, 56, 88, 38, 70, 62, 94], [96, 0, 120, 24, 102, 6, 126, 30],
+  [48, 80, 40, 72, 54, 86, 46, 78], [112, 16, 104, 8, 118, 22, 110, 14]
+];
+
 /** Convert to limited-range BT.601 planes before subsequent filters see RGBA. */
 export async function formatYuv(
   frame: MediaVideoFrame, format: "yuv420p10le" | "yuv420p" | "yuv422p" | "yuv444p" | "yuva444p" | "yuv444p16le", signal?: AbortSignal
@@ -41,12 +49,44 @@ export async function formatYuv(
     const rgba = scaleVideoPicture({ ...frame, native }, width, height)!;
     return { ...frame, data: rgba, native: { ...native, rgba } };
   }
-  if (source && [0, 4, 5, 12, 13, 14, 33].includes(source.format) &&
+  if (source && ((format === "yuv444p" && [49, 68].includes(source.format)) ||
+      (format === "yuv420p" && source.format === 62)) &&
+      source.rgba === data && source.width === width && source.height === height) {
+    // swscale's planar depth reduction restarts its ordered dither per slice.
+    // Use the reference FFmpeg 7 build's 16 slices, including single-row slices.
+    const sliceHeight = source.format === 62 ? Math.ceil(height / 32) * 2 : Math.ceil(height / 16);
+    const shift = source.format === 49 ? 8 : 2;
+    const dither = shift === 2 ? [[1, 2], [3, 0]] : filteredDither;
+    const view = new DataView(source.pixels.buffer, source.pixels.byteOffset, source.pixels.byteLength);
+    for (let plane = 0; plane < 3; plane++) {
+      const planeWidth = plane === 0 ? width : chromaWidth;
+      const planeHeight = plane === 0 ? height : chromaHeight;
+      const planeOffset = plane === 0 ? 0 : lumaSize + (plane - 1) * chromaSize;
+      const planeSliceHeight = plane === 0 ? sliceHeight : Math.ceil(sliceHeight / vsub);
+      for (let y = 0; y < planeHeight; y++) {
+        await yieldTurn(signal);
+        signal?.throwIfAborted();
+        const row = dither[(y % planeSliceHeight) % dither.length]!;
+        for (let x = 0; x < planeWidth; x++) {
+          const offset = planeOffset + y * planeWidth + x;
+          const sample = view.getUint16(offset * 2, true);
+          const value = (sample + row[x % row.length]!) >> shift;
+          pixels[offset] = Math.min(255, value);
+        }
+      }
+    }
+    const native = { ...source, pixels, format: nativeFormat };
+    const rgba = scaleVideoPicture({ ...frame, native }, width, height)!;
+    return { ...frame, data: rgba, native: { ...native, rgba } };
+  }
+  if (source && [0, 4, 5, 12, 13, 14, 33, 62].includes(source.format) &&
       ["yuv420p", "yuv422p", "yuv444p"].includes(format) &&
       source.rgba === data && source.width === width && source.height === height) {
     // Resample native planes without clipping luma/chroma through an RGB round trip.
-    const sourceWidth = [0, 4, 12, 13, 33].includes(source.format) ? Math.ceil(width / 2) : width;
-    const sourceHeight = [0, 12, 33].includes(source.format) ? Math.ceil(height / 2) : height;
+    const input10 = source.format === 62
+      ? new DataView(source.pixels.buffer, source.pixels.byteOffset, source.pixels.byteLength) : undefined;
+    const sourceWidth = [0, 4, 12, 13, 33, 62].includes(source.format) ? Math.ceil(width / 2) : width;
+    const sourceHeight = [0, 12, 33, 62].includes(source.format) ? Math.ceil(height / 2) : height;
     const horizontal = scaleWeights(sourceWidth, chromaWidth, "bicubic");
     const vertical = scaleWeights(sourceHeight, chromaHeight, "bicubic");
     // swscale normalizes horizontal coefficients to 14 bits with carried rounding error.
@@ -58,7 +98,17 @@ export async function formatYuv(
         error = value - tap.weight;
       }
     }
+    let verticalFilterSize = 1;
     for (const taps of vertical) {
+      if (input10) {
+        for (let i = taps.length - 1; i > 0; i--) {
+          if (taps[i]!.index === taps[i - 1]!.index) {
+            taps[i - 1]!.weight += taps[i]!.weight;
+            taps.splice(i, 1);
+          }
+        }
+        verticalFilterSize = Math.max(verticalFilterSize, taps.filter(tap => tap.weight !== 0).length);
+      }
       let error = 0;
       for (const tap of taps) {
         const value = tap.weight * 4096 + error;
@@ -66,52 +116,43 @@ export async function formatYuv(
         error = value - tap.weight;
       }
     }
-    pixels.set(source.pixels.subarray(0, lumaSize));
+    // Native x86 aligns multi-tap vertical filters to pairs of coefficients.
+    if (verticalFilterSize > 1) verticalFilterSize = Math.ceil(verticalFilterSize / 2) * 2;
+    if (input10) {
+      for (let y = 0; y < height; y++) {
+        await yieldTurn(signal);
+        signal?.throwIfAborted();
+        for (let x = 0; x < width; x++) {
+          const offset = y * width + x;
+          pixels[offset] = Math.min(255, (input10.getUint16(offset * 2, true) * 32 + filteredDither[y & 7]![x & 7]!) >> 7);
+        }
+      }
+    } else pixels.set(source.pixels.subarray(0, lumaSize));
     for (let plane = 0; plane < 2; plane++) {
       for (let y = 0; y < chromaHeight; y++) {
         await yieldTurn(signal);
         signal?.throwIfAborted();
+        // swscale falls back to scalar filtering for the final two output rows.
+        const simd = input10 && verticalFilterSize > 1 && y < chromaHeight - 2;
         for (let x = 0; x < chromaWidth; x++) {
           let value = 0;
           for (const row of vertical[y]!) {
             let horizontalValue = 0;
             for (const tap of horizontal[x]!) {
-              horizontalValue += source.pixels[lumaSize + plane * sourceWidth * sourceHeight + row.index * sourceWidth + tap.index]! * tap.weight;
+              const offset = lumaSize + plane * sourceWidth * sourceHeight + row.index * sourceWidth + tap.index;
+              horizontalValue += (input10 ? input10.getUint16(offset * 2, true) : source.pixels[offset]!) * tap.weight;
             }
             // swscale carries 15-bit horizontal samples into the 12-bit vertical filter.
-            value += Math.min(32767, Math.floor(horizontalValue / 128)) * row.weight;
+            const product = Math.min(32767, Math.floor(horizontalValue / (input10 ? 512 : 128))) * row.weight;
+            value += simd ? Math.floor(product / 65536) : product;
           }
-          pixels[lumaSize + plane * chromaSize + y * chromaWidth + x] = Math.max(0, Math.min(255, Math.floor((value + 262144) / 524288)));
-        }
-      }
-    }
-    const native = { ...source, pixels, format: nativeFormat };
-    const rgba = scaleVideoPicture({ ...frame, native }, width, height)!;
-    return { ...frame, data: rgba, native: { ...native, rgba } };
-  }
-  if (format === "yuv444p" && source && [49, 68].includes(source.format) &&
-      source.rgba === data && source.width === width && source.height === height) {
-    // swscale's planar depth reduction restarts its ordered dither per slice.
-    // Use the reference FFmpeg 7 build's 16 slices, including single-row slices.
-    const sliceHeight = Math.ceil(height / 16);
-    const dither = source.format === 68 ? [[1, 2], [3, 0]] : [
-      [36, 68, 60, 92, 34, 66, 58, 90], [100, 4, 124, 28, 98, 2, 122, 26],
-      [52, 84, 44, 76, 50, 82, 42, 74], [116, 20, 108, 12, 114, 18, 106, 10],
-      [32, 64, 56, 88, 38, 70, 62, 94], [96, 0, 120, 24, 102, 6, 126, 30],
-      [48, 80, 40, 72, 54, 86, 46, 78], [112, 16, 104, 8, 118, 22, 110, 14]
-    ];
-    const shift = source.format === 68 ? 2 : 8;
-    const view = new DataView(source.pixels.buffer, source.pixels.byteOffset, source.pixels.byteLength);
-    for (let plane = 0; plane < 3; plane++) {
-      for (let y = 0; y < height; y++) {
-        await yieldTurn(signal);
-        signal?.throwIfAborted();
-        const row = dither[(y % sliceHeight) % dither.length]!;
-        for (let x = 0; x < width; x++) {
-          const offset = plane * lumaSize + y * width + x;
-          const sample = view.getUint16(offset * 2, true);
-          const value = (sample + row[x % row.length]!) >> shift;
-          pixels[offset] = Math.min(255, value);
+          // swscale offsets V's dither by three columns after chroma resampling.
+          const dither = input10 ? filteredDither[y & 7]![(x + plane * 3) & 7]! : 64;
+          // Native SIMD rounds each vertical product before accumulating it.
+          const output = simd
+            ? Math.floor((value + Math.floor((dither + (verticalFilterSize - 1) * 8) / 16)) / 8)
+            : Math.floor((value + dither * 4096) / 524288);
+          pixels[lumaSize + plane * chromaSize + y * chromaWidth + x] = Math.max(0, Math.min(255, output));
         }
       }
     }

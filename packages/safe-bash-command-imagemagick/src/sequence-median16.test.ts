@@ -44,18 +44,24 @@ for (const mode of ["map", "sync", "filesystem", "command"] as const) {
     });
 }
 
-// Native ImageMagick 7.1.2-35 Q16-HDRI returns ef7f4359 for each case.
+// Native ImageMagick 7.1.2-35 Q16-HDRI reference pixels.
 for (const mode of ["command", "filesystem", "map", "sync"] as const)
 it.each([
     { name: "out-of-range samples", before: ["-evaluate", "Multiply", "3"], after: ["-evaluate", "Divide", "3"], median: true },
     { name: "fractional samples", before: ["-evaluate", "Divide", "7"], after: ["-evaluate", "Multiply", "7"], median: true },
     { name: "unscaled control", before: [], after: [], median: true },
     { name: "scale round-trip control", before: ["-evaluate", "Multiply", "3"], after: ["-evaluate", "Divide", "3"], median: false },
-])(`${mode}: retains the selected Median working pixel ($name)`, async ({ before, after, median }) => {
+    { name: "brightened RGBA ranking", colors: ["xc:#e0206040", "xc:#406020d0"], before: ["-evaluate", "Multiply", "2"], after: ["-evaluate", "Divide", "2"], median: true, expected: "e0206040" },
+    { name: "brightened RGBA output", colors: ["xc:#e0206040", "xc:#406020d0"], before: ["-evaluate", "Multiply", "2"], after: [], median: true, expected: "ff40c080" },
+    { name: "fractional RGBA ranking", colors: ["xc:#e0206040", "xc:#406020d0"], before: ["-evaluate", "Multiply", "0.001"], after: ["-evaluate", "Divide", "0.001"], median: true, expected: "e0206040" },
+    { name: "negative RGBA ranking", colors: ["xc:#e0206040", "xc:#406020d0"], before: ["-evaluate", "Multiply", "-2"], after: ["-evaluate", "Divide", "-2"], median: true, expected: "406020d0" },
+    { name: "large RGBA ranking", colors: ["xc:#e0206040", "xc:#406020d0"], before: ["-evaluate", "Multiply", "100000000"], after: ["-evaluate", "Divide", "100000000"], median: true, expected: "e0206040" },
+    { name: "RGBA ranking control", colors: ["xc:#e0206040", "xc:#406020d0"], before: [], after: [], median: true, expected: "e0206040" },
+])(`${mode}: retains the selected Median working pixel ($name)`, async ({ before, after, median, colors, expected = "ef7f4359" }) => {
     const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
     await fs.writeFile("/out", new TextEncoder().encode("KEEP"));
     files.set("/out", new TextEncoder().encode("KEEP"));
-    const inputs = (median ? ["xc:#ef7f4359", "xc:#9c5a27e1"] : ["xc:#ef7f4359"])
+    const inputs = (colors ?? (median ? ["xc:#ef7f4359", "xc:#9c5a27e1"] : ["xc:#ef7f4359"]))
         .flatMap(input => ["(", input, ...before, ")"]);
     const argv = [...inputs, ...(median ? ["-evaluate-sequence", "Median"] : []), ...after, "-depth", "8", "rgba:/out"];
     const args = createCommandArguments(argv);
@@ -67,5 +73,5 @@ it.each([
         : await runConvertCli(argv, mode === "map" ? files : { filesystem: fs, cwd: "/" });
     expect(result).toMatchObject({ exitCode: 0 });
     const output = mode === "map" || mode === "sync" ? files.get("/out")! : await fs.readFile("/out");
-    expect(Buffer.from(output).toString("hex")).toBe("ef7f4359");
+    expect(Buffer.from(output).toString("hex")).toBe(expected);
 });

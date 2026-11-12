@@ -638,33 +638,44 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
         } else if (median) {
             // Native ranks every input through the output canvas channel map.
             const gray = canvas.space === "b-w" || canvas.space === "grey16";
-            const pixels = length / stride, histogram = new Float64Array(pixels * 32), ranks = new Float64Array(pixels), sums = new Uint32Array(pixels);
+            const pixels = length / stride, histogram = new Float64Array(pixels * 256), ranks = new Float64Array(pixels), prefixes = new Uint8Array(pixels * 8);
+            const key = new DataView(new ArrayBuffer(8));
+            function rankKey(samples: Uint8Array | Uint16Array | Float64Array, offset: number) {
+                const sum = samples[offset]! + (gray ? 0 : samples[offset + 1]! + samples[offset + 2]!) + samples[offset + 3]! + (cmyk ? samples[offset + 4]! : 0);
+                // Sort IEEE doubles numerically: flip the positive sign bit and invert negatives.
+                key.setFloat64(0, sum === 0 ? 0 : sum);
+                key.setUint32(0, key.getUint32(0) ^ (sum < 0 ? 0xffffffff : 0x80000000));
+                if (sum < 0) key.setUint32(4, ~key.getUint32(4));
+            }
             ranks.fill(Math.floor(frames / 2));
-            // Bounded radix passes cover 10-bit byte sums or 18-bit quantum sums.
-            for (const shift of highDepth ? [15, 10, 5, 0] : cmyk ? [10, 5, 0] : [5, 0]) {
+            // Eight radix passes retain fractional and out-of-range sums with bounded memory.
+            for (let digit = 0; digit < 8; digit++) {
                 histogram.fill(0);
                 for (let image = 0; image < frames; image++) {
                     if (++work % 64 === 0) yield;
-                    const bytes = yield* read(image, position, length);
+                    const samples = yield* read(image, position, length, true);
                     for (let pixel = 0; pixel < pixels; pixel++) {
-                        const offset = pixel * stride, sum = Math.trunc(bytes[offset]! + (gray ? 0 : bytes[offset + 1]! + bytes[offset + 2]!) + bytes[offset + 3]! + (cmyk ? bytes[offset + 4]! : 0));
-                        if ((sum >> (shift + 5)) === (sums[pixel]! >> (shift + 5))) histogram[pixel * 32 + ((sum >> shift) & 31)]!++;
+                        rankKey(samples, pixel * stride);
+                        let prefix = 0;
+                        while (prefix < digit && key.getUint8(prefix) === prefixes[pixel * 8 + prefix]) prefix++;
+                        if (prefix === digit) histogram[pixel * 256 + key.getUint8(digit)]!++;
                     }
                 }
-                for (let pixel = 0; pixel < pixels; pixel++) for (let bucket = 0; bucket < 32; bucket++) {
-                    const count = histogram[pixel * 32 + bucket]!;
-                    if (ranks[pixel]! < count) { sums[pixel] = sums[pixel]! | (bucket << shift); break; }
+                for (let pixel = 0; pixel < pixels; pixel++) for (let bucket = 0; bucket < 256; bucket++) {
+                    const count = histogram[pixel * 256 + bucket]!;
+                    if (ranks[pixel]! < count) { prefixes[pixel * 8 + digit] = bucket; break; }
                     ranks[pixel]! -= count;
                 }
             }
             for (let image = 0; image < frames; image++) {
                 if (++work % 64 === 0) yield;
-                const bytes = yield* read(image, position, length);
-                // Preserve the selected tuple's working samples after bounded ranking.
                 const samples = yield* read(image, position, length, true);
                 for (let pixel = 0; pixel < pixels; pixel++) {
-                    const offset = pixel * stride, sum = Math.trunc(bytes[offset]! + (gray ? 0 : bytes[offset + 1]! + bytes[offset + 2]!) + bytes[offset + 3]! + (cmyk ? bytes[offset + 4]! : 0));
-                    if (sum === sums[pixel]) { if (ranks[pixel] === 0) data.set(samples.subarray(offset, offset + stride), offset); ranks[pixel]! -= 1; }
+                    const offset = pixel * stride;
+                    rankKey(samples, offset);
+                    let prefix = 0;
+                    while (prefix < 8 && key.getUint8(prefix) === prefixes[pixel * 8 + prefix]) prefix++;
+                    if (prefix === 8) { if (ranks[pixel] === 0) data.set(samples.subarray(offset, offset + stride), offset); ranks[pixel]! -= 1; }
                 }
             }
         } else if (["sin", "sine", "cos", "cosine"].includes(operation)) {

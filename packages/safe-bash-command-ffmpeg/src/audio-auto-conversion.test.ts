@@ -64,7 +64,8 @@ it("checks the implicit audio graph when no filter was requested", async () => {
 });
 
 for (const options of [["-ar", "16000"], ["-ac", "2"], ["-af", "aformat=flt"],
-  ["-af", "aformat=sample_rates=16000"], ["-af", "aformat=channel_layouts=stereo"]]) {
+  ["-af", "aformat=sample_rates=16000"], ["-af", "aformat=channel_layouts=stereo"],
+  ["-af", "virtualbass"], ["-af", "aresample=osf=dblp,virtualbass"]]) {
   it(`rejects implicit conversion for ${options.join(" ")}`, async () => {
     const result = await run(["-noauto_conversion_filters", "-i", "/in.wav", ...options, "-f", "s16le", "-"]);
     assert.equal(result.exitCode, 234, result.stderr);

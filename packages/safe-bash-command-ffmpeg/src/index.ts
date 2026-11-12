@@ -14939,14 +14939,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       }
                       if (filterName === "virtualbass") {
                         if (!autoConversionFilters && filteredSampleFormat !== "dblp") throw new Error(audioConversionDisabled);
-                        if (filteredChannelMask && filteredChannelMask !== 3) throw new Error("virtualbass: stereo input required");
+                        const inputSampleFormat = filteredSampleFormat;
+                        stretched = await convertAudioSampleFormat(stretched, inputSampleFormat, "dblp", budget, context.signal);
+                        filteredSampleFormat = panSampleFormat = "dblp";
+                        await applyAudioChannelLayouts("stereo", inputSampleFormat, "aformat", "dblp");
                         const commands = audioCommands.filter(command => command.target === "virtualbass" || command.target === filterTarget)
                           .sort((a, b) => a.sample - b.sample);
                         audioCommands = audioCommands.filter(command => command.target !== "virtualbass" && command.target !== filterTarget);
                         stretched = await virtualBassAudio(stretched, origRate, trimmed, budget, context.signal, commands);
                         filteredChannelMask = 0xb;
                         filteredChannelNames = undefined;
-                        filteredSampleFormat = panSampleFormat = "dblp";
                         continue;
                       }
                       if (filterName === "surround") {

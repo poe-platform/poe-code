@@ -15626,8 +15626,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             validateWeaveGenericOption(key, value, "silencedetect");
                           } else throw new Error(`silencedetect: unsupported option ${key}`);
                         }
-                        // Native s16 detection truncates and wraps noise to signed 16-bit PCM.
-                        if (panSampleFormat === "s16" || panSampleFormat === "s16p") noise = (noise * 32767 << 16 >> 16) / 32768;
+                        // Native u8/u8p input negotiates s16 detection, which truncates and wraps noise.
+                        if (["u8", "u8p", "s16", "s16p"].includes(panSampleFormat)) noise = (noise * 32767 << 16 >> 16) / 32768;
                         else if (panSampleFormat === "s32" || panSampleFormat === "s32p") {
                           // Native s32 conversion truncates, returning INT32_MIN on overflow.
                           const threshold = Math.trunc(noise * 2147483647);

@@ -9829,6 +9829,13 @@ export function evalSyncFfmpeg(
       discNumber: metadata.disc ?? (outPlugin?.id === "flac" ? metadata.discnumber : undefined) ?? sourceMetadata.discNumber,
       encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav" || outPlugin?.id === "flac" || outPlugin?.id === "caf" || outPlugin?.id === "lrc") ? ((outPlugin.id === "ffmetadata" || outPlugin.id === "lrc" ? outputBitexact : bitexact) ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder,
     };
+    if (outPlugin?.id === "flac") {
+      metaTags = { ...metaTags, custom: {
+        ...Object.fromEntries(Object.entries(sourceMetadata.custom ?? {})
+          .filter(([key]) => !Object.hasOwn(metadata, key.toLowerCase()))),
+        ...metadata
+      } };
+    }
     if (outPlugin?.id === "ffmetadata") metaTags = orderFfmetadataReplacements(metaTags, sourceMetadata, metadata);
     workingDoc = { ...workingDoc, faststart, metadata: metaTags, tracks: applyStreamDispositions(applyStreamMetadata(mapStreamMetadata(workingDoc.tracks, loadedDocs, streamMetadataMaps), streamMetadata, metadataSources.at(-1)), streamDispositions, outPlugin?.id, defaultMode) };
     if (outPlugin?.id === "mp4" || outPlugin?.id === "mov") {
@@ -20739,6 +20746,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               discNumber: metadata.disc ?? (outPlugin?.id === "flac" ? metadata.discnumber : undefined) ?? sourceMetadata.discNumber,
               encoder: (outPlugin?.id === "ffmetadata" || outPlugin?.id === "wav" || outPlugin?.id === "flac" || outPlugin?.id === "caf" || outPlugin?.id === "lrc") ? ((outPlugin.id === "ffmetadata" || outPlugin.id === "lrc" ? outputBitexact : bitexact) ? undefined : "Lavf61.7.100") : metadata.encoder ?? sourceMetadata.encoder
             };
+            if (outPlugin?.id === "flac") {
+              metaTags = { ...metaTags, custom: {
+                ...Object.fromEntries(Object.entries(sourceMetadata.custom ?? {})
+                  .filter(([key]) => !Object.hasOwn(metadata, key.toLowerCase()))),
+                ...metadata
+              } };
+            }
             if (outPlugin?.id === "ffmetadata") metaTags = orderFfmetadataReplacements(metaTags, sourceMetadata, metadata);
             workingDoc = {
               ...workingDoc,

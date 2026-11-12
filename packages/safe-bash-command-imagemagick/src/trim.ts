@@ -191,17 +191,17 @@ export function* formatTrimBoundsSteps<Step = never>(
         : `${area.width}x${area.height}+${area.left}+${area.top}`;
 }
 
-function emptyTrimPixel(image: RgbaImage | StoredRgbaImage, background?: RgbaColor): Uint8Array {
-    if (background) return new Uint8Array([background.r, background.g, background.b, 0]);
+function emptyTrimPixel(image: RgbaImage | StoredRgbaImage, background?: RgbaColor): Uint16Array {
+    if (background) return Uint16Array.from([background.r, background.g, background.b, 0], value => Math.round(value * 257));
     // Native PNG reading leaves sub-byte grayscale bKGD samples unscaled.
     const value = image.format === "png" && image.space === "b-w" && image.backgroundColor && (image.bitsPerSample ?? 8) < 8
         ? Math.round(image.backgroundColor.b * (2 ** image.bitsPerSample! - 1) / 255)
         : undefined;
     if (value === undefined && image.backgroundColor) {
         const { r, g, b } = image.backgroundColor;
-        return new Uint8Array([r, g, b, 0]);
+        return Uint16Array.from([r, g, b, 0], value => Math.round(value * 257));
     }
-    return new Uint8Array([value ?? 255, value ?? 255, value ?? 255, 0]);
+    return Uint16Array.from([value ?? 255, value ?? 255, value ?? 255, 0], value => value * 257);
 }
 
 export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string, minSize?: { width?: number; height?: number }, percentBackground?: number, analysis?: { warnings: string }, background?: RgbaColor, emptyBackground?: RgbaColor, gravity?: GravityPosition): Generator<void, RgbaImage, void> {
@@ -262,7 +262,8 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
     if (next.value.width > 0 && next.value.height > 0) return image;
     // ImageMagick represents an empty trim with one transparent background pixel.
     const { data16: ignored, evaluateSamples: ignoredSamples, hueSamples: ignoredHue, ...metadata } = image;
-    return { ...metadata, [magickInput]: { ...image[magickInput], imageType: undefined }, width: 1, height: 1, data: emptyTrimPixel(image, emptyBackground), channels: 4, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false, region: undefined,
+    const data16 = emptyTrimPixel(image, emptyBackground);
+    return { ...metadata, [magickInput]: { ...image[magickInput], imageType: undefined }, width: 1, height: 1, data16, data: Uint8Array.from(data16, value => Math.round(value / 257)), channels: 4, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false, region: undefined,
         virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };
 }
 
@@ -311,8 +312,11 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
     // Bounds outside the raster leave the original image and virtual page intact.
     if (next.value.width > 0 && next.value.height > 0) return image;
     const emptyPosition = storage.allocate(4);
-    await storage.write(emptyPosition, emptyTrimPixel(image, emptyBackground), { signal });
+    const data16 = emptyTrimPixel(image, emptyBackground);
+    await storage.write(emptyPosition, Uint8Array.from(data16, value => Math.round(value / 257)), { signal });
+    const position16 = storage.allocate(data16.byteLength);
+    await storage.write(position16, new Uint8Array(data16.buffer), { signal });
     const { storedData16: ignored, storedEvaluateSamples: ignoredSamples, storedHueSamples: ignoredHue, ...metadata } = image;
-    return { ...metadata, [magickInput]: { ...image[magickInput], imageType: undefined }, width: 1, height: 1, position: emptyPosition, channels: 4, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false, region: undefined,
+    return { ...metadata, [magickInput]: { ...image[magickInput], imageType: undefined }, width: 1, height: 1, position: emptyPosition, storedData16: { position: position16, length: data16.length }, channels: 4, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false, region: undefined,
         virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };
 }

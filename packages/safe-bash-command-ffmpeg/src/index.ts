@@ -49,7 +49,7 @@ import { swapUv } from "./swapuv.js";
 import { swapRect } from "./swaprect.js";
 import { colorcorrect } from "./colorcorrect.js";
 import { deessAudio } from "./audio-deesser.js";
-import { declickAudio } from "./audio-adeclick.js";
+import { declickAudio, parseDeclick } from "./audio-adeclick.js";
 import { deflicker } from "./deflicker.js";
 import { tmix } from "./tmix.js";
 import { tmidequalizer } from "./tmidequalizer.js";
@@ -14649,6 +14649,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             commands, audioTimestamps, budget, context.signal, frameLimit);
                           initialDemand = result.frames.length < frameLimit ? length : result.frames[frameLimit - 1]!.inputEnd;
                         }
+                        const declick = next && ["adeclick", "adeclip"].includes(next.split("=", 1)[0]!.split("@", 1)[0]!)
+                          ? parseDeclick(next, origRate) : undefined;
+                        if (declick && frameLimit !== undefined && frameLimit > 0) {
+                          const { size, hop, skip } = declick;
+                          // Each output hop needs a full analysis window; input is loaded in
+                          // window-sized blocks, rounded up again to whole upstream frames.
+                          initialDemand = Math.min(length, Math.ceil(((frameLimit - 1) * hop - skip + size) / size) * size);
+                        }
                         let pending = 0;
                         let pendingPts = 0;
                         let pendingPos: number | undefined;
@@ -14687,7 +14695,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               if (end <= 0) break;
                               if (Math.min(size, end) > Math.max(0, from)) outputFrames++;
                             }
-                          } else if (wavelet && frameLimit !== undefined) {
+                          } else if ((wavelet || declick) && frameLimit !== undefined) {
                             if (measuredEnd >= initialDemand) outputFrames = frameLimit;
                           } else if (reframe && frameLimit !== undefined) {
                             // Output groups may split one input frame or consume several.
@@ -14718,6 +14726,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (filterName === "adeclick" || filterName === "adeclip") {
                         stretched = await declickAudio(stretched, origRate, trimmed, budget, context.signal,
                           audioTimestamps ?? [{ start: 0, end: stretched[0]?.length ?? 0, pts: audioStartSample }]);
+                        const { hop } = parseDeclick(trimmed, origRate);
+                        const length = stretched[0]?.length ?? 0;
+                        budget.allocateMemory(Math.ceil(length / hop) * 32);
+                        const previous = audioTimestamps;
+                        audioTimestamps = [];
+                        let frameIndex = 0;
+                        for (let start = 0; start < length; start += hop) {
+                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                          while (previous && frameIndex + 1 < previous.length && previous[frameIndex]!.end <= start) frameIndex++;
+                          const frame = previous?.[frameIndex];
+                          audioTimestamps.push({ start, end: Math.min(length, start + hop),
+                            pts: frame ? frame.pts + start - frame.start : audioStartSample + start, pos: frame?.pos });
+                        }
                         continue;
                       }
                       if (filterName === "virtualbass") {

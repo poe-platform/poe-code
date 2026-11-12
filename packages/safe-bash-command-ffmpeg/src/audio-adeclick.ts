@@ -4,11 +4,7 @@ import { parseFilterExpression } from "./filter-expression.js";
 import { declickWindow } from "./audio-declick-window.js";
 import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
-export async function declickAudio(
-  channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
-  filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
-  frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[] = []
-): Promise<Float64Array[]> {
+export function parseDeclick(filter: string, sampleRate: number) {
   const declip = filter.split("=", 1)[0] === "adeclip";
   const name = declip ? "adeclip" : "adeclick";
   const defaults = { window: 55, overlap: 75, arorder: declip ? 8 : 2, threshold: declip ? 10 : 2, burst: 2, hsize: 1000, method: 0 };
@@ -59,6 +55,15 @@ export async function declickAudio(
   const hop = Math.max(1, Math.trunc(size * (1 - options.overlap / 100)));
   const skip = options.method ? Math.trunc((size - hop) / 2) : 0;
   const burst = Math.trunc(size * options.burst / 1000);
+  return { options, name, declip, enable, size, order, hop, skip, burst };
+}
+
+export async function declickAudio(
+  channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
+  filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
+  frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[] = []
+): Promise<Float64Array[]> {
+  const { options, name, declip, enable, size, order, hop, skip, burst } = parseDeclick(filter, sampleRate);
   const length = channels[0]?.length ?? 0;
   budget.allocateMemory(channels.length * length * 8 + size * 40 + (order + 1) * 32 + (declip ? options.hsize * 4 : 0));
   // The native activation path consumes window-sized blocks, independently of

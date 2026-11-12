@@ -17265,13 +17265,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         const lastFrame = audioTimestamps.at(-1);
                         const samplesPerTick = (audioTimeBase ?? 1 / origRate) * origRate;
+                        // Without input frames, padding keeps missing PTS until the output muxer.
                         // apad rescales each frame's duration to input ticks before advancing PTS.
                         let paddingExactPts = lastFrame && Number.isNaN(lastFrame.pts)
                           ? -(2n ** 63n) + BigInt(Math.round((lastFrame.end - lastFrame.start) / samplesPerTick)) : undefined;
                         let paddingPts = paddingExactPts !== undefined
                           ? paddingExactPts === -(2n ** 63n) ? NaN : Number(paddingExactPts) * samplesPerTick
                           : lastFrame ? lastFrame.pts
-                            + Math.round((lastFrame.end - lastFrame.start) / samplesPerTick) * samplesPerTick : 0;
+                            + Math.round((lastFrame.end - lastFrame.start) / samplesPerTick) * samplesPerTick : NaN;
                         if (padding === undefined && minimum === undefined) {
                           let nextIndex = filterIndex + 1;
                           let reframe: string | undefined;
@@ -17361,8 +17362,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             const firstPts = Math.max(audioTimestamps[0]?.pts ?? audioStartSample,
                               outputSs === undefined ? -Infinity : seek);
                             // Padding starts at the final frame's end, which can differ from the sample count.
+                            // With no input frames, output muxing starts at zero despite missing filter PTS.
                             minimum = duration === undefined ? Infinity
-                              : inputLength + Math.max(0, firstPts + Math.round(duration * resampleInputRate) - paddingPts);
+                              : inputLength + Math.max(0, firstPts + Math.round(duration * resampleInputRate)
+                                - (lastFrame ? paddingPts : 0));
                             if (resampleSupport && duration !== undefined) {
                               minimum = Math.max(resampleSupport + 1, minimum + resampleSupport / 2);
                             }
@@ -19831,21 +19834,26 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     if (audioTimestamps) {
                       const seek = Math.round((outputSs ?? 0) * origRate);
                       const duration = outputDuration ?? (outputTo === undefined ? undefined : outputTo - (outputSs ?? 0));
-                      const firstPts = Math.max(audioTimestamps[0]?.pts ?? 0, outputSs === undefined ? -Infinity : seek);
+                      const initialPts = audioTimestamps[0]?.pts ?? 0;
+                      const firstPts = Math.max(Number.isNaN(initialPts) ? 0 : initialPts, outputSs === undefined ? -Infinity : seek);
                       const endPts = duration === undefined ? Infinity : firstPts + Math.round(duration * origRate);
                       const ranges: { start: number; end: number }[] = [];
                       const frames: typeof audioTimestamps = [];
                       let length = 0;
+                      let nextPts = 0;
                       for (const frame of audioTimestamps) {
                         if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                        // Missing filter timestamps follow the output sample clock.
+                        const pts = Number.isNaN(frame.pts) ? nextPts : frame.pts;
+                        nextPts = pts + frame.end - frame.start;
                         // Duration trims each frame on its own timeline; overlapping frames can both survive.
-                        if (frame.pts >= endPts) break;
-                        const from = frame.start + (outputSs === undefined ? 0 : Math.max(0, Math.round(seek - frame.pts)));
+                        if (pts >= endPts) break;
+                        const from = frame.start + (outputSs === undefined ? 0 : Math.max(0, Math.round(seek - pts)));
                         // Resampler startup/flush can produce fewer samples than the scaled frame bounds.
-                        const to = Math.min(stretched[0]?.length ?? 0, frame.end, frame.start + Math.round(endPts - frame.pts));
+                        const to = Math.min(stretched[0]?.length ?? 0, frame.end, frame.start + Math.round(endPts - pts));
                         if (to <= from) continue;
                         ranges.push({ start: from, end: to });
-                        frames.push({ start: length, end: length + to - from, pts: frame.pts + from - frame.start - seek });
+                        frames.push({ start: length, end: length + to - from, pts: pts + from - frame.start - seek });
                         length += to - from;
                       }
                       budget.allocateMemory(length * stretched.length * 8);

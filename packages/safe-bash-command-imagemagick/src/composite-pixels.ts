@@ -153,6 +153,18 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                 out[dIdx + 3] = 255;
                 continue;
             }
+            if (norm === "reflect") {
+                const alpha = sa + da - sa * da;
+                for (let c = 0; c < 3; c++) {
+                    const sc = sa > 0 ? src.data[sIdx + c]! / 255 : 0;
+                    const dc = da > 0 ? dst.data[dIdx + c]! / 255 : 0;
+                    const blend = dc < 1 ? sc * sc / (1 - dc) : 1;
+                    out[dIdx + c] = clampByteVal(255 * alpha * blend);
+                }
+                // Native Reflect applies its ratio to alpha independently of color.
+                out[dIdx + 3] = clampByteVal(255 * Math.min(1, sa * sa / Math.max(1e-12, 1 - da)));
+                continue;
+            }
             if (norm === "rmse") {
                 // ImageMagick divides only the blue squared difference by three.
                 const gray = clampByteVal(Math.sqrt((dr - sr) ** 2 + (dg - sg) ** 2 + (db - sb) ** 2 / 3));

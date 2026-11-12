@@ -353,8 +353,13 @@ export function* combinePixelSteps(inputs: readonly (Pick<RgbaImage, "width" | "
             const count = Math.min(length, (sourceImage.width - x) * 4);
             const working = image === 0 ? baseWorking : yield { kind: "read", evaluate: true, image, position: (y * sourceImage.width + x) * 4, length: count };
             const bytes = working?.length ? working : image === 0 ? base : (yield { kind: "read", highDepth, image, position: (y * sourceImage.width + x) * 4, length: count })!;
-            const source = working?.length ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => highDepth ? value * 257 : value)
+            let source = working?.length ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => highDepth ? value * 257 : value)
                 : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
+            if (!working?.length && sourceImage.space !== "cmyk") {
+                // Converted colors retain fractional samples in the colorspace plane.
+                const colors = yield { kind: "read", hue: true, image, position: (y * sourceImage.width + x) * 4, length: count };
+                if (colors?.length) source = new Float64Array(colors.slice().buffer).map(value => value * range);
+            }
             const hue = sourceImage.space === "cmyk" ? image === 0 ? baseHue
                 : yield { kind: "read", hue: true, image, position: (y * sourceImage.width + x) * 4, length: count } : undefined;
             const inkSamples = hue?.length ? new Float64Array(hue.slice().buffer) : undefined;

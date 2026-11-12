@@ -22,10 +22,11 @@ export function* combineMetaPixelSteps(extent: Pick<RgbaImage, "width" | "height
         const count = y < source.height ? Math.max(0, Math.min(length, (source.width - x) * 4)) : 0;
         const sourceWorking = count ? yield { kind: "read", evaluate: true, position: (y * source.width + x) * 4, length: count } : undefined;
         const bytes = sourceWorking?.length ? sourceWorking : count ? (yield { kind: "read", highDepth, position: (y * source.width + x) * 4, length: count })! : new Uint8Array();
-        const samples = sourceWorking?.length ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => highDepth ? value * 257 : value)
+        let samples = sourceWorking?.length ? Float64Array.from(new Float64Array(bytes.slice().buffer), value => highDepth ? value * 257 : value)
             : highDepth ? new Uint16Array(bytes.slice().buffer) : bytes;
-        const hue = count && source.space === "cmyk" ? yield { kind: "read", hue: true, position: (y * source.width + x) * 4, length: count } : undefined;
+        const hue = count ? yield { kind: "read", hue: true, position: (y * source.width + x) * 4, length: count } : undefined;
         const inks = hue?.length ? new Float64Array(hue.slice().buffer) : undefined;
+        if (!sourceWorking?.length && inks && source.space !== "cmyk") samples = inks.map(value => value * maximum);
         for (let offset = 0; offset < length; offset += 4) {
             const channels = offset < count && source.space === "cmyk" ? inks?.subarray(offset, offset + 3)
                 ?? rgbToCmyk(samples[offset]! / maximum, samples[offset + 1]! / maximum, samples[offset + 2]! / maximum) : undefined;

@@ -8407,7 +8407,7 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
               return "<i>".repeat(markers) + line.slice(markers) + "</i>".repeat(markers);
             })
             .join(lineBreak).replaceAll("\\N", lineBreak));
-          if (codec === "mpl2" && (outputFormat === "webvtt" || containerCodec === "webvtt" || outputFormat === "srt" || containerCodec === "subrip")) {
+          if (outputFormat === "webvtt" || containerCodec === "webvtt" || outputFormat === "srt" || containerCodec === "subrip") {
             // Text encoders discard initial ASCII spaces after style decoding.
             let start = 0;
             while (data[start] === 0x20) start++;

@@ -62,3 +62,13 @@ it("rescales SRT packet starts and durations separately from microseconds", () =
   assert.equal(new TextDecoder().decode(output),
     "1\n00:00:03,001 --> 00:00:04,001\nA\n\n2\n00:00:05,001 --> 00:00:06,002\nA\n\n");
 });
+
+it("preserves an empty SubRip packet and its cue timing", () => {
+  const doc = parseSubtitleDocument(new TextEncoder().encode(srt), "srt");
+  const track = doc.tracks[0]!;
+  const output = serializeSubtitleDocument({ ...doc, tracks: [{ ...track,
+    samples: track.samples.map((sample, index) => index === 0
+      ? { ...sample, data: new Uint8Array(), size: 0 } : sample)
+  }] }, "srt");
+  assert.equal(new TextDecoder().decode(output), srt.replace("Hello\nworld", ""));
+});

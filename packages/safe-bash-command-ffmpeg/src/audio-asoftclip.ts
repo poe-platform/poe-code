@@ -66,7 +66,7 @@ export async function softClipAudio(
       case "atan": clipped = 2 / Math.PI * round(Math.atan(round(sample * param))); break;
       case "cubic": clipped = Math.abs(sample) >= 1.5 ? Math.sign(sample) : sample - 0.1481 * sample ** 3; break;
       // Match expf and the float arithmetic before PCM encoding.
-      case "exp": clipped = round(2 / round(1 + round(Math.exp(round(-2 * sample))))) - 1; break;
+      case "exp": clipped = round(2 / round(1 + (format === "dblp" ? Math.exp(-2 * sample) : expFloat(round(-2 * sample))))) - 1; break;
       case "alg": clipped = sample / round(Math.sqrt(round(param + round(sample * sample)))); break;
       case "quintic": clipped = Math.abs(sample) >= 1.25 ? Math.sign(sample) : sample - 0.08192 * sample ** 5; break;
       case "sin": clipped = Math.abs(sample) >= Math.PI / 2 ? Math.sign(sample) : Math.sin(sample); break;
@@ -217,4 +217,48 @@ function tanhFloat(value: number): number {
   return Math.sign(value) * (magnitude < 1
     ? round(-exponential / round(exponential + 2))
     : round(1 - round(2 / round(exponential + 2))));
+}
+
+// expf/exp2f_data from musl: Copyright (c) 2017-2018, Arm Limited.
+// Permission is hereby granted, free of charge, to any person obtaining a copy
+// of this software and associated documentation files (the "Software"), to deal
+// in the Software without restriction, including without limitation the rights
+// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the Software is
+// furnished to do so, subject to the following conditions:
+// The above copyright notice and this permission notice shall be included in
+// all copies or substantial portions of the Software.
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+// THE SOFTWARE.
+// https://git.musl-libc.org/cgit/musl/tree/src/math/expf.c
+// Native expf uses this cubic approximation, not a rounded double exp.
+const expTable = [
+  1.0, 1.0218971486541166, 1.0442737824274138, 1.0671404006768237,
+  1.0905077326652577, 1.1143867425958924, 1.1387886347566916, 1.1637248587775775,
+  1.189207115002721, 1.215247359980469, 1.241857812073484, 1.2690509571917332,
+  1.2968395546510096, 1.3252366431597413, 1.3542555469368927, 1.383909881963832,
+  1.4142135623730951, 1.4451808069770467, 1.4768261459394993, 1.5091644275934228,
+  1.5422108254079407, 1.5759808451078865, 1.6104903319492543, 1.645755478153965,
+  1.681792830507429, 1.718619298122478, 1.7562521603732995, 1.7947090750031072,
+  1.8340080864093424, 1.8741676341103, 1.9152065613971474, 1.9571441241754002
+];
+
+function expFloat(value: number): number {
+  if (Number.isNaN(value)) return value;
+  if (value > 88.72283172607422) return Infinity;
+  if (value < -103.972076416015625) return 0;
+  const scaled = value * (1.4426950408889634 * 32);
+  // Round to the nearest integer, including ties to even.
+  const shift = 1.5 * 2 ** 52;
+  const k = (scaled + shift) - shift;
+  const remainder = scaled - k;
+  const scale = expTable[((k % 32) + 32) % 32]! * 2 ** Math.floor(k / 32);
+  const polynomial = (0.05550361559341535 / 32 ** 3 * remainder + 0.2402284522445722 / 32 ** 2) *
+    (remainder * remainder) + (0.6931471806916203 / 32 * remainder + 1);
+  return Math.fround(polynomial * scale);
 }

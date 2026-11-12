@@ -2,12 +2,18 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import { Volume } from "memfs";
+import { flacAst } from "@poe-code/mp4-ast";
 import { parseAudio } from "@poe-code/audio-ast";
 import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 const source = readFileSync(new URL("./fixtures/comments.flac", import.meta.url));
+const samples = flacAst().parse(source).tracks[0]!.decodedAudio!.channelData;
 const frames = parseAudio(source).nodes.find(node => node.type === "FRAMES")!.data;
-const cases = [
+const cases: { name: string; comments: string[]; expected: string[]; metadata?: string[] }[] = [
+  { name: "description copy", comments: ["DESCRIPTION=old"], expected: ["DESCRIPTION=old"] },
+  { name: "description replacement", comments: ["DESCRIPTION=old"], metadata: ["description=new"], expected: ["description=new"] },
+  { name: "comment replacement", comments: ["DESCRIPTION=old"], metadata: ["comment=new"], expected: ["DESCRIPTION=new"] },
+  { name: "title control", comments: ["title=Blue"], expected: ["title=Blue"] },
   { name: "single", comments: ["ARTIST=Alice", "ROLE=Voice"], expected: ["ARTIST=Alice", "ROLE=Voice"] },
   { name: "repeated", comments: ["ARTIST=Alice", "ARTIST=Bob", "ARTIST=Chloé", "ROLE=Voice", "ROLE=Music"],
     expected: ["ARTIST=Alice;Bob;Chloé", "ROLE=Voice;Music"] },
@@ -19,7 +25,7 @@ const cases = [
     expected: ["Artist=Alice;Bob;Chloé", "role=Voice;Music"] }
 ];
 
-for (const mode of ["sync", "async", "mapped"]) for (const { name, comments, expected } of cases) {
+for (const mode of ["sync", "async", "mapped"]) for (const { name, comments, expected, metadata = [] } of cases) {
   it(`coalesces ${name} FLAC copy comment records (${mode})`, async () => {
     // Author the physical length-prefixed records without normalizing their names.
     const entries = comments.map(comment => {
@@ -36,7 +42,7 @@ for (const mode of ["sync", "async", "mapped"]) for (const { name, comments, exp
     streamInfo[4] = 0;
     const input = Buffer.concat([streamInfo, header, block, frames]);
     const volume = Volume.fromJSON({ "/in.flac": input });
-    const args = ["-v", "error", "-y", "-i", "/in.flac", ...(mode === "mapped" ? ["-map", "0"] : []), "-c", "copy", "/out.flac"];
+    const args = ["-v", "error", "-y", "-i", "/in.flac", ...(mode === "mapped" ? ["-map", "0"] : []), ...metadata.flatMap(value => ["-metadata", value]), "-c", "copy", "/out.flac"];
     if (mode === "sync") {
       assert.equal(evalSyncFfmpeg(args, undefined,
         path => volume.readFileSync(path) as Buffer,
@@ -61,5 +67,8 @@ for (const mode of ["sync", "async", "mapped"]) for (const { name, comments, exp
     // Inspect records, not the normalized tag dictionary, which hides duplicates.
     assert.deepEqual(records.filter(record => !record.toLowerCase().startsWith("encoder=")), expected);
     assert.deepEqual(output.nodes.find(node => node.type === "FRAMES")!.data, frames);
+    const decoded = flacAst().parse(volume.readFileSync("/out.flac") as Buffer);
+    assert.deepEqual(decoded.tracks[0]!.decodedAudio!.channelData, samples);
+    if (comments[0] === "DESCRIPTION=old") assert.equal(decoded.metadata.comment, metadata.length ? "new" : "old");
   });
 }

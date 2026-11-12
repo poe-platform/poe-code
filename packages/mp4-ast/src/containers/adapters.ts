@@ -1882,6 +1882,12 @@ export function flacAst(): MediaAstPlugin {
       const tags = Object.fromEntries(Object.entries({ ...metadata.custom, ...metadata })
         .filter((entry): entry is [string, string] => typeof entry[1] === "string" && entry[1] !== "")
         .map(([key, value]) => [key === "album_artist" ? "albumArtist" : metadata.keySpellings?.[key] ?? key, value]));
+      // FFmpeg converts comment to DESCRIPTION without replacing an explicit description.
+      for (const key of Object.keys(tags)) {
+        if (key.toLowerCase() !== "comment") continue;
+        if (!Object.keys(tags).some(name => name.toLowerCase() === "description")) tags.DESCRIPTION = tags[key]!;
+        delete tags[key];
+      }
       const parsed = parseAudio(bytes);
       const pictures = doc.tracks.filter(track => track.type === "video" && track.disposition?.attached_pic === 1).map(track => {
         const codec = track.codecDescriptions[0]?.codecName;

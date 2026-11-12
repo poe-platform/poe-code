@@ -23353,7 +23353,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             continue;
         }
         else if (t === "-background") {
-            state.background = parseColor(argv[++i] ?? "#ffffff");
+            state.background = parseColor(argv[++i] ?? "#ffffff", true);
             state.backgroundExplicit = true;
         }
         else if (t === "-compose") {
@@ -23699,6 +23699,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     });
     if ("exitCode" in parsed) return parsed;
     const { shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, frame, matte, title, texture } = parsed;
+    const highDepthBackground = [state.background.r, state.background.g, state.background.b, state.background.a].some(value => !Number.isInteger(value));
     const disposed = new Map<object, RgbaImage[]>();
     const analysis = { warnings: parsed.warnings };
     const squareCells = parseMagickGeometry(geometry).isPercent && !geometry.toLowerCase().includes("x");
@@ -23828,7 +23829,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             const canvasH = Math.max(1, originY + (variableCells ? rowHeights.reduce((sum, height) => sum + height, (rows - rowHeights.length) * padY * 2) : rows * slotH));
             let tileX = 0, tileY = 0, rowHeight = 0;
                 if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
-            canvas = { ...yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background), hasAlpha: state.background.a < 255 };
+            canvas = { ...yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background, highDepthBackground), hasAlpha: state.background.a < 255 };
             if (textureImage) for (let y = 0; y < canvasH; y += textureImage.height) {
                 for (let x = 0; x < canvasW; x += textureImage.width) {
                     if (++cooperativeWork % 64 === 0) yield;
@@ -24068,7 +24069,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             const canvasW = Math.max(1, originX + (variableCells ? Math.max(0, ...rowWidths) + (shadow ? 4 : 0) : cols * slotW + (shadow ? 4 : 0)));
             const canvasH = Math.max(1, originY + (variableCells ? rowHeights.reduce((sum, height) => sum + height, (rows - rowHeights.length) * padY * 2) : rows * slotH));
             let tileX = 0, tileY = 0, rowHeight = 0;
-            canvas = { ...yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background), hasAlpha: state.background.a < 255 };
+            canvas = { ...yield* createSolidRgbaImageSteps(canvasW, canvasH, state.background, highDepthBackground), hasAlpha: state.background.a < 255 };
             if (textureImage) for (let y = 0; y < canvasH; y += textureImage.height) {
                 for (let x = 0; x < canvasW; x += textureImage.width) {
                     if (++cooperativeWork % 64 === 0) yield;
@@ -24207,6 +24208,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
     }), signal);
     if ("exitCode" in parsed) return parsed;
     const { shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, frame, matte, title, texture } = parsed;
+    const highDepthBackground = [state.background.r, state.background.g, state.background.b, state.background.a].some(value => !Number.isInteger(value));
     const disposed = new Map<object, StoredRgbaImage[]>();
     const analysis = { warnings: parsed.warnings };
     const squareCells = parseMagickGeometry(geometry).isPercent && !geometry.toLowerCase().includes("x");
@@ -24470,7 +24472,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             let tileX = 0, tileY = 0, rowHeight = 0;
             const directory: string[] = [];
             let titleHeight = 0;
-            let canvas = { ...await createStoredCanvas(Math.max(1, originX + canvasWidth), Math.max(1, originY + canvasHeight), state.background, backend, signal), hasAlpha: state.background.a < 255 };
+            let canvas = { ...await createStoredCanvas(Math.max(1, originX + canvasWidth), Math.max(1, originY + canvasHeight), state.background, backend, signal, highDepthBackground), hasAlpha: state.background.a < 255 };
             if (textureImage) canvas = await compositeStoredMagick(canvas, textureImage, backend, signal, 0, 0, "over", undefined, false, true, false, true);
             let anyTransparent = state.background.a < 255 || (borderW > 0 && state.borderColor.a < 255);
             for (let index = 0; index < pageSize; index++) {
@@ -24530,7 +24532,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 const { svg, height } = montageTitleSvg(title, canvas.width, state, padY);
                 titleHeight = height;
                 const caption = await decodeStoredMagickSvg(svg, 72, backend, signal);
-                const titled = await createStoredCanvas(canvas.width, canvas.height + height, state.background, backend, signal);
+                const titled = await createStoredCanvas(canvas.width, canvas.height + height, state.background, backend, signal, highDepthBackground);
                 canvas = await compositeStoredMagick(titled, canvas, backend, signal, 0, height, "over", undefined, false, true);
                 canvas = await compositeStoredMagick(canvas, caption, backend, signal, 0, 0, "over", undefined, false, true);
             }

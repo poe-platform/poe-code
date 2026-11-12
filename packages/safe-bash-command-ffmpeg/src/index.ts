@@ -712,7 +712,12 @@ function* lavfiSteps(
       ? channelNames.reduce((mask, name) => mask + audioSpeakerMasks[name]!, 0) : 0;
     if (!Number.isFinite(channelMask)) throw new Error(`Invalid channel layout: ${layout}`);
     const totalSamples = Math.max(0, Math.round(duration * sampleRate));
+    const frameSize = Number(filterName === "sine" ? kv.samples_per_frame ?? 1024 : kv.nb_samples ?? kv.n ?? 1024);
+    if (!Number.isSafeInteger(frameSize) || frameSize < 1 || frameSize > (filterName === "sine" ? 2147483647 : 65535)) {
+      throw new Error(`${filterName}: invalid samples per frame`);
+    }
     budget.checkDuration(duration);
+    budget.checkSamples(Math.ceil(totalSamples / frameSize));
 
     const channelData: Float32Array[] = [];
     for (let channel = 0; channel < channels; channel++) {
@@ -734,40 +739,39 @@ function* lavfiSteps(
       channelData.push(arr);
     }
 
-    yield;
-    const mp4Bytes = createSyntheticMp4({
-      width: 16,
-      height: 16,
-      fps: 10,
-      durationSeconds: duration,
-      includeAudio: true,
-      sampleRate,
-      channels
-    });
-    const base = parseMp4(mp4Bytes);
-    const audioTrack = base.tracks.find((t) => t.type === "audio")!;
     const samples: MediaTrack["samples"][number][] = [];
-    for (let pts = 0; pts < totalSamples; pts += 1024) {
-      if (samples.length % 1024 === 0) yield;
-      budget.allocateMemory(96);
-      samples.push({ data: new Uint8Array(0), size: 0, pts, dts: pts, cts: 0,
-        duration: Math.min(1024, totalSamples - pts), isKeyframe: true, sampleDescriptionIndex: 1 });
+    const bytesPerSample = filterName === "sine" ? 2 : 1;
+    for (let start = 0; start < totalSamples; start += frameSize) {
+      yield;
+      const count = Math.min(frameSize, totalSamples - start);
+      budget.allocateMemory(96 + count * channels * bytesPerSample);
+      const data = new Uint8Array(count * channels * bytesPerSample);
+      if (filterName === "sine") {
+        const view = new DataView(data.buffer);
+        for (let i = 0; i < count; i++) {
+          if (++work % 1024 === 0) yield;
+          for (let channel = 0; channel < channels; channel++) {
+            view.setInt16((i * channels + channel) * 2,
+              Math.round(channelData[channel]![start + i]! * 32768), true);
+          }
+        }
+      } else data.fill(128);
+      samples.push({ data, size: data.length, pts: start, dts: start, cts: 0,
+        duration: count, isKeyframe: true, sampleDescriptionIndex: 1 });
     }
     return {
-      ...base,
-      duration: Math.round(totalSamples / sampleRate * base.timescale),
-      durationSeconds: totalSamples / sampleRate,
-      tracks: [
-        {
-          ...audioTrack,
-          id: 1,
-          timescale: sampleRate,
-          duration: totalSamples,
-          samples,
-          codecDescriptions: audioTrack.codecDescriptions.map(codec => ({ ...codec, channelLayout: layout })),
-          decodedAudio: { sampleRate, channels, channelData, channelMask }
-        }
-      ]
+      containerFormat: "lavfi", timescale: sampleRate, duration: totalSamples,
+      durationSeconds: totalSamples / sampleRate, metadata: {},
+      tracks: [{
+        id: 1, type: "audio", handlerType: "soun", language: "und", enabled: true,
+        timescale: sampleRate, duration: totalSamples, samples,
+        codecDescriptions: [{
+          formatFourCC: filterName === "sine" ? "sowt" : "raw ",
+          codecName: filterName === "sine" ? "pcm_s16le" : "pcm_u8",
+          sampleRate, channels, channelLayout: layout, bitsPerSample: bytesPerSample * 8
+        }],
+        decodedAudio: { sampleRate, channels, channelData, channelMask }
+      }]
     };
   }
 

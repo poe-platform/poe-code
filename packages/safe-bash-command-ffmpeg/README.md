@@ -88,6 +88,11 @@ The `lavfi` `anullsrc` audio source preserves channel counts and speaker assignm
 
 `sine=frequency=400:beep_factor=2` mixes a 40 ms beep into the start of each second, at twice the tone amplitude and `frequency * beep_factor` Hz. `b` aliases `beep_factor`; zero (the default) disables the beep.
 
+The `lavfi` audio sources preserve their requested frame sizes: `sine` accepts
+`samples_per_frame`, and `anullsrc` accepts `nb_samples` or `n` (default 1024).
+For example, `sine=r=8000:d=0.25:samples_per_frame=400 -frames:a 1` produces
+400 samples per channel with PCM output. The final source frame stops at its duration.
+
 The `lavfi` color source accepts positional color, size, rate, and duration:
 `color=red:4x4:1:1` is equivalent to `color=c=red:s=4x4:r=1:d=1`.
 It uses FFmpeg 7's limited-range BT.601 RGB samples: red

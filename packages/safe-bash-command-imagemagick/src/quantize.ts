@@ -50,7 +50,7 @@ interface ColorNode {
 }
 
 /** A bounded histogram and error-pruned color tree shared by both raster backends. */
-export function* quantizePixelSteps(length: number, requested: number, grayscale: boolean | "bilevel" = false, treeDepth = 0, hasAlpha = true, highDepth = false, cycle?: { amount: number; width: number; region?: Region | undefined; writeMask?: boolean; alphaActive: boolean; channels?: MaskChannels | undefined }, dither?: { width: number; height: number; method: "riemersma" | "floydsteinberg"; diffusionAmount: number }, evaluate = false, working?: "hue" | "cmyk", images?: readonly { length: number; hasAlpha: boolean }[]): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
+export function* quantizePixelSteps(length: number, requested: number, grayscale: boolean | "bilevel" = false, treeDepth = 0, hasAlpha = true, highDepth = false, cycle?: { amount: number; width: number; region?: Region | undefined; writeMask?: boolean; alphaActive: boolean; channels?: MaskChannels | undefined }, dither?: { width: number; height: number; method: "riemersma" | "floydsteinberg"; diffusionAmount: number }, evaluate = false, working?: "hue" | "cmyk", images?: readonly { length: number; hasAlpha: boolean }[], width?: number): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
     if (!Number.isSafeInteger(requested) || requested < 1) throw new Error("colors must be a positive integer");
     const clamp = (value: number) => Math.max(0, Math.min(255, value));
     // Keep fractional palette means alongside byte output for later arithmetic and deeper output.
@@ -163,50 +163,24 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             palette.push(entry.color);
         }
     } else {
-        const depth = treeDepth === 0 ? 8 : Math.max(2, Math.min(8, treeDepth));
-        const root: ColorNode = { level: 0, children: new Map(), count: 0, sums: [0, 0, 0, 0, 0, 0, 0], error: Infinity, removed: false };
-        for (const bin of bins.values()) {
-            if (++work % 1024 === 0) yield;
-            const pixel = bin.sums.slice(0, 4).map((value, c) => c < 3 ? bin.associated[c]! / bin.count / 255 : value / bin.count), midpoint = [127.5, 127.5, 127.5, 127.5];
-            let node = root;
-            for (let bit = 7; bit >= 0; bit--) {
-                let id = 0, distance = 0;
-                for (let c = 0; c < (bin.alpha === false ? 3 : channels); c++) {
-                    const high = (Math.round(clamp(pixel[c]!)) >>> bit) & 1;
-                    id |= high << c;
-                    // ImageMagick's Q16 cube centers, expressed in byte units.
-                    midpoint[c]! += (high ? 1 : -1) * (128 << bit) / 257;
-                    distance += (pixel[c]! - midpoint[c]!) ** 2;
-                }
-                let child = node.children.get(id);
-                if (!child) {
-                    child = { parent: node, level: 8 - bit, children: new Map(), count: 0, sums: [0, 0, 0, 0, 0, 0, 0], error: 0, removed: false };
-                    node.children.set(id, child);
-                }
-                child.error += bin.count * Math.sqrt(distance);
-                node = child;
-            }
-            node.count += bin.count;
-            for (let c = 0; c < 7; c++) node.sums[c]! += bin.sums[c]!;
+        let depth = treeDepth;
+        if (!depth) {
+            // Native single-image depth is log4(colors) + 2, adjusted for dithering and alpha.
+            depth = 1;
+            for (let colors = requested; colors >= 1; colors = Math.floor(colors / 4)) depth++;
+            if (dither && depth > 2) depth--;
+            if (hasAlpha && depth > 5) depth--;
+            if ([...bins.values()].every(bin => bin.sums[0] === bin.sums[1] && bin.sums[1] === bin.sums[2])) depth = 8;
         }
-        // Traverse octants in RGB bit order so equally costly colors reduce in
-        // native order, independent of where pixels appeared in the image.
-        const ordered: ColorNode[] = [];
-        let colors = 0;
-        function* visit(node: ColorNode): Generator<undefined> {
+        depth = Math.max(2, Math.min(8, depth));
+        const root: ColorNode = { level: 0, children: new Map(), count: 0, sums: [0, 0, 0, 0, 0, 0, 0], error: Infinity, removed: false };
+        let nodes = 1, colors = 0, classifiedColors = 0;
+        function* prune(node: ColorNode): Generator<undefined> {
             if (++work % 1024 === 0) yield;
             for (let id = 0; id < 1 << channels; id++) {
                 const child = node.children.get(id);
-                if (child) yield* visit(child);
+                if (child && !child.removed) yield* prune(child);
             }
-            if (node.count) colors++;
-            if (node !== root) ordered.push(node);
-        }
-        yield* visit(root);
-        let nodes = ordered.length + 1;
-        function* prune(node: ColorNode): Generator<undefined> {
-            if (++work % 1024 === 0) yield;
-            for (const child of node.children.values()) if (!child.removed) yield* prune(child);
             if (nodes <= requested) return;
             const parent = node.parent!;
             if (node.count) {
@@ -218,16 +192,88 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             node.removed = true;
             nodes--;
         }
-        for (const node of ordered) {
+        function* pruneDepth(node: ColorNode): Generator<undefined> {
             if (++work % 1024 === 0) yield;
-            if (node.level > depth && !node.removed) yield* prune(node);
+            for (let id = 0; id < 1 << channels; id++) {
+                const child = node.children.get(id);
+                if (child && !child.removed) yield* pruneDepth(child);
+            }
+            if (node.level > depth) yield* prune(node);
         }
+        function classify(pixel: number[], sums: number[], count: number, activeChannels: number, levels: number) {
+            const midpoint = [127.5, 127.5, 127.5, 127.5];
+            let node = root;
+            for (let bit = 7; bit >= 8 - levels; bit--) {
+                let id = 0, distance = 0;
+                for (let c = 0; c < activeChannels; c++) {
+                    const high = (Math.round(clamp(pixel[c]!)) >>> bit) & 1;
+                    id |= high << c;
+                    // ImageMagick's Q16 cube centers, expressed in byte units.
+                    midpoint[c]! += (high ? 1 : -1) * (128 << bit) / 257;
+                    distance += (pixel[c]! - midpoint[c]!) ** 2;
+                }
+                let child = node.children.get(id);
+                if (!child || child.removed) {
+                    child = { parent: node, level: 8 - bit, children: new Map(), count: 0, sums: [0, 0, 0, 0, 0, 0, 0], error: 0, removed: false };
+                    node.children.set(id, child);
+                    nodes++;
+                    if (child.level === levels) classifiedColors++;
+                }
+                child.error += count * Math.sqrt(distance);
+                node = child;
+            }
+            if (!node.count) colors++;
+            node.count += count;
+            for (let c = 0; c < 7; c++) node.sums[c]! += sums[c]!;
+        }
+        if (width !== undefined && precision === 8) {
+            // Native first classifies full-depth rows, then prunes as soon as
+            // a completed row exceeds the color limit. Later rows use that depth.
+            let levels = 8;
+            for (let position = 0; position < length; position += chunkSize) {
+                yield;
+                const data = yield* readPixels(position, Math.min(chunkSize, length - position));
+                for (let i = 0; i < data.length; i += 4) {
+                    const pixel = Array.from(data.subarray(i, i + 4));
+                    const sums = pixel.map(clamp);
+                    for (let c = 0; c < 3; c++) {
+                        sums.push(Math.max(0, Math.min(255 * 255, pixel[c]! * pixel[3]!)));
+                        pixel[c]! *= pixel[3]! / 255;
+                    }
+                    classify(pixel, sums, 1, channels, levels);
+                    if ((position + i + 4) % (width * 4) === 0 && levels === 8 && depth < 8 && classifiedColors > requested) {
+                        yield* pruneDepth(root);
+                        levels = depth;
+                    }
+                }
+            }
+        } else {
+            // Keep the bounded histogram when its precision was reduced.
+            for (const bin of bins.values()) {
+                if (++work % 1024 === 0) yield;
+                const pixel = bin.sums.slice(0, 4).map((value, c) => c < 3 ? bin.associated[c]! / bin.count / 255 : value / bin.count);
+                classify(pixel, bin.sums, bin.count, bin.alpha === false ? 3 : channels, 8);
+            }
+            yield* pruneDepth(root);
+        }
+        // Traverse octants in RGB bit order so equally costly colors reduce in
+        // native order, independent of where pixels appeared in the image.
+        const ordered: ColorNode[] = [];
+        function* visit(node: ColorNode): Generator<undefined> {
+            if (++work % 1024 === 0) yield;
+            for (let id = 0; id < 1 << channels; id++) {
+                const child = node.children.get(id);
+                if (child && !child.removed) yield* visit(child);
+            }
+            if (node !== root) ordered.push(node);
+        }
+        yield* visit(root);
         const remaining = ordered.filter(node => !node.removed).sort((a, b) => a.error - b.error);
         // Native starts at a threshold that leaves roughly 110% of the requested
         // palette in tree nodes, then prunes complete equal-error groups. The first
         // pass uses the color count before depth pruning, even if pruning has
         // already brought the palette within the requested limit.
-        const threshold = bins.size > requested ? remaining[Math.max(0, nodes - Math.floor(1.1 * (requested + 1)))]?.error ?? 0 : -1;
+        const threshold = classifiedColors > requested ? remaining[Math.max(0, nodes - Math.floor(1.1 * (requested + 1)))]?.error ?? 0 : -1;
         // The initial pass includes different errors. Preserve tree order so the
         // node-count floor retains the same colors as native reduction.
         for (const node of ordered) {

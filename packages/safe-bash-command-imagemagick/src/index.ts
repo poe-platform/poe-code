@@ -23836,7 +23836,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
 
     const output = inferOutputFormat(outSpec, "png");
     const adjoin = state.adjoin && (output.format === "ppm" || output.format === "rgb" || output.format === "miff") && !hasSceneOutputPattern(output.path);
-    const gifPages: MagickImage[] = [];
+    const adjoinedPages: MagickImage[] = [];
     const stdoutChunks: Uint8Array[] = [];
     let stdout = "";
     function* writePage(canvas: RgbaImage, page: number, sceneCount: number, slotW: number, slotH: number, directory: string[]): Generator<void, void, void> {
@@ -23867,8 +23867,8 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             return;
         }
         const { format, path, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(outSpec, "png");
-        if (state.adjoin && format === "gif" && sceneCount > 1 && !hasSceneOutputPattern(path)) {
-            gifPages.push(canvas);
+        if (state.adjoin && (format === "gif" || format === "tiff") && sceneCount > 1 && !hasSceneOutputPattern(path)) {
+            adjoinedPages.push(canvas);
             return;
         }
         if (format === "jpeg") {
@@ -24275,11 +24275,11 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         images.length = 0;
     }
-    if (gifPages.length) {
-        const { path, gifVersion } = inferOutputFormat(outSpec, "png");
-        const image = yield* prepareGifFrames(gifPages);
-        const { data } = encodeImage(image, { format: "gif", gifVersion, pageHeight: image.pageHeight!, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor });
-        for (const page of gifPages) detachRgbaBuffer(page.data);
+    if (adjoinedPages.length) {
+        const { path, format, gifVersion, tiffBig } = output;
+        const image = yield* (format === "tiff" ? prepareTiffPages(adjoinedPages) : prepareGifFrames(adjoinedPages));
+        const { data } = encodeImage(image, { format, gifVersion, tiffBig, ...(state.inputDepth === undefined ? {} : { tiffIntegerDepth: state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32 }), ...(image.pageHeight === undefined ? {} : { pageHeight: image.pageHeight }), gifInterlace: state.gifInterlace, transparentColor: state.transparentColor });
+        for (const page of adjoinedPages) detachRgbaBuffer(page.data);
         detachRgbaBuffer(image.data);
         if (path === "-") stdoutChunks.push(data);
         else files.set(path.replaceAll("%%", "%"), data);
@@ -24624,7 +24624,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         const output = inferOutputFormat(outSpec, "png");
         const adjoin = state.adjoin && n > cols * rows && output.path !== "-" && (output.format === "ppm" || output.format === "rgb" || output.format === "miff") && !hasSceneOutputPattern(output.path);
         const pages = new StoredImageStack(backend.storage, signal);
-        const gifPages = state.adjoin && output.format === "gif" && n > cols * rows && !hasSceneOutputPattern(output.path)
+        const adjoinedPages = state.adjoin && (output.format === "gif" || output.format === "tiff") && n > cols * rows && !hasSceneOutputPattern(output.path)
             ? new StoredImageStack(backend.storage, signal) : undefined;
         const stdoutChunks: Uint8Array[] = [];
         let stdout = "";
@@ -24737,7 +24737,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 }
                 continue;
             }
-            if (gifPages) { await gifPages.push(canvas); continue; }
+            if (adjoinedPages) { await adjoinedPages.push(canvas); continue; }
             if (adjoin) { await pages.push(canvas); continue; }
             if (output.format === "jpeg") {
                 let gray = true;
@@ -24765,9 +24765,11 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 }
             })());
         }
-        if (gifPages) {
-            const image = await prepareStoredGifFrames(gifPages, backend, signal);
-            const bytes = await backend.publish(image, output.path.replaceAll("%%", "%"), { format: "gif", gifVersion: output.gifVersion, pageHeight: image.pageHeight!, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor });
+        if (adjoinedPages) {
+            const image = output.format === "tiff"
+                ? prepareStoredTiffPages(adjoinedPages, (await adjoinedPages.get(0))!, backend, signal)
+                : await prepareStoredGifFrames(adjoinedPages, backend, signal);
+            const bytes = await backend.publish(image, output.path.replaceAll("%%", "%"), { format: output.format, gifVersion: output.gifVersion, tiffBig: output.tiffBig, ...(state.inputDepth === undefined ? {} : { tiffIntegerDepth: state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32 }), ...(image.pageHeight === undefined ? {} : { pageHeight: image.pageHeight }), gifInterlace: state.gifInterlace, transparentColor: state.transparentColor });
             if (bytes) stdoutChunks.push(bytes);
         }
         if (adjoin || n > cols * rows) await backend.publishPending();

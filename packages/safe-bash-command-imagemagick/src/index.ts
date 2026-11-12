@@ -14481,6 +14481,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             continue;
         }
         if (t === "-region" || t === "+region") {
+            if (!stack.length) throw new Error(`no images found for operation '${t}'`);
             const geometry = t === "-region" ? tokens[++i] : undefined;
             if (t === "-region" && !geometry) throw new Error("missing argument '-region'");
             stack = stack.map(image => ({ ...image, region: geometry === undefined ? undefined : magickRegion(image, geometry, state.gravity), writeMask: undefined }));
@@ -18250,6 +18251,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             continue;
         }
         if (!operandsOnly && (token === "-region" || token === "+region")) {
+            stackStep(async stack => {
+                if (!stack.length) throw new Error(`no images found for operation '${token}'`);
+                return stack;
+            });
             const geometry = token === "-region" ? tokens[++i] : undefined, gravity = state.gravity;
             if (token === "-region" && !geometry) throw new Error("missing argument '-region'");
             steps.push(async image => image ? { ...image, region: geometry === undefined ? undefined : magickRegion(image, geometry, gravity), storedWriteMask: undefined } : undefined);

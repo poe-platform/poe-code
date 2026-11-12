@@ -5820,7 +5820,8 @@ async function applyVideoFilterChain(
       const initPadding = integerOption("init_padding", 2147483647);
       const step = perTile - Math.min(overlap, perTile - 1);
       // The sheet rate is independent of initial padding and partial sheets at EOF.
-      const durationSeconds = frameDuration * step;
+      // An unknown input rate (setpts) keeps durations unset for the encoder fallback.
+      const durationSeconds = frameRateKnown ? frameDuration * step : 0;
       if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       const tiledFrames: MediaVideoFrame[] = [];
       let consumed = 0;
@@ -6087,7 +6088,8 @@ async function applyVideoFilterChain(
       }
       const step = roundToEven(value);
       // Framestep changes the nominal rate, not retained frame durations or EOF.
-      frameRateScale *= step;
+      // An unknown rate stays unknown without scaling the encoder fallback.
+      if (frameRateKnown) frameRateScale *= step;
       if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       const variables = {
         n: 0, t: NaN, w: NaN, h: NaN, pos: NaN, NAN: NaN, INF: Infinity,

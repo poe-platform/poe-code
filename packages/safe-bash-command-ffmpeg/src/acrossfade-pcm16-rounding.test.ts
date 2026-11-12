@@ -21,7 +21,7 @@ for (const [options, halves, integers] of [
       volume.writeFileSync("/a.wav", encodeWav({ sampleRate: 8000,
         channels: [Float64Array.from([100, 200, 300, 400, 500, 600, 700, 800], value => value / 32768)] }));
       volume.writeFileSync("/b.wav", encodeWav({ sampleRate: 8000,
-        channels: [Float32Array.from([-3, -2, -1, 0, 1, 2, 3, 4], value =>
+        channels: [Float64Array.from([-3, -2, -1, 0, 1, 2, 3, 4], value =>
           (value + (halfSample ? 0.5 : 0)) / 32768)] }, { bitsPerSample: 32, float: true }));
       const chunks: Uint8Array[] = [];
       let stderr = "";

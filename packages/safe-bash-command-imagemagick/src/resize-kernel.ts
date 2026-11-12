@@ -246,7 +246,7 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
     if (settings.window) kernel = "sinc";
     // Working CMYK rows use C, M, Y, alpha, K; black is never an alpha weight.
     const range = highDepth ? 65535 : 255, stride = inks ? 5 : 4;
-    const hue = !!image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray";
+    const hue = !inks && !!image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray";
     // Four Float64 samples per pixel must fit in a 16 KiB storage read.
     const readPixels = hue || preserveSamples || inks ? 512 : 1024;
     // ImageMagick sharpens the sinc window by narrowing its support.
@@ -439,7 +439,7 @@ export function* resizePixelSteps(image: ResizeImage, width: number, height: num
         // and HDRI comparison, including negative filter lobes.
         const values = request.data.map(sample => Math.fround(sample * (highDepth ? 1 : 257)) / 257);
         yield { kind: "write", evaluate: true, position: request.position, data: new Uint8Array(values.buffer) };
-        if (image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray")
+        if (!cmyk && image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray")
             yield { kind: "write", hue: true, position: request.position, data: new Uint8Array(values.map(value => value / 255).buffer) };
         const rounded = request.data.map(sample => {
             const value = Math.max(0, Math.min(range, highDepth ? Math.fround(sample) : sample));

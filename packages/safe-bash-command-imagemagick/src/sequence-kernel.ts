@@ -451,6 +451,11 @@ export function* evaluateSequencePixelSteps(size: number, inputs: readonly (Pick
         let bytes: Uint8Array | Uint16Array | Float64Array = working?.length ? Float64Array.from(new Float64Array(input.slice().buffer), value => highDepth ? value * 257 : value)
             : highDepth ? new Uint16Array(input.slice().buffer) : input;
         const inputImage = inputs[image]!;
+        if (retainWorking && !working?.length && inputImage.magickColorspace && inputImage.magickColorspace !== "RGB" && inputImage.magickColorspace !== "scRGB" && inputImage.magickColorspace !== "Gray") {
+            // Converted colors retain fractional samples in the colorspace plane.
+            const samples = yield { kind: "read", hue: true, image, position: storagePosition, length: storageLength };
+            if (samples?.length) bytes = Float64Array.from(new Float64Array(samples.slice().buffer), value => value * range);
+        }
         if (cmyk || inputImage.space === "cmyk") {
             const hue = inputs[image]!.space === "cmyk" ? yield { kind: "read", hue: true, image, position: storagePosition, length: storageLength } : undefined;
             const inks = hue?.length ? new Float64Array(hue.slice().buffer) : undefined;

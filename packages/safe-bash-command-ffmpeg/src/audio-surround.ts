@@ -1,6 +1,7 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { dialogueSpectrum, inverseRealSpectrum } from "./audio-dialogue-fft.js";
+import { soundfieldTangent } from "./audio-float-tangent.js";
 import { phaseAngle } from "./audio-float-phase.js";
 import { transform } from "./audio-fft.js";
 import { parseFilterExpression } from "./filter-expression.js";
@@ -15,7 +16,7 @@ export async function surroundAudio(
   let lfeMode = 0;
   let windowOverlap = 0.5;
   let lfeLow = 128, lfeHigh = 256;
-  let outputChannels = 6;
+  let outputChannels = 6, focus = 0;
   const inputLevels = [1, 1];
   const outputLevels = { fl_out: 1, fr_out: 1, fc_out: 1, lfe_out: 1, bl_out: 1, br_out: 1 };
   const spread = {
@@ -47,6 +48,12 @@ export async function surroundAudio(
       }
       if (key === "fl_in" || key === "fr_in") inputLevels[key === "fl_in" ? 0 : 1] = Math.fround(number);
       else outputLevels[key as keyof typeof outputLevels] = Math.fround(number);
+    } else if (key === "focus") {
+      const number = parseFilterExpression(value, "surround", { min: -1, max: 1, default: 0 });
+      if (!Number.isFinite(number) || number < -1 || number > 1) {
+        throw new RangeError("surround: focus must be between -1 and 1");
+      }
+      focus = Math.fround(number);
     } else if (key !== undefined && Object.hasOwn(spread, key)) {
       const global = key === "allx" || key === "ally";
       const min = global ? -1 : 0.06;
@@ -153,10 +160,23 @@ export async function surroundAudio(
         const sum = f(lm + rm), center = f(sum * 0.5);
         const difference = f(f(lm - rm) / (sum < 1e-8 ? 1 : sum));
         const widening = Math.max(0, f(f(phase * phase) - halfPi));
-        const x = Math.max(-1, Math.min(1, f(difference + f(difference * widening))));
+        let x = Math.max(-1, Math.min(1, f(difference + f(difference * widening))));
         const balanceCosine = f(Math.cos(f(f(difference * halfPi) + pi)));
         const phaseCosine = f(Math.cos(f(halfPi - f(phase / pi))));
-        const y = Math.max(-1, Math.min(1, f(f(f(balanceCosine * phaseCosine) * f(Math.LN10)) + 1)));
+        let y = Math.max(-1, Math.min(1, f(f(f(balanceCosine * phaseCosine) * f(Math.LN10)) + 1)));
+        if (focus !== 0) {
+          const angle = phaseAngle(x, y);
+          const tangent = soundfieldTangent(angle), reciprocal = f(1 / tangent);
+          const radius = Math.min(f(Math.sqrt(f(1 + f(tangent * tangent)))),
+            f(Math.sqrt(f(1 + f(reciprocal * reciprocal)))));
+          let distance = Math.max(0, Math.min(1, f(f(Math.hypot(x, y)) / radius)));
+          distance = focus > 0
+            ? f(1 - f(Math.pow(f(1 - distance), f(1 + f(focus * 20)))))
+            : f(Math.pow(distance, f(1 - f(focus * 20))));
+          distance = f(distance * radius);
+          x = Math.max(-1, Math.min(1, f(f(Math.sin(angle)) * distance)));
+          y = Math.max(-1, Math.min(1, f(f(Math.cos(angle)) * distance)));
+        }
         const front = f(f(y + 1) * 0.5);
         const horizontal = c === 2 || c === 3 ? f(1 - Math.abs(x)) : f(0.5 * f((c === 0 || c === 4 ? x : -x) + 1));
         const vertical = c === 3 ? f(1 - Math.abs(y)) : c < 3 ? front : f(1 - front);

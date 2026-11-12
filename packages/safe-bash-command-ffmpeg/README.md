@@ -702,6 +702,8 @@ These levels accept expressions and the constants `min`, `max`, and `default`.
 `level_in` and `level_out` accept expressions from 0 to 10 (default 1).
 As in FFmpeg 7.0.2, per-channel defaults override these global levels, so they
 leave the audio unchanged, including when set to zero.
+`focus` adjusts soundfield concentration from -1 (defocused) to 1 (focused);
+zero retains the default. It accepts expressions and `min`, `max`, and `default`.
 Other layouts and surround options are rejected.
 
 `stereotools` supports stereo channel mute (`mutel`, `muter`), phase inversion

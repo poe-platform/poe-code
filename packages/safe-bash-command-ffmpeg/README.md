@@ -602,7 +602,8 @@ channel layouts, and filter options are rejected.
 
 `volumedetect` reports interleaved sample count, mean and maximum volume in dB,
 and the native peak-level histogram on stderr, measuring audio after preceding
-filters. It converts audio to signed 16-bit PCM with nearest-even rounding and
+filters. With an output frame limit, it includes complete input frames consumed
+by downstream `dynaudnorm` lookahead. It converts audio to signed 16-bit PCM with nearest-even rounding and
 clipping; subsequent filters and output receive those converted samples.
 Generic `threads`, `thread_type`, and `extra_hw_frames` options are accepted and
 validated without changing the samples or measurements.

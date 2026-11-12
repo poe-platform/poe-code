@@ -3,14 +3,8 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterBoolean } from "./filter-boolean.js";
 import { parseFilterExpression } from "./filter-expression.js";
 
-export async function normalizeAudio(
-  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker,
-  signal: AbortSignal | undefined, warn: (message: string) => Promise<void>,
-  frames?: readonly { start: number; end: number; pts: number; pos?: number | undefined }[], startSample = 0,
-  commands: readonly { sample: number; action: string; expression: string }[] = []
-): Promise<{ channels: Float64Array[]; frameSize: number }> {
+export function parseDynaudnorm(filter: string, sampleRate: number) {
   let enable: string | undefined;
-  const variables = { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 };
   let milliseconds = 500;
   let size = 31;
   let peak = 0.95;
@@ -30,7 +24,8 @@ export async function normalizeAudio(
     }
     if (key === "enable") {
       enable = value;
-      parseFilterExpression(enable, "dynaudnorm enable", variables, undefined, new Float64Array(10), []);
+      parseFilterExpression(enable, "dynaudnorm enable",
+        { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 }, undefined, new Float64Array(10), []);
       continue;
     }
     // AVOption integers round to nearest, with halfway values going to even.
@@ -60,16 +55,29 @@ export async function normalizeAudio(
       targetRms = number;
     } else throw new Error(`dynaudnorm: unsupported option ${key}`);
   }
-  if (size % 2 === 0) {
-    await warn(`filter size ${size} is invalid. Changing to an odd value.\n`);
-    size++;
-  }
   // FFmpeg uses even-sized frames and a minimum filter followed by a Gaussian.
   const requested = sampleRate * milliseconds / 1000;
   const rounded = requested % 1 === 0.5 ? 2 * Math.round(requested / 2) : Math.round(requested);
   const windowSize = Math.max(2, rounded + rounded % 2);
   const advance = windowSize * (1 - overlap);
   const frameSize = Math.max(1, advance % 1 === 0.5 ? 2 * Math.round(advance / 2) : Math.round(advance));
+  return { enable, size, peak, maxGain, coupling, targetRms, windowSize, frameSize };
+}
+
+export async function normalizeAudio(
+  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker,
+  signal: AbortSignal | undefined, warn: (message: string) => Promise<void>,
+  frames?: readonly { start: number; end: number; pts: number; pos?: number | undefined }[], startSample = 0,
+  commands: readonly { sample: number; action: string; expression: string }[] = []
+): Promise<{ channels: Float64Array[]; frameSize: number }> {
+  const options = parseDynaudnorm(filter, sampleRate);
+  const { enable, maxGain, coupling, targetRms, windowSize, frameSize } = options;
+  let { size, peak } = options;
+  const variables = { n: 0, t: 0, pos: NaN, w: 0, h: 0, E: Math.E, PI: Math.PI, PHI: (1 + Math.sqrt(5)) / 2 };
+  if (size % 2 === 0) {
+    await warn(`filter size ${size} is invalid. Changing to an odd value.\n`);
+    size++;
+  }
   const half = Math.floor(size / 2);
   const length = channels[0]?.length ?? 0;
   const gainChannels = coupling ? 1 : channels.length;

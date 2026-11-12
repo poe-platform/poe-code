@@ -106,7 +106,7 @@ import { AlimiterError, limitAudio } from "./audio-alimiter.js";
 import { AgateError, applyAudioGate } from "./audio-agate.js";
 import { compressAudio } from "./audio-acompressor.js";
 import { normalizeSpeech } from "./audio-speechnorm.js";
-import { normalizeAudio } from "./audio-dynaudnorm.js";
+import { normalizeAudio, parseDynaudnorm } from "./audio-dynaudnorm.js";
 import { CompandError, compandAudio } from "./audio-compand.js";
 import { multibandCompandAudio } from "./audio-mcompand.js";
 import { removeSilence } from "./audio-silenceremove.js";
@@ -14595,7 +14595,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // Reverse consumes its entire input before emitting a frame.
                         const reverse = audioFilters.slice(filterIndex + 1)
                           .some(filter => filter.trim().split("=", 1)[0]!.split("@", 1)[0] === "areverse");
-                        const frameLimit = reverse && requestedFrames !== 0 ? undefined : requestedFrames;
+                        let frameLimit = reverse && requestedFrames !== 0 ? undefined : requestedFrames;
                         const duration = filterName === "silencedetect" && outputCut && !reverse
                           ? outputDuration ?? (outputTo === undefined ? undefined : outputTo - (outputSs ?? 0))
                           : undefined;
@@ -14621,6 +14621,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         const loop = next?.split("=", 1)[0]!.split("@", 1)[0] === "aloop"
                           ? parseAloop(next.includes("=") ? next.slice(next.indexOf("=") + 1) : "")
                           : undefined;
+                        const normalization = next?.split("=", 1)[0]!.split("@", 1)[0] === "dynaudnorm"
+                          ? parseDynaudnorm(next, origRate) : undefined;
+                        // The encoder requests a frame before checking a zero output limit.
+                        if (normalization && frameLimit === 0) frameLimit = 1;
                         // aloop fills its first size-limited chunk before emitting it,
                         // even with loop=0. Upstream detectors see whole consumed frames.
                         let initialDemand = Math.min(1024, loop?.size ?? 0);
@@ -14697,6 +14701,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             }
                           } else if ((wavelet || declick) && frameLimit !== undefined) {
                             if (measuredEnd >= initialDemand) outputFrames = frameLimit;
+                          } else if (normalization) {
+                            // The minimum and Gaussian windows buffer size frames. Native
+                            // consumes the following normalization frame before emitting output.
+                            const size = normalization.size + (normalization.size % 2 === 0 ? 1 : 0);
+                            outputFrames = Math.max(0, Math.floor(measuredEnd / normalization.frameSize) - size);
                           } else if (reframe && frameLimit !== undefined) {
                             // Output groups may split one input frame or consume several.
                             // The detector still measures each consumed input frame in full.

@@ -76,8 +76,8 @@ it.each(["tables", "json-tables"])("runs composed Sips, Shuf and streamed Pandoc
   });
   const png = encodePngImage({width: 1, height: 1, data: Uint8Array.of(255, 0, 0, 255), channels: 4, format: "png", space: "srgb", depth: "uchar", density: 72, hasAlpha: true});
   const runtime = new Miniflare({
-    modules: true, compatibilityDate: "2026-07-01", cf: false,
-    script: `
+    compatibilityDate: "2026-07-01", cf: false,
+    modules: [{type: "ESModule", path: "worker.mjs", contents: `
       const fs = (() => { const module = { exports: {} }; ${fsBuild.outputFiles[0]!.text}; return module.exports; })();
       const pandoc = ((require) => {
         const module = { exports: {} };
@@ -264,7 +264,7 @@ it.each(["tables", "json-tables"])("runs composed Sips, Shuf and streamed Pandoc
         });
         return Response.json({ exitCode: outcome.exitCode, stdout, stderr });
       } };
-    `,
+    `}],
   });
   try {
     if (tableScenario === "tables") {
@@ -290,7 +290,7 @@ it.each(["tables", "json-tables"])("runs composed Sips, Shuf and streamed Pandoc
     const tablesResponse = await runtime.dispatchFetch("https://pandoc.test/" + scenario);
     const tablesText = await tablesResponse.text();
     expect(tablesResponse.status, tablesText).toBe(200);
-    const expectedTable = new TextEncoder().encode('<table>\n<colgroup><col></colgroup>\n<thead>\n<tr><th scope="col">header</th></tr>\n</thead>\n<tbody>\n<tr><td>' + "x".repeat(1100000) + '</td></tr>\n</tbody>\n</table>\n');
+    const expectedTable = new TextEncoder().encode('<table>\n<thead>\n<tr>\n<th>header</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>' + "x".repeat(1100000) + '</td>\n</tr>\n</tbody>\n</table>\n');
     const attr = ["", [], []];
     const row = (text: string) => [attr, [[attr, {t: "AlignDefault"}, 1, 1, [{t: "Plain", c: [{t: "Str", c: text}]}]]]];
     const expectedJson = new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [
@@ -331,8 +331,8 @@ it.each([["csv", "html"], ["csv", "json"], ["json", "json"]])("uses caller-suppl
     bundle: true, platform: "browser", format: "cjs", write: false,
   });
   const runtime = new Miniflare({
-    modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"],
-    script: `
+    compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"],
+    modules: [{type: "ESModule", path: "worker.mjs", contents: `
       const fixture = (() => {const module = {exports: {}}; ${fixture.outputFiles[0]!.text}; return module.exports;})();
       const pandoc = ((require) => {const module = {exports: {}}; ${publishedScript}; return module.exports;})(name => {
         if (name !== "poe-code/safe-fs/core" && name !== "@poe-platform/safe-fs/core") throw new Error("Unexpected external: " + name);
@@ -366,7 +366,7 @@ it.each([["csv", "html"], ["csv", "json"], ["json", "json"]])("uses caller-suppl
         return Response.json({length, hash, largest, closed, aborted, error, events,
           remaining: (await env.PAGES.list({limit: 1})).objects.length, namespace: await namespace.readdir("/spill")});
       }};
-    `,
+    `}],
   });
   try {
     const attr = ["", [], []];
@@ -375,7 +375,7 @@ it.each([["csv", "html"], ["csv", "json"], ["json", "json"]])("uses caller-suppl
     const expected = new TextEncoder().encode(from === "json"
       ? JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {"2": {t: "MetaString", c: "two"}, "10": {t: "MetaBool", c: true}}, blocks: [{c: [{c: payload, t: "Str"}], t: "Para"}]}) + "\n"
       : target === "html"
-      ? '<table>\n<colgroup><col></colgroup>\n<thead>\n<tr><th scope="col">header</th></tr>\n</thead>\n<tbody>\n<tr><td>' + payload + '</td></tr>\n</tbody>\n</table>\n'
+      ? '<table>\n<thead>\n<tr>\n<th>header</th>\n</tr>\n</thead>\n<tbody>\n<tr>\n<td>' + payload + '</td>\n</tr>\n</tbody>\n</table>\n'
       : JSON.stringify({"pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [
         {t: "Table", c: [attr, [null, []], [[{t: "AlignDefault"}, {t: "ColWidthDefault"}]], [attr, [row("header")]], [[attr, 0, [], [row(payload)]]], [attr, []]]}
       ]}) + "\n");

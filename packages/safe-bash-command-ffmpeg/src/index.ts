@@ -12443,7 +12443,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const pipeBytes = explicitFormat === "image2pipe" || explicitFormat === "pgm_pipe" || explicitFormat === "bmp_pipe" || explicitFormat === "qoi_pipe"
                 ? (await readInput(filePath)).subarray(input?.skipInitialBytes ?? 0)
                 : detectedBytes && ((detectedBytes[0] === 66 && detectedBytes[1] === 77) ||
-                  (detectedBytes[0] === 80 && [50, 51, 53, 54].includes(detectedBytes[1]!)) ||
+                  (detectedBytes[0] === 80 && [50, 51, 52, 53, 54].includes(detectedBytes[1]!)) ||
                   [113, 111, 105, 102].every((byte, i) => detectedBytes[i] === byte)) ? detectedBytes : undefined;
               let pipeOffset = 0;
               let globPaths: string[] | undefined;
@@ -12532,6 +12532,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   let planeFrame: MediaVideoFrame | undefined;
                   if (pipeBytes) {
                     const start = pipeOffset;
+                    // Native PNM demuxing ignores non-frame bytes after a complete raster.
+                    if (frames.length > 0 && ["pgm", "ppm", "pbm"].includes(codecName) &&
+                        !(pipeBytes[start] === 80 && [49, 50, 51, 52, 53, 54].includes(pipeBytes[start + 1]!))) break;
                     pipeOffset = imagePipeFrameEnd(pipeBytes, start, input?.videoDecoder ?? (explicitFormat === "pgm_pipe" ? "pgm" : explicitFormat === "bmp_pipe" ? "bmp" : explicitFormat === "qoi_pipe" ? "qoi" : undefined), budget);
                     imgBytes = pipeBytes.subarray(start, pipeOffset);
                   } else {

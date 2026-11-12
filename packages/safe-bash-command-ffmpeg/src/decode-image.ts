@@ -1,6 +1,15 @@
 import { decodeImage, parseNetpbmHeader } from "@poe-code/image-ast/portable";
 
 export function decodeFfmpegImage(bytes: Uint8Array) {
+  if (bytes[0] === 80 && [52, 53, 54].includes(bytes[1]!)) {
+    const { dataOffset } = parseNetpbmHeader(bytes);
+    // FFmpeg consumes one separator byte; the shared decoder treats CRLF as a pair.
+    // Preserve the LF sample without changing the original packet used by stream copy.
+    if (bytes[dataOffset - 2] === 13 && bytes[dataOffset - 1] === 10) {
+      bytes = new Uint8Array(bytes);
+      bytes[dataOffset - 2] = 10;
+    }
+  }
   const image = decodeImage(bytes);
   if (image.format === "pgm" && bytes[1] === 0x35) {
     const { maxval, dataOffset } = parseNetpbmHeader(bytes);

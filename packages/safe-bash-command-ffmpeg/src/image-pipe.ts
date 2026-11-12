@@ -84,7 +84,7 @@ export function imagePipeFrameEnd(bytes: Uint8Array, start: number, decoder: str
     if (!width || !height || !Number.isSafeInteger(samples) || max < 1 || max > 65535) throw invalid();
     if (magic === 52 || magic === 53 || magic === 54) {
       if (!whitespace(bytes[offset])) throw invalid();
-      offset += bytes[offset] === 13 && bytes[offset + 1] === 10 ? 2 : 1;
+      offset++;
       const length = magic === 52 ? Math.ceil(width / 8) * height : samples * (max > 255 ? 2 : 1);
       requireBytes(offset, length);
       return offset + length;

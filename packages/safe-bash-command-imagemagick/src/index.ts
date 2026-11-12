@@ -23560,6 +23560,14 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
                 queuedTransforms.push({ kind: "profile", name, bytes });
             } catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
         }
+        else if (t === "-precision") {
+            if (argv[i + 1] === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -precision\n" };
+            try { i = applyMagickReadSetting(argv, state, i)!; }
+            catch (error) { return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` }; }
+        }
+        else if (t === "+precision") {
+            // Native montage leaves numeric precision unchanged for the plus form.
+        }
         else if (t === "-format") {
             state.formatStr = argv[++i];
             if (state.formatStr === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -format\n" };
@@ -23965,7 +23973,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         if (outSpec.toLowerCase().startsWith("info:")) {
             canvas = { ...canvas, bitsPerSample: state.inputDepth ?? 16 };
             stdout += state.formatStr !== undefined
-                ? yield* formatMagickPropertyStringSteps(state.formatStr, canvas, () => canvas, { inputFormat: page === 0 ? firstInputFormat : "", analysis, outputFilePath: outSpec.slice(5), sceneIdx: page, outputScene: page, sceneCount, quality: state.quality })
+                ? yield* formatMagickPropertyStringSteps(state.formatStr, canvas, () => canvas, { inputFormat: page === 0 ? firstInputFormat : "", analysis, outputFilePath: outSpec.slice(5), sceneIdx: page, outputScene: page, sceneCount, quality: state.quality, precision: state.precision ?? 6 })
                 : `${canvas.width}x${canvas.height} ${canvas.magickColorspace ?? "sRGB"} 8-bit\n`;
             detachRgbaBuffer(canvas.data);
             return;
@@ -24900,7 +24908,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 canvas = { ...canvas, bitsPerSample: state.inputDepth ?? 16 };
                 const target = outSpec.slice(5), page = pageStart / (cols * rows);
                 const text = state.formatStr !== undefined
-                    ? await formatRetainedIdentify(state.formatStr, canvas, { inputFormat: page === 0 ? firstInputFormat : "", analysis, outputFilePath: target, sceneIdx: page, outputScene: page, sceneCount: Math.ceil(n / (cols * rows)), quality: state.quality }, async () => ({ image: canvas, storage: backend.storage }), signal)
+                    ? await formatRetainedIdentify(state.formatStr, canvas, { inputFormat: page === 0 ? firstInputFormat : "", analysis, outputFilePath: target, sceneIdx: page, outputScene: page, sceneCount: Math.ceil(n / (cols * rows)), quality: state.quality, precision: state.precision ?? 6 }, async () => ({ image: canvas, storage: backend.storage }), signal)
                     : `${canvas.width}x${canvas.height} ${canvas.magickColorspace ?? "sRGB"} 8-bit\n`;
                 if ((!target || target === "-") && input.stdout) await writeIdentifyText(input.stdout, text, signal);
                 else stdout += text;

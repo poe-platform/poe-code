@@ -27,6 +27,6 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
     }) : mode === "sync" ? runMagickCliSync(argv, new Map())
       : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : new Map());
     expect({ ...result, stdout: "stdout" in result ? result.stdout : stdout, stderr: "stderr" in result ? result.stderr : stderr })
-      .toEqual({ exitCode, stdout: expected, stderr: exitCode ? "magick: invalid argument for option '-precision'\n" : "" });
+      .toEqual({ exitCode, stdout: expected, stderr: exitCode ? "magick: invalid argument for option '-precision': invalid\n" : "" });
   });
 }

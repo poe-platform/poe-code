@@ -58,10 +58,36 @@ for (const filter of ["apsyclip=clip=0", "apsyclip=clip=1.1", "apsyclip=adaptive
 
 it("bounds clipping workspace and honors cancellation", async () => {
   const channels = [new Float32Array(32)];
-  await assert.rejects(psychoacousticClip(channels, 44100, "apsyclip",
+  await assert.rejects(psychoacousticClip(channels, 44100, "apsyclip", [],
     new MediaBudgetTracker({ maxMemoryBytes: 65536 })), /maxMemoryBytes/);
-  await assert.rejects(psychoacousticClip(channels, 44100, "apsyclip",
+  await assert.rejects(psychoacousticClip(channels, 44100, "apsyclip", [],
     new MediaBudgetTracker(), AbortSignal.abort()));
+});
+
+it("retains clipping history across stereo bypass transitions at every window size", async () => {
+  for (const sampleRate of [8000, 96000, 192000]) {
+    const hop = sampleRate > 100000 ? 256 : sampleRate > 50000 ? 128 : 64;
+    const length = hop * 9 + 3;
+    const channels = [1, -0.75].map(scale => Float32Array.from({ length }, (_, i) => scale * Math.sin(i * 0.31)));
+    const frames = [{ start: 0, end: length, pts: 4000 }];
+    const control = await psychoacousticClip(channels, sampleRate, "apsyclip=clip=0.1:iterations=1:diff=1", frames, new MediaBudgetTracker());
+    const switched = await psychoacousticClip(channels, sampleRate,
+      "apsyclip=clip=0.1:iterations=1:diff=1:enable=st(0,ld(0)+1);between(ld(0),5,7)", frames, new MediaBudgetTracker());
+    assert.ok(control.channels[0]!.some(value => Math.abs(value) > 0.01));
+    for (const [c, channel] of channels.entries()) {
+      for (let i = 0; i < length; i++) {
+        const expected = i >= hop * 4 && i < hop * 7 ? control.channels[c]![i] : channel[i - hop * 3] ?? 0;
+        assert.equal(switched.channels[c]![i], expected, `${sampleRate} Hz, channel ${c}, sample ${i}`);
+      }
+    }
+    assert.deepEqual(switched.frames, Array.from({ length: 10 }, (_, n) => ({
+      start: n * hop, end: Math.min(length, (n + 1) * hop), pts: 4000 + n * hop, pos: undefined
+    })));
+  }
+});
+
+it("validates timeline expressions even without audio", async () => {
+  await assert.rejects(psychoacousticClip([], 8000, "apsyclip=enable=invalid", [], new MediaBudgetTracker()));
 });
 
 for (const inputSize of [7, 64, 128]) for (const [selection, bytes, hash] of [

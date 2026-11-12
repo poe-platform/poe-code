@@ -15614,21 +15614,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
                         const commands = audioCommands.filter(command => command.target === "apsyclip" || command.target === filterTarget)
                           .sort((a, b) => a.sample - b.sample);
-                        const clipped = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal, commands);
+                        const clipped = await psychoacousticClip(stretched, origRate, trimmed,
+                          audioTimestamps ?? [{ start: 0, end: stretched[0]?.length ?? 0, pts: audioStartSample }], budget, context.signal, commands);
                         stretched = clipped.channels;
+                        audioTimestamps = clipped.frames;
                         filteredSampleFormat = "fltp";
-                        const length = stretched[0]?.length ?? 0;
-                        budget.allocateMemory(Math.ceil(length / clipped.frameSize) * 32);
-                        const previous = audioTimestamps;
-                        audioTimestamps = [];
-                        let frameIndex = 0;
-                        for (let start = 0; start < length; start += clipped.frameSize) {
-                          if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
-                          while (previous && frameIndex + 1 < previous.length && previous[frameIndex]!.end <= start) frameIndex++;
-                          const frame = previous?.[frameIndex];
-                          audioTimestamps.push({ start, end: Math.min(length, start + clipped.frameSize),
-                            pts: frame ? frame.pts + start - frame.start : audioStartSample + start, pos: frame?.pos });
-                        }
                       } else if (filterName === "adenorm" || filterName === "adecorrelate" || filterName === "adynamicsmooth" || filterName === "adynamicequalizer" || filterName === "acrusher" || filterName === "aemphasis" || filterName === "deesser" || filterName === "aexciter" || filterName === "atilt" || filterName === "aphaseshift" || filterName === "afreqshift" || filterName === "silenceremove" || filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo" || filterName === "asoftclip" || filterName === "asubboost" || filterName === "agate") {
                         if (!audioTimestamps) {
                           audioTimestamps = [];

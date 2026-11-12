@@ -784,7 +784,7 @@ interface MagickState {
   ftxtHasAlpha?: boolean;
   comment?: string;
   label?: string;
-  caption?: string;
+  caption?: string | undefined;
   filenameLiteral?: boolean;
   optionProperties?: Record<string, string>;
   sizeGeometry?: string;
@@ -23143,7 +23143,7 @@ interface MontageArguments {
     inputErrors: string;
     warnings: string;
     regardWarnings: boolean;
-    sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth" | "verbose">[];
+    sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth" | "verbose" | "caption">[];
     shadow: boolean;
     transforms: ({ kind: "polaroid"; angle: number; state: MagickState } | { kind: "strip" } | { kind: "profile"; name: string; bytes: Uint8Array | undefined } | { kind: "draw"; drawing: string; state: MagickState } | { kind: "annotate"; geometry: string; text: string; state: MagickState } | { kind: "colors"; count: number; state: MagickState } | { kind: "coalesce"; inputs: MontageInput[]; index: number } | { kind: "dispose"; sequence: object; index: number } | { kind: "disposal"; value: number } | { kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | { kind: "distort"; warp: NonNullable<ReturnType<typeof parseMagickWarpOperation>> } | MontageLayers | { kind: "flip" | "flop" | "autoOrient" } | { kind: "trim"; fuzz: number } | { kind: "adaptive-sharpen"; geometry: MagickGeometry; state: MagickState } | { kind: "unsharp"; geometry: ReturnType<typeof parseUnsharpGeometry> } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "scale"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "thumbnail"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "depth"; depth: number; channels: MagickState["channels"]; dither: boolean } | { kind: "alpha" | "transparent" | "gamma" | "colorspace" | "grayscale" | "bilevel" | "truecolor" | "truecoloralpha" | "palette" | "palettealpha"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "blur"; geometry: MagickGeometry } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; title: string | undefined; texture: string | undefined;
@@ -23619,6 +23619,14 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
                 return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -comment\n" };
             // Input comments are not copied to the assembled montage sheet.
         }
+        else if (t === "-caption") {
+            const caption = argv[++i];
+            if (caption === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -caption\n" };
+            state.caption = caption;
+        }
+        else if (t === "+caption") {
+            delete state.caption;
+        }
         else if (t === "-label") {
             label = argv[++i] ?? "";
         }
@@ -23910,7 +23918,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
                     operands.push(input);
                     transforms.push([]);
                     labels.push(label);
-                    sizes.push({ verbose: state.verbose ?? false, hasSize: state.hasSize, sizeWidth: state.sizeWidth, sizeHeight: state.sizeHeight, inputOffset: state.inputOffset ?? 0, inputDepth: state.inputDepth ?? 16 });
+                    sizes.push({ verbose: state.verbose ?? false, hasSize: state.hasSize, sizeWidth: state.sizeWidth, sizeHeight: state.sizeHeight, inputOffset: state.inputOffset ?? 0, inputDepth: state.inputDepth ?? 16, caption: state.caption });
                 }
             }
         }

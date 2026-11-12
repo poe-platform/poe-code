@@ -23,18 +23,24 @@ export function wrapFontCaption(bytes: Uint8Array, text: string, width: number, 
             const address = runtime._font_glyph(char.codePointAt(0)!);
             if (!address) throw new Error("unable to render font glyph");
             const at = address / 4;
-            const values = { id: runtime.HEAP32[at + 7]!, advance: runtime.HEAP32[at + 6]! / 64 };
-            advance += runtime._font_kerning(previous, values.id) / 64 + values.advance;
+            const values = { id: runtime.HEAP32[at + 7]!, advance: Math.round(runtime.HEAP32[at + 10]! / 1024) / 64, bound: runtime.HEAP32[at + 9]! / 64 };
+            advance += runtime._font_kerning(previous, values.id, 1) / 64 + values.advance;
             previous = values.id;
             if (char === " " || char === "\t") lastSpace = i;
-            if (Math.floor(advance + strokeWidth + 0.5) <= width) continue;
+            const extent = Math.ceil(advance + Math.max(0, values.bound - values.advance));
+            if (Math.floor(extent + strokeWidth + 0.5) <= width) continue;
             if (lastSpace >= start) {
                 lines.push(chars.slice(start, lastSpace).join(""));
                 i = lastSpace; start = i + 1;
             } else if (split && i > start) {
                 lines.push(chars.slice(start, i).join(""));
                 start = i--;
-            } else continue;
+            } else {
+                // Native restarts measurement after an oversized first glyph even
+                // when there is no preceding character to split onto a new line.
+                advance = previous = 0;
+                continue;
+            }
             advance = previous = 0; lastSpace = -1;
         }
         lines.push(chars.slice(start).join(""));
@@ -76,7 +82,7 @@ export function renderFontCaption(bytes: Uint8Array, text: string, width: number
             width = Math.max(1, width);
         }
         const lines = layout?.wrap === false ? text.split("\n")
-            : wrapFontCaption(bytes, text, width, pointsize, density, strokeWidth, signal, layout?.wrap === true && !layout.height);
+            : wrapFontCaption(bytes, text, width, pointsize, density, strokeWidth, signal, layout === undefined || layout.wrap && !layout.height);
         // Caption canvases include stroke width per line; baseline spacing does not.
         const height = layout?.height || Math.max(1, Math.floor(lines.length * (lineHeight + (layout?.wrap ? strokeWidth : 0)) + 0.5));
         if (!Number.isSafeInteger(width * height) || width * height > 2 ** 20) throw new Error("font caption exceeds pixel limit");

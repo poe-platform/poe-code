@@ -2,7 +2,9 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export function parseTempo(argument: string): number {
   let tempo = 1;
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+  const options = argument ? argument.split(":") : [];
+  if (options.at(-1) === "") options.pop();
+  for (const [index, option] of options.entries()) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? (index === 0 ? "tempo" : "") : option.slice(0, separator).trim();
     if (key === "enable") throw new Error("atempo: timeline is unsupported");

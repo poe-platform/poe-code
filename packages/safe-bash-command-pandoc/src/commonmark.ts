@@ -259,7 +259,7 @@ export async function parseCommonMarkSource(rawText: string, base: string | unde
         }
         case "code": {
           const decoded = decodeSyntax(block.info, context).trim();
-          const literal = block.literal.endsWith("\n") ? block.literal.slice(0, -1) : block.literal;
+          const literal = block.literal;
           if (extensions.raw_attribute && await scanMarkdownRawAttribute(0, offset => decoded[offset], context) === decoded.length) {
             result.push({t: "RawBlock", c: [decoded.slice(2, -1), literal]});
             break;

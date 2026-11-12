@@ -331,7 +331,6 @@ export async function assembleRetainedCommonMark(
     } else if (block.kind === "code") {
       const syntax = new RetainedCommonMarkSyntax(source, block.info, context), decoded = await source.append(syntax.decoded(block.info)), info = await source.trim(decoded);
       const range = await parser.joined(current, "");
-      if (range.end > range.start && await source.unit(range.end - 1) === "\n") range.end--;
       if (extensions.raw_attribute && await scanMarkdownRawAttribute(info.start, offset => offset < info.end ? source.unit(offset) : undefined, context) === info.end) {
         await ast.push(out, await ast.tag("RawBlock", await ast.value([await literal({start: info.start + 2, end: info.end - 1}), await literal(range)])));
         continue;

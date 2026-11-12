@@ -8,6 +8,8 @@ for (const mode of ["sync", "map", "filesystem", "fallback", "command"] as const
     it.each([
       { inputs: ["*.ppm"], output: "1x1;2x1;3x1;" },
       { inputs: ["[ab].ppm"], output: "1x1;2x1;" },
+      { inputs: ["{a,b}.ppm"], output: "1x1;2x1;" },
+      { inputs: ["{a,sp ace}.ppm"], output: "1x1;3x1;" },
       { inputs: ["[a-b].ppm"], output: "1x1;2x1;" },
       { inputs: ["?.ppm"], output: "1x1;2x1;" },
       { inputs: ["b.ppm", "[as]*.ppm", "a.ppm"], output: "2x1;1x1;3x1;1x1;" },

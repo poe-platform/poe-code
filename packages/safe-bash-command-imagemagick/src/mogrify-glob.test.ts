@@ -4,7 +4,7 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runMagickCli, runMagickCliSync } from "./index.js";
 
 for (const mode of ["buffered", "retained", "sync"] as const) {
-    it.each(["[ab].png", "[a-b].png", "?.png", "*.png"])(`expands literal mogrify patterns: %s (${mode})`, async pattern => {
+    it.each(["[ab].png", "[a-b].png", "?.png", "*.png", "{a,b}.png"])(`expands literal mogrify patterns: %s (${mode})`, async pattern => {
         const source = await sharp(new Uint8Array([255, 0, 0, 0, 255, 0]), { raw: { width: 2, height: 1, channels: 3 } }).png().toBuffer();
         for (const format of [undefined, "gif"]) {
             const files = new Map([["/images/a.png", source], ["/images/b.png", source]]);

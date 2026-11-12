@@ -5,11 +5,33 @@ import { drainCooperativeSteps } from "safe-bash-contracts/yield";
 export function* matchesMagickGlob(pattern: string, name: string): Generator<void, boolean, void> {
     let work = 0;
     let positions = new Set([0]);
+    let alternatives: { start: Set<number>; matched: Set<number>; end: number } | undefined;
     for (let i = 0; i < pattern.length; i++) {
         if (++work % 64 === 0) yield;
         const token = pattern[i]!;
+        if (token === "{" && !alternatives) {
+            let end = i + 1;
+            while (end < pattern.length && pattern[end] !== "}") {
+                if (++work % 64 === 0) yield;
+                if (pattern[end] === "\\") end++;
+                end++;
+            }
+            if (end < pattern.length) {
+                alternatives = { start: positions, matched: new Set(), end };
+                continue;
+            }
+        }
+        if (alternatives && (token === "," || i === alternatives.end)) {
+            for (const position of positions) {
+                if (++work % 64 === 0) yield;
+                alternatives.matched.add(position);
+            }
+            positions = token === "," ? alternatives.start : alternatives.matched;
+            if (i === alternatives.end) alternatives = undefined;
+            continue;
+        }
         const next = new Set<number>();
-        if (token === "*") {
+        if (token === "*" && positions.size) {
             let start = name.length;
             for (const position of positions) start = Math.min(start, position);
             for (let position = start; position <= name.length; position++) { if (++work % 64 === 0) yield; next.add(position); }
@@ -45,7 +67,7 @@ export function* matchesMagickGlob(pattern: string, name: string): Generator<voi
             }
         }
         positions = next;
-        if (!positions.size) return false;
+        if (!positions.size && !alternatives) return false;
     }
     return positions.has(name.length);
 }
@@ -53,7 +75,7 @@ export function* matchesMagickGlob(pattern: string, name: string): Generator<voi
 export function* mogrifyTargets(target: string, paths: Iterable<string>): Generator<void, string[], void> {
     const slash = target.lastIndexOf("/");
     const directory = target.slice(0, slash + 1), pattern = target.slice(slash + 1);
-    if (!["*", "?", "["].some(token => pattern.includes(token))) return [target];
+    if (!["*", "?", "[", "{"].some(token => pattern.includes(token))) return [target];
     let work = 0;
     const found: string[] = [];
     for (const path of paths) {
@@ -72,7 +94,7 @@ export function* mogrifyTargets(target: string, paths: Iterable<string>): Genera
 export async function mogrifyFileTargets(target: string, filesystem: FileSystem, cwd: string, signal: AbortSignal): Promise<string[]> {
     const slash = target.lastIndexOf("/");
     const directory = target.slice(0, slash + 1), pattern = target.slice(slash + 1);
-    if (!["*", "?", "["].some(token => pattern.includes(token))) return [target];
+    if (!["*", "?", "[", "{"].some(token => pattern.includes(token))) return [target];
     try {
         const entries = await filesystem.readdir(resolvePath(cwd, directory || "."), { signal });
         return await drainCooperativeSteps(mogrifyTargets(target, entries.filter(entry => entry.type !== "directory").map(entry => directory + entry.name)), signal);

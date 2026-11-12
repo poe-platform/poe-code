@@ -7019,8 +7019,11 @@ async function applyStoredMagickExtent(image: StoredRgbaImage, geometry: string,
     return transformStoredMagickRaster(canvas, backend,
         extentEvaluateSamples(image, layout, background, captured), signal, canvas, [image]);
 }
-function* extentEvaluateSamples(image: Pick<RgbaImage, "width" | "space" | "hasAlpha" | "inactiveAlpha" | "alphaBlend">, layout: ReturnType<typeof magickExtentLayout>, background: ReturnType<typeof parseColor>, state: MagickState): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+function* extentEvaluateSamples(image: RgbaImage | StoredRgbaImage, layout: ReturnType<typeof magickExtentLayout>, background: ReturnType<typeof parseColor>, state: MagickState): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = image.space === "cmyk";
+    // Working colorspaces retain fractions that their integer channel buffers have lost.
+    const hue = !cmyk && ("hueSamples" in image && !!image.hueSamples
+        || "storedHueSamples" in image && image.storedHueSamples !== undefined);
     // Gray is already linear; explicit CMYK inks need no RGB round trip.
     const linear = [background.r, background.g, background.b].map(value => background.space === "b-w" ? value / 255
         : value / 255 <= 0.04045 ? value / 255 / 12.92 : ((value / 255 + 0.055) / 1.055) ** 2.4);
@@ -7036,9 +7039,10 @@ function* extentEvaluateSamples(image: Pick<RgbaImage, "width" | "space" | "hasA
         const area = layout.area, left = Math.max(x, layout.left), right = Math.min(x + count, layout.left + (area?.width ?? 0));
         if (area && y >= layout.top && y < layout.top + area.height && right > left) {
             const position = ((area.top + y - layout.top) * image.width + area.left + left - layout.left) * 4;
-            const bytes = (yield { kind: "read", evaluate: true, position, length: (right - left) * 4 })!;
+            const bytes = (yield { kind: "read", hue, evaluate: true, position, length: (right - left) * 4 })!;
             const source = bytes.length ? new Float64Array(bytes.slice().buffer)
                 : Float64Array.from(new Uint16Array((yield { kind: "read", highDepth: true, position, length: (right - left) * 4 })!.slice().buffer), value => value / 257);
+            if (hue) for (let i = 0; i < source.length; i++) source[i]! *= 255;
             const inkBytes = cmyk ? yield { kind: "read", hue: true, position, length: source.length } : undefined;
             const sourceInks = inkBytes?.length ? new Float64Array(inkBytes.slice().buffer) : undefined;
             for (let i = 0; i < source.length; i += 4) {
@@ -7071,6 +7075,9 @@ function* extentEvaluateSamples(image: Pick<RgbaImage, "width" | "space" | "hasA
 
 function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: ReturnType<typeof magickExtentLayout>, background: ReturnType<typeof parseColor>, state: MagickState, alphaSource?: RgbaImage | StoredRgbaImage): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const cmyk = image.space === "cmyk";
+    // Working colorspaces retain fractions that their integer channel buffers have lost.
+    const hue = !cmyk && ("hueSamples" in image && !!image.hueSamples
+        || "storedHueSamples" in image && image.storedHueSamples !== undefined);
     // Gray is already linear; explicit CMYK inks need no RGB round trip.
     const linear = [background.r, background.g, background.b].map(value => background.space === "b-w" ? value / 255
         : value / 255 <= 0.04045 ? value / 255 / 12.92 : ((value / 255 + 0.055) / 1.055) ** 2.4);
@@ -7096,10 +7103,11 @@ function* extentCompositeSteps(image: RgbaImage | StoredRgbaImage, layout: Retur
         const left = Math.max(x, layout.left), right = Math.min(x + count, layout.left + (area?.width ?? 0));
         if (area && y >= layout.top && y < layout.top + area.height && right > left) {
             const position = ((area.top + y - layout.top) * image.width + area.left + left - layout.left) * 4;
-            const bytes = yield { kind: "read", evaluate, highDepth, position, length: (right - left) * 4 };
-            if (!bytes || bytes.length !== (right - left) * 4 * (evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated extent pixels");
-            const source = evaluate ? new Float64Array(bytes.slice().buffer)
+            const bytes = yield { kind: "read", hue, evaluate, highDepth, position, length: (right - left) * 4 };
+            if (!bytes || bytes.length !== (right - left) * 4 * (hue || evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated extent pixels");
+            const source = hue || evaluate ? new Float64Array(bytes.slice().buffer)
                 : highDepth ? Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257) : Float64Array.from(bytes);
+            if (hue) for (let i = 0; i < source.length; i++) source[i]! *= 255;
             // Disabled alpha makes source samples opaque before any composition or clipping.
             if (!image.hasAlpha && !image.inactiveAlpha)
                 for (let i = 3; i < source.length; i += 4) source[i] = 255;

@@ -23928,6 +23928,8 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     image = { ...image, virtualCanvas: transform.geometry ? magickRepageCanvas(image, transform.geometry, "repage") : { width: 0, height: 0, x: 0, y: 0 } };
                     return yield* transformTiles(image, offset + 1, operations);
                 }
+                const rotation = transform.kind === "rotate"
+                    ? parseMagickWarpOperation(["-rotate", String(transform.angle)], state, 0, analysis)?.plan(image) : undefined;
                 const tiles = transform.kind === "crop"
                     ? yield* applyMagickCropToStackSteps(image, transform.geometry, transform.gravity, analysis)
                     : [yield* ("operation" in transform ? transform.operation.apply(image)
@@ -23935,6 +23937,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                         : transform.kind === "trim" ? trimMagickSteps(image, transform.fuzz, undefined, undefined, undefined, analysis)
                         : transform.kind === "blur" ? applyMagickRasterSteps({ ...image, isPalette: false }, blurPixelSteps(image, transform.geometry, false), signal, image)
                         : transform.kind === "extent" ? applyMagickExtentSteps(image, transform.geometry, transform.state, signal)
+                        : rotation ? applyMagickRasterSteps(image, rotation.steps, signal, rotation)
                         : transform.kind === "rotate" ? rotateImageSteps(image, transform.angle, state.background)
                         : transform.kind === "flop" ? flopImageSteps(image) : flipImageSteps(image))];
                 if (transform.kind === "alpha") for (let index = 0; index < tiles.length; index++)
@@ -24310,11 +24313,14 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                                     yield* transformTiles(cropped, offset + 1, operations);
                                 }
                             } else {
+                                const rotation = transform.kind === "rotate"
+                                    ? parseMagickWarpOperation(["-rotate", String(transform.angle)], state, 0, analysis)?.plan(tile) : undefined;
                                 let transformed = "operation" in transform
                                     ? await transformStoredMagickPixels(tile, backend, transform.operation, signal)
                                     : transform.kind === "trim" ? await trimStoredMagick(tile, backend.storage, transform.fuzz, signal, undefined, undefined, undefined, analysis)
                                     : transform.kind === "blur" ? await transformStoredMagickRaster({ ...tile, isPalette: false }, backend, blurPixelSteps(tile, transform.geometry, false), signal, tile)
                                     : transform.kind === "extent" ? await applyStoredMagickExtent(tile, transform.geometry, transform.state, backend, signal)
+                                    : rotation ? await transformStoredMagickRaster(tile, backend, rotation.steps, signal, rotation)
                                     : await transformStoredImage(tile, backend.storage, transform.kind === "rotate"
                                         ? { ...transform, background: state.background } : transform, signal);
                                 if (transform.kind === "bilevel") {

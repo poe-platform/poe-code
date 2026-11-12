@@ -11346,7 +11346,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         // ImageMagick BrightnessContrastImage: a polynomial centered at midgray.
         const slope = contrast < 0 ? 1 + contrast / 100 : 100 / (contrast === 100 ? 1e-12 : 100 - contrast);
         const channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
-        apply = function* (image) {
+        const adjust = function* (image: RgbaImage, channels: MagickState["channels"]): Generator<void, RgbaImage> {
             const cmyk = image.space === "cmyk";
             if (cmyk) image = yield* convertCmykPixels(image);
             const hueSamples = image.hueSamples?.slice();
@@ -11382,6 +11382,22 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 }
             }
             return { ...image, data: out, evaluateSamples, ...(data16 ? { data16 } : {}), ...(hueSamples ? { hueSamples } : {}) };
+        };
+        meta = {
+            channels: !state.channelExplicit || state.channelDefault ? "all" : state.channels.meta ?? [],
+            apply: image => adjust(image, { r: true, g: true, b: true, a: false }),
+        };
+        const extra = meta;
+        apply = function* (image) {
+            const result = yield* adjust(image, channels);
+            if (image.metaChannels?.length) {
+                result.metaChannels = [...image.metaChannels];
+                for (const [index, plane] of image.metaChannels.entries()) {
+                    if (extra.channels === "all" || extra.channels.includes(index))
+                        result.metaChannels[index] = yield* extra.apply(plane);
+                }
+            }
+            return result;
         };
     } else if (token === "-random-threshold") {
         highDepth = true;

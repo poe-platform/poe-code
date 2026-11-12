@@ -6,8 +6,8 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { rgbToCmyk } from "./colorspace-cmyk.js";
 import type { HueMetadata } from "./colorspace-hue.js";
 
-type RgbaImage = BaseRgbaImage & HueMetadata & { [magickInput]?: MagickFormatContext; inactiveAlpha?: boolean | undefined; writeMask?: BaseRgbaImage | undefined; metaChannels?: BaseRgbaImage[] | undefined };
-type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { [magickInput]?: MagickFormatContext; inactiveAlpha?: boolean | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined; storedMetaChannels?: BaseStoredRgbaImage[] | undefined };
+type RgbaImage = BaseRgbaImage & HueMetadata & { [magickInput]?: MagickFormatContext; inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; writeMask?: BaseRgbaImage | undefined; metaChannels?: BaseRgbaImage[] | undefined };
+type StoredRgbaImage = BaseStoredRgbaImage & HueMetadata & { [magickInput]?: MagickFormatContext; inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined; alphaSeparate?: boolean | undefined; storedWriteMask?: BaseStoredRgbaImage | undefined; storedMetaChannels?: BaseStoredRgbaImage[] | undefined };
 
 type Area = { left: number; top: number; width: number; height: number };
 type Read = { position: number; length: number };
@@ -260,7 +260,7 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
     if (next.value.width > 0 && next.value.height > 0) return image;
     // ImageMagick represents an empty trim with one transparent background pixel.
     const { data16: ignored, evaluateSamples: ignoredSamples, hueSamples: ignoredHue, ...metadata } = image;
-    return { ...metadata, width: 1, height: 1, data: emptyTrimPixel(image, emptyBackground), channels: 4, hasAlpha: true,
+    return { ...metadata, width: 1, height: 1, data: emptyTrimPixel(image, emptyBackground), channels: 4, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false,
         virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };
 }
 
@@ -310,6 +310,6 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
     const emptyPosition = storage.allocate(4);
     await storage.write(emptyPosition, emptyTrimPixel(image, emptyBackground), { signal });
     const { storedData16: ignored, storedEvaluateSamples: ignoredSamples, storedHueSamples: ignoredHue, ...metadata } = image;
-    return { ...metadata, width: 1, height: 1, position: emptyPosition, channels: 4, hasAlpha: true,
+    return { ...metadata, width: 1, height: 1, position: emptyPosition, channels: 4, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false,
         virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };
 }

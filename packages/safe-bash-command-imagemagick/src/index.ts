@@ -4082,7 +4082,9 @@ function sampleFxPixel(data: ArrayLike<number>, offset: number, ch: number, img:
   const g = data[offset + 1]! / maximum;
   const b = data[offset + 2]! / maximum;
   if (ch === 4) {
-    return magickIntensity(r, g, b, img[magickInput]?.intensity ?? "rec709luma", 1, img.magickColorspace === "RGB" || img.magickColorspace === "scRGB");
+    const linear = img.magickColorspace === "RGB" || img.magickColorspace === "scRGB"
+      || (img.space === "b-w" || img.space === "grey16") && img.gamma === 1 && img.magickColorspace !== "Gray";
+    return magickIntensity(r, g, b, img[magickInput]?.intensity ?? "rec709luma", 1, linear);
   }
   if (ch === 9) {
     // FX luma and luminance always use Rec.709 weights.

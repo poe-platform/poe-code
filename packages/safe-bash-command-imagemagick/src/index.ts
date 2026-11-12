@@ -23106,7 +23106,7 @@ interface MontageArguments {
     warnings: string;
     sizes: Pick<MagickState, "hasSize" | "sizeWidth" | "sizeHeight" | "inputOffset" | "inputDepth">[];
     shadow: boolean;
-    transforms: ({ kind: "coalesce"; inputs: MontageInput[]; index: number } | { kind: "dispose"; sequence: object; index: number } | { kind: "disposal"; value: number } | { kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | { kind: "distort"; warp: NonNullable<ReturnType<typeof parseMagickWarpOperation>> } | MontageLayers | { kind: "flip" | "flop" } | { kind: "trim"; fuzz: number } | { kind: "adaptive-sharpen"; geometry: MagickGeometry; state: MagickState } | { kind: "unsharp"; geometry: ReturnType<typeof parseUnsharpGeometry> } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "scale"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "thumbnail"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "depth"; depth: number; channels: MagickState["channels"]; dither: boolean } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "blur"; geometry: MagickGeometry } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
+    transforms: ({ kind: "colors"; count: number; dither: MagickState["dither"]; diffusionAmount: number } | { kind: "coalesce"; inputs: MontageInput[]; index: number } | { kind: "dispose"; sequence: object; index: number } | { kind: "disposal"; value: number } | { kind: "composite"; inputs: { path: string; size: MontageArguments["sizes"][number]; transforms: MontageArguments["transforms"][number] }[]; compose: string; gravity: GravityPosition | undefined } | { kind: "distort"; warp: NonNullable<ReturnType<typeof parseMagickWarpOperation>> } | MontageLayers | { kind: "flip" | "flop" } | { kind: "trim"; fuzz: number } | { kind: "adaptive-sharpen"; geometry: MagickGeometry; state: MagickState } | { kind: "unsharp"; geometry: ReturnType<typeof parseUnsharpGeometry> } | { kind: "rotate"; angle: number } | { kind: "resize"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "scale"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "thumbnail"; geometry: string; filter: ResizeFilterSettings | undefined; kernel: MagickState["kernel"]; channels: readonly boolean[] | undefined } | { kind: "depth"; depth: number; channels: MagickState["channels"]; dither: boolean } | { kind: "alpha" | "transparent" | "colorspace" | "grayscale" | "bilevel"; operation: MagickPixelOperation } | { kind: "crop"; geometry: string; gravity: GravityPosition | undefined } | { kind: "repage"; geometry: MagickGeometry | undefined } | { kind: "blur"; geometry: MagickGeometry } | { kind: "extent"; geometry: string; state: MagickState })[][]; concatenate: boolean; state: MagickState; tileCols: number | undefined; tileRows: number | undefined; originX: number; originY: number; cellW: number | undefined; cellH: number | undefined;
     frame: { size: number; width: number; height: number; outer: number; inner: number } | undefined; matte: RgbaColor; padX: number; padY: number; borderW: number; operands: string[]; labels: string[]; geometry: string; title: string | undefined; texture: string | undefined;
 }
 function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path: string) => Generator<Step, number, void>, fileTargets: (path: string) => Generator<Step | void, string[], void>): Generator<void | Step, MontageArguments | ImageMagickCliResult, void> {
@@ -23296,6 +23296,22 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -colorspace\n" };
             try {
                 queuedTransforms.push({ kind: "colorspace", operation: parseMagickPixelOperation([t, value], state, 0)! });
+            } catch (error) {
+                return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` };
+            }
+        }
+        else if (t === "-dither" || t === "+dither") {
+            const value = t === "+dither" ? "none" : argv[++i]?.toLowerCase();
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -dither\n" };
+            if (value !== "none" && value !== "floydsteinberg" && value !== "riemersma")
+                return { exitCode: 1, stdout: "", stderr: `montage: unrecognized dither method '${value}'\n` };
+            state.dither = value === "none" ? false : value;
+        }
+        else if (t === "-colors") {
+            const value = argv[++i];
+            if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -colors\n" };
+            try {
+                queuedTransforms.push({ kind: "colors", count: parseMagickColorCount(value), dither: state.dither, diffusionAmount: state.diffusionAmount ?? 1 });
             } catch (error) {
                 return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` };
             }
@@ -24054,6 +24070,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                 : [yield* ("operation" in transform ? transform.operation.apply(image)
                 : transform.kind === "depth" ? applyMagickRasterSteps(image, posterizePixelSteps(image, 2 ** transform.depth, false, 1, transform.channels, signal, false, transform.dither), signal)
                     : (transform.kind === "resize" || transform.kind === "scale" || transform.kind === "thumbnail") ? applyMagickResizeSteps(image, transform.geometry, transform.kernel, transform.kind === "thumbnail", false, transform.kind === "scale", transform.filter, undefined, false, undefined, transform.channels)
+                    : transform.kind === "colors" ? applyMagickRasterSteps(image, quantizePixelSteps(image.width * image.height * 4, transform.count, false, 0, image.hasAlpha, false, undefined, transform.dither ? { width: image.width, height: image.height, method: transform.dither, diffusionAmount: transform.diffusionAmount } : undefined, true, undefined, undefined, image.width), signal)
                     : transform.kind === "unsharp" ? applyMagickRasterSteps(image, blurPixelSteps(image, transform.geometry, false, undefined, transform.geometry), signal)
                     : transform.kind === "adaptive-sharpen" ? applyMagickAdaptiveSteps(image, transform.geometry, true, transform.state, signal)
                     : transform.kind === "trim" ? trimMagickSteps(image, transform.fuzz, undefined, undefined, undefined, analysis)
@@ -24488,6 +24505,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                     let transformed = "operation" in transform
                         ? await transformStoredMagickPixels(tile, backend, transform.operation, signal)
             : transform.kind === "depth" ? await transformStoredMagickRaster(tile, backend, posterizePixelSteps(tile, 2 ** transform.depth, false, 1, transform.channels, signal, false, transform.dither), signal)
+                        : transform.kind === "colors" ? await transformStoredMagickRaster(tile, backend, quantizePixelSteps(tile.width * tile.height * 4, transform.count, false, 0, tile.hasAlpha, false, undefined, transform.dither ? { width: tile.width, height: tile.height, method: transform.dither, diffusionAmount: transform.diffusionAmount } : undefined, true, undefined, undefined, tile.width), signal)
                         : transform.kind === "unsharp" ? await transformStoredMagickRaster(tile, backend, blurPixelSteps(tile, transform.geometry, false, undefined, transform.geometry), signal)
                         : transform.kind === "adaptive-sharpen" ? await applyStoredMagickAdaptive(tile, transform.geometry, true, transform.state.channelDefault ? undefined : transform.state.channels, transform.state.virtualPixel, transform.state.background, backend, signal)
             : transform.kind === "trim" ? await trimStoredMagick(tile, backend.storage, transform.fuzz, signal, undefined, undefined, undefined, analysis)

@@ -30,7 +30,7 @@ import { surroundAudio } from "./audio-surround.js";
 import { virtualBassAudio } from "./audio-virtualbass.js";
 import { denoiseFft } from "./audio-afftdn.js";
 import { filterFft } from "./audio-afftfilt.js";
-import { denoiseWavelets } from "./audio-afwtdn.js";
+import { denoiseWavelets, parseWaveletFilter } from "./audio-afwtdn.js";
 import { ripemd128, ripemd256, ripemd320 } from "./ripemd.js";
 import { parseTee, selectTeeTracks } from "./tee.js";
 import { measureAstats, parseAstatsMeasurements } from "./audio-astats.js";
@@ -14625,6 +14625,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         // even with loop=0. Upstream detectors see whole consumed frames.
                         let initialDemand = Math.min(1024, loop?.size ?? 0);
                         const length = stretched[0]?.length ?? 0;
+                        const wavelet = next?.split("=", 1)[0]!.split("@", 1)[0] === "afwtdn"
+                          ? parseWaveletFilter(next) : undefined;
+                        if (wavelet && frameLimit !== undefined && frameLimit > 0) {
+                          // Startup windows consume the transform delay before producing output.
+                          // EOF consumes the remaining input even when no output frame is emitted.
+                          initialDemand = Math.min(length,
+                            (Math.floor(wavelet.overlapSize / wavelet.samples) + frameLimit) * wavelet.samples);
+                        }
                         if (filterName === "silencedetect" && frameLimit !== undefined && frameLimit > 0 && audioTimestamps &&
                           next?.split("=", 1)[0]!.split("@", 1)[0] === "atempo") {
                           // Tempo may load several fragments before filling an output frame.
@@ -14675,6 +14683,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               if (end <= 0) break;
                               if (Math.min(size, end) > Math.max(0, from)) outputFrames++;
                             }
+                          } else if (wavelet && frameLimit !== undefined) {
+                            if (measuredEnd >= initialDemand) outputFrames = frameLimit;
                           } else if (reframe && frameLimit !== undefined) {
                             // Output groups may split one input frame or consume several.
                             // The detector still measures each consumed input frame in full.

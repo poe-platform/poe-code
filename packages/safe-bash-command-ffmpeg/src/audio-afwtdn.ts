@@ -66,12 +66,7 @@ const rbior68Inverse = [
   0.04973290349094079, 0.01193456527972926, -0.016990639867602342, -0.0019142861290887667,
   0.0019088317364812906, 0.0,
 ];
-export async function denoiseWavelets(
-  channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
-  filter: string, frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[],
-  budget: MediaBudgetTracker, signal?: AbortSignal,
-  commands: readonly { sample: number; expression: string }[] = []
-): Promise<{ channels: Float64Array[]; frames: { start: number; end: number; pts: number }[] }> {
+export function parseWaveletFilter(filter: string) {
   const defaults = { sigma: 0, levels: 10, wavet: 4, percent: 85, profile: 0, adaptive: 0, samples: 8192, softness: 1 };
   const options = { ...defaults };
   const ranges = { sigma: [0, 1], levels: [1, 12], wavet: [0, 6], percent: [0, 100],
@@ -116,16 +111,27 @@ export async function denoiseWavelets(
     options[key] = ["levels", "wavet", "samples"].includes(key)
       ? value - floor === 0.5 ? floor + floor % 2 : Math.round(value) : value;
   }
-  const name = waveletNames[options.wavet]!;
+  const taps = wavelets[waveletNames[options.wavet]!].length;
+  const levels = Math.min(options.levels, Math.round(Math.log2(options.samples / (taps - 1))));
+  return { ...options, levels, overlapSize: (2 ** levels - 1) * (taps - 1), enable };
+}
+
+export async function denoiseWavelets(
+  channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
+  filter: string, frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[],
+  budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { sample: number; expression: string }[] = []
+): Promise<{ channels: Float64Array[]; frames: { start: number; end: number; pts: number }[] }> {
+  const options = parseWaveletFilter(filter);
+  const { levels, overlapSize, enable } = options;
+  const name = (Object.keys(wavelets) as (keyof typeof wavelets)[])[options.wavet]!;
   const lp = wavelets[name];
   const ilp = name === "rbior68" ? rbior68Inverse : [...lp].reverse();
   const hp = ilp.map((value, i) => i % 2 === 0 ? -value : value);
   const ihp = lp.map((value, i) => i % 2 === 0 ? value : -value);
   const taps = lp.length;
   const size = options.samples;
-  const levels = Math.min(options.levels, Math.round(Math.log2(size / (taps - 1))));
   const period = 2 ** levels;
-  const overlapSize = (period - 1) * (taps - 1);
   const capacity = size + overlapSize + taps;
   const length = channels[0]?.length ?? 0;
   // Native emits the padded last input window before trimming its EOF flush.

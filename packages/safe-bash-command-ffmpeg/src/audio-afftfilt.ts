@@ -12,6 +12,9 @@ export async function filterFft(
 ) {
   let size = 4096, overlap = 0.75, realExpression = "re", imaginaryExpression = "im";
   let windowFunction = "hann";
+  let enable: string | undefined;
+  const enableVariables = { n: 0, t: 0, pos: NaN, w: 0, h: 0 };
+  const enableRegisters = new Float64Array(10);
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const options = argument ? argument.split(":") : [];
   if (options.at(-1) === "") options.pop();
@@ -22,6 +25,7 @@ export async function filterFft(
     const raw = (equals < 0 ? option : option.slice(equals + 1)).trim();
     if (key === "real") realExpression = raw;
     else if (key === "imag") imaginaryExpression = raw;
+    else if (key === "enable") enable = raw;
     else if (key === "win_size" || key === "overlap") {
       const min = key === "win_size" ? 16 : 0, max = key === "win_size" ? 131072 : 1;
       const value = parseFilterExpression(raw, "afftfilt", { min, max, default: key === "win_size" ? 4096 : 0.75 });
@@ -38,6 +42,10 @@ export async function filterFft(
       throw new Error(`afftfilt: unsupported option ${key}`);
     }
   }
+  if (enable !== undefined) {
+    parseFilterExpression(enable, "afftfilt: enable", enableVariables, undefined, enableRegisters);
+    enableRegisters.fill(0);
+  }
   if (overlap === 1) overlap = windowFunction === "rect" ? 0 : windowFunction === "blackman" ? Math.fround(0.661) : 0.5;
   const hop = Math.trunc(Math.fround(size * Math.fround(1 - overlap)));
   if (hop <= 0) throw new Error("afftfilt: invalid overlap");
@@ -45,7 +53,7 @@ export async function filterFft(
   const scratchLength = (size & (size - 1)) === 0 ? 0 : 4 * 2 ** Math.ceil(Math.log2(2 * size - 1));
   const bins = Math.floor(size / 2) + 1;
   budget.allocateMemory(channels.length * (length * 4 + size * 4 + bins * 8 + 160)
-    + size * 20 + scratchLength * 8 + Math.ceil(length / hop) * 32);
+    + size * 20 + scratchLength * 8 + Math.ceil(length / hop) * 32 + 80);
   signal?.throwIfAborted(); budget.checkCpu();
   const output = channels.map(() => new Float32Array(length));
   const window = Float32Array.from({ length: size }, (_, i) => {
@@ -84,7 +92,13 @@ export async function filterFft(
     parseFilterExpression(state.im, "afftfilt", variables, undefined, state.imaginaryRegisters, undefined, undefined, spectrumValue);
     state.realRegisters.fill(0); state.imaginaryRegisters.fill(0);
   }
-  for (const frame of outputFrames) {
+  for (const [n, frame] of outputFrames.entries()) {
+    enableVariables.n = n;
+    enableVariables.t = frame.pts / sampleRate;
+    enableVariables.pos = frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN;
+    // The native activate callback evaluates enable once per consumed hop, shared by all channels.
+    const enabled = enable === undefined
+      || Math.abs(parseFilterExpression(enable, "afftfilt: enable", enableVariables, undefined, enableRegisters)) >= 0.5;
     // All lookups read the original spectra, including bins and channels already filtered.
     for (const [c, channel] of channels.entries()) {
       await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
@@ -99,14 +113,15 @@ export async function filterFft(
     variables.pts = frame.pts;
     for (const [c, { re, im, realRegisters, imaginaryRegisters, buffer }] of states.entries()) {
       variables.ch = c;
+      // Disabled windows retain their spectra and continue updating overlap-add history.
       for (let i = 0; i < bins; i++) {
         if (i % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
         variables.b = i; variables.re = states[c]!.real[i]!; variables.im = states[c]!.imag[i]!;
-        real[i] = Math.fround(parseFilterExpression(re, "afftfilt", variables, undefined, realRegisters, undefined, undefined, spectrumValue));
-        imaginary[i] = Math.fround(parseFilterExpression(im, "afftfilt", variables, undefined, imaginaryRegisters, undefined, undefined, spectrumValue));
+        real[i] = enabled ? Math.fround(parseFilterExpression(re, "afftfilt", variables, undefined, realRegisters, undefined, undefined, spectrumValue)) : variables.re;
+        imaginary[i] = enabled ? Math.fround(parseFilterExpression(im, "afftfilt", variables, undefined, imaginaryRegisters, undefined, undefined, spectrumValue)) : variables.im;
       }
       for (let i = Math.floor(size / 2) + 1; i < size; i++) {
-        const mirror = 2 * Math.floor(size / 2) - i;
+        const mirror = (enabled ? 2 * Math.floor(size / 2) : size) - i;
         real[i] = real[mirror]!; imaginary[i] = -imaginary[mirror]!;
       }
       transform(real, imaginary, true, scratch);

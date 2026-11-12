@@ -2,11 +2,11 @@ import assert from "node:assert/strict";
 import { it } from "node:test";
 import { microdvdAst } from "./containers/microdvd.js";
 
-for (const frame of [0, 1]) {
+for (const [start, end] of [[0, 0], [0, 1], [1, 0], [1, 1]]) {
   for (const header of ["25", "25 fps", "25.000 fps", " 25 fps", "2.5e1 fps"]) {
-    it(`reads the numeric frame rate from {${frame}}{${frame}}${header}`, () => {
+    it(`reads the numeric frame rate from {${start}}{${end}}${header}`, () => {
       const plugin = microdvdAst();
-      const doc = plugin.parse(new TextEncoder().encode(`{${frame}}{${frame}}${header}\r\n{25}{50}Hello\r\n`));
+      const doc = plugin.parse(new TextEncoder().encode(`{${start}}{${end}}${header}\r\n{25}{50}Hello\r\n`));
       assert.equal(doc.timescale, 25);
       assert.equal(doc.tracks[0]!.timescale, 25);
       assert.equal(doc.durationSeconds, 2);

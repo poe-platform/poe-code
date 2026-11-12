@@ -14875,7 +14875,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       for (const item of audioFilters) {
                         const target = item.trim().split("=", 1)[0]!;
                         if (target.split("@", 1)[0] === "volumedetect") {
-                          const prefix = target.includes("@") ? `[${target}] ` : "";
+                          const prefix = (target.includes("@") ? `[${target}] ` : "") + (logSeverity ? "[info] " : "");
                           await writeBytes(context.stderr, encodeUtf8(`${prefix}n_samples: 0\n`), context.signal);
                         }
                       }
@@ -16807,7 +16807,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         }
                         filteredSampleFormat = filteredSampleFormat === "s16p" ? "s16p" : "s16";
                         panSampleFormat = filteredSampleFormat;
-                        const prefix = filterTarget.includes("@") ? `[${filterTarget}] ` : "";
+                        const prefix = (filterTarget.includes("@") ? `[${filterTarget}] ` : "") + (logSeverity ? "[info] " : "");
                         let report = `${prefix}n_samples: ${count}\n`;
                         if (count > 0) {
                           const meanSquare = Math.round(sumSquares / count);

@@ -38,7 +38,7 @@ for (const graph of [false, true]) {
         assert.deepEqual(volume.readFileSync("/in.raw"), input);
         assert.deepEqual(volume.readFileSync("/out.raw"), input);
         const message = (mono: boolean, event: string, index: number) =>
-          `[silencedetect${graph ? `@detector${index}` : ""} @ ${index}] ` + (mono ? "channel: 0 | " : "") + event;
+          `[silencedetect @ ${index}] ` + (mono ? "channel: 0 | " : "") + event;
         const frameEvents = events.slice(0, 3);
         const expected = frameSize === 3
           ? frameEvents.flatMap(event => detectors.map((mono, index) => message(mono, event, index)))

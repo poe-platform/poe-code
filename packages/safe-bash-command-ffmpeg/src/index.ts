@@ -16327,7 +16327,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           while (text.endsWith("0")) text = text.slice(0, -1);
                           return text.endsWith(".") ? text.slice(0, -1) : text;
                         };
-                        const detector = `[${filterTarget} @ ${silenceDetectorIndex++}] `;
+                        const detector = `[silencedetect @ ${silenceDetectorIndex++}] `;
                         const logSilence = (frame: number, text: string): void => {
                           if (logLevel < 32) return;
                           text = detector + (logSeverity ? "[info] " : "") + text;

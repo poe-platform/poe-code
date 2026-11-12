@@ -18,8 +18,8 @@ export function* cyclePixelSteps(image: Pick<RgbaImage, "width" | "height" | "in
     const shift = ((amount % palette.length) + palette.length) % palette.length;
     const length = image.width * image.height * 4;
     const highDepth = image.depth === "ushort";
-    const samples = highDepth ? palette.map(color => Uint16Array.of(((color >>> 16) & 255) * 257, ((color >>> 8) & 255) * 257, (color & 255) * 257, (color >>> 24) * 257)) : [];
-    if (highDepth) for (let position = 0; position < length; position += 4096) {
+    const samples = highDepth ? palette.map((color, index) => image.indexedColorSamples?.[index] ? Uint16Array.from(image.indexedColorSamples[index]!, value => Math.round(value * 257)) : Uint16Array.of(((color >>> 16) & 255) * 257, ((color >>> 8) & 255) * 257, (color & 255) * 257, (color >>> 24) * 257)) : [];
+    if (highDepth && !image.indexedColorSamples) for (let position = 0; position < length; position += 4096) {
         yield;
         const size = Math.min(4096, length - position);
         const bytes = yield { kind: "read", highDepth, position, length: size };
@@ -31,12 +31,16 @@ export function* cyclePixelSteps(image: Pick<RgbaImage, "width" | "height" | "in
             if (index !== undefined) samples[index]!.set(data.subarray(i, i + 4));
         }
     }
+    const sampleIndices = highDepth && image.indexedColorSamples ? new Map(samples.map((color, index) => [color.join(","), index])) : undefined;
     for (let position = 0; position < length; position += 4096) {
         yield;
         const size = Math.min(4096, length - position);
         const source = yield { kind: "read", position, length: size };
         if (!source || source.length !== size) throw new Error("Truncated cycle pixels");
         const data = source.slice();
+        const sourceBytes16 = sampleIndices ? yield { kind: "read", highDepth: true, position, length: size } : undefined;
+        if (sampleIndices && sourceBytes16?.length !== size * 2) throw new Error("Truncated cycle pixels");
+        const source16 = sourceBytes16 ? new Uint16Array(sourceBytes16.slice().buffer) : undefined;
         const evaluated = image.indexedColorSamples ? new Float64Array(size) : undefined;
         const data16 = highDepth ? new Uint16Array(size) : undefined;
         const original = yield { kind: "read", pngIndices: true, position: position / 4, length: size / 4 };
@@ -45,7 +49,8 @@ export function* cyclePixelSteps(image: Pick<RgbaImage, "width" | "height" | "in
             const pixel = data[i + 3]! * 16777216 + data[i]! * 65536 + data[i + 1]! * 256 + data[i + 2]!;
             const previous = rotated ? original![i / 4] : undefined;
             // Reordered pixels resolve by color; mask blending can leave only the retained index.
-            const index = previous !== undefined && palette[previous] === pixel ? previous : indices.get(pixel) ?? previous;
+            const preciseIndex = source16 ? sampleIndices!.get(source16.subarray(i, i + 4).join(",")) : undefined;
+            const index = previous !== undefined && palette[previous] === pixel ? previous : preciseIndex ?? indices.get(pixel) ?? previous;
             if (index === undefined) throw new Error("cycle requires an indexed image");
             const target = (index + shift) % palette.length;
             if (rotated) rotated[i / 4] = target;

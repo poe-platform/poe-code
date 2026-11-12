@@ -3,6 +3,7 @@ import type { ImageByteStorage, RgbaColor, RgbaImage, StoredRgbaImage } from "@p
 import type { HueMetadata } from "./colorspace-hue.js";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { RasterBackingCache } from "./raster-backing.js";
+import type { CyclePalette } from "./cycle.js";
 
 export type ConnectedComponentsSort = "x" | "y" | "width" | "height" | "area";
 
@@ -215,7 +216,16 @@ function* reportSteps(components: Component[], sort: ConnectedComponentsSort | u
  return text;
 }
 
-export function* connectedComponentsSteps(image: RgbaImage & HueMetadata, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold?: number[], keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: ConnectedComponentsSort, angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], eccentricityThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[], keepColors?: RgbaColor[], precision = 6): Generator<void, { image: RgbaImage; text: string }, void> {
+// Label IDs are Q16 palette colors; their rounded byte colors are not unique.
+function componentLabelPalette(count: number): Pick<RgbaImage, "indexedColors" | "isPalette"> & CyclePalette {
+ return {
+  isPalette: true,
+  indexedColors: Array.from({ length: count }, (_, id) => 0xff000000 + Math.round(id / 257) * 0x010101),
+  indexedColorSamples: Array.from({ length: count }, (_, id) => [id / 257, id / 257, id / 257, 255]),
+ };
+}
+
+export function* connectedComponentsSteps(image: RgbaImage & HueMetadata, connectivity: number, fuzz: number, verbose: boolean, meanColor = false, areaThreshold?: number[], keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: ConnectedComponentsSort, angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], eccentricityThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[], keepColors?: RgbaColor[], precision = 6): Generator<void, { image: RgbaImage & CyclePalette; text: string }, void> {
  const count = image.width * image.height, labels = new Uint32Array(count), queue = new Uint32Array(count);
  const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, angleThreshold, perimeterThreshold, backgroundId, majorAxisThreshold, minorAxisThreshold, eccentricityThreshold, diameterThreshold, circularityThreshold, keepColors, image.space === "cmyk");
  let next = steps.next();
@@ -242,10 +252,11 @@ export function* connectedComponentsSteps(image: RgbaImage & HueMetadata, connec
  }
  const { evaluateSamples: ignoredEvaluate, ...output } = image;
  const { hueSamples: ignoredSamples, storedHueSamples: ignoredStored, ...metadata } = output;
- return { image: { ...(image.space === "cmyk" ? metadata : output), data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
+ if (!meanColor) { delete metadata.pngPalette; delete metadata.pngIndices; }
+ return { image: { ...(!meanColor || image.space === "cmyk" ? metadata : output), ...(!meanColor ? componentLabelPalette(next.value.length) : {}), data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
 }
 
-export async function connectedComponentsStored(image: StoredRgbaImage & HueMetadata, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold?: number[], keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: ConnectedComponentsSort, angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], eccentricityThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[], keepColors?: RgbaColor[], precision = 6): Promise<{ image: StoredRgbaImage; text: string }> {
+export async function connectedComponentsStored(image: StoredRgbaImage & HueMetadata, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold?: number[], keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: ConnectedComponentsSort, angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], eccentricityThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[], keepColors?: RgbaColor[], precision = 6): Promise<{ image: StoredRgbaImage & CyclePalette; text: string }> {
  const size = image.width * image.height * 4, cache = new RasterBackingCache(storage, signal);
  const regions = { pixels: image.storedHueSamples !== undefined ? { position: image.storedHueSamples, length: size * 8 } : image.storedEvaluateSamples !== undefined ? { position: image.storedEvaluateSamples, length: size * 8 } : image.storedData16 ? { position: image.storedData16.position, length: size * 2 } : { position: image.position, length: size }, labels: await cache.allocate(size), queue: await cache.allocate(size) };
  const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, angleThreshold, perimeterThreshold, backgroundId, majorAxisThreshold, minorAxisThreshold, eccentricityThreshold, diameterThreshold, circularityThreshold, keepColors, image.space === "cmyk");
@@ -299,5 +310,6 @@ export async function connectedComponentsStored(image: StoredRgbaImage & HueMeta
  }
  const { storedEvaluateSamples: ignoredStoredEvaluate, ...output } = image;
  const { hueSamples: ignoredSamples, storedHueSamples: ignoredStored, ...metadata } = output;
- return { image: { ...(image.space === "cmyk" ? metadata : output), position, storedData16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
+ if (!meanColor) { delete metadata.pngPalette; delete metadata.storedPngIndices; }
+ return { image: { ...(!meanColor || image.space === "cmyk" ? metadata : output), ...(!meanColor ? componentLabelPalette(next.value.length) : {}), position, storedData16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
 }

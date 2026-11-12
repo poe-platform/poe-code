@@ -1,6 +1,7 @@
 import { scaleVideoPicture, type MediaVideoFrame, type MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
+import { validateWeaveGenericOption } from "./weave-generic-option.js";
 import { meanFrameDifference } from "./select.js";
 import { sceneChangeDifference } from "./scdet.js";
 
@@ -16,6 +17,10 @@ export async function interpolateFrameRate(
     const separator = part.indexOf("=");
     const key = separator < 0 ? keys[position++] : part.slice(0, separator).trim();
     if (separator >= 0) position = position === 0 ? 1 : 0;
+    if (key === "threads" || key === "thread_type") {
+      validateWeaveGenericOption(key, part.slice(separator + 1).trim(), "framerate");
+      continue;
+    }
     if (key === "enable") throw new Error("framerate: timeline is unsupported");
     if (!key || !keys.includes(key)) throw new Error(`framerate: unsupported option ${key ?? part}`);
     options[key] = (separator < 0 ? part : part.slice(separator + 1)).trim();

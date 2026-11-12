@@ -85,6 +85,20 @@ for (const [option, hex] of [
   });
 }
 
+// Native FFmpeg 7.0.2: threading controls preserve all four output frames.
+for (const options of [
+  "", ":threads=1", ":thread_type=slice", ":threads=0:thread_type=none",
+  ":threads=1+1:thread_type=all-slice", ":threads=default:thread_type=4294967295"
+]) {
+  for (const graph of [false, true]) {
+    it(`accepts framerate threading ${options || "control"} (graph=${graph})`, async () => {
+      const result = await run(`framerate=8${options}`, [11, 37], 2, 2, graph);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(result.bytes.toString("hex"), "0b0b0b0b0b0b0b0b2525252525252525");
+    });
+  }
+}
+
 // Complete byte sequences captured from FFmpeg 7.0.2 with the same argv/input.
 for (const rate of ["ntsc-film", "24000/1001", "film"]) {
   for (const option of [rate, `fps=${rate}`]) {
@@ -138,7 +152,10 @@ for (const width of [2, 31, 32, 33]) {
 }
 for (const [options, code] of [
   ["0", 234], ["bad", 234], ["5:interp_start=256", 222], ["5:scene=101", 222],
-  ["5:enable=1", 176], ["5:bogus=1", 8]
+  ["5:enable=1", 176], ["5:bogus=1", 8],
+  ["8:threads=-1", 222], ["8:threads=2147483648", 222], ["8:threads=bogus", 234],
+  ["8:thread_type=bogus", 234], ["8:thread_type=0.5", 222], ["8:thread_type=4294967296", 222],
+  ["8:threads=-1:threads=1", 222], ["8:thread_type=bogus:thread_type=slice", 234]
 ] as const) {
   it(`rejects ${options} without overwriting the destination`, async () => {
     const result = await run(`framerate=${options}`);

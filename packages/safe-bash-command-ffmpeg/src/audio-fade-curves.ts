@@ -1,4 +1,4 @@
-import { fadeCos, gateExp } from "./audio-gate-math.js";
+import { fadeAcos, fadeCos, gateExp } from "./audio-gate-math.js";
 
 const cubeRootFactors = [1 / 1.5874010519681996, 1 / 1.2599210498948732, 1, 1.2599210498948732, 1.5874010519681996];
 
@@ -41,7 +41,7 @@ export const audioFadeCurves: Record<string, (gain: number) => number> = {
   // Preserve native exponential rounding at PCM conversion boundaries.
   exp: gain => gateExp(-11.512925464970227 * (1 - gain)),
   iqsin: gain => 0.6366197723675814 * Math.asin(gain),
-  ihsin: gain => 0.3183098861837907 * Math.acos(1 - 2 * gain),
+  ihsin: gain => 0.3183098861837907 * fadeAcos(1 - 2 * gain),
   dese: gain => gain <= 0.5 ? cubeRoot(2 * gain) / 2 : 1 - cubeRoot(2 * (1 - gain)) / 2,
   desi: gain => {
     const x = 2 * (gain <= 0.5 ? gain : 1 - gain);

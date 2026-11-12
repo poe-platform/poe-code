@@ -97,6 +97,33 @@ export function fadeCos(value: number): number {
   return sum[0] + sum[1];
 }
 
+// ihsin needs native acos rounding before multiplication and PCM conversion.
+// Reduce asin's argument to [-1/2, 1/2], retaining the sqrt residual and low pi.
+export function fadeAcos(value: number): number {
+  if (Math.abs(value) >= 1) return Math.acos(value);
+  const reduced = Math.abs(value) > 0.5;
+  let x: Pair = [value, 0];
+  if (reduced) {
+    const square = (1 - Math.abs(value)) / 2;
+    const root = Math.sqrt(square);
+    const residual = add([square, 0], multiply([root, 0], [-root, 0]));
+    x = add([root, 0], divide(residual, 2 * root));
+  }
+  const square = multiply(x, x);
+  let term = x;
+  let sum = x;
+  for (let i = 1; i <= 48; i++) {
+    term = divide(multiply(multiply(term, square), [(2 * i - 1) ** 2, 0]), 2 * i * (2 * i + 1));
+    sum = add(sum, term);
+  }
+  const result = reduced
+    ? value < 0
+      ? add([Math.PI, 1.2246467991473532e-16], multiply(sum, [-2, 0]))
+      : multiply(sum, [2, 0])
+    : add([Math.PI / 2, 6.123233995736766e-17], multiply(sum, [-1, 0]));
+  return result[0] + result[1];
+}
+
 function expSeries(reduced: Pair, exponent: number): number {
   let term: Pair = [1, 0];
   let sum: Pair = [1, 0];

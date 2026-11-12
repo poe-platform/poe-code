@@ -2666,7 +2666,8 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
                 return true;
               }
               if (name === "aformat") return audioPassthroughFormats.get(sources[inputIndex]!.track)?.has(filter) ?? false;
-              return ["anull", "acopy", "asetpts", "afade"].includes(name);
+              // Trimming the second branch forwards EOF without buffering its tail.
+              return ["anull", "acopy", "asetpts", "afade", "atrim"].includes(name);
             })) {
             branch = nodes.get(branch.inputs[0]!);
           }

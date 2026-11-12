@@ -14556,11 +14556,62 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           ? command.receiver >= sender || command.receiver < 0
                           : sender > filterIndex && command.receiver === filterIndex);
                         const length = stretched[0]?.length ?? 0;
-                        for (let start = 0, n = 0; start < length && pending.length > 0; n++) {
+                        // Reconstruct the sender's frames when regrouping sits after the receiver.
+                        // Track how much receiver input was consumed to assemble each frame.
+                        let senderFrames: (AudioFilterFrame & { consumed: number })[] | undefined;
+                        let senderFrameBytes = 0;
+                        for (let index = filterIndex + 1; pending.length && index < sender; index++) {
+                          const filter = audioFilters[index]!.trim();
+                          if (filter.split("=", 1)[0]!.split("@", 1)[0] !== "asetnsamples") continue;
+                          const reframe = parseAsetnsamples(filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "");
+                          if (!senderFrames) {
+                            senderFrames = [];
+                            for (let start = 0, n = 0; start < length; n++) {
+                              if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                              const frame = audioTimestamps?.[n];
+                              const packet = t.samples[n];
+                              const end = Math.min(length, frame?.end ?? start + (packet
+                                ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024));
+                              budget.allocateMemory(48);
+                              senderFrameBytes += 48;
+                              senderFrames.push({ start, end, consumed: end,
+                                pts: frame?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start),
+                                pos: frame ? frame.pos : packet?.offset });
+                              start = end;
+                            }
+                          }
+                          const previous = senderFrames;
+                          senderFrames = [];
+                          let first = 0;
+                          let last = 0;
+                          let enabled = true;
+                          const inputLength = previous.at(-1)?.end ?? 0;
+                          for (let start = 0; start < inputLength;) {
+                            if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
+                            while (previous[first]!.end <= start) first++;
+                            const frame = previous[first]!;
+                            const end = Math.min(inputLength, enabled ? start + reframe.size : frame.end);
+                            while (previous[last]!.end < end) last++;
+                            const samplesPerTick = (audioTimeBase ?? 1 / origRate) * origRate;
+                            frame.pts += Math.round((start - frame.start) / samplesPerTick) * samplesPerTick;
+                            frame.start = start;
+                            const output = { start, end, pts: frame.pts, pos: frame.pos, consumed: previous[last]!.consumed };
+                            enabled = reframe.enabled(output, senderFrames.length, origRate);
+                            if (enabled && reframe.pad) output.end = Math.max(end, start + reframe.size);
+                            budget.allocateMemory(48);
+                            senderFrameBytes += 48;
+                            senderFrames.push(output);
+                            start = end;
+                          }
+                          budget.releaseMemory(previous.length * 48);
+                          senderFrameBytes -= previous.length * 48;
+                        }
+                        const senderLength = senderFrames?.at(-1)?.end ?? length;
+                        for (let start = 0, n = 0; start < senderLength && pending.length > 0; n++) {
                           budget.checkCpu();
                           if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           const packet = t.samples[n];
-                          const timestamp = audioTimestamps?.[n];
+                          const timestamp = senderFrames?.[n] ?? audioTimestamps?.[n];
                           const count = timestamp ? timestamp.end - timestamp.start
                             : packet ? Math.max(1, Math.round(packet.duration * origRate / t.timescale)) : 1024;
                           const pts = timestamp?.pts ?? (packet ? packet.pts * origRate / t.timescale : audioStartSample + start);
@@ -14592,11 +14643,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               graphCommands.push({ time: pts / origRate, ...dispatched });
                             }
                             // A downstream sender sees this frame after the receiver has processed it.
-                            else audioCommands.push({ sample: sender > filterIndex ? Math.min(length, start + count) : start,
+                            else audioCommands.push({ sample: sender > filterIndex ? senderFrames?.[n]?.consumed ?? Math.min(length, start + count) : start,
                               ...dispatched });
                           }
                           start += count;
                         }
+                        budget.releaseMemory(senderFrameBytes);
                       }
 
                       if (["highpass", "lowpass", "bandpass", "bandreject", "equalizer", "bass", "lowshelf", "treble", "highshelf"].includes(filterName) || filterName === "aecho") {

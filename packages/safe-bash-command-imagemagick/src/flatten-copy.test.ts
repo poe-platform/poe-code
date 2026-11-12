@@ -8,8 +8,11 @@ for (const depth of [8, 16])
 for (const operation of [["-flatten"], ["-layers", "flatten"], ["-mosaic"], ["-layers", "merge"], ["-layers", "mosaic"], ["-composite"]])
 it.each([
     { compose: "CopyRed", hex: "306030ff", hex16: "304560603030ffff" },
+    { compose: "CopyCyan", hex: "306030ff", hex16: "304560603030ffff" },
     { compose: "CopyGreen", hex: "207030ff", hex16: "202070893030ffff" },
+    { compose: "CopyMagenta", hex: "207030ff", hex16: "202070893030ffff" },
     { compose: "CopyBlue", hex: "2060b0ff", hex16: "20206060b0abffff" },
+    { compose: "CopyYellow", hex: "2060b0ff", hex16: "20206060b0abffff" },
     { compose: "CopyAlpha", hex: "20603080", hex16: "20206060303080cd" },
     { compose: "CopyOpacity", hex: "20603080", hex16: "20206060303080cd" }
 ])(`${mode} ${operation.join(" ")} honors $compose at depth ${depth}`, async ({ compose, hex, hex16 }) => {

@@ -8,13 +8,19 @@ for (const route of ["command", "retained", "buffered", "sync"] as const)
 for (const operation of ["composite", "-composite"] as const)
 for (const { compose, masked, hex } of [
   { compose: "CopyRed", masked: true, hex: "656f79558d9746abb5" },
+  { compose: "CopyCyan", masked: true, hex: "656f79558d9746abb5" },
   { compose: "CopyGreen", masked: true, hex: "656f79835f97a150b5" },
+  { compose: "CopyMagenta", masked: true, hex: "656f79835f97a150b5" },
   { compose: "CopyBlue", masked: true, hex: "656f79838d69a1ab5a" },
+  { compose: "CopyYellow", masked: true, hex: "656f79838d69a1ab5a" },
   { compose: "Over", masked: true, hex: "656f79555f6946505a" },
   { compose: "Plus", masked: true, hex: "656f7997a6b5e7fbff" },
   { compose: "CopyRed", masked: false, hex: "0a6f79288d9746abb5" },
+  { compose: "CopyCyan", masked: false, hex: "0a6f79288d9746abb5" },
   { compose: "CopyGreen", masked: false, hex: "651479833297a150b5" },
+  { compose: "CopyMagenta", masked: false, hex: "651479833297a150b5" },
   { compose: "CopyBlue", masked: false, hex: "656f1e838d3ca1ab5a" },
+  { compose: "CopyYellow", masked: false, hex: "656f1e838d3ca1ab5a" },
 ]) {
   it(`${route}: ${operation} ${compose} ${masked ? "honors the mask" : "copies without a mask"}`, async () => {
     const files = new Map([

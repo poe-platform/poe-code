@@ -18,6 +18,9 @@ type CompositeRaster = Pick<RgbaImage, "width" | "height" | "hasAlpha"> & { data
 export function magickCompositeMode(mode: string): { name: string; delegated: boolean; preservesAlpha: boolean } {
     let name = "";
     for (const character of mode.toLowerCase()) if (character !== "-" && character !== "_" && character.trim()) name += character;
+    if (name === "copycyan") name = "copyred";
+    else if (name === "copymagenta") name = "copygreen";
+    else if (name === "copyyellow") name = "copyblue";
     // Source-over creates fractional samples even when both inputs are 8-bit.
     return { name, delegated: name === "add",
         preservesAlpha: ["over", "srcover", "lightenintensity", "darkenintensity", "intensity", "difference", "src", "source", "copy", "xor", "blend", "dissolve", "in", "srcin", "out", "srcout", "dstin", "destin", "dstout", "destout"].includes(name) };

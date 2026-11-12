@@ -16478,7 +16478,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
         else if (t === "-composite") {
             if (stack.length >= 2) {
                 const base = stack[0]!;
-                const mask = stack[2];
+                // Standalone composite ignores its third-image mask when tiling.
+                const mask = analysis.composite && state.composeTile ? undefined : stack[2];
                 const maskedCopy = mask && ["copyred", "copygreen", "copyblue"].includes(magickCompositeMode(state.composeRaw).name);
                 const origOverlay = mask && !maskedCopy ? yield* applyMagickRasterSteps(stack[1]!, compositeMaskPixelSteps(stack[1]!, mask), signal, { ...stack[1]!, hasAlpha: true }, [stack[1]!, mask]) : stack[1]!;
                 if (mask && !maskedCopy) { detachRgbaBuffer(stack[1]!.data); detachRgbaBuffer(mask.data); }
@@ -18581,7 +18582,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 let result: StoredRgbaImage;
                 if (token === "-composite") {
                     const base = (await stack.get(0))!; let overlay = (await stack.get(1))!, gx = 0, gy = 0;
-                    const mask = await stack.get(2);
+                    // Standalone composite ignores its third-image mask when tiling.
+                    const mask = analysis.composite && settings.composeTile ? undefined : await stack.get(2);
                     const maskedCopy = mask && ["copyred", "copygreen", "copyblue"].includes(magickCompositeMode(settings.composeRaw).name);
                     if (mask && !maskedCopy) overlay = await transformStoredMagickRaster(overlay, backend, compositeMaskPixelSteps(overlay, mask), signal, { ...overlay, hasAlpha: true }, [overlay, mask]);
                     if (settings.geometry && !settings.composeTile) { const geometry = parseMagickGeometry(settings.geometry); gx = geometry.x; gy = geometry.y; const resize = magickResizeOptions(overlay, settings.geometry, settings.kernel); if (resize) overlay = await resizeStoredMagickImage(overlay, backend, resize, signal, false, false, false, settings.resizeFilter); }

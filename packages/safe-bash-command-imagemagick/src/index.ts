@@ -14377,6 +14377,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             let sceneIdx = 0;
             stack = yield* mapMagickImagesSteps(stack, function* (image) {
                 const expanded = geometries[sceneIdx++] ?? geometry;
+                if (t === "-implode" && !image.hasAlpha && state.background.a < 255) {
+                    // Implode initializes inactive source alpha before copying or sampling pixels.
+                    image = { ...yield* prepareInactiveAlphaOutput(image), hasAlpha: true, alphaBlend: true, inactiveAlpha: false, alphaSeparate: false };
+                }
                 let plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 if (t === "-wave" && plan.hasAlpha && !image.hasAlpha && !image.inactiveAlpha) {
@@ -18038,11 +18042,16 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 return stack;
             });
             i = warpOperation.end;
-            const geometry = ["-shear", "-wave", "-swirl", "-implode", "-spread", "-distort", "+distort"].includes(token) ? tokens[i] : undefined, optionProperties = state.optionProperties;
+            const geometry = ["-shear", "-wave", "-swirl", "-implode", "-spread", "-distort", "+distort"].includes(token) ? tokens[i] : undefined, optionProperties = state.optionProperties, background = state.background;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const source = image;
                 const expanded = geometry?.includes("%") ? await formatRetainedIdentify(geometry, image, { ...(image as StoredMagickImage)[magickInput], sceneCount: images.length, listIndex: sceneIdx++, optionProperties }, async () => ({ image: source, storage: backend.storage }), signal, images) : geometry;
+                if (token === "-implode" && !image.hasAlpha && background.a < 255) {
+                    image = { ...await transformStoredMagickPixels(image, backend,
+                        { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal),
+                        hasAlpha: true, alphaBlend: true, inactiveAlpha: false, alphaSeparate: false };
+                }
                 let plan = warpOperation.plan(image, expanded);
                 if (!plan) return image;
                 if (token === "-wave" && plan.hasAlpha && !image.hasAlpha && !image.inactiveAlpha) {

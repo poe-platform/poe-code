@@ -14178,10 +14178,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 ((imageOutput || numberedImageOutput) && imageOutputFormat(videoCodec, outputTarget.split(".").pop()?.toLowerCase() ?? "") === "png" &&
                   ["rgb24", "rgba", "pal8", "monob"].includes(rawPixelFormat ?? "")) ||
                 ((imageOutput || numberedImageOutput) && imageOutputFormat(videoCodec, outputTarget.split(".").pop()?.toLowerCase() ?? "") === "qoi" &&
-                  (rawPixelFormat === "rgb24" || rawPixelFormat === "rgba")) ||
+                  ["rgb24", "rgba", "gray16be", "rgb48be", "yuv420p"].includes(rawPixelFormat ?? "")) ||
                 (outPlugin?.id === "y4m" && (rawPixelFormat === "yuv420p" || rawPixelFormat === "yuv422p" || rawPixelFormat === "yuv444p")))) {
-              // QOI cannot encode grayscale; negotiate RGB or RGBA before converting pixels.
-              const pixelFormat = (rawPixelFormat === "gray" || rawPixelFormat === "gray8" || rawPixelFormat === "ya8") &&
+              // QOI only supports RGB/RGBA; negotiate before converting unsupported formats.
+              const pixelFormat = ["gray", "gray8", "ya8", "gray16be", "rgb48be", "yuv420p"].includes(rawPixelFormat ?? "") &&
                 (imageOutput || numberedImageOutput) &&
                 imageOutputFormat(videoCodec, outputTarget.split(".").pop()?.toLowerCase() ?? "") === "qoi"
                 ? (rawPixelFormat === "ya8" ? "rgba" : "rgb24") : rawPixelFormat;

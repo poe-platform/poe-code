@@ -2842,12 +2842,14 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
             if ((x >= sx && x < sx + spliceWidth) || (y >= sy && y < sy + sh)) {
                 // Native write/region masks leave inserted columns unset; rows still use the background.
                 const unset = (img.region || img.writeMask) && (y < sy || y >= sy + sh);
-                out[dstIdx] = unset ? 0 : Math.round(bg.r);
-                out[dstIdx + 1] = unset ? 0 : Math.round(bg.g);
-                out[dstIdx + 2] = unset ? 0 : Math.round(bg.b);
+                // Zero CMYK ink renders white in every RGB backing plane.
+                const unsetRgb = img.space === "cmyk" ? 255 : 0;
+                out[dstIdx] = unset ? unsetRgb : Math.round(bg.r);
+                out[dstIdx + 1] = unset ? unsetRgb : Math.round(bg.g);
+                out[dstIdx + 2] = unset ? unsetRgb : Math.round(bg.b);
                 out[dstIdx + 3] = unset ? img.hasAlpha || bg.a < 255 ? 0 : 255 : Math.round(bg.a);
-                if (data16) data16.set(unset ? [0, 0, 0, out[dstIdx + 3]! * 257] : background, dstIdx);
-                if (evaluateSamples) evaluateSamples.set(unset ? [0, 0, 0, out[dstIdx + 3]!] : [bg.r, bg.g, bg.b, bg.a], dstIdx);
+                if (data16) data16.set(unset ? [unsetRgb * 257, unsetRgb * 257, unsetRgb * 257, out[dstIdx + 3]! * 257] : background, dstIdx);
+                if (evaluateSamples) evaluateSamples.set(unset ? [unsetRgb, unsetRgb, unsetRgb, out[dstIdx + 3]!] : [bg.r, bg.g, bg.b, bg.a], dstIdx);
                 // The fourth CMYK working sample is black ink, not alpha.
                 if (hueSamples) hueSamples.set(unset ? [0, 0, 0, img.space === "cmyk" ? 0 : out[dstIdx + 3]! / 255] : workingBackground, dstIdx);
             }
@@ -17139,6 +17141,8 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
                     const length = Math.min(4096, end - x) * 4;
                     const samples = plane.stride === 32 ? new Float64Array(length)
                         : plane.stride === 8 ? new Uint16Array(length) : new Uint8Array(length);
+                    // Zero CMYK ink renders white; keep the ink plane itself unset.
+                    if (image.space === "cmyk" && plane.target !== storedHueSamples) samples.fill(plane.stride === 8 ? 65535 : 255);
                     // The fourth CMYK working sample is black ink, not alpha.
                     for (let i = 3; i < length; i += 4) samples[i] = plane.target === storedHueSamples ? image.space === "cmyk" ? 0 : alpha / 255 : plane.stride === 8 ? alpha * 257 : alpha;
                     await backend.storage.write(plane.target + ((y.target + row) * width + x) * plane.stride, new Uint8Array(samples.buffer));

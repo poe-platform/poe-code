@@ -1,4 +1,4 @@
-import { gateExp } from "./audio-gate-math.js";
+import { fadeCos, gateExp } from "./audio-gate-math.js";
 
 const cubeRootFactors = [1 / 1.5874010519681996, 1 / 1.2599210498948732, 1, 1.2599210498948732, 1.5874010519681996];
 
@@ -26,7 +26,10 @@ export const audioFadeCurves: Record<string, (gain: number) => number> = {
   nofade: () => 1,
   tri: gain => gain,
   qsin: gain => Math.sin(gain * Math.PI / 2),
-  esin: gain => 1 - Math.cos(Math.PI / 4 * ((2 * gain - 1) ** 3 + 1)),
+  esin: gain => {
+    const x = 2 * gain - 1;
+    return 1 - fadeCos(Math.PI / 4 * (x * x * x + 1));
+  },
   hsin: gain => (1 - Math.cos(gain * Math.PI)) / 2,
   log: gain => Math.max(0, Math.min(1, 1 + 0.2 * Math.log10(gain))),
   ipar: gain => 1 - (1 - gain) * (1 - gain),

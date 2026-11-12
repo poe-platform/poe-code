@@ -84,6 +84,19 @@ export function audioTan(value: number): number {
   return result[0] + result[1];
 }
 
+// Fade cosine arguments are bounded to [0, pi/2]. Keep the low component
+// until the final rounding; Math.cos can differ by one bit from native FFmpeg.
+export function fadeCos(value: number): number {
+  const negativeSquare = multiply([value, 0], [-value, 0]);
+  let term: Pair = [1, 0];
+  let sum = term;
+  for (let i = 1; i <= 18; i++) {
+    term = divide(multiply(term, negativeSquare), (2 * i - 1) * 2 * i);
+    sum = add(sum, term);
+  }
+  return sum[0] + sum[1];
+}
+
 function expSeries(reduced: Pair, exponent: number): number {
   let term: Pair = [1, 0];
   let sum: Pair = [1, 0];

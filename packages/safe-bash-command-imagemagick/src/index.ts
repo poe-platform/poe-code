@@ -3482,9 +3482,12 @@ function formatSceneOutputPath(pattern: string, index: number, literal = false, 
     path += pattern[cursor];
   }
   if (expanded) return path;
+  const basenameStart = path.lastIndexOf("/") + 1;
   const dot = path.lastIndexOf(".");
-  if (dot > 0) {
-    return `${path.slice(0, dot)}-${index}${path.slice(dot)}`;
+  if (dot >= basenameStart) {
+    // Native scene names strip the final suffix, but edge periods do not supply an extension.
+    const extension = dot > basenameStart && dot < path.length - 1 ? path.slice(dot) : "";
+    return `${path.slice(0, dot)}-${index}${extension}`;
   }
   return `${path}-${index}`;
 }

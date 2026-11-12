@@ -1,4 +1,5 @@
 import { deflate } from "./deflate.js";
+import { decodeFfmpegImage } from "./decode-image.js";
 import { dilation } from "./dilation.js";
 import { erosion } from "./erosion.js";
 import { inflate } from "./inflate.js";
@@ -12508,7 +12509,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   {
                     const decoded = planeFrame
                       ? { ...planeFrame, format: "rawvideo", hasAlpha: false, resolution: undefined }
-                      : decodeImage(imgBytes);
+                      : decodeFfmpegImage(imgBytes);
                     if (frames.length === 0) {
                       codecName = decoded.format === "jpeg" ? "mjpeg" : decoded.format;
                       if (decoded.format === "qoi" && imgBytes[13] === 1) colorMetadata = { transfer: 8 };

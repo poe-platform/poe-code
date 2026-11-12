@@ -1396,6 +1396,9 @@ function parseMagickColorMatrix(spec: string): { m: number[]; cols: number; rows
             weights = gaussianKernelWeights(radius, sigma, name === "gaussian");
             width = weights.length;
             height = name === "blur" ? 1 : width;
+            // Native Blur kernels transpose at quarter-turns; 45-degree ties round down.
+            const angle = (geometry.x % 180 + 180) % 180;
+            if (name === "blur" && angle > 45 && angle <= 135) [width, height] = [height, width];
         } else if (name === "rectangle") {
             width = Math.trunc(geometry.width ?? geometry.height ?? 0);
             if (width < 1) width = 3;
@@ -1420,7 +1423,7 @@ function parseMagickColorMatrix(spec: string): { m: number[]; cols: number; rows
             const inside = name === "diamond" ? Math.abs(dx) + Math.abs(dy) <= half
                 : name === "octagon" ? Math.abs(dx) + Math.abs(dy) <= half + Math.floor(half / 2)
                 : name === "disk" ? dx * dx + dy * dy <= (radius < 0.4 ? 18 : Math.trunc(radius * radius)) : true;
-            named.push(weights ? weights[x]! * (name === "gaussian" ? weights[y]! : 1)
+            named.push(weights ? name === "gaussian" ? weights[x]! * weights[y]! : weights[height === 1 ? x : y]!
                 : name === "rectangle" ? 1 : inside ? scale : NaN);
         }
     }

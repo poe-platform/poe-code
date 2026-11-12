@@ -3,7 +3,7 @@ import { it } from "node:test";
 import { Volume } from "memfs";
 import { createFfmpegCommand } from "./index.js";
 
-// Two 2x2 gray frames at the default 25 fps; reported outputs match native FFmpeg.
+// Two 2x2 gray frames at the default 25 fps, without output frame duplication.
 for (const [filter, expected] of [
   ["sendcmd='0.04 hflip enable 0',hflip", "140d221b2930373e"],
   ["hflip=enable='lt(n,1)'", "140d221b2930373e"],
@@ -27,7 +27,7 @@ for (const [filter, expected] of [
       const result = await createFfmpegCommand().execute({
         args: ["-v", "error", "-f", "rawvideo", "-pix_fmt", "gray", "-s", "2x2", "-i", "/in.raw",
           ...(graph ? ["-filter_complex", `[0:v]${filter}[out]`, "-map", "[out]"] : ["-vf", filter]),
-          "-pix_fmt", "gray", "-f", "rawvideo", "pipe:1"],
+          "-fps_mode", "passthrough", "-pix_fmt", "gray", "-f", "rawvideo", "pipe:1"],
         cwd: "/", env: {}, signal: new AbortController().signal,
         fs: {
           async readFile(path: string) { return volume.readFileSync(path); },

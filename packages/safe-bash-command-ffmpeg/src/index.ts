@@ -8780,6 +8780,25 @@ function parseMpegtsServiceType(value: string): number {
   return type;
 }
 
+function parseVideoFlags(value: string, current: number): number {
+  let enabled = value.startsWith("+") || value.startsWith("-") ? current : 0;
+  if (!value) throw new Error("Missing -flags value");
+  let position = 0;
+  while (position < value.length) {
+    const remove = value[position] === "-";
+    if (remove || value[position] === "+") position++;
+    const start = position;
+    while (position < value.length && value[position] !== "+" && value[position] !== "-") position++;
+    const flag = value.slice(start, position);
+    const bits = flag === "ildct" ? 262144 : Number(flag);
+    if (!flag.trim() || !Number.isInteger(bits) || (bits !== 0 && bits !== 262144)) {
+      throw new Error(`Unsupported -flags value: ${flag}`);
+    }
+    enabled = remove ? enabled & ~bits : enabled | bits;
+  }
+  return enabled;
+}
+
 function parseMpegtsFlags(value: string, current: number): number {
   let enabled = value.startsWith("+") || value.startsWith("-") ? current : 0;
   if (!value) throw new Error("Missing -mpegts_flags value");
@@ -8954,6 +8973,7 @@ export function evalSyncFfmpeg(
     let cuesToFront: boolean | undefined;
     let clusterTimeLimit: number | undefined;
     let pageDuration: number | undefined;
+    let videoFlags = 0;
     let apngPlays = 1;
     let finalDelay: number | undefined;
     let pngPrediction = 0;
@@ -9335,6 +9355,9 @@ export function evalSyncFfmpeg(
         const value = args[++i];
         if (value !== "0" && value !== "1") throw new Error("rle must be 0 or 1");
         rle = value === "1";
+      } else if (arg === "-flags" || arg === "-flags:v" || arg === "-flags:v:0") {
+        const flags = parseVideoFlags(args[++i] ?? "", videoFlags);
+        if (!args.slice(i + 1).includes("-i")) videoFlags = flags;
       } else if (arg === "-global_palette") {
         const value = args[++i];
         if (value !== "0" && value !== "1") throw new Error("global_palette must be 0 or 1");
@@ -9809,7 +9832,7 @@ export function evalSyncFfmpeg(
                     ...(imgFmt === "png" && vTrack?.codecDescriptions[0]?.sarWidth && vTrack.codecDescriptions[0].sarHeight &&
                       vTrack.codecDescriptions[0].sarWidth !== vTrack.codecDescriptions[0].sarHeight ? {
                       resolution: { x: vTrack.codecDescriptions[0].sarWidth, y: vTrack.codecDescriptions[0].sarHeight, unit: "unknown" as const }
-                    } : {}) }, { format: imgFmt, pngPrediction, pngBitDepth: vTrack?.codecDescriptions[0]?.pixFmt === "monob" ? 1 : undefined, pngPreserveColormap: vTrack?.codecDescriptions[0]?.pixFmt === "pal8" }).data;
+                    } : {}) }, { format: imgFmt, pngInterlace: (videoFlags & 262144) !== 0, pngPrediction, pngBitDepth: vTrack?.codecDescriptions[0]?.pixFmt === "monob" ? 1 : undefined, pngPreserveColormap: vTrack?.codecDescriptions[0]?.pixFmt === "pal8" }).data;
         if (!writeFileSync!(fileName, encoded)) return undefined;
       }
       return "";
@@ -10344,6 +10367,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let cuesToFront: boolean | undefined;
         let clusterTimeLimit: number | undefined;
         let pageDuration: number | undefined;
+        let videoFlags = 0;
         let apngPlays = 1;
         let finalDelay: number | undefined;
         let pngPrediction = 0;
@@ -11247,6 +11271,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: 1 };
             }
             pendingPatternType = value;
+          } else if (arg === "-flags" || arg === "-flags:v" || arg === "-flags:v:0") {
+            try {
+              const flags = parseVideoFlags(args[++i] ?? "", videoFlags);
+              if (!args.slice(i + 1).includes("-i")) videoFlags = flags;
+            } catch (error) {
+              await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
+              return { exitCode: 1 };
+            }
           } else if (arg === "-gifflags") {
             const value = args[++i] ?? "";
             let flags = value.startsWith("+") || value.startsWith("-") ? gifFlags : 0;
@@ -21432,6 +21464,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     } : {}),
                     ...(data16 ? { data16, space: "srgb" as const, channels: 4 as const, hasAlpha: false } : {}) }, {
                     format: imgFmt,
+                    pngInterlace: (videoFlags & 262144) !== 0,
                     pngPrediction,
                     pngPreserveColormap: !data16 && vTrack?.codecDescriptions[0]?.pixFmt === "pal8",
                     pngBitDepth: data16 ? 16 : vTrack?.codecDescriptions[0]?.pixFmt === "monob" ? 1 : vTrack?.codecDescriptions[0]?.pixFmt === "pal8" ? undefined : ["rgba64be", "rgb48be", "gray16be"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "") ? 16 : 8,

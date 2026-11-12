@@ -2182,7 +2182,14 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
             source.track = await filterAudio(source.track, source.expression);
           }
         }
-        return { track: await adaptiveAudio(sources[0]!.track, sources[1]!.track, filters[0], budget, signal),
+        const name = filters[0].split("=", 1)[0]!;
+        const target = equals < 0 ? first : first.slice(0, equals);
+        const commands = graphCommands.filter(command => command.target === name || command.target === target)
+          .sort((a, b) => a.time - b.time);
+        for (let index = graphCommands.length - 1; index >= 0; index--) {
+          if (graphCommands[index]!.target === name || graphCommands[index]!.target === target) graphCommands.splice(index, 1);
+        }
+        return { track: await adaptiveAudio(sources[0]!.track, sources[1]!.track, filters[0], budget, signal, commands),
           expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "amultiply" || filters[0]?.startsWith("amultiply=") || filters[0]?.startsWith("amultiply@")) {
@@ -14360,6 +14367,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || ["level", "type"].includes(action!) && (target === "adenorm" || target?.startsWith("adenorm@"))
                             || target === "atilt" || target?.startsWith("atilt@")
                             || target === "aexciter" || target?.startsWith("aexciter@")
+                            || ["mu", "eps", "leakage", "out_mode"].includes(action!) &&
+                              (target === "anlms" || target?.startsWith("anlms@") || target === "anlmf" || target?.startsWith("anlmf@"))
                             || action === "range" && (target === "sidechaingate" || target?.startsWith("sidechaingate@"))
                             || target === "acrusher" || target?.startsWith("acrusher@")
                             || target === "asoftclip" || target?.startsWith("asoftclip@")
@@ -14641,6 +14650,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             budget.allocateMemory(64 + expression.length * 2);
                             const dispatched = { target: command.target, action: command.action, expression };
                             if (command.target === "amix" || command.target.startsWith("amix@") ||
+                                command.target === "anlms" || command.target.startsWith("anlms@") ||
+                                command.target === "anlmf" || command.target.startsWith("anlmf@") ||
                                 command.target === "sidechaingate" || command.target.startsWith("sidechaingate@")) {
                               graphCommands.push({ time: pts / origRate, ...dispatched });
                             }

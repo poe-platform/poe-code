@@ -3,7 +3,8 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 
 export async function adaptiveAudio(
-  first: MediaTrack, desired: MediaTrack, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
+  first: MediaTrack, desired: MediaTrack, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { time: number; action: string; expression: string }[] = []
 ): Promise<MediaTrack> {
   const name = filter.split("=", 1)[0]!;
   const defaults: Record<string, number> = { order: 256, mu: 0.75, eps: 1, leakage: 0, out_mode: 2, precision: 0 };
@@ -26,6 +27,9 @@ export async function adaptiveAudio(
       continue;
     }
     if (!key || !Object.hasOwn(options, key)) throw new Error(`${name}: unsupported option ${key}`);
+    options[key] = parseOption(key, value);
+  }
+  function parseOption(key: string, value: string): number {
     const choices = key === "out_mode" ? ["i", "d", "o", "n", "e"] : key === "precision" ? ["auto", "float", "double"] : [];
     const [min, max] = bounds[key]!;
     const numeric = parseFilterExpression(value, name, {
@@ -36,8 +40,9 @@ export async function adaptiveAudio(
     if (["order", "out_mode", "precision"].includes(key)) {
       // Native integer options validate the range before rounding ties to even.
       const floor = Math.floor(numeric);
-      options[key] = numeric - floor === 0.5 ? floor + floor % 2 : Math.round(numeric);
-    } else options[key] = Math.fround(numeric);
+      return numeric - floor === 0.5 ? floor + floor % 2 : Math.round(numeric);
+    }
+    return Math.fround(numeric);
   }
   const a = first.decodedAudio;
   const b = desired.decodedAudio;
@@ -100,13 +105,43 @@ export async function adaptiveAudio(
   const channelData = a.channelData.map(() => new ArrayType(length));
   const delay = new ArrayType(2 * kernel);
   const coeffs = new ArrayType(2 * kernel);
-  const leakage = round(1 - options.leakage!);
+  const samples: MediaTrack["samples"][number][] = [];
+  let start = 0;
+  for (const packet of first.samples) {
+    if (start >= length) break;
+    budget.checkCpu();
+    const duration = Math.min(length - start, Math.max(0, Math.round(packet.duration * a.sampleRate / first.timescale)
+      - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)));
+    const pts = Math.round(packet.pts * a.sampleRate / first.timescale) + (packet.skipSamples ?? 0);
+    budget.allocateMemory(96);
+    samples.push({ data: new Uint8Array(0), size: 0, pts, dts: pts, cts: 0,
+      duration, isKeyframe: true, sampleDescriptionIndex: 1 });
+    start += duration;
+  }
   let work = 0;
   for (let channel = 0; channel < a.channels; channel++) {
     delay.fill(0);
     coeffs.fill(0);
     let offset = 0;
+    const current = { ...options };
+    let leakage = round(1 - current.leakage!);
+    let commandIndex = 0;
+    let frameIndex = 0;
+    let frameEnd = 0;
     for (let sample = 0; sample < length; sample++) {
+      while (sample >= frameEnd) {
+        const frame = samples[frameIndex++];
+        frameEnd += frame?.duration ?? length;
+        const time = (frame?.pts ?? sample) / a.sampleRate;
+        while (commandIndex < commands.length && commands[commandIndex]!.time <= time) {
+          const command = commands[commandIndex++]!;
+          if (!["mu", "eps", "leakage", "out_mode"].includes(command.action)) continue;
+          try {
+            current[command.action] = parseOption(command.action, command.expression.trim());
+            leakage = round(1 - current.leakage!);
+          } catch { /* Rejected runtime options leave the current settings intact. */ }
+        }
+      }
       const input = round(a.channelData[channel]![sample]!);
       const target = round(b.channelData[channel]![sample]!);
       delay[offset] = delay[offset + order] = input;
@@ -120,29 +155,16 @@ export async function adaptiveAudio(
         power = round(power + round(delay[tap]! * delay[tap]!));
       }
       const error = round(target - filtered);
-      let gain = round(round(options.mu! * error) / round(options.eps! + power));
+      let gain = round(round(current.mu! * error) / round(current.eps! + power));
       if (name === "anlmf") gain = round(gain * round(error * error));
       for (let tap = 0; tap < order; tap++) {
         coeffs[tap] = round(round(coeffs[tap]! * leakage) + round(delay[offset + tap]! * gain));
       }
       coeffs.copyWithin(order, 0, order);
       offset = offset === 0 ? order - 1 : offset - 1;
-      channelData[channel]![sample] = (enabled && !enabled[sample]) || options.out_mode === 0 ? input : options.out_mode === 1 ? target
-        : options.out_mode === 2 ? error : options.out_mode === 3 ? round(input - filtered) : filtered;
+      channelData[channel]![sample] = (enabled && !enabled[sample]) || current.out_mode === 0 ? input : current.out_mode === 1 ? target
+        : current.out_mode === 2 ? error : current.out_mode === 3 ? round(input - filtered) : filtered;
     }
-  }
-  const samples: MediaTrack["samples"][number][] = [];
-  let start = 0;
-  for (const packet of first.samples) {
-    if (start >= length) break;
-    budget.checkCpu();
-    const duration = Math.min(length - start, Math.max(0, Math.round(packet.duration * a.sampleRate / first.timescale)
-      - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)));
-    const pts = Math.round(packet.pts * a.sampleRate / first.timescale) + (packet.skipSamples ?? 0);
-    budget.allocateMemory(96);
-    samples.push({ data: new Uint8Array(0), size: 0, pts, dts: pts, cts: 0,
-      duration, isKeyframe: true, sampleDescriptionIndex: 1 });
-    start += duration;
   }
   return { ...first, timescale: a.sampleRate, duration: length, samples, editList: undefined,
     decodedAudio: { ...a, channelData } };

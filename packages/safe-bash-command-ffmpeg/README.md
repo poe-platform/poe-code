@@ -1423,6 +1423,10 @@ Named instances and downstream audio filters are supported. Both filters accept 
 input while the adaptive state continues updating. Both `anlmf` and `anlms`
 accept option-specific `min`, `max`, and `default` constants and arithmetic with enum
 names, for example `order=min`, `mu=default`, and `out_mode=o+1`.
+Both filters apply scheduled `mu`, `eps`, `leakage`, and `out_mode` updates at audio frame
+boundaries without resetting delay or coefficient history, including named targets:
+`[a]asendcmd=c='0.064 anlms@adaptive mu 0'[x];[x][b]anlms@adaptive=order=4[out]`.
+Invalid updates retain the previous setting; unmatched targets leave output unchanged.
 
 `[0:a][1:a]anlms=order=4:out_mode=o[out]` adaptively filters the first PCM signal against the second (desired) signal. Both inputs must have matching channel layouts and sample rates; filters on either branch run first, and output ends with the shorter branch. Supports `order`, `mu`, `eps`, `leakage`, and `out_mode`: `i` passes the input, `d` passes the desired signal, `o` returns the residual, `e` returns the filter estimate, and `n` subtracts the estimate from the input.
 

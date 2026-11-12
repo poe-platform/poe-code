@@ -26,7 +26,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
             ? `magick: option deprecated, unable to execute '+segment' at CLI arg ${position}\n` : "");
         expect("stdout" in result ? result.stdout : stdout).toBe(position ? "" : "COLORS=3");
     });
-    it.each([
+    it.each<{ input: string[]; segmented: boolean; pixels: string; info: string; coder?: string; after?: string[] }>([
         { input: ["xc:red", "xc:blue", "+append"], segmented: true, pixels: "ff0000ff0000", info: "2x1 1" },
         { input: ["xc:red", "xc:blue", "+append"], segmented: false, pixels: "ff00000000ff", info: "2x1 2" },
         { input: ["-size", "12x1", "gradient:red-blue"], segmented: true, pixels: "ff0000".repeat(12), info: "12x1 1" },
@@ -38,9 +38,17 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         { input: ["-size", "8x8", "xc:red", "xc:blue", "+append"], segmented: true, pixels: "800080".repeat(128), info: "16x8 1" },
         { input: ["xc:#4080c0"], segmented: true, pixels: "000000", info: "1x1 1" },
         { input: ["-size", "32x32", "xc:red", "xc:lime", "xc:blue", "+append"], segmented: true, pixels: ("ff0000".repeat(32) + "00ff00".repeat(32) + "0000ff".repeat(32)).repeat(32), info: "96x32 3" },
-    ])(`${mode}: $input segmented=$segmented`, async ({ input, segmented, pixels, info, coder }) => {
+        ...["Lab", "HSL", "XYZ", "CMYK"].flatMap((colorspace, index) => [false, true].map(segmented => ({
+            input: ["-size", "32x32", "xc:red", "xc:lime", "xc:blue", "+append", "-colorspace", colorspace],
+            segmented,
+            after: ["-colorspace", "sRGB"],
+            pixels: segmented ? ["00ff03", "01ff01", "000000", "555555"][index]!.repeat(3072)
+                : ("ff0000".repeat(32) + "00ff00".repeat(32) + "0000ff".repeat(32)).repeat(32),
+            info: `96x32 ${segmented ? 1 : 3}`,
+        }))),
+    ])(`${mode}: $input segmented=$segmented`, async ({ input, segmented, pixels, info, coder, after }) => {
         const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
-        const argv = [...input, ...(segmented ? ["-segment", "1x1"] : []), "-depth", "8", "-write", `${coder ?? "rgb"}:/pixels`, "-format", "%wx%h %k", "info:/info"];
+        const argv = [...input, ...(segmented ? ["-segment", "1x1"] : []), ...(after ?? []), "-depth", "8", "-write", `${coder ?? "rgb"}:/pixels`, "-format", "%wx%h %k", "info:/info"];
         const argumentValues = createCommandArguments(argv);
         let stderr = "";
         const result = mode === "command" ? await createMagickCommand().execute({

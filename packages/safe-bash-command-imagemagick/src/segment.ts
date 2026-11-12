@@ -1,3 +1,4 @@
+import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 type Interval = { left: number; right: number; level: number; children: Interval[]; stability: number };
@@ -119,14 +120,21 @@ function* histogramRegions(histogram: Float64Array, smoothing: number): Generato
     return regions;
 }
 
-/** RGB segmentation with fixed 256-bin histograms and bounded pixel reads. */
-export function* segmentPixelSteps(length: number, clusterThreshold: number, smoothing: number): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
+/** Working-colorspace segmentation with fixed 256-bin histograms and bounded pixel reads. */
+export function* segmentPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedHueSamples">>, clusterThreshold: number, smoothing: number): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
+    const length = image.width * image.height * 4;
+    const hue = !!image.hueSamples || image.storedHueSamples !== undefined, cmyk = image.space === "cmyk";
+    function* readPixels(position: number, size: number): Generator<ConvolveRequest, Uint8Array, Uint8Array | undefined> {
+        const bytes = yield { kind: "read", hue, position, length: size };
+        if (!bytes || bytes.length !== size * (hue ? 8 : 1)) throw new Error("Truncated segment pixels");
+        // Native segmentation bins and averages 8-bit working channel samples.
+        return hue ? Uint8Array.from(new Float64Array(bytes.slice().buffer), value => Math.round(Math.max(0, Math.min(1, value)) * 255)) : bytes;
+    }
     const histograms = Array.from({ length: 3 }, () => new Float64Array(256));
-    for (let position = 0; position < length; position += 4096) {
+    for (let position = 0; position < length; position += 2048) {
         yield;
-        const size = Math.min(4096, length - position);
-        const pixels = yield { kind: "read", position, length: size };
-        if (!pixels || pixels.length !== size) throw new Error("Truncated segment pixels");
+        const size = Math.min(2048, length - position);
+        const pixels = yield* readPixels(position, size);
         for (let i = 0; i < size; i += 4) for (let c = 0; c < 3; c++) histograms[c]![pixels[i + c]!]!++;
     }
     const regions: Region[][] = [];
@@ -139,11 +147,10 @@ export function* segmentPixelSteps(length: number, clusterThreshold: number, smo
     const lookup = regions.map(channel => Int16Array.from({ length: 256 }, (_, value) => channel.findIndex(region => value >= region.left - 3 && value <= region.right + 3)));
     type Cluster = { key: number; regions: Region[]; count: number; center: number[] };
     const occupied = new Map<number, Cluster>();
-    for (let position = 0; position < length; position += 4096) {
+    for (let position = 0; position < length; position += 2048) {
         yield;
-        const size = Math.min(4096, length - position);
-        const pixels = yield { kind: "read", position, length: size };
-        if (!pixels || pixels.length !== size) throw new Error("Truncated segment pixels");
+        const size = Math.min(2048, length - position);
+        const pixels = yield* readPixels(position, size);
         for (let i = 0; i < size; i += 4) {
             const indices = lookup.map((channel, c) => channel[pixels[i + c]!]!);
             if (indices.some(index => index < 0)) continue;
@@ -166,11 +173,10 @@ export function* segmentPixelSteps(length: number, clusterThreshold: number, smo
         clusters.push(cluster);
         if (clusters.length > 256) throw new Error("Too many segment clusters");
     }
-    for (let position = 0; position < length; position += 4096) {
+    for (let position = 0; position < length; position += 2048) {
         yield;
-        const size = Math.min(4096, length - position);
-        const pixels = yield { kind: "read", position, length: size };
-        if (!pixels || pixels.length !== size) throw new Error("Truncated segment pixels");
+        const size = Math.min(2048, length - position);
+        const pixels = yield* readPixels(position, size);
         const output = pixels.slice();
         for (let i = 0; i < size; i += 4) {
             if (i % 64 === 0) yield;
@@ -184,6 +190,12 @@ export function* segmentPixelSteps(length: number, clusterThreshold: number, smo
             }
             for (let c = 0; c < 3; c++) output[i + c] = selected?.center[c] ?? 0;
             output[i + 3] = 255;
+        }
+        if (hue) {
+            const working = Float64Array.from(output, (value, i) => cmyk && i % 4 === 3 ? 0 : value / 255);
+            yield { kind: "write", hue: true, position, data: new Uint8Array(working.buffer) };
+            // CMYK backing is RGB; the palette's black ink starts at zero.
+            if (cmyk) for (let i = 0; i < size; i += 4) for (let c = 0; c < 3; c++) output[i + c] = 255 - output[i + c]!;
         }
         const high = Uint16Array.from(output, value => value * 257);
         yield { kind: "write", highDepth: true, position, data: new Uint8Array(high.buffer) };

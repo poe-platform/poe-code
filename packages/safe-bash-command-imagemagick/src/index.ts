@@ -16170,7 +16170,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const expanded = yield* formatMagickPropertyStringSteps(raw, image, () => image, { ...(image as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 validateMagickTransformGeometry(expanded, "-segment");
                 const geometry = parseMagickGeometry(expanded);
-                const segmented = yield* applyMagickRasterSteps(image, segmentPixelSteps(image.data.length, geometry.width ?? 1, geometry.height ?? 1), signal);
+                const segmented = yield* applyMagickRasterSteps(image, segmentPixelSteps(image, geometry.width ?? 1, geometry.height ?? 1), signal);
                 if (state.monitor) analysis.progress += `segment image[${(image as MagickImage)[magickInput]?.filePath ?? ""}]: 100% complete\n`;
                 return segmented;
             });
@@ -20536,7 +20536,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 validateMagickTransformGeometry(expanded, "-segment");
                 const geometry = parseMagickGeometry(expanded);
-                const segmented = await transformStoredMagickRaster(image, backend, segmentPixelSteps(image.width * image.height * 4, geometry.width ?? 1, geometry.height ?? 1), signal);
+                const segmented = await transformStoredMagickRaster(image, backend, segmentPixelSteps(image, geometry.width ?? 1, geometry.height ?? 1), signal);
                 if (monitor) {
                     const progress = `segment image[${(image as StoredMagickImage)[magickInput]?.filePath ?? ""}]: 100% complete\n`;
                     if (input.stderr) await writeIdentifyText(input.stderr, progress, signal);

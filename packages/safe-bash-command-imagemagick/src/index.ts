@@ -1907,7 +1907,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
     }
   }
   const suffix = img.hasAlpha || img.inactiveAlpha && img.alphaBlend !== false ? "Alpha" : "";
-  const type = img.space === "cmyk" ? `ColorSeparation${suffix}`
+  const type = img.space === "cmyk" ? `ColorSeparation${img.hasAlpha ? "Alpha" : ""}`
     : (img as MagickImage)[magickInput]?.imageType ?? (gray ? (bilevel ? "Bilevel" : `Grayscale${suffix}`)
     : `${colors.size <= 256 ? "Palette" : "TrueColor"}${suffix}`);
   const deviation = sums.reduce((sum, value, c) => sum + (selectedChannels[c] ? Math.sqrt(Math.max(0,

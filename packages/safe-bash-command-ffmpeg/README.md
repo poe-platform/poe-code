@@ -684,6 +684,10 @@ with status 222, invalid expressions with 234, unsupported transform sizes with
 218, and unknown options with 8.
 Use `surround=chl_out=stereo` to retain two output channels with the same
 frequency-domain processing of the front speakers.
+Set `lfe_low` (0–256 Hz, default 128) and `lfe_high` (0–512 Hz, default 256)
+to tune the LFE transition band without changing the other speakers. Both accept
+expressions and round to integer Hz with ties to even. The low cutoff must be
+less than the high cutoff, including when `lfe=0`; invalid ordering returns 234.
 Set `fl_out`, `fr_out`, `fc_out`, `lfe_out`, `bl_out`, or `br_out` to adjust
 only that speaker's output level (0–10, default 1); zero silences the speaker.
 These levels accept expressions and the constants `min`, `max`, and `default`.

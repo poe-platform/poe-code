@@ -11,6 +11,8 @@ export async function surroundAudio(
   filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<{ channels: Float32Array[]; frameSize: number }> {
   let size = 4096, lfe = true;
+  let windowOverlap = 0.5;
+  let lfeLow = 128, lfeHigh = 256;
   let outputChannels = 6;
   const outputLevels = { fl_out: 1, fr_out: 1, fc_out: 1, lfe_out: 1, bl_out: 1, br_out: 1 };
   const spread = {
@@ -21,7 +23,7 @@ export async function surroundAudio(
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? ["chl_out", "chl_in", "level_in", "level_out", "lfe"][index] : option.slice(0, separator).trim();
+    const key = separator < 0 ? ["chl_out", "chl_in", "level_in", "level_out", "lfe", "lfe_low", "lfe_high"][index] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (key === "chl_out") {
       const layout = parseAudioChannelLayout(value).join("+");
@@ -49,13 +51,20 @@ export async function surroundAudio(
         throw new RangeError(`surround: ${key} must be between ${min} and 15`);
       }
       spread[key as keyof typeof spread] = Math.fround(number);
-    } else if (key === "win_size") {
-      const number = parseFilterExpression(value, "surround", { min: 1024, max: 65536, default: 4096 });
-      if (!Number.isFinite(number) || number < 1024 || number > 65536) {
-        throw new RangeError("surround: win_size must be between 1024 and 65536");
+    } else if (key === "win_size" || key === "lfe_low" || key === "lfe_high") {
+      const min = key === "win_size" ? 1024 : 0;
+      const max = key === "win_size" ? 65536 : key === "lfe_low" ? 256 : 512;
+      const number = parseFilterExpression(value, "surround", {
+        min, max, default: key === "win_size" ? 4096 : key === "lfe_low" ? 128 : 256
+      });
+      if (!Number.isFinite(number) || number < min || number > max) {
+        throw new RangeError(`surround: ${key} must be between ${min} and ${max}`);
       }
       // Integer AVOptions validate the range before rounding, with ties to even.
-      size = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
+      const rounded = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
+      if (key === "win_size") size = rounded;
+      else if (key === "lfe_low") lfeLow = rounded;
+      else lfeHigh = rounded;
     } else if (key === "lfe") {
       const boolean = value.toLowerCase();
       if (["1", "true", "yes", "on", "y", "enabled"].includes(boolean)) lfe = true;
@@ -63,6 +72,7 @@ export async function surroundAudio(
       else throw new Error("surround: invalid lfe");
     } else throw new Error(`surround: unsupported option ${key}`);
   }
+  if (lfeLow >= lfeHigh) throw new Error(`surround: low cutoff ${lfeLow} must be less than high cutoff ${lfeHigh}`);
   if (size % 4 !== 0) throw new Error("surround: unsupported transform size");
   if (channels.length !== 2) throw new Error("surround: stereo input required");
   // Global spreads override speaker options regardless of argument order.
@@ -71,7 +81,10 @@ export async function surroundAudio(
     .map(value => spread.allx >= 0 ? spread.allx : value);
   const spreadY = [spread.fly, spread.fry, spread.fcy, 0, spread.bly, spread.bry]
     .map(value => spread.ally >= 0 ? spread.ally : value);
-  const length = channels[0]!.length, hop = size / 2;
+  // One selects the Hann window's recommended overlap.
+  if (windowOverlap === 1) windowOverlap = 0.5;
+  const length = channels[0]!.length;
+  const hop = Math.max(1, Math.trunc(size * (1 - windowOverlap)));
   const scratchLength = (size & (size - 1)) === 0 ? 0 : 4 * 2 ** Math.ceil(Math.log2(2 * size - 1));
   // Output and overlap planes for each channel, two complex input transforms,
   // one complex inverse workspace, the window, and float FFT cosine tables.
@@ -84,24 +97,32 @@ export async function surroundAudio(
   const real = channels.map(() => new Float64Array(size));
   const imaginary = channels.map(() => new Float64Array(size));
   const outReal = new Float64Array(size), outImaginary = new Float64Array(size);
-  // FFmpeg uses float spectra, a square-root Hann window and 50% overlap.
+  // FFmpeg uses float spectra and a square-root Hann window.
   const f = Math.fround, pi = f(Math.PI), halfPi = f(Math.PI / 2);
   const window = Float32Array.from({ length: size }, (_, i) => Math.sqrt(f(0.5 * (1 - Math.cos(2 * Math.PI * i / (size - 1)))) / size));
   let max = 0;
-  for (let i = 0; i < hop; i++) max = Math.max(max, f(window[i]! + window[i + hop]!));
+  // Reuse the inverse workspace to sum shifted windows in native float order.
+  for (let shift = 0; shift < size; shift += hop) {
+    await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
+    for (let i = 0; i < size; i++) {
+      const index = (i + shift) % size;
+      outReal[index] = f(outReal[index]! + window[i]!);
+    }
+  }
+  for (let i = 0; i < size; i++) max = Math.max(max, outReal[i]!);
   const gain = f(1 / f(max * f(Math.sqrt(size))));
   const gains = Object.values(outputLevels).map(level => f(level * gain));
-  const low = f(128 * size / sampleRate), high = f(256 * size / sampleRate);
+  const low = f(lfeLow * size / sampleRate), high = f(lfeHigh * size / sampleRate);
   for (let start = 0; start < length; start += hop) {
     await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
     for (let c = 0; c < 2; c++) {
-      for (let i = 0; i < size; i++) real[c]![i] = f(f(channels[c]![start - hop + i] ?? 0) * window[i]!);
+      for (let i = 0; i < size; i++) real[c]![i] = f(f(channels[c]![start - (size - hop) + i] ?? 0) * window[i]!);
       imaginary[c]!.fill(0);
       if (scratch) transform(real[c]!, imaginary[c]!, false, scratch);
       else dialogueSpectrum(real[c]!, imaginary[c]!, cosine);
     }
     for (let c = 0; c < outputChannels; c++) {
-      for (let n = 0; n <= hop; n++) {
+      for (let n = 0; n <= size / 2; n++) {
         const lr = f(real[0]![n]!), li = f(imaginary[0]![n]!);
         const rr = f(real[1]![n]!), ri = f(imaginary[1]![n]!);
         const lm = f(Math.hypot(lr, li)), rm = f(Math.hypot(rr, ri));
@@ -125,8 +146,8 @@ export async function surroundAudio(
         const magnitude = f((c === 3 ? f(lowpass * center) : c === 2 ? center : f(Math.hypot(lm, rm))) * factor);
         const phaseOut = c === 2 || c === 3 ? centerPhase : c === 0 || c === 4 ? lp : rp;
         outReal[n] = f(magnitude * f(Math.cos(phaseOut)));
-        outImaginary[n] = n === 0 || n === hop ? 0 : f(magnitude * f(Math.sin(phaseOut)));
-        if (n > 0 && n < hop) {
+        outImaginary[n] = n === 0 || n === size / 2 ? 0 : f(magnitude * f(Math.sin(phaseOut)));
+        if (n > 0 && n < size / 2) {
           outReal[size - n] = outReal[n]!;
           outImaginary[size - n] = -outImaginary[n]!;
         }
@@ -134,7 +155,7 @@ export async function surroundAudio(
       if (scratch) transform(outReal, outImaginary, true, scratch);
       else inverseRealSpectrum(outReal, outImaginary, cosine);
       const buffer = overlap[c]!;
-      buffer.copyWithin(0, hop); buffer.fill(0, hop);
+      buffer.copyWithin(0, hop); buffer.fill(0, size - hop);
       for (let i = 0; i < size; i++) buffer[i] = f(buffer[i]! + f(f(f(outReal[i]!) * window[i]!) * gains[c]!));
       output[c]!.set(buffer.subarray(0, Math.min(hop, length - start)), start);
     }

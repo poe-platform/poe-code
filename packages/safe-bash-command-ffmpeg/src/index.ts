@@ -17655,7 +17655,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                 !nextFilter && audioRate !== undefined && audioRate !== targetRate) {
                               format ??= filteredSampleFormat;
                             }
-                            filteredSampleFormat = panSampleFormat = internalFormat === "dblp" ? "dbl" : "flt";
+                            // Keep the internal planar format until atempo negotiates its
+                            // packed input with downstream filters and the output encoder.
+                            filteredSampleFormat = panSampleFormat = nextFilter === "atempo"
+                              ? internalFormat : internalFormat === "dblp" ? "dbl" : "flt";
                             audioStartSample = Math.round(audioStartSample * targetRate / origRate);
                             // Resampler startup buffers input frames; flush emits a separate tail frame.
                             budget.allocateMemory(outputEnds.length * 24);

@@ -28,14 +28,14 @@ export async function softClipAudio(
       const index = number - lower === 0.5 ? lower + Math.abs(lower % 2) : Math.round(number);
       type = types[index + 1]!;
     } else if (key === "oversample") {
-      const number = parseFilterExpression(value, "asoftclip", {});
+      const number = parseFilterExpression(value, "asoftclip", { min: 1, max: 64, default: 1 });
       if (!Number.isFinite(number) || number < 1 || number > 64) throw new RangeError("asoftclip: invalid oversample");
       // Native integer options validate the range before rounding ties to even.
       options.oversample = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
     } else if (key === "threshold" || key === "output" || key === "param") {
-      const number = parseFilterExpression(value, "asoftclip", {});
       const min = key === "param" ? 0.01 : 0.000001;
       const max = key === "param" ? 3 : key === "output" ? 16 : 1;
+      const number = parseFilterExpression(value, "asoftclip", { min, max, default: 1 });
       if (!value || !Number.isFinite(number) || number < min || number > max) {
         throw new RangeError(`asoftclip: invalid ${key}`);
       }
@@ -45,8 +45,10 @@ export async function softClipAudio(
     }
   }
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+  const parts = argument ? argument.split(":") : [];
+  if (parts.at(-1) === "") parts.pop();
   let positional = 0;
-  for (const option of (argument ? argument.split(":") : [])) {
+  for (const option of parts) {
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["type", "threshold", "output", "param", "oversample"][positional++] : option.slice(0, separator).trim();
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();

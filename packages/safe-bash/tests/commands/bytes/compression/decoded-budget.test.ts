@@ -24,7 +24,8 @@ test("every decompressor validation alias shares the host decoded-byte ceiling",
     const compressed = await producer.exec(`${profile.names[0]} -c /input`);
     assert.equal(compressed.exitCode, 0, compressed.stderr);
     await producer.dispose();
-    const shell = new Shell({ fs, limits: { maxOutputBytes: 64 } }).use(byteCommands({ compression: { maxDecodedBytes: 1024 } }));
+    // Leave room for operand-qualified stderr while keeping capture smaller than the decoded quota.
+    const shell = new Shell({ fs, limits: { maxOutputBytes: 256 } }).use(byteCommands({ compression: { maxDecodedBytes: 1024 } }));
     try {
       for (const name of profile.names) {
         const result = await shell.exec(`${name} -t`, { stdin: compressed.stdoutBytes });

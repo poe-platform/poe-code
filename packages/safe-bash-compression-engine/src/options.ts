@@ -82,7 +82,7 @@ export function createOptionsParser(profiles: readonly CompressionProfile[]): (c
   if (!profile) throw new UsageError(`unknown compression command '${command}'`);
   const result: CompressionOptions = {
     format: profile.format,
-    decompress: command !== profile.names[0], stdout: command === profile.names[2], keep: profile.keep,
+    decompress: command !== profile.names[0], stdout: false, keep: profile.keep,
     force: false, test: false, help: false, quiet: 0, recursive: false, level: profile.level, operands: [],
     ...(command === "zstdcat" ? { passthrough: true } : {}),
     ...(profile.format === "zstd" ? { zstd: { check: true, literals: 0, row: 0, window: 0, sizeHint: 0 } } : {}),
@@ -316,7 +316,7 @@ export function createOptionsParser(profiles: readonly CompressionProfile[]): (c
     throw new UsageError("the LZMA format supports only --check=none");
   }
   if (!result.operands.length) result.operands.push("-");
-  if (result.xzList) result.stdout = true;
+  if (result.xzList || command === profile.names[2] && !(profile.format === "bzip2" && result.test)) result.stdout = true;
   if (result.xzList && result.xzFormat !== undefined && result.xzFormat !== "auto" && result.xzFormat !== "xz") throw new UsageError("--list works only on .xz files (--format=xz or --format=auto)");
   if (result.xzRobot && !result.xzList) throw new UsageError("robot mode is only supported for --list");
   return result;

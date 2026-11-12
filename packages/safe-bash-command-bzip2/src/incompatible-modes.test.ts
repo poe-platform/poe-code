@@ -34,3 +34,13 @@ test('bzip2 rejects test-to-stdout for intact and missing operands, preserving t
   assert.equal(valid.stdout.length, 0);
   assert.deepEqual(Buffer.from(await fs.readFile('/a.bz2')), encoded.stdout);
 });
+
+test('bzcat tests intact input unless stdout is explicitly requested', async () => {
+  const encoded = await run('bzip2', ['-c'], chunks(Buffer.from('hello\n')));
+  for (const [flags, code] of [[['-t'], 0], [['-tc'], 1], [['--stdout', '--test'], 1]] as const) {
+    const result = await run('bzcat', [...flags], chunks(encoded.stdout));
+    assert.equal(result.exitCode, code);
+    assert.equal(result.stderr, code ? 'bzcat: -c and -t cannot be used together.\n' : '');
+    assert.equal(result.stdout.length, 0);
+  }
+});

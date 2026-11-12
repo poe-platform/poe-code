@@ -1360,7 +1360,13 @@ function parseMagickConvolveKernel(spec: string, normalize = true, reverse = fal
 function parseMagickColorMatrix(spec: string): { m: number[]; cols: number; rows: number } {
     const separator = spec.indexOf(":");
     const name = (separator < 0 ? spec : spec.slice(0, separator)).trim().toLowerCase();
-    const argument = separator < 0 || spec.slice(separator + 1).trim() === "" ? undefined : Number(spec.slice(separator + 1));
+    let parameter = separator < 0 ? "" : spec.slice(separator + 1).trim();
+    if (name === "sobel") {
+        // Sobel uses only the first geometry field, without scaling for geometry flags.
+        parameter = parameter.split(",")[0]!.trimEnd();
+        while (parameter.length > 0 && "!<>@^%".includes(parameter.at(-1)!)) parameter = parameter.slice(0, -1).trimEnd();
+    }
+    const argument = parameter === "" ? undefined : Number(parameter);
     let named: number[] | undefined;
     let namedCols: number | undefined;
     let namedRows: number | undefined;

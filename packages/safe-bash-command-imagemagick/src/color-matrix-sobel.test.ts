@@ -3,9 +3,9 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runMagickCli, runMagickCliSync } from "./index.js";
 
-// Native ImageMagick 7.1.2-35 Q16-HDRI, raw RGBA8 output.
+// Native ImageMagick 7.1.2-35 Q16-HDRI, raw RGBA output.
 for (const mode of ["command", "retained", "buffered", "sync"] as const) {
-    it.each([
+    it.each<{ matrix: string; expected: string; pixels?: string[]; depth?: string }>([
         { matrix: "Sobel", expected: "00000080" },
         { matrix: "Sobel:0", expected: "00000080" },
         { matrix: "Sobel:22.5", expected: "00000080" },
@@ -25,8 +25,12 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         { matrix: "Sobel:-90", expected: "00008080" },
         { matrix: "Sobel:405", expected: "40000080" },
         { matrix: "1 2 1 0 0 0 -1 -2 -1", expected: "80000080" },
-    ])(`${mode}: applies the rotated $matrix color matrix`, async ({ matrix, expected }) => {
-        const argv = ["xc:#10203080", "-color-matrix", matrix, "-depth", "8", "rgba:-"];
+        ...["Sobel:90", "Sobel:90>", "Sobel:90@", "Sobel:90^", "Sobel:0", "Sobel:0,90"].map(matrix => ({
+            matrix, pixels: ["xc:#173e5970", "xc:#b56829cf", "+append"], depth: "16",
+            expected: matrix.startsWith("Sobel:90") ? "ecec000000007070ffff00000000cfcf" : "00000000000070708c8cffff8c8ccfcf"
+        })),
+    ])(`${mode}: applies the rotated $matrix color matrix`, async ({ matrix, expected, pixels = ["xc:#10203080"], depth = "8" }) => {
+        const argv = [...pixels, "-color-matrix", matrix, "-depth", depth, "-endian", "MSB", "rgba:-"];
         const fs = new MemoryFileSystem();
         const args = createCommandArguments(argv);
         const chunks: Uint8Array[] = [];

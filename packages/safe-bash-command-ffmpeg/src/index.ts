@@ -933,7 +933,20 @@ async function ensureDecodedFrames(
   const height = track.height ?? track.codecDescriptions[0]?.height ?? 64;
   const ts = track.timescale || 90000;
   const frames: MediaVideoFrame[] = [];
-  const decoded = track.decodedVideoFrames ?? decodeH264Samples(track.samples, track.codecDescriptions, width, height, ts);
+  const decoded = track.decodedVideoFrames ?? (function* (): Generator<MediaVideoFrame> {
+    if (track.codecDescriptions[0]?.codecName === "png") {
+      for (const sample of track.samples) {
+        const image = decodeImage(sample.data);
+        yield {
+          width: image.width, height: image.height, data: image.data,
+          ptsSeconds: sample.pts / ts, durationSeconds: sample.duration / ts,
+          keyframe: sample.isKeyframe, offset: sample.offset
+        };
+      }
+    } else {
+      yield* decodeH264Samples(track.samples, track.codecDescriptions, width, height, ts);
+    }
+  })();
   for (const frame of decoded) {
     await yieldTurn(signal);
     signal?.throwIfAborted();

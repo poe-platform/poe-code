@@ -15277,7 +15277,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           initialDemand = Math.min(length,
                             (Math.floor(wavelet.overlapSize / wavelet.samples) + frameLimit) * wavelet.samples);
                         }
-                        if (frameLimit !== undefined && frameLimit > 0 && audioTimestamps &&
+                        let tempoEnd: number | undefined;
+                        if ((duration !== undefined || frameLimit !== undefined && frameLimit > 0) && audioTimestamps &&
                           next?.split("=", 1)[0]!.split("@", 1)[0] === "atempo") {
                           // Tempo may load several fragments before filling an output frame.
                           // Use its scheduler's actual demand, then measure whole input frames.
@@ -15287,7 +15288,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             .sort((a, b) => a.sample - b.sample);
                           const result = await filterScheduledTempo(stretched, origRate, panSampleFormat, tempo,
                             commands, audioTimestamps, budget, context.signal, frameLimit);
-                          initialDemand = result.frames.length < frameLimit ? length : result.frames[frameLimit - 1]!.inputEnd;
+                          tempoEnd = frameLimit === undefined || result.frames.length < frameLimit
+                            ? length : result.frames[frameLimit - 1]!.inputEnd;
+                          if (duration !== undefined && result.frames.length > 0) {
+                            const endPts = Math.max(result.frames[0]!.pts, outputSs === undefined ? -Infinity : Math.round(outputSs * origRate))
+                              + Math.round(duration * origRate);
+                            tempoEnd = Math.min(tempoEnd, result.frames.find(frame => frame.pts >= endPts)?.inputEnd ?? length);
+                          }
+                          initialDemand = tempoEnd;
                         }
                         const declick = next && ["adeclick", "adeclip"].includes(next.split("=", 1)[0]!.split("@", 1)[0]!)
                           ? parseDeclick(next, origRate) : undefined;
@@ -15316,7 +15324,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : 1024;
                           if (size === 0) continue;
                           measuredEnd = Math.min(length, start + size);
-                          if (duration !== undefined) {
+                          if (tempoEnd !== undefined && measuredEnd >= tempoEnd) break;
+                          const selected = !select || select({ start, end: measuredEnd,
+                            pts: frame?.pts ?? (packet ? packet.pts * origRate / t.timescale + (packet.skipSamples ?? 0) : audioStartSample + start),
+                            pos: frame?.pos ?? packet?.offset }, audioMetadata[n]?.tags);
+                          if (duration !== undefined && tempoEnd === undefined && selected) {
                             const pts = frame?.pts ?? audioStartSample + start;
                             outputEndPts ??= Math.max(pts, outputSs === undefined ? -Infinity : Math.round(outputSs * origRate))
                               + Math.round(duration * origRate);
@@ -15366,9 +15378,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                               reframeEnabled = reframe.enabled({ start: 0, end: pending, pts: pendingPts, pos: pendingPos }, outputFrames++, origRate);
                               pending = 0;
                             }
-                          } else if (!select || select({ start, end: measuredEnd,
-                            pts: frame?.pts ?? (packet ? packet.pts * origRate / t.timescale + (packet.skipSamples ?? 0) : audioStartSample + start),
-                            pos: frame?.pos ?? packet?.offset }, audioMetadata[n]?.tags)) {
+                          } else if (selected) {
                             // Rejected frames are consumed by the detector without satisfying output demand.
                             outputFrames++;
                           }

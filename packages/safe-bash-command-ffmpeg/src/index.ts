@@ -21533,6 +21533,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 msg === "channelsplit: matching input channel layout required" ||
                 msg === "haas: unsupported input channel layout" ||
                 msg === "crossfeed: unsupported input channel layout" ||
+                msg.startsWith("headphone: Number of HRIRs must be >= ") ||
                 msg === "dialoguenhance: unsupported input channel layout" ||
                 msg === "stereowiden: unsupported input channel layout" ||
                 msg === "Padded dimensions cannot be smaller than input dimensions" ||

@@ -54,10 +54,6 @@ export async function headphoneAudio(
     options[key] = value;
   }
   const mapping = options.map?.split("|");
-  const sourceChannels = tracks[0]?.decodedAudio?.channels;
-  if (mapping && sourceChannels !== undefined && mapping.length < sourceChannels) {
-    throw new Error(`headphone: Number of HRIRs must be >= ${sourceChannels}.`);
-  }
   if (!mapping || new Set(mapping).size !== mapping.length || mapping.some(name => !Object.hasOwn(audioSpeakerMasks, name))) {
     throw new Error("headphone: map must assign distinct speakers");
   }
@@ -67,6 +63,10 @@ export async function headphoneAudio(
   const multich = options.hrir === "multich" || options.hrir === "1";
   if (tracks.length !== (multich ? 2 : mapping.length + 1)) {
     throw new Error(multich ? "headphone requires one packed impulse response input" : "headphone requires one stereo impulse response per mapped source channel");
+  }
+  const sourceChannels = tracks[0]?.decodedAudio?.channels;
+  if (sourceChannels !== undefined && mapping.length < sourceChannels) {
+    throw new Error(`headphone: Number of HRIRs must be >= ${sourceChannels}.`);
   }
   if (!multich) {
     tracks = [...tracks];

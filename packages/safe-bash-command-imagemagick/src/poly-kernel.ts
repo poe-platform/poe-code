@@ -16,9 +16,10 @@ export function parseMagickPoly(value: string): number[] {
                 if (field) fields.push(field);
                 field = "";
             } else {
-                // Signs start the next term unless they belong to an exponent.
-                const sign = (character === "+" || character === "-") && !field.endsWith("e") && !field.endsWith("E");
-                const decimal = character === "." && (field.includes(".") || field.includes("e") || field.includes("E") || field.toLowerCase().includes("0x"));
+                // Hexadecimal e/E digits do not introduce decimal exponents.
+                const hexadecimal = field.toLowerCase().includes("0x");
+                const sign = (character === "+" || character === "-") && (hexadecimal || !field.endsWith("e") && !field.endsWith("E"));
+                const decimal = character === "." && (field.includes(".") || field.includes("e") || field.includes("E") || hexadecimal);
                 if (field && (sign || decimal)) {
                     fields.push(field);
                     field = "";

@@ -2,17 +2,22 @@ import { defaultRuntime } from "@poe-code/compression";
 import type { RgbaImage } from "../ast.js";
 import type { ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
 
-type PsdImage = Pick<RgbaImage, "width" | "height" | "hasAlpha" | "density" | "resolution" | "virtualCanvas">;
+type PsdImage = Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "channels" | "density" | "resolution" | "virtualCanvas">;
 
-/** PSD v1 / PSB v2: editable RGB layers and their composite, with raw channel planes. */
+export function psdChannels(image: Pick<RgbaImage, "hasAlpha" | "space" | "channels">): 1 | 2 | 3 | 4 {
+    const gray = image.space === "b-w" || image.space === "grey16" || image.channels === 1 || image.channels === 2;
+    return gray ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3;
+}
+
+/** PSD v1 / PSB v2: editable RGB or grayscale layers and their composite, with raw channel planes. */
 function* psdChunks(image: PsdImage, layers: readonly PsdImage[], depth: number, format: "psd" | "psb"): Generator<Uint8Array | { image: number; offset: number; length: number }, void, Uint8Array | Uint16Array> {
-    const { width, height, hasAlpha } = image, channels = hasAlpha ? 4 : 3;
+    const { width, height, hasAlpha } = image, channels = psdChannels(image), baseChannels = channels <= 2 ? 1 : 3;
     const large = format === "psb", lengthBytes = large ? 8 : 4, maxDimension = large ? 300000 : 30000;
     if (layers.length > 32767) throw new Error("Too many Photoshop layers");
     for (const frame of [image, ...layers]) {
         if (!Number.isInteger(frame.width) || !Number.isInteger(frame.height) || frame.width < 1 || frame.height < 1 || frame.width > maxDimension || frame.height > maxDimension) throw new Error(`${format.toUpperCase()} dimensions must be between 1 and ${maxDimension}`);
     }
-    const layerSize = 2 + layers.reduce((size, layer) => size + 46 + (layer.hasAlpha ? 4 : 3) * (2 + lengthBytes + 2 + layer.width * layer.height * depth / 8), 0);
+    const layerSize = 2 + layers.reduce((size, layer) => size + 46 + (baseChannels + (layer.hasAlpha ? 1 : 0)) * (2 + lengthBytes + 2 + layer.width * layer.height * depth / 8), 0);
     const paddedLayerSize = layerSize + layerSize % 2;
     if (!Number.isSafeInteger(paddedLayerSize + lengthBytes + 4) || (!large && paddedLayerSize + 8 > 0xffffffff)) throw new Error("PSD layer data exceeds the format limit");
     const resolution = image.resolution;
@@ -20,7 +25,7 @@ function* psdChunks(image: PsdImage, layers: readonly PsdImage[], depth: number,
     header.set([56, 66, 80, 83]);
     view.setUint16(4, large ? 2 : 1); view.setUint16(12, channels);
     view.setUint32(14, height); view.setUint32(18, width);
-    view.setUint16(22, depth); view.setUint16(24, 3);
+    view.setUint16(22, depth); view.setUint16(24, baseChannels);
     if (resolution) {
         view.setUint32(30, 28); // ResolutionInfo resource, with an empty Pascal name.
         header.set([56, 66, 73, 77], 34); view.setUint16(38, 1005); view.setUint32(42, 16);
@@ -43,14 +48,14 @@ function* psdChunks(image: PsdImage, layers: readonly PsdImage[], depth: number,
     sectionView.setInt16(lengthBytes * 2, hasAlpha ? -layers.length : layers.length);
     yield section;
     for (const frame of layers) {
-        const channels = frame.hasAlpha ? 4 : 3, planeSize = frame.width * frame.height * depth / 8;
+        const channels = baseChannels + (frame.hasAlpha ? 1 : 0), planeSize = frame.width * frame.height * depth / 8;
         const layer = new Uint8Array(46 + channels * (2 + lengthBytes)), layerView = new DataView(layer.buffer);
         const x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
         layerView.setInt32(0, y); layerView.setInt32(4, x);
         layerView.setInt32(8, y + frame.height); layerView.setInt32(12, x + frame.width); layerView.setUint16(16, channels);
         let offset = 18;
         for (let channel = 0; channel < channels; channel++, offset += 2 + lengthBytes) {
-            layerView.setInt16(offset, channel === 3 ? -1 : channel);
+            layerView.setInt16(offset, channel === baseChannels ? -1 : channel);
             if (large) layerView.setBigUint64(offset + 2, BigInt(planeSize + 2));
             else layerView.setUint32(offset + 2, planeSize + 2);
         }
@@ -67,13 +72,13 @@ function* psdChunks(image: PsdImage, layers: readonly PsdImage[], depth: number,
             yield new Uint8Array(layerSize % 2 + 4); // Even padding and empty global mask.
             yield new Uint8Array(2); // Composite compression.
         }
-        for (let channel = 0; channel < (merged ? channels : frame.hasAlpha ? 4 : 3); channel++) {
+        for (let channel = 0; channel < baseChannels + (frame.hasAlpha ? 1 : 0); channel++) {
             if (!merged) yield new Uint8Array(2); // Layer channel compression.
             for (let pixel = 0; pixel < frame.width * frame.height; pixel += 1024) {
                 const samples = yield { image: merged ? -1 : index, offset: pixel * 4, length: Math.min(1024, frame.width * frame.height - pixel) * 4 };
                 const bytes = new Uint8Array(samples.length / 4 * depth / 8), samplesView = new DataView(bytes.buffer);
                 for (let i = 0; i < samples.length / 4; i++) {
-                    const sample = samples[i * 4 + channel]!;
+                    const sample = samples[i * 4 + (channel === baseChannels ? 3 : channel)]!;
                     if (depth === 16) samplesView.setUint16(i * 2, samples instanceof Uint16Array ? sample : sample * 257);
                     else bytes[i] = samples instanceof Uint16Array ? Math.round(sample / 257) : sample;
                 }

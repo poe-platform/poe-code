@@ -23907,7 +23907,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             adjoinedPages.push(canvas);
             return;
         }
-        if (format === "jpeg" || format === "tiff" || format === "tga") {
+        if (format === "jpeg" || format === "tiff" || format === "tga" || format === "psd" || format === "psb") {
             const samples = canvas.data16 ?? canvas.data;
             let gray = true;
             for (let offset = 0; gray && offset < samples.length; offset += 4) {
@@ -23919,6 +23919,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const outPath = path === "-" ? path : (sceneCount > 1 && !adjoin) || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, page) : path.replaceAll("%%", "%");
         if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
         if (format === "ico" && state.iconAutoResize) canvas = yield* prepareIcoPages([canvas], state.iconAutoResize, state.kernel, state.resizeFilter);
+        if ((format === "psd" || format === "psb") && state.inputDepth !== undefined) canvas = { ...canvas, bitsPerSample: state.inputDepth };
         if (format === "png") canvas = { ...canvas, backgroundColor: state.background };
         if (format === "pfm" || format === "phm") canvas = yield* prepareFloatOutput(canvas, format);
         if (format === "png") canvas = yield* prepareMagickOutput({ ...canvas, bitsPerSample: state.inputDepth ?? 16 }, format, state.dither, state.diffusionAmount, pngCoder, state.inputType);
@@ -24784,7 +24785,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             }
             if (adjoinedPages) { await adjoinedPages.push(canvas); continue; }
             if (adjoin) { await pages.push(canvas); continue; }
-            if (output.format === "jpeg" || output.format === "tiff" || output.format === "tga") {
+            if (output.format === "jpeg" || output.format === "tiff" || output.format === "tga" || output.format === "psd" || output.format === "psb") {
                 let gray = true;
                 const depth = canvas.storedData16 ? 2 : 1;
                 const position = canvas.storedData16?.position ?? canvas.position;
@@ -24805,6 +24806,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 await icons.push(canvas);
                 canvas = await prepareStoredIcoPages(icons, canvas, backend, signal, state.iconAutoResize, state.kernel, state.resizeFilter);
             }
+            if ((format === "psd" || format === "psb") && state.inputDepth !== undefined) canvas = { ...canvas, bitsPerSample: state.inputDepth };
             if (format === "png") canvas = { ...canvas, backgroundColor: state.background };
             if (format === "png") canvas = await prepareStoredMagickOutput({ ...canvas, bitsPerSample: state.inputDepth ?? 16 }, format, backend, signal, state.dither, state.diffusionAmount, output.pngCoder, state.inputType);
             const stdoutBytes = await (n > cols * rows ? backend.stage : backend.publish)(canvas, outputPath, { ...(state.tgaCompression === undefined ? {} : { tgaCompression: state.tgaCompression }), bmpFormat: output.bmpFormat ?? state.bmpFormat ?? "bmp4", ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), format, ...(format === "gif" ? { delay: canvas.delay?.[0] ?? 0 } : {}), gifVersion: output.gifVersion, palette: true, ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), pngCoder: output.pngCoder, pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), netpbmAscii: state.netpbmAscii ?? false, rawInterlace: state.rawInterlace, ...(state.inputDepth === undefined ? {} : { tgaDepth: state.inputDepth }), netpbmDepth: state.inputDepth ?? 16, endian: state.inputEndian, tiffEndian: state.inputEndian === "msb" ? "msb" : "lsb", miffDepth: (state.inputDepth ?? 16) <= 8 ? 8 : 16, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) });

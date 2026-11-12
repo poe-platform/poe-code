@@ -1,16 +1,20 @@
 import { expect, it } from "vitest";
-import { encodeImage } from "./index.js";
+import { decodeImage, encodeImage } from "./index.js";
 import { encodeStoredImage } from "../image-encode.js";
 import type { RgbaImage } from "../ast.js";
 
-for (const format of ["psd", "psb"] as const) for (const alpha of [false, true]) for (const depth of [8, 16]) {
-    it(`preserves ${format} samples and bounds stored reads (alpha=${alpha}, depth=${depth})`, async () => {
+for (const format of ["psd", "psb"] as const) for (const alpha of [false, true]) for (const depth of [8, 16]) for (const gray of [false, true]) {
+    it(`preserves ${format} samples and bounds stored reads (alpha=${alpha}, depth=${depth}, gray=${gray})`, async () => {
         const width = 513, height = 3;
         const data = Uint8Array.from({ length: width * height * 4 }, (_, i) => i % 256);
         const data16 = depth === 16 ? Uint16Array.from(data, (v, i) => v * 256 + i % 256) : undefined;
-        const image: RgbaImage = { width, height, data, ...(data16 ? { data16 } : {}), format: "raw", depth: data16 ? "ushort" : "uchar", space: "srgb", channels: alpha ? 4 : 3, hasAlpha: alpha, density: 72, resolution: { x: 20, y: 40, unit: "cm" } };
+        if (gray) for (const samples of data16 ? [data, data16] : [data]) {
+            for (let offset = 0; offset < samples.length; offset += 4) samples[offset + 1] = samples[offset + 2] = samples[offset]!;
+        }
+        const channels = gray ? alpha ? 2 : 1 : alpha ? 4 : 3;
+        const image: RgbaImage = { width, height, data, ...(data16 ? { data16 } : {}), format: "raw", depth: data16 ? "ushort" : "uchar", space: gray ? depth === 16 ? "grey16" : "b-w" : "srgb", channels, hasAlpha: alpha, density: 72, resolution: { x: 20, y: 40, unit: "cm" } };
         const encoded = encodeImage(image, { format });
-        expect(encoded).toMatchObject({ format, channels: alpha ? 4 : 3 });
+        expect(encoded).toMatchObject({ format, channels });
         const backing = new Uint8Array((data16 ?? data).buffer), chunks: Uint8Array[] = [];
         const steps = encodeStoredImage({ ...image, position: 5, ...(data16 ? { storedData16: { position: 5, length: data16.byteLength } } : {}) }, {
             allocate() { throw new Error("Must not allocate storage"); },
@@ -25,23 +29,39 @@ for (const format of ["psd", "psb"] as const) for (const alpha of [false, true])
         }, new AbortController().signal, { format });
         let step = await steps.next();
         while (!step.done) { chunks.push(step.value); step = await steps.next(); }
-        expect(step.value).toMatchObject({ format, channels: alpha ? 4 : 3, size: encoded.data.length });
+        expect(step.value).toMatchObject({ format, channels, size: encoded.data.length });
         expect(Buffer.concat(chunks)).toEqual(Buffer.from(encoded.data));
         const view = new DataView(encoded.data.buffer);
         expect(view.getUint16(22)).toBe(depth);
+        expect(view.getUint16(12)).toBe(channels);
+        expect(view.getUint16(24)).toBe(gray ? 1 : 3);
         expect(view.getUint32(46) / 65536).toBeCloseTo(50.8, 4);
         expect(view.getUint32(54) / 65536).toBeCloseTo(101.6, 4);
         expect(view.getInt16(format === "psb" ? 78 : 70)).toBe(alpha ? -1 : 1);
         expect(view.getUint16(4)).toBe(format === "psb" ? 2 : 1);
+        const layerOffset = format === "psb" ? 80 : 72;
+        expect(view.getUint16(layerOffset + 16)).toBe(channels);
+        for (let channel = 0; channel < channels; channel++) {
+            expect(view.getInt16(layerOffset + 18 + channel * (format === "psb" ? 10 : 6)))
+                .toBe(alpha && channel === channels - 1 ? -1 : channel);
+        }
         let offset = format === "psb" ? 70 + Number(view.getBigUint64(62)) : 66 + view.getUint32(62);
         expect(view.getUint16(offset)).toBe(0);
         offset += 2;
-        for (let channel = 0; channel < (alpha ? 4 : 3); channel++) for (let pixel = 0; pixel < width * height; pixel++) {
+        for (let channel = 0; channel < channels; channel++) for (let pixel = 0; pixel < width * height; pixel++) {
             const value = depth === 16 ? view.getUint16(offset) : view.getUint8(offset);
-            expect(value).toBe((data16 ?? data)[pixel * 4 + channel]);
+            expect(value).toBe((data16 ?? data)[pixel * 4 + (gray && channel === 1 ? 3 : channel)]);
             offset += depth / 8;
         }
         expect(offset).toBe(encoded.data.length);
+        // RGB composites are decoded with white-matte removal; layer samples are straight.
+        for (const page of !gray && alpha ? [1] : [0, 1]) {
+            const decoded = decodeImage(encoded.data, { page });
+            expect(decoded).toMatchObject({ channels, hasAlpha: alpha, bitsPerSample: depth, space: gray ? "b-w" : "srgb" });
+            const expected = (data16 ?? data).slice();
+            if (!alpha) for (let offset = 3; offset < expected.length; offset += 4) expected[offset] = depth === 16 ? 65535 : 255;
+            expect(decoded.data16 ?? decoded.data).toEqual(expected);
+        }
     });
 }
 

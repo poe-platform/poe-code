@@ -11,7 +11,7 @@ import { encodeSixelImage } from "./sixel-output.js";
 import { isSixelBytes, readSixelMetadata, decodeSixelImage } from "./sixel-input.js";
 import { isPsdBytes, readPsdHeader, decodePsdImage } from "./psd-input.js";
 import { isPcxBytes, readPcxHeader, decodePcxImage } from "./pcx-input.js";
-import { encodePsdImage } from "./psd-output.js";
+import { encodePsdImage, psdChannels } from "./psd-output.js";
 import { isXwdBytes, readXwdHeader, decodeXwdImage } from "./xwd-input.js";
 import { isQoiBytes, readQoiMetadata, decodeQoiImage } from "./qoi-input.js";
 import { encodeQoiImage } from "./qoi-output.js";
@@ -551,7 +551,7 @@ export function encodeImage(
     case "fits": return encodeFitsImage(img);
     case "sixel": return { data: encodeSixelImage(img), format: "sixel", channels: 3 };
     case "psd":
-    case "psb": return { data: encodePsdImage(img, fmt), format: fmt, channels: img.hasAlpha ? 4 : 3 };
+    case "psb": return { data: encodePsdImage(img, fmt), format: fmt, channels: psdChannels(img) };
     case "hdr": return { data: encodeHdrImage(img), format: "hdr", channels: 3 };
     case "exr": return { data: encodeExrImage(img), format: "exr", channels: img.hasAlpha ? 4 : 3 };
     case "qoi": return { data: encodeQoiImage(img), format: "qoi", channels: img.hasAlpha ? 4 : 3 };

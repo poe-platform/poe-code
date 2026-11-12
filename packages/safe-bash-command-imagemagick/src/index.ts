@@ -5834,7 +5834,8 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
         if (hue && img.space === "cmyk") input[3] = bytes[3]!;
         const out = new Uint8Array(4);
         const alpha = img.hasAlpha ? input[3]! / 255 : 1;
-        const target = [input[0]! * alpha, input[1]! * alpha, input[2]! * alpha, input[3]!];
+        // Disassociated alpha must not affect palette lookup or error diffusion.
+        const target = [input[0]! * alpha, input[1]! * alpha, input[2]! * alpha, !img.hasAlpha && img.alphaBlend === false ? 255 : input[3]!];
         const x = i / 4 % img.width;
         if (dither) for (let channel = 0; channel < 4; channel++) {
             if (dither === "riemersma") {

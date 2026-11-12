@@ -7102,7 +7102,6 @@ function* drawPointPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space
 }
 
 function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape: MagickDrawShape, highDepth = false, tile?: Pick<RgbaImage, "width" | "height">, tileOffset?: MagickState["tileOffset"]): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
-    const quantum = highDepth ? 65535 : 255, scale = highDepth ? 257 : 1;
     const edges = shape.shape === "boundary" ? yield* boundaryEdges(shape.points) : undefined;
     const radius = shape.shape === "circle" ? shape.radius : shape.shape === "line" ? shape.width / 2 * (shape.linecap === "square" ? Math.SQRT2 : 1) : 0;
     const x0 = Math.max(0, Math.floor((shape.shape === "rectangle" || shape.shape === "polygon" || shape.shape === "boundary") ? shape.x : Math.min(shape.x, shape.shape === "line" ? shape.x1 : shape.x) - radius - 1));
@@ -7111,9 +7110,13 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
     const y1 = Math.min(image.height, Math.ceil((shape.shape === "rectangle" || shape.shape === "polygon" || shape.shape === "boundary") ? shape.y + shape.height : Math.max(shape.y, shape.shape === "line" ? shape.y1 : shape.y) + radius + 1));
     for (let start = 0; start < image.width * image.height; start += 1024) {
         yield;
-        const count = Math.min(1024, image.width * image.height - start), bytes = yield { kind: "read", position: start * 4, length: count * 4, highDepth };
-        if (!bytes || bytes.length !== count * 4 * (highDepth ? 2 : 1)) throw new Error("Truncated drawing pixels");
-        const data = highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
+        const count = Math.min(1024, image.width * image.height - start);
+        const working = yield { kind: "read", position: start * 4, length: count * 4, evaluate: true };
+        const evaluate = !!working?.length;
+        const bytes = evaluate ? working : yield { kind: "read", position: start * 4, length: count * 4, highDepth };
+        if (!bytes || bytes.length !== count * 4 * (evaluate ? 8 : highDepth ? 2 : 1)) throw new Error("Truncated drawing pixels");
+        const data = evaluate ? new Float64Array(bytes.slice().buffer) : highDepth ? new Uint16Array(bytes.slice().buffer) : new Uint8Array(bytes);
+        const quantum = !evaluate && highDepth ? 65535 : 255, scale = !evaluate && highDepth ? 257 : 1;
         for (let i = 0; i < count; i++) {
             const x = (start + i) % image.width, y = Math.floor((start + i) / image.width);
             if (x < x0 || x >= x1 || y < y0 || y >= y1) continue;
@@ -7215,10 +7218,16 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
                     opacity = outA * quantum;
                 }
             }
-            data[offset] = Math.round(red); data[offset + 1] = Math.round(green);
-            data[offset + 2] = Math.round(blue); data[offset + 3] = Math.round(opacity);
+            data[offset] = evaluate ? Math.fround(red * 257) / 257 : Math.round(red);
+            data[offset + 1] = evaluate ? Math.fround(green * 257) / 257 : Math.round(green);
+            data[offset + 2] = evaluate ? Math.fround(blue * 257) / 257 : Math.round(blue);
+            data[offset + 3] = evaluate ? Math.fround(opacity * 257) / 257 : Math.round(opacity);
         }
-        yield { kind: "write", position: start * 4, data: new Uint8Array(data.buffer), highDepth };
+        if (evaluate) {
+            yield { kind: "write", position: start * 4, data: new Uint8Array(data.buffer), evaluate: true };
+            const rounded = Uint16Array.from(data, value => Math.max(0, Math.min(65535, Math.round(value * 257))));
+            yield { kind: "write", position: start * 4, data: new Uint8Array(rounded.buffer), highDepth: true };
+        } else yield { kind: "write", position: start * 4, data: new Uint8Array(data.buffer), highDepth };
     }
 }
 

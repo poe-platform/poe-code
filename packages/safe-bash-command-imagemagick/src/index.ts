@@ -23896,7 +23896,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             return;
         }
         const { format, path, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(outSpec, "png");
-        if (state.adjoin && gifVersion !== "87a" && (format === "gif" || format === "tiff") && sceneCount > 1 && !hasSceneOutputPattern(path)) {
+        if (state.adjoin && gifVersion !== "87a" && (format === "gif" || format === "tiff" || format === "ico") && sceneCount > 1 && !hasSceneOutputPattern(path)) {
             adjoinedPages.push(canvas);
             return;
         }
@@ -24310,7 +24310,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     }
     if (adjoinedPages.length) {
         const { path, format, gifVersion, tiffBig } = output;
-        const image = yield* (format === "tiff" ? prepareTiffPages(adjoinedPages) : prepareGifFrames(adjoinedPages));
+        const image = yield* (format === "tiff" ? prepareTiffPages(adjoinedPages) : format === "ico" ? prepareIcoPages(adjoinedPages) : prepareGifFrames(adjoinedPages));
         const { data } = encodeImage(image, { format, ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), gifVersion, tiffBig, tiffEndian: state.inputEndian === "msb" ? "msb" : "lsb", ...(state.inputDepth === undefined ? {} : { tiffIntegerDepth: state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32 }), ...(image.pageHeight === undefined ? {} : { pageHeight: image.pageHeight }), gifInterlace: state.gifInterlace, transparentColor: state.transparentColor });
         for (const page of adjoinedPages) detachRgbaBuffer(page.data);
         detachRgbaBuffer(image.data);
@@ -24659,7 +24659,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         catch (error) { return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: ${(error as Error).message}\n` }; }
         const adjoin = state.adjoin && n > cols * rows && output.path !== "-" && (output.format === "ppm" || output.format === "rgb" || output.format === "miff") && !hasSceneOutputPattern(output.path);
         const pages = new StoredImageStack(backend.storage, signal);
-        const adjoinedPages = state.adjoin && output.gifVersion !== "87a" && (output.format === "gif" || output.format === "tiff") && n > cols * rows && !hasSceneOutputPattern(output.path)
+        const adjoinedPages = state.adjoin && output.gifVersion !== "87a" && (output.format === "gif" || output.format === "tiff" || output.format === "ico") && n > cols * rows && !hasSceneOutputPattern(output.path)
             ? new StoredImageStack(backend.storage, signal) : undefined;
         const stdoutChunks: Uint8Array[] = [];
         let stdout = "";
@@ -24807,6 +24807,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         if (adjoinedPages) {
             const image = output.format === "tiff"
                 ? prepareStoredTiffPages(adjoinedPages, (await adjoinedPages.get(0))!, backend, signal)
+                : output.format === "ico" ? await prepareStoredIcoPages(adjoinedPages, (await adjoinedPages.get(0))!, backend, signal)
                 : await prepareStoredGifFrames(adjoinedPages, backend, signal);
             const bytes = await backend.publish(image, output.path.replaceAll("%%", "%"), { format: output.format, ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), gifVersion: output.gifVersion, tiffBig: output.tiffBig, tiffEndian: state.inputEndian === "msb" ? "msb" : "lsb", ...(state.inputDepth === undefined ? {} : { tiffIntegerDepth: state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32 }), ...(image.pageHeight === undefined ? {} : { pageHeight: image.pageHeight }), gifInterlace: state.gifInterlace, transparentColor: state.transparentColor });
             if (bytes) stdoutChunks.push(bytes);

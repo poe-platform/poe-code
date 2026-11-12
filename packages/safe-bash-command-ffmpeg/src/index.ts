@@ -1905,11 +1905,12 @@ function parseConcatOptions(filter: string) {
   return values;
 }
 
-// Filter EOF and format state are execution metadata, not part of the media container.
+// Filter EOF, format and clock state are execution metadata, not part of the media container.
 const audioPaddingEof = new WeakMap<MediaTrack, number>();
 const audioDelayTails = new WeakMap<MediaTrack, Set<string>>();
 const audioPassthroughFormats = new WeakMap<MediaTrack, Set<string>>();
 const audioGraphFormats = new WeakMap<MediaTrack, string>();
+const audioGraphTimeBases = new WeakMap<MediaTrack, number>();
 
 // Recognize filters before graph binding can hide an unknown filter in a later chain.
 const audioGraphFilterNames = new Set([
@@ -2303,7 +2304,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
               budget.checkCpu();
               const packet = track.samples[cursor.index];
               cursor.start = cursor.end;
-              cursor.pts = packet ? Math.round(packet.pts * a.sampleRate / track.timescale)
+              cursor.pts = packet ? packet.pts * a.sampleRate / track.timescale
                 + (packet.skipSamples ?? 0) : cursor.start;
               cursor.end = i === 1 && multiplierEnds ? multiplierEnds[cursor.index] ?? length
                 : cursor.end + (packet ? Math.max(0, Math.round(packet.duration * a.sampleRate / track.timescale)
@@ -2312,7 +2313,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
             }
           }
           const end = Math.min(length, ...cursors.map((cursor, i) => queued[i] ? length : cursor.end));
-          const pts = cursors[0]!.pts + start - cursors[0]!.start;
+          const pts = cursors[0]!.pts + Math.round((start - cursors[0]!.start) / samplesPerTick) * samplesPerTick;
           budget.allocateMemory(96);
           frames.push({ data: new Uint8Array(0), size: 0, pts, dts: pts, cts: 0,
             duration: end - start, isKeyframe: true, sampleDescriptionIndex: 1 });
@@ -2685,6 +2686,8 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         }
         // Preserve decoded input frame boundaries and take the output
         // timestamp from the first input, including any partially consumed frame.
+        const timeBase = audioGraphTimeBases.get(first) ?? 1 / a.sampleRate;
+        const samplesPerTick = timeBase * a.sampleRate;
         const frames: MediaTrack["samples"][number][] = [];
         const cursors = sources.map(() => ({ index: 0, start: 0, end: 0, pts: 0 }));
         for (let start = 0; start < length;) {
@@ -2712,7 +2715,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         }
         return { track: { ...first, timescale: a.sampleRate, duration: length, samples: frames, editList: undefined,
           decodedAudio: { ...a, channels: channelData.length, channelMask, channelData } },
-          expression: serializeFilterChain(filters.slice(1)) || "anull" };
+          expression: serializeFilterChain([`asettb=${timeBase}`, ...filters.slice(1)]) };
       }
       if (filters[0] === "join" || filters[0]?.startsWith("join=")) {
         for (const source of sources) {
@@ -19790,6 +19793,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       decodedAudio: { ...audio, sampleRate: origRate, channels: stretched.length,
                         channelMask: filteredChannelMask, channelData: stretched } };
                     audioGraphFormats.set(result, filteredSampleFormat);
+                    if (audioTimeBase !== undefined) audioGraphTimeBases.set(result, audioTimeBase);
                     if (paddingEof !== undefined) audioPaddingEof.set(result, paddingEof);
                     if (delayTails.size) audioDelayTails.set(result, delayTails);
                     if (passthroughFormats.size) audioPassthroughFormats.set(result, passthroughFormats);

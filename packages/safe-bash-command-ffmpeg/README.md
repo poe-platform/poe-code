@@ -1438,7 +1438,9 @@ and within 1–64 before rounding. Generic `threads`, `thread_type`, and
 Invalid options preserve existing output.
 
 `amerge=inputs=N` merges 1–64 inputs into at most 64 output channels, resampling
-to the first input’s sample rate and ending with the shortest input. Omitted
+to the first input’s sample rate and ending with the shortest input. Output
+timestamps use that input’s time base, including changes made by `asettb`,
+for downstream selection, trimming, and `ashowinfo`. Omitted
 input labels bind unused audio streams until all declared pads are connected.
 `[0:a][1:a][2:a]amerge=inputs=3[out]` combines three inputs.
  Disjoint speaker layouts are combined in speaker

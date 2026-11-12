@@ -8338,6 +8338,9 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
     case "pcx":
       return "pcx";
     case "tga":
+    case "icb":
+    case "vda":
+    case "vst":
       return "tga";
     case "txt":
       return "txt";

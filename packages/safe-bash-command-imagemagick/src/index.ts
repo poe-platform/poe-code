@@ -4684,6 +4684,8 @@ function compileSingleFxExpr(src: string, requireStatistics: () => void, variabl
 function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: string, channels: MagickState["channels"], method: VirtualPixelMethod | undefined, background: RgbaColor, interpolation: LookupInterpolation | undefined): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const stack: FxStack = "get" in input ? input : { length: input.length, get: index => input[index], indexOf: image => input.indexOf(image) };
     const base = stack.get(0)!, evaluate = compileFxExpression(expression), mask = [channels.r, channels.g, channels.b, channels.a && base.hasAlpha];
+    const cmyk = base.space === "cmyk", stride = cmyk ? 5 : 4;
+    const hue = !!base.hueSamples || base.storedHueSamples !== undefined;
     const highDepth = !!(base.data16 || ("storedData16" in base && base.storedData16));
     function* readSamples(position: number, length: number, image = 0): Generator<ConvolveRequest, Float64Array, Uint8Array | undefined> {
         const working = yield { kind: "read", evaluate: true, image, position, length };
@@ -4694,6 +4696,21 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
         const bytes = yield { kind: "read", highDepth: true, image, position, length };
         if (!bytes || bytes.length !== length * 2) throw new Error("Truncated expression pixels");
         return Float64Array.from(new Uint16Array(bytes.slice().buffer), value => value / 257);
+    }
+    function* readWorkingSamples(position: number, length: number, image = 0): Generator<ConvolveRequest, Float64Array, Uint8Array | undefined> {
+        const target = stack.get(image)!;
+        if (!target.hueSamples && target.storedHueSamples === undefined) return yield* readSamples(position, length, image);
+        const bytes = yield { kind: "read", hue: true, image, position, length };
+        if (!bytes || bytes.length !== length * 8) throw new Error("Truncated expression channels");
+        const working = new Float64Array(bytes.slice().buffer).map(value => value * 255);
+        if (target.space !== "cmyk") return working;
+        // Ink black occupies the fourth working slot; alpha stays in the RGBA backing.
+        const data = yield* readSamples(position, length, image);
+        const samples = new Float64Array(length / 4 * 5);
+        for (let i = 0; i < length / 4; i++) samples.set([
+            working[i * 4]!, working[i * 4 + 1]!, working[i * 4 + 2]!, data[i * 4 + 3]!, working[i * 4 + 3]!
+        ], i * 5);
+        return samples;
     }
     const frameStatistics = new Map<number, Record<string, number>>();
     function* computeStatistics(index: number): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
@@ -4742,25 +4759,25 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
         if (!Number.isFinite(position)) return NaN;
         const image = stack.indexOf(target), pixel = samples.get(image + ":" + position);
         if (pixel === undefined) throw new FxPixelDemand(position, image);
-        return sampleFxPixel(pixel, 0, channel, target);
+        return target.space === "cmyk" && channel === 8 ? pixel[4]! / 255 : sampleFxPixel(pixel, 0, channel, target);
     };
     for (let start = 0; start < base.width * base.height; start += 512) {
         yield;
         const count = Math.min(512, base.width * base.height - start);
-        const data = yield* readSamples(start * 4, count * 4);
+        const data = yield* readWorkingSamples(start * 4, count * 4);
         for (let i = 0; i < count; i++) {
-            const position = (start + i) * 4, offset = i * 4;
+            const position = (start + i) * 4, offset = i * stride;
             stack.reset?.();
             samples.clear();
-            samples.set("0:" + position, data.slice(offset, offset + 4));
-            for (let ch = 0; ch < 4; ch++) {
-                if (!mask[ch]) continue;
+            samples.set("0:" + position, data.slice(offset, offset + stride));
+            for (let ch = 0; ch < stride; ch++) {
+                if (ch === 4 ? !channels.k : !mask[ch]) continue;
                 // ImageMagick convert evaluates statistics as zero in the red output channel.
                 const context: FxEvalContext = { frameStatistics(index) {
                     const result = frameStatistics.get(index);
                     if (!result) throw new FxStatisticsDemand(index);
                     return result;
-                }, statistics: statistics && ch === 0 ? {} : statistics, stack, x: (start + i) % base.width, y: Math.floor((start + i) / base.width), w: base.width, h: base.height, ch, vars, sample: samplePixel, interpolation };
+                }, statistics: statistics && ch === 0 ? {} : statistics, stack, x: (start + i) % base.width, y: Math.floor((start + i) / base.width), w: base.width, h: base.height, ch: ch === 4 ? 8 : ch, vars, sample: samplePixel, interpolation };
                 // Replaying local assignments is deterministic; retain only this pixel's demanded samples.
                 while (true) {
                     vars.clear();
@@ -4769,14 +4786,24 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
                         if (error instanceof FxFrameDemand) { yield; continue; }
                         if (error instanceof FxStatisticsDemand) { yield* computeStatistics(error.image); continue; }
                         if (!(error instanceof FxPixelDemand)) throw error;
-                        samples.set(error.image + ":" + error.position, yield* readSamples(error.position, 4, error.image));
+                        samples.set(error.image + ":" + error.position, yield* readWorkingSamples(error.position, 4, error.image));
                     }
                 }
             }
         }
-        yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(data.buffer) };
-        const bounded = highDepth ? Uint16Array.from(data, value => Math.max(0, Math.min(65535, Math.round(value * 257))))
-            : Uint8Array.from(data, value => Math.max(0, Math.min(255, Math.round(value))));
+        const rgba = cmyk ? new Float64Array(count * 4) : data;
+        if (cmyk) {
+            const inks = new Float64Array(count * 4);
+            for (let i = 0; i < count; i++) {
+                inks.set([data[i * stride]! / 255, data[i * stride + 1]! / 255, data[i * stride + 2]! / 255, data[i * stride + 4]! / 255], i * 4);
+                for (let channel = 0; channel < 3; channel++) rgba[i * 4 + channel] = (1 - inks[i * 4 + channel]!) * (1 - inks[i * 4 + 3]!) * 255;
+                rgba[i * 4 + 3] = data[i * stride + 3]!;
+            }
+            yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(inks.buffer) };
+        } else if (hue) yield { kind: "write", hue: true, position: start * 4, data: new Uint8Array(data.map(value => value / 255).buffer) };
+        yield { kind: "write", evaluate: true, position: start * 4, data: new Uint8Array(rgba.buffer) };
+        const bounded = highDepth ? Uint16Array.from(rgba, value => Math.max(0, Math.min(65535, Math.round(value * 257))))
+            : Uint8Array.from(rgba, value => Math.max(0, Math.min(255, Math.round(value))));
         yield { kind: "write", highDepth, position: start * 4, data: new Uint8Array(bounded.buffer) };
     }
 }
@@ -15629,7 +15656,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             }
         }
         else if (t === "-fx") {
-            const expr = tokens[++i] ?? "u", channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true };
+            const expr = tokens[++i] ?? "u", channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
             if (stack.length > 0) {
                 const base = stack[0]!;
                 stack = [yield* applyMagickRasterSteps(base, magickFxPixelSteps(stack, expr, channels, state.virtualPixel, state.background, state.interpolation), signal, { ...base, hasAlpha: base.hasAlpha || channels.a && (state.virtualPixel === "transparent" || (state.virtualPixel === "background" || state.virtualPixel?.endsWith("-tile") === true) && state.background.a < 255) }, stack)];
@@ -19958,7 +19985,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
             const offset = explicit ? offsetOrText : "+0+0", text = explicit ? (tokens[++i] ?? "") : offsetOrText, settings = { ...state };
             steps.push(async (image, backend) => image ? transformStoredMagickRaster(image, backend, annotatePixelSteps(image, offset, text, settings), signal) : undefined);
         } else if (!operandsOnly && token === "-fx") {
-            const expression = tokens[++i] ?? "u", channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true }, virtualPixel = state.virtualPixel, background = state.background, interpolation = state.interpolation;
+            const expression = tokens[++i] ?? "u", channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true }, virtualPixel = state.virtualPixel, background = state.background, interpolation = state.interpolation;
             stackStep(async (stack, backend) => {
                 const base = await stack.get(0); if (!base) return stack;
                 const frames = new Map<number, StoredRgbaImage>([[0, base]]), indices = new WeakMap<FxImage, number>(); indices.set(base, 0);

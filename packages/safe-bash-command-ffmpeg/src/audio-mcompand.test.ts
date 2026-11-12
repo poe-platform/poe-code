@@ -64,10 +64,10 @@ for (const graph of [false, true]) it(`mcompand matches native FFmpeg at 48 kHz 
   }
 });
 
-for (const [filter, rate] of [["mcompand", 8000], ["mcompand='0,0 6 -40/-40,0/0 24000'", 48000], ["mcompand='0 6 -40/-40,0/0 0'", 48000], ["mcompand='0,0 6 -40/-40,0/0 0 1'", 48000]] as const) {
+for (const [filter, rate, exitCode] of [["mcompand", 8000, 234], ["mcompand='0,0 6 -40/-40,0/0 24000'", 48000, 234], ["mcompand='0 6 -40/-40,0/0 0'", 48000, 1], ["mcompand='0,0 6 -40/-40,0/0 0 1'", 48000, 1]] as const) {
   it(`rejects invalid/unsupported bands: ${filter} at ${rate}`, async () => {
     const { result, fs } = await run(filter, false, rate);
-    assert.equal(result.exitCode, 1);
+    assert.equal(result.exitCode, exitCode);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
   });
 }

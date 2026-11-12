@@ -10138,6 +10138,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let updateImage = false;
         let strftime = false;
         let atomicWriting = false;
+        let truncateImage = true;
         let framePts = false;
         const encoderTimeBaseOptions: [string, number | "demux" | "filter" | undefined][] = [];
 
@@ -10527,6 +10528,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             frameHashVersionArg = value;
           } else if (arg === "-hash") {
             hashAlgorithm = args[++i] ?? "";
+          } else if (arg === "-protocol_opts") {
+            const value = args[++i];
+            if (value === undefined) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: Missing value for -protocol_opts\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            for (const option of value ? value.split(":") : []) {
+              const [key, setting, extra] = option.split("=");
+              if (key !== "truncate" || (setting !== "0" && setting !== "1") || extra !== undefined) {
+                await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Unsupported protocol option '${option}'\n`), context.signal);
+                return { exitCode: 234 };
+              }
+              truncateImage = setting === "1";
+            }
           } else if (arg === "-update" || arg === "-atomic_writing" || arg === "-strftime" || arg === "-reset_timestamps" || arg === "-write_empty_segments") {
             let enabled: boolean;
             const value = args[++i]?.toLowerCase();
@@ -21138,6 +21153,19 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 return;
               }
               const destination = atomicWriting ? `${path}.tmp` : path;
+              if (!truncateImage) {
+                let previous: Uint8Array | undefined;
+                try {
+                  previous = await readSource(destination);
+                } catch (error) {
+                  if ((error as { code?: string }).code !== "ENOENT") throw error;
+                }
+                if (previous && previous.byteLength > bytes.byteLength) {
+                  budget.checkOutputBytes(previous.byteLength);
+                  previous.set(bytes);
+                  bytes = previous;
+                }
+              }
               await writeFileOutput(context, bytes, data => context.fs.writeFile(destination, data, { signal: context.signal }));
               if (atomicWriting) await context.fs.rename(destination, path, { signal: context.signal });
             };

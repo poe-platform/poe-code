@@ -225,7 +225,7 @@ export function* connectedComponentsSteps(image: RgbaImage & HueMetadata, connec
   if (region === "black") next = steps.next(image.hueSamples ? image.hueSamples[index * 4 + 3]! * 255 : rgbToCmyk(image.data[index * 4]! / 255, image.data[index * 4 + 1]! / 255, image.data[index * 4 + 2]! / 255)[3]! * 255);
   else if (region === "pixels" && index % 4 === 3 && !image.hasAlpha) next = steps.next(255);
   else if (region === "pixels" && image.space === "cmyk" && index % 4 === 3) next = steps.next(image.data16 ? image.data16[index]! / 257 : image.data[index]!);
-  else if (region === "pixels") next = steps.next(image.hueSamples ? image.hueSamples[index]! * 255 : image.data16 ? image.data16[index]! / 257 : image.data[index]!);
+  else if (region === "pixels") next = steps.next(image.hueSamples ? image.hueSamples[index]! * 255 : image.evaluateSamples ? image.evaluateSamples[index]! : image.data16 ? image.data16[index]! / 257 : image.data[index]!);
   else { const data = region === "labels" ? labels : queue; if (value !== undefined) data[index] = value; next = steps.next(data[index]!); }
  }
  const text = verbose ? yield* reportSteps(next.value, sort, excludeHeader, excludeIds, image, sortOrder, precision) : "", data = new Uint8Array(count * 4), data16 = new Uint16Array(count * 4);
@@ -239,13 +239,14 @@ export function* connectedComponentsSteps(image: RgbaImage & HueMetadata, connec
   data16.set(meanColor ? color.map(channel => Math.round(channel * 257)) : [id, id, id, 65535], i * 4);
   data.set(meanColor ? color.map(channel => Math.round(channel)) : [value, value, value, 255], i * 4);
  }
- const { hueSamples: ignoredSamples, storedHueSamples: ignoredStored, ...metadata } = image;
- return { image: { ...(image.space === "cmyk" ? metadata : image), data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
+ const { evaluateSamples: ignoredEvaluate, ...output } = image;
+ const { hueSamples: ignoredSamples, storedHueSamples: ignoredStored, ...metadata } = output;
+ return { image: { ...(image.space === "cmyk" ? metadata : output), data, data16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
 }
 
 export async function connectedComponentsStored(image: StoredRgbaImage & HueMetadata, storage: ImageByteStorage, connectivity: number, fuzz: number, verbose: boolean, signal: AbortSignal, meanColor = false, areaThreshold?: number[], keep?: number[][], remove?: number[][], removeColors?: RgbaColor[], keepTop?: number, sort?: ConnectedComponentsSort, angleThreshold?: number[], perimeterThreshold?: number[], excludeHeader = false, excludeIds = false, backgroundId?: number, sortOrder?: "increasing" | "decreasing", majorAxisThreshold?: number[], minorAxisThreshold?: number[], eccentricityThreshold?: number[], diameterThreshold?: number[], circularityThreshold?: number[], keepColors?: RgbaColor[], precision = 6): Promise<{ image: StoredRgbaImage; text: string }> {
  const size = image.width * image.height * 4, cache = new RasterBackingCache(storage, signal);
- const regions = { pixels: image.storedHueSamples !== undefined ? { position: image.storedHueSamples, length: size * 8 } : image.storedData16 ? { position: image.storedData16.position, length: size * 2 } : { position: image.position, length: size }, labels: await cache.allocate(size), queue: await cache.allocate(size) };
+ const regions = { pixels: image.storedHueSamples !== undefined ? { position: image.storedHueSamples, length: size * 8 } : image.storedEvaluateSamples !== undefined ? { position: image.storedEvaluateSamples, length: size * 8 } : image.storedData16 ? { position: image.storedData16.position, length: size * 2 } : { position: image.position, length: size }, labels: await cache.allocate(size), queue: await cache.allocate(size) };
  const steps = labelSteps(image.width, image.height, connectivity, fuzz, areaThreshold, keep, remove, removeColors, keepTop, angleThreshold, perimeterThreshold, backgroundId, majorAxisThreshold, minorAxisThreshold, eccentricityThreshold, diameterThreshold, circularityThreshold, keepColors, image.space === "cmyk");
  let next = steps.next();
  while (!next.done) {
@@ -261,6 +262,7 @@ export async function connectedComponentsStored(image: StoredRgbaImage & HueMeta
    if (index % 4 === 3 && !image.hasAlpha) next = steps.next(255);
    else if (image.space === "cmyk" && index % 4 === 3) next = steps.next(await cache.byte({ position: image.position, length: size }, index));
    else if (image.storedHueSamples !== undefined) next = steps.next(await cache.float64(region, index * 8) * 255);
+   else if (image.storedEvaluateSamples !== undefined) next = steps.next(await cache.float64(region, index * 8));
    else if (image.storedData16) {
     const pair = await cache.uint32(region, Math.floor(index / 2) * 4);
     next = steps.next(((pair >>> ((index % 2) * 16)) & 65535) / 257);
@@ -294,6 +296,7 @@ export async function connectedComponentsStored(image: StoredRgbaImage & HueMeta
   await storage.write(position + offset, bytes, { signal });
   await storage.write(storedData16.position + offset * 2, new Uint8Array(data16.buffer), { signal });
  }
- const { hueSamples: ignoredSamples, storedHueSamples: ignoredStored, ...metadata } = image;
- return { image: { ...(image.space === "cmyk" ? metadata : image), position, storedData16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
+ const { storedEvaluateSamples: ignoredStoredEvaluate, ...output } = image;
+ const { hueSamples: ignoredSamples, storedHueSamples: ignoredStored, ...metadata } = output;
+ return { image: { ...(image.space === "cmyk" ? metadata : output), position, storedData16, depth: "ushort", bitsPerSample: 16, hasAlpha: meanColor && image.hasAlpha, space: "srgb" }, text };
 }

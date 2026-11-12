@@ -12,9 +12,17 @@ export function shearPlan(image: Pick<RgbaImage, "width" | "height" | "hasAlpha"
     if (!firstAngle || !Number.isFinite(Number(firstAngle)) || [...geometry].some(char => !"0123456789eExX+,-./:".includes(char))) {
         throw new Error(`invalid argument for option '-shear': ${spec}`);
     }
-    const [xAngle = 0, secondAngle = xAngle] = geometry.toLowerCase().replaceAll(",", "x").replaceAll("/", "x").split("x").map(value => value === "" ? undefined : parseFloat(value) || 0);
+    let [xAngle = 0, yAngle = xAngle] = geometry.toLowerCase().replaceAll(",", "x").replaceAll("/", "x").split("x").map(value => value === "" ? undefined : parseFloat(value) || 0);
     // A plus sign after x starts an offset, leaving the second angle omitted.
-    const yAngle = geometry.slice(separator, separator + 2).toLowerCase() === "x+" ? xAngle : secondAngle;
+    if (geometry.slice(separator, separator + 2).toLowerCase() === "x+") yAngle = xAngle;
+    if (geometry[separator] === ":") {
+        const denominator = parseFloat(geometry.slice(separator + 1));
+        if (denominator >= 0) {
+            // Native ratio geometry uses a unit second angle and a bounded reciprocal.
+            xAngle = (xAngle * (1 / Math.max(denominator, 1e-12))) % 360;
+            yAngle = 1;
+        }
+    }
     if ((xAngle !== 0 && xAngle % 90 === 0) || (yAngle !== 0 && yAngle % 90 === 0)) throw new Error("angle is discontinuous");
     const tx = -Math.tan(xAngle * Math.PI / 180), ty = Math.tan(yAngle * Math.PI / 180);
     const w = image.width, h = image.height;

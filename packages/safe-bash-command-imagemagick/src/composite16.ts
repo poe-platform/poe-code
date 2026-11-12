@@ -169,7 +169,8 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
                 samples[i + c] = Math.fround((1 - inks[i + c]!) * (1 - inks[i + 3]!) * 65535) / 257;
             }
             yield { kind: "write", hue: true, position, data: new Uint8Array(inks.buffer) };
-        } else if (copyChannels && (base.space === "b-w" || base.space === "grey16")) {
+        } else if (base.space === "b-w" || base.space === "grey16") {
+            // Gray has one color channel, including when a colored layer is composited onto it.
             for (let i = 0; i < samples.length; i += 4) samples[i + 1] = samples[i + 2] = samples[i]!;
         }
         // Keep working colors and alpha in sync with the composited raster.

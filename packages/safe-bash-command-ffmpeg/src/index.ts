@@ -7593,13 +7593,19 @@ function outputChapters(
   startSeconds -= inputTimestampOffset;
   endSeconds -= inputTimestampOffset;
   const end = durationSeconds === undefined ? endSeconds : startSeconds + durationSeconds;
-  return chapters?.filter(chapter => chapter.endTimeSeconds >= startSeconds && chapter.startTimeSeconds <= end)
-    .map(chapter => ({
+  if (!chapters) return chapters;
+  const result: NonNullable<MediaDocument["chapters"]>[number][] = [];
+  for (const chapter of chapters) {
+    if (chapter.endTimeSeconds < startSeconds) continue;
+    if (chapter.startTimeSeconds > end) break;
+    result.push({
       ...chapter,
       ...(copyMetadata ? {} : { title: "", tags: {} }),
       startTimeSeconds: Math.max(0, chapter.startTimeSeconds - startSeconds),
       endTimeSeconds: Math.min(end, chapter.endTimeSeconds) - startSeconds
-    }));
+    });
+  }
+  return result;
 }
 
 function mapChapterMetadata(

@@ -5,15 +5,30 @@ import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 
 for (const sync of [false, true]) {
   for (const option of ["-t", "-to"]) {
-    for (const end of [1499, 1500, 1501]) {
-      it(`clips chapters at ${option} ${end / 1000} (${sync ? "sync" : "async"})`, async () => {
+    for (const { end, input, expected } of [
+      ...[1499, 1500, 1501].map(end => ({
+        end,
+        input: ";FFMETADATA1\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=1500\nEND=2000\ntitle=Intro\n",
+        expected: ";FFMETADATA1\n" + (end < 1500 ? "" :
+          `[CHAPTER]\nTIMEBASE=1/1000\nSTART=1500\nEND=${end}\ntitle=Intro\n`)
+      })),
+      ...[true, false].map(laterFirst => {
+        const later = "[CHAPTER]\nTIMEBASE=1/10\nSTART=10\nEND=20\ntitle=Later\n";
+        const earlier = "[CHAPTER]\nTIMEBASE=1/10\nSTART=0\nEND=8\ntitle=Earlier\n";
+        return {
+          end: 200,
+          input: ";FFMETADATA1\n" + (laterFirst ? later + earlier : earlier + later),
+          expected: ";FFMETADATA1\n" + (laterFirst ? "" :
+            "[CHAPTER]\nTIMEBASE=1/10\nSTART=0\nEND=2\ntitle=Earlier\n")
+        };
+      })
+    ]) {
+      it(`clips chapters at ${option} ${end / 1000} (${sync ? "sync" : "async"}, ${input.includes("title=Later\n[CHAPTER]") ? "later first" : "ordered"})`, async () => {
         const volume = Volume.fromJSON({
-          "/a.meta": ";FFMETADATA1\n[CHAPTER]\nTIMEBASE=1/1000\nSTART=1500\nEND=2000\ntitle=Intro\n"
+          "/a.meta": input
         });
         const args = ["-v", "error", ...(sync ? ["-y", "-f", "ffmetadata"] : []), "-i", "/a.meta", option, String(end / 1000),
           "-bitexact", "-f", "ffmetadata", sync ? "/out.meta" : "pipe:1"];
-        const expected = ";FFMETADATA1\n" + (end < 1500 ? "" :
-          `[CHAPTER]\nTIMEBASE=1/1000\nSTART=1500\nEND=${end}\ntitle=Intro\n`);
         if (sync) {
           assert.equal(evalSyncFfmpeg(args, undefined,
             path => volume.readFileSync(path) as Buffer,

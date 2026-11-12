@@ -7598,19 +7598,24 @@ function outputChapters(
   inputTimestampOffset = 0,
   copyMetadata = true
 ): MediaDocument["chapters"] {
-  startSeconds -= inputTimestampOffset;
-  endSeconds -= inputTimestampOffset;
-  const end = durationSeconds === undefined ? endSeconds : startSeconds + durationSeconds;
+  const duration = durationSeconds ?? endSeconds - startSeconds;
+  const offsetSeconds = startSeconds - inputTimestampOffset;
   if (!chapters) return chapters;
   const result: NonNullable<MediaDocument["chapters"]>[number][] = [];
   for (const chapter of chapters) {
-    if (chapter.endTimeSeconds < startSeconds) continue;
-    if (chapter.startTimeSeconds > end) break;
+    const { numerator, denominator } = chapter.timeBase ?? { numerator: 1, denominator: chapter.timescale ?? 1000 };
+    // FFmpeg rescales the combined offset before shifting, with ties away from zero.
+    const offset = Math.sign(offsetSeconds) * Math.round(Math.abs(offsetSeconds) * denominator / numerator);
+    const end = offset + Math.round(duration * denominator / numerator);
+    const chapterStart = Math.round(chapter.startTimeSeconds * denominator / numerator);
+    const chapterEnd = Math.round(chapter.endTimeSeconds * denominator / numerator);
+    if (chapterEnd < offset) continue;
+    if (chapterStart > end) break;
     result.push({
       ...chapter,
       ...(copyMetadata ? {} : { title: "", tags: {} }),
-      startTimeSeconds: Math.max(0, chapter.startTimeSeconds - startSeconds),
-      endTimeSeconds: Math.min(end, chapter.endTimeSeconds) - startSeconds
+      startTimeSeconds: Math.max(0, chapterStart - offset) * numerator / denominator,
+      endTimeSeconds: (Math.min(end, chapterEnd) - offset) * numerator / denominator
     });
   }
   return result;
@@ -9681,6 +9686,7 @@ export function evalSyncFfmpeg(
       (maxBFrames > 0 || outPlugin?.id === "mp4" || outPlugin?.id === "mov")) return undefined;
     const loadedDocs: MediaDocument[] = [];
     const inputStarts: (number | undefined)[] = [];
+    const inputChapterOffsets: number[] = [];
     for (const inp of inputs) {
       let doc: MediaDocument;
       if (inp.format === "lavfi") {
@@ -9725,14 +9731,7 @@ export function evalSyncFfmpeg(
       const durationUnknown = doc.containerFormat === "srt" || doc.containerFormat === "webvtt";
       const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined || durationUnknown
         ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
-      if (!copyTimestamps && startSeconds !== undefined && doc.chapters) {
-        // Keep intervals intact until the input offset and output bounds are applied.
-        doc = { ...doc, chapters: doc.chapters.map(chapter => ({
-          ...chapter,
-          startTimeSeconds: chapter.startTimeSeconds - startSeconds,
-          endTimeSeconds: chapter.endTimeSeconds - startSeconds
-        })) };
-      }
+      inputChapterOffsets.push((inp.timestampOffset ?? 0) - (copyTimestamps ? 0 : startSeconds ?? 0));
       if (audioCodec !== "copy" && !stripAudio) doc = decodeAacInput(doc);
       if (audioCodec === "copy" && (startSeconds !== undefined || outputSs !== undefined) &&
           doc.tracks.some(track => track.codecDescriptions[0]?.codecName === `pcm_${doc.containerFormat}`)) return undefined;
@@ -9826,7 +9825,7 @@ export function evalSyncFfmpeg(
     }
     chapterSource ??= loadedDocs.findIndex(doc => doc.chapters?.length);
     if (chapterSource >= loadedDocs.length) return undefined;
-    workingDoc = { ...workingDoc, chapters: applyChapterMetadata(mapChapterMetadata(chapterSource < 0 ? undefined : outputChapters(loadedDocs[chapterSource]!.chapters, outputSs, outputDuration, outputTo, inputs[chapterSource]!.timestampOffset, copyChapterMetadata), chapterMetadataMaps), chapterMetadata) };
+    workingDoc = { ...workingDoc, chapters: applyChapterMetadata(mapChapterMetadata(chapterSource < 0 ? undefined : outputChapters(loadedDocs[chapterSource]!.chapters, outputSs, outputDuration, outputTo, inputChapterOffsets[chapterSource], copyChapterMetadata), chapterMetadataMaps), chapterMetadata) };
     const suppressGlobalMetadata = metadataSources.length === 0 &&
       chapterMetadataMaps.some(([, source]) => (source.split(":")[1] ?? "g") === "g");
     const sourceMetadata = suppressGlobalMetadata ? {} : mapGlobalMetadata(loadedDocs, metadataSources);
@@ -12935,6 +12934,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             // Load all inputs and apply per-input slicing / looping
             const loadedDocs: MediaDocument[] = [];
             const inputStarts: (number | undefined)[] = [];
+            const inputChapterOffsets: number[] = [];
             let demuxExitCode = 0;
             let filterInvalidData = false;
             for (const inp of inputs) {
@@ -13143,14 +13143,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               }
               const startSeconds = inp.startSeconds ?? (inp.endRelativeSeconds === undefined || durationUnknown
                 ? undefined : Math.max(0, doc.durationSeconds + inp.endRelativeSeconds));
-              if (!copyTimestamps && startSeconds !== undefined && doc.chapters) {
-                // Keep intervals intact until the input offset and output bounds are applied.
-                doc = { ...doc, chapters: doc.chapters.map(chapter => ({
-                  ...chapter,
-                  startTimeSeconds: chapter.startTimeSeconds - startSeconds,
-                  endTimeSeconds: chapter.endTimeSeconds - startSeconds
-                })) };
-              }
+              inputChapterOffsets.push((inp.timestampOffset ?? 0) - (copyTimestamps ? 0 : startSeconds ?? 0));
               if (audioCodec !== "copy" && !stripAudio) doc = decodeAacInput(doc);
               const loopSourceDuration = doc.durationSeconds;
               const subtitleLoopFailure = (inp.streamLoop === -1 || (inp.streamLoop ?? 0) > 0) &&
@@ -20798,7 +20791,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: Invalid chapter input index: ${chapterSource}\n`), context.signal);
               return { exitCode: 234 };
             }
-            workingDoc = { ...workingDoc, chapters: applyChapterMetadata(mapChapterMetadata(chapterSource < 0 ? undefined : outputChapters(loadedDocs[chapterSource]!.chapters, outputSs, outputDuration, outputTo, inputs[chapterSource]!.timestampOffset, copyChapterMetadata), chapterMetadataMaps), chapterMetadata) };
+            workingDoc = { ...workingDoc, chapters: applyChapterMetadata(mapChapterMetadata(chapterSource < 0 ? undefined : outputChapters(loadedDocs[chapterSource]!.chapters, outputSs, outputDuration, outputTo, inputChapterOffsets[chapterSource], copyChapterMetadata), chapterMetadataMaps), chapterMetadata) };
             const suppressGlobalMetadata = metadataSources.length === 0 &&
               chapterMetadataMaps.some(([, source]) => (source.split(":")[1] ?? "g") === "g");
             const sourceMetadata = suppressGlobalMetadata ? {} : mapGlobalMetadata(loadedDocs, metadataSources);

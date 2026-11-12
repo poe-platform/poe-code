@@ -688,8 +688,12 @@ function* lavfiSteps(
     const freq = Number.isNaN(parsedFrequency) ? 440 : parsedFrequency;
     const duration =
       durationOverride ?? (parseFloat(kv.duration ?? kv.d ?? "1") || 1);
-    const layout = kv.channel_layout ?? kv.cl;
-    const channels = layout === "mono" || layout === undefined && filterName === "sine" ? 1 : 2;
+    const layout = kv.channel_layout ?? kv.cl ?? (filterName === "sine" ? "mono" : "stereo");
+    const channelNames = parseAudioChannelLayout(layout);
+    const channels = parseAudioChannelCount(layout) ?? channelNames.length;
+    const channelMask = parseAudioChannelCount(layout) === undefined
+      ? channelNames.reduce((mask, name) => mask + audioSpeakerMasks[name]!, 0) : 0;
+    if (!Number.isFinite(channelMask)) throw new Error(`Invalid channel layout: ${layout}`);
     const totalSamples = Math.max(0, Math.round(duration * sampleRate));
     budget.checkDuration(duration);
 
@@ -723,7 +727,8 @@ function* lavfiSteps(
         {
           ...audioTrack,
           id: 1,
-          decodedAudio: { sampleRate, channels, channelData }
+          codecDescriptions: audioTrack.codecDescriptions.map(codec => ({ ...codec, channelLayout: layout })),
+          decodedAudio: { sampleRate, channels, channelData, channelMask }
         }
       ]
     };

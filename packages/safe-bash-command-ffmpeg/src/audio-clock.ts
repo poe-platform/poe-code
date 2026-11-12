@@ -3,11 +3,11 @@ import { parseFilterExpression } from "./filter-expression.js";
 export function createAudioTimestampTransform(expression: string, rate: number, timeBase: number) {
   const samplesPerTick = timeBase * rate;
   const toTicks = (pts: number) => Math.sign(pts) * Math.round(Math.abs(pts) / samplesPerTick);
-  let startPts: number | undefined;
+  let startPts = NaN;
   let previousOutputPts = NaN;
   let previousInputPts = NaN;
   return (frame: { start: number; end: number; pts: number; pos?: number | undefined }): number => {
-    startPts ??= frame.pts;
+    if (Number.isNaN(startPts)) startPts = frame.pts;
     const pts = Math.trunc(parseFilterExpression(expression, "asetpts", {
       POS: frame.pos !== undefined && frame.pos >= 0 ? frame.pos : NaN,
       NAN: NaN, PTS: toTicks(frame.pts), STARTPTS: toTicks(startPts), STARTT: startPts / rate,

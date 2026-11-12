@@ -1759,6 +1759,7 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   const sums = new Array<number>(channels).fill(0);
   const squares = new Array<number>(channels).fill(0);
   const means = new Array<number>(channels).fill(0), moments = new Array<number>(channels).fill(0);
+  const thirdMoments = new Array<number>(channels).fill(0), fourthMoments = new Array<number>(channels).fill(0);
   const minima = new Array<number>(channels).fill(Number.MAX_VALUE), maxima = new Array<number>(channels).fill(-Number.MAX_VALUE);
   const histograms = statistics ? Array.from({ length: channels }, () => new Float64Array(65536)) : undefined;
   let min = 65535;
@@ -1820,9 +1821,14 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
         : chunk.hueSamples && img.space !== "cmyk" ? chunk.hueSamples[i + channel]! * range
         : chunk.evaluateSamples ? chunk.evaluateSamples[i + channel]! * range / 255 : samples[i + channel]!;
       if (statistics && selected) {
-        const n = count, delta = value / range - means[c]!;
-        means[c]! += delta / n;
-        moments[c]! += delta * (value / range - means[c]!);
+        // Accumulate central moments from working samples before histogram rounding.
+        const n = count, delta = value / range - means[c]!, deltaN = delta / n;
+        const term = delta * deltaN * (n - 1);
+        fourthMoments[c]! += term * deltaN ** 2 * (n * n - 3 * n + 3)
+          + 6 * deltaN ** 2 * moments[c]! - 4 * deltaN * thirdMoments[c]!;
+        thirdMoments[c]! += term * deltaN * (n - 2) - 3 * deltaN * moments[c]!;
+        moments[c]! += term;
+        means[c]! += deltaN;
       }
       while (bitDepth < (chunk.data16 || chunk.evaluateSamples || chunk.hueSamples ? 16 : 8)) {
         const levels = 2 ** bitDepth - 1;
@@ -1876,22 +1882,12 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
         // ImageMagick normalizes by occupied bins; constant channels contribute zero.
         if (distinct > 1) entropy += channelEntropy / Math.log2(distinct) / selectedCount;
       }
-      let minimum = 0, maximum = 65535, median = 0, cumulative = 0;
-      while (minimum < 65535 && histogram[minimum] === 0) minimum++;
-      while (maximum > 0 && histogram[maximum] === 0) maximum--;
+      let median = 0, cumulative = 0;
       statistics[`skewness.${channel}`] = 0;
       statistics[`kurtosis.${channel}`] = 0;
       if (deviation > 0) {
-        let third = 0, fourth = 0;
-        const mean = sums[c]! / count;
-        for (let value = minimum; value <= maximum; value++) {
-          if (value % 8192 === 0) yield;
-          if (histogram[value] === 0) continue;
-          const delta = (value - mean) / 65535 / deviation;
-          const probability = histogram[value]! / count;
-          third += probability * delta ** 3;
-          fourth += probability * delta ** 4;
-        }
+        const third = thirdMoments[c]! / count / deviation ** 3;
+        const fourth = fourthMoments[c]! / count / deviation ** 4;
         // Native uses sample deviation, population moments and excess kurtosis.
         // Constant channels contribute zero to both channel averages.
         statistics[`skewness.${channel}`] = third;

@@ -5700,7 +5700,8 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
         const quantize = (sample: number, channel: number, position: number): number => {
             if (position % (img.width * 4) < 4) distortion[channel] = 0;
             const value = sample + (depthDither ? distortion[channel]! : 0);
-            const output = Math.round(Math.max(0, Math.min(1, value)) * (levels - 1)) / (levels - 1);
+            // HDRI working samples stay unbounded until colorspace conversion.
+            const output = Math.round(value * (levels - 1)) / (levels - 1);
             // Native depth reduction scans left to right and resets each row.
             distortion[channel] = (value - output) * 7 / 16;
             return output;

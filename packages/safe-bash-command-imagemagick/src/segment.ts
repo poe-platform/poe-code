@@ -1,4 +1,5 @@
 import type { RgbaImage, StoredRgbaImage } from "@poe-code/image-ast/portable";
+import { formatSignificantMetric } from "./compare-kernel.js";
 import type { ConvolveRequest } from "./convolve-kernel.js";
 
 type Interval = { left: number; right: number; level: number; children: Interval[]; stability: number };
@@ -121,7 +122,7 @@ function* histogramRegions(histogram: Float64Array, smoothing: number): Generato
 }
 
 /** Working-colorspace segmentation with fixed 256-bin histograms and bounded pixel reads. */
-export function* segmentPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedHueSamples">>, clusterThreshold: number, smoothing: number): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
+export function* segmentPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedHueSamples">>, clusterThreshold: number, smoothing: number, report?: (text: string) => void): Generator<ConvolveRequest | undefined, number[], Uint8Array | undefined> {
     const length = image.width * image.height * 4;
     const hue = !!image.hueSamples || image.storedHueSamples !== undefined, cmyk = image.space === "cmyk";
     function* readPixels(position: number, size: number): Generator<ConvolveRequest, Uint8Array, Uint8Array | undefined> {
@@ -169,10 +170,21 @@ export function* segmentPixelSteps(image: Pick<RgbaImage, "width" | "height" | "
     for (const cluster of [...occupied.values()].sort((a, b) => a.key - b.key)) {
         // Native compares with the number of retained clusters, not pixel count.
         if (cluster.count < clusters.length * clusterThreshold / 100) continue;
-        cluster.center = cluster.center.map(sum => Math.floor(sum / cluster.count + 0.5));
         clusters.push(cluster);
         if (clusters.length > 256) throw new Error("Too many segment clusters");
     }
+    if (report) {
+        let text = "Fuzzy C-means Statistics\n===================\n\n";
+        text += `\tCluster Threshold = ${formatSignificantMetric(clusterThreshold)}\n\tWeighting Exponent = 2.5\n\tTotal Number of Clusters = ${clusters.length}\n\n`;
+        text += "\n\nNumber of Vectors Per Cluster\n=============================\n\n";
+        for (const [id, cluster] of clusters.entries()) text += `Cluster #${id} = ${cluster.count}\n`;
+        text += "\n\n\nCluster Extents:        (Vector Size: 3)\n================";
+        for (const [id, cluster] of clusters.entries()) text += `\n\nCluster #${id}\n\n${cluster.regions.map(region => `${region.left}-${region.right}`).join("  ")}\n`;
+        text += "\n\n\nCluster Center Values:        (Vector Size: 3)\n=====================";
+        for (const [id, cluster] of clusters.entries()) text += `\n\nCluster #${id}\n\n${cluster.center.map(sum => formatSignificantMetric(sum / cluster.count)).join("  ")}\n`;
+        report(text + "\n");
+    }
+    for (const cluster of clusters) cluster.center = cluster.center.map(sum => Math.floor(sum / cluster.count + 0.5));
     for (let position = 0; position < length; position += 2048) {
         yield;
         const size = Math.min(2048, length - position);

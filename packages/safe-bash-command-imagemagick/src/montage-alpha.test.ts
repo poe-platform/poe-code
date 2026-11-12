@@ -6,6 +6,11 @@ import { createMagickCommand, createMontageCommand, runMontageCli, runMontageCli
 // ImageMagick 7.1.2-35 Q16-HDRI RGBA8 output for a half-transparent red tile.
 for (const mode of ["sync", "buffered", "retained", "magick", "montage"] as const) {
   it.each([
+    { inputs: ["xc:#dc502080", "-matte"], background: "none", hex: "dc502080" },
+    { inputs: ["xc:#dc502080", "+matte"], background: "none", hex: "dc502080" },
+    { inputs: ["xc:#dc502080", "-alpha", "off", "-matte"], background: "navy", hex: "dc5020ff" },
+    { inputs: ["xc:#dc502080", "-alpha", "off"], background: "navy", hex: "dc5020ff" },
+    { inputs: ["xc:#dc502080"], background: "none", hex: "dc502080" },
     { inputs: ["-alpha", "off", "xc:#ff000080"], hex: "ff0000ff" },
     { inputs: ["xc:#ff000080", "-alpha", "off"], hex: "ff0000ff" },
     { inputs: ["-alpha", "remove", "xc:#ff000080"], hex: "80007fff" },
@@ -16,8 +21,8 @@ for (const mode of ["sync", "buffered", "retained", "magick", "montage"] as cons
     { inputs: ["xc:#ff000080", "(", "xc:#ff000080", "-alpha", "off", ")"], hex: "80007fffff0000ff" },
     { inputs: ["xc:#ff000080", "-alpha", "remove", "-alpha", "off"], hex: "80007fff" },
     { inputs: ["xc:#ff000080", "-alpha", "off", "-alpha", "remove"], hex: "ff0000ff" },
-  ])(`${mode}: applies montage alpha to input tiles: $inputs`, async ({ inputs, hex }) => {
-    const args = ["-geometry", "1x1+0+0", "-tile", "x1", "-background", "blue", ...inputs, "-depth", "8", "rgba:-"];
+  ])(`${mode}: applies montage alpha to input tiles: $inputs`, async ({ inputs, hex, background = "blue" }) => {
+    const args = ["-geometry", "1x1+0+0", "-tile", "x1", "-background", background, ...inputs, "-depth", "8", "rgba:-"];
     const fs = new MemoryFileSystem();
     let output: Uint8Array;
     if (mode === "magick" || mode === "montage") {

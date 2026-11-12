@@ -15749,7 +15749,8 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                                 !state.channelExplicit || state.channelDefault || !!channels?.meta?.includes(index)), signal, layout));
                     }
                 }
-                return { ...result, region: undefined, virtualCanvas: layout.virtualCanvas };
+                // Vignette creates active coverage even when Disassociate disabled source alpha.
+                return { ...result, alphaBlend: true, inactiveAlpha: false, alphaSeparate: false, region: undefined, virtualCanvas: layout.virtualCanvas };
             });
         }
         else if (t === "-dither" || t === "+dither") {
@@ -20125,7 +20126,8 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                                 !channels || channelDefault || !!channels.meta?.includes(index)), signal, layout));
                     }
                 }
-                return { ...result, region: undefined, virtualCanvas: layout.virtualCanvas };
+                // Vignette creates active coverage even when Disassociate disabled source alpha.
+                return { ...result, alphaBlend: true, inactiveAlpha: false, alphaSeparate: false, region: undefined, virtualCanvas: layout.virtualCanvas };
             });
         } else if (!operandsOnly && token === "-polaroid") {
             let images: StoredImageStack, sceneIdx = 0;

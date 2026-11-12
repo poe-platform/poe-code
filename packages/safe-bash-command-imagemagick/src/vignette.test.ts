@@ -30,7 +30,7 @@ it.each([
 it("fades into a transparent background in both backends", async () => {
     for (const retained of [false, true]) {
         const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
-        const result = await runMagickCli(["-size", "5x5", "xc:red", "-background", "none", "-vignette", "0x0", "/out.png"], retained ? { filesystem, cwd: "/" } : files);
+        const result = await runMagickCli(["-size", "5x5", "xc:red", "-background", "none", "-vignette", "0x0", "-depth", "8", "/out.png"], retained ? { filesystem, cwd: "/" } : files);
         expect(result.exitCode).toBe(0);
         const image = decodeImage(retained ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
         expect(Array.from(image.data.slice(0, 4))).toEqual([255, 0, 0, 12]);

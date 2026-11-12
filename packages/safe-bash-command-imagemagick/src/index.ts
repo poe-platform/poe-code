@@ -10294,13 +10294,14 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
         const lookup = Array.from({ length: cmyk ? 5 : 4 }, () =>
             Float32Array.from({ length: levels }, (_, value) => value * 65535 / (levels - 1)));
         const paletteLookup = [...lookup];
+        const dropsAlpha = !image.hasAlpha && image.inactiveAlpha === true && image.alphaBlend === false;
         if (token === "-normalize" || token === "-contrast-stretch") {
             const maximum = 65535;
             const whiteValue = Number.isFinite(whitePoint) ? whitePoint : blackPoint;
             const lowTarget = token === "-normalize" ? 0.02 * count : percentage ? blackPoint / 100 * count : blackPoint;
             const highTarget = token === "-normalize" ? 0.01 * count : percentage ? whiteValue / 100 * count : whiteValue;
             for (let channel = 0; channel < lookup.length; channel++) {
-                if (!active[channel]) continue;
+                if (!active[channel] && !dropsAlpha) continue;
                 const bins = cmyk && independent ? histogram[channel === 4 ? 5 : channel]! : histogram[4] ?? histogram[channel]!, scale = histogram[4] ? 65535 / (levels - 1) : 1;
                 let low = 0, high = bins.length - 1, sum = 0;
                 for (; low < bins.length - 1; low++) { sum += bins[low]!; if (sum > lowTarget) break; }
@@ -10312,11 +10313,10 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                 // Native clips against the black point first, even when the points cross.
                 for (let value = 0; value < levels; value++) values[value] = value * scale < low ? 0
                     : value * scale > high ? maximum
-                    : high === low ? value * maximum / (levels - 1)
+                    : high === low ? dropsAlpha ? 0 : value * maximum / (levels - 1)
                     : (value * scale - low) / (high - low) * maximum;
             }
         } else if (token === "-equalize") {
-            const dropsAlpha = !image.hasAlpha && image.inactiveAlpha === true && image.alphaBlend === false;
             for (let channel = 0; channel < lookup.length; channel++) {
                 if (!active[channel] && !dropsAlpha) continue;
                 const bins = cmyk && !settings.channelSync ? histogram[channel === 4 ? 5 : channel]! : histogram[4] ?? histogram[channel]!, scale = histogram[4] ? 65535 / (levels - 1) : 1;
@@ -10329,23 +10329,23 @@ function parseMagickAnalysisOperation(tokens: readonly string[], state: MagickSt
                     lookup[channel]![value] = (cumulative - black) / (count - black) * 65535;
                 }
             }
-            if (dropsAlpha) {
-                // Native builds an interleaved map before authentic cache access drops alpha.
-                // Applying that map uses the shorter pixel stride, including across channels.
-                const order = cmyk ? [0, 1, 2, 4, 3] : gray ? [0, 3] : [0, 1, 2, 3];
-                const maps = order.map(channel => lookup[channel]!);
-                for (let offset = 0; offset < order.length - 1; offset++) {
-                    lookup[order[offset]!] = Float32Array.from({ length: levels }, (_, value) => {
-                        const index = value * (order.length - 1) + offset;
-                        return maps[index % order.length]![Math.floor(index / order.length)]!;
-                    });
-                }
-                if (gray) lookup[1] = lookup[2] = lookup[0]!;
+        }
+        if (dropsAlpha) {
+            // Native builds an interleaved map before authentic cache access drops alpha.
+            // Applying that map uses the shorter pixel stride, including across channels.
+            const order = cmyk ? [0, 1, 2, 4, 3] : gray ? [0, 3] : [0, 1, 2, 3];
+            const maps = order.map(channel => paletteLookup[channel]!);
+            for (let offset = 0; offset < order.length - 1; offset++) {
+                lookup[order[offset]!] = Float32Array.from({ length: levels }, (_, value) => {
+                    const index = value * (order.length - 1) + offset;
+                    return maps[index % order.length]![Math.floor(index / order.length)]!;
+                });
             }
+            if (gray) lookup[1] = lookup[2] = lookup[0]!;
         }
         return function* (image) {
             const result = yield* (cmyk ? applyCmykLookup(image, lookup, active) : applyMagickLookup(image, lookup, paletteLookup, active));
-            return token === "-equalize" ? discardDisassociatedAlpha(result) : result;
+            return discardDisassociatedAlpha(result);
         };
     } };
 }
@@ -10986,7 +10986,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         apply = (image, pixelOffset = 0) => {
             if ((operation === "uniformnoise" || operation === "gaussiannoise" || operation === "impulsenoise" || operation === "laplaciannoise" || operation === "multiplicativenoise" || operation === "poissonnoise") && pixelOffset === 0)
                 random = createMagickRandom(state.seed ?? 0n);
-            return applyMagickEvaluateSteps({ ...image, isPalette: false }, operation, number, isPct, channels, random, signal);
+            return applyMagickEvaluateSteps({ ...discardDisassociatedAlpha(image), isPalette: false }, operation, number, isPct, channels, random, signal);
         };
     } else if (token === "-function") {
         highDepth = true;

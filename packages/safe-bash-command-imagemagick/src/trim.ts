@@ -271,6 +271,10 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
     if (next.value.width > 0 && next.value.height > 0) return image;
     // ImageMagick represents an empty trim with one transparent background pixel.
     const { data16: ignored, evaluateSamples: ignoredSamples, hueSamples: ignoredHue, ...metadata } = image;
+    if (image.metaChannels) {
+        metadata.metaChannels = [];
+        for (const plane of image.metaChannels) metadata.metaChannels.push(yield* extractImageSteps(plane, { left: 0, top: 0, width: 1, height: 1 }));
+    }
     const pixel = emptyTrimPixel(image, emptyBackground);
     const { data16 } = pixel;
     if ((image.space === "b-w" || image.space === "grey16") && (data16[0] !== data16[1] || data16[1] !== data16[2])) {
@@ -278,7 +282,7 @@ export function* trimMagickSteps(image: RgbaImage, fuzz: number, edges?: string,
         metadata.gamma = 1 / 2.2;
         delete metadata.magickColorspace;
     }
-    return { ...metadata, [magickInput]: { ...image[magickInput], imageType: undefined }, width: 1, height: 1, ...pixel, data: Uint8Array.from(data16, value => Math.round(value / 257)), channels: 4, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false, region: undefined,
+    return { ...metadata, isPalette: false, [magickInput]: { ...image[magickInput], imageType: undefined }, width: 1, height: 1, ...pixel, data: Uint8Array.from(data16, value => Math.round(value / 257)), channels: 4, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false, region: undefined,
         virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };
 }
 
@@ -342,11 +346,15 @@ export async function trimStoredMagick(image: StoredRgbaImage, storage: ImageByt
         await storage.write(samples.storedHueSamples, new Uint8Array(pixel.hueSamples.buffer), { signal });
     }
     const { storedData16: ignored, storedEvaluateSamples: ignoredSamples, storedHueSamples: ignoredHue, ...metadata } = image;
+    if (image.storedMetaChannels) {
+        metadata.storedMetaChannels = [];
+        for (const plane of image.storedMetaChannels) metadata.storedMetaChannels.push(await transformStoredImage(plane, storage, { kind: "extract", left: 0, top: 0, width: 1, height: 1 }, signal));
+    }
     if ((image.space === "b-w" || image.space === "grey16") && (data16[0] !== data16[1] || data16[1] !== data16[2])) {
         metadata.space = "srgb";
         metadata.gamma = 1 / 2.2;
         delete metadata.magickColorspace;
     }
-    return { ...metadata, [magickInput]: { ...image[magickInput], imageType: undefined }, width: 1, height: 1, position: emptyPosition, ...samples, storedData16: { position: position16, length: data16.length }, channels: 4, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false, region: undefined,
+    return { ...metadata, isPalette: false, [magickInput]: { ...image[magickInput], imageType: undefined }, width: 1, height: 1, position: emptyPosition, ...samples, storedData16: { position: position16, length: data16.length }, channels: 4, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, alphaSeparate: false, region: undefined,
         virtualCanvas: { width: image.width, height: image.height, x: -1, y: -1 } };
 }

@@ -364,6 +364,13 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                 out[dIdx + 3] = dst.hasAlpha ? saByte : daByte;
                 continue;
             }
+            if (norm === "none") {
+                // Native None keeps opacity but writes premultiplied destination RGB.
+                out[dIdx] = clampByteVal(dr * da);
+                out[dIdx + 1] = clampByteVal(dg * da);
+                out[dIdx + 2] = clampByteVal(db * da);
+                continue;
+            }
             if (norm === "dst" || norm === "dest") {
                 continue;
             }

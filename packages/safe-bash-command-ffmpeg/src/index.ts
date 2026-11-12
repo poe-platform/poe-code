@@ -798,6 +798,10 @@ function* lavfiSteps(
   const top = [[191, 191, 191], [191, 191, 0], [0, 191, 191], [0, 191, 0], [191, 0, 191], [191, 0, 0], [0, 0, 191]];
   const middle = [[0, 0, 191], [19, 19, 19], [191, 0, 191], [19, 19, 19], [0, 191, 191], [19, 19, 19], [191, 191, 191]];
   const lower = [[0, 33, 76], [255, 255, 255], [50, 0, 106], [19, 19, 19], [9, 9, 9], [19, 19, 19], [29, 29, 29], [19, 19, 19]];
+  // Native SMPTE bars round each patch width onto the YUV420 chroma grid.
+  const barWidth = Math.ceil(Math.ceil(width / 7) / 2) * 2;
+  const patchWidth = Math.ceil(Math.floor(barWidth * 5 / 4) / 2) * 2;
+  const plugeWidth = Math.ceil(Math.floor(barWidth / 3) / 2) * 2;
   const frames: MediaVideoFrame[] = [];
   for (let i = 0; i < frameCount; i++) {
     yield;
@@ -812,9 +816,9 @@ function* lavfiSteps(
 
         const idx = (y * width + x) * 4;
         if (filterName === "smptebars") {
-          const column = Math.min(6, Math.floor(x * 7 / width));
-          const bottomColumn = x < width * 5 / 7 ? Math.min(3, Math.floor(x * 28 / (width * 5)))
-            : x < width * 6 / 7 ? 4 + Math.min(2, Math.floor((x * 7 / width - 5) * 3)) : 7;
+          const column = Math.min(6, Math.floor(x / barWidth));
+          const bottomColumn = x < barWidth * 5 ? Math.min(3, Math.floor(x / patchWidth))
+            : x < barWidth * 5 + plugeWidth * 3 ? 4 + Math.floor((x - barWidth * 5) / plugeWidth) : 7;
           const pixel = y < height * 2 / 3 ? top[column]! : y < height * 3 / 4 ? middle[column]! : lower[bottomColumn]!;
           rgba[idx] = pixel[0]!;
           rgba[idx + 1] = pixel[1]!;

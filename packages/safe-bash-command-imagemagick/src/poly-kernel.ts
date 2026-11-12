@@ -99,7 +99,8 @@ export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, 
                 const channel = offset % 4;
                 // Native CMYK alpha occupies slot 4, which non-CMYK sources lack.
                 if (channel === 3 && cmyk && input.space !== "cmyk") continue;
-                if (channels && !channels[channel] || sourceMask && !sourceMask[channel] || (channel === 3 ? inactiveAlpha || !sourceAlpha || gray : channel >= colorSlots)) continue;
+                const selectedChannel = !colorOutput && channel < 3 ? 0 : channel;
+                if (channels && !channels[selectedChannel] || sourceMask && !sourceMask[selectedChannel] || (channel === 3 ? inactiveAlpha || !sourceAlpha || gray : channel >= colorSlots)) continue;
                 // Native GrayAlpha stores alpha in slot 1; our samples are expanded RGBA.
                 const source = gray && input.hasAlpha && channel === 1 ? offset + 2 : offset;
                 const value = terms[image * 2]! * (samples[source]! / range) ** terms[image * 2 + 1]!;
@@ -109,13 +110,11 @@ export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, 
             }
         }
         for (let offset = 0; offset < length; offset++) values[offset] = offset % 4 === 3 && !hasAlpha && !inactiveAlpha ? 255 : values[offset]! * 255;
-        if (!colorOutput) {
-            // Gray has one logical color channel (R); an unselected Gray
-            // channel retains the white polynomial output canvas.
-            for (let offset = 0; offset < length; offset += 4) {
-                const gray = channels && !channels[0] ? 255 : values[offset]!;
-                values[offset] = values[offset + 1] = values[offset + 2] = gray;
-            }
+        if (!colorOutput && channels && !channels[0]) {
+            // An unselected Gray channel retains the white polynomial canvas.
+            // Selected channels keep their samples, including colored virtual pixels.
+            for (let offset = 0; offset < length; offset += 4)
+                values[offset] = values[offset + 1] = values[offset + 2] = 255;
         }
         if (inks) {
             for (let offset = 0; offset < length; offset += 4) {

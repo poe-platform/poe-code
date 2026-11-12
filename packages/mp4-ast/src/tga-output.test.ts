@@ -25,3 +25,27 @@ it("rejects invalid dimensions, truncated RGBA and exhausted output/memory budge
     assert.throws(() => encodeTga(frame, { budget: new MediaBudgetTracker(limits) }));
   }
 });
+
+for (const rle of [undefined, true, false]) {
+  for (const compressible of [false, true]) {
+    it(`selects native Targa storage for compressible=${compressible}, rle=${rle}`, () => {
+      const data = compressible
+        ? Uint8Array.from(Array.from({ length: 72 }, (_, i) => {
+          const x = i % 24, y = Math.floor(i / 24);
+          return [33 + 70 * y, 17 + 65 * Math.floor(x / 8), 128 - 24 * y, 32 + 64 * Math.floor(x / 8)];
+        }).flat())
+        : Uint8Array.from({ length: 288 }, (_, i) => 43 * i % 256);
+      const compressed = compressible && rle !== false;
+      const bytes = encodeTga({ width: 24, height: 3, data }, {
+        ...(rle === undefined ? {} : { rle }),
+        budget: new MediaBudgetTracker({ maxOutputBytes: compressed ? 89 : 332 })
+      });
+      assert.equal(bytes[2], compressed ? 10 : 2);
+      assert.equal(bytes.length, compressed ? 89 : 332);
+      assert.deepEqual(bytes.subarray(-26), Uint8Array.from([
+        ...new Uint8Array(8), ...new TextEncoder().encode("TRUEVISION-XFILE.\0")
+      ]));
+      assert.deepEqual(decodeTga(bytes).data, data);
+    });
+  }
+}

@@ -77,6 +77,7 @@ export function encodeTga(frame: Pick<MediaVideoFrame, "width" | "height" | "dat
     bytes[offset++] = data[i * 4]!;
     bytes[offset++] = data[i * 4 + 3]!;
   };
+  const pixelStart = offset;
   for (let y = 0; y < height; y++) {
     budget.checkCpu();
     const end = (y + 1) * width;
@@ -95,7 +96,16 @@ export function encodeTga(frame: Pick<MediaVideoFrame, "width" | "height" | "dat
       i += count;
     }
   }
+  if (rle && offset > pixelStart + width * height * bytes[16]! / 8) {
+    bytes[2] = bytes[2]! & 7;
+    offset = pixelStart;
+    for (let y = 0; y < height; y++) {
+      budget.checkCpu();
+      for (let x = 0; x < width; x++) pixel(y * width + x);
+    }
+  }
   // TGA 2.0 footer: no extension or developer area.
+  bytes.fill(0, offset, offset + 8);
   bytes.set(new TextEncoder().encode("TRUEVISION-XFILE.\0"), offset + 8);
   offset += 26;
   budget.checkOutputBytes(offset);

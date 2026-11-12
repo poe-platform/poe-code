@@ -22,7 +22,7 @@ const malformed: readonly [string, () => Uint8Array, RegExp][] = [
   ["fifo", () => archive(member("file", new Uint8Array(), "6")), /unsupported.*type/u],
   ["GNU sparse", () => archive(member("file", new Uint8Array(), "S")), /unsupported.*type/u],
   ["sized symlink", () => archive(member("file", Uint8Array.of(1), "2", "target")), /nonzero/u],
-  ["unknown format", () => { const bytes = archive(member("file")); bytes.fill(0, 257, 265); checksum(bytes); return bytes; }, /unsupported.*format/u],
+  ["unknown format", () => { const bytes = archive(member("file")); bytes.set(Buffer.from("unknown!"), 257); checksum(bytes); return bytes; }, /unsupported.*format/u],
   ["nonzero trailing", () => Buffer.concat([archive(member("file")), Uint8Array.of(1)]), /trailing/u],
   ["truncated trailing record", () => Buffer.concat([archive(member("file")), Uint8Array.of(0)]), /trailing/u],
   ["PAX zero record", () => archive(member("pax", Buffer.from("0 path=x\n"), "x"), member("file")), /PAX/u],

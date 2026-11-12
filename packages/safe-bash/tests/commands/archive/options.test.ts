@@ -400,7 +400,8 @@ test("strip-components uses original names for selectors/excludes, including ./"
     assert.equal(result.exitCode, 0, result.stderr);
     assert.deepEqual(await fs.readFile("/out/keep"), binary);
     assert.equal((await fs.readdir("/out")).length, 1);
-    assert.equal((await shell.exec("tar tf - --strip-components=2", { stdin: bytes })).stdout, "keep\ndrop\n");
+    assert.equal((await shell.exec("tar tf - --strip-components=2", { stdin: bytes })).stdout, "./tree/keep\n./tree/drop\n");
+    assert.equal((await shell.exec("tar tf - --strip-components=2 --show-transformed-names", { stdin: bytes })).stdout, "keep\ndrop\n");
   } finally { await shell.dispose(); }
 });
 
@@ -599,15 +600,21 @@ for (const [stored, operand] of [["./a", "a"], ["a", "././a"], ["./dir/a", "dir"
   });
 }
 
-test("tar strips listed names and skips members with too few components", async () => {
+test("tar lists original names unless transformed names are requested", async () => {
   const { shell } = await fixture();
   try {
     const bytes = archive(member("a", binary), member("sub/", new Uint8Array(), "5"), member("sub/b", binary));
-    for (const flags of ["", "-v"]) {
-      const result = await shell.exec(`tar -tf - --strip-components=1 ${flags}`, { stdin: bytes });
+    for (const show of [false, true]) for (const verbose of [false, true]) {
+      const result = await shell.exec(`tar -tf - --strip-components=1 ${verbose ? "-v" : ""} ${show ? "--show-transformed-names" : ""}`, { stdin: bytes });
       assert.equal(result.exitCode, 0, result.stderr);
-      assert.ok(result.stdout.endsWith("b\n"), result.stdout);
-      assert.equal(result.stdout.split("\n").length, 2);
+      const names = show ? ["", "/", "b"] : ["a", "sub/", "sub/b"];
+      const lines = result.stdout.split("\n");
+      assert.equal(lines.pop(), "");
+      assert.equal(lines.length, names.length);
+      for (const [index, name] of names.entries()) {
+        if (verbose) assert.ok(lines[index]!.endsWith(` ${name}`), lines[index]);
+        else assert.equal(lines[index], name);
+      }
     }
   } finally { await shell.dispose(); }
 });

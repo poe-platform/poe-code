@@ -13376,12 +13376,21 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 workingDoc = { ...main.doc, tracks: [main.track] };
                 vfFilters.push(decimateGraph.expression);
               } else if (filterComplex.includes("showwavespic")) {
+                const automaticAudio = frameChecksumOutput && !maps.length && !stripAudio
+                  ? selectAutomaticStreams(loadedDocs).flatMap(doc => doc.tracks).find(track => track.type === "audio")
+                  : undefined;
                 let expression = filterComplex.trim();
-                let input = "0:a:0";
+                let input: string;
                 if (expression.startsWith("[")) {
                   const end = expression.indexOf("]");
                   input = expression.slice(1, end);
                   expression = expression.slice(end + 1);
+                } else {
+                  // Automatic output selection reserves its audio before binding unlabeled filter inputs.
+                  const index = loadedDocs.findIndex(doc => doc.tracks.some(track => track.type === "audio" && track !== automaticAudio));
+                  if (index < 0) throw new Error("Cannot find a matching stream for unlabeled input pad showwavespic:default");
+                  const ordinal = loadedDocs[index]!.tracks.filter(track => track.type === "audio").findIndex(track => track !== automaticAudio);
+                  input = `${index}:a:${ordinal}`;
                 }
                 if (expression.endsWith("]")) {
                   const start = expression.lastIndexOf("[");
@@ -13426,7 +13435,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 }
                 vfFilters.push(...filters);
                 workingDoc = { ...doc, duration: waveform.duration * doc.timescale,
-                  durationSeconds: waveform.duration, tracks: [waveform] };
+                  durationSeconds: waveform.duration, tracks: [waveform, ...(automaticAudio ? [automaticAudio] : [])] };
               } else if (concat && (concat.v !== 0 || concat.a === 0)) {
                 workingDoc = concatMp4(loadedDocs, { limits: options.limits, budget });
                 if (concat.a === 0) {
@@ -22114,6 +22123,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "asegment: timeline is unsupported") return { exitCode: 176 };
             if (msg === "asegment: unsupported option") return { exitCode: 8 };
             if (msg === "asegment: invalid split point") return { exitCode: 234 };
+            if (msg.startsWith("Cannot find a matching stream for unlabeled input pad ")) return { exitCode: 234 };
             if (msg.startsWith("More input link labels specified for filter ")) return { exitCode: 234 };
             if (msg.startsWith("Unsupported audio filter:")) return { exitCode: 8 };
             if (msg.startsWith("showwavespic: unsupported option ")) return { exitCode: 8 };

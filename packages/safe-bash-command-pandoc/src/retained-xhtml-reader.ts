@@ -291,12 +291,13 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
     const content = (await ast.content(node))!, attrs = (await ast.at(content, 1))!;
     let id = await ast.range((await ast.at(attrs, 0))!);
     if (!id.units) {
-      const base = await retainedHeadingIdentifier(ast, (await ast.at(content, 2))!);
+      const base = await retainedHeadingIdentifier(ast, (await ast.at(content, 2))!, ctx);
       id = base;
       for (let suffix = 1; await identifiers.has(id); suffix++) {
         id = await ast.text.from(ast.text.chunks(base));
         await ast.text.append(id, await ast.text.from([`-${suffix}`]));
       }
+      ctx.charge("retainedBytes", id.units * 2);
       await ast.set(attrs, 0, await ast.string(id));
     }
     await identifiers.add(id);

@@ -1,8 +1,9 @@
+import type {AdapterContext} from "./types.js";
 import {emptyText} from "./backed-text.js";
 import type {RetainedRtfAst, RtfValue} from "./retained-rtf-ast.js";
 
 /** Extract heading text without notes, raw markup, or link/format attributes. */
-export async function retainedHeadingIdentifier(ast: RetainedRtfAst, inlines: RtfValue, gfm = false) {
+export async function retainedHeadingIdentifier(ast: RetainedRtfAst, inlines: RtfValue, context: AdapterContext, gfm = false) {
   const text = emptyText();
   await ast.walk(inlines, async (value, _depth, leaving) => {
     if (leaving) return;
@@ -20,6 +21,7 @@ export async function retainedHeadingIdentifier(ast: RetainedRtfAst, inlines: Rt
       return {descend: (await ast.at(content!, 1))!};
     }
   });
+  context.charge("retainedBytes", text.units * 4);
   const lower = await ast.text.lower(text);
   let started = false;
   const id = await ast.text.from((async function* () {

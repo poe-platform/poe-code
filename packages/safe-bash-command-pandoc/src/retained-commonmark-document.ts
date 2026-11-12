@@ -280,11 +280,12 @@ export async function assembleRetainedCommonMark(
         const attributes = await ast.value(heading?.attributes ?? ["", [], []]);
         let id = await ast.range((await ast.at(attributes, 0))!);
         if (!id.units && (extensions.auto_identifiers || extensions.gfm_auto_identifiers)) {
-          const base = await retainedHeadingIdentifier(ast, inlines, extensions.gfm_auto_identifiers);
+          const base = await retainedHeadingIdentifier(ast, inlines, context, extensions.gfm_auto_identifiers);
           id = base;
           if (extensions.gfm_auto_identifiers) {
             const key = BigInt(await identifiers.add(base));
             const count = await gfmCounts.get(key) ?? 0n;
+            if (!count) {context.charge("references", 1); context.charge("retainedBytes", base.units * 2);}
             if (count) {
               id = await ast.text.from(ast.text.chunks(base));
               await ast.text.append(id, await ast.text.from([`-${count}`]));
@@ -296,7 +297,10 @@ export async function assembleRetainedCommonMark(
           }
           await ast.set(attributes, 0, await ast.string(id));
         }
-        if (!extensions.gfm_auto_identifiers && id.units) await identifiers.add(id);
+        if (!extensions.gfm_auto_identifiers && id.units && !await identifiers.has(id)) {
+          context.charge("references", 1); context.charge("retainedBytes", id.units * 2);
+          await identifiers.add(id);
+        }
         await ast.push(out, await ast.tag("Header", await ast.value([block.number, attributes, inlines])));
       } else await ast.push(out, await ast.tag(tight ? "Plain" : "Para", inlines));
     } else if (block.kind === "thematicBreak") await ast.push(out, await ast.tag("HorizontalRule"));

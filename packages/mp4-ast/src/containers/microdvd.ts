@@ -26,7 +26,7 @@ function parseMicrodvd(bytes: Uint8Array, options?: ParseMediaOptions): MediaDoc
     if (!cue) continue;
     if (samples.length === 0 && (cue.start === 0 || cue.start === 1) && (cue.end === 0 || cue.end === 1)) {
       const rate = Number.parseFloat(cue.text);
-      if (Number.isFinite(rate) && rate > 0) {
+      if (rate > 3 && rate < 100) {
         timescale = rate;
         continue;
       }

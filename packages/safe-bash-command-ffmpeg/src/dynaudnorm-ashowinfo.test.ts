@@ -29,7 +29,7 @@ for (const graph of [false, true]) {
     } as never);
     const stderr = Buffer.concat(errors).toString();
     assert.equal(result.exitCode, 0, stderr);
-    assert.equal(stderr.trim(), `[ashowinfo] n:0 pts:0 pts_time:0 fmt:${format} channels:${scales.length} chlayout:${scales.length === 1 ? "mono" : "stereo"} rate:8000 nb_samples:79 checksum:${checksum} plane_checksums: [ ${planes} ]`);
+    assert.equal(stderr.trim(), (scales.length === 1 ? "ffmpeg: Guessed Channel Layout: mono\n" : "") + `[ashowinfo] n:0 pts:0 pts_time:0 fmt:${format} channels:${scales.length} chlayout:${scales.length === 1 ? "mono" : "stereo"} rate:8000 nb_samples:79 checksum:${checksum} plane_checksums: [ ${planes} ]`);
     assert.deepEqual(fs.readFileSync("/out.pcm"), Buffer.from(wav.subarray(wav.length - 158 * scales.length)));
   });
 }

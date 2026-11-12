@@ -10003,6 +10003,7 @@ interface InputSpec {
   readonly fps?: number | undefined;
   readonly startNumber?: number | undefined;
   readonly startNumberRange?: number | undefined;
+  readonly tsFromFile?: number | undefined;
   readonly exportPathMetadata?: boolean | undefined;
   readonly patternType?: "glob" | "glob_sequence" | "none" | "sequence" | undefined;
 }
@@ -10096,6 +10097,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingStartNumber: number | undefined;
       let pendingStartNumberRange: number | undefined;
       let pendingPatternType: InputSpec["patternType"];
+      let pendingTsFromFile: number | undefined;
       let pendingExportPathMetadata: boolean | undefined;
       let pendingGuessLayoutMax: number | undefined;
       let pendingChannelLayout: string | undefined;
@@ -11196,6 +11198,13 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             } else {
               outputDuration = val;
             }
+          } else if (arg === "-ts_from_file") {
+            const value = args[++i];
+            if (!["0", "1", "2"].includes(value ?? "") || !args.slice(i + 1).includes("-i")) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -ts_from_file requires 0, 1 or 2 before an input\n"), context.signal);
+              return { exitCode: 1 };
+            }
+            pendingTsFromFile = Number(value);
           } else if (arg === "-export_path_metadata") {
             const value = args[++i];
             try {
@@ -11422,6 +11431,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               pixelFormat: pendingPixelFormat,
               startNumber: pendingStartNumber,
               patternType: pendingPatternType,
+              tsFromFile: pendingTsFromFile,
               exportPathMetadata: pendingExportPathMetadata,
               startNumberRange: pendingStartNumberRange
             });
@@ -11463,6 +11473,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingStartNumber = undefined;
             pendingStartNumberRange = undefined;
             pendingPatternType = undefined;
+            pendingTsFromFile = undefined;
             pendingExportPathMetadata = undefined;
           } else if (arg === "-c" || arg === "-codec") {
             const val = args[++i];
@@ -12243,7 +12254,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
               const imageDemuxer = explicitFormat === "image2" || (!explicitFormat &&
                 (filePath.endsWith(".Y") || (registry.findById("image2")?.extensions.includes(filePath.split(".").pop()?.toLowerCase() ?? "") &&
-                  (formatImageSequence(filePath, 0) !== undefined || filePath.includes("*") || filePath.includes("?")))));
+                  (input?.tsFromFile !== undefined || formatImageSequence(filePath, 0) !== undefined || filePath.includes("*") || filePath.includes("?")))));
+              if (input?.tsFromFile !== undefined && !imageDemuxer) throw new Error("Option ts_from_file not found");
               const pipeBytes = explicitFormat === "image2pipe"
                 ? (await readInput(filePath)).subarray(input?.skipInitialBytes ?? 0) : undefined;
               let pipeOffset = 0;
@@ -12307,9 +12319,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
 
               const planeInput = !pipeBytes && filePath.endsWith(".Y") && (!explicitFormat || explicitFormat === "image2");
               const planePixelFormat = input?.pixelFormat ?? "yuv420p";
-              const literalPlane = planeInput && (input?.patternType === "none" || formatImageSequence(filePath, 0) === undefined);
+              const literalImage = (planeInput || imageDemuxer) && (input?.patternType === "none" || formatImageSequence(filePath, 0) === undefined);
               // Literal image inputs bypass numbered-pattern expansion.
-              if (planeInput || pipeBytes || globPaths || (imageDemuxer && input?.patternType !== "none" && formatImageSequence(filePath, input?.startNumber ?? 0) !== undefined)) {
+              if (planeInput || pipeBytes || globPaths || literalImage || (imageDemuxer && input?.patternType !== "none" && formatImageSequence(filePath, input?.startNumber ?? 0) !== undefined)) {
                 const frames: MediaVideoFrame[] = [];
                 const packets: Pick<MediaTrack["samples"][number], "data" | "tags">[] = [];
                 let codecName = "png";
@@ -12318,12 +12330,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 let sarWidth = 1;
                 let sarHeight = 1;
                 const fps = fpsHint ?? 25;
+                const timestampScale = input?.tsFromFile === 1 ? 1 : input?.tsFromFile === 2 ? 1_000_000_000 : undefined;
+                let firstTimestamp: number | undefined;
                 const startNumber = input?.startNumber ?? 0;
                 const startNumberRange = input?.startNumberRange ?? 5;
                 for (let idx = globPaths ? 0 : startNumber; pipeBytes ? pipeOffset < pipeBytes.length : !globPaths || idx < globPaths.length; idx++) {
                   budget.checkCpu();
                   context.signal.throwIfAborted();
                   let imgBytes: Uint8Array;
+                  let ptsSeconds = frames.length / fps;
                   let sourcePath: string | undefined;
                   let planeFrame: MediaVideoFrame | undefined;
                   if (pipeBytes) {
@@ -12331,7 +12346,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     pipeOffset = imagePipeFrameEnd(pipeBytes, start, input?.videoDecoder, budget);
                     imgBytes = pipeBytes.subarray(start, pipeOffset);
                   } else {
-                    const formatted = globPaths ? globPaths[idx]! : literalPlane ? filePath : formatImageSequence(filePath, idx, false)!;
+                    const formatted = globPaths ? globPaths[idx]! : literalImage ? filePath : formatImageSequence(filePath, idx, false)!;
                     sourcePath = formatted;
                     const resolved = resolvePath(context.cwd, formatted);
                     try {
@@ -12339,9 +12354,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     } catch (error) {
                       rethrowRuntimeError(context, error);
                       if ((error as { code?: string }).code !== "ENOENT") throw error;
-                      if (globPaths || literalPlane) throw error;
+                      if (globPaths || literalImage) throw error;
                       if (frames.length === 0 && idx - startNumber < startNumberRange - 1) continue;
                       break;
+                    }
+                    if (timestampScale !== undefined) {
+                      const { mtimeMs } = await context.fs.stat(resolved, { signal: context.signal });
+                      const timestamp = input?.tsFromFile === 1 ? Math.floor(mtimeMs / 1000) * 1000 : mtimeMs;
+                      firstTimestamp ??= timestamp;
+                      // Subtract in milliseconds before converting to seconds, avoiding epoch-sized nanosecond rounding.
+                      ptsSeconds = (timestamp - (copyTimestamps && !startAtZero ? 0 : firstTimestamp)) / 1000;
                     }
                     if (planeInput) {
                       if (!["yuv420p", "yuv422p", "yuv444p"].includes(planePixelFormat)) {
@@ -12387,17 +12409,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       width: decoded.width,
                       height: decoded.height,
                       data: decoded.data,
-                      ptsSeconds: frames.length / fps,
-                      durationSeconds: 1 / fps,
+                      ptsSeconds,
+                      durationSeconds: timestampScale === undefined ? 1 / fps : 1 / timestampScale,
                       keyframe: true
                     });
                   }
-                  if (literalPlane && !globPaths) break;
+                  if (literalImage && !globPaths) break;
                 }
                 if (frames.length === 0) {
                   throw new Error(`${filePath}: No matching image sequence files found`);
                 }
                 const first = frames[0]!;
+                const durationSeconds = frames.at(-1)!.ptsSeconds - first.ptsSeconds + frames.at(-1)!.durationSeconds;
                 const synthBytes = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), createSyntheticMp4({
                   width: 16,
                   height: 16,
@@ -12410,18 +12433,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 return {
                   ...base,
                   containerFormat: "image2",
-                  duration: Math.round(frames.length / fps * base.timescale),
-                  durationSeconds: frames.length / fps,
+                  duration: Math.round(durationSeconds * base.timescale),
+                  durationSeconds,
                   tracks: base.tracks.map((t) =>
                     t.type === "video" ? {
                       ...t, width: first.width, height: first.height,
-                      duration: Math.round(frames.length / fps * t.timescale),
+                      timescale: timestampScale ?? t.timescale,
+                      duration: Math.round(durationSeconds * (timestampScale ?? t.timescale)),
                       codecDescriptions: [{ codecName, formatFourCC: codecName.padEnd(4, " ").slice(0, 4), width: first.width, height: first.height, pixFmt: pixelFormat, sarWidth, sarHeight, ...(colorMetadata ? { colorMetadata } : {}) }],
                       samples: packets.map((packet, index) => ({
                         ...packet, size: packet.data.byteLength,
-                        dts: Math.round(index / fps * t.timescale),
-                        pts: Math.round(index / fps * t.timescale), cts: 0,
-                        duration: Math.round((index + 1) / fps * t.timescale) - Math.round(index / fps * t.timescale),
+                        dts: Math.round(frames[index]!.ptsSeconds * (timestampScale ?? t.timescale)),
+                        pts: Math.round(frames[index]!.ptsSeconds * (timestampScale ?? t.timescale)), cts: 0,
+                        duration: timestampScale === undefined
+                          ? Math.round((index + 1) / fps * t.timescale) - Math.round(index / fps * t.timescale) : 1,
                         isKeyframe: true, sampleDescriptionIndex: 1
                       })),
                       decodedVideoFrames: frames

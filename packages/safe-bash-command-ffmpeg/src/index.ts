@@ -1,3 +1,4 @@
+import { encodeBmp } from "./bmp.js";
 import { deflate } from "./deflate.js";
 import { decodeFfmpegImage } from "./decode-image.js";
 import { dilation } from "./dilation.js";
@@ -9862,7 +9863,7 @@ export function evalSyncFfmpeg(
       for (let idx = 0; idx < limit; idx++) {
         const f = frames[idx]!;
         const fileName = formatImageSequence(outputTarget, idx + (outputStartNumber ?? 1)) ?? outputTarget;
-        const encoded = imgFmt === "tga" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
+        const encoded = imgFmt === "bmp" ? encodeBmp(f, vTrack?.codecDescriptions[0]?.pixFmt, budget) : imgFmt === "tga" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
                     ...(imgFmt === "qoi" ? {
                       hasAlpha: !["rgb24", "bgr24", "gbrp", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "rgba"),
                       magickColorspace: vTrack?.codecDescriptions[0]?.colorMetadata?.transfer === 8 ? "RGB" : "sRGB"
@@ -14151,6 +14152,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               rawPixelFormat = format === "gray16be" || format === "gray16le" ? "gray16be" : "gray";
             }
             if (videoCodec !== "copy" && (rawPixelFormat === "gray" || rawPixelFormat === "gray8" || rawPixelFormat === "ya8" ||
+                ((imageOutput || numberedImageOutput) && rawPixelFormat === "monob" &&
+                  imageOutputFormat(videoCodec, outputTarget.split(".").pop()?.toLowerCase() ?? "") === "bmp") ||
                 ((imageOutput || numberedImageOutput) && imageOutputFormat(videoCodec, outputTarget.split(".").pop()?.toLowerCase() ?? "") === "png" &&
                   ["rgb24", "rgba", "pal8", "monob"].includes(rawPixelFormat ?? "")) ||
                 ((imageOutput || numberedImageOutput) && imageOutputFormat(videoCodec, outputTarget.split(".").pop()?.toLowerCase() ?? "") === "qoi" &&
@@ -21567,7 +21570,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       data16[pixel * 4 + 3] = 65535;
                     }
                   }
-                  const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), imgFmt === "tga" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
+                  const encoded = (await yieldTurn(context.signal), context.signal?.throwIfAborted(), imgFmt === "bmp" ? encodeBmp(f, rawPixelFormat ?? vTrack?.codecDescriptions[0]?.pixFmt, budget) : imgFmt === "tga" ? encodeTga(f, { rle, budget }) : encodeImage({ ...makeRgbaImg(f.width, f.height, f.data),
                     ...(imgFmt === "qoi" ? {
                       hasAlpha: !["rgb24", "bgr24", "gbrp", "rgb48be", "gray", "gray8", "gray16be", "monob"].includes(vTrack?.codecDescriptions[0]?.pixFmt ?? "rgba"),
                       magickColorspace: vTrack?.codecDescriptions[0]?.colorMetadata?.transfer === 8 ? "RGB" : "sRGB"

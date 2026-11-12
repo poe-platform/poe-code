@@ -773,6 +773,9 @@ function* lavfiSteps(
   const width = parseInt(wStr ?? "320", 10) || 320;
   const height = parseInt(hStr ?? "240", 10) || 240;
   const fps = parseFrameRate(kv.rate ?? kv.r ?? "25") ?? 25;
+  const sar = parseFilterExpression(kv.sar ?? "1", filterName, {});
+  if (!Number.isFinite(sar) || sar < 0) throw new Error(`${filterName}: invalid sample aspect ratio`);
+  const [sarWidth, sarHeight] = timingRatio(sar);
   const duration =
     durationOverride ?? (parseHlsDuration(kv.duration ?? kv.d ?? "1") || 1);
   const frameCount = Math.max(1, Math.ceil(duration * fps));
@@ -869,7 +872,8 @@ function* lavfiSteps(
     durationSeconds: frameCount / fps,
     tracks: parsed.tracks.map((t) =>
       t.type === "video"
-        ? { ...t, duration: Math.round(frameCount / fps * t.timescale), samples: [], decodedVideoFrames: frames }
+        ? { ...t, duration: Math.round(frameCount / fps * t.timescale), samples: [], decodedVideoFrames: frames,
+          codecDescriptions: t.codecDescriptions.map(codec => ({ ...codec, sarWidth, sarHeight })) }
         : t
     )
   };

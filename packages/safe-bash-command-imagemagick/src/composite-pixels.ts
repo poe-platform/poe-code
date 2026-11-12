@@ -105,6 +105,18 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                 out[dIdx + 3] = clampByteVal(alpha * 255);
                 continue;
             }
+            if (norm === "freeze") {
+                const alpha = sa + da - sa * da;
+                for (let c = 0; c < 3; c++) {
+                    const sc = src.data[sIdx + c]! / 255 * sa;
+                    const dc = dst.data[dIdx + c]! / 255 * da;
+                    const blend = dc === 0 ? 0 : Math.max(0, Math.min(1, 1 - (1 - sc) ** 2 / dc));
+                    out[dIdx + c] = alpha === 0 ? 0 : clampByteVal(255 * blend / alpha);
+                }
+                // Freeze applies its own blend to alpha, independently of RGB normalization.
+                out[dIdx + 3] = clampByteVal(255 * (1 - (1 - sa) ** 2 / Math.max(da, 1e-12)));
+                continue;
+            }
             if (norm === "threshold") {
                 for (let c = 0; c < 3; c++) {
                     const sc = sa > 0 ? src.data[sIdx + c]! / 255 : 0;

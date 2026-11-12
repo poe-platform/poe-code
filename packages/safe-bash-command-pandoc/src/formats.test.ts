@@ -20,7 +20,7 @@ describe("declarative format registry", () => {
     const registry = createFormatRegistry(coreFormats);
     expect(
       registry.parse("gfm+pipe_tables-pipe_tables-strikeout-strikeout", "read").extensions
-    ).toEqual({ autolink_bare_uris: true, pipe_tables: true, raw_html: true, strikeout: false, task_lists: true });
+    ).toEqual({ autolink_bare_uris: true, pipe_tables: true, raw_html: true, strikeout: false, task_lists: true, gfm_auto_identifiers: true });
     for (const name of ["gfm+", "gfm--strikeout", "gfm+unknown"])
       expect(() => registry.parse(name, "read")).toThrowError(
         expect.objectContaining({ code: "E_EXTENSION" })
@@ -49,7 +49,8 @@ describe("declarative format registry", () => {
       "+pipe_tables",
       "+raw_html",
       "+strikeout",
-      "+task_lists"
+      "+task_lists",
+      "+gfm_auto_identifiers"
     ]);
     expect(() => registry.parse("xlsx", "write")).toThrowError();
   });

@@ -551,7 +551,7 @@ export function encodeImage(
     case "fits": return encodeFitsImage(img);
     case "sixel": return { data: encodeSixelImage(img), format: "sixel", channels: 3 };
     case "psd":
-    case "psb": return { data: encodePsdImage(img, fmt), format: fmt, channels: psdChannels(img) };
+    case "psb": return { data: encodePsdImage(img, fmt, options.psdCompression), format: fmt, channels: psdChannels(img) };
     case "hdr": return { data: encodeHdrImage(img), format: "hdr", channels: 3 };
     case "exr": return { data: encodeExrImage(img), format: "exr", channels: img.hasAlpha ? 4 : 3 };
     case "qoi": return { data: encodeQoiImage(img), format: "qoi", channels: img.hasAlpha ? 4 : 3 };

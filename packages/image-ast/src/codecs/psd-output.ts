@@ -1,5 +1,6 @@
 import { defaultRuntime } from "@poe-code/compression";
-import type { RgbaImage } from "../ast.js";
+import { createTiffCompressor } from "./tiff-compression.js";
+import type { OutputEncodeOptions, RgbaImage } from "../ast.js";
 import type { ImageByteStorage, StoredRgbaImage } from "./png-storage.js";
 
 type PsdImage = Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "channels" | "density" | "resolution" | "virtualCanvas">;
@@ -9,15 +10,73 @@ export function psdChannels(image: Pick<RgbaImage, "hasAlpha" | "space" | "chann
     return gray ? image.hasAlpha ? 2 : 1 : image.hasAlpha ? 4 : 3;
 }
 
-/** PSD v1 / PSB v2: editable RGB or grayscale layers and their composite, with raw channel planes. */
-function* psdChunks(image: PsdImage, layers: readonly PsdImage[], depth: number, format: "psd" | "psb"): Generator<Uint8Array | { image: number; offset: number; length: number }, void, Uint8Array | Uint16Array> {
+type PsdCompression = NonNullable<OutputEncodeOptions["psdCompression"]>;
+type PsdStep = Uint8Array | { image: number; offset: number; length: number };
+type PsdSamples = Uint8Array | Uint16Array;
+
+function* psdPlane(frame: PsdImage, index: number, channel: number, baseChannels: number, depth: 8 | 16, compression: PsdCompression): Generator<PsdStep, { size: number; rows: number[] }, PsdSamples> {
+    const compressor = createTiffCompressor({ tiffCompression: compression === "rle" ? "packbits" : compression === "zip" ? "deflate" : "none", tiffPredictor: 1, tiffIntegerDepth: depth }, frame.width, 1);
+    const rowCount = compression === "rle" ? frame.height : 1, columns = compression === "rle" ? frame.width : frame.width * frame.height;
+    let size = 0;
+    const rows: number[] = [];
+    try {
+        for (let row = 0; row < rowCount; row++) {
+            const start = size;
+            for (let column = 0; column < columns; column += 1024) {
+                const samples = yield { image: index, offset: (row * columns + column) * 4, length: Math.min(1024, columns - column) * 4 };
+                const bytes = new Uint8Array(samples.length / 4 * depth / 8), view = new DataView(bytes.buffer);
+                for (let i = 0; i < samples.length / 4; i++) {
+                    const sample = samples[i * 4 + (channel === baseChannels ? 3 : channel)]!;
+                    if (depth === 16) view.setUint16(i * 2, samples instanceof Uint16Array ? sample : sample * 257);
+                    else bytes[i] = samples instanceof Uint16Array ? Math.round(sample / 257) : sample;
+                }
+                for (const chunk of compressor.push(bytes)) { size += chunk.length; yield chunk; }
+            }
+            if (compression === "rle") rows.push(size - start);
+        }
+        for (const chunk of compressor.push(new Uint8Array(), true)) { size += chunk.length; yield chunk; }
+        return { size, rows };
+    } finally { compressor.close(); }
+}
+
+/** PSD v1 / PSB v2: editable RGB or grayscale layers and their composite. */
+function* psdChunks(image: PsdImage, layers: readonly PsdImage[], depth: 8 | 16, format: "psd" | "psb", compression: PsdCompression): Generator<PsdStep, void, PsdSamples> {
     const { width, height, hasAlpha } = image, channels = psdChannels(image), baseChannels = channels <= 2 ? 1 : 3;
     const large = format === "psb", lengthBytes = large ? 8 : 4, maxDimension = large ? 300000 : 30000;
     if (layers.length > 32767) throw new Error("Too many Photoshop layers");
     for (const frame of [image, ...layers]) {
         if (!Number.isInteger(frame.width) || !Number.isInteger(frame.height) || frame.width < 1 || frame.height < 1 || frame.width > maxDimension || frame.height > maxDimension) throw new Error(`${format.toUpperCase()} dimensions must be between 1 and ${maxDimension}`);
     }
-    const layerSize = 2 + layers.reduce((size, layer) => size + 46 + (baseChannels + (layer.hasAlpha ? 1 : 0)) * (2 + lengthBytes + 2 + layer.width * layer.height * depth / 8), 0);
+    const rowLengthBytes = large ? 4 : 2, compressionId = compression === "rle" ? 1 : compression === "zip" ? 2 : 0;
+    const channelInfo: { size: number; rows: Uint8Array }[][] = [];
+    // Layer sizes and RLE row counts precede their payloads. Count compressed
+    // bytes first, then encode again without retaining whole compressed planes.
+    for (let index = 0; index <= layers.length; index++) {
+        const merged = index === layers.length, frame = merged ? image : layers[index]!;
+        const info: { size: number; rows: Uint8Array }[] = [];
+        for (let channel = 0; channel < baseChannels + (frame.hasAlpha ? 1 : 0); channel++) {
+            let size = frame.width * frame.height * depth / 8;
+            let rows = new Uint8Array();
+            if (compression === "rle" || (compression === "zip" && !merged)) {
+                const steps = psdPlane(frame, merged ? -1 : index, channel, baseChannels, depth, compression);
+                try {
+                    let step = steps.next();
+                    while (!step.done) step = step.value instanceof Uint8Array ? steps.next() : steps.next(yield step.value);
+                    size = step.value.size;
+                    rows = new Uint8Array(step.value.rows.length * rowLengthBytes);
+                    const view = new DataView(rows.buffer);
+                    for (const [row, length] of step.value.rows.entries()) {
+                        if (!large && length > 65535) throw new Error("PSD RLE row exceeds the format limit");
+                        if (large) view.setUint32(row * rowLengthBytes, length);
+                        else view.setUint16(row * rowLengthBytes, length);
+                    }
+                } finally { steps.return({ size: 0, rows: [] }); }
+            }
+            info.push({ size: size + 2 + rows.length, rows });
+        }
+        channelInfo.push(info);
+    }
+    const layerSize = 2 + layers.reduce((size, layer, index) => size + 46 + (baseChannels + (layer.hasAlpha ? 1 : 0)) * (2 + lengthBytes) + channelInfo[index]!.reduce((total, channel) => total + channel.size, 0), 0);
     const paddedLayerSize = layerSize + layerSize % 2;
     if (!Number.isSafeInteger(paddedLayerSize + lengthBytes + 4) || (!large && paddedLayerSize + 8 > 0xffffffff)) throw new Error("PSD layer data exceeds the format limit");
     const resolution = image.resolution;
@@ -47,8 +106,8 @@ function* psdChunks(image: PsdImage, layers: readonly PsdImage[], depth: number,
     }
     sectionView.setInt16(lengthBytes * 2, hasAlpha ? -layers.length : layers.length);
     yield section;
-    for (const frame of layers) {
-        const channels = baseChannels + (frame.hasAlpha ? 1 : 0), planeSize = frame.width * frame.height * depth / 8;
+    for (const [index, frame] of layers.entries()) {
+        const channels = baseChannels + (frame.hasAlpha ? 1 : 0);
         const layer = new Uint8Array(46 + channels * (2 + lengthBytes)), layerView = new DataView(layer.buffer);
         const x = frame.virtualCanvas?.x ?? 0, y = frame.virtualCanvas?.y ?? 0;
         layerView.setInt32(0, y); layerView.setInt32(4, x);
@@ -56,8 +115,8 @@ function* psdChunks(image: PsdImage, layers: readonly PsdImage[], depth: number,
         let offset = 18;
         for (let channel = 0; channel < channels; channel++, offset += 2 + lengthBytes) {
             layerView.setInt16(offset, channel === baseChannels ? -1 : channel);
-            if (large) layerView.setBigUint64(offset + 2, BigInt(planeSize + 2));
-            else layerView.setUint32(offset + 2, planeSize + 2);
+            if (large) layerView.setBigUint64(offset + 2, BigInt(channelInfo[index]![channel]!.size));
+            else layerView.setUint32(offset + 2, channelInfo[index]![channel]!.size);
         }
         layer.set([56, 66, 73, 77, 110, 111, 114, 109, 255, 0, 0, 0], offset);
         layer.set([1, 76, 0, 0], offset + 24);
@@ -70,42 +129,42 @@ function* psdChunks(image: PsdImage, layers: readonly PsdImage[], depth: number,
         const merged = index === layers.length, frame = merged ? image : layers[index]!;
         if (merged) {
             yield new Uint8Array(layerSize % 2 + 4); // Even padding and empty global mask.
-            yield new Uint8Array(2); // Composite compression.
+            yield Uint8Array.of(0, compressionId);
+            for (const info of channelInfo[index]!) if (info.rows.length) yield info.rows;
         }
-        for (let channel = 0; channel < baseChannels + (frame.hasAlpha ? 1 : 0); channel++) {
-            if (!merged) yield new Uint8Array(2); // Layer channel compression.
-            for (let pixel = 0; pixel < frame.width * frame.height; pixel += 1024) {
-                const samples = yield { image: merged ? -1 : index, offset: pixel * 4, length: Math.min(1024, frame.width * frame.height - pixel) * 4 };
-                const bytes = new Uint8Array(samples.length / 4 * depth / 8), samplesView = new DataView(bytes.buffer);
-                for (let i = 0; i < samples.length / 4; i++) {
-                    const sample = samples[i * 4 + (channel === baseChannels ? 3 : channel)]!;
-                    if (depth === 16) samplesView.setUint16(i * 2, samples instanceof Uint16Array ? sample : sample * 257);
-                    else bytes[i] = samples instanceof Uint16Array ? Math.round(sample / 257) : sample;
-                }
-                yield bytes;
+        for (let channel = 0; channel < (baseChannels + (frame.hasAlpha ? 1 : 0)); channel++) {
+            if (!merged) {
+                yield Uint8Array.of(0, compressionId);
+                const rows = channelInfo[index]![channel]!.rows;
+                if (rows.length) yield rows;
             }
+            yield* psdPlane(frame, merged ? -1 : index, channel, baseChannels, depth, compression);
         }
     }
 }
 
-export function encodePsdImage(image: RgbaImage, format: "psd" | "psb" = "psd"): Uint8Array {
-    const layers = image.psdLayers ?? [image], steps = psdChunks(image, layers, (image.bitsPerSample ?? (image.data16 ? 16 : 8)) <= 8 ? 8 : 16, format);
+export function encodePsdImage(image: RgbaImage, format: "psd" | "psb" = "psd", compression: PsdCompression = "none"): Uint8Array {
+    const layers = image.psdLayers ?? [image], steps = psdChunks(image, layers, (image.bitsPerSample ?? (image.data16 ? 16 : 8)) <= 8 ? 8 : 16, format, compression);
     const chunks: Uint8Array[] = [];
     let step = steps.next(), size = 0;
-    while (!step.done) {
-        if (!(step.value instanceof Uint8Array)) {
-            const request = step.value, frame = request.image < 0 ? image : layers[request.image]!;
-            step = steps.next((frame.data16 ?? frame.data).subarray(request.offset, request.offset + request.length));
+    try {
+        while (!step.done) {
+            if (!(step.value instanceof Uint8Array)) {
+                const request = step.value, frame = request.image < 0 ? image : layers[request.image]!;
+                const samples = frame.data16 ?? frame.data;
+                if (!samples || samples.length < request.offset + request.length) throw new Error("Truncated PSD pixel samples");
+                step = steps.next(samples.subarray(request.offset, request.offset + request.length));
+            }
+            else { chunks.push(step.value); size += step.value.length; step = steps.next(); }
         }
-        else { chunks.push(step.value); size += step.value.length; step = steps.next(); }
-    }
+    } finally { steps.return(); }
     const bytes = new Uint8Array(size);
     let offset = 0;
     for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.length; }
     return bytes;
 }
 
-export async function* encodePsdFromStorage(image: StoredRgbaImage, storage: ImageByteStorage, signal: AbortSignal, format: "psd" | "psb" = "psd"): AsyncGenerator<Uint8Array> {
+export async function* encodePsdFromStorage(image: StoredRgbaImage, storage: ImageByteStorage, signal: AbortSignal, format: "psd" | "psb" = "psd", compression: PsdCompression = "none"): AsyncGenerator<Uint8Array> {
     const layers: StoredRgbaImage[] = [];
     if (image.storedPsdLayers) {
         if (image.storedPsdLayers.length > 32767) throw new Error("Too many Photoshop layers");
@@ -114,18 +173,20 @@ export async function* encodePsdFromStorage(image: StoredRgbaImage, storage: Ima
             layers.push(await image.storedPsdLayers.at(index));
         }
     } else layers.push(image);
-    const steps = psdChunks(image, layers, (image.bitsPerSample ?? (image.storedData16 ? 16 : 8)) <= 8 ? 8 : 16, format);
+    const steps = psdChunks(image, layers, (image.bitsPerSample ?? (image.storedData16 ? 16 : 8)) <= 8 ? 8 : 16, format, compression);
     let step = steps.next();
-    while (!step.done) {
-        await defaultRuntime.yieldTurn(signal);
-        signal.throwIfAborted();
-        if (!(step.value instanceof Uint8Array)) {
-            const request = step.value, frame = request.image < 0 ? image : layers[request.image]!;
-            const sampleBytes = frame.storedData16 ? 2 : 1, position = frame.storedData16?.position ?? frame.position;
-            const length = request.length * sampleBytes;
-            const bytes = await storage.read(position + request.offset * sampleBytes, length, { signal });
-            if (bytes.length !== length) throw new Error("Truncated PSD pixel storage");
-            step = steps.next(sampleBytes === 2 ? new Uint16Array(new Uint8Array(bytes).buffer) : bytes);
-        } else { yield step.value; step = steps.next(); }
-    }
+    try {
+        while (!step.done) {
+            await defaultRuntime.yieldTurn(signal);
+            signal.throwIfAborted();
+            if (!(step.value instanceof Uint8Array)) {
+                const request = step.value, frame = request.image < 0 ? image : layers[request.image]!;
+                const sampleBytes = frame.storedData16 ? 2 : 1, position = frame.storedData16?.position ?? frame.position;
+                const length = request.length * sampleBytes;
+                const bytes = await storage.read(position + request.offset * sampleBytes, length, { signal });
+                if (bytes.length !== length) throw new Error("Truncated PSD pixel storage");
+                step = steps.next(sampleBytes === 2 ? new Uint16Array(new Uint8Array(bytes).buffer) : bytes);
+            } else { yield step.value; step = steps.next(); }
+        }
+    } finally { steps.return(); }
 }

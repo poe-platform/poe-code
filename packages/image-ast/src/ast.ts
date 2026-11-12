@@ -555,6 +555,7 @@ export interface OutputEncodeOptions {
   readonly consumeInput?: boolean;
   readonly format?: ImageFormat;
   readonly rawDepth?: string;
+  readonly psdCompression?: "none" | "rle" | "zip";
   readonly miffDepth?: 8 | 16;
   readonly miffCompression?: "none" | "rle" | "bzip" | "zip";
   readonly netpbmDepth?: number;

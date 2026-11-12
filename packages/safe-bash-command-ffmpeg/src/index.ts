@@ -9834,7 +9834,8 @@ export function evalSyncFfmpeg(
     if (outPlugin?.id === "flac") {
       metaTags = { ...metaTags, custom: {
         ...Object.fromEntries(Object.entries(sourceMetadata.custom ?? {})
-          .filter(([key]) => !Object.hasOwn(metadata, key.toLowerCase()))),
+          .filter(([key]) => !Object.hasOwn(metadata, key.toLowerCase()) &&
+            !(key === "album_artist" && metadata.albumartist))),
         ...Object.fromEntries(Object.entries(metadata)
           .filter(([key]) => key !== "tracknumber" && key !== "discnumber"))
       } };
@@ -20752,7 +20753,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (outPlugin?.id === "flac") {
               metaTags = { ...metaTags, custom: {
                 ...Object.fromEntries(Object.entries(sourceMetadata.custom ?? {})
-                  .filter(([key]) => !Object.hasOwn(metadata, key.toLowerCase()))),
+                  .filter(([key]) => !Object.hasOwn(metadata, key.toLowerCase()) &&
+                    !(key === "album_artist" && metadata.albumartist))),
                 ...Object.fromEntries(Object.entries(metadata)
                   .filter(([key]) => key !== "tracknumber" && key !== "discnumber"))
               } };

@@ -84,7 +84,7 @@ it("keeps channel histories separate", async () => {
 for (const options of ["f=NaN", "f=-1", "f=1000000", "f=", "p=0", "p=3", "p=2.1", "m=-1", "m=1.1", "unknown=1"]) {
   it(`rejects invalid highpass ${options} without overwriting`, async () => {
     const { fs, result, stderr } = await run(`highpass=${options}`);
-    assert.equal(result.exitCode, 1);
+    assert.notEqual(result.exitCode, 0);
     assert.match(stderr, /highpass/);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "KEEP");
   });

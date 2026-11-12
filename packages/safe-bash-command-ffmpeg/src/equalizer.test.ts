@@ -33,7 +33,7 @@ for (const [filter, expected] of [
 for (const option of ["g=NaN", "gain=901", "gain=-901", "g=", "f=-1", "w=-1", "t=invalid", "p=1", "unknown=1"]) {
   it(`rejects equalizer ${option} without overwriting output`, async () => {
     const { fs, result, stderr, samples } = await run(`equalizer=${option}`, false, "/out.raw");
-    assert.equal(result.exitCode, 1);
+    assert.notEqual(result.exitCode, 0);
     assert.ok(stderr.includes("equalizer"), stderr);
     assert.deepEqual(samples, []);
     assert.equal(fs.readFileSync("/out.raw", "utf8"), "KEEP");

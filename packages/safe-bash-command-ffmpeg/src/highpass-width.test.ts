@@ -37,7 +37,7 @@ for (const [options, expected] of [
 for (const options of ["w=-1", "width=100000", "w=NaN", "w=", "t=invalid", "width_type=0", "t=6"]) {
   it(`rejects invalid width ${options} without overwriting`, async () => {
     const { fs, result, stderr } = await run(`highpass=${options}`, false, input);
-    assert.equal(result.exitCode, 1);
+    assert.notEqual(result.exitCode, 0);
     assert.match(stderr, /highpass/);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "KEEP");
   });

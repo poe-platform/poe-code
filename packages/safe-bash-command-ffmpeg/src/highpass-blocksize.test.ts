@@ -67,7 +67,7 @@ it("accounts for reverse-filter scratch memory and cancellation", async () => {
 for (const value of ["-1", "32769", "NaN", ""]) it(`rejects invalid blocksize ${value}`, async () => {
   const { fs, result, stderr } = await run(`highpass=b=${value}`, false,
     encodeWav({ sampleRate: 8000, channels: [new Float64Array(8)] }));
-  assert.equal(result.exitCode, 1);
+  assert.notEqual(result.exitCode, 0);
   assert.match(stderr, /highpass/);
   assert.equal(fs.readFileSync("/out.wav", "utf8"), "KEEP");
 });

@@ -21250,6 +21250,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               return { exitCode: msg === "separatefields: height must be even" ? 183
                 : msg === "surround: unsupported transform size" ? 218 : 234 };
             }
+            for (const filter of ["lowpass", "highpass", "bandpass", "bandreject", "equalizer", "bass", "lowshelf", "treble", "highshelf"]) {
+              if (msg.startsWith(`${filter}: unsupported option `)) return { exitCode: 8 };
+              if (msg.startsWith(`${filter}:`) || msg.startsWith(`${filter} enable:`)) {
+                return { exitCode: err instanceof RangeError ? 222 : 234 };
+              }
+            }
             if (msg === "amultiply: timeline is unsupported") return { exitCode: 176 };
             if (msg.startsWith("amultiply: unsupported option")) return { exitCode: 8 };
             if (msg === "amerge: timeline is unsupported") return { exitCode: 176 };

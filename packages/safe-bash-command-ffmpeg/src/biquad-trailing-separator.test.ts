@@ -37,7 +37,7 @@ for (const name of ["lowpass", "highpass", "bandpass", "bass", "lowshelf", "treb
   for (const options of ["f=400::", "f=400::c=FL", "f=:", "unknown=400:"]) {
     it(`rejects ${name}=${options} without overwriting output`, async () => {
       const { fs, result, stderr, samples } = await run(`${name}=${options}`, false, "/out.wav");
-      assert.equal(result.exitCode, 1);
+      assert.notEqual(result.exitCode, 0);
       assert.ok(stderr.includes(`${name}:`), stderr);
       assert.deepEqual(samples, []);
       assert.equal(fs.readFileSync("/out.wav", "utf8"), "KEEP");

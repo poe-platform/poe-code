@@ -38,7 +38,7 @@ for (const [filter, expected] of [
 for (const name of ["bass", "lowshelf", "treble", "highshelf", "lowpass", "highpass", "bandpass"]) {
   for (const option of ["n=2", "normalize=maybe"]) it(`rejects ${name}=${option} without overwriting output`, async () => {
     const { fs, result, stderr, samples } = await run(`${name}=${option}`, false, "/out.wav");
-    assert.equal(result.exitCode, 1);
+    assert.notEqual(result.exitCode, 0);
     assert.ok(stderr.includes(`${name}: invalid normalize`), stderr);
     assert.deepEqual(samples, []);
     assert.equal(fs.readFileSync("/out.wav", "utf8"), "KEEP");

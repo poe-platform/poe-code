@@ -74,13 +74,15 @@ export function parsePassOptions(filter: string) {
       const number = parseFilterExpression(value, name, {
         di: 0, dii: 1, tdi: 2, tdii: 3, latt: 4, svf: 5, zdf: 6, min: 0, max: 6, default: 0
       });
-      if (!value || !Number.isFinite(number) || number < 0 || number > 6) throw new Error(`${name}: invalid transform`);
+      if (!value || !Number.isFinite(number)) throw new Error(`${name}: invalid transform`);
+      if (number < 0 || number > 6) throw new RangeError(`${name}: invalid transform`);
       transform = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
       continue;
     }
     if (optionName === "precision" || optionName === "r") {
       const number = parseFilterExpression(value, name, { auto: -1, s16: 0, s32: 1, f32: 2, f64: 3 });
-      if (!value || !Number.isFinite(number) || number < -1 || number > 3) throw new Error(`${name}: invalid precision`);
+      if (!value || !Number.isFinite(number)) throw new Error(`${name}: invalid precision`);
+      if (number < -1 || number > 3) throw new RangeError(`${name}: invalid precision`);
       precision = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
       continue;
     }
@@ -98,14 +100,14 @@ export function parsePassOptions(filter: string) {
     const number = key === "frequency" || key === "width" || key === "gain"
       ? parseFilterExpression(value, name, { PI: Math.PI, E: Math.E, PHI: (1 + Math.sqrt(5)) / 2 })
       : key === "width_type" && Object.hasOwn(widthTypes, value) ? widthTypes[value]! : Number(value);
-    if (!value || !Number.isFinite(number)
-      || key === "frequency" && (number < 0 || number > 999999)
+    if (!value || !Number.isFinite(number)) throw new Error(`${name}: invalid ${key}`);
+    if (key === "frequency" && (number < 0 || number > 999999)
       || key === "gain" && (number < -900 || number > 900)
       || key === "poles" && (number < 1 || number > 2)
       || key === "width" && (number < 0 || number > 99999)
       || key === "blocksize" && (number < 0 || number > 32768)
       || key === "width_type" && (number < 1 || number > 5)
-      || key === "mix" && (number < 0 || number > 1)) throw new Error(`${name}: invalid ${key}`);
+      || key === "mix" && (number < 0 || number > 1)) throw new RangeError(`${name}: invalid ${key}`);
     options[key] = key === "blocksize" || key === "poles" || key === "width_type"
       ? (number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number)) : number;
   }

@@ -37,7 +37,7 @@ for (const graph of [false, true]) {
   });
   for (const precision of ["", "bogus", "-2", "4", "NaN"]) it(`rejects precision=${precision} without overwriting (graph=${graph})`, async () => {
     const { fs, result } = await run(`highpass=f=400:precision=${precision}`, graph);
-    assert.equal(result.exitCode, 1);
+    assert.notEqual(result.exitCode, 0);
     assert.equal(fs.readFileSync("/out.raw", "utf8"), "KEEP");
   });
   for (const [filter, expected] of [

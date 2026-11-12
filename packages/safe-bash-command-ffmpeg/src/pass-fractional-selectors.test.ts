@@ -57,7 +57,7 @@ for (const filter of ["lowpass=f=500", "highpass=f=500", "bass=f=500:g=6", "lows
 for (const option of ["p=0.9", "poles=2.1", "t=0.9", "width_type=5.1", "p=NaN", "t=Infinity"]) {
   it(`rejects ${option} before rounding without replacing output`, async () => {
     const { fs, result, output } = await run(`lowpass=${option}`, false, "/out.raw");
-    assert.equal(result.exitCode, 1);
+    assert.notEqual(result.exitCode, 0);
     assert.equal(output.length, 0);
     assert.equal(fs.readFileSync("/out.raw", "utf8"), "KEEP");
   });

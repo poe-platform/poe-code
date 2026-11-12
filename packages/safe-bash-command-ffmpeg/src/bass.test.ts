@@ -61,7 +61,7 @@ for (const name of ["bass", "lowshelf"]) {
   for (const option of ["g=NaN", "gain=901", "gain=-901", "g=", "f=-1", "w=-1", "p=3", "m=2", "unknown=1"]) {
     it(`rejects ${name}=${option} without overwriting output`, async () => {
       const { fs, result, stderr, samples } = await run(`${name}=${option}`, false, "/out.wav");
-      assert.equal(result.exitCode, 1);
+      assert.notEqual(result.exitCode, 0);
       assert.ok(stderr.includes(name), stderr);
       assert.deepEqual(samples, []);
       assert.equal(fs.readFileSync("/out.wav", "utf8"), "KEEP");

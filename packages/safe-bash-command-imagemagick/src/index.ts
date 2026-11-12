@@ -11320,11 +11320,10 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         evaluate = true;
         const raw = [...(tokens[++i] ?? "")].filter(c => c.trim() !== "").join("").replaceAll("X", "x");
         validateMagickTransformGeometry(raw.replaceAll(",", "x").replaceAll("/", "x"), token);
-        const geometry = [...raw].filter(c => !"()#".includes(c)).join("").replaceAll(",", "x").replaceAll("/", "x").replaceAll(":", "x");
+        const geometry = [...raw].filter(c => !"!#%()<>@\\^".includes(c)).join("").replaceAll(",", "x").replaceAll("/", "x").replaceAll(":", "x");
         const separator = geometry.indexOf("x");
         const denominator = separator < 0 ? "" : geometry.slice(separator + 1);
-        for (const [index, part] of (separator < 0 ? [geometry] : [geometry.slice(0, separator), denominator]).entries()) {
-            const field = [...part].filter(c => !"!#%()<>@\\^".includes(c)).join("");
+        for (const [index, field] of (separator < 0 ? [geometry] : [geometry.slice(0, separator), denominator]).entries()) {
             // Only a complete brightness/contrast pair may have trailing offsets.
             const offset = index === 0 ? -1 : [...field].findIndex((c, position) =>
                 position > 0 && "+-".includes(c) && !"eE".includes(field[position - 1]!));

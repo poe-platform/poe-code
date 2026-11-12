@@ -23,13 +23,13 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
     ] as const)(`matches native brightness-contrast for %s %s %j via ${mode}`, async (color, geometry, channel, expected) => {
         const files = new Map<string, Uint8Array>();
         const filesystem = new MemoryFileSystem();
-        const args = ["-size", "1x1", `xc:${color}`, ...channel, "-brightness-contrast", geometry, "out.png"];
+        const args = ["-size", "1x1", `xc:${color}`, ...channel, "-brightness-contrast", geometry, "-depth", "8", "rgba:out"];
         const result = mode === "sync"
             ? runConvertCliSync(args, files)
             : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
         expect(result).toMatchObject({ exitCode: 0 });
-        const output = mode === "retained" ? await filesystem.readFile("/out.png") : files.get("out.png")!;
-        expect([...decodeImage(output).data]).toEqual(expected);
+        const output = mode === "retained" ? await filesystem.readFile("/out") : files.get("out")!;
+        expect([...output]).toEqual(expected);
     });
 }
 

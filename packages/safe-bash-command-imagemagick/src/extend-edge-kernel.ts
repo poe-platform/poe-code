@@ -9,8 +9,10 @@ export function* extendEdgePixelSteps(source: { width: number; height: number; s
     // Preserve fractional virtual colors until sequence arithmetic finishes, even for 8-bit inputs.
     const fractionalBackground = (method === "background" || method.endsWith("-tile")) && background &&
         [background.r, background.g, background.b, background.a].some(value => !Number.isInteger(value));
+    // Preserve arithmetic samples, including values outside the integer pixel range.
+    const working = yield { kind: "read", evaluate: true, position: 0, length: 4 };
     // Extend converted color samples alongside the integer pixel grid.
-    for (const plane of ["rgba", ...(method === "gray" || fractionalBackground ? ["evaluate"] : []), ...(source.space === "cmyk" || source.magickColorspace && !["RGB", "scRGB", "Gray"].includes(source.magickColorspace) ? ["hue"] : [])]) {
+    for (const plane of ["rgba", ...(working?.length || method === "gray" || fractionalBackground ? ["evaluate"] : []), ...(source.space === "cmyk" || source.magickColorspace && !["RGB", "scRGB", "Gray"].includes(source.magickColorspace) ? ["hue"] : [])]) {
         const hue = plane === "hue", evaluate = plane === "evaluate";
         const stride = hue || evaluate ? 32 : highDepth ? 8 : 4;
         const gray = method === "white" ? 255 : method === "gray" ? 127.5 : 0;
@@ -26,7 +28,7 @@ export function* extendEdgePixelSteps(source: { width: number; height: number; s
         for (let y = 0; y < height; y++) {
             for (let x = 0; x < width;) {
                 yield;
-                let count = Math.min(4096, width - x);
+                let count = Math.min(16384 / stride, width - x);
                 const index = virtualPixelIndex(x, y, source.width, source.height, method);
                 const constant = index < 0;
                 let left = constant ? 0 : index % source.width;

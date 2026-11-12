@@ -1769,7 +1769,8 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
     if (uniqueColors) {
       // Conversion and arithmetic retain fractional samples separately from output pixels.
       const working = chunk.hueSamples ?? chunk.evaluateSamples ?? samples;
-      const hasAlpha = img.hasAlpha || img.inactiveAlpha === true;
+      // Disassociate disables the alpha trait, unlike Deactivate and Discrete.
+      const hasAlpha = img.hasAlpha || img.inactiveAlpha === true && img.alphaBlend !== false;
       const alpha = hasAlpha ? working[i + 3]! : chunk.hueSamples ? 1 : chunk.evaluateSamples ? 255 : range;
       const color = inks ?? working.slice(i, i + 4);
       if (!inks) color[3] = alpha;

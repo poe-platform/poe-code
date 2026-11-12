@@ -15,9 +15,13 @@ export async function decorrelateAudio(
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const entries = argument ? argument.split(":") : [];
   if (argument.endsWith(":")) entries.pop();
-  for (const [index, option] of entries.entries()) {
+  let optionPosition = 0;
+  for (const option of entries) {
     const separator = option.indexOf("=");
-    const key = separator < 0 ? ["stages", "seed"][index] : option.slice(0, separator).trim();
+    const key = separator < 0 ? ["stages", "seed"][optionPosition] : option.slice(0, separator).trim();
+    // FFmpeg restarts shorthand after named options, skipping the first slot
+    // when it was just visited. The named key does not select the next slot.
+    optionPosition = separator < 0 ? optionPosition + 1 : optionPosition === 0 ? 1 : 0;
     if (key === "threads") {
       validateWeaveGenericOption(key, option.slice(separator + 1).trim(), "adecorrelate");
       continue;

@@ -687,6 +687,9 @@ with status 222, invalid expressions with 234, unsupported transform sizes with
 218, and unknown options with 8.
 Use `surround=chl_out=stereo` to retain two output channels with the same
 frequency-domain processing of the front speakers.
+`smooth=0.5` blends each speaker's frequency-bin factors across windows, including
+LFE. Values from 0 to 1 accept expressions and `min`, `max`, and `default`;
+both 0 (the default) and 1 retain unsmoothed output.
 Set `lfe_low` (0–256 Hz, default 128) and `lfe_high` (0–512 Hz, default 256)
 to tune the LFE transition band without changing the other speakers. Both accept
 expressions and round to integer Hz with ties to even. The low cutoff must be

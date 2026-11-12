@@ -11,6 +11,7 @@ export async function surroundAudio(
   filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<{ channels: Float32Array[]; frameSize: number }> {
   let size = 4096, lfe = true;
+  let smooth = 0;
   let lfeMode = 0;
   let windowOverlap = 0.5;
   let lfeLow = 128, lfeHigh = 256;
@@ -72,6 +73,12 @@ export async function surroundAudio(
         throw new RangeError("surround: lfe_mode must be between 0 and 1");
       }
       lfeMode = number === 0.5 ? 0 : Math.round(number);
+    } else if (key === "smooth") {
+      const number = parseFilterExpression(value, "surround", { min: 0, max: 1, default: 0 });
+      if (!Number.isFinite(number) || number < 0 || number > 1) {
+        throw new RangeError("surround: smooth must be between 0 and 1");
+      }
+      smooth = Math.fround(number);
     } else if (key === "lfe") {
       const boolean = value.toLowerCase();
       if (["1", "true", "yes", "on", "y", "enabled"].includes(boolean)) lfe = true;
@@ -97,6 +104,10 @@ export async function surroundAudio(
   // one complex inverse workspace, the window, and float FFT cosine tables.
   const cosineLength = scratchLength ? 0 : size / 4 + 1;
   budget.allocateMemory(length * outputChannels * 4 + size * (outputChannels * 4 + 6 * 8 + 4) + scratchLength * 8 + cosineLength * 4);
+  // Only intermediate strengths need history; both endpoints use current factors.
+  const smoothingLength = smooth > 0 && smooth < 1 ? size / 2 + 1 : 0;
+  budget.allocateMemory(outputChannels * smoothingLength * 4);
+  const smoothedFactors = Array.from({ length: outputChannels }, () => new Float32Array(smoothingLength));
   const cosine = Float32Array.from({ length: cosineLength }, (_, i) => i === size / 4 ? 0 : Math.cos(2 * Math.PI * i / size));
   const scratch = scratchLength ? new Float64Array(scratchLength) : undefined;
   const output = Array.from({ length: outputChannels }, () => new Float32Array(length));
@@ -147,7 +158,12 @@ export async function surroundAudio(
         const front = f(f(y + 1) * 0.5);
         const horizontal = c === 2 || c === 3 ? f(1 - Math.abs(x)) : f(0.5 * f((c === 0 || c === 4 ? x : -x) + 1));
         const vertical = c === 3 ? f(1 - Math.abs(y)) : c < 3 ? front : f(1 - front);
-        const factor = f(f(Math.pow(horizontal, spreadX[c]!)) * f(Math.pow(vertical, spreadY[c]!)));
+        let factor = f(f(Math.pow(horizontal, spreadX[c]!)) * f(Math.pow(vertical, spreadY[c]!)));
+        if (smoothingLength) {
+          const history = smoothedFactors[c]!;
+          factor = f(f(smooth * factor) + f(f(1 - smooth) * history[n]!));
+          history[n] = factor;
+        }
         const lowpass = !lfe || outputChannels !== 6 || n >= high ? 0 : n < low ? 1
           : f(0.5 * f(1 + f(Math.cos(f(f(pi * f(low - n)) / f(low - high))))));
         const bass = f(lowpass * center);

@@ -22115,6 +22115,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "asegment: invalid split point") return { exitCode: 234 };
             if (msg.startsWith("More input link labels specified for filter ")) return { exitCode: 234 };
             if (msg.startsWith("Unsupported audio filter:")) return { exitCode: 8 };
+            if (msg.startsWith("showwavespic: unsupported option ")) return { exitCode: 8 };
+            if (msg === "showwavespic: invalid split_channels" || msg === "showwavespic: invalid scale") return { exitCode: 234 };
             if (msg.startsWith("Simple filtergraph '")) return { exitCode: 234 };
             if (msg.startsWith("volume: unsupported option ")) return { exitCode: 8 };
             if (msg === "volume: invalid expression" || msg === "volume: invalid or unsupported expression" ||

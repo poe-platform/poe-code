@@ -5,6 +5,21 @@ import { encodeWav } from "@poe-code/audio-ast";
 import { createFfmpegCommand } from "./index.js";
 
 for (const mode of ["simple", "graph", "sidechain"] as const) {
+  it(`${mode} compressor restarts shorthand after named options`, async () => {
+    for (const [mixed, named] of [
+      ["threshold=0.25:attack=5:0.5", "threshold=0.25:attack=5:level_in=0.5"],
+      ["threshold=0.25:attack=5:0.5:upward", "threshold=0.25:attack=5:level_in=0.5:mode=upward"],
+      ["threads=1:attack=5:0.5:upward", "attack=5:level_in=0.5:mode=upward"],
+      ["0.5:upward:attack=5:0.75", "level_in=0.75:mode=upward:attack=5"]
+    ]) {
+      const expected = await run(named!, mode);
+      const actual = await run(mixed!, mode);
+      assert.equal(expected.result.exitCode, 0, expected.stderr);
+      assert.equal(actual.result.exitCode, 0, actual.stderr);
+      assert.deepEqual(actual.output, expected.output, mixed);
+    }
+  });
+
   it(`${mode} compressor accepts generic options without changing PCM`, async () => {
     // Native FFmpeg reference: eight mono PCM16 samples of 8000 at 8000 Hz.
     const expected = [8000, 8000, 8000, 7999, 7970, 7916, 7850, 7779];

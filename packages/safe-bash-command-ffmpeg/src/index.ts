@@ -21135,12 +21135,18 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             }
 
             const imageTimeZone = strftime && !updateImage ? new TimeZone(context.env.TZ ?? "UTC") : undefined;
-            const imageFileName = (number: number): string => updateImage ? outputTarget : imageTimeZone
-              ? formatDate(outputTarget, millisecondsInstant(Date.now()), imageTimeZone, {
+            const imageFileName = (number: number): string => {
+              if (updateImage) return outputTarget;
+              if (imageTimeZone) return formatDate(outputTarget, millisecondsInstant(Date.now()), imageTimeZone, {
                 maxOutputBytes: 1024, maxFormatWidth: 1023,
                 maxArguments: Infinity, maxArgumentBytes: Infinity, maxEnvironmentEntries: Infinity
-              }).slice(0, -1) // The date formatter appends a command-output newline.
-              : (formatImageSequence(outputTarget, number) ?? outputTarget);
+              }).slice(0, -1); // The date formatter appends a command-output newline.
+              const filename = formatImageSequence(outputTarget, number);
+              if (framePts && !imagePipe && filename === undefined) {
+                throw new Error("Cannot write filename by pts of the frames.");
+              }
+              return filename ?? outputTarget;
+            };
 
             const imagePackets: Uint8Array[] = [];
             let imagePacketBytes = 0;
@@ -21580,6 +21586,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             rethrowRuntimeError(context, err);
             const msg = err instanceof Error ? err.message : String(err);
             await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
+            if (msg === "Cannot write filename by pts of the frames.") return { exitCode: 234 };
             if (checksumOutput && msg.startsWith("Unknown hash algorithm '")) {
               for (const destination of protocolTargets) {
                 await writeMediaOutput(context, destination, new Uint8Array(0), budget);

@@ -5,7 +5,8 @@ import { parseFilterExpression } from "./filter-expression.js";
 export async function smoothAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: readonly { start: number; end: number; pts: number }[],
-  budget: MediaBudgetTracker, signal?: AbortSignal
+  budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<Float64Array[]> {
   const options = { sensitivity: 2, basefreq: 22050 };
   const names = Object.keys(options) as (keyof typeof options)[];
@@ -33,13 +34,25 @@ export async function smoothAudio(
   }
   budget.allocateMemory(channels.reduce((sum, channel) => sum + channel.length * 8, 0));
   const output = channels.map(channel => new Float64Array(channel.length));
-  const frequency = options.basefreq / sampleRate;
   let work = 0;
   for (const [c, channel] of channels.entries()) {
+    const currentOptions = { ...options };
+    let nextCommand = 0;
     let low1 = 0;
     let low2 = 0;
     let previousInput = 0;
     for (const [n, frame] of frames.entries()) {
+      while (nextCommand < commands.length && commands[nextCommand]!.sample <= frame.start) {
+        const command = commands[nextCommand++]!;
+        const key = command.action;
+        if (key !== "basefreq" && key !== "sensitivity") continue;
+        try {
+          const value = parseFilterExpression(command.expression, "adynamicsmooth", {});
+          if (!Number.isFinite(value) || value < (key === "basefreq" ? 2 : 0) || value > 1000000) continue;
+          currentOptions[key] = value;
+        } catch { /* Rejected runtime commands leave the current setting unchanged. */ }
+      }
+      const frequency = currentOptions.basefreq / sampleRate;
       const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "adynamicsmooth enable", {
         n, t: frame.pts / sampleRate
       })) >= 0.5;
@@ -51,7 +64,7 @@ export async function smoothAudio(
         }
         const input = channel[i]!;
         const previousLow = low1;
-        const cutoff = frequency + options.sensitivity * Math.abs(low2 - low1);
+        const cutoff = frequency + currentOptions.sensitivity * Math.abs(low2 - low1);
         const gain = Math.min(1, cutoff * (5.9948827 + cutoff * (-11.969296 + cutoff * 15.959062)));
         low1 += gain * (0.5 * (input + previousInput) - low1);
         low2 += gain * (0.5 * (low1 + previousLow) - low2);

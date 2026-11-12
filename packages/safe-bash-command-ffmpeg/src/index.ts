@@ -14349,6 +14349,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || ["limit", "level_in", "level_out", "level", "enable"].includes(action!) && (target === "alimiter" || target?.startsWith("alimiter@"))
                             || action === "makeup" && ["agate", "acompressor"].some(name => target === name || target?.startsWith(`${name}@`))
                             || action === "ratio" && (target === "acompressor" || target?.startsWith("acompressor@"))
+                            || ["basefreq", "sensitivity"].includes(action!) && (target === "adynamicsmooth" || target?.startsWith("adynamicsmooth@"))
                             || target === "atilt" || target?.startsWith("atilt@")
                             || target === "aexciter" || target?.startsWith("aexciter@")
                             || action === "range" && (target === "sidechaingate" || target?.startsWith("sidechaingate@"))
@@ -15554,7 +15555,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           filteredSampleFormat = "dblp";
                         } else if (filterName === "adynamicsmooth") {
                           if (!autoConversionFilters && filteredSampleFormat !== "dblp") throw new Error(audioConversionDisabled);
-                          stretched = await smoothAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
+                          const commands = audioCommands.filter(command => command.target === "adynamicsmooth" || command.target === filterTarget)
+                            .sort((a, b) => a.sample - b.sample);
+                          audioCommands = audioCommands.filter(command => command.target !== "adynamicsmooth" && command.target !== filterTarget);
+                          stretched = await smoothAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal, commands);
                           filteredSampleFormat = "dblp";
                         } else if (filterName === "adynamicequalizer") {
                           stretched = await listenDynamicEqualizer(stretched, origRate, trimmed, budget, context.signal, filteredSampleFormat, audioTimestamps);

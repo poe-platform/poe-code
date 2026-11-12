@@ -4,7 +4,8 @@ import { transform } from "./audio-fft.js";
 
 export async function psychoacousticClip(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
-  filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
+  filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<{ channels: Float32Array[]; frameSize: number }> {
   const options = { level_in: 1, level_out: 1, clip: 1, diff: 0, adaptive: 0.5, iterations: 10, level: 0 };
   const ranges = { level_in: [0.015625, 64], level_out: [0.015625, 64], clip: [0.015625, 1], diff: [0, 1], adaptive: [0, 1], iterations: [1, 20], level: [0, 1] };
@@ -60,9 +61,20 @@ export async function psychoacousticClip(
   const delta = new Float32Array(size), mask = new Float32Array(size / 2 + 1);
   const real = new Float64Array(size), imaginary = new Float64Array(size);
   for (const [c, channel] of channels.entries()) {
+    let nextCommand = 0;
+    let levelOut = options.level_out, diff = options.diff;
     input.fill(0); overlap.fill(0);
     for (let start = 0; start < length; start += hop) {
       await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
+      while (nextCommand < commands.length && commands[nextCommand]!.sample <= start) {
+        const { action, expression } = commands[nextCommand++]!;
+        const value = expression.trim();
+        const number = action === "diff" && ["true", "yes", "on"].includes(value) ? 1
+          : action === "diff" && ["false", "no", "off"].includes(value) ? 0 : Number(value);
+        if (!value || !Number.isFinite(number)) continue;
+        if (action === "level_out" && number >= ranges.level_out[0]! && number <= ranges.level_out[1]!) levelOut = number;
+        else if (action === "diff" && (number === 0 || number === 1)) diff = number;
+      }
       input.copyWithin(0, hop); overlap.copyWithin(0, hop); overlap.fill(0, delay);
       for (let i = 0; i < hop; i++) input[delay + i] = (channel[start + i] ?? 0) * options.level_in;
       for (let i = 0; i < size; i++) framed[i] = input[i]! * window[i]!;
@@ -114,9 +126,9 @@ export async function psychoacousticClip(
       for (let i = 0; i < size; i++) overlap[i] = overlap[i]! + delta[i]! * window[i]!;
       for (let i = 0; i < Math.min(hop, length - start); i++) {
         let value = Math.fround(overlap[i]! / 1.5);
-        if (!options.diff) value = Math.fround(value + input[i]!);
+        if (!diff) value = Math.fround(value + input[i]!);
         if (options.level) value = Math.fround(value / options.clip);
-        output[c]![start + i] = value * options.level_out;
+        output[c]![start + i] = value * levelOut;
       }
     }
   }

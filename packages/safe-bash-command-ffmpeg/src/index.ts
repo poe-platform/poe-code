@@ -14362,6 +14362,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || action === "range" && (target === "sidechaingate" || target?.startsWith("sidechaingate@"))
                             || target === "acrusher" || target?.startsWith("acrusher@")
                             || target === "asoftclip" || target?.startsWith("asoftclip@")
+                            || ["level_out", "diff"].includes(action!) && (target === "apsyclip" || target?.startsWith("apsyclip@"))
                             || ["unity", "silence", "curve", "c", "nb_samples", "ns", "duration", "d", "type", "t", "start_sample", "ss", "start_time", "st", "enable"].includes(action!) && (target === "afade" || target?.startsWith("afade@"))
                             || action === "original" && (target === "dialoguenhance" || target?.startsWith("dialoguenhance@"));
                           if (!Number.isFinite(time) || time < 0 || words.length !== 3 || !target || !expression) {
@@ -15610,7 +15611,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredChannelNames = undefined;
                         filteredSampleFormat = "dbl";
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
-                        const clipped = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
+                        const commands = audioCommands.filter(command => command.target === "apsyclip" || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        const clipped = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal, commands);
                         stretched = clipped.channels;
                         filteredSampleFormat = "fltp";
                         const length = stretched[0]?.length ?? 0;

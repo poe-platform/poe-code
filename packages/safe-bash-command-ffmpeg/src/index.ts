@@ -4632,6 +4632,7 @@ async function applyVideoFilterChain(
       for (const [index, option] of (argStr ? positional : []).entries()) {
         const separator = option.indexOf("=");
         const key = separator < 0 ? ["c0", "c1", "c2", "c3"][index] : option.slice(0, separator);
+        if (key === "enable") { sawNamed = true; continue; }
         const channel = ["r", "g", "b", "a"].indexOf(key ?? "");
         const component = channel >= 0 ? channel : ["c0", "c1", "c2", "c3"].indexOf(key ?? "");
         if (component < 0 || separator < 0 && sawNamed) throw new Error("lutrgb: unknown option");
@@ -4641,8 +4642,9 @@ async function applyVideoFilterChain(
       budget.allocateMemory(1024);
       try {
         const tables = new Uint8Array(1024);
+        const registers = new Float64Array(10);
         let width = -1, height = -1;
-        current = await mapWork(current, async (frame) => {
+        current = await mapWork(current, async (frame, n) => {
           if (frame.width !== width || frame.height !== height) {
             width = frame.width; height = frame.height;
             for (let channel = 0; channel < 4; channel++) {
@@ -4655,6 +4657,12 @@ async function applyVideoFilterChain(
                 tables[channel * 256 + value] = Math.max(0, Math.min(255, Math.trunc(result)));
               }
             }
+          }
+          if (named.enable !== undefined) {
+            const variables = { n, t: frame.ptsSeconds, w: frame.width, h: frame.height, pos: frame.offset ?? NaN, NAN: NaN, INF: Infinity };
+            // FFmpeg evaluates the generic timeline before and during frame dispatch.
+            parseFilterExpression(named.enable, "lutrgb enable", variables, undefined, registers);
+            if (!(Math.abs(parseFilterExpression(named.enable, "lutrgb enable", variables, undefined, registers)) >= 0.5)) return frame;
           }
           const data = frame.data.slice();
           for (let i = 0; i < data.length; i++) {

@@ -69,14 +69,16 @@ export async function filterTempo(
         if (metric > best) { best = metric; correction = lag - hop; }
       }
       current -= correction;
-      if (tempo !== 1 || flushing || current + window <= length) break;
+      if (flushing || current + window <= length) break;
     }
     const count = Math.max(0, Math.min(window, length - current));
-    // A full destination frame stops processing after loading the next fragment.
-    // At EOF native flushes that fragment's remainder without another overlap.
-    const emitted = output[0]?.length ?? 0;
-    const final = (tempo !== 1 || flushing || emitted > 0 && emitted % frameSize === 0) && current + count >= length;
     const overlap = Math.min(hop, count, length - previous - hop);
+    // At EOF a destination frame that fills before the overlap finishes stops
+    // fragment advancement. Flush its tail; otherwise continue the overlap chain.
+    const emitted = output[0]?.length ?? 0;
+    const frameFull = emitted > 0 && emitted % frameSize === 0
+      || frameSize - emitted % frameSize < overlap;
+    const final = (flushing || frameFull) && current + count >= length;
     for (let c = 0; c < channels.length; c++) {
       const channel = channels[c]!;
       const dst = output[c]!;

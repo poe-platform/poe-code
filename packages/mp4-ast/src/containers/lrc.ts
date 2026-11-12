@@ -97,6 +97,7 @@ export function lrcAst(): MediaAstPlugin {
       for (const [tag, value] of [
         ["ti", doc.metadata.title], ["ar", doc.metadata.artist],
         ["al", doc.metadata.album], ["au", doc.metadata.custom?.author],
+        ["by", doc.metadata.custom?.creator],
         ["re", doc.metadata.encoder],
         ["ve", doc.metadata.encoder?.startsWith("Lavf") ? doc.metadata.encoder.slice(4) : undefined]
       ]) {

@@ -11,7 +11,7 @@ for (const sync of [false, true]) {
         const volume = Volume.fromJSON({ "/in.vtt": input });
         const args = ["-v", "error", "-i", "/in.vtt", ...(bitexact ? ["-bitexact"] : []),
           ...(tags ? ["-metadata", "title=Verse", "-metadata", "artist=Example",
-            "-metadata", "album=Book", "-metadata", "author=Writer"] : []),
+            "-metadata", "album=Book", "-metadata", "author=Writer", "-metadata", "creator=Alice"] : []),
           "-f", "lrc", sync ? "/out.lrc" : "pipe:1"];
         let stdout = "";
         let stderr = "";
@@ -35,7 +35,7 @@ for (const sync of [false, true]) {
           assert.equal(result.exitCode, 0, stderr);
         }
         assert.equal(stderr, "");
-        assert.equal(stdout, (tags ? "[ti:Verse]\n[ar:Example]\n[al:Book]\n[au:Writer]\n" : "") +
+        assert.equal(stdout, (tags ? "[ti:Verse]\n[ar:Example]\n[al:Book]\n[au:Writer]\n[by:Alice]\n" : "") +
           (bitexact ? "" : "[re:Lavf61.7.100]\n[ve:61.7.100]\n") + "\n[00:01.00]hello\n");
         assert.equal(volume.readFileSync("/in.vtt", "utf8"), input);
       });

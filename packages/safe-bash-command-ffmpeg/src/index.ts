@@ -1313,7 +1313,11 @@ function parseAtrim(argument: string, origRate: number, print?: (value: number, 
   return { duration, startPts, endPts, startSample, endSample };
 }
 
-type AudioFilterFrame = { start: number; end: number; pts: number; exactPts?: bigint | undefined; pos?: number | undefined };
+type AudioFilterFrame = {
+  start: number; end: number; pts: number; exactPts?: bigint | undefined; pos?: number | undefined;
+  // Keep integer link timestamps that cannot survive conversion to sample units.
+  exactTimestamp?: { pts: bigint; timeBase: number } | undefined;
+};
 
 function createAudioSelection(argument: string, origRate: number, timeBase = 1 / origRate) {
   let expression = "1";
@@ -2151,21 +2155,28 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
         const samples: MediaTrack["samples"][number][] = [];
         for (const segment of segments) {
           const source = segment.tracks[0]!;
-          const scale = track.timescale / source.timescale;
+          const scale = 1_000_000 / source.timescale;
           let end = 0;
           for (const sample of source.samples) {
             budget.checkCpu();
             const packet = track.samples[index++]!;
             const pts = Math.round(sample.pts * scale);
             const dts = Math.round(sample.dts * scale);
+            // Native concat adds its offset even to the INT64_MIN sentinel.
+            const exactPts = Number.isNaN(pts) && offset !== 0
+              ? -(1n << 63n) + BigInt(offset) : undefined;
+            const outputPts = exactPts === undefined ? offset + pts : Number(exactPts);
+            const duration = Math.round(sample.duration * scale);
             samples.push({ ...packet, ...(sample.tags ? { tags: sample.tags } : {}),
-              pts: offset + pts, dts: offset + dts, cts: pts - dts });
-            end = pts + packet.duration;
+              ...(exactPts === undefined ? {} : { exactTimestamp: { pts: exactPts, timeBase: 1 / 1_000_000 } }),
+              pts: outputPts, dts: Number.isNaN(dts) ? outputPts : offset + dts,
+              cts: Number.isNaN(pts) ? 0 : pts - dts, duration });
+            end = Number.isNaN(pts) ? 0 : pts + duration;
           }
           offset += end;
         }
         // Concat's output link uses microseconds, including across labeled nodes.
-        return { track: { ...track, samples, duration: offset },
+        return { track: { ...track, samples, timescale: 1_000_000, duration: offset },
           expression: serializeFilterChain(["asettb=1/1000000", ...filters.slice(1)]) };
       }
       if (filters[0] === "headphone" || filters[0]?.startsWith("headphone=")) {
@@ -10861,10 +10872,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const count = parseAudioChannelCount(layout ?? "");
             if (beforeInput ? count === undefined &&
                 (!channels.every(name => Object.hasOwn(audioSpeakerMasks, name)) || new Set(channels).size !== channels.length)
-                : layout !== "mono" && layout !== "stereo") {
+                : layout !== "mono" && layout !== "stereo" && layout !== "2.1") {
               await writeBytes(context.stderr, encodeUtf8(beforeInput
                 ? `ffmpeg: unsupported input channel layout '${layout ?? ""}'\n`
-                : "ffmpeg: only mono and stereo output channel layouts are supported\n"), context.signal);
+                : "ffmpeg: only mono, stereo and 2.1 output channel layouts are supported\n"), context.signal);
               return { exitCode: 1 };
             }
             const separator = arg.indexOf(":");
@@ -14047,9 +14058,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const passthroughFormats = new Set<string>();
                   let audioMetadata: { pts: number; tags: Map<string, string> }[] = [];
                   const hasFrameTags = t.samples.some(sample => sample.tags);
-                  let audioTimestamps: { start: number; end: number; pts: number; exactPts?: bigint | undefined; pos?: number | undefined }[] | undefined;
+                  let audioTimestamps: AudioFilterFrame[] | undefined;
                   // Silence events and frame tags retain input PTS, including after seeking and reframing.
-                  if (!sink && (index === undefined || hasFrameTags || t.samples.some(sample => "exactPts" in sample) || outputCut || (index !== undefined && (audioSegment || checksumOutput)) || (filter && parseFilterChain(filter.expression)
+                  if (!sink && (index === undefined || hasFrameTags || t.samples.some(sample => "exactPts" in sample || "exactTimestamp" in sample) || outputCut || (index !== undefined && (audioSegment || checksumOutput)) || (filter && parseFilterChain(filter.expression)
                     .some(item => ["areverse", "silencedetect", "adeclick", "adeclip", "afwtdn", "afftdn", "afftfilt"].includes(item.trim().split("=", 1)[0]!.split("@", 1)[0]!))))) {
                     if (index !== undefined && audioSegment) segmentAudioPackets = [];
                     audioTimestamps = [];
@@ -14068,6 +14079,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         audioMetadata[n] = { pts, tags: new Map(Object.entries(packet?.tags ?? {})) };
                       }
                       audioTimestamps.push({ start, end, pts, pos: packet?.offset,
+                        exactTimestamp: (packet as typeof packet & Pick<AudioFilterFrame, "exactTimestamp">)?.exactTimestamp,
                         exactPts: packet && "exactPts" in packet && typeof packet.exactPts === "bigint"
                           && origRate === t.timescale ? packet.exactPts : undefined });
                       start = end;
@@ -14269,7 +14281,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     }
                     const applyAudioChannelLayouts = async (value: string, inputSampleFormat: string, filterName: "aformat" | "aresample", outputSampleFormat: string) => {
                       const layouts = value.split("|");
-                      if (layouts.some(layout => !["mono", "stereo", "quad", "5.1"].includes(layout))) {
+                      if (layouts.some(layout => !["mono", "stereo", "2.1", "quad", "5.1"].includes(layout))) {
                         throw new Error(`${filterName}: unsupported channel layout ${value}`);
                       }
                       if (stretched.length === 1) {
@@ -14278,14 +14290,15 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       }
                       const inputMask = filteredChannelMask || ({ 1: 4, 2: 3, 3: 0xb, 4: 0x107, 6: 0x3f, 8: 0x63f }[stretched.length]);
                       const inputLayout = inputMask === 4 ? "mono" : inputMask === 3 ? "stereo"
-                        : inputMask === 0x33 ? "quad" : inputMask === 0x3f ? "5.1" : undefined;
+                        : inputMask === 0xb ? "2.1" : inputMask === 0x33 ? "quad" : inputMask === 0x3f ? "5.1" : undefined;
                       if (inputLayout && layouts.includes(inputLayout)) return;
-                      const stereoExpansion = inputLayout === "stereo" && (layouts[0] === "quad" || layouts[0] === "5.1");
+                      const stereoExpansion = inputLayout === "stereo" && (layouts[0] === "2.1" || layouts[0] === "quad" || layouts[0] === "5.1");
                       const multichannelStereo = layouts[0] === "stereo" && inputMask !== undefined &&
                         [0x7, 0xb, 0x33, 0x107, 0x3f, 0x60f, 0x63f].includes(inputMask);
                       const twoChannelStereo = layouts[0] === "stereo" && (inputMask === 0xc || inputMask === 0x60000000);
+                      const centerLfeExpansion = layouts[0] === "2.1" && inputMask === 0xc;
                       const centerLfeMono = layouts[0] === "mono" && inputMask === 0xc;
-                      if (!stereoExpansion && !multichannelStereo && !twoChannelStereo && !centerLfeMono &&
+                      if (!stereoExpansion && !multichannelStereo && !twoChannelStereo && !centerLfeExpansion && !centerLfeMono &&
                           !(inputLayout === "mono" && layouts[0] === "stereo" || inputLayout === "stereo" && layouts[0] === "mono")) {
                         throw new Error(`${filterName}: unsupported input channel layout`);
                       }
@@ -14296,7 +14309,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       const fourChannelGains = inputMask === 0x107 && (panSampleFormat === "s16" || panSampleFormat === "s16p")
                         ? [1, Math.SQRT1_2, 0.5].map(gain => Math.round(gain / (1.5 + Math.SQRT1_2) * 32768) / 32768)
                         : undefined;
-                      const expression = centerLfeMono ? "mono|c0=c0" : twoChannelStereo
+                      const expression = centerLfeMono ? "mono|c0=c0" : centerLfeExpansion
+                        ? `2.1|FL=${Math.SQRT1_2}*FC|FR=${Math.SQRT1_2}*FC|LFE=LFE`
+                        : twoChannelStereo
                         ? inputMask === 0xc ? `stereo|c0=${Math.SQRT1_2}*c0|c1=${Math.SQRT1_2}*c0` : "stereo|c0=c0|c1=c1"
                         : stereoExpansion ? `${layouts[0]}|FL=FL|FR=FR`
                         : multichannelStereo && fourChannelGains
@@ -14363,6 +14378,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           frame.start = Math.round(frame.start * targetRate / origRate);
                           frame.end = Math.round(frame.end * targetRate / origRate);
                           delete frame.exactPts;
+                          delete frame.exactTimestamp;
                           frame.pts = Math.round(frame.pts * targetRate / origRate);
                         }
                         origRate = targetRate;
@@ -15043,6 +15059,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           for (const frame of audioTimestamps) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                             delete frame.exactPts;
+                            delete frame.exactTimestamp;
                             frame.pts = Math.sign(frame.pts) * Math.round(Math.abs(frame.pts) / samplesPerTick) * samplesPerTick;
                           }
                         }
@@ -15173,7 +15190,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             planeChecksums.push(((pb * 65536 + pa) >>> 0).toString(16).padStart(8, "0").toUpperCase());
                           }
                           const checksum = ((b * 65536 + a) >>> 0).toString(16).padStart(8, "0").toUpperCase();
-                          await writeBytes(context.stderr, encodeUtf8(`[ashowinfo] n:${n} pts:${Number.isNaN(pts) ? "NOPTS" : timestamp?.exactPts !== undefined && timeBase * origRate === 1 ? timestamp.exactPts : pts} pts_time:${Number.isNaN(pts) ? "NOPTS" : Number((pts * timeBase).toPrecision(6))} fmt:${format} channels:${channels} chlayout:${layout} rate:${origRate} nb_samples:${end - start} checksum:${checksum} plane_checksums: [ ${planeChecksums.join(" ")} ]\n`), context.signal);
+                          await writeBytes(context.stderr, encodeUtf8(`[ashowinfo] n:${n} pts:${Number.isNaN(pts) ? "NOPTS" : timestamp?.exactTimestamp?.timeBase === timeBase ? timestamp.exactTimestamp.pts : timestamp?.exactPts !== undefined && timeBase * origRate === 1 ? timestamp.exactPts : pts} pts_time:${Number.isNaN(pts) ? "NOPTS" : Number((pts * timeBase).toPrecision(6))} fmt:${format} channels:${channels} chlayout:${layout} rate:${origRate} nb_samples:${end - start} checksum:${checksum} plane_checksums: [ ${planeChecksums.join(" ")} ]\n`), context.signal);
                           start = end;
                         }
                       } else if (trimmed === "asubcut" || trimmed.startsWith("asubcut=")) {
@@ -16720,7 +16737,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             continue;
                           }
                           if (key === "ochl" || key === "out_chlayout") {
-                            if (extra !== undefined || !["mono", "stereo", "quad", "5.1"].includes(raw ?? "")) {
+                            if (extra !== undefined || !["mono", "stereo", "2.1", "quad", "5.1"].includes(raw ?? "")) {
                               throw new Error(`aresample: unsupported channel layout ${raw ?? ""}`);
                             }
                             layout = raw;
@@ -17138,6 +17155,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                                     }
                                     if (filter.clock) {
                                       delete frame.exactPts;
+                                      delete frame.exactTimestamp;
                                       frame.pts = filter.clock(frame);
                                     }
                                   }
@@ -19212,6 +19230,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           for (const frame of audioTimestamps) {
                             if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                             delete frame.exactPts;
+                            if (frame.exactTimestamp?.timeBase !== audioTimeBase) delete frame.exactTimestamp;
                             frame.pts = Math.sign(frame.pts) * Math.round(Math.abs(frame.pts) / samplesPerTick) * samplesPerTick;
                           }
                           continue;
@@ -19264,6 +19283,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         for (const frame of audioTimestamps) {
                           if (++work % 1024 === 0) { await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                           delete frame.exactPts;
+                          delete frame.exactTimestamp;
                           frame.pts = transform(frame);
                         }
                       } else if (trimmed === "atrim" || trimmed.startsWith("atrim=") || filterName === "asegment") {
@@ -19408,6 +19428,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             // Native areverse advances AV_NOPTS_VALUE (INT64_MIN) after the first frame.
                             // PTS advances by sample count in time-base ticks; stored timestamps use samples.
                             delete frame.exactPts;
+                            delete frame.exactTimestamp;
                             frame.pts = start === 0 ? firstPts
                               : (Number.isNaN(firstPts) ? -(2 ** 63) * samplesPerTick : firstPts) + start * samplesPerTick;
                             const metadata = audioMetadata[n];
@@ -19435,6 +19456,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (++work % 1024 === 0) { budget.checkCpu(); await yieldTurn(context.signal); context.signal?.throwIfAborted(); }
                       budget.allocateMemory(96);
                       samples.push({ data: new Uint8Array(0), size: 0, pts: frame.pts, dts: frame.pts, cts: 0,
+                        ...(frame.exactTimestamp ? { exactTimestamp: frame.exactTimestamp } : {}),
                         ...(audioMetadata[n]?.tags.size ? { tags: Object.fromEntries(audioMetadata[n]!.tags) } : {}),
                         duration: frame.end - frame.start, isKeyframe: true, sampleDescriptionIndex: 1 });
                     }
@@ -19610,7 +19632,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     throw new Error(`Unsupported input channel layout (mask ${channelMask})`);
                   }
                   const centerLfe = origCh === 2 && channelMask === 12;
-                  const centerLfeStereo = centerLfe && audioChannels === 2;
+                  const centerLfeFront = centerLfe && (audioChannels === 2 || audioChannels === 3);
                   const surroundUpmix = targetCh === 6 &&
                     (centerLfe || origCh === 3 && (channelMask === 7 || channelMask === 11) || origCh === 4 && channelMask === 0x33);
                   const inputSpeakers = surroundUpmix
@@ -19696,7 +19718,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       if (centerDownmix) return (input === 2 ? Math.SQRT1_2 : input < 2 ? targetCh === 1 ? 0.5 : input === output ? 1 : 0 : 0) / (1 + Math.SQRT1_2);
                       if (quadDownmix) return (targetCh === 1 ? 0.5 : input % 2 === output ? 1 : 0) * (input >= 2 ? Math.SQRT1_2 : 1) / (1 + Math.SQRT1_2);
                       if (quadToFour) return output < 2 ? input === output ? Math.SQRT1_2 : 0 : output === 3 && input >= 2 ? 0.5 : 0;
-                      if (monoStereo || centerLfeStereo) return output < 2 && input === 0 ? Math.SQRT1_2 : 0;
+                      if (centerLfeFront) return output < 2 ? input === 0 ? Math.SQRT1_2 : 0 : input === 1 ? 1 : 0;
+                      if (monoStereo) return output < 2 && input === 0 ? Math.SQRT1_2 : 0;
                       if (monoSurround) return output === 2 ? 1 : 0;
                       if (surroundUpmix) return inputSpeakers[input] === 1 << output ? 1 : 0;
                       if (surroundExpansion) return input === (output < 4 ? output : channelMask === 0x60f ? output - 2 : output) &&
@@ -19722,7 +19745,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     const expandedChannel = c < 4 ? c : channelMask === 0x60f ? c - 2 : c;
                     const srcCh = surroundExpansion ? (c < 4 || (channelMask === 0x60f ? c >= 6 : c < 6)
                       ? stretched[expandedChannel] : undefined) : (monoStereo && c >= 2) || (centerToLfe && c === 2) || (quadToFour && c === 2) || (monoSurround && c !== 2)
-                      ? undefined : stretched[surroundUpmix ? inputSpeakers.indexOf(1 << c) : origCh === 1 || centerLfeStereo ? 0 : c];
+                      ? undefined : stretched[surroundUpmix ? inputSpeakers.indexOf(1 << c) : centerLfeFront ? c < 2 ? 0 : 1 : origCh === 1 ? 0 : c];
                     const rightCh = (origCh === 2 && !centerLfe || threeChannelDownmix) && targetCh === 1 ? stretched[1] : undefined;
                     if (srcCh && srcCh.length > 0) {
                       for (let i = 0; i < targetSamples; i++) {
@@ -19770,7 +19793,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           : pcm16SurroundStereo
                             ? Math.floor(srcCh[srcIdx]! * 13573 +
                                 (stretched[2]![srcIdx]! + stretched[c + 4]![srcIdx]!) * 9598 + 0.5) / 32768
-                          : sample * (monoStereo || centerLfeStereo ? Math.SQRT1_2 : 1);
+                          : sample * (monoStereo || centerLfeFront && c < 2 ? Math.SQRT1_2 : 1);
                         // FFmpeg 7.0.2 converts non-finite floating samples to silence for PCM16.
                         const sevenOneSample = sevenOneMatrix[c]?.reduce((sum, gain, speaker) =>
                           sum + stretched[speaker]![srcIdx]! * gain, 0);

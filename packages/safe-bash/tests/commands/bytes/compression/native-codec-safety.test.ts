@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { randomBytes } from "node:crypto";
 import { test } from "node:test";
 import { boundedCodec, type BoundedCodecOptions, type CodecFactory } from "../../../../src/commands/bytes/compression/bounded-codec.js";
 import { createCodec } from "../../../../src/commands/bytes/compression/codec-loader.js";
@@ -60,7 +61,10 @@ for (const format of formats) {
   });
 
   test(`${format} pipeline cancels a blocked sink and pending source without further writes`, async () => {
-    const encoded = await encode(Buffer.alloc(300000, 65), format);
+    // Zstd fills one 128 KiB + 3 byte input buffer before yielding output on a pipe.
+    const encoded = format === "zstd"
+      ? (await encode(randomBytes(300000), format)).subarray(0, 128 * 1024 + 3)
+      : await encode(Buffer.alloc(300000, 65), format);
     const controller = new AbortController(), reason = { sink: format };
     let enter!: () => void, returned = false, writes = 0, pulls = 0;
     const entered = new Promise<void>(resolve => { enter = resolve; });
@@ -79,7 +83,7 @@ for (const format of formats) {
     controller.abort(reason);
     await assert.rejects(result, error => error === reason);
     assert.equal(writes, 1);
-    assert.ok(pulls <= 2);
+    assert.equal(pulls, 2);
     assert.equal(returned, true);
   });
 
@@ -187,7 +191,8 @@ test("XZ and Zstandard verify checksums within the first frame", async () => {
       bad[bad.length - 1] = bad[bad.length - 1]! ^ 1;
     }
     const codec = await createCodec({ format, level: 1, decompress: true }, new AbortController().signal);
-    try { assert.throws(() => codec.step(bad, new Uint8Array(65536), true), /compressed data/u); }
+    try { assert.throws(() => codec.step(bad, new Uint8Array(65536), true),
+      format === "zstd" ? { message: "Restored data doesn't match checksum" } : /compressed data/u); }
     finally { codec.close(); }
   }
 });

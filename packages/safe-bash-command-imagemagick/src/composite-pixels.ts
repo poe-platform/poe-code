@@ -88,6 +88,16 @@ export function* compositePixelsSteps(dst: CompositeRaster, src: CompositeRaster
                 out[dIdx + 3] = clampByteVal((dst.hasAlpha ? daByte : 255) * (src.hasAlpha ? sa : 1));
                 continue;
             }
+            if (norm === "interpolate") {
+                // Native applies cosine interpolation to premultiplied RGB and directly to alpha.
+                for (let c = 0; c < 4; c++) {
+                    const source = src.data[sIdx + c]! / 255 * (c === 3 ? 1 : sa);
+                    const destination = dst.data[dIdx + c]! / 255 * (c === 3 ? 1 : da);
+                    out[dIdx + c] = clampByteVal(255 * (0.5 - 0.25 * Math.cos(Math.PI * source)
+                        - 0.25 * Math.cos(Math.PI * destination)));
+                }
+                continue;
+            }
             if (norm === "stereo") {
                 out[dIdx] = sr;
                 out[dIdx + 3] = clampByteVal((saByte + daByte) / 2);

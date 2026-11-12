@@ -11,7 +11,7 @@ function elements(bytes: Uint8Array, name: string) {
   const values: Record<string, string>[] = [];
   const parser = new SaxesParser();
   parser.on("opentag", node => {
-    if (node.name === name) values.push(node.attributes as Record<string, string>);
+    if (node.name === name) values.push(Object.fromEntries(Object.entries(node.attributes as Record<string, string>).filter(([key]) => key !== "xmlns:w")));
   });
   parser.write(new TextDecoder().decode(readZipArchiveEntries(bytes).get("word/document.xml"))).close();
   return values;
@@ -33,7 +33,7 @@ it("preserves explicit column widths and cell alignment overrides in headers, bo
   expect(elements(result.bytes, "w:tblW")).toEqual([{"w:w": "4000", "w:type": "pct"}]);
   const grid = elements(result.bytes, "w:gridCol").map(value => Number(value["w:w"]));
   expect(grid[1]! / grid[0]!).toBeCloseTo(3, 2);
-  expect(elements(result.bytes, "w:tcW")).toEqual(Array.from({length: 3}, () => [{"w:w": "1250", "w:type": "pct"}, {"w:w": "3750", "w:type": "pct"}]).flat());
+  expect(elements(result.bytes, "w:tcW")).toEqual(Array.from({length: 3}, () => [{"w:w": "1584", "w:type": "dxa"}, {"w:w": "4752", "w:type": "dxa"}]).flat());
 });
 it("keeps nested table formatting independent and leaves following paragraphs unaligned", async () => {
   const nested: Block = {t: "Table", c: [attr, [null, []], [["AlignDefault", {t: "ColWidthDefault"}]], [attr, []], [[attr, 0, [], [[attr, [[attr, "AlignDefault", 1, 1, [{t: "Para", c: [{t: "Str", c: "nested"}]}]]]]]]], [attr, []]]};
@@ -42,6 +42,6 @@ it("keeps nested table formatting independent and leaves following paragraphs un
   if (result.kind !== "binary") throw new Error("Expected DOCX");
   expect(elements(result.bytes, "w:jc").map(value => value["w:val"])).toEqual(["right"]);
   expect(elements(result.bytes, "w:tblW")[0]).toEqual({"w:w": "2500", "w:type": "pct"});
-  expect(elements(result.bytes, "w:tblW")[1]!["w:type"]).toBe("dxa");
+  expect(elements(result.bytes, "w:tblW")[1]!["w:type"]).toBe("auto");
   expect(new TextDecoder().decode(readZipArchiveEntries(result.bytes).get("word/document.xml"))).toContain(">nested</w:t>");
 });

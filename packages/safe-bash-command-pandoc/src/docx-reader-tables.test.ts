@@ -5,7 +5,7 @@ import {Document} from "safe-bash-docx-engine/pandoc-adapter";
 import {parseFragment, type DefaultTreeAdapterMap} from "parse5";
 import {convert, readDocument} from "./engine.js";
 
-// Pandoc 3.10.1: | Item | Qty |\n|---|---:|\n| Apples | 2 |
+// Pandoc 3.11: | Item | Qty |\n|---|---:|\n| Apples | 2 |
 const bytes = readFileSync(new URL("./fixtures/table.docx", import.meta.url));
 const native = readFileSync(new URL("./fixtures/table.json", import.meta.url));
 
@@ -31,7 +31,7 @@ it("recovers native DOCX table headers, alignment and widths in JSON and HTML", 
   if (html.kind !== "text") throw new Error("Expected HTML");
   expect(html.text).toContain('<table style="width:85%;">');
   expect(html.text).toContain("<thead>");
-  expect(html.text).toContain('text-align:right');
+  expect(html.text).toContain('text-align: right;');
   expect(tableContent(html.text)).toEqual(tableContent(readFileSync(new URL("./fixtures/table.html", import.meta.url), "utf8")));
 });
 

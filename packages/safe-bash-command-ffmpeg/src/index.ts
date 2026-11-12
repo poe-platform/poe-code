@@ -10292,6 +10292,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
         let audioRateOptions: [string, number | undefined][] = [];
         let pendingSampleRate: number | undefined;
         let audioChannelOptions: [string, number | undefined][] = [];
+        let audioLayoutOptions: [string, number | undefined][] = [];
         let rematrixMaxval: number | undefined;
         let resampler: "swr" | "soxr" = "swr";
         let filterSize = 32;
@@ -11169,7 +11170,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
           } else if (arg === "-ac" || arg.startsWith("-ac:")) {
             try {
               const value = args[++i];
-              if (i < args.length) audioChannelOptions.push(parseAudioChannels(arg, value));
+              if (i < args.length) {
+                const option = parseAudioChannels(arg, value);
+                audioChannelOptions.push(option);
+                audioLayoutOptions.push([option[0], undefined]);
+              }
             } catch (error) {
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 1 };
@@ -11189,18 +11194,20 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const beforeInput = args.slice(i + 1).includes("-i");
             const channels = parseAudioChannelLayout(layout ?? "");
             const count = parseAudioChannelCount(layout ?? "");
-            if (beforeInput ? count === undefined &&
-                (!channels.every(name => Object.hasOwn(audioSpeakerMasks, name)) || new Set(channels).size !== channels.length)
-                : layout !== "mono" && layout !== "stereo" && layout !== "2.1") {
-              await writeBytes(context.stderr, encodeUtf8(beforeInput
-                ? `ffmpeg: unsupported input channel layout '${layout ?? ""}'\n`
-                : "ffmpeg: only mono, stereo and 2.1 output channel layouts are supported\n"), context.signal);
+            if (count === undefined &&
+                (!channels.every(name => Object.hasOwn(audioSpeakerMasks, name)) || new Set(channels).size !== channels.length ||
+                  !beforeInput && (layout!.includes("@") || channels.some((name, index) =>
+                    index > 0 && audioSpeakerMasks[name]! < audioSpeakerMasks[channels[index - 1]!]!)))) {
+              await writeBytes(context.stderr, encodeUtf8(
+                `ffmpeg: unsupported ${beforeInput ? "input" : "output"} channel layout '${layout ?? ""}'\n`), context.signal);
               return { exitCode: beforeInput ? 234 : 1 };
             }
             const separator = arg.indexOf(":");
             const specifier = beforeInput || separator < 0 ? "" : arg.slice(separator + 1);
             audioChannelOptions.push([specifier, count ?? channels.length]);
             if (beforeInput) pendingChannelLayout = layout;
+            else audioLayoutOptions.push([specifier, count === undefined
+              ? channels.reduce((mask, name) => mask + audioSpeakerMasks[name]!, 0) : undefined]);
           } else if (arg === "-auto_conversion_filters" || arg === "-noauto_conversion_filters") {
             autoConversionFilters = arg === "-auto_conversion_filters";
           } else if (arg === "-readrate" || arg === "-re") {
@@ -11567,6 +11574,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             audioRateOptions = [];
             pendingSampleRate = undefined;
             audioChannelOptions = [];
+            audioLayoutOptions = [];
             pendingFormat = undefined;
             pendingSafe = undefined;
             pendingAutoConvert = undefined;
@@ -14506,6 +14514,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   const audioRate = index === undefined ? undefined : audioOptionForStream(audioRateOptions, index, ordinal!);
                   let audioChannels = index === undefined ? undefined : audioOptionForStream(audioChannelOptions, index, ordinal!);
                   if (audioChannels !== undefined && audioChannels <= 0) audioChannels = undefined;
+                  const outputChannelMask = index === undefined ? undefined : audioOptionForStream(audioLayoutOptions, index, ordinal!);
                   let filter = expression === undefined
                     ? afFilters.filter(filter => filter.ordinal === undefined || filter.ordinal === ordinal).at(-1)
                     : { expression };
@@ -20415,6 +20424,32 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     filteredSampleFormat = mixFormat;
                   }
 
+                  if (outputChannelMask !== undefined) {
+                    const sourceMask = filteredChannelMask || parseAudioChannelLayout(`${stretched.length}c`)
+                      .reduce((mask, name) => mask + (audioSpeakerMasks[name] ?? 0), 0);
+                    const sources = Object.keys(audioSpeakerMasks).filter(name => Math.floor(sourceMask / audioSpeakerMasks[name]!) % 2 === 1);
+                    const outputs = Object.keys(audioSpeakerMasks).filter(name => Math.floor(outputChannelMask / audioSpeakerMasks[name]!) % 2 === 1);
+                    // Preserve named speakers, silence missing speakers, and discard unused LFE.
+                    // Channel counts alone cannot distinguish 3.0 from 2.1 or FC+LFE from stereo.
+                    if (sources.length === stretched.length && sources.every(name => name === "LFE" || outputs.includes(name))) {
+                      if (!autoConversionFilters && sourceMask !== outputChannelMask) throw new Error(audioConversionDisabled);
+                      const length = stretched[0]?.length ?? 0;
+                      stretched = outputs.map(name => {
+                        const source = sources.indexOf(name);
+                        if (source >= 0) return stretched[source]!;
+                        budget.allocateMemory(length * Float32Array.BYTES_PER_ELEMENT);
+                        return new Float32Array(length);
+                      });
+                      filteredChannelMask = outputChannelMask;
+                      filteredChannelNames = undefined;
+                      audioChannels = undefined;
+                    } else {
+                      const defaultMask = parseAudioChannelLayout(`${audioChannels}c`)
+                        .reduce((mask, name) => mask + (audioSpeakerMasks[name] ?? 0), 0);
+                      if (outputChannelMask !== defaultMask) throw new Error("Unsupported output channel layout for remixing");
+                    }
+                  }
+
                   const origCh = stretched.length;
                   const targetCh = audioChannels !== undefined && audioChannels < 0 ? origCh : audioChannels ??
                     ((audioCodec === "adpcm_ima_wav" || audioCodec === "adpcm_ms") ? Math.min(origCh, 2) : origCh);
@@ -20661,7 +20696,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                     ...d,
                     ...(filter ? filteredPcm[packedFormat] : {}),
                     sampleRate: targetRate,
-                    channels: targetCh
+                    channels: targetCh,
+                    ...(outputChannelMask === undefined ? {} : { channelLayout: Object.keys(audioSpeakerMasks)
+                      .filter(name => Math.floor(outputChannelMask / audioSpeakerMasks[name]!) % 2 === 1).join("+") })
                   }));
 
                   // Identity and reverse filters must not round signed PCM64 through

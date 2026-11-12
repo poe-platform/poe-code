@@ -1133,7 +1133,7 @@ Valid input channels absent from the input contribute silence: on stereo,
 `pan=mono|c0=FC` is silent and `pan=mono|c0=c0+c2` preserves the left channel.
 Numbered input channels range from `c0` to `c63`. Invalid identifiers and output
 channels outside the selected layout fail without replacing existing output.
-Use output `-ch_layout mono` or `-ch_layout stereo` (also spelled `-channel_layout`) to select mono or stereo, equivalent to `-ac 1` or `-ac 2`. Mono-to-stereo conversion applies FFmpeg’s gain and PCM rounding. Other output layouts are not supported by these options.
+Use output `-ch_layout` (also spelled `-channel_layout`) with a named layout or speaker list. Explicit layouts preserve speaker positions: `FC+LFE` to `3.0` or `4.0` retains center and drops LFE; `5.1` retains both and silences absent speakers; `FC+LFE` preserves both input channels. `2.1` routes center to front left/right at native gain and retains LFE. Mono-to-stereo conversion applies FFmpeg’s gain and PCM rounding. Layouts requiring unsupported mixing are rejected.
 `aformat=channel_layouts=mono` also converts a single FL or FR speaker to mono
 without changing its samples, including after `channelsplit`.
 `aformat=channel_layouts=stereo` expands a single FL or FR speaker into both

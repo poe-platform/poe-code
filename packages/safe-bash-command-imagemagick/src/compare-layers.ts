@@ -82,6 +82,27 @@ export function* compareLayerBounds(previous: Frame, current: Frame, fuzz: numbe
     if (right >= left) return { left, top, width: right - left + 1, height: bottom - top + 1 };
 }
 
+// Compare against the canvas after Background disposal clears its rectangle.
+export function* clearedLayerBounds(previous: Frame, current: Frame, fuzz: number, clear: { left: number; top: number; width: number; height: number }): ReturnType<typeof compareLayerBounds> {
+    const comparison = compareLayerBounds({ ...previous, hasAlpha: true }, current, fuzz, "compareany");
+    let next = comparison.next();
+    while (!next.done) {
+        const request = next.value;
+        let data = yield request;
+        if (request && request.image === 0 && !request.hue && data) {
+            data = data.slice();
+            for (let i = 3; i < data.length; i += 4) {
+                const pixel = (request.position + i - 3) / 4;
+                const x = pixel % previous.width, y = Math.floor(pixel / previous.width);
+                if (!previous.hasAlpha) data[i] = data instanceof Uint16Array ? 65535 : 255;
+                if (x >= clear.left && x < clear.left + clear.width && y >= clear.top && y < clear.top + clear.height) data[i] = 0;
+            }
+        }
+        next = comparison.next(data);
+    }
+    return next.value;
+}
+
 // The first frame can restore the empty canvas before drawing a transparent replacement.
 // OptimizePlus may still prefer a clearing patch when its total area is smaller.
 export function* initialFrameRestoreBounds(previous: Frame, current: Frame, fuzz: number, duplicate: boolean): ReturnType<typeof compareLayerBounds> {
@@ -90,23 +111,7 @@ export function* initialFrameRestoreBounds(previous: Frame, current: Frame, fuzz
     const restored = yield* compareLayerBounds({ ...current, width: 0, height: 0 }, current, fuzz, "compareany");
     if (!restored) return;
     if (duplicate) {
-        const comparison = compareLayerBounds({ ...previous, hasAlpha: true }, current, fuzz, "compareany");
-        let next = comparison.next();
-        while (!next.done) {
-            const request = next.value;
-            let data = yield request;
-            if (request && request.image === 0 && !request.hue && data) {
-                data = data.slice();
-                for (let i = 3; i < data.length; i += 4) {
-                    const pixel = (request.position + i - 3) / 4;
-                    const x = pixel % previous.width, y = Math.floor(pixel / previous.width);
-                    if (!previous.hasAlpha) data[i] = data instanceof Uint16Array ? 65535 : 255;
-                    if (x >= clear.left && x < clear.left + clear.width && y >= clear.top && y < clear.top + clear.height) data[i] = 0;
-                }
-            }
-            next = comparison.next(data);
-        }
-        const area = next.value;
+        const area = yield* clearedLayerBounds(previous, current, fuzz, clear);
         if (clear.width * clear.height + (area ? area.width * area.height : 1) < restored.width * restored.height) return;
     }
     return restored;

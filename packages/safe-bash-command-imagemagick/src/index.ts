@@ -68,7 +68,7 @@ import { rawRasterInput, rawPartitionPaths } from "./raw-rgb.js";
 import { yuvRasterInput } from "./yuv-input.js";
 import { encodeImage, encodeStoredImage, isRawCoder, type ImageFormat, type RawImage, type StoredRawImage } from "./raw-output.js";
 import { deskewAngleSteps, storedDeskewAngle, deskewPlan, deskewBackground } from "./deskew.js";
-import { compareLayerBounds, initialFrameRestoreBounds, optimizePlusPixels, optimizeTransparencyPixels } from "./compare-layers.js";
+import { clearedLayerBounds, compareLayerBounds, initialFrameRestoreBounds, optimizePlusPixels, optimizeTransparencyPixels } from "./compare-layers.js";
 import { plasmaPixelSteps } from "./plasma.js";
 import { createMagickRandom } from "./random.js";
 import { evaluateNoiseSteps } from "./noise.js";
@@ -14722,7 +14722,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 canvas = { ...yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 0 }), space: first.space, virtualCanvas: { width, height, x: 0, y: 0 } };
                 canvas = yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, first, first.virtualCanvas?.x ?? 0, first.virtualCanvas?.y ?? 0, "copy", undefined, false, 0, true, undefined, true), signal, canvas, [canvas, first]);
             }
+            let priorBounds: { left: number; top: number; width: number; height: number } | undefined;
             for (let n = 1; n < stack.length; n++) {
+                const previousBounds = priorBounds;
+                priorBounds = undefined;
                 let current = stack[n]!;
                 const previous = canvas ?? stack[n - 1]!;
                 if (removeDups && (previous.width !== current.width || previous.height !== current.height ||
@@ -14776,6 +14779,29 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                             continue;
                         }
                     }
+                    if (clear.value && previousBounds && previousBounds.left >= clear.value.left && previousBounds.top >= clear.value.top &&
+                        previousBounds.left + previousBounds.width <= clear.value.left + clear.value.width &&
+                        previousBounds.top + previousBounds.height <= clear.value.top + clear.value.height) {
+                        // The preceding patch can do the clearing itself, without a zero-delay duplicate.
+                        const prior = frames[frames.length - 1]!;
+                        const bounds = clearedLayerBounds(previous, current, state.alphaFuzz, clear.value);
+                        let next = bounds.next();
+                        while (!next.done) {
+                            if (!next.value) { yield; next = bounds.next(); }
+                            else {
+                                const { image, position, length, hue } = next.value;
+                                const source = image ? current : previous;
+                                next = bounds.next(hue ? source.hueSamples?.subarray(position, position + length) : (source.evaluateSamples ?? source.data16 ?? source.data).subarray(position, position + length));
+                            }
+                        }
+                        if (next.value) {
+                            frames[frames.length - 1] = { ...yield* extractImageSteps(prior, clear.value),
+                                virtualCanvas: magickCropCanvas(prior, clear.value.left, clear.value.top), disposal: 2 };
+                            frames.push({ ...yield* extractImageSteps(current, next.value),
+                                virtualCanvas: magickCropCanvas(current, next.value.left, next.value.top), disposal: n === stack.length - 1 ? 2 : 1 });
+                            continue;
+                        }
+                    }
                     if (clear.value) {
                         // Keep the previous display, then clear only the pixels the next frame erases.
                         const prior = frames[frames.length - 1]!;
@@ -14816,8 +14842,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         ...(current.loop !== undefined ? { loop: current.loop } : {}),
                         virtualCanvas: { ...magickCropCanvas(current, 0, 0), x: -1, y: -1 },
                     });
-                    else if (next.value) frames.push(current);
-                    else {
+                    else if (next.value) {
+                        if (optimizePlus && frames[frames.length - 1]?.disposal === 1) priorBounds = next.value;
+                        frames.push(current);
+                    } else {
                         const prior = frames[frames.length - 1]!;
                         const delay = (prior.delay?.[(prior as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0) +
                             (current.delay?.[(current as MagickImage)[magickInput]?.sceneIdx ?? 0] ?? 0);
@@ -19053,7 +19081,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                     const canvas = { ...await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 0 }, backend, signal), space: first.space };
                     previous = { ...await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, first, first.virtualCanvas?.x ?? 0, first.virtualCanvas?.y ?? 0, "copy", undefined, false, 0, true, undefined, true), signal, canvas, [canvas, first]), virtualCanvas: { width, height, x: 0, y: 0 } };
                 }
+                let priorBounds: { left: number; top: number; width: number; height: number } | undefined;
                 for (let n = 1; n < stack.length; n++) {
+                    const previousBounds = priorBounds;
+                    priorBounds = undefined;
                     let current = (await stack.get(n))!;
                     if (removeDups && (previous!.width !== current.width || previous!.height !== current.height ||
                         (previous!.virtualCanvas?.x ?? 0) !== (current.virtualCanvas?.x ?? 0) ||
@@ -19112,6 +19143,33 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                                 continue;
                             }
                         }
+                        if (clear.value && previousBounds && previousBounds.left >= clear.value.left && previousBounds.top >= clear.value.top &&
+                            previousBounds.left + previousBounds.width <= clear.value.left + clear.value.width &&
+                            previousBounds.top + previousBounds.height <= clear.value.top + clear.value.height) {
+                            const prior = (await frames.get(frames.length - 1))!;
+                            const bounds = clearedLayerBounds(previous!, current, fuzz, clear.value);
+                            let next = bounds.next();
+                            while (!next.done) {
+                                if (!next.value) { await yieldTurn(signal); next = bounds.next(); }
+                                else {
+                                    const { image, position, length, hue } = next.value;
+                                    const source = image ? current : previous!;
+                                    const data = hue ? source.storedHueSamples === undefined ? undefined : new Float64Array((await backend.storage.read(source.storedHueSamples + position * 8, length * 8)).slice().buffer) : source.storedEvaluateSamples !== undefined
+                                        ? new Float64Array((await backend.storage.read(source.storedEvaluateSamples + position * 8, length * 8)).slice().buffer) : source.storedData16
+                                        ? new Uint16Array((await backend.storage.read(source.storedData16.position + position * 2, length * 2)).slice().buffer)
+                                        : await backend.storage.read(source.position + position, length);
+                                    next = bounds.next(data);
+                                }
+                            }
+                            if (next.value) {
+                                await frames.set(frames.length - 1, { ...await transformStoredImage(prior, backend.storage, { kind: "extract", ...clear.value }, signal),
+                                    virtualCanvas: magickCropCanvas(prior, clear.value.left, clear.value.top), disposal: 2 });
+                                await frames.push({ ...await transformStoredImage(current, backend.storage, { kind: "extract", ...next.value }, signal),
+                                    virtualCanvas: magickCropCanvas(current, next.value.left, next.value.top), disposal: n === stack.length - 1 ? 2 : 1 });
+                                previous = current;
+                                continue;
+                            }
+                        }
                         if (clear.value) {
                             const prior = (await frames.get(frames.length - 1))!;
                             await frames.set(frames.length - 1, { ...prior, [magickInput]: { ...prior[magickInput], delayTicks: 0 }, disposal: 1,
@@ -19164,8 +19222,10 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                             ...(current.loop !== undefined ? { loop: current.loop } : {}),
                             virtualCanvas: { ...magickCropCanvas(current, 0, 0), x: -1, y: -1 },
                         });
-                        else if (next.value) await frames.push(current);
-                        else {
+                        else if (next.value) {
+                            if (optimizePlus && (await frames.get(frames.length - 1))?.disposal === 1) priorBounds = next.value;
+                            await frames.push(current);
+                        } else {
                             const prior = (await frames.get(frames.length - 1))!;
                             const priorScene = prior[magickInput]?.sceneIdx ?? 0, scene = current[magickInput]?.sceneIdx ?? 0;
                             const delay = (await prior.storedDelay?.at(priorScene, { signal }) ?? prior.delay?.[priorScene] ?? 0) +

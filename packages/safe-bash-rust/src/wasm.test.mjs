@@ -12267,7 +12267,7 @@ test("jq inline regex flags apply to the enclosing group and restore outer modes
       ["aA","(?i:a)(?-i:A)","",true], ["aAA","(?i)a(a)(?-i)a","",false],
       ["aAa","(?i)a(a)(?-i)a","",true], ["aB","(?i:a)b","",false],
       ["Éé",String.raw`(?i:(é)\1)`,"",true], ["é","[À-Ö]","i",true],
-      ["ß","[S]","i",false], ["ß","[S-T]","i",true], ["İ","[i]","i",false],
+      ["ß","[S]","i",false], ["ß","[S-T]","i",false], ["ß","[ß-ß]","i",true], ["İ","[i]","i",false],
       ["ΟΣος",String.raw`(ΟΣ)\1`,"i",true],
       ["a\nb","(?m:^b)","",true], ["a\nb","a(?s:.)b","",true],
       ["a\nb","a(?-s:.)b","m",false], ["b\n","b$","",true],

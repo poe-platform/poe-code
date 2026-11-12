@@ -1651,7 +1651,7 @@ pub(super) fn mdq_fold(c: char) -> char {
 }
 
 fn folded_in_range(mut folded: impl Iterator<Item = char>, lo: char, hi: char) -> bool {
-    folded.next().is_some_and(|first| first >= lo && (first < hi || first == hi && folded.next().is_none()))
+    folded.next().is_some_and(|first| (lo..=hi).contains(&first) && folded.next().is_none())
 }
 
 fn matches_char(token: &RxToken, ch: char, ignore_case: bool) -> bool {

@@ -1381,7 +1381,7 @@ function *renderDisplayListLayerSteps(
       const left = Math.floor(cornersPx[0]!), top = Math.floor(cornersPy[3]!);
       const right = Math.floor(cornersPx[1]!), bottom = Math.floor(cornersPy[0]!);
       const dx = img.width / (right - left + 1), dy = img.height / (bottom - top + 1);
-      const splash = options.splashImageSampling && a > 0 && d > 0 && b === 0 && c === 0
+      const splash = options.splashImageSampling && original.kind === "image" && a > 0 && d > 0 && b === 0 && c === 0
         && dx <= 1 && dy <= 1 && dx > 0.25 && dy > 0.25;
       const minPx = Math.max(0, clipMinPx, Math.floor(Math.min(...cornersPx)));
       const maxPx = Math.min(width - 1, clipMaxPx, axisAligned ? Math.floor(Math.max(...cornersPx)) : Math.ceil(Math.max(...cornersPx)) - 1);

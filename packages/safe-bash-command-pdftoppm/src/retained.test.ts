@@ -392,7 +392,12 @@ test("renders short JPEG samples on the PDF grid in both command paths", async (
     assert.ok(bitmap.data[1]! <= 5);
     assert.ok(bitmap.data[2]! <= 5);
     assert.equal(bitmap.data[3], 255);
-    assert.ok(bitmap.data.subarray(4).every(value => value === 255));
+    // Poppler Splash interpolates the lone decoded sample onto its three neighbors.
+    for (const [pixel, rgb] of [[1, [254, 253, 253]], [200, [254, 252, 252]], [201, [254, 254, 254]]] as const) {
+      assert.deepEqual(Array.from(bitmap.data.subarray(pixel * 4, pixel * 4 + 4)), [...rgb, 255]);
+    }
+    for (const [start, end] of [[2, 200], [202, 20000]] as const)
+      assert.ok(bitmap.data.subarray(start * 4, end * 4).every(value => value === 255));
   }
   await f.clean();
 });

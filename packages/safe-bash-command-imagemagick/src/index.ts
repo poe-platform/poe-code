@@ -2983,13 +2983,15 @@ function* applyMagickSpliceSteps(img: RgbaImage, geomStr: string, bg: RgbaColor,
     const hueSamples = img.hueSamples ? new Float64Array(out.length) : undefined;
     const virtualBackground = bg;
     const random = virtualPixel === "random" ? createMagickRandom(seed) : undefined;
-    if (img.space === "cmyk" && !("space" in bg && bg.space === "b-w")) {
-        // Native gray fills retain their intensity; RGB fills use linear samples.
-        const rgb = [bg.r, bg.g, bg.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
-        bg = { ...bg, r: rgb[0]! * 255, g: rgb[1]! * 255, b: rgb[2]! * 255 };
+    const backgroundInks = img.space === "cmyk" && !("space" in bg && bg.space === "b-w")
+        ? opaqueTargetCmyk(bg.r / 255, bg.g / 255, bg.b / 255) : undefined;
+    if (backgroundInks) {
+        // Native PixelInfo gamma retains fractional black even in bright RGB fills.
+        const rgb = backgroundInks.slice(0, 3).map(ink => (1 - ink) * (1 - backgroundInks[3]!) * 255);
+        bg = { ...bg, r: rgb[0]!, g: rgb[1]!, b: rgb[2]! };
     }
-    const workingBackground = img.space === "cmyk" ? rgbToCmyk(bg.r / 255, bg.g / 255, bg.b / 255)
-        : [bg.r, bg.g, bg.b, bg.a].map(value => value / 255);
+    const workingBackground = backgroundInks?.map(value => Math.fround(value * 65535) / 65535) ?? (img.space === "cmyk" ? rgbToCmyk(bg.r / 255, bg.g / 255, bg.b / 255)
+        : [bg.r, bg.g, bg.b, bg.a].map(value => value / 255));
     const background = [bg.r, bg.g, bg.b, bg.a].map(value => Math.round(value * 257));
     for (let y = 0; y < outH; y++) {
         if (++cooperativeWork % 65536 === 0)
@@ -17378,10 +17380,12 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
         image[magickInput] = { ...image[magickInput], imageType: undefined };
         if (width === w && height === h) return image;
     }
-    if (token === "-splice" && image.space === "cmyk" && !("space" in background && background.space === "b-w")) {
-        // Native gray fills retain their intensity; RGB fills use linear samples.
-        const rgb = [background.r, background.g, background.b].map(value => value / 255).map(value => value <= 0.04045 ? value / 12.92 : ((value + 0.055) / 1.055) ** 2.4);
-        background = { ...background, r: rgb[0]! * 255, g: rgb[1]! * 255, b: rgb[2]! * 255 };
+    const backgroundInks = token === "-splice" && image.space === "cmyk" && !("space" in background && background.space === "b-w")
+        ? opaqueTargetCmyk(background.r / 255, background.g / 255, background.b / 255) : undefined;
+    if (backgroundInks) {
+        // Native PixelInfo gamma retains fractional black even in bright RGB fills.
+        const rgb = backgroundInks.slice(0, 3).map(ink => (1 - ink) * (1 - backgroundInks[3]!) * 255);
+        background = { ...background, r: rgb[0]!, g: rgb[1]!, b: rgb[2]! };
     }
     if (token === "-splice" && !image.storedData16 && (state.virtualPixel === "gray" || [virtualBackground.r, virtualBackground.g, virtualBackground.b, virtualBackground.a].some(value => !Number.isInteger(value)))) {
         const length = w * h * 4, position = backend.storage.allocate(length * 2);
@@ -17400,7 +17404,7 @@ async function transformStoredMagickCoordinates(image: StoredRgbaImage, backend:
     for (const [target, range] of [[storedEvaluateSamples, 1], [storedHueSamples, 255]] as const) {
         if (target === undefined || token !== "-splice") continue;
         const color = target === storedHueSamples && image.space === "cmyk"
-            ? rgbToCmyk(background.r / 255, background.g / 255, background.b / 255)
+            ? backgroundInks?.map(value => Math.fround(value * 65535) / 65535) ?? rgbToCmyk(background.r / 255, background.g / 255, background.b / 255)
             : [background.r, background.g, background.b, background.a].map(value => value / range);
         for (let offset = 0; offset < width * height * 4; offset += 2048) {
             await yieldTurn(signal);

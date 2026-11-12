@@ -40,3 +40,26 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         expect(createHash("sha256").update(output).digest("hex")).toBe(hash);
     });
 }
+
+// Native Q16-HDRI PixelInfo gamma retains fractional black in bright fills.
+for (const mode of ["command", "retained", "buffered", "sync"] as const) {
+    it.each([
+        { background: "red", output: ["-channel", "K", "-separate", "+channel", "-evaluate", "multiply", "100000000", "-depth", "8", "gray:/out"], expected: "001d" },
+        { background: "white", output: ["-channel", "K", "-separate", "+channel", "-evaluate", "multiply", "100000000", "-depth", "8", "gray:/out"], expected: "001d" },
+        { background: "black", output: ["-channel", "K", "-separate", "+channel", "-evaluate", "multiply", "100000000", "-depth", "8", "gray:/out"], expected: "00ff" },
+        { background: "red", source: "#123456", output: ["-format", "%[pixel:p{0,0}]|%[pixel:p{1,0}]", "info:/out"], expected: "cmyk(201.628,100.814,0,169)|cmyk(0,255,255,2.92481e-07)", text: true },
+    ])(`${mode}: preserves fractional splice black with $background ($text)`, async ({ background, source = "red", output, expected, text }) => {
+        const files = new Map<string, Uint8Array>(), fs = new MemoryFileSystem();
+        const argv = [`xc:${source}`, "-colorspace", "CMYK", "-background", background, "-splice", "1x0+1+0", ...output];
+        const argumentValues = createCommandArguments(argv);
+        const result = mode === "command" ? await createMagickCommand().execute({
+            command: "magick", args: argumentValues.args, argumentValues, cwd: "/", env: {}, fs,
+            signal: new AbortController().signal, stdin: (async function* () {})(),
+            stdout: { async write() {} }, stderr: { async write() {} }
+        }) : mode === "sync" ? runMagickCliSync(argv, files)
+            : await runMagickCli(argv, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
+        expect(result.exitCode).toBe(0);
+        const bytes = mode === "command" || mode === "retained" ? await fs.readFile("/out") : files.get("/out")!;
+        expect(Buffer.from(bytes).toString(text ? "utf8" : "hex")).toBe(expected);
+    });
+}

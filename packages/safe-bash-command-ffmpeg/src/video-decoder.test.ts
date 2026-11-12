@@ -48,11 +48,16 @@ for (const option of ["-c:v", "-vcodec", "-codec:v"]) {
   }
 
   for (const sync of [false, true]) {
-    it(`${sync ? "sync" : "async"} chooses the output image encoder independently of ${option} png`, async () => {
+    it(`${sync ? "sync defers BMP output" : "async chooses the output image encoder"} independently of ${option} png`, async () => {
       const { volume, result, stderr } = await run([
         "-y", "-v", "error", option, "png", "-i", "/in.png", "/out.bmp"
       ], sync);
-      assert.deepEqual(result, sync ? "" : { exitCode: 0 }, stderr);
+      if (sync) {
+        assert.equal(result, undefined);
+        assert.equal(volume.existsSync("/out.bmp"), false);
+        return;
+      }
+      assert.deepEqual(result, { exitCode: 0 }, stderr);
       const bytes = volume.readFileSync("/out.bmp") as Buffer;
       assert.equal(bytes.subarray(0, 2).toString(), "BM");
       const image = decodeImage(bytes);

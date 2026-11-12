@@ -681,6 +681,10 @@ unchanged. With `lfe=0` or stereo output, both modes produce the same audio.
 case-insensitive `n`/`disabled` for off and `y`/`enabled` for on. The default
 window is 4096 samples; multiples of four from 1024 to 65536 are supported,
 including `surround=win_size=1536`. Other transform sizes fail with status 218.
+`overlap` accepts 0–1 (default 0.5); 1 selects the window’s recommended overlap.
+With `win_size=1024`, overlaps 0.25, 0.5, and 0.75 emit frames of 768, 512, and
+256 samples, respectively, and adjust the audio accordingly. The last frame may
+be shorter; downstream filters such as `aselect` see these frame boundaries.
 `win_size` accepts expressions such as `512*2` and constants `min`, `max`, and
 `default`. Values are checked against that range, then rounded to the nearest
 integer (ties to even) before selecting the transform size. Out-of-range sizes fail

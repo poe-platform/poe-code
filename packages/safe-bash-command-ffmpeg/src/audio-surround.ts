@@ -97,6 +97,12 @@ export async function surroundAudio(
       else if (value === "hann" || value === "hanning" || value === "1") windowFunction = "hann";
       else if (value === "hamming" || value === "2") windowFunction = "hamming";
       else throw new Error(`surround: unsupported option ${key}`);
+    } else if (key === "overlap") {
+      const number = parseFilterExpression(value, "surround", { min: 0, max: 1, default: 0.5 });
+      if (!Number.isFinite(number) || number < 0 || number > 1) {
+        throw new RangeError("surround: overlap must be between 0 and 1");
+      }
+      windowOverlap = Math.fround(number);
     } else if (key === "lfe") {
       const boolean = value.toLowerCase();
       if (["1", "true", "yes", "on", "y", "enabled"].includes(boolean)) lfe = true;
@@ -120,8 +126,8 @@ export async function surroundAudio(
     .map(value => spread.allx >= 0 ? spread.allx : value);
   const spreadY = [spread.fly, spread.fry, spread.fcy, 0, spread.bly, spread.bry]
     .map(value => spread.ally >= 0 ? spread.ally : value);
-  // One selects the Hann window's recommended overlap.
-  if (windowOverlap === 1) windowOverlap = 0.5;
+  // One selects the window's recommended overlap.
+  if (windowOverlap === 1) windowOverlap = windowFunction === "rect" ? 0 : 0.5;
   const length = channels[0]!.length;
   const hop = Math.max(1, Math.trunc(size * (1 - windowOverlap)));
   const scratchLength = (size & (size - 1)) === 0 ? 0 : 4 * 2 ** Math.ceil(Math.log2(2 * size - 1));

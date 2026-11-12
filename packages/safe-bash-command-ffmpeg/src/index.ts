@@ -1509,16 +1509,22 @@ async function renderShowwavespic(
   const splitOption = options.split_channels ?? "0";
   if (!["0", "1", "false", "true"].includes(splitOption)) throw new Error("showwavespic: invalid split_channels");
   const split = splitOption === "1" || splitOption === "true";
-  const scale = options.scale ?? "lin";
-  if (!["lin", "log", "sqrt", "cbrt", "0", "1", "2", "3"].includes(scale)) {
-    throw new Error("showwavespic: invalid scale");
+  function numericOption(key: string, names: string[]): number {
+    const max = names.length - 1;
+    let value: number;
+    try {
+      value = parseFilterExpression(options[key] ?? "default", "showwavespic", {
+        ...Object.fromEntries(names.map((name, index) => [name, index])), min: 0, max, default: 0
+      });
+    } catch {
+      throw new Error(`showwavespic: invalid ${key}`);
+    }
+    if (!Number.isFinite(value) || value < 0 || value > max) throw new Error(`showwavespic: invalid ${key}`);
+    return roundToEven(value);
   }
-  const draw = options.draw ?? "scale";
-  if (!["scale", "full", "0", "1"].includes(draw)) throw new Error("showwavespic: invalid draw");
-  const full = draw === "full" || draw === "1";
-  const filter = options.filter ?? "average";
-  if (!["average", "peak", "0", "1"].includes(filter)) throw new Error("showwavespic: invalid filter");
-  const peak = filter === "peak" || filter === "1";
+  const scale = numericOption("scale", ["lin", "log", "sqrt", "cbrt"]);
+  const full = numericOption("draw", ["scale", "full"]) === 1;
+  const peak = numericOption("filter", ["average", "peak"]) === 1;
   const colors = (options.colors ?? "red|green|blue|yellow|orange|lime|0xffc0cb|magenta|0xa52a2a").split("|");
   const channels = audio.channelData;
   const count = channels[0]?.length ?? 0;
@@ -1551,11 +1557,11 @@ async function renderShowwavespic(
       let size = Math.round(magnitude * rowHeight);
       // Native nonlinear scales use the aggregated int16 amplitude and truncate the height.
       const sample = Math.min(32768, Math.floor(magnitude * 32768));
-      if (scale === "log" || scale === "1") {
+      if (scale === 1) {
         size = Math.floor(Math.log10(1 + sample) * rowHeight / Math.log10(32768));
-      } else if (scale === "sqrt" || scale === "2") {
+      } else if (scale === 2) {
         size = Math.floor(Math.sqrt(sample) * rowHeight / Math.sqrt(32767));
-      } else if (scale === "cbrt" || scale === "3") {
+      } else if (scale === 3) {
         size = Math.floor(Math.cbrt(sample) * rowHeight / Math.cbrt(32767));
       }
       size = Math.min(rowHeight, size);

@@ -12914,13 +12914,14 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
         image = yield* applyMagickRasterSteps(image, writeMaskPixelSteps(image, mask, true, false, undefined, original.hasAlpha && original.alphaBlend !== false), undefined, image, original.writeMask ? [image, original, original.writeMask] : [image, original]);
     }
     image = yield* prepareInactiveAlphaOutput(image);
-    if (format === "png" && image.data16 && (!pngCoder || pngCoder === "png00")) {
+    if (format === "png" && (!pngCoder || pngCoder === "png00")) {
+        const samples = image.data16 ?? image.data, range = image.data16 ? 65535 : 255;
         let gray = true, hasAlpha = false, highDepth = false;
-        for (let offset = 0; offset < image.data16.length && (gray || !hasAlpha); offset += 4) {
+        for (let offset = 0; offset < samples.length && (gray || !hasAlpha); offset += 4) {
             if (offset % 16384 === 0) yield;
-            gray &&= image.data16[offset] === image.data16[offset + 1] && image.data16[offset + 1] === image.data16[offset + 2];
-            hasAlpha ||= image.data16[offset + 3] !== 65535;
-            highDepth ||= image.data16[offset]! % 257 !== 0;
+            gray &&= samples[offset] === samples[offset + 1] && samples[offset + 1] === samples[offset + 2];
+            hasAlpha ||= samples[offset + 3] !== range;
+            highDepth ||= range === 65535 && samples[offset]! % 257 !== 0;
         }
         // Working grayscale precision must not promote an 8-bit source to 16-bit PNG.
         image = { ...image, depth: gray && highDepth && (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8 ? "ushort" : image.depth, hasAlpha, channels: gray ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3 };
@@ -12998,17 +12999,19 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
         image = await transformStoredMagickRaster(image, backend, writeMaskPixelSteps(image, mask, true, false, undefined, original.hasAlpha && original.alphaBlend !== false), signal, image, original.storedWriteMask ? [image, original, original.storedWriteMask] : [image, original]);
     }
     if (!image.hasAlpha) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, apply: prepareInactiveAlphaOutput }, signal);
-    if (format === "png" && image.storedData16 && (!pngCoder || pngCoder === "png00")) {
+    if (format === "png" && (!pngCoder || pngCoder === "png00")) {
+        const size = image.storedData16 ? 2 : 1, start = image.storedData16?.position ?? image.position;
+        const length = image.width * image.height * 4, range = image.storedData16 ? 65535 : 255;
         let gray = true, hasAlpha = false, highDepth = false;
-        for (let offset = 0; offset < image.storedData16.length && (gray || !hasAlpha); offset += 4096) {
+        for (let offset = 0; offset < length && (gray || !hasAlpha); offset += 4096) {
             if (offset % 262144 === 0) await yieldTurn(signal);
             signal.throwIfAborted();
-            const bytes = await backend.storage.read(image.storedData16.position + offset * 2, Math.min(4096, image.storedData16.length - offset) * 2);
-            const samples = new Uint16Array(bytes.slice().buffer);
+            const bytes = await backend.storage.read(start + offset * size, Math.min(4096, length - offset) * size);
+            const samples = size === 2 ? new Uint16Array(bytes.slice().buffer) : bytes;
             for (let index = 0; index < samples.length; index += 4) {
                 gray &&= samples[index] === samples[index + 1] && samples[index + 1] === samples[index + 2];
-                hasAlpha ||= samples[index + 3] !== 65535;
-                highDepth ||= samples[index]! % 257 !== 0;
+                hasAlpha ||= samples[index + 3] !== range;
+                highDepth ||= range === 65535 && samples[index]! % 257 !== 0;
             }
         }
         // Working grayscale precision must not promote an 8-bit source to 16-bit PNG.
@@ -23887,7 +23890,8 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         const outPath = path === "-" ? path : (sceneCount > 1 && !adjoin) || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, page) : path.replaceAll("%%", "%");
         if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
         if (format === "png") canvas = { ...canvas, backgroundColor: state.background };
-        const { data: encoded } = encodeImage(canvas, { outputFilename: outPath, ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), format, netpbmAscii: state.netpbmAscii ?? false, rawInterlace: state.rawInterlace, netpbmDepth: state.inputDepth ?? 16, endian: state.inputEndian, tiffEndian: state.inputEndian === "msb" ? "msb" : "lsb", miffDepth: (state.inputDepth ?? 16) <= 8 ? 8 : 16, pngCoder, gifVersion, tiffBig, bmpRenderingIntent: state.optionProperties?.intent, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4", ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), pngPreserveColormap: state.pngPreserveColormap, pngBitDepth: state.pngBitDepth ?? (state.inputDepth !== undefined && state.inputDepth <= 8 ? 8 : undefined), ...(state.jpegRestartInterval === undefined ? {} : { jpegRestartInterval: state.jpegRestartInterval }), ...(state.jpegDctMethod === undefined ? {} : { jpegDctMethod: state.jpegDctMethod }), ...(state.jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding: state.jpegOptimizeCoding }), ...(state.jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding: state.jpegArithmeticCoding }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}), consumeInput: true } as any);
+        if (format === "png") canvas = yield* prepareMagickOutput({ ...canvas, bitsPerSample: state.inputDepth ?? 16 }, format, state.dither, state.diffusionAmount, pngCoder, state.inputType);
+        const { data: encoded } = encodeImage(canvas, { palette: true, outputFilename: outPath, ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), format, netpbmAscii: state.netpbmAscii ?? false, rawInterlace: state.rawInterlace, netpbmDepth: state.inputDepth ?? 16, endian: state.inputEndian, tiffEndian: state.inputEndian === "msb" ? "msb" : "lsb", miffDepth: (state.inputDepth ?? 16) <= 8 ? 8 : 16, pngCoder, gifVersion, tiffBig, bmpRenderingIntent: state.optionProperties?.intent, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4", ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), pngPreserveColormap: state.pngPreserveColormap, pngBitDepth: state.pngBitDepth ?? (state.inputDepth !== undefined && state.inputDepth <= 8 ? 8 : undefined), ...(state.jpegRestartInterval === undefined ? {} : { jpegRestartInterval: state.jpegRestartInterval }), ...(state.jpegDctMethod === undefined ? {} : { jpegDctMethod: state.jpegDctMethod }), ...(state.jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding: state.jpegOptimizeCoding }), ...(state.jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding: state.jpegArithmeticCoding }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}), consumeInput: true } as any);
         detachRgbaBuffer(canvas.data);
         if (adjoin || outPath === "-" || outSpec.endsWith(":-")) {
             stdoutChunks.push(encoded);
@@ -24761,7 +24765,8 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             const { format, path } = output;
             const outputPath = path === "-" ? path : n > cols * rows || hasSceneOutputPattern(path) ? formatSceneOutputPath(path, pageStart / (cols * rows)) : path.replaceAll("%%", "%");
             if (format === "png") canvas = { ...canvas, backgroundColor: state.background };
-            const stdoutBytes = await (n > cols * rows ? backend.stage : backend.publish)(canvas, outputPath, { format, ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), pngCoder: output.pngCoder, pngInterlace: state.pngInterlace, ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), netpbmAscii: state.netpbmAscii ?? false, rawInterlace: state.rawInterlace, netpbmDepth: state.inputDepth ?? 16, endian: state.inputEndian, tiffEndian: state.inputEndian === "msb" ? "msb" : "lsb", miffDepth: (state.inputDepth ?? 16) <= 8 ? 8 : 16, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) });
+            if (format === "png") canvas = await prepareStoredMagickOutput({ ...canvas, bitsPerSample: state.inputDepth ?? 16 }, format, backend, signal, state.dither, state.diffusionAmount, output.pngCoder, state.inputType);
+            const stdoutBytes = await (n > cols * rows ? backend.stage : backend.publish)(canvas, outputPath, { format, palette: true, ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), pngCoder: output.pngCoder, pngInterlace: state.pngInterlace, ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), netpbmAscii: state.netpbmAscii ?? false, rawInterlace: state.rawInterlace, netpbmDepth: state.inputDepth ?? 16, endian: state.inputEndian, tiffEndian: state.inputEndian === "msb" ? "msb" : "lsb", miffDepth: (state.inputDepth ?? 16) <= 8 ? 8 : 16, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) });
             if (stdoutBytes) stdoutChunks.push(stdoutBytes);
         }
         if (adjoin) {

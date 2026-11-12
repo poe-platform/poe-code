@@ -4001,13 +4001,9 @@ function sampleFxImage(
     return ch === 4 ? sampleFxPixel(cmyk, 0, ch, img, 1) : cmyk[channel]!;
   }
   if ((img.magickColorspace === "HCL" || img.magickColorspace === "HCLp" || img.magickColorspace === "HSL" || img.magickColorspace === "HSB" || img.magickColorspace === "HSV" || img.magickColorspace === "HSI" || img.magickColorspace === "HWB" || img.magickColorspace === "LMS" || img.magickColorspace === "CAT02LMS" || img.magickColorspace === "XYZ" || img.magickColorspace === "DisplayP3" || img.magickColorspace === "xyY" || img.magickColorspace === "ProPhoto" || img.magickColorspace === "Jzazbz" || (img.magickColorspace === "YPbPr" || img.magickColorspace === "YCbCr") || img.magickColorspace === "Rec601YCbCr" || img.magickColorspace === "YCC" || img.magickColorspace === "Rec709YCbCr" || img.magickColorspace === "Log" || img.magickColorspace === "Adobe98" || img.magickColorspace === "OHTA" || img.magickColorspace === "CMY" || img.magickColorspace === "YUV" || img.magickColorspace === "YIQ" || img.magickColorspace === "YDbDr" || img.magickColorspace === "Oklab" || img.magickColorspace === "Luv" || img.magickColorspace === "Oklch" || img.magickColorspace === "LCH" || img.magickColorspace === "LCHab" || img.magickColorspace === "LCHuv" || img.magickColorspace === "CIELab") && img.hueSamples && ch < 4) return img.hueSamples[idx + ch]!;
-<<<<<<< HEAD
   // Converted color channels retain fractional samples outside the integer encoding planes.
-  if (ch === 4 && img.hueSamples && img.space !== "cmyk") return sampleFxPixel(img.hueSamples, idx, ch, 1);
-  return sampleFxPixel(img.evaluateSamples ?? img.data16 ?? img.data!, idx, ch, img.evaluateSamples ? 255 : img.data16 ? 65535 : 255);
-=======
+  if (ch === 4 && img.hueSamples && img.space !== "cmyk") return sampleFxPixel(img.hueSamples, idx, ch, img, 1);
   return sampleFxPixel(img.evaluateSamples ?? img.data16 ?? img.data!, idx, ch, img, img.evaluateSamples ? 255 : img.data16 ? 65535 : 255);
->>>>>>> 3a4b55cb77 (fix(imagemagick): honor selected intensity in FX expressions)
 }
 function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefined, x: number, y: number, ch: number, interpolation?: LookupInterpolation): number {
   if (!img) return 0;

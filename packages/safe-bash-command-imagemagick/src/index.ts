@@ -15546,12 +15546,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 }
                 if (state.composeRaw.toLowerCase() === "over") {
                     return { ...yield* applyMagickRasterSteps(im, borderPixels(im, bw, bh, borderColor, !!im.data16), signal,
-                        { width, height, hasAlpha: im.hasAlpha || borderColor.a < 255 }), alphaBlend: borderColor.a < 255 ? true : im.alphaBlend, region: undefined, writeMask, readMask, metaChannels, virtualCanvas: magickBorderCanvas(im, bw, bh) };
+                        { width, height, hasAlpha: im.hasAlpha || !im.inactiveAlpha && borderColor.a < 255 }), alphaBlend: !im.inactiveAlpha && borderColor.a < 255 ? true : im.alphaBlend, region: undefined, writeMask, readMask, metaChannels, virtualCanvas: magickBorderCanvas(im, bw, bh) };
                 }
                 const canvas = yield* createSolidRgbaImageSteps(width, height, borderColor);
                 if (im.alphaBlend === false) im = yield* prepareInactiveAlphaOutput(im);
                 const composed = yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, bw, bh, state.composeArgs, signal, state.alphaFuzz, true);
-                return { ...composed, writeMask, readMask, metaChannels, virtualCanvas: magickBorderCanvas(im, bw, bh) };
+                return { ...composed,
+                    ...(im.inactiveAlpha ? { hasAlpha: false, inactiveAlpha: true, alphaBlend: im.alphaBlend, alphaSeparate: im.alphaSeparate } : {}),
+                    writeMask, readMask, metaChannels, virtualCanvas: magickBorderCanvas(im, bw, bh) };
             }));
         }
         else if (t === "-shave") {
@@ -20732,12 +20734,13 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 }
                 if (compose.toLowerCase() === "over") {
                     return { ...await transformStoredMagickRaster(image, backend, borderPixels(image, left, top, background, !!image.storedData16), signal,
-                        { width, height, hasAlpha: image.hasAlpha || background.a < 255 }), alphaBlend: background.a < 255 ? true : image.alphaBlend, region: undefined, storedWriteMask, readMask, storedMetaChannels, virtualCanvas: magickBorderCanvas(image, left, top) };
+                        { width, height, hasAlpha: image.hasAlpha || !image.inactiveAlpha && background.a < 255 }), alphaBlend: !image.inactiveAlpha && background.a < 255 ? true : image.alphaBlend, region: undefined, storedWriteMask, readMask, storedMetaChannels, virtualCanvas: magickBorderCanvas(image, left, top) };
                 }
                 const canvas = await createStoredCanvas(width, height, background, backend, signal);
                 if (image.alphaBlend === false) image = await transformStoredMagickPixels(image, backend,
                     { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal);
                 return { ...await compositeStoredMagick(canvas, image, backend, signal, left, top, compose, composeArgs, false, true, false, false, fuzz, true),
+                    ...(image.inactiveAlpha ? { hasAlpha: false, inactiveAlpha: true, alphaBlend: image.alphaBlend, alphaSeparate: image.alphaSeparate } : {}),
                     storedWriteMask, readMask, storedMetaChannels, virtualCanvas: magickBorderCanvas(image, left, top) };
             });
         } else {

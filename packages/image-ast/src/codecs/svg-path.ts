@@ -1,3 +1,4 @@
+import { svgArcPoints } from "./svg-path-arc.js";
 import {SvgNumber} from "./svg-number.js";
 
 export type SvgPathToken = string | number;
@@ -61,6 +62,13 @@ export function* svgPathSteps(): Generator<SvgPathPoint | undefined, boolean, Sv
         const ny = (yield* readNum());
         curY = cmd === "v" ? curY + ny : ny;
         yield [curX, curY];
+      } else if (command === "A") {
+        const rx = yield* readNum(), ry = yield* readNum(), rotation = yield* readNum();
+        const large = (yield* readNum()) !== 0, sweep = (yield* readNum()) !== 0;
+        const x = (relative ? curX : 0) + (yield* readNum()), y = (relative ? curY : 0) + (yield* readNum());
+        yield* svgArcPoints([curX, curY], [x, y], rx, ry, rotation, large, sweep);
+        curX = x;
+        curY = y;
       } else if (command === "C" || command === "S") {
         const reflect = previousCommand === "C" || previousCommand === "S";
         const x1 = command === "S" ? (reflect ? 2 * curX - controlX : curX) : (relative ? curX : 0) + (yield* readNum());

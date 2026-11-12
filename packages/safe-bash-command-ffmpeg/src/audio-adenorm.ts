@@ -3,9 +3,11 @@ import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
 
 export async function adenormAudio(
-  channels: readonly (Float32Array | Float64Array)[], filter: string,
+  channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
+  frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[],
   budget: MediaBudgetTracker, signal?: AbortSignal
 ): Promise<Float64Array[]> {
+  let enable: string | undefined;
   let level = -351;
   let type = "dc";
   let positionalIndex = 0;
@@ -16,7 +18,10 @@ export async function adenormAudio(
     const separator = option.indexOf("=");
     const key = separator < 0 ? ["level", "type"][positionalIndex++] : option.slice(0, separator).trim();
     const value = option.slice(separator + 1).trim();
-    if (key === "level") {
+    if (key === "enable") {
+      enable = value;
+      parseFilterExpression(enable, "adenorm enable", { n: 0, t: 0, pos: NaN, w: 0, h: 0 }, undefined, new Float64Array(10), []);
+    } else if (key === "level") {
       level = parseFilterExpression(value, "adenorm", {});
       if (!value || !Number.isFinite(level) || level < -451 || level > -90) {
         throw new RangeError("adenorm: invalid level");
@@ -31,20 +36,35 @@ export async function adenormAudio(
   const amplitude = 10 ** (level / 20);
   budget.allocateMemory(channels.reduce((sum, channel) => sum + channel.length * 8, 0));
   const output = channels.map(channel => new Float64Array(channel.length));
+  budget.allocateMemory(80);
+  const registers = new Float64Array(10);
+  const randomStates: BigUint64Array[] = [];
   let work = 0;
-  for (const [c, channel] of channels.entries()) {
-    for (let i = 0; i < channel.length; i++) {
-      if (work++ % 4096 === 0) {
-        await yieldTurn(signal);
-        signal?.throwIfAborted();
-        budget.checkCpu();
-      }
-      let noise = amplitude;
-      if (type === "ac" && i % 2) noise = -amplitude;
-      else if (type === "square" && Math.floor(i / 256) % 2) noise = -amplitude;
-      else if (type === "pulse" && i % 256) noise = 0;
-      output[c]![i] = channel[i]! + noise;
+  let processed = 0;
+  for (const [n, frame] of frames.entries()) {
+    let enabled = true;
+    if (enable !== undefined) {
+      const variables = { n, t: frame.pts / sampleRate, pos: frame.pos ?? NaN, w: 0, h: 0 };
+      // Generic timelines evaluate on consumption and again before filter_frame.
+      parseFilterExpression(enable, "adenorm enable", variables, undefined, registers, randomStates);
+      enabled = Math.abs(parseFilterExpression(enable, "adenorm enable", variables, undefined, registers, randomStates)) >= 0.5;
     }
+    for (const [c, channel] of channels.entries()) {
+      for (let i = frame.start; i < frame.end; i++) {
+        if (work++ % 4096 === 0) {
+          await yieldTurn(signal);
+          signal?.throwIfAborted();
+          budget.checkCpu();
+        }
+        const position = processed + i - frame.start;
+        let noise = amplitude;
+        if (type === "ac" && position % 2) noise = -amplitude;
+        else if (type === "square" && Math.floor(position / 256) % 2) noise = -amplitude;
+        else if (type === "pulse" && position % 256) noise = 0;
+        output[c]![i] = enabled ? channel[i]! + noise : channel[i]!;
+      }
+    }
+    if (enabled) processed += frame.end - frame.start;
   }
   return output;
 }

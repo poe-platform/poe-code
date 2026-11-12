@@ -15527,14 +15527,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         filteredChannelMask = 3;
                         filteredChannelNames = undefined;
                         filteredSampleFormat = "dbl";
-                      } else if (filterName === "adenorm") {
-                        if (!autoConversionFilters && filteredSampleFormat !== "dblp") throw new Error(audioConversionDisabled);
-                        stretched = await adenormAudio(stretched, trimmed, budget, context.signal);
-                        filteredSampleFormat = "dblp";
                       } else if (trimmed === "apsyclip" || trimmed.startsWith("apsyclip=")) {
                         stretched = await psychoacousticClip(stretched, origRate, trimmed, budget, context.signal);
                         filteredSampleFormat = "fltp";
-                      } else if (filterName === "adecorrelate" || filterName === "adynamicsmooth" || filterName === "adynamicequalizer" || filterName === "acrusher" || filterName === "aemphasis" || filterName === "deesser" || filterName === "aexciter" || filterName === "atilt" || filterName === "aphaseshift" || filterName === "afreqshift" || filterName === "silenceremove" || filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo" || filterName === "asoftclip" || filterName === "asubboost" || filterName === "agate") {
+                      } else if (filterName === "adenorm" || filterName === "adecorrelate" || filterName === "adynamicsmooth" || filterName === "adynamicequalizer" || filterName === "acrusher" || filterName === "aemphasis" || filterName === "deesser" || filterName === "aexciter" || filterName === "atilt" || filterName === "aphaseshift" || filterName === "afreqshift" || filterName === "silenceremove" || filterName === "alimiter" || filterName === "speechnorm" || filterName === "afade" || filterName === "compensationdelay" || filterName === "vibrato" || filterName === "tremolo" || filterName === "asoftclip" || filterName === "asubboost" || filterName === "agate") {
                         if (!audioTimestamps) {
                           audioTimestamps = [];
                           const length = stretched[0]?.length ?? 0;
@@ -15551,7 +15547,11 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             start = end;
                           }
                         }
-                        if (filterName === "adecorrelate") {
+                        if (filterName === "adenorm") {
+                          if (!autoConversionFilters && filteredSampleFormat !== "dblp") throw new Error(audioConversionDisabled);
+                          stretched = await adenormAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
+                          filteredSampleFormat = "dblp";
+                        } else if (filterName === "adecorrelate") {
                           stretched = await decorrelateAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal);
                           filteredSampleFormat = "dblp";
                         } else if (filterName === "adynamicsmooth") {

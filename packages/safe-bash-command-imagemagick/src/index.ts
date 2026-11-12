@@ -1749,7 +1749,8 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   channelSelection?: MagickFormatContext["channelSelection"],
   precision = 6
 ): Generator<undefined|Step, Record<string, string>, Resume> {
-  const channelIds = img.hasAlpha ? [0, 1, 2, 3] : [0, 1, 2];
+  const channelIds = img.space === "b-w" || img.space === "grey16" ? [0] : [0, 1, 2];
+  if (img.hasAlpha) channelIds.push(3);
   if (img.space === "cmyk") channelIds.push(8);
   const channels = channelIds.length;
   const selectedChannels = channelIds.map(channel => !channelSelection || (channel === 8
@@ -4704,7 +4705,8 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
         }, statistics, false, function*(position, length): Generator<ConvolveRequest, Uint8Array, Uint8Array | undefined> {
             return (yield { kind: "read", image: stack.length, position, length })!;
         });
-        const selected = mask.filter((enabled, channel) => enabled && (channel !== 3 || base.hasAlpha)).length;
+        const selected = mask.filter((enabled, channel) => enabled && (channel !== 3 || base.hasAlpha)
+            && (base.space !== "b-w" && base.space !== "grey16" || channel !== 1 && channel !== 2)).length;
         for (const name of ["mean", "standard_deviation", "minima", "maxima", "median", "skewness", "kurtosis"]) {
             statistics[name] = name === "minima" && selected > 0 ? 1 : 0;
             for (let channel = 0; channel < 4; channel++) {
@@ -4712,7 +4714,7 @@ function* magickFxPixelSteps(input: readonly FxImage[] | FxStack, expression: st
                     statistics[`${name}.${channel}`] = 0;
                     continue;
                 }
-                const value = statistics[`${name}.${channel}`]!;
+                const value = statistics[`${name}.${channel}`] ?? 0;
                 if (name === "minima") statistics[name] = Math.min(statistics[name]!, value);
                 else if (name === "maxima") statistics[name] = Math.max(statistics[name]!, value);
                 else statistics[name]! += value / selected;

@@ -16179,7 +16179,9 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             stack = yield* mapMagickImagesSteps(stack, function* (im) {
                 const expanded = yield* formatMagickPropertyStringSteps(raw, im, () => im, { ...(im as MagickImage)[magickInput], optionProperties: state.optionProperties });
                 const geometry = parseMeanShiftGeometry(expanded);
-                return yield* applyMagickRasterSteps({ ...im, isPalette: false }, meanShiftPixelSteps(im, geometry, state.background, state.virtualPixel), signal);
+                const shifted = yield* applyMagickRasterSteps({ ...im, isPalette: false }, meanShiftPixelSteps(im, geometry, state.background, state.virtualPixel), signal);
+                if (state.monitor) analysis.progress += `MeanShift/Image[${(im as MagickImage)[magickInput]?.filePath ?? ""}]: 100% complete\n`;
+                return shifted;
             });
         }
         else if (t === "-bilateral-blur") {
@@ -20539,12 +20541,18 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (!stack.length) throw new Error(`no images found for operation '${token}'`);
                 return stack;
             });
-            const raw = tokens[++i] ?? "", { background, virtualPixel, optionProperties } = state;
+            const raw = tokens[++i] ?? "", { background, virtualPixel, optionProperties, monitor } = state;
             steps.push(async (image, backend) => {
                 if (!image) return;
                 const expanded = await formatRetainedIdentify(raw, image, { ...(image as StoredMagickImage)[magickInput], optionProperties }, async () => ({ image, storage: backend.storage }), signal);
                 const geometry = parseMeanShiftGeometry(expanded);
-                return transformStoredMagickRaster({ ...image, isPalette: false }, backend, meanShiftPixelSteps(image, geometry, background, virtualPixel), signal);
+                const shifted = await transformStoredMagickRaster({ ...image, isPalette: false }, backend, meanShiftPixelSteps(image, geometry, background, virtualPixel), signal);
+                if (monitor) {
+                    const progress = `MeanShift/Image[${(image as StoredMagickImage)[magickInput]?.filePath ?? ""}]: 100% complete\n`;
+                    if (input.stderr) await writeIdentifyText(input.stderr, progress, signal);
+                    else analysis.progress += progress;
+                }
+                return shifted;
             });
         } else if (!operandsOnly && token === "-bilateral-blur") {
             stackStep(async stack => {

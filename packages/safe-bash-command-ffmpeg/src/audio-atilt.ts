@@ -4,7 +4,7 @@ import { parseFilterExpression } from "./filter-expression.js";
 
 export async function tiltAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
-  frames: readonly { start: number; end: number; pts: number }[],
+  format: string, frames: readonly { start: number; end: number; pts: number }[],
   budget: MediaBudgetTracker, signal?: AbortSignal,
   commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<Float64Array[]> {
@@ -38,6 +38,7 @@ export async function tiltAudio(
   }
 
   budget.allocateMemory(channels.reduce((sum, channel) => sum + channel.length * 8, 0));
+  const round = format === "dblp" ? (value: number) => value : Math.fround;
   const output = channels.map(channel => new Float64Array(channel.length));
   // Native atilt retains all stage histories when order shrinks and grows.
   budget.allocateMemory(channels.length * 30 * 2 * 8 + 30 * 4 * 8);
@@ -81,11 +82,12 @@ export async function tiltAudio(
     const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "atilt enable", {
       n, t: frame.pts / sampleRate
     })) >= 0.5;
+    const level = round(options.level);
     for (let stage = 0; stage < (enabled ? options.order : 1); stage++) {
-      const feed = coefficients[stage * 4]!;
-      const previousFeed = coefficients[stage * 4 + 1]!;
-      const feedback = coefficients[stage * 4 + 2]!;
-      const gain = coefficients[stage * 4 + 3]!;
+      const feed = round(coefficients[stage * 4]!);
+      const previousFeed = round(coefficients[stage * 4 + 1]!);
+      const feedback = round(coefficients[stage * 4 + 2]!);
+      const gain = round(coefficients[stage * 4 + 3]!);
       for (const [c, channel] of channels.entries()) {
         const state = history[c]!;
         let previousInput = state[stage * 2]!;
@@ -99,14 +101,14 @@ export async function tiltAudio(
           }
           // Generic timeline bypass freezes each stage's history.
           if (!enabled) {
-            samples[i] = channel[i]!;
+            samples[i] = round(channel[i]!);
             continue;
           }
-          const input = stage === 0 ? channel[i]! * options.level : samples[i]!;
-          const value = input * feed + previousInput * previousFeed - previousOutput * feedback;
+          const input = stage === 0 ? round(round(channel[i]!) * level) : samples[i]!;
+          const value = round(round(round(input * feed) + round(previousInput * previousFeed)) - round(previousOutput * feedback));
           previousInput = input;
           previousOutput = value;
-          samples[i] = value * gain;
+          samples[i] = round(value * gain);
         }
         state[stage * 2] = previousInput;
         state[stage * 2 + 1] = previousOutput;

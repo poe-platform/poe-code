@@ -14546,7 +14546,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const next = audioFilters[nextIndex]!.trim();
                           const name = next.split("=", 1)[0]!.split("@", 1)[0];
                           if (["anull", "acopy", "atrim", "asetpts", "asetnsamples", "areverse", "apad",
-                            "asetrate", "adelay", "aecho", "aphaser", "afade"].includes(name!)) continue;
+                            "asetrate", "adelay", "aecho", "aphaser", "afade", "ashowinfo"].includes(name!)) continue;
                           const argument = next.includes("=") ? next.slice(next.indexOf("=") + 1) : "";
                           if (name === "aformat") {
                             let requested: string[] | undefined;
@@ -14562,11 +14562,14 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             formats = compatible;
                             continue;
                           }
-                          if (["vibrato", "flanger", "compensationdelay", "aeval", "aemphasis", "asubboost", "virtualbass"].includes(name!)) {
+                          if (["vibrato", "flanger", "compensationdelay", "aeval", "aemphasis", "asubboost", "virtualbass",
+                            "deesser", "dynaudnorm", "compand"].includes(name!)) {
                             if (!formats || formats.includes("dblp")) formats = ["dblp"];
-                          } else if (name === "asoftclip" || name === "aphaseshift") {
+                          } else if (["asoftclip", "aphaseshift", "afreqshift", "crystalizer", "speechnorm", "atilt"].includes(name!)) {
                             const compatible = (formats ?? ["fltp", "dblp"]).filter(format => format === "fltp" || format === "dblp");
                             if (compatible.length > 0) formats = compatible;
+                          } else if (name === "dcshift") {
+                            if (!formats || formats.includes("s32p")) formats = ["s32p"];
                           } else if (name === "acontrast") {
                             if (!formats || formats.includes("fltp")) formats = ["fltp"];
                           } else if (name === "volume") {
@@ -15528,7 +15531,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const commands = audioCommands.filter(command => command.target === "atilt" || command.target === filterTarget)
                             .sort((a, b) => a.sample - b.sample);
                           audioCommands = audioCommands.filter(command => command.target !== "atilt" && command.target !== filterTarget);
-                          stretched = await tiltAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal, commands);
+                          filteredSampleFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
+                          stretched = await tiltAudio(stretched, origRate, trimmed, filteredSampleFormat, audioTimestamps, budget, context.signal, commands);
                         } else if (filterName === "aphaseshift" || filterName === "afreqshift") {
                           filteredSampleFormat = filteredSampleFormat === "dbl" || filteredSampleFormat === "dblp" ? "dblp" : "fltp";
                           const commands = audioCommands.filter(command => command.target === filterName || command.target === filterTarget)

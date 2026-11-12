@@ -869,6 +869,7 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
   const hasAlpha = samplesPerPixel > colorSamples && (extraSample === undefined || extraSample === 1 || extraSample === 2);
   const rgba = new Uint8Array(width * height * 4);
   const data16 = bitsPerSample === 16 && sampleFormat !== 3 ? new Uint16Array(rgba.length) : undefined;
+  const hueSamples = cmyk ? new Float64Array(rgba.length) : undefined;
   for (const target of data16 ? [rgba, data16] : [rgba]) {
     const high = target === data16, max = high ? 65535 : 255;
     for (let i = 0; i < width * height; i++) {
@@ -879,6 +880,7 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
       } else if (cmyk) {
         const alpha = hasAlpha ? readSample(i, 4, high) : max;
         const straight = (value: number) => hasAlpha && extraSample === 1 ? Math.min(max, Math.round(value * max / Math.max(alpha, Number.EPSILON))) : value;
+        for (let c = 0; c < 4; c++) hueSamples![i * 4 + c] = straight(readSample(i, c, high)) / max;
         const black = straight(readSample(i, 3, high));
         for (let c = 0; c < 3; c++) target[i * 4 + c] = Math.round((max - straight(readSample(i, c, high))) * (max - black) / max);
         target[i * 4 + 3] = alpha;
@@ -934,12 +936,13 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
     width,
     height,
     data: rgba,
+    ...(hueSamples ? { hueSamples } : {}),
     ...(metaChannels.length ? { metaChannels } : {}),
     ...(data16 ? {data16} : {}),
     format: "tiff",
     ...(xPosition || yPosition ? {virtualCanvas: {width, height, x: Math.round(xPosition * xRes), y: Math.round(yPosition * yRes)}} : {}),
     ...(pages > 1 ? {pages} : {}),
-    space:
+    space: cmyk ? "cmyk" :
       !palette && colorSamples === 1
         ? bitsPerSample === 16
           ? "grey16"
@@ -947,7 +950,7 @@ export function decodeTiffImage(bytes: Uint8Array, page = 0): RgbaImage {
         : bitsPerSample === 16
           ? "rgb16"
           : "srgb",
-    channels: !palette && colorSamples === 1 ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3,
+    channels: cmyk ? hasAlpha ? 5 : 4 : !palette && colorSamples === 1 ? hasAlpha ? 2 : 1 : hasAlpha ? 4 : 3,
     depth: bitsPerSample === 16 ? "ushort" : "uchar",
     bitsPerSample,
     density,

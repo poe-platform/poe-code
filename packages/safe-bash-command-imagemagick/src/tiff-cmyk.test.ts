@@ -10,10 +10,11 @@ const expected = [255, 0, 0, 255, 0, 255, 0, 255, 127, 127, 127, 255];
 // The same native fixture with an explicit, unassociated fifth alpha channel.
 const transparentInput = Buffer.from("SUkqABgAAAAA//8AgP8A/wD/AAAAgEAAEQAAAQMAAQAAAAMAAAABAQMAAQAAAAEAAAACAQMABQAAAOoAAAADAQMAAQAAAAEAAAAGAQMAAQAAAAUAAAAKAQMAAQAAAAEAAAARAQQAAQAAAAgAAAASAQMAAQAAAAEAAAAVAQMAAQAAAAUAAAAWAQMAAQAAAAEAAAAXAQQAAQAAAA8AAAAcAQMAAQAAAAEAAAApAQMAAgAAAAAAAQA+AQUAAgAAACQBAAA/AQUABgAAAPQAAABMAQMAAQAAAAEAAABSAQMAAQAAAAIAAAAAAAAACAAIAAgACAAIAIXrUQAAAIAAw/WoAAAAAALNzEwAAAAAAc3MTAAAAIAAzcxMAAAAAAKPwvUAAAAAEDcaoAAAAAACK4cKAAAAIAA=", "base64");
 
-it("decodes CMYK TIFF ink as opaque RGB", () => {
+it("retains CMYK TIFF inks alongside opaque RGB pixels", () => {
     const image = decodeImage(input);
     expect(Array.from(image.data)).toEqual(expected);
-    expect(image).toMatchObject({ hasAlpha: false, channels: 3, space: "srgb" });
+    expect(image).toMatchObject({ hasAlpha: false, channels: 4, space: "cmyk" });
+    expect(Array.from(image.hueSamples!)).toEqual([0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0, 128 / 255]);
 });
 
 for (const alpha of [false, true]) {
@@ -27,5 +28,19 @@ for (const alpha of [false, true]) {
         expect(result).toMatchObject({ exitCode: 0, stderr: "" });
         const output = mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!;
         expect(Array.from(decodeImage(output).data)).toEqual(alpha ? [255, 0, 0, 128, 0, 255, 0, 255, 127, 127, 127, 64] : expected);
+    });
+}
+
+for (const mode of ["sync", "retained"] as const) {
+    it.each([false, true])(`${mode}: preserves TIFF inks independently of alpha (%s)`, async alpha => {
+        const source = alpha ? transparentInput : input;
+        const files = new Map([["/in.tif", source]]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/in.tif", source);
+        const args = ["/in.tif", "-depth", "8", "cmyka:/out"];
+        const result = mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, { filesystem, cwd: "/" });
+        expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+        const output = mode === "sync" ? files.get("/out")! : await filesystem.readFile("/out");
+        expect(Array.from(output)).toEqual([0, 255, 255, 0, alpha ? 128 : 255, 255, 0, 255, 0, 255, 0, 0, 0, 128, alpha ? 64 : 255]);
     });
 }

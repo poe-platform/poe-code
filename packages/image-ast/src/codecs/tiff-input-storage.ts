@@ -266,7 +266,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  const cmyk=photometric===5;
  const colorSamples=cmyk?4:photometric===0||photometric===1||palette?1:3;
  const hasAlpha=samples>colorSamples&&(extraSample===undefined||extraSample===1||extraSample===2);
- const metadata:StoredRgbaImage={...(xPosition||yPosition?{virtualCanvas:{width,height,x:Math.round(xPosition*xRes),y:Math.round(yPosition*yRes)}}:{}),...(pages>1?{pages}:{}),...(properties?{properties}:{}),width,height,position:combined,format:"tiff",space:!palette&&colorSamples===1?bits===16?"grey16":"b-w":bits===16?"rgb16":"srgb",channels:!palette&&colorSamples===1?hasAlpha?2:1:hasAlpha?4:3,depth:bits===16?"ushort":"uchar",bitsPerSample:bits,density:Math.max(1,Math.round(xRes*(resUnit===3?2.54:1))),...(hasResolution?{resolution:{x:xRes,y:yRes,unit:resUnit===3?"cm" as const:resUnit===1?"unknown" as const:"inch" as const}}:{}),hasAlpha,orientation};
+ const metadata:StoredRgbaImage={...(xPosition||yPosition?{virtualCanvas:{width,height,x:Math.round(xPosition*xRes),y:Math.round(yPosition*yRes)}}:{}),...(pages>1?{pages}:{}),...(properties?{properties}:{}),width,height,position:combined,format:"tiff",space:cmyk?"cmyk":!palette&&colorSamples===1?bits===16?"grey16":"b-w":bits===16?"rgb16":"srgb",channels:cmyk?hasAlpha?5:4:!palette&&colorSamples===1?hasAlpha?2:1:hasAlpha?4:3,depth:bits===16?"ushort":"uchar",bitsPerSample:bits,density:Math.max(1,Math.round(xRes*(resUnit===3?2.54:1))),...(hasResolution?{resolution:{x:xRes,y:yRes,unit:resUnit===3?"cm" as const:resUnit===1?"unknown" as const:"inch" as const}}:{}),hasAlpha,orientation};
  const raster=new Raster(combined,total,storage,signal);
  const sampleBuffer=new Uint8Array(8),sampleView=new DataView(sampleBuffer.buffer);
  const readSample=async(at:number,high:boolean)=>{
@@ -284,6 +284,8 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
  const meta=channel>=colorSamples+Number(hasAlpha);
  const output=new Output(meta?{...metadata,space:bits===16?"grey16":"b-w",channels:1,hasAlpha:false}:metadata,width,height,storage,signal);
  const storedData16=bits===16&&sampleFormat!==3?{position:allocate(width*height*8),length:width*height*4}:undefined;
+ const storedHueSamples=cmyk&&!meta?allocate(width*height*32):undefined;
+ const inks=new Float64Array(storedHueSamples===undefined?0:2048);
  for(const high of storedData16?[false,true]:[false]) {
   const max=high?65535:255,buffer=new Uint16Array(2048);
   let used=0,offset=0;
@@ -302,6 +304,11 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
     await pixel(await color(0),await color(1),await color(2),alpha);
    }
    else if(cmyk){
+    if(storedHueSamples!==undefined&&(high||!storedData16)){
+     const offset=(i*4)%inks.length;
+     for(let c=0;c<4;c++)inks[offset+c]=straight(await readSample(base+channelStep*c,high))/max;
+     if(offset+4===inks.length||i+1===width*height)await write(storedHueSamples+(i*4-offset)*8,new Uint8Array(inks.buffer,0,(offset+4)*8));
+    }
     const black=straight(await readSample(base+channelStep*3,high));
     const rgb=(ink:number)=>Math.round((max-straight(ink))*(max-black)/max);
     await pixel(rgb(r),rgb(await readSample(base+channelStep,high)),rgb(await readSample(base+channelStep*2,high)),alpha);
@@ -313,7 +320,7 @@ export async function decodeTiffToStorage(source:ImageByteSource,storage:ImageBy
   }
   if(high&&used)await write(storedData16!.position+offset,new Uint8Array(buffer.buffer,0,used*2));
  }
- images.push({...await output.finish(),...(storedData16?{storedData16}:{})});
+ images.push({...await output.finish(),...(storedData16?{storedData16}:{}),...(storedHueSamples===undefined?{}:{storedHueSamples})});
  }
  const [image,...storedMetaChannels]=images;
  return {...image!,...(storedMetaChannels.length?{storedMetaChannels}:{})};

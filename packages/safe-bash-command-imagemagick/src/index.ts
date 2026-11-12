@@ -23920,6 +23920,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         if (typeof (globalThis as { gc?: () => void }).gc === "function") { try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt image processing. */ } }
         if (format === "ico" && state.iconAutoResize) canvas = yield* prepareIcoPages([canvas], state.iconAutoResize, state.kernel, state.resizeFilter);
         if (format === "png") canvas = { ...canvas, backgroundColor: state.background };
+        if (format === "pfm" || format === "phm") canvas = yield* prepareFloatOutput(canvas, format);
         if (format === "png") canvas = yield* prepareMagickOutput({ ...canvas, bitsPerSample: state.inputDepth ?? 16 }, format, state.dither, state.diffusionAmount, pngCoder, state.inputType);
         const { data: encoded } = encodeImage(canvas, { tgaCompression: state.tgaCompression, palette: true, outputFilename: outPath, ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), format, ...(format === "gif" ? { delay: canvas.delay?.[0] ?? 0 } : {}), netpbmAscii: state.netpbmAscii ?? false, rawInterlace: state.rawInterlace, ...(state.inputDepth === undefined ? {} : { tgaDepth: state.inputDepth }), netpbmDepth: state.inputDepth ?? 16, endian: state.inputEndian, tiffEndian: state.inputEndian === "msb" ? "msb" : "lsb", miffDepth: (state.inputDepth ?? 16) <= 8 ? 8 : 16, pngCoder, gifVersion, tiffBig, bmpRenderingIntent: state.optionProperties?.intent, bmpFormat: bmpFormat ?? state.bmpFormat ?? "bmp4", ...(state.bmpSubtype === undefined ? {} : { bmpSubtype: state.bmpSubtype }), pngPreserveColormap: state.pngPreserveColormap, pngBitDepth: state.pngBitDepth ?? (state.inputDepth !== undefined && state.inputDepth <= 8 ? 8 : undefined), ...(state.jpegRestartInterval === undefined ? {} : { jpegRestartInterval: state.jpegRestartInterval }), ...(state.jpegDctMethod === undefined ? {} : { jpegDctMethod: state.jpegDctMethod }), ...(state.jpegOptimizeCoding === undefined ? {} : { jpegOptimizeCoding: state.jpegOptimizeCoding }), ...(state.jpegArithmeticCoding === undefined ? {} : { jpegArithmeticCoding: state.jpegArithmeticCoding }), ...(state.jpegProgressive === undefined ? {} : { jpegProgressive: state.jpegProgressive }), pngInterlace: state.pngInterlace, gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, ...(state.samplingFactor === undefined ? {} : { samplingFactor: state.samplingFactor }), chromaSubsampling: state.quality < 90 ? "4:2:0" : "4:4:4", webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, quality: state.quality, ...(format === "webp" ? { effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}), consumeInput: true } as any);
         detachRgbaBuffer(canvas.data);
@@ -23932,7 +23933,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     }
     let canvas: RgbaImage;
     function* compositeTile(image: RgbaImage, x: number, y: number): Generator<void, void, void> {
-        if (state.composeRaw.toLowerCase() === "over") {
+        if (state.composeRaw.toLowerCase() === "over" && !canvas.evaluateSamples && !image.evaluateSamples) {
             yield* blitOverRgbaInPlaceSteps(canvas, image, x, y);
         } else {
             const previous = canvas;
@@ -24633,9 +24634,6 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                             if (resize) image = await resizeStoredMagickImage(image, backend, resize, signal, true, false, false, state.resizeFilter);
                         }
                         if (images.length === 0 && cellH === undefined && squareCells) maxThumbH = image.width;
-                        // Match buffered montage rounding without discarding 16-bit samples.
-                        const { storedEvaluateSamples: ignoredEvaluateSamples, ...tile } = image;
-                        image = tile;
                         if (!frame && borderW > 0) {
                             const border = await createStoredCanvas(image.width + borderW * 2, image.height + borderW * 2, state.borderColor, backend, signal);
                             image = await compositeStoredMagick(border, image, backend, signal, borderW, borderW, "over", undefined, false, true, true);

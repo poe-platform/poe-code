@@ -28,12 +28,21 @@ export async function passAudio(
   };
   if (bandpass || bandreject || equalizer) { delete aliases.poles; delete aliases.p; }
   if (shelf || equalizer) { aliases.gain = "gain"; aliases.g = "gain"; }
+  const positional = ["frequency", "width_type", "width",
+    ...(shelf ? ["gain", "poles"] : name === "equalizer" ? ["gain"] : bandpass ? ["csg"]
+      : lowpass || name === "highpass" ? ["poles"] : []),
+    "mix", "channels", "normalize", "transform", "precision", "blocksize"];
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   const entries = argument ? argument.split(":") : [];
   if (entries.at(-1) === "") entries.pop();
-  for (const [index, option] of entries.entries()) {
+  let position = 0;
+  for (const option of entries) {
     const separator = option.indexOf("=");
-    const optionName = separator < 0 && index === 0 ? "frequency" : option.slice(0, separator).trim();
+    const optionName = separator < 0 ? positional[position] : option.slice(0, separator).trim();
+    // Named options restart FFmpeg's shorthand cursor, skipping the first slot
+    // only when it was the slot just visited.
+    position = separator < 0 ? position + 1 : position === 0 ? 1 : 0;
+    if (!optionName) throw new Error(`${name}: too many positional options`);
     const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
     if (optionName === "enable") {
       enable = value;

@@ -86,6 +86,8 @@ burns red captions at the left-center of the frame. Other style fields are not i
 
 The `lavfi` `anullsrc` audio source preserves channel counts and speaker assignments from `cl` (or `channel_layout`), including `5.1`, `quad`, and hexadecimal masks such as `0x4` (mono). Its default layout is stereo.
 
+`sine=frequency=400:beep_factor=2` mixes a 40 ms beep into the start of each second, at twice the tone amplitude and `frequency * beep_factor` Hz. `b` aliases `beep_factor`; zero (the default) disables the beep.
+
 The `lavfi` color source uses FFmpeg 7's limited-range BT.601 RGB samples: red
 becomes `(253, 0, 0)` in PNG output; existing RGB PNG inputs retain their samples.
 The `testsrc` counter accepts `decimals=N` or `n=N` (0–17, default 0), displaying

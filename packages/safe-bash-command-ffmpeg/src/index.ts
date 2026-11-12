@@ -694,6 +694,8 @@ function* lavfiSteps(
     const sampleRate = parseInt(kv.sample_rate ?? kv.r ?? "44100", 10) || 44100;
     const parsedFrequency = parseFloat(kv.frequency ?? kv.f ?? "440");
     const freq = Number.isNaN(parsedFrequency) ? 440 : parsedFrequency;
+    const beepFactor = parseFloat(kv.beep_factor ?? kv.b ?? "0");
+    const beepLength = beepFactor > 0 ? Math.floor(sampleRate / 25) : 0;
     const duration =
       durationOverride ?? (parseFloat(kv.duration ?? kv.d ?? "1") || 1);
     const layout = kv.channel_layout ?? kv.cl ?? (filterName === "sine" ? "mono" : "stereo");
@@ -709,9 +711,14 @@ function* lavfiSteps(
     for (let channel = 0; channel < channels; channel++) {
       const arr = new Float32Array(totalSamples);
       if (filterName === "sine") {
+        let beepSample = 0;
         for (let i = 0; i < totalSamples; i++) {
           if (i % 4096 === 0) yield;
           arr[i] = Math.sin((2 * Math.PI * freq * i) / sampleRate) * 0.125;
+          if (i % sampleRate < beepLength) {
+            // The 40ms beep repeats each second; its phase pauses between bursts.
+            arr[i] = arr[i]! + Math.sin((2 * Math.PI * freq * beepFactor * beepSample++) / sampleRate) * 0.25;
+          }
         }
       }
       channelData.push(arr);

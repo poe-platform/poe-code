@@ -19,7 +19,6 @@ export function* matchesMagickGlob(pattern: string, name: string): Generator<voi
             if (token === "\\") literal = pattern[++i] ?? "\\";
             if (token === "[") {
                 let end = i + 1;
-                if (pattern[end] === "!" || pattern[end] === "^") end++;
                 if (pattern[end] === "]") end++;
                 while (end < pattern.length && pattern[end] !== "]") { if (++work % 64 === 0) yield; end++; }
                 if (end < pattern.length) { contents = pattern.slice(i + 1, end); i = end; }
@@ -30,9 +29,9 @@ export function* matchesMagickGlob(pattern: string, name: string): Generator<voi
                 if (character === undefined) continue;
                 let included = token === "?" || character === literal;
                 if (contents !== undefined) {
-                    const negated = contents[0] === "!" || contents[0] === "^";
                     included = false;
-                    for (let c = negated ? 1 : 0; c < contents.length; c++) {
+                    // ImageMagick treats leading ! and ^ as members of the set.
+                    for (let c = 0; c < contents.length; c++) {
                         if (++work % 64 === 0) yield;
                         let start = contents[c]!;
                         if (start === "\\" && c + 1 < contents.length) start = contents[++c]!;
@@ -41,7 +40,6 @@ export function* matchesMagickGlob(pattern: string, name: string): Generator<voi
                             c += 2;
                         } else included ||= character === start;
                     }
-                    if (negated) included = !included;
                 }
                 if (included) next.add(position + 1);
             }

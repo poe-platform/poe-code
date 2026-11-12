@@ -3985,6 +3985,8 @@ function sampleFxImage(
 function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefined, x: number, y: number, ch: number, interpolation?: LookupInterpolation): number {
   if (!img) return 0;
   if (!Number.isFinite(x) || !Number.isFinite(y)) return NaN;
+  // Coordinate interpolation uses retained alpha even when blending is disabled.
+  const hasAlpha = img.hasAlpha || img.inactiveAlpha === true;
   if (interpolation === "catrom") {
     if (ch >= 5 && ch <= 7) {
       return sampleFxPixel([0, 1, 2].map(channel => interpolateFxImage(sample, img, x, y, channel, interpolation)), 0, ch, 1);
@@ -3992,7 +3994,7 @@ function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefin
     let value = 0, alpha = 0;
     for (const [px, py, weight] of catromSamples(x, y)) {
       if (weight === 0) continue;
-      const opacity = img.hasAlpha && ch !== 3 ? sample(img, px, py, 3) : 1;
+      const opacity = hasAlpha && ch !== 3 ? sample(img, px, py, 3) : 1;
       value += weight * opacity * sample(img, px, py, ch);
       alpha += weight * opacity;
     }
@@ -4011,7 +4013,7 @@ function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefin
   if (interpolation === "integer") return sample(img, left, top, ch);
   if (interpolation === "nearest") return sample(img, Math.floor(x + 0.5), Math.floor(y + 0.5), ch);
   if (!averageSize && interpolation !== "spline" && dx === 0 && dy === 0) {
-    return img.hasAlpha && ch !== 3 && sample(img, x, y, 3) === 0 ? 0 : sample(img, x, y, ch);
+    return hasAlpha && ch !== 3 && sample(img, x, y, 3) === 0 ? 0 : sample(img, x, y, ch);
   }
   if (ch >= 4 && ch <= 7) {
     return sampleFxPixel([0, 1, 2].map(channel => interpolateFxImage(sample, img, x, y, channel, interpolation)), 0, ch, 1);
@@ -4019,7 +4021,7 @@ function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefin
   if (interpolation === "spline") {
     let value = 0;
     for (const [px, py, weight] of splineSamples(x, y)) {
-      const opacity = img.hasAlpha && ch !== 3 ? sample(img, px, py, 3) : 1;
+      const opacity = hasAlpha && ch !== 3 ? sample(img, px, py, 3) : 1;
       // Native spline interpolation retains premultiplied colors.
       value += weight * opacity * sample(img, px, py, ch);
     }
@@ -4043,7 +4045,7 @@ function interpolateFxImage(sample: typeof sampleFxImage, img: FxImage | undefin
     for (let column = 0; column < size; column++) {
       const weight = meshWeights?.[row * 2 + column] ?? (averageSize ? 1 / (size * size) : (column ? dx : 1 - dx) * (row ? dy : 1 - dy));
       if (weight === 0) continue;
-      const opacity = img.hasAlpha && ch !== 3 ? sample(img, left + column, top + row, 3) : 1;
+      const opacity = hasAlpha && ch !== 3 ? sample(img, left + column, top + row, 3) : 1;
       // Average counts every neighbor equally, but excludes fully transparent colors.
       value += weight * ((interpolation === "average" || interpolation === "average16") ? Number(opacity > 0) : opacity) * sample(img, left + column, top + row, ch);
       alpha += weight * ((interpolation === "average" || interpolation === "average16") ? 1 : opacity);

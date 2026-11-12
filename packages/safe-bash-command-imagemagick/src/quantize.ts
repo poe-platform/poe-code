@@ -55,6 +55,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
     const clamp = (value: number) => Math.max(0, Math.min(255, value));
     // Keep fractional palette means alongside byte output for later arithmetic and deeper output.
     const round = (value: number) => highDepth ? Math.round(value * 257) / 257 : Math.fround(value * 257) / 257;
+    let grayscaleInput = true;
     function* readPixels(position: number, length: number): Generator<ConvolveRequest, Float64Array, Uint8Array | undefined> {
         // Direct-color cycling must read fractional operator results before the byte raster.
         const samples = working === "hue" ? yield { kind: "read", hue: true, position, length } : evaluate || cycle !== undefined ? yield { kind: "read", evaluate: true, position, length } : undefined;
@@ -69,6 +70,8 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             if (working === "hue" && samples?.length) for (let c = 0; c < 4; c++) data[i + c]! *= 255;
             if (!hasAlpha) data[i + 3] = 255;
             if (grayscale === true) {
+                // Native chooses tree depth before converting the input to Gray.
+                if (data[i] !== data[i + 1] || data[i + 1] !== data[i + 2]) grayscaleInput = false;
                 const luma = 0.212656 * data[i]! + 0.715158 * data[i + 1]! + 0.072186 * data[i + 2]!;
                 // Keep Q16-HDRI gray samples fractional when accumulating palette means.
                 data[i] = data[i + 1] = data[i + 2] = requested === 2 ? (luma >= 127.5 ? 255 : 0) : Math.fround(luma * 257) / 257;
@@ -171,7 +174,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             for (let colors = requested; colors >= 1; colors = Math.floor(colors / 4)) depth++;
             if (dither && depth > 2) depth--;
             if (hasAlpha && depth > 5) depth--;
-            if ([...bins.values()].every(bin => bin.sums[0] === bin.sums[1] && bin.sums[1] === bin.sums[2])) depth = 8;
+            if (grayscaleInput && [...bins.values()].every(bin => bin.sums[0] === bin.sums[1] && bin.sums[1] === bin.sums[2])) depth = 8;
         }
         depth = Math.max(2, Math.min(8, depth));
         const root: ColorNode = { level: 0, children: new Map(), count: 0, sums: [0, 0, 0, 0, 0, 0, 0], error: Infinity, removed: false };

@@ -23769,6 +23769,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             (canvas as { hasAlpha?: boolean; channels?: number }).channels = 3;
         }
         if (outSpec.toLowerCase().startsWith("info:")) {
+            canvas = { ...canvas, bitsPerSample: state.inputDepth ?? 16 };
             stdout += state.formatStr !== undefined
                 ? yield* formatMagickPropertyStringSteps(state.formatStr, canvas, () => canvas, { outputFilePath: outSpec.slice(5), sceneIdx: page, outputScene: page, sceneCount, quality: state.quality })
                 : `${canvas.width}x${canvas.height} ${canvas.magickColorspace ?? "sRGB"} 8-bit\n`;
@@ -24537,6 +24538,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             if (state.units !== undefined) canvas = applyMagickUnits(canvas, state.units);
             if (state.densityGeometry !== undefined) canvas = applyMagickDensity(canvas, state.densityGeometry);
             if (outSpec.toLowerCase().startsWith("info:")) {
+                canvas = { ...canvas, bitsPerSample: state.inputDepth ?? 16 };
                 const target = outSpec.slice(5), page = pageStart / (cols * rows);
                 const text = state.formatStr !== undefined
                     ? await formatRetainedIdentify(state.formatStr, canvas, { outputFilePath: target, sceneIdx: page, outputScene: page, sceneCount: Math.ceil(n / (cols * rows)), quality: state.quality }, async () => ({ image: canvas, storage: backend.storage }), signal)

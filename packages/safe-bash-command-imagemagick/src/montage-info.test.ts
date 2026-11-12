@@ -10,6 +10,11 @@ for (const mode of ["buffered", "sync", "retained", "command", "montage-command"
       { inputs: ["xc:red"], tile: "1x1", options: ["-format", "%wx%h"], expected: "1x1" },
       { inputs: ["xc:red", "xc:blue"], tile: "2x1", options: ["-format", "%wx%h"], expected: "2x1" },
       { inputs: ["xc:red", "xc:blue"], tile: "1x1", options: ["-format", "%wx%h\\n"], expected: "1x1\n1x1\n" },
+      ...[undefined, 12, 1, 16, 8].map(depth => ({
+        inputs: ["xc:red", "xc:blue"], tile: "2x1",
+        options: [...(depth === undefined ? [] : ["-depth", String(depth)]), "-format", "%wx%h:%z:%[depth]"],
+        expected: `2x1:${depth ?? 16}:${depth ?? 16}`
+      })),
       { inputs: ["xc:red"], tile: "1x1", options: ["-format", ""], expected: "" },
       { inputs: ["xc:red"], tile: "1x1", options: [], expected: "1x1 sRGB 8-bit\n" },
       { inputs: ["xc:red"], tile: "1x1", options: ["-format", "ignored", "+format"], expected: "1x1 sRGB 8-bit\n" },

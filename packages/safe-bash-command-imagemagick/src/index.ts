@@ -11260,7 +11260,9 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             }
             geometry = parseMagickGeometry("");
         }
-        const brightness = (geometry.width ?? 100) / 100, saturation = (geometry.height ?? 100) / 100, hueShift = ((geometry.hasOffset ? geometry.x : 100) - 100) * 3 / 100;
+        // Native ratio geometry divides brightness by its denominator and sets saturation to 1%.
+        const brightness = (geometry.aspectRatio ?? geometry.width ?? 100) / 100;
+        const saturation = (geometry.aspectRatio !== undefined ? 1 : geometry.height ?? 100) / 100, hueShift = ((geometry.hasOffset ? geometry.x : 100) - 100) * 3 / 100;
         const optionColorspace = state.optionProperties?.["modulate:colorspace"];
         apply = function* (image) {
             const colorspace = (image.properties?.["artifact:modulate:colorspace"] ?? optionColorspace ?? "hsl").toLowerCase();

@@ -5141,7 +5141,7 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
     const kernel = distort ? state.kernel : undefined, filter = distort ? state.resizeFilter : undefined;
     const channels = state.channelExplicit ? [state.channels.r, state.channels.g, state.channels.b, state.channels.a, state.channels.k === true] : undefined;
     const compose = state.composeRaw, composeArgs = state.composeArgs, fuzz = state.alphaFuzz, seed = state.seed ?? 0n;
-    return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas" | "properties">, geometry = distort ? args : spec) => {
+    return { end: i, plan: (image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "inactiveAlpha" | "space" | "backgroundColor" | "bitsPerSample" | "virtualCanvas" | "properties">, geometry = distort ? args : spec) => {
         const viewport = distort ? image.properties?.["artifact:distort:viewport"] ?? optionViewport : undefined;
         if (token === "-shear") {
             const plan = shearPlan(image, geometry);
@@ -5214,9 +5214,9 @@ function parseMagickWarpOperation(tokens: readonly string[], state: MagickState,
             // Wave always uses background virtual pixels. Explicit background mode
             // promotes grayscale to RGB; otherwise native's gray cache uses blue.
             if (gray && virtualPixel !== "background") color = { r: color.b, g: color.b, b: color.b, a: color.a };
-            // Native only adds alpha when the background needs transparency.
+            // Native adds alpha for a transparent background only when no alpha channel exists.
             // Keep RGB output inactive so PNG32/64 enables alpha through its write mask.
-            plan = { ...plan, hasAlpha: image.hasAlpha || color.a < 255, interpolation };
+            plan = { ...plan, hasAlpha: image.hasAlpha || !image.inactiveAlpha && color.a < 255, interpolation };
             return { ...plan, space: gray && virtualPixel === "background" ? "srgb" as const : image.space, steps: warpPixelSteps(image, { ...plan, channels }, color, "background") };
         }
         if (plan && scale !== undefined) plan = scaleMagickWarpPlan(plan, image, scale);

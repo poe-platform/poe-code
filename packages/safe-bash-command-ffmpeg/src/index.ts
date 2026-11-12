@@ -80,6 +80,7 @@ import { exciteAudio } from "./audio-aexciter.js";
 import { psychoacousticClip } from "./audio-apsyclip.js";
 import { renderTestsrc } from "./testsrc.js";
 import { sineTable } from "./lavfi-sine.js";
+import { renderTestsrc2Alpha } from "./testsrc2-alpha.js";
 import { formatDate } from "safe-bash-calendar-engine/time-env/format";
 import { millisecondsInstant, TimeZone } from "safe-bash-calendar-engine/time-env/calendar";
 import { decodeMatroskaAss } from "./matroska-ass.js";
@@ -668,6 +669,8 @@ function* lavfiSteps(
   // testsrc=size=160x120:rate=10:duration=1
   // sine=frequency=440:sample_rate=44100:duration=1
   // anullsrc=r=44100:cl=stereo
+  const sourceFilters = parseFilterChain(spec);
+  spec = sourceFilters[0] ?? spec;
   const eqIdx = spec.indexOf("=");
   const filterName = (eqIdx >= 0 ? spec.slice(0, eqIdx) : spec).trim().toLowerCase();
   const argsPart = eqIdx >= 0 ? spec.slice(eqIdx + 1) : "";
@@ -803,6 +806,11 @@ function* lavfiSteps(
   const patchWidth = Math.ceil(Math.floor(barWidth * 5 / 4) / 2) * 2;
   const plugeWidth = Math.ceil(Math.floor(barWidth / 3) / 2) * 2;
   const frames: MediaVideoFrame[] = [];
+  const sourceFormat = sourceFilters.slice(1).find(filter => filter.startsWith("format="))?.slice(7);
+  const alpha = filterName === "testsrc2" &&
+    (sourceFormat === "yuva420p" || sourceFormat === "pix_fmts=yuva420p")
+    ? roundToEven(parseFilterExpression(kv.alpha ?? "255", "testsrc2", { min: 0, max: 255, default: 255 })) : 255;
+  if (alpha < 0 || alpha > 255) throw new Error("testsrc2: alpha must be between 0 and 255");
   for (let i = 0; i < frameCount; i++) {
     yield;
     budget.recordFrame(width, height);
@@ -850,6 +858,7 @@ function* lavfiSteps(
         }
       }
     }
+    if (alpha !== 255) yield* renderTestsrc2Alpha(rgba, width, height, i / fps, alpha);
     frames.push({
       width,
       height,

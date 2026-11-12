@@ -8903,6 +8903,7 @@ export function evalSyncFfmpeg(
     let pendingSs: number | undefined;
     let pendingTimestampScales: [string, number][] = [];
     let pendingDisplayTransforms: DisplayTransform[] = [];
+    let pendingAutorotate = true;
     let pendingSseof: number | undefined;
     let pendingTo: number | undefined;
     let pendingDuration: number | undefined;
@@ -9242,6 +9243,7 @@ export function evalSyncFfmpeg(
           endRelativeSeconds: pendingSseof,
           timestampScales: pendingTimestampScales,
           displayTransforms: pendingDisplayTransforms,
+          autorotate: pendingAutorotate,
           endSeconds: pendingTo,
           durationSeconds: pendingDuration,
           streamLoop: pendingLoop,
@@ -9253,6 +9255,7 @@ export function evalSyncFfmpeg(
         pendingSampleRate = undefined;
         pendingTimestampScales = [];
         pendingDisplayTransforms = [];
+        pendingAutorotate = true;
         pendingTimestampOffset = 0;
         pendingSyncReference = undefined;
         pendingSubtitleFrameRate = undefined;
@@ -9614,6 +9617,9 @@ export function evalSyncFfmpeg(
         outputColors.push(parseOutputColorOption(arg, args[++i]));
       } else if (arg === "-aspect" || arg.startsWith("-aspect:")) {
         displayAspects.push(parseDisplayAspect(arg, args[++i]));
+      } else if (arg === "-noautorotate") {
+        if (!args.slice(i + 1).includes("-i")) return undefined;
+        pendingAutorotate = false;
       } else if (["-display_rotation", "-display_hflip", "-display_vflip"].some(option => arg === option || arg.startsWith(`${option}:`))) {
         pendingDisplayTransforms.push(parseDisplayTransform(arg, arg.split(":")[0] === "-display_rotation" ? args[++i] : undefined));
         if (!args.slice(i + 1).includes("-i")) return undefined;
@@ -9680,7 +9686,7 @@ export function evalSyncFfmpeg(
       inputStarts.push(sourceStart);
       if ((videoCodec === "copy" || audioCodec === "copy") && (!copyTimestamps || startAtZero)) doc = shiftTimestamps(doc, -(sourceStart ?? 0), budget);
       doc = applyInputDisplayTransforms(doc, inp.displayTransforms);
-      if (videoCodec !== "copy" && doc.tracks.some(track => inputDisplayFilter(track))) return undefined;
+      if (inp.autorotate && videoCodec !== "copy" && doc.tracks.some(track => inputDisplayFilter(track))) return undefined;
       if (inp.subtitleCharsets?.length && subtitleCodec !== "copy") doc = recodeSubtitles(doc, inp.subtitleCharsets, inp.subtitleCharencModes);
       if (inp.fixSubDuration && subtitleCodec !== "copy") doc = fixSubtitleDurations(doc);
       // Standalone text subtitles have cue bounds, but no demuxer duration for -sseof.
@@ -10070,6 +10076,7 @@ interface InputSpec {
   readonly endRelativeSeconds?: number | undefined;
   readonly timestampScales: readonly [string, number][];
   readonly displayTransforms: readonly DisplayTransform[];
+  readonly autorotate: boolean;
   readonly endSeconds?: number | undefined;
   readonly durationSeconds?: number | undefined;
   readonly streamLoop?: number | undefined;
@@ -10160,6 +10167,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
       let pendingSs: number | undefined;
       let pendingTimestampScales: [string, number][] = [];
       let pendingDisplayTransforms: DisplayTransform[] = [];
+      let pendingAutorotate = true;
       let pendingSseof: number | undefined;
       let pendingTo: number | undefined;
       let pendingDuration: number | undefined;
@@ -11507,6 +11515,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               endRelativeSeconds: pendingSseof,
               timestampScales: pendingTimestampScales,
               displayTransforms: pendingDisplayTransforms,
+              autorotate: pendingAutorotate,
               endSeconds: pendingTo,
               durationSeconds: pendingDuration,
               streamLoop: pendingLoop,
@@ -11548,6 +11557,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             pendingSseof = undefined;
             pendingTimestampScales = [];
             pendingDisplayTransforms = [];
+            pendingAutorotate = true;
             pendingTo = undefined;
             pendingDuration = undefined;
             pendingLoop = undefined;
@@ -12109,6 +12119,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${(error as Error).message}\n`), context.signal);
               return { exitCode: 234 };
             }
+          } else if (arg === "-noautorotate") {
+            if (!args.slice(i + 1).includes("-i")) {
+              await writeBytes(context.stderr, encodeUtf8("ffmpeg: -noautorotate must precede an input\n"), context.signal);
+              return { exitCode: 234 };
+            }
+            pendingAutorotate = false;
           } else if (["-display_rotation", "-display_hflip", "-display_vflip"].some(option => arg === option || arg.startsWith(`${option}:`))) {
             try {
               pendingDisplayTransforms.push(parseDisplayTransform(arg, arg.split(":")[0] === "-display_rotation" ? args[++i] : undefined));
@@ -13123,7 +13139,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               // Input timestamp scaling includes the offset, after seeking and before filtering.
               // Slicing clamps negative seeks to zero; retain their requested timeline origin.
               doc = shiftTimestamps(doc, (inp.timestampOffset ?? 0) - (copyTimestamps ? 0 : Math.min(0, startSeconds ?? 0)), budget);
-              if (videoCodec !== "copy" && !stripVideo) {
+              if (inp.autorotate && videoCodec !== "copy" && !stripVideo) {
                 doc = { ...doc, tracks: await mapWork(doc.tracks, async track => {
                   const filter = inputDisplayFilter(track);
                   if (!filter) return track;

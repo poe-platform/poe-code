@@ -831,12 +831,15 @@ only the direct signal. Gains range from 0.015625 to 64; tap balances range from
 `[0:a][1:a][2:a]headphone=map=FL|FR:type=time[h]` renders a stereo source
 through separate stereo impulse responses for its left and right channels.
 `[0:a][1:a]headphone=map=FC:type=time[h]` renders a mono center source through
-one stereo impulse response. Both forms produce stereo output. Separate mono or
+one stereo impulse response. Quad sources use `map=FL|FR|BL|BR`, and 2.1 sources
+use `map=FL|FR|LFE`, with one response input per mapped speaker. Map order assigns
+responses to speakers; all forms produce stereo output. Separate mono or
 quad impulse responses are automatically remixed to stereo before convolution.
 `type=time` uses direct convolution; `type=freq` uses FFT convolution with overlap
 addition. Both preserve native float32 arithmetic, the source frame count, sample
 rate, and timestamps, and apply native gain
-(−3 dB for mono or −6 dB for stereo plus `gain`).
+(−3 dB per source channel plus `gain`). LFE bypasses convolution and is added to
+both ears with the additional `lfe` gain in dB.
 `size` sets output blocks in samples (1024–96000, default 1024), including for downstream
 `aselect`; the last block keeps only the remaining samples.
 Use `map=FR|FL` to reverse the stereo response assignments. All inputs must be

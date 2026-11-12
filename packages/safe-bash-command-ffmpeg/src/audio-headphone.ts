@@ -4,6 +4,7 @@ import { splitRadix } from "./audio-dialogue-fft.js";
 import { parseFilterExpression } from "./filter-expression.js";
 import { validateWeaveGenericOption } from "./weave-generic-option.js";
 import { resampleAudio } from "./audio-resample.js";
+import { audioSpeakerMasks } from "./audio-channel-layout.js";
 
 export async function headphoneAudio(
   tracks: MediaTrack[], filter: string,
@@ -53,10 +54,15 @@ export async function headphoneAudio(
     options[key] = value;
   }
   const mapping = options.map?.split("|");
-  const mono = mapping?.length === 1 && mapping[0] === "FC";
-  if (!mapping || (!mono && (mapping.length !== 2 || new Set(mapping).size !== 2 || mapping.some(name => !["FL", "FR"].includes(name))))) {
-    throw new Error("headphone: map must assign FC or FL and FR");
+  const sourceChannels = tracks[0]?.decodedAudio?.channels;
+  if (mapping && sourceChannels !== undefined && mapping.length < sourceChannels) {
+    throw new Error(`headphone: Number of HRIRs must be >= ${sourceChannels}.`);
   }
+  if (!mapping || new Set(mapping).size !== mapping.length || mapping.some(name => !Object.hasOwn(audioSpeakerMasks, name))) {
+    throw new Error("headphone: map must assign distinct speakers");
+  }
+  const sourceMask = mapping.reduce((mask, name) => mask + audioSpeakerMasks[name]!, 0);
+  const speakers = Object.keys(audioSpeakerMasks).filter(name => Math.floor(sourceMask / audioSpeakerMasks[name]!) % 2 === 1);
   const size = Number(options.size);
   const multich = options.hrir === "multich" || options.hrir === "1";
   if (tracks.length !== (multich ? 2 : mapping.length + 1)) {
@@ -73,13 +79,14 @@ export async function headphoneAudio(
   }
   const audio = tracks.map((track, index) => {
     const decoded = track.decodedAudio;
-    const channels = index === 0 && mono ? 1 : 2;
-    const mask = channels === 1 ? 4 : 3;
+    const channels = index === 0 ? mapping.length : 2;
+    const mask = index === 0 ? sourceMask : 3;
+    const inputMask = decoded?.channelMask ?? ([0, 4, 3, 0xb, 0x107, 0x37, 0x3f, 0x70f, 0x63f][decoded?.channels ?? 0] ?? 0);
     if (multich && index > 0) {
       if (!decoded || decoded.channels < mapping.length * 2) {
         throw new Error("headphone requires a packed stereo impulse response pair per mapped source channel");
       }
-    } else if (!decoded || decoded.channels !== channels || (decoded.channelMask !== undefined && decoded.channelMask !== mask)) {
+    } else if (!decoded || decoded.channels !== channels || inputMask !== mask) {
       throw new Error("headphone requires a source matching the map and stereo PCM impulse responses");
     }
     return decoded;
@@ -103,12 +110,15 @@ export async function headphoneAudio(
   const channelData = [new Float32Array(length), new Float32Array(length)];
   // FFmpeg attenuates by 3 dB per source channel before applying the HRIR.
   const gain = Math.fround(Math.exp((Number(options.gain) - 3 * source.channels) / 20 * Math.LN10));
+  const lfeGain = Math.fround(Math.exp((Number(options.gain) - 3 * source.channels + Number(options.lfe)) / 20 * Math.LN10));
   const irLength = Math.max(...audio.slice(1).map(input => input.channelData[0]!.length));
-  const responses = mapping.map((name, response) => ({
-    input: source.channelData[name === "FR" ? 1 : 0]!,
-    impulse: [0, 1].map(ear => multich ? audio[1]!.channelData[response * 2 + ear]!
-      : audio[response + 1]!.channelData[ear]!)
-  }));
+  // Accumulate in source speaker order; the map orders the response inputs.
+  const responses = speakers.map((name, channel) => {
+    const response = mapping.indexOf(name);
+    return { input: source.channelData[channel]!, lfe: name === "LFE",
+      impulse: [0, 1].map(ear => multich ? audio[1]!.channelData[response * 2 + ear]!
+        : audio[response + 1]!.channelData[ear]!) };
+  });
   let work = 0;
   const f = Math.fround;
   await yieldTurn(signal);
@@ -118,7 +128,7 @@ export async function headphoneAudio(
     budget.allocateMemory((irLength + 32) * 4);
     const coefficients = new Float32Array(irLength);
     const lanes = new Float32Array(32);
-    for (const { input, impulse } of responses) {
+    for (const { input, impulse, lfe } of responses) {
       for (let ear = 0; ear < 2; ear++) {
         const ir = impulse[ear]!;
         coefficients.fill(0);
@@ -129,6 +139,10 @@ export async function headphoneAudio(
             await yieldTurn(signal);
             signal?.throwIfAborted();
             budget.checkCpu();
+          }
+          if (lfe) {
+            output[sample] = output[sample]! + f(f(input[sample]!) * lfeGain);
+            continue;
           }
           lanes.fill(0);
           // Native scalarproduct_float uses 32 fused accumulation lanes on x86.
@@ -173,6 +187,13 @@ export async function headphoneAudio(
           await yieldTurn(signal);
           signal?.throwIfAborted();
           budget.checkCpu();
+          if (responses[channel]!.lfe) {
+            for (let sample = 0; sample < count; sample++) {
+              channelData[ear]![start + sample] = channelData[ear]![start + sample]!
+                + f(f(responses[channel]!.input[start + sample]!) * lfeGain);
+            }
+            continue;
+          }
           input.fill(0);
           for (let sample = 0; sample < count; sample++) input[2 * sample] = f(responses[channel]!.input[start + sample]!);
           splitRadix(input, spectrum, cosine, 0, 1, fftSize, 0);

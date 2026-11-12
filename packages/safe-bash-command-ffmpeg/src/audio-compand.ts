@@ -12,7 +12,7 @@ export class CompandError extends Error {
 
 export async function compandAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
-  warn?: (message: string) => Promise<void>
+  warn?: (message: string) => Promise<void>, initialVolume?: number
 ): Promise<{ channels: Float64Array[]; delay: number }> {
   const defaults: Record<string, string> = {
     attacks: "0", decays: "0.8", points: "-70/-70|-60/-20|1/0", "soft-knee": "0.01", gain: "0", volume: "0", delay: "0"
@@ -65,7 +65,7 @@ export async function compandAudio(
   }
   const knee = numericOption("soft-knee");
   const gain = numericOption("gain");
-  const initial = 10 ** (numericOption("volume") / 20);
+  const initial = 10 ** ((initialVolume ?? numericOption("volume")) / 20);
   const delay = Math.floor(numericOption("delay") * sampleRate);
   const items = (value: string) => value.split("|").flatMap(part => part.split(" ")).filter(Boolean);
   const attackItems = items(options.attacks!);
@@ -124,6 +124,8 @@ export async function compandAudio(
     center.y = endY;
   }
   segments.push({ ...points.at(-1)!, a: 0, b: 0 });
+  // mcompand's transfer table ends with a unity-gain segment above 0 dB.
+  if (initialVolume !== undefined) segments.push({ x: 0, y: 0, a: 0, b: 0 });
   const length = channels[0]?.length ?? 0;
   budget.allocateMemory(length * channels.length * 8);
   const output = channels.map(() => new Float64Array(length));

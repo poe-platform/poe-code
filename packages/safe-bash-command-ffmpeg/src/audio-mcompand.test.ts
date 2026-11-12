@@ -96,3 +96,40 @@ it("mcompand respects memory limits and cancellation", async () => {
   await assert.rejects(multibandCompandAudio(input, 48000, "mcompand",
     new MediaBudgetTracker(), AbortSignal.abort()));
 });
+
+// Native FFmpeg 7.0.2 references include the initial envelope and its decay.
+for (const [volume, hash] of [
+  [3, "45e5bc079a9371b73666a286e5f632d2c5184e83660081eee86e0fd640689d8e"],
+  [6, "80414b5ca397e08f7ab45ac05d52f06c0648e76cdcedcc95083b008139bfefc8"],
+  [12, "722d3ccc5ce4d7fa04456c35dcd39badfdb74c092db91230e618040391735b75"],
+  [0, "3a6e561384fc979362278ceb3dcd71f84799ac360f1a68910e3d5b02bf7b4147"],
+  [-6, "efc16eb32a607b099c0347f766609e5c058fabef324cc54aec5156557d34b361"]
+] as const) {
+  it(`mcompand matches native PCM with initial band volume ${volume} dB`, async () => {
+    const input = Buffer.alloc(4096);
+    for (let i = 0; i < 2048; i++) input.writeInt16LE(i * 131 % 8191 - 4095, i * 2);
+    const fs = Volume.fromJSON({ "/in.raw": input });
+    const output: Uint8Array[] = [], errors: Uint8Array[] = [];
+    const result = await createFfmpegCommand().execute({
+      args: ["-v", "error", "-f", "s16le", "-ar", "8000", "-ac", "1", "-i", "/in.raw",
+        "-af", `mcompand=args='0.01,0.08 6 -60/-30,-20/-18,0/-16 0 0 ${volume}'`, "-f", "s16le", "pipe:1"],
+      cwd: "/", env: {}, signal: new AbortController().signal,
+      fs: { async readFile(p: string) { return fs.readFileSync(p); }, async stat(p: string) { return fs.statSync(p); } },
+      stdin: (async function* () {})(),
+      stdout: { async write(b: Uint8Array) { output.push(b); } },
+      stderr: { async write(b: Uint8Array) { errors.push(b); } }
+    } as never);
+    assert.equal(result.exitCode, 0, Buffer.concat(errors).toString());
+    assert.equal(Buffer.concat(errors).length, 0);
+    const pcm = Buffer.concat(output);
+    assert.equal(pcm.length, 4096);
+    assert.equal(createHash("sha256").update(pcm).digest("hex"), hash);
+  });
+}
+
+it("single-band compand still rejects a positive initial volume", async () => {
+  const { result, fs, error } = await run("compand=volume=3");
+  assert.equal(result.exitCode, 222);
+  assert.match(error, /compand: invalid volume/);
+  assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
+});

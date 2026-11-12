@@ -2171,7 +2171,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
             source.track = await filterAudio(source.track, source.expression);
           }
         }
-        const track = await headphoneAudio(sources.map(source => source.track), filters[0]!, budget, signal);
+        const track = await headphoneAudio(sources.map(source => source.track), filters[0]!, filterAudio, budget, signal);
         return { track, expression: serializeFilterChain(filters.slice(1)) || "anull" };
       }
       if (filters[0] === "anlmf" || filters[0]?.startsWith("anlmf=") ||
@@ -21587,6 +21587,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "channelsplit: unsupported option enable") return { exitCode: 176 };
             if (msg === "axcorrelate: empty option") return { exitCode: 234 };
             if (msg === "channelsplit: empty option") return { exitCode: 234 };
+            if (msg === "mcompand: crossover must be below half the sample rate") return { exitCode: 234 };
             if (msg.startsWith("channelsplit: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("channelsplit: invalid channels ")) return { exitCode: 234 };
             if (msg.startsWith("pan: unsupported option ")) return { exitCode: 8 };

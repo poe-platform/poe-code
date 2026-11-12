@@ -1491,7 +1491,9 @@ async function renderShowwavespic(
 ): Promise<MediaVideoFrame | undefined> {
   const equals = spec.indexOf("=");
   const options: Record<string, string> = {};
-  for (const [index, part] of (equals < 0 ? [] : spec.slice(equals + 1).split(":")).entries()) {
+  const parts = equals < 0 ? [] : spec.slice(equals + 1).split(":");
+  if (parts.at(-1) === "") parts.pop();
+  for (const [index, part] of parts.entries()) {
     const separator = part.indexOf("=");
     let key = separator < 0 ? ["size", "split_channels", "colors", "scale", "draw", "filter"][index] : part.slice(0, separator);
     if (key === "s") key = "size";

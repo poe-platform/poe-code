@@ -8247,6 +8247,7 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
           const encodeSrt = (codec === "subrip" || sami) && outputFormat === "srt";
           const webvtt = outputFormat === "webvtt" || containerCodec === "webvtt";
           let alignments = 0;
+          let skipWebvttTag = false;
           let position = 0;
           // The WebVTT encoder skips only initial ASCII spaces in dialogue.
           if (codec === "webvtt" && webvtt) {
@@ -8271,12 +8272,18 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
               parts.push("\n");
               position += 2;
             } else if (codec === "webvtt" && (text[position] === "\n"
-              || text.startsWith("\\n", position) || text.startsWith("\\N", position))) {
+              || !skipWebvttTag && (text.startsWith("\\n", position) || text.startsWith("\\N", position)))) {
               parts.push(outputFormat === "srt" || containerCodec === "subrip" ? "\r\n" : "\n");
               position += text[position] === "\n" ? 1 : 2;
             } else if (text[position] === "<") {
               const end = text.indexOf(">", position + 1);
-              if (end < 0) break;
+              if (end < 0) {
+                if (codec !== "webvtt") break;
+                // Native WebVTT still decodes newlines and entities inside an unfinished tag.
+                skipWebvttTag = true;
+                position++;
+                continue;
+              }
               let tag = text.slice(position + 1, end);
               // TTML carries plain cue text; discard markup before decoding entities.
               if (codec === "webvtt" && outputFormat === "ttml") {
@@ -8357,11 +8364,15 @@ function transcodeSubtitles(doc: MediaDocument, outputFormat: string | undefined
                 ["&amp;", "&"], ["&lt;", "<"], ["&gt;", ">"],
                 ["&nbsp;", "\\h"], ["&lrm;", ""], ["&rlm;", ""]
               ] as const).find(([name]) => text.startsWith(name, position));
-              parts.push(reference ? reference[1] : "&");
+              if (reference) skipWebvttTag = false;
+              if (!skipWebvttTag) parts.push(reference ? reference[1] : "&");
               position += reference ? reference[0].length : 1;
             } else {
-              if (codec === "webvtt" && (text[position] === "{" || text[position] === "}")) parts.push("\\");
-              parts.push(text[position]!);
+              if (codec === "webvtt" && (text[position] === "{" || text[position] === "}")) {
+                skipWebvttTag = false;
+                parts.push("\\");
+              }
+              if (!skipWebvttTag) parts.push(text[position]!);
               // SubRip strips ASCII indentation after physical line breaks only.
               if (codec === "subrip" && webvtt && text[position] === "\n") {
                 while (text[position + 1] === " ") position++;

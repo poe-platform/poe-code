@@ -22,8 +22,8 @@ export async function adenormAudio(
         throw new RangeError("adenorm: invalid level");
       }
     } else if (key === "type") {
-      if (!["dc", "ac", "0", "1"].includes(value)) throw new Error(`adenorm: unsupported type ${value}`);
-      type = value === "1" ? "ac" : value;
+      type = ({ "0": "dc", "1": "ac", "2": "square", "3": "pulse" } as Record<string, string>)[value] ?? value;
+      if (!["dc", "ac", "square", "pulse"].includes(type)) throw new Error(`adenorm: unsupported type ${value}`);
     } else {
       throw new Error(`adenorm: unsupported option ${key}`);
     }
@@ -39,7 +39,11 @@ export async function adenormAudio(
         signal?.throwIfAborted();
         budget.checkCpu();
       }
-      output[c]![i] = channel[i]! + (type === "ac" && i % 2 ? -amplitude : amplitude);
+      let noise = amplitude;
+      if (type === "ac" && i % 2) noise = -amplitude;
+      else if (type === "square" && Math.floor(i / 256) % 2) noise = -amplitude;
+      else if (type === "pulse" && i % 256) noise = 0;
+      output[c]![i] = channel[i]! + noise;
     }
   }
   return output;

@@ -319,7 +319,7 @@ const X11_NAMED_COLORS: Record<string, [number, number, number, number]> = {
   yellowgreen: [154, 205, 50, 255]
 };
 
-function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly number[]; lab?: readonly number[]; space?: "b-w" } {
+function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly number[]; lab?: readonly number[]; space?: "b-w"; magickColorspace?: "DisplayP3" | "XYZ"; hasAlpha?: boolean } {
   const s = raw.trim();
   const low = s.toLowerCase();
   if (X11_NAMED_COLORS[low]) {
@@ -335,6 +335,24 @@ function parseColor(raw: string, precise = false): RgbaColor & { cmyk?: readonly
     return { r: v, g: v, b: v, a: 255, space: "b-w" };
   }
   const round = (value: number) => precise ? value : Math.round(value);
+  if (low.startsWith("color(") && low.endsWith(")")) {
+    const parts = [...low.slice(6, -1).replaceAll("/", " / ")]
+      .map(character => character.trim() === "" || character === "," ? " " : character)
+      .join("").split(" ").filter(Boolean);
+    const name = parts.shift();
+    const magickColorspace = name === "display-p3" || name === "displayp3" ? "DisplayP3" : name === "xyz" ? "XYZ" : undefined;
+    const hasAlpha = parts[3] === "/";
+    if ((!magickColorspace && name !== "srgb") || parts.length !== (hasAlpha ? 5 : 3)) return baseParseColor(s);
+    const components = [...parts.slice(0, 3), hasAlpha ? parts[4]! : "1"].map(part =>
+      part.endsWith("%") ? Number(part.slice(0, -1)) * 2.55 : Number(part));
+    if (components.some(value => !Number.isFinite(value))) return baseParseColor(s);
+    // Native color() components remain in their declared colorspace. Fill
+    // operators consume them directly; canvas inputs retain the colorspace tag.
+    return {
+      r: round(components[0]! * 255), g: round(components[1]! * 255), b: round(components[2]! * 255),
+      a: round(Math.max(0, Math.min(1, components[3]!)) * 255), hasAlpha, ...(magickColorspace ? { magickColorspace } : {}),
+    };
+  }
   if (/^#[0-9a-f]{12}$/i.test(s)) {
     const r = round(parseInt(s.slice(1, 5), 16) / 257);
     const g = round(parseInt(s.slice(5, 9), 16) / 257);
@@ -8971,10 +8989,11 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     if (lower.startsWith("xc:") || lower.startsWith("canvas:")) {
         const colorStr = (baseToken.slice(baseToken.indexOf(":") + 1) || "white").trim();
         const c = parseColor(colorStr, true);
-        const hasAlpha = c.a < 255 || colorStr.startsWith("#") && [5, 9, 17].includes(colorStr.length) || colorStr.toLowerCase().includes("a(");
+        const hasAlpha = c.hasAlpha || c.a < 255 || colorStr.startsWith("#") && [5, 9, 17].includes(colorStr.length) || colorStr.toLowerCase().includes("a(");
         let image: RgbaImage = { ...(yield* createSolidRgbaImageSteps(state.sizeWidth, state.sizeHeight, c, [c.r, c.g, c.b, c.a].some(value => !Number.isInteger(value)))), bitsPerSample: state.inputDepth ?? 16, endian: "lsb", hasAlpha, ...(!hasAlpha ? { inactiveAlpha: false } : {}) };
         if (c.space) image = { ...image, space: c.space, channels: hasAlpha ? 2 : 1 };
         if (c.cmyk) image = yield* fillCmykPixels(image, c.cmyk);
+        if (c.magickColorspace) image = yield* setColorspacePixels(image, c.magickColorspace);
         if (c.lab) image = yield* fillLabPixels(image, c.lab);
         return yield* applyMod([Object.assign(image, { [magickInput]: { filePath: baseToken.slice(baseToken.indexOf(":") + 1), inputFormat: baseToken.slice(0, baseToken.indexOf(":")).toUpperCase(), compression: "Undefined" } })]);
     }
@@ -22111,9 +22130,13 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
  }else if(lower.startsWith("xc:")||lower.startsWith("canvas:")||lower==="null:"){
   const colorStr=(baseToken.slice(baseToken.indexOf(":")+1)||"white").trim();
   const color: ReturnType<typeof parseColor>=lower==="null:"?state.background:parseColor(colorStr,true),width=lower==="null:"?1:state.sizeWidth,height=lower==="null:"?1:state.sizeHeight;
-  const hasAlpha=color.a<255||colorStr.startsWith("#")&&[5,9,17].includes(colorStr.length)||colorStr.toLowerCase().includes("a(");
+  const hasAlpha=color.hasAlpha||color.a<255||colorStr.startsWith("#")&&[5,9,17].includes(colorStr.length)||colorStr.toLowerCase().includes("a(");
   image={...await createStoredCanvas(width,height,color,backend,signal,[color.r,color.g,color.b,color.a].some(value=>!Number.isInteger(value))),endian:"lsb",hasAlpha,...(!hasAlpha?{inactiveAlpha:false}:{}),...(lower==="null:"?{[magickInput]:{filePath:"null:",compression:"Undefined"}}:{bitsPerSample:state.inputDepth??16,[magickInput]:{filePath:baseToken.slice(baseToken.indexOf(":")+1),inputFormat:baseToken.slice(0,baseToken.indexOf(":")).toUpperCase(),compression:"Undefined"}})};
   if ("space" in color && color.space) image = { ...image, space: color.space, channels: hasAlpha ? 2 : 1 };
+  if (color.magickColorspace) {
+   const colorspace = color.magickColorspace;
+   image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: image => setColorspacePixels(image, colorspace) }, signal);
+  }
   if ("cmyk" in color && color.cmyk) {
    const inks = color.cmyk;
    image = await transformStoredMagickPixels(image, backend, { end: 0, apply: image => fillCmykPixels(image, inks) }, signal);

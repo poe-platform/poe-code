@@ -58,7 +58,7 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
 }
 
 it.each([
-  ["-duplicate", "1", "a.png", "png:-"],
+  ["-duplicate", "1", "png:-"],
   ["a.png", "-duplicate"],
   ["a.png", "-duplicate", "1,no", "png:-"],
   ["a.png", "-duplicate", "1,8", "png:-"],

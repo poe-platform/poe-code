@@ -23175,6 +23175,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
     let concatenate = false;
     const transforms: MontageArguments["transforms"] = [];
     let queuedTransforms: MontageArguments["transforms"][number] = [];
+    const queuedDuplicates: (() => Generator<void, void, void>)[] = [];
     let pending = false;
     let title: string | undefined;
     let texture: string | undefined;
@@ -23196,10 +23197,13 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             if (++cooperativeWork % 64 === 0) yield;
             transforms[index] = transforms[index]!.concat(queuedTransforms.map(transform => transform.kind === "identify" ? { ...transform, count: operands.length - groupStart } : transform));
         }
+        for (const duplicate of queuedDuplicates) yield* duplicate();
+        if (advance) queuedDuplicates.length = 0;
         if (advance) queuedTransforms.length = 0;
         else queuedTransforms = queuedTransforms.filter(transform => transform.kind !== "crop" && transform.kind !== "identify");
         pending = false;
     }
+    try {
     for (let i = 0; i < argv.length; i++) {
         if (++cooperativeWork % 64 === 0)
             yield;
@@ -23800,8 +23804,6 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             yield* applyTransforms(true);
             let count = 1, spec = "-1";
             const sourceStart = operation === "clone" ? groups.at(-1) ?? groupStart : groupStart;
-            const length = operation === "clone" && groups.length ? groupStart - sourceStart : operands.length - sourceStart;
-            if (!length) return { exitCode: 1, stdout: "", stderr: `montage: no images found for operation ${t}\n` };
             try {
                 if (t === "-duplicate") {
                     const value = argv[++i] ?? "", comma = value.startsWith("x") ? 0 : value.indexOf(",");
@@ -23819,15 +23821,22 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
                     spec = parseMagickDuplicateScenes(spec);
                     if (spec === "") count = 0;
                 }
-                for (let repeat = 0; repeat < count; repeat++) {
-                    for (const index of parseMagickIndexSpec(spec, length, operation)) {
-                        if (++cooperativeWork % 64 === 0) yield;
-                        operands.push(operands[sourceStart + index]!);
-                        labels.push(labels[sourceStart + index]!);
-                        transforms.push(sourceTransforms[sourceStart + index]!);
-                        sizes.push(sizes[sourceStart + index]!);
+                const duplicate = function* (): Generator<void, void, void> {
+                    const length = operation === "clone" && groups.length ? groupStart - sourceStart : operands.length - sourceStart;
+                    if (!length) throw new Error(`no images found for operation ${t}`);
+                    for (let repeat = 0; repeat < count; repeat++) {
+                        for (const index of parseMagickIndexSpec(spec, length, operation)) {
+                            if (++cooperativeWork % 64 === 0) yield;
+                            operands.push(operands[sourceStart + index]!);
+                            labels.push(labels[sourceStart + index]!);
+                            transforms.push(sourceTransforms[sourceStart + index]!);
+                            sizes.push(sizes[sourceStart + index]!);
+                        }
                     }
-                }
+                };
+                // Leading duplicates follow the same flush/replay boundaries as pixel operators.
+                if (operation === "duplicate" && operands.length === groupStart) queuedDuplicates.push(duplicate);
+                else yield* duplicate();
             } catch (error) {
                 return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` };
             }
@@ -23934,6 +23943,9 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
                 }
             }
         }
+    }
+    } catch (error) {
+        return { exitCode: 1, stdout: "", stderr: `montage: ${(error as Error).message}\n` };
     }
     if (groups.length) return { exitCode: 1, stdout: "", stderr: "montage: unbalanced parenthesis\n" };
     return { inputErrors, warnings, regardWarnings, shadow, transforms, concatenate, state, tileCols, tileRows, originX, originY, cellW, cellH, padX, padY, borderW, operands, labels, sizes, geometry, frame, matte, title, texture };

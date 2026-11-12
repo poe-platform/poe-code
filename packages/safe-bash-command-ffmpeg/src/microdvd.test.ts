@@ -7,6 +7,10 @@ import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 const cues = [
   ["A", "A"],
   ["A|B", "A\nB"],
+  ["A\\NB", "A\nB"],
+  ["A\\nB", "A\nB"],
+  ["\\NA\\n", "\nA\n"],
+  ["A\\N\\nB", "A\n\nB"],
   ["|A", "\nA"],
   ["A|", "A\n"],
   ["A||B", "A\n\nB"],

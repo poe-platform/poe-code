@@ -67,7 +67,7 @@ export function decodeMicrodvd(text: string): string {
       if (!lineTags.includes("<i>")) lineTags.push("<i>");
     }
     transition(lineTags);
-    result += alignment + line.slice(position);
+    result += alignment + line.slice(position).replaceAll("\\N", "\n").replaceAll("\\n", "\n");
     for (const [key, directive] of directives) {
       if (!directive.persistent) directives.delete(key);
     }

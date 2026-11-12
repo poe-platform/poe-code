@@ -3026,7 +3026,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
   let tbDen = 1_000_000_000;
   let curStart = 0;
   let curEnd: number | undefined;
-  let missingEndChapter: Mp4Chapter | undefined;
+  const missingEndChapters = new Set<Mp4Chapter>();
   let chapterTags: [string, string][] = [];
   let curTitle = "";
   let chapterHeader: "timebase" | "start" | "end" | "tags" = "timebase";
@@ -3035,12 +3035,6 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
     if (section !== "chapter") return;
     if (curEnd !== undefined && curEnd < curStart) throw new Error(`Chapter end time ${curEnd} before start ${curStart}`);
     const factor = tbNum / tbDen;
-    if (missingEndChapter) {
-      chapters[missingEndChapter.id] = {
-        ...missingEndChapter,
-        endTimeSeconds: Math.max(missingEndChapter.startTimeSeconds, curStart * factor)
-      };
-    }
     const chapter: Mp4Chapter = {
       id: chapters.length,
       timeBase: { numerator: tbNum, denominator: tbDen },
@@ -3050,7 +3044,7 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
       tags: Object.fromEntries(chapterTags)
     };
     chapters.push(chapter);
-    missingEndChapter = curEnd === undefined ? chapter : undefined;
+    if (curEnd === undefined) missingEndChapters.add(chapter);
   };
 
   for (const rawLine of lines) {
@@ -3146,6 +3140,27 @@ export function parseFfmetadata(bytes: Uint8Array): MediaDocument {
     }
   }
   flushChapter();
+  if (missingEndChapters.size) {
+    // FFmpeg resolves ends in chronological order without reordering the chapter table.
+    const timetable = [...chapters].sort((a, b) => a.startTimeSeconds - b.startTimeSeconds || a.id - b.id);
+    const lastChapter = chapters[chapters.length - 1]!;
+    const duration = missingEndChapters.has(lastChapter) ? 0 : lastChapter.endTimeSeconds;
+    for (const [index, chapter] of timetable.entries()) {
+      if (!missingEndChapters.has(chapter)) continue;
+      const factor = chapter.timeBase!.numerator / chapter.timeBase!.denominator;
+      let end = duration > 0 ? Math.round(duration / factor) * factor : Infinity;
+      const next = timetable[index + 1];
+      if (next) {
+        const ticks = next.startTimeSeconds / factor;
+        const nextStart = Math.sign(ticks) * Math.round(Math.abs(ticks)) * factor;
+        if (nextStart > chapter.startTimeSeconds && nextStart < end) end = nextStart;
+      }
+      chapters[chapter.id] = {
+        ...chapter,
+        endTimeSeconds: Number.isFinite(end) ? Math.max(chapter.startTimeSeconds, end) : chapter.startTimeSeconds
+      };
+    }
+  }
   for (const [key, val] of globalTags) {
     const normalizedKey = key.toLowerCase();
     if (["title", "artist", "album", "date", "comment", "genre", "encoder"].includes(normalizedKey)) {

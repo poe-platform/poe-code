@@ -8576,6 +8576,16 @@ function extToImageFormat(ext: string): ImageFormat | undefined {
   }
 }
 
+// TGA has no identifying magic: a selected Netpbm coder takes precedence.
+function validateTgaFilenameFormat(token: string, metadata: ImageMetadata | undefined): void {
+    if (metadata?.format !== "tga") return;
+    const colon = token.indexOf(":"), dot = token.lastIndexOf(".");
+    const format = colon > 0 ? extToImageFormat(token.slice(0, colon)) : dot > token.lastIndexOf("/") ? extToImageFormat(token.slice(dot + 1)) : undefined;
+    if (format && ["pnm", "ppm", "pgm", "pbm", "pam"].includes(format)) {
+        throw new Error(`improper image header for ${format.toUpperCase()} input`);
+    }
+}
+
 function* parseInputOperandSteps(token: string, files: Map<string, Uint8Array>, state: MagickState, stdinBytes?: Uint8Array, analysis?: { warnings: string }, registers?: ReadonlyMap<string, RgbaImage[]>): Generator<void, RgbaImage | undefined, void> {
     const list = (yield* parseInputOperandsSteps(token, files, state, stdinBytes, undefined, undefined, registers, analysis));
     return list?.[0];
@@ -9039,6 +9049,7 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
     catch {
         totalPages = 1;
     }
+    validateTgaFilenameFormat(baseToken, inputMeta);
     const pageIndices:number[]=[];for(const page of selectedInputPages(pageSpec,totalPages,onInvalidIndex,inputMeta?.format)){if(++work%16384===0)yield;pageIndices.push(page);}
     const effectiveMaxDecodeDim = inferMaxDecodeDimensionFromUpcomingTokens([], 0, inlineGeom) ?? maxDecodeDimension;
     const results: RgbaImage[] = [];
@@ -22043,10 +22054,10 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
    }
    let path=baseToken;const colon=path.indexOf(":");if(colon>0&&extToImageFormat(path.slice(0,colon)))path=path.slice(colon+1);
    if(readOptions.visit){
-    await backend.load(path,function*(metadata){const total=metadata?.pages&&metadata.pages>1?metadata.pages:1;const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;for(const page of selectedInputPages(pageSpec,total,readOptions.onInvalidIndex,metadata?.format))yield {coalesce:false,density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},async(frame)=>{image=await finish(frame);await readOptions.visit!(image);},readOptions.source);
+    await backend.load(path,function*(metadata){validateTgaFilenameFormat(baseToken, metadata);const total=metadata?.pages&&metadata.pages>1?metadata.pages:1;const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;for(const page of selectedInputPages(pageSpec,total,readOptions.onInvalidIndex,metadata?.format))yield {coalesce:false,density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},async(frame)=>{image=await finish(frame);await readOptions.visit!(image);},readOptions.source);
     return image;
    }
-   image=await backend.load(path,metadata=>{const total=metadata?.pages&&metadata.pages>1?metadata.pages:1,pages=selectedInputPages(pageSpec,total,readOptions.onInvalidIndex,metadata?.format);let page=pages.next().value??0;if(readOptions.lastPage){for(const selected of pages)page=selected;}pages.return(undefined);const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;return {coalesce:false,density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},undefined,readOptions.source);
+   image=await backend.load(path,metadata=>{validateTgaFilenameFormat(baseToken, metadata);const total=metadata?.pages&&metadata.pages>1?metadata.pages:1,pages=selectedInputPages(pageSpec,total,readOptions.onInvalidIndex,metadata?.format);let page=pages.next().value??0;if(readOptions.lastPage){for(const selected of pages)page=selected;}pages.return(undefined);const maxDecodeDimension=inferMaxDecodeDimensionFromUpcomingTokens([],0,inlineGeom)??readOptions.maxDecodeDimension;return {coalesce:false,density:state.density,...(total>1||pageSpec!==undefined?{page}:{}),...(maxDecodeDimension===undefined?{}:{maxDecodeDimension})};},undefined,readOptions.source);
   }
  }
  if(image){image=await finish(image);await readOptions.visit?.(image);}

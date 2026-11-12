@@ -14971,7 +14971,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           audioTimestamps.push({ start, end: Math.min(length, start + surround.frameSize),
                             pts: frame ? frame.pts + start - frame.start : audioStartSample + start, pos: frame?.pos });
                         }
-                        filteredChannelMask = stretched.length === 2 ? 3 : 0x3f;
+                        filteredChannelMask = surround.channelMask;
                         filteredChannelNames = undefined;
                         continue;
                       }

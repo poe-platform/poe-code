@@ -671,8 +671,11 @@ The width multiplier defaults to 2.5 (range -10 to 10); `c=0` disables clipping.
 `asendcmd=c='0.064 extrastereo@mix m -1',extrastereo@mix=m=1` swaps channels starting at the first audio frame at or after 0.064 seconds. Commands target the named instance, or the first subsequent `extrastereo` instance when unnamed; invalid width changes retain the current setting.
 Width expressions accept `E`, `PI`, and `PHI`, for example `extrastereo=m=PI/2`.
 `virtualbass` remixes mono, quad, 5.1, and 7.1 input to stereo before adding an LFE channel. Stereo input preserves left/right samples; sample rate and length are preserved. A preceding `aformat=channel_layouts=stereo` mixes in double precision automatically, matching an explicit `sample_fmts=dblp` request. `virtualbass=cutoff=100:strength=0.5` sets the cutoff (100–500 Hz, default 250) and strength (0.5–3, default 3). Positional options and numeric expressions are accepted. `asendcmd` can change `strength` at audio frame boundaries. Like native FFmpeg, `enable=0` still generates bass. Timeline expressions also accept `ld`, `st`, `random`, and `randomi` without changing the synthesized audio.
-`surround` upmixes stereo to 5.1 (FL, FR, FC, LFE, BL, BR) using a
+`surround` upmixes stereo to 5.1 (FL, FR, FC, LFE, BL, BR) by default using a
 windowed frequency transform, retaining the sample rate and frame count.
+Set `chl_out=quad`, `chl_out=5.1(side)`, or `chl_out=7.1` for those speaker
+layouts. Side speakers use their own spatial weighting, distinct from back
+speakers; WAV output and downstream filters retain the selected layout.
 Select `win_func=rect` (`0`), `hann`/`hanning` (`1`, default), or `hamming` (`2`).
 `lfe_mode=add` (or `0`, the default) adds bass to LFE; `lfe_mode=sub` (or `1`)
 also subtracts that bass from the front and rear speakers, leaving center and LFE
@@ -701,7 +704,7 @@ expressions and round to integer Hz with ties to even. The low cutoff must be
 less than the high cutoff, including when `lfe=0`; invalid ordering returns 234.
 Set `fl_in` or `fr_in` (0–10, default 1) to scale the left or right input
 before upmixing; muting both inputs produces silence.
-Set `fl_out`, `fr_out`, `fc_out`, `lfe_out`, `bl_out`, or `br_out` to adjust
+Set `fl_out`, `fr_out`, `fc_out`, `lfe_out`, `bl_out`, `br_out`, `sl_out`, or `sr_out` to adjust
 only that speaker's output level (0–10, default 1); zero silences the speaker.
 These levels accept expressions and the constants `min`, `max`, and `default`.
 Use `asendcmd` to change these speaker levels or `lfe` during playback, including

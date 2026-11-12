@@ -5,22 +5,23 @@ import { soundfieldTangent } from "./audio-float-tangent.js";
 import { phaseAngle } from "./audio-float-phase.js";
 import { transform } from "./audio-fft.js";
 import { parseFilterExpression } from "./filter-expression.js";
-import { parseAudioChannelLayout } from "./audio-channel-layout.js";
+import { audioSpeakerMasks, parseAudioChannelLayout } from "./audio-channel-layout.js";
 
 export async function surroundAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
   filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
   commands: readonly { sample: number; action: string; expression: string }[] = []
-): Promise<{ channels: Float32Array[]; frameSize: number }> {
+): Promise<{ channels: Float32Array[]; frameSize: number; channelMask: number }> {
   let size = 4096, lfe = true;
   let windowFunction = "hann";
   let smooth = 0;
   let lfeMode = 0;
   let windowOverlap = 0.5;
   let lfeLow = 128, lfeHigh = 256;
-  let outputChannels = 6, focus = 0, angle = 90;
+  let focus = 0, angle = 90;
+  let outputLayout = parseAudioChannelLayout("5.1");
   const inputLevels = [1, 1];
-  const outputLevels = { fl_out: 1, fr_out: 1, fc_out: 1, lfe_out: 1, bl_out: 1, br_out: 1 };
+  const outputLevels = { fl_out: 1, fr_out: 1, fc_out: 1, lfe_out: 1, bl_out: 1, br_out: 1, sl_out: 1, sr_out: 1 };
   const spread = {
     flx: 0.5, frx: 0.5, fcx: 0.5, blx: 0.5, brx: 0.5, slx: 0.5, srx: 0.5, bcx: 0.5,
     fly: 0.5, fry: 0.5, fcy: 0.5, bly: 0.5, bry: 0.5, sly: 0.5, sry: 0.5, bcy: 0.5,
@@ -28,9 +29,11 @@ export async function surroundAudio(
   };
   const setOption = (key: string | undefined, value: string) => {
     if (key === "chl_out") {
-      const layout = parseAudioChannelLayout(value).join("+");
-      if (layout !== "FL+FR" && layout !== "FL+FR+FC+LFE+BL+BR") throw new Error("surround: supported output layouts are stereo and 5.1");
-      outputChannels = layout === "FL+FR" ? 2 : 6;
+      const layout = parseAudioChannelLayout(value);
+      if (!["FL+FR", "FL+FR+BL+BR", "FL+FR+FC+LFE+BL+BR", "FL+FR+FC+LFE+SL+SR", "FL+FR+FC+LFE+BL+BR+SL+SR"].includes(layout.join("+"))) {
+        throw new Error("surround: supported output layouts are stereo, quad, 5.1, 5.1(side), and 7.1");
+      }
+      outputLayout = layout;
     } else if (key === "chl_in") {
       if (parseAudioChannelLayout(value).join("+") !== "FL+FR") throw new Error("surround: supported input layout is stereo");
     } else if (key === "level_in" || key === "level_out") {
@@ -122,10 +125,13 @@ export async function surroundAudio(
   if (channels.length !== 2) throw new Error("surround: stereo input required");
   // Global spreads override speaker options regardless of argument order.
   // LFE has zero exponents by default and only global options change them.
-  const spreadX = [spread.flx, spread.frx, spread.fcx, 0, spread.blx, spread.brx]
-    .map(value => spread.allx >= 0 ? spread.allx : value);
-  const spreadY = [spread.fly, spread.fry, spread.fcy, 0, spread.bly, spread.bry]
-    .map(value => spread.ally >= 0 ? spread.ally : value);
+  const outputChannels = outputLayout.length;
+  const channelMask = outputLayout.reduce((mask, speaker) => mask + audioSpeakerMasks[speaker]!, 0);
+  const hasLfe = outputLayout.includes("LFE");
+  const spreadX = outputLayout.map(speaker => spread.allx >= 0 ? spread.allx
+    : speaker === "LFE" ? 0 : spread[`${speaker.toLowerCase()}x` as keyof typeof spread]);
+  const spreadY = outputLayout.map(speaker => spread.ally >= 0 ? spread.ally
+    : speaker === "LFE" ? 0 : spread[`${speaker.toLowerCase()}y` as keyof typeof spread]);
   // One selects the window's recommended overlap.
   if (windowOverlap === 1) windowOverlap = windowFunction === "rect" ? 0 : 0.5;
   const length = channels[0]!.length;
@@ -172,7 +178,7 @@ export async function surroundAudio(
   }
   for (let i = 0; i < size; i++) max = Math.max(max, outReal[i]!);
   const gain = f(1 / f(max * f(Math.sqrt(size))));
-  const speakers = Object.keys(outputLevels) as (keyof typeof outputLevels)[];
+  const speakers = outputLayout.map(speaker => `${speaker.toLowerCase()}_out` as keyof typeof outputLevels);
   let nextCommand = 0;
   const low = f(lfeLow * size / sampleRate), high = f(lfeHigh * size / sampleRate);
   for (let start = 0; start < length; start += hop) {
@@ -193,6 +199,9 @@ export async function surroundAudio(
       else dialogueSpectrum(real[c]!, imaginary[c]!, cosine);
     }
     for (let c = 0; c < outputChannels; c++) {
+      const speaker = outputLayout[c]!;
+      const centerSpeaker = speaker === "FC" || speaker === "LFE";
+      const leftSpeaker = speaker === "FL" || speaker === "BL" || speaker === "SL";
       for (let n = 0; n <= size / 2; n++) {
         const lr = f(real[0]![n]!), li = f(imaginary[0]![n]!);
         const rr = f(real[1]![n]!), ri = f(imaginary[1]![n]!);
@@ -231,21 +240,22 @@ export async function surroundAudio(
           y = Math.max(-1, Math.min(1, f(f(Math.cos(angle)) * distance)));
         }
         const front = f(f(y + 1) * 0.5);
-        const horizontal = c === 2 || c === 3 ? f(1 - Math.abs(x)) : f(0.5 * f((c === 0 || c === 4 ? x : -x) + 1));
-        const vertical = c === 3 ? f(1 - Math.abs(y)) : c < 3 ? front : f(1 - front);
+        const horizontal = centerSpeaker ? f(1 - Math.abs(x)) : f(0.5 * f((leftSpeaker ? x : -x) + 1));
+        const vertical = speaker === "LFE" || speaker === "SL" || speaker === "SR" ? f(1 - Math.abs(y))
+          : speaker === "BL" || speaker === "BR" ? f(1 - front) : front;
         let factor = f(f(Math.pow(horizontal, spreadX[c]!)) * f(Math.pow(vertical, spreadY[c]!)));
         if (smoothingLength) {
           const history = smoothedFactors[c]!;
           factor = f(f(smooth * factor) + f(f(1 - smooth) * history[n]!));
           history[n] = factor;
         }
-        const lowpass = !lfe || outputChannels !== 6 || n >= high ? 0 : n < low ? 1
+        const lowpass = !lfe || !hasLfe || n >= high ? 0 : n < low ? 1
           : f(0.5 * f(1 + f(Math.cos(f(f(pi * f(low - n)) / f(low - high))))));
         const bass = f(lowpass * center);
         const total = f(Math.hypot(lm, rm));
         // Subtract bass before distributing energy to front/rear speakers; center is unchanged.
-        const magnitude = f((c === 3 ? bass : c === 2 ? center : lfeMode ? f(total - bass) : total) * factor);
-        const phaseOut = c === 2 || c === 3 ? centerPhase : c === 0 || c === 4 ? lp : rp;
+        const magnitude = f((speaker === "LFE" ? bass : speaker === "FC" ? center : lfeMode ? f(total - bass) : total) * factor);
+        const phaseOut = centerSpeaker ? centerPhase : leftSpeaker ? lp : rp;
         outReal[n] = f(magnitude * f(Math.cos(phaseOut)));
         outImaginary[n] = n === 0 || n === size / 2 ? 0 : f(magnitude * f(Math.sin(phaseOut)));
         if (n > 0 && n < size / 2) {
@@ -262,5 +272,5 @@ export async function surroundAudio(
       output[c]!.set(buffer.subarray(0, Math.min(hop, length - start)), start);
     }
   }
-  return { channels: output, frameSize: hop };
+  return { channels: output, frameSize: hop, channelMask };
 }

@@ -13377,11 +13377,16 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   mappedAudioLabels.add(label);
                   expression = expression.slice(0, start);
                 } else if (maps.length) throw new Error("showwavespic: unsupported output map");
-                const [index, type, ordinal = "0", ...extra] = input.split(":");
-                const doc = loadedDocs[Number(index)];
-                const track = type === "a" && index !== "" && extra.length === 0
-                  ? doc?.tracks.filter(track => track.type === "audio")[Number(ordinal)] : undefined;
-                if (!doc || !track) throw new Error(`showwavespic: invalid audio input ${input}`);
+                const [index, selector, ordinal, ...extra] = input.split(":");
+                const numeric = selector === "a" ? [index, ordinal ?? "0"] : [index, selector ?? "0"];
+                const valid = extra.length === 0 && (selector === "a" || ordinal === undefined) &&
+                  numeric.every(value => value !== undefined && value.length > 0 &&
+                    Array.from(value).every(char => char >= "0" && char <= "9") && Number.isSafeInteger(Number(value)));
+                const doc = valid ? loadedDocs[Number(index)] : undefined;
+                const track = selector === undefined || selector === "a"
+                  ? doc?.tracks.filter(track => track.type === "audio")[Number(ordinal ?? "0")]
+                  : doc?.tracks[Number(selector)];
+                if (!doc || !track || track.type !== "audio") throw new Error(`showwavespic: invalid audio input ${input}`);
                 const filters = parseFilterChain(expression);
                 const waveformIndex = filters.findIndex(filter => filter.split("=", 1)[0] === "showwavespic");
                 if (waveformIndex < 0) throw new Error("showwavespic: invalid filter chain");

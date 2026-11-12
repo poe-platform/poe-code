@@ -9,7 +9,8 @@ import { parseAudioChannelLayout } from "./audio-channel-layout.js";
 
 export async function surroundAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number,
-  filter: string, budget: MediaBudgetTracker, signal?: AbortSignal
+  filter: string, budget: MediaBudgetTracker, signal?: AbortSignal,
+  commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<{ channels: Float32Array[]; frameSize: number }> {
   let size = 4096, lfe = true;
   let smooth = 0;
@@ -24,11 +25,7 @@ export async function surroundAudio(
     fly: 0.5, fry: 0.5, fcy: 0.5, bly: 0.5, bry: 0.5, sly: 0.5, sry: 0.5, bcy: 0.5,
     allx: -1, ally: -1
   };
-  const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
-  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
-    const separator = option.indexOf("=");
-    const key = separator < 0 ? ["chl_out", "chl_in", "level_in", "level_out", "lfe", "lfe_low", "lfe_high"][index] : option.slice(0, separator).trim();
-    const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+  const setOption = (key: string | undefined, value: string) => {
     if (key === "chl_out") {
       const layout = parseAudioChannelLayout(value).join("+");
       if (layout !== "FL+FR" && layout !== "FL+FR+FC+LFE+BL+BR") throw new Error("surround: supported output layouts are stereo and 5.1");
@@ -100,6 +97,13 @@ export async function surroundAudio(
       else if (["0", "false", "no", "off", "n", "disabled"].includes(boolean)) lfe = false;
       else throw new Error("surround: invalid lfe");
     } else throw new Error(`surround: unsupported option ${key}`);
+  };
+  const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
+  for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
+    const separator = option.indexOf("=");
+    const key = separator < 0 ? ["chl_out", "chl_in", "level_in", "level_out", "lfe", "lfe_low", "lfe_high"][index] : option.slice(0, separator).trim();
+    const value = (separator < 0 ? option : option.slice(separator + 1)).trim();
+    setOption(key, value);
   }
   if (lfeLow >= lfeHigh) throw new Error(`surround: low cutoff ${lfeLow} must be less than high cutoff ${lfeHigh}`);
   if (size % 4 !== 0) throw new Error("surround: unsupported transform size");
@@ -150,10 +154,20 @@ export async function surroundAudio(
   }
   for (let i = 0; i < size; i++) max = Math.max(max, outReal[i]!);
   const gain = f(1 / f(max * f(Math.sqrt(size))));
-  const gains = Object.values(outputLevels).map(level => f(level * gain));
+  const speakers = Object.keys(outputLevels) as (keyof typeof outputLevels)[];
+  let nextCommand = 0;
   const low = f(lfeLow * size / sampleRate), high = f(lfeHigh * size / sampleRate);
   for (let start = 0; start < length; start += hop) {
     await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
+    // Commands arrive while input frames fill this hop, before its transform.
+    // Changing coefficients leaves the overlap from earlier windows intact.
+    while (nextCommand < commands.length && commands[nextCommand]!.sample < Math.min(start + hop, length)) {
+      const { action, expression } = commands[nextCommand++]!;
+      if (action !== "lfe" && !Object.hasOwn(outputLevels, action)) continue;
+      try {
+        setOption(action, expression.trim());
+      } catch { /* Native keeps the previous value after a rejected command. */ }
+    }
     for (let c = 0; c < 2; c++) {
       for (let i = 0; i < size; i++) real[c]![i] = f(f(f(channels[c]![start - (size - hop) + i] ?? 0) * window[i]!) * inputLevels[c]!);
       imaginary[c]!.fill(0);
@@ -223,9 +237,10 @@ export async function surroundAudio(
       }
       if (scratch) transform(outReal, outImaginary, true, scratch);
       else inverseRealSpectrum(outReal, outImaginary, cosine);
+      const level = f(outputLevels[speakers[c]!] * gain);
       const buffer = overlap[c]!;
       buffer.copyWithin(0, hop); buffer.fill(0, size - hop);
-      for (let i = 0; i < size; i++) buffer[i] = f(buffer[i]! + f(f(f(outReal[i]!) * window[i]!) * gains[c]!));
+      for (let i = 0; i < size; i++) buffer[i] = f(buffer[i]! + f(f(f(outReal[i]!) * window[i]!) * level));
       output[c]!.set(buffer.subarray(0, Math.min(hop, length - start)), start);
     }
   }

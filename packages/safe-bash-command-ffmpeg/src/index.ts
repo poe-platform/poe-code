@@ -14348,6 +14348,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || ["i", "c"].includes(action!) && (target === "crystalizer" || target?.startsWith("crystalizer@"))
                             || ["level_in", "level_out", "mode", "type", "enable"].includes(action!) && (target === "aemphasis" || target?.startsWith("aemphasis@"))
                             || ["strength", "level_out"].includes(action!) && (target === "crossfeed" || target?.startsWith("crossfeed@"))
+                            || target === "surround" || target?.startsWith("surround@")
                             || target === "stereowiden" || target?.startsWith("stereowiden@")
                             || target === "stereotools" || target?.startsWith("stereotools@")
                             // aphaser declines runtime commands without aborting the render.
@@ -14953,7 +14954,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       }
                       if (filterName === "surround") {
                         if (filteredChannelMask && filteredChannelMask !== 3) throw new Error("surround: stereo input required");
-                        const surround = await surroundAudio(stretched, origRate, trimmed, budget, context.signal);
+                        const commands = audioCommands.filter(command => command.target === "surround" || command.target === filterTarget)
+                          .sort((a, b) => a.sample - b.sample);
+                        audioCommands = audioCommands.filter(command => command.target !== "surround" && command.target !== filterTarget);
+                        const surround = await surroundAudio(stretched, origRate, trimmed, budget, context.signal, commands);
                         stretched = surround.channels;
                         const length = stretched[0]?.length ?? 0;
                         budget.allocateMemory(Math.ceil(length / surround.frameSize) * 32);

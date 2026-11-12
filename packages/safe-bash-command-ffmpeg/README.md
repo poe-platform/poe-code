@@ -699,6 +699,9 @@ before upmixing; muting both inputs produces silence.
 Set `fl_out`, `fr_out`, `fc_out`, `lfe_out`, `bl_out`, or `br_out` to adjust
 only that speaker's output level (0–10, default 1); zero silences the speaker.
 These levels accept expressions and the constants `min`, `max`, and `default`.
+Use `asendcmd` to change these speaker levels or `lfe` during playback, including
+named instances such as `surround@room`. Updates preserve the overlap from earlier
+windows; rejected commands leave the previous setting in place.
 `level_in` and `level_out` accept expressions from 0 to 10 (default 1).
 As in FFmpeg 7.0.2, per-channel defaults override these global levels, so they
 leave the audio unchanged, including when set to zero.

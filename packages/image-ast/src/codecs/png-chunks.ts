@@ -100,6 +100,10 @@ export function decodePngIcc(compressed: Uint8Array): Uint8Array {
   }
 }
 
+export function excludePngChunk(type: string, excluded: readonly string[] | undefined): boolean {
+  return excluded?.some(name => name.trim().toLowerCase() === type.toLowerCase() || name.trim().toLowerCase() === "all") ?? false;
+}
+
 export function backgroundChunk(background: NonNullable<ImageMetadata["backgroundColor"]>, depth: number, color: number, palette?: Uint8Array): Uint8Array | undefined {
   if (color === 3) {
     if (!palette) return;

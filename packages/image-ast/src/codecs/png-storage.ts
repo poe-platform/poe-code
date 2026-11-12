@@ -2,7 +2,7 @@ import { ADAM7_PASSES } from "./png-pixels.js";
 import { PngPalette } from "./png-palette.js";
 import { GifPalette } from "./gif-output-parts.js";
 import {pngMetadataSteps} from "./png-metadata.js";
-import {PNG_SIGNATURE, validPngTransparencyLength, pngCrc32, makeChunk, gammaChunk, chromaticityChunk, backgroundChunk, canvasChunk, iccChunk, xmpChunk, textChunks} from "./png-chunks.js";
+import {PNG_SIGNATURE, excludePngChunk, validPngTransparencyLength, pngCrc32, makeChunk, gammaChunk, chromaticityChunk, backgroundChunk, canvasChunk, iccChunk, xmpChunk, textChunks} from "./png-chunks.js";
 import {buildExifApp1Segment} from "./exif.js";
 import {createByteCodec, defaultRuntime} from "@poe-code/compression";
 import {checkLimitInputPixels} from "../limits.js";
@@ -284,15 +284,15 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   header[12] = options.pngInterlace ? 1 : 0;
   yield new Uint8Array(PNG_SIGNATURE);
   signal.throwIfAborted(); yield makeChunk("IHDR",header);
-  if (image.gamma !== undefined) yield gammaChunk(image.gamma);
-  if (image.chromaticity !== undefined) yield chromaticityChunk(image.chromaticity);
-  if (image.icc) {
+  if (image.gamma !== undefined && !excludePngChunk("gAMA", options.pngExcludeChunks)) yield gammaChunk(image.gamma);
+  if (image.chromaticity !== undefined && !excludePngChunk("cHRM", options.pngExcludeChunks)) yield chromaticityChunk(image.chromaticity);
+  if (image.icc && !excludePngChunk("iCCP", options.pngExcludeChunks)) {
     const chunk = iccChunk(image.icc);
     for (let offset = 0; offset < chunk.length; offset += 4096) {signal.throwIfAborted(); yield chunk.subarray(offset, offset + 4096);}
   }
-  if (exactPalette) { yield makeChunk("PLTE", exactPalette.bytes); if (exactPalette.transparency) yield makeChunk("tRNS", exactPalette.transparency); }
-  if (palette) { yield makeChunk("PLTE", pngPalette!.bytes); if (pngPalette!.transparency) yield makeChunk("tRNS", pngPalette!.transparency); }
-  if (image.backgroundColor !== undefined) {
+  if (exactPalette) { yield makeChunk("PLTE", exactPalette.bytes); if (exactPalette.transparency && !excludePngChunk("tRNS", options.pngExcludeChunks)) yield makeChunk("tRNS", exactPalette.transparency); }
+  if (palette) { yield makeChunk("PLTE", pngPalette!.bytes); if (pngPalette!.transparency && !excludePngChunk("tRNS", options.pngExcludeChunks)) yield makeChunk("tRNS", pngPalette!.transparency); }
+  if (image.backgroundColor !== undefined && !excludePngChunk("bKGD", options.pngExcludeChunks)) {
     const background = backgroundChunk(image.backgroundColor, header[8]!, header[9]!, exactPalette?.bytes ?? pngPalette?.bytes);
     if (background) yield background;
   }
@@ -302,20 +302,20 @@ export async function* encodePngFromStorage(image: StoredRgbaImage, storage: Ima
   const physical = new Uint8Array(9), physicalView = new DataView(physical.buffer);
   // setUint32 truncates fractional pixels per meter, matching ImageMagick.
   physicalView.setUint32(0,resolution ? resolution.x * scale : density / 0.0254); physicalView.setUint32(4,resolution ? resolution.y * scale : density / 0.0254); physical[8] = resolution?.unit === "unknown" ? 0 : 1;
-  if (!options.omitPngResolution && (resolution !== undefined || options.density !== undefined)) {signal.throwIfAborted(); yield makeChunk("pHYs",physical);}
-  if (image.virtualCanvas !== undefined && (image.virtualCanvas.width !== image.width || image.virtualCanvas.height !== image.height || image.virtualCanvas.x !== 0 || image.virtualCanvas.y !== 0)) {signal.throwIfAborted(); yield canvasChunk(image.virtualCanvas);}
-  for (const chunk of textChunks(image.properties)) {
+  if (!options.omitPngResolution && !excludePngChunk("pHYs", options.pngExcludeChunks) && (resolution !== undefined || options.density !== undefined)) {signal.throwIfAborted(); yield makeChunk("pHYs",physical);}
+  if (!excludePngChunk("caNv", options.pngExcludeChunks) && image.virtualCanvas !== undefined && (image.virtualCanvas.width !== image.width || image.virtualCanvas.height !== image.height || image.virtualCanvas.x !== 0 || image.virtualCanvas.y !== 0)) {signal.throwIfAborted(); yield canvasChunk(image.virtualCanvas);}
+  for (const chunk of textChunks(excludePngChunk("iTXt", options.pngExcludeChunks) ? undefined : image.properties)) {
     for (let offset = 0; offset < chunk.length; offset += 4096) {signal.throwIfAborted(); yield chunk.subarray(offset, offset + 4096);}
   }
-  if (image.xmp) {
+  if (image.xmp && !excludePngChunk("iTXt", options.pngExcludeChunks)) {
     const chunk = xmpChunk(image.xmp);
     for (let offset = 0; offset < chunk.length; offset += 4096) {signal.throwIfAborted(); yield chunk.subarray(offset, offset + 4096);}
   }
   const orientation = options.orientation ?? image.orientation;
-  if (image.exif || (options.synthesizeExif !== false && orientation !== undefined)) {
+  if ((image.exif || (options.synthesizeExif !== false && orientation !== undefined)) && !excludePngChunk("eXIf", options.pngExcludeChunks)) {
     const chunk = makeChunk("eXIf",buildExifApp1Segment({exif:image.exif,orientation,density,resolution}).subarray(6));
     for (let offset = 0; offset < chunk.length; offset += 4096) {signal.throwIfAborted(); yield chunk.subarray(offset, offset + 4096);}
-  } else if (orientation !== undefined) {
+  } else if (orientation !== undefined && !image.exif && options.synthesizeExif === false && !excludePngChunk("orNT", options.pngExcludeChunks)) {
     signal.throwIfAborted();
     yield makeChunk("orNT", Uint8Array.of(orientation));
   }

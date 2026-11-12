@@ -574,6 +574,7 @@ export function encodeImage(
       const data = encodePngImage(img, {
         ...(options.synthesizeExif === undefined ? {} : { synthesizeExif: options.synthesizeExif }),
         ...(options.palette === undefined ? {} : { palette: options.palette }),
+        ...(options.pngExcludeChunks === undefined ? {} : { pngExcludeChunks: options.pngExcludeChunks }),
         pngCoder: options.pngCoder,
         pngInterlace: options.pngInterlace,
         pngColorType: options.pngColorType,

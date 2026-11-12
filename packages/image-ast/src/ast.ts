@@ -547,6 +547,7 @@ export interface OutputEncodeOptions {
   readonly pngCoder?: "png00" | "png8" | "png24" | "png32" | "png48" | "png64" | undefined;
   readonly forceOpaque?: boolean;
   readonly omitPngResolution?: boolean;
+  readonly pngExcludeChunks?: readonly string[];
   readonly pngPreserveColormap?: boolean | undefined;
   readonly pngInterlace?: boolean | undefined;
   readonly gifInterlace?: boolean | undefined;

@@ -2,7 +2,7 @@ import { ADAM7_PASSES } from "./png-pixels.js";
 import { PngPalette } from "./png-palette.js";
 import { GifPalette } from "./gif-output-parts.js";
 import {pngMetadataSteps} from "./png-metadata.js";
-import {PNG_SIGNATURE, validPngTransparencyLength, pngCrc32, makeChunk, gammaChunk, chromaticityChunk, backgroundChunk, canvasChunk, iccChunk, xmpChunk, textChunks} from "./png-chunks.js";
+import {PNG_SIGNATURE, excludePngChunk, validPngTransparencyLength, pngCrc32, makeChunk, gammaChunk, chromaticityChunk, backgroundChunk, canvasChunk, iccChunk, xmpChunk, textChunks} from "./png-chunks.js";
 import {paethPredictor, writePngPixel} from "./png-pixels.js";
 import { createByteCodec, transformBytes, ByteCodecError } from "@poe-code/compression";
 
@@ -258,6 +258,7 @@ export function encodePngImage(
     readonly density?: number;
     readonly orientation?: number;
     readonly omitPngResolution?: boolean;
+    readonly pngExcludeChunks?: readonly string[];
     readonly pngPreserveColormap?: boolean | undefined;
     readonly pngInterlace?: boolean | undefined;
     readonly pngBitDepth?: 1 | 8 | 16 | undefined;
@@ -495,10 +496,11 @@ export function encodePngImage(
     makeChunk("IEND", new Uint8Array(0))
   ];
 
-  const totalLength = chunks.reduce((s, c) => s + c.length, 0);
+  const retainedChunks = chunks.filter((chunk, index) => index === 0 || (chunk[4]! & 32) === 0 || !excludePngChunk(String.fromCharCode(...chunk.subarray(4, 8)), options?.pngExcludeChunks));
+  const totalLength = retainedChunks.reduce((s, c) => s + c.length, 0);
   const out = new Uint8Array(totalLength);
   let pos = 0;
-  for (const c of chunks) {
+  for (const c of retainedChunks) {
     out.set(c, pos);
     pos += c.length;
   }

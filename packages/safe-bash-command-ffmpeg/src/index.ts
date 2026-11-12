@@ -1498,6 +1498,10 @@ async function renderShowwavespic(
     const separator = part.indexOf("=");
     let key = separator < 0 ? ["size", "split_channels", "colors", "scale", "draw", "filter"][positionalIndex++] : part.slice(0, separator);
     if (key === "s") key = "size";
+    if (key === "threads" || key === "thread_type" || key === "extra_hw_frames") {
+      validateWeaveGenericOption(key, part.slice(separator + 1), "showwavespic");
+      continue;
+    }
     if (!key || !["size", "split_channels", "colors", "scale", "draw", "filter"].includes(key)) {
       throw new Error(`showwavespic: unsupported option ${key ?? part}`);
     }

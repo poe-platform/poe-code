@@ -246,7 +246,8 @@ function* resizeSamples(image: ResizeImage, width: number, height: number, thumb
     if (settings.window) kernel = "sinc";
     // Working CMYK rows use C, M, Y, alpha, K; black is never an alpha weight.
     const range = highDepth ? 65535 : 255, stride = inks ? 5 : 4;
-    const hue = !inks && !!image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray";
+    // A mixed CMYK morph still reads the other frame's working colorspace samples.
+    const hue = image.space !== "cmyk" && !!image.magickColorspace && image.magickColorspace !== "RGB" && image.magickColorspace !== "scRGB" && image.magickColorspace !== "Gray";
     // Four Float64 samples per pixel must fit in a 16 KiB storage read.
     const readPixels = hue || preserveSamples || inks ? 512 : 1024;
     // ImageMagick sharpens the sinc window by narrowing its support.

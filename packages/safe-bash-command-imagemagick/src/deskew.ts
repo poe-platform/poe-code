@@ -24,9 +24,23 @@ function* deskewAngle(width: number, height: number, spec: string, range: number
         // Native accepts geometry without a leading scalar, then reads that scalar as zero.
         value = 0;
     }
+    let hexFractionEnd = -1;
+    // Native consumes a hexadecimal fraction only when its scalar has a sign.
+    if (unsigned !== text && unsigned.toLowerCase().startsWith("0x")) {
+        let end = 2;
+        while (end < unsigned.length && "0123456789abcdef".includes(unsigned[end]!.toLowerCase())) end++;
+        if (unsigned[end] === ".") {
+            let scale = sign;
+            while (++end < unsigned.length && "0123456789abcdef".includes(unsigned[end]!.toLowerCase())) {
+                scale /= 16;
+                value += Number.parseInt(unsigned[end]!, 16) * scale;
+            }
+            hexFractionEnd = end;
+        }
+    }
     // Geometry suffixes are valid, but only % immediately after the number scales it.
     const percent = unsigned.indexOf("%"), prefix = unsigned.slice(0, percent);
-    const isPercent = percent > 0 && prefix.trimEnd() === prefix && Number(prefix) * sign === value;
+    const isPercent = percent > 0 && (percent === hexFractionEnd || (prefix.trimEnd() === prefix && Number(prefix) * sign === value));
     const threshold = value * (isPercent ? range / 100 : range / 65535);
     if (!Number.isFinite(threshold)) throw new Error("Invalid deskew threshold");
     const groups = Math.ceil(width / 8);

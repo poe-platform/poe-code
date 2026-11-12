@@ -45,12 +45,26 @@ export async function correlateAudio(
     } else throw new Error(`axcorrelate: unsupported option ${key}`);
   }
   let secondChannels = b.channelData;
+  let resampledEnds: number[] | undefined;
   if (a.sampleRate !== b.sampleRate) {
     const length = Math.ceil(b.channelData[0]!.length * a.sampleRate / b.sampleRate);
     budget.checkSamples(length);
     budget.checkDuration(length / a.sampleRate);
     budget.allocateMemory(length * b.channels * Float32Array.BYTES_PER_ELEMENT);
-    secondChannels = await resampleAudio(b.channelData, length, b.sampleRate, a.sampleRate, budget, signal);
+    const ends: number[] = [];
+    const inputLength = b.channelData[0]!.length;
+    for (let end = 0, index = 0; end < inputLength; index++) {
+      if (index % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+      const packet = second.samples[index];
+      end += packet ? Math.max(0, Math.round(packet.duration * b.sampleRate / second.timescale)
+        - (packet.skipSamples ?? 0) - (packet.discardPadding ?? 0)) : inputLength - end;
+      budget.allocateMemory(16);
+      ends.push(Math.min(end, inputLength));
+    }
+    resampledEnds = [];
+    budget.allocateMemory(8); // The resampler can emit a separate flush frame.
+    secondChannels = await resampleAudio(b.channelData, length, b.sampleRate, a.sampleRate, budget, signal,
+      undefined, undefined, undefined, undefined, undefined, undefined, undefined, { ends, outputEnds: resampledEnds });
   }
   // Native requests the first input whose FIFO has at most one window left.
   // Once either input reports EOF, only already received packets are drained.
@@ -74,6 +88,11 @@ export async function correlateAudio(
     drainTo(Math.min(...received) - size);
     const input = received[0]! - drained <= size ? 0 : 1;
     if (received[input]! >= lengths[input]!) break;
+    // Resampled packets include startup delay and a separate EOF tail.
+    if (input === 1 && resampledEnds) {
+      received[1] = resampledEnds[packets[1]!++] ?? lengths[1]!;
+      continue;
+    }
     const track = tracks[input]!;
     const packet = track.samples[packets[input]!];
     packets[input]!++;

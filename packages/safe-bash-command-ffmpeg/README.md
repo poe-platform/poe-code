@@ -514,7 +514,8 @@ Invalid expressions and out-of-range results fail without replacing existing out
 
 `axcorrelate` computes per-channel cross-correlation from two PCM inputs with compatible
 channel layouts, resampling the second input to the first input’s sample rate and
-stopping at the shorter input. For example,
+stopping at the shorter input. Implicit resampling preserves the same frame boundaries
+and tail samples as an explicit `aresample` filter. For example,
 `[0:a][1:a]axcorrelate=size=128:algo=slow[mix]`. Mono, stereo, and 5.1 pairs are remixed
 to the first input’s layout before correlation. `size` accepts numeric expressions
 such as `2*4` in the range 2–131072 (default 256), rounded to the nearest sample

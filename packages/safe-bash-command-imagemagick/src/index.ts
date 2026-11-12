@@ -13055,6 +13055,15 @@ function* prepareMagickOutput(image: RgbaImage, format: ImageFormat, dither: Mag
         if (source.region) image = yield* applyMagickRasterSteps(image, regionPixelSteps(image, source.region, !!image.data16), undefined, image, [image, source]);
         if (source.writeMask) image = yield* applyMagickRasterSteps(image, writeMaskPixelSteps(image, source.writeMask, !!image.data16, false, undefined, source.hasAlpha && source.alphaBlend !== false), undefined, image, [image, source, source.writeMask]);
     }
+    if (format === "png" && (!pngCoder || pngCoder === "png00") && (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8 && image.evaluateSamples) {
+        // Choose automatic PNG depth from active working samples before byte quantization.
+        for (let offset = 0; offset < image.evaluateSamples.length; offset++) {
+            if (offset % 16384 === 0) yield;
+            if (offset % 4 === 3 && !image.hasAlpha) continue;
+            const sample = Math.round(Math.max(0, Math.min(65535, Math.fround(image.evaluateSamples[offset]! * 257))));
+            if (sample % 257 !== 0) { image = yield* prepare16BitOutput(image); break; }
+        }
+    }
     if (pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format) || format === "miff" || format === "mpc" || format === "tiff") image = yield* prepare16BitOutput(image);
     if (format === "png" && image.virtualCanvas?.width === 0 && image.virtualCanvas.height === 0) image = { ...image, virtualCanvas: { ...image.virtualCanvas, width: image.width, height: image.height } };
     if (format === "png" && image.properties) image = { ...image, properties: Object.fromEntries(Object.entries(image.properties).filter(([key]) => !key.toLowerCase().startsWith("artifact:"))) };
@@ -13135,6 +13144,18 @@ async function prepareStoredMagickOutput(image: StoredRgbaImage, format: ImageFo
         // Native conversion preserves protected samples before exporting the red channel.
         if (source.region) image = await transformStoredMagickRaster(image, backend, regionPixelSteps(image, source.region, !!image.storedData16), signal, image, [image, source]);
         if (source.storedWriteMask) image = await transformStoredMagickRaster(image, backend, writeMaskPixelSteps(image, source.storedWriteMask, !!image.storedData16, false, undefined, source.hasAlpha && source.alphaBlend !== false), signal, image, [image, source, source.storedWriteMask]);
+    }
+    if (format === "png" && (!pngCoder || pngCoder === "png00") && (image.bitsPerSample ?? (image.depth === "ushort" ? 16 : 8)) > 8 && image.storedEvaluateSamples !== undefined) {
+        const length = image.width * image.height * 4;
+        for (let offset = 0; offset < length; offset += 2048) {
+            await yieldTurn(signal);
+            const bytes = await backend.storage.read(image.storedEvaluateSamples + offset * 8, Math.min(2048, length - offset) * 8);
+            const samples = new Float64Array(bytes.slice().buffer);
+            if (samples.some((value, index) => (index % 4 !== 3 || image.hasAlpha) && Math.round(Math.max(0, Math.min(65535, Math.fround(value * 257)))) % 257 !== 0)) {
+                image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepare16BitOutput }, signal);
+                break;
+            }
+        }
     }
     if ((pngCoder === "png48" || pngCoder === "png64" || isRawCoder(format) || format === "miff" || format === "mpc" || format === "tiff") && image.storedEvaluateSamples !== undefined) {
         image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepare16BitOutput }, signal);

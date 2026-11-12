@@ -5561,10 +5561,10 @@ async function applyVideoFilterChain(
         if (!key || !keys.includes(key)) throw new Error(`fps: unsupported option ${key ?? part}`);
         options[key] = (separator < 0 ? part : part.slice(separator + 1)).trim();
       }
-      const startTime = options.start_time === undefined ? undefined : parseFilterExpression(options.start_time, "fps", {});
-      const roundValue = parseFilterExpression(options.round ?? "near", "fps", { zero: 0, inf: 1, down: 2, up: 3, near: 5 });
+      const startTime = options.start_time === undefined ? undefined : parseFilterExpression(options.start_time, "fps", {}, undefined, new Float64Array(10));
+      const roundValue = parseFilterExpression(options.round ?? "near", "fps", { zero: 0, inf: 1, down: 2, up: 3, near: 5 }, undefined, new Float64Array(10));
       if (roundValue < 0 || roundValue > 5) throw new RangeError("fps: invalid round value");
-      const eofValue = parseFilterExpression(options.eof_action ?? "round", "fps", { round: 0, pass: 1 });
+      const eofValue = parseFilterExpression(options.eof_action ?? "round", "fps", { round: 0, pass: 1 }, undefined, new Float64Array(10));
       if (eofValue < 0 || eofValue > 1) throw new RangeError("fps: invalid eof_action value");
       // Validate options before evaluating the rate, which happens after output opens.
       const targetFps = parseFilterExpression(options.fps ?? "25", "fps: frame rate", {

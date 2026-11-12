@@ -10702,6 +10702,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 if (!im.hasAlpha && !im.inactiveAlpha || im.alphaBlend === false) {
                     im = { ...yield* prepareInactiveAlphaOutput({ ...im, hasAlpha: false }), alphaBlend: true, channels: im.channels <= 2 ? 2 : 4 };
                 }
+                if (im[magickInput]?.imageType === "Grayscale")
+                    im = { ...im, [magickInput]: { ...im[magickInput], imageType: undefined } };
                 yield;
                 return { ...im, hasAlpha: false, inactiveAlpha: true, alphaBlend: im.alphaBlend ?? im.hasAlpha, alphaAssociated: false, alphaSeparate: mode === "discrete" };
             };
@@ -10818,6 +10820,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             apply = function* (im) {
                 if (im.hasAlpha && im.alphaBlend !== false) return im;
                 const opaque = yield* prepareInactiveAlphaOutput({ ...im, hasAlpha: false });
+                if (im[magickInput]?.imageType === "Grayscale")
+                    opaque[magickInput] = { ...im[magickInput], imageType: undefined };
                 return { ...opaque, hasAlpha: true, inactiveAlpha: false, alphaBlend: true, channels: im.channels <= 2 ? 2 : 4 };
             };
         }

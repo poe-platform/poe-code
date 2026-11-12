@@ -95,7 +95,6 @@ export async function passAudio(
   budget.checkCpu();
   // Native FFmpeg bypasses an out-of-band cutoff when configuring the filter.
   if (options.mix === 0 || options.width === 0 || options.frequency === 0 || options.frequency > sampleRate / 2) return { channels: [...channels], sampleFormat };
-  if (shelf && !lowShelf && options.gain === 0) return { channels: [...channels], sampleFormat };
   const angle = 2 * Math.PI * options.frequency / sampleRate;
   const sine = Math.sin(angle);
   const amplitude = Math.pow(10, options.gain / 40);

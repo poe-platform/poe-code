@@ -26,9 +26,9 @@ for (const [filter, expected] of [
   ["treble=g=-3:c=FL", [0, 2, 2, 6, 4, 10, 0, -2, -3, -6, -4, -10, 29906, -32768, -25317, 32767]],
   ["treble=g=-3:m=0.5", [0, 1, 2, 5, 4, 9, 0, -1, -3, -6, -4, -9, 31336, -31338, -29042, 29042]],
   ["treble=g=0", samples],
-  ["highshelf=g=0", samples],
+  ["highshelf=g=0", [1, 2, 3, 6, 5, 10, -1, -2, -2, -5, -5, -10, 32767, -32767, -32768, 32766]],
   ["treble", samples],
-  ["highshelf", samples]
+  ["highshelf", [1, 2, 3, 6, 5, 10, -1, -2, -2, -5, -5, -10, 32767, -32767, -32768, 32766]]
 ] as const) {
   for (const graph of [false, true]) {
     for (const format of ["s16le", "wav"]) it(`matches native ${filter} (${format}, graph=${graph})`, async () => {
@@ -44,6 +44,24 @@ for (const [filter, expected] of [
       }
     });
   }
+}
+
+// Native FFmpeg 7.0.2: zero gain still runs the biquad and truncates PCM16.
+const ramp = Array.from({ length: 23 }, (_, i) => 1000 * (i + 1) * (-1) ** i);
+const rampInput = encodeWav({ sampleRate: 8000, channels: [Float64Array.from(ramp, value => value / 32768)] });
+for (const [filter, expected] of [
+  ["anull", ramp],
+  ["treble=f=500:g=0", [1000, -2000, 2999, -4000, 4999, -6000, 6999, -8000, 8999, -10000, 10999, -12000, 13000, -14000, 14999, -16000, 16999, -18000, 18999, -20000, 21000, -21999, 23000]],
+  ["treble=f=500:g=0:b=4", [999, -2000, 2999, -3999, 4998, -6000, 6998, -8000, 8999, -9999, 10999, -11999, 12999, -14000, 14998, -16000, 16998, -18000, 18998, -20000, 20999, -21999, 23000]],
+  ["highshelf=f=500:g=0:b=4", [1000, -1999, 2999, -3999, 4999, -6000, 6999, -7999, 8999, -9999, 10999, -11999, 13000, -13999, 15000, -15998, 17000, -17998, 19000, -19999, 20999, -21999, 23000]],
+  ["treble=f=500:g=6", [1815, -3954, 5847, -7907, 9868, -11876, 13871, -15860, 17864, -19850, 21853, -23843, 25842, -27835, 29831, -31826, 32767, -32768, 32767, -32768, 32767, -32768, 32767]]
+] as const) {
+  for (const graph of [false, true]) it(`matches native PCM16 ramp ${filter} (graph=${graph})`, async () => {
+    const { output, result, stderr } = await run(filter, graph, "s16le", "pipe:1", rampInput);
+    assert.equal(result.exitCode, 0, stderr);
+    assert.equal(stderr, "");
+    assert.deepEqual(Array.from({ length: output.length / 2 }, (_, i) => output.readInt16LE(i * 2)), expected);
+  });
 }
 
 for (const option of ["g=NaN", "g=901", "g=-901", "g=", "unknown=1"]) {
@@ -63,8 +81,8 @@ it("bounds treble memory and honors cancellation", async () => {
     new MediaBudgetTracker(), AbortSignal.abort()));
 });
 
-async function run(filter: string, graph = false, format = "s16le", destination = "pipe:1") {
-  const fs = Volume.fromJSON({ "/in.wav": Buffer.from(input), "/out.raw": "KEEP" });
+async function run(filter: string, graph = false, format = "s16le", destination = "pipe:1", bytes = input) {
+  const fs = Volume.fromJSON({ "/in.wav": Buffer.from(bytes), "/out.raw": "KEEP" });
   const chunks: Buffer[] = [];
   let stderr = "";
   const result = await createFfmpegCommand().execute({

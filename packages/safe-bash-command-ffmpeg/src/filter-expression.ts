@@ -1,4 +1,4 @@
-export function parseFilterExpression(expression: string, filter: string, variables: Record<string, number>, sampleValue?: (channel: number) => number, registers?: Float64Array, randomStates?: BigUint64Array[], print?: (value: number, level: number) => void): number {
+export function parseFilterExpression(expression: string, filter: string, variables: Record<string, number>, sampleValue?: (channel: number) => number, registers?: Float64Array, randomStates?: BigUint64Array[], print?: (value: number, level: number) => void, spectrumValue?: (component: "real" | "imag", bin: number, channel: number) => number): number {
   let offset = 0;
   let rootEvaluations = 0;
   // FFmpeg removes ASCII whitespace before tokenizing, including inside tokens.
@@ -51,6 +51,9 @@ export function parseFilterExpression(expression: string, filter: string, variab
           throw new Error(`${filter}: invalid expression`);
         }
         if (name === "val" && args.length === 1 && sampleValue) value = evaluate ? sampleValue(args[0]!) : 0;
+        else if ((name === "real" || name === "imag") && args.length === 2 && spectrumValue) {
+          value = evaluate ? spectrumValue(name, args[0]!, args[1]!) : 0;
+        }
         else if (registers && ((name === "st" && args.length === 2) || (name === "ld" && args.length === 1))) {
           const index = Math.max(0, Math.min(9, Math.trunc(args[0]!) || 0));
           if (name === "st" && evaluate) {

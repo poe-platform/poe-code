@@ -43,8 +43,9 @@ export async function filterFft(
   if (hop <= 0) throw new Error("afftfilt: invalid overlap");
   const length = channels[0]?.length ?? 0;
   const scratchLength = (size & (size - 1)) === 0 ? 0 : 4 * 2 ** Math.ceil(Math.log2(2 * size - 1));
-  budget.allocateMemory(channels.length * length * 4 + size * 24 + scratchLength * 8
-    + Math.ceil(length / hop) * 32 + channels.length * 160);
+  const bins = Math.floor(size / 2) + 1;
+  budget.allocateMemory(channels.length * (length * 4 + size * 4 + bins * 8 + 160)
+    + size * 20 + scratchLength * 8 + Math.ceil(length / hop) * 32);
   signal?.throwIfAborted(); budget.checkCpu();
   const output = channels.map(() => new Float32Array(length));
   const window = Float32Array.from({ length: size }, (_, i) => {
@@ -56,7 +57,7 @@ export async function filterFft(
     return Math.sqrt(Math.fround(Math.fround(weight) / size));
   });
   const real = new Float64Array(size), imaginary = new Float64Array(size);
-  const scratch = new Float64Array(scratchLength), buffer = new Float32Array(size);
+  const scratch = new Float64Array(scratchLength);
   const factor = Math.fround(Math.sqrt(Math.fround(1 - overlap)));
   const expressions = [realExpression, imaginaryExpression].map(expression => expression.split("|").filter(Boolean));
   const variables = { sr: sampleRate, b: 0, nb: Math.floor(size / 2), ch: 0, chs: channels.length, pts: 0, re: 0, im: 0 };
@@ -68,27 +69,41 @@ export async function filterFft(
     outputFrames.push({ start, end: Math.min(length, start + hop),
       pts: frame ? frame.pts + start - frame.start : start, pos: frame?.pos });
   }
-  for (const [c, channel] of channels.entries()) {
-    const re = expressions[0]![Math.min(c, expressions[0]!.length - 1)] ?? "1";
-    const im = expressions[1]![Math.min(c, expressions[1]!.length - 1)] ?? "1";
-    const realRegisters = new Float64Array(10), imaginaryRegisters = new Float64Array(10);
+  const states = channels.map((_, c) => ({
+    re: expressions[0]![Math.min(c, expressions[0]!.length - 1)] ?? "1",
+    im: expressions[1]![Math.min(c, expressions[1]!.length - 1)] ?? "1",
+    realRegisters: new Float64Array(10), imaginaryRegisters: new Float64Array(10),
+    real: new Float32Array(bins), imag: new Float32Array(bins), buffer: new Float32Array(size)
+  }));
+  const spectrumValue = (component: "real" | "imag", bin: number, channel: number) =>
+    states[Math.max(0, Math.min(states.length - 1, Math.trunc(channel)))]![component][
+      Math.max(0, Math.min(bins - 1, Math.trunc(bin)))]!;
+  for (const [c, state] of states.entries()) {
     variables.ch = c;
-    parseFilterExpression(re, "afftfilt", variables, undefined, realRegisters);
-    parseFilterExpression(im, "afftfilt", variables, undefined, imaginaryRegisters);
-    realRegisters.fill(0); imaginaryRegisters.fill(0); buffer.fill(0);
-    for (const frame of outputFrames) {
+    parseFilterExpression(state.re, "afftfilt", variables, undefined, state.realRegisters, undefined, undefined, spectrumValue);
+    parseFilterExpression(state.im, "afftfilt", variables, undefined, state.imaginaryRegisters, undefined, undefined, spectrumValue);
+    state.realRegisters.fill(0); state.imaginaryRegisters.fill(0);
+  }
+  for (const frame of outputFrames) {
+    // All lookups read the original spectra, including bins and channels already filtered.
+    for (const [c, channel] of channels.entries()) {
       await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
       imaginary.fill(0);
       for (let i = 0; i < size; i++) {
         real[i] = Math.fround(Math.fround(channel[frame.start - (size - hop) + i] ?? 0) * window[i]!);
       }
       transform(real, imaginary, false, scratch);
-      variables.pts = frame.pts;
-      for (let i = 0; i <= Math.floor(size / 2); i++) {
+      states[c]!.real.set(real.subarray(0, bins));
+      states[c]!.imag.set(imaginary.subarray(0, bins));
+    }
+    variables.pts = frame.pts;
+    for (const [c, { re, im, realRegisters, imaginaryRegisters, buffer }] of states.entries()) {
+      variables.ch = c;
+      for (let i = 0; i < bins; i++) {
         if (i % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-        variables.b = i; variables.re = Math.fround(real[i]!); variables.im = Math.fround(imaginary[i]!);
-        real[i] = Math.fround(parseFilterExpression(re, "afftfilt", variables, undefined, realRegisters));
-        imaginary[i] = Math.fround(parseFilterExpression(im, "afftfilt", variables, undefined, imaginaryRegisters));
+        variables.b = i; variables.re = states[c]!.real[i]!; variables.im = states[c]!.imag[i]!;
+        real[i] = Math.fround(parseFilterExpression(re, "afftfilt", variables, undefined, realRegisters, undefined, undefined, spectrumValue));
+        imaginary[i] = Math.fround(parseFilterExpression(im, "afftfilt", variables, undefined, imaginaryRegisters, undefined, undefined, spectrumValue));
       }
       for (let i = Math.floor(size / 2) + 1; i < size; i++) {
         const mirror = 2 * Math.floor(size / 2) - i;

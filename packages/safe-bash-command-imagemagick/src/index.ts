@@ -1268,9 +1268,10 @@ function* applyMagickSequenceSteps(stack: readonly RgbaImage[], opRaw: string | 
     const h = stack.reduce((height, image) => Math.max(height, image.height), 0);
     const normalized = (yield* mapSteps(stack, function* (im) {
         if (state.virtualPixel !== undefined) im = { ...im, virtualPixel: state.virtualPixel };
-        if (im.virtualPixel === "transparent" || (im.virtualPixel === "background" || im.virtualPixel?.endsWith("-tile") === true) && state.background.a < 255) im = { ...im, hasAlpha: true };
+        const background = state.backgroundExplicit ? state.background : im.backgroundColor ?? state.background;
+        if (im.virtualPixel === "transparent" || (im.virtualPixel === "background" || im.virtualPixel?.endsWith("-tile") === true) && background.a < 255) im = { ...im, hasAlpha: true };
         if (im.width === w && im.height === h) return im;
-        return yield* applyMagickRasterSteps(im, extendEdgePixelSteps(im, w, h, !!im.data16, im.virtualPixel, state.background), signal, { ...im, width: w, height: h });
+        return yield* applyMagickRasterSteps(im, extendEdgePixelSteps(im, w, h, !!im.data16, im.virtualPixel, background), signal, { ...im, width: w, height: h });
     }));
     const virtualCanvas = magickResizeCanvas(base, w, h);
     const inactiveAlpha = base.inactiveAlpha === true && (base.alphaBlend !== false || base.alphaSeparate === true);
@@ -18074,14 +18075,15 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         let image: StoredRgbaImage = (await stack.get(index))!;
                         if (settings.virtualPixel !== undefined) image = { ...image, virtualPixel: settings.virtualPixel };
                         width = Math.max(width, image.width); height = Math.max(height, image.height);
-                        frames.push({ ...image, hasAlpha: image.hasAlpha || image.virtualPixel === "transparent" || (image.virtualPixel === "background" || image.virtualPixel?.endsWith("-tile") === true) && settings.background.a < 255 });
+                        const background = settings.backgroundExplicit ? settings.background : image.backgroundColor ?? settings.background;
+                        frames.push({ ...image, hasAlpha: image.hasAlpha || image.virtualPixel === "transparent" || (image.virtualPixel === "background" || image.virtualPixel?.endsWith("-tile") === true) && background.a < 255 });
                         highDepth ||= !!image.storedData16;
                     }
                     for (let index = 0; index < stack.length; index++) {
                         const image = frames[index]!;
                         if (image.width !== width || image.height !== height) {
                             const virtualCanvas = magickResizeCanvas(image, width, height);
-                            await stack.set(index, { ...await transformStoredMagickRaster(image, backend, extendEdgePixelSteps(image, width, height, !!image.storedData16, image.virtualPixel, settings.background), signal, { ...image, width, height }), ...(virtualCanvas ? { virtualCanvas } : {}) });
+                            await stack.set(index, { ...await transformStoredMagickRaster(image, backend, extendEdgePixelSteps(image, width, height, !!image.storedData16, image.virtualPixel, settings.backgroundExplicit ? settings.background : image.backgroundColor ?? settings.background), signal, { ...image, width, height }), ...(virtualCanvas ? { virtualCanvas } : {}) });
                         }
                     }
                     const first = (await stack.get(frames.indexOf(sequenceCanvas(frames))))!;

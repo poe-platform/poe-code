@@ -202,11 +202,12 @@ function* reportSteps(components: Component[], sort: ConnectedComponentsSort | u
    (value % 0.5 === 0.25 ? Math.round(value * 5) / 5 : value).toFixed(1)).join(",");
   const space = image.magickColorspace ?? (image.space === "b-w" || image.space === "grey16" ? "Gray" : image.space === "cmyk" ? "CMYK" : "sRGB");
   const hue = space === "HCL" || space === "HCLp" || space === "HSL" || space === "HSB" || space === "HSV";
+  const srgbPercent = space === "sRGB" && c.color.slice(0, 3).some(value => !Number.isInteger(value / c.area));
   const channels = (space === "CMYK" ? [c.color[0]!, c.color[1]!, c.color[2]!, c.color[4]!] : c.color.slice(0, space === "Gray" ? 1 : 3)).map((value, index) => {
    if (space === "CIELab") return formatMeasurement(index === 0 ? value / c.area * 100 / 255 : value / c.area - 127.5, precision);
-   const grayPercent = space === "Gray" && !Number.isInteger(value / c.area);
-   const scale = grayPercent ? 100 / 255 : hue ? (index === 0 ? 360 : 100) / 255 : space === "XYZ" ? 100 / 255 : 1;
-   return `${formatMeasurement(value / c.area * scale, precision)}${grayPercent || (hue && index > 0) ? "%" : ""}`;
+   const percent = srgbPercent || (space === "Gray" && !Number.isInteger(value / c.area));
+   const scale = percent ? 100 / 255 : hue ? (index === 0 ? 360 : 100) / 255 : space === "XYZ" ? 100 / 255 : 1;
+   return `${formatMeasurement(value / c.area * scale, precision)}${percent || (hue && index > 0) ? "%" : ""}`;
   });
   const color = `${space.toLowerCase()}${image.hasAlpha ? "a" : ""}(${channels.join(",")}${image.hasAlpha ? `,${formatMeasurement(c.reportAlpha, precision)}` : ""})`;
   text += `  ${excludeIds ? "" : `${c.id}: `}${c.right - c.left + 1}x${c.bottom - c.top + 1}+${c.left}+${c.top} ${centroid} ${c.area} ${color}${c.perimeter === undefined ? "" : ` ${c.perimeter}`}${c.circularity === undefined ? "" : ` ${formatMeasurement(c.circularity, precision)}`}${c.diameter === undefined ? "" : ` ${c.diameter}`}${c.majorAxis === undefined ? "" : ` ${formatMeasurement(c.majorAxis, precision)}`}${c.minorAxis === undefined ? "" : ` ${formatMeasurement(c.minorAxis, precision)}`}${c.eccentricity === undefined ? "" : ` ${formatMeasurement(c.eccentricity, precision)}`}${c.angle === undefined ? "" : ` ${formatMeasurement(c.angle, precision)}`}\n`;

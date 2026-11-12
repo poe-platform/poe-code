@@ -85,7 +85,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
  for (const fuzz of ["2%", "1310.7"]) it(`merges neighboring colors with fuzz ${fuzz} (${mode})`, async () => {
   const bytes = await sharp(Uint8Array.from([64,64,64,65,65,65,255,255,255]), { raw: { width: 3, height: 1, channels: 3 } }).png().toBuffer();
   const { result, files, fs } = await run(["input.png", "-fuzz", fuzz, "-define", "connected-components:verbose=true", "-connected-components", "4", "out.png"], bytes);
-  expect(result).toEqual({ exitCode: 0, stderr: "", stdout: header + "  0: 2x1+0+0 0.5,0.0 2 srgb(64.5,64.5,64.5)\n  1: 1x1+2+0 2.0,0.0 1 srgb(255,255,255)\n" });
+  expect(result).toEqual({ exitCode: 0, stderr: "", stdout: header + "  0: 2x1+0+0 0.5,0.0 2 srgb(25.2941%,25.2941%,25.2941%)\n  1: 1x1+2+0 2.0,0.0 1 srgb(255,255,255)\n" });
   const image = decodeImage(mode === "retained" ? await fs.readFile("/out.png") : files.get("out.png")!);
   expect(Array.from(image.data16 ?? []).filter((_, i) => i % 4 === 0)).toEqual([0,0,1]);
  });

@@ -16,6 +16,7 @@ export async function echoAudio(
   let position = 0;
   for (const option of parts) {
     const separator = option.indexOf("=");
+    if (separator < 0 && position >= names.length) throw new Error(`aecho: No option name near '${option}'`);
     const key = separator < 0 ? names[position] : option.slice(0, separator).trim();
     const value = separator < 0 ? option : option.slice(separator + 1);
     if (separator < 0) position++;

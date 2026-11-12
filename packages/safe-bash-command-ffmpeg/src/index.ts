@@ -21543,6 +21543,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg.startsWith("aecho: unsupported option ")) return { exitCode: 8 };
             if (msg === "aecho: invalid gain" || (err instanceof RangeError && msg.startsWith("aecho:"))) return { exitCode: 222 };
             if (msg === "aecho: delays and decays must have matching entries" ||
+                msg.startsWith("aecho: No option name near ") ||
                 msg === "aecho: invalid expression" || msg === "aecho: invalid or unsupported expression") return { exitCode: 234 };
             if (msg.startsWith("crystalizer: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("crystalizer:")) return { exitCode: err instanceof RangeError ? 222 : 234 };

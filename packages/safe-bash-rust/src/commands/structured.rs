@@ -37652,7 +37652,7 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             (args(&["--xpath", "//item/text()", "a.xml", "-", "b.xml"]), "A\nC\nB\n"),
             (args(&["--format", "a.xml", "b.xml"]), "<?xml version=\"1.0\"?>\n<root>\n  <item>A</item>\n</root>\n<?xml version=\"1.0\"?>\n<root>\n  <item>B</item>\n</root>\n"),
         ] {
-            let result = cmd_xmllint(&options, "<root><item>C</item></root>", "/work", &vfs);
+            let result = cmd_xmllint(&options, crate::commands::CommandInput { text: &mut "<root><item>C</item></root>".to_owned(), file: None }, "/work", &vfs);
             assert_eq!(result.exit_code, 0, "{options:?}: {}", result.stderr);
             assert_eq!(result.stdout, expected, "{options:?}");
             assert!(result.stderr.is_empty());
@@ -37667,12 +37667,12 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         vfs.write_file("/work/b.xml", b"<root><item>B</item></root>").unwrap();
         vfs.write_file("/work/bad.xml", b"<root>").unwrap();
         for bad in ["bad.xml", "missing.xml", "directory"] {
-            let result = cmd_xmllint(&args(&["--xpath", "//item/text()", "a.xml", bad, "b.xml"]), "", "/work", &vfs);
+            let result = cmd_xmllint(&args(&["--xpath", "//item/text()", "a.xml", bad, "b.xml"]), crate::commands::CommandInput { text: &mut "".to_owned(), file: None }, "/work", &vfs);
             assert_eq!(result.exit_code, 1, "{bad}");
             assert_eq!(result.stdout, "A\nB\n", "{bad}");
             assert!(!result.stderr.is_empty(), "{bad}");
         }
-        let result = cmd_xmllint(&args(&["--noout", "a.xml", "bad.xml"]), "", "/work", &vfs);
+        let result = cmd_xmllint(&args(&["--noout", "a.xml", "bad.xml"]), crate::commands::CommandInput { text: &mut "".to_owned(), file: None }, "/work", &vfs);
         assert_eq!(result.exit_code, 1);
         assert!(result.stdout.is_empty());
         assert!(!result.stderr.is_empty());
@@ -37686,12 +37686,12 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         vfs.write_file("/work/b.xml", b"<root><item>B</item></root>").unwrap();
         vfs.write_file("/work/bad.xml", b"<root>").unwrap();
         for output_flag in ["-o", "--output"] {
-            let result = cmd_xmllint(&args(&["--c14n", output_flag, "out.xml", "a.xml", "b.xml"]), "", "/work", &vfs);
+            let result = cmd_xmllint(&args(&["--c14n", output_flag, "out.xml", "a.xml", "b.xml"]), crate::commands::CommandInput { text: &mut "".to_owned(), file: None }, "/work", &vfs);
             assert_eq!(result.exit_code, 0, "{}", result.stderr);
             assert!(result.stdout.is_empty());
             assert_eq!(vfs.read_file("/work/out.xml").unwrap(), b"<root><item>B</item></root>");
         }
-        let result = cmd_xmllint(&args(&["--c14n", "-o", "out.xml", "a.xml", "bad.xml"]), "", "/work", &vfs);
+        let result = cmd_xmllint(&args(&["--c14n", "-o", "out.xml", "a.xml", "bad.xml"]), crate::commands::CommandInput { text: &mut "".to_owned(), file: None }, "/work", &vfs);
         assert_eq!(result.exit_code, 1);
         assert!(result.stdout.is_empty());
         assert_eq!(vfs.read_file("/work/out.xml").unwrap(), b"<root><item>A</item></root>");

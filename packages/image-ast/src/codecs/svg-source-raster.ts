@@ -9,7 +9,7 @@ import {SvgRecords} from "./svg-records.js";
 import {rasterSvgElement,svgInheritedFields,type SvgMatrix,type SvgPixel,type SvgPoint} from "./svg-renderer.js";
 import {applySvgTransform,multiplySvgMatrices} from "./svg-transform.js";
 
-const fieldNames=["data-magick-fill",'shape-rendering','cx','cy','fill','fill-opacity','font-size','height','opacity','r','rx','ry','stroke','stroke-opacity','stroke-width','text-anchor','width','x','x1','x2','y','y1','y2','d','points','transform'];
+const fieldNames=["data-magick-fill",'shape-rendering','cx','cy','fill','fill-rule','fill-opacity','font-size','height','opacity','r','rx','ry','stroke','stroke-opacity','stroke-width','text-anchor','width','x','x1','x2','y','y1','y2','d','points','transform'];
 const word=(byte:number|undefined)=>byte!==undefined&&(byte>=48&&byte<=57||byte>=65&&byte<=90||byte>=97&&byte<=122||byte===95);
 
 async function matches(reader:SourceBytes,start:number,end:number,text:string,fold=false):Promise<boolean>{
@@ -39,7 +39,7 @@ async function fields(source:ImageByteSource,spans:ReadonlyMap<string,SvgSpan>,s
  const result:Record<string,string>={};
  for(const [name,span]of spans){
   if(name==='d'||name==='points'||name==='transform')continue;
-  if(name==='fill'||name==='stroke'||name==='text-anchor'||name==='shape-rendering'){
+  if(name==='fill'||name==='fill-rule'||name==='stroke'||name==='text-anchor'||name==='shape-rendering'){
    let value='';for await(const chunk of svgText(source,span,signal)){value+=chunk.slice(0,201-value.length);if(value.length>200)break;}
    // Color inputs already reject strings longer than 200 UTF-16 characters.
    result[name]=value;continue;

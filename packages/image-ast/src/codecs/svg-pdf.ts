@@ -286,7 +286,7 @@ export function* svgRasterSteps(
     const parsed = tag === "path" ? parsePathPoints(getAttr(attrs, "d")) : undefined;
     const points = parsed?.pts ?? (tag === "polygon" || tag === "polyline" ? parsePointsList(getAttr(attrs, "points")) : []);
     const fields: Record<string,string|undefined> = {};
-    for (const name of ["data-magick-fill", "shape-rendering", "cx", "cy", "fill", "fill-opacity", "font-size", "height", "opacity", "r", "rx", "ry", "stroke", "stroke-opacity", "stroke-width", "text-anchor", "width", "x", "x1", "x2", "y", "y1", "y2"]) fields[name] = getAttr(attrs, name) ?? styleStack[styleStack.length-1]![name];
+    for (const name of ["data-magick-fill", "shape-rendering", "cx", "cy", "fill", "fill-rule", "fill-opacity", "font-size", "height", "opacity", "r", "rx", "ry", "stroke", "stroke-opacity", "stroke-width", "text-anchor", "width", "x", "x1", "x2", "y", "y1", "y2"]) fields[name] = getAttr(attrs, name) ?? styleStack[styleStack.length-1]![name];
     const steps = rasterSvgElement({tag,attrs:fields,matrix:activeCtm,pointCount:points.length,closed:parsed?.closed??false,textLength:textContent.length},{width,height,vbW,vbH});
     let next = steps.next();
     try { while (!next.done) {

@@ -2,7 +2,7 @@ import {FONT_5X7} from "./font-5x7.js";
 import {parseColor} from "../ast.js";
 import {parseSvgCoord,parseSvgNumber} from "./svg-number.js";
 
-export const svgInheritedFields=["fill","fill-opacity","font-size","stroke","stroke-opacity","stroke-width","text-anchor","shape-rendering"] as const;
+export const svgInheritedFields=["fill","fill-rule","fill-opacity","font-size","stroke","stroke-opacity","stroke-width","text-anchor","shape-rendering"] as const;
 
 export type SvgPixel = readonly [x:number,y:number,r:number,g:number,b:number,a:number];
 export type SvgMatrix = readonly [number,number,number,number,number,number];
@@ -206,6 +206,7 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
         // MVG stroke outlines use nonzero winding and half-pixel edge bounds.
         const magickStroke = attrs["data-magick-fill"] === "2";
         const magickFill = attrs["data-magick-fill"] === "1" || magickStroke;
+        const nonzero = magickStroke || attrs["fill-rule"] === "nonzero";
         let minX = width;
         let maxX = 0;
         let minY = height;
@@ -226,7 +227,6 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
           for (let x = x0; x <= x1; x++) {
           if (++rasterWork % 16384 === 0) yield undefined;
             const px = x + (magickFill ? 0 : 0.5);
-            let inside = false;
             let winding = 0;
             let distance = Infinity;
             let previous = yield* point(0), start = previous;
@@ -243,15 +243,15 @@ export function* rasterSvgElement(element:SvgRenderElement,viewport:{readonly wi
                 distance = Math.min(distance, Math.hypot(px - xi - t * dx, py - yi - t * dy));
               }
               if (yi > py !== yj > py && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) {
-                inside = !inside;
-                winding += yj > yi ? 1 : -1;
+                winding += nonzero ? (yj > yi ? 1 : -1) : 1;
               }
               if (next?.[2]) start = next;
               if (next) previous = next;
             }
             // ImageMagick fills pixel centers on the boundary completely, with
             // squared distance coverage for the adjacent exterior pixels.
-            const coverage = (magickStroke ? winding !== 0 : inside) ? 1 : !magickFill ? 0
+            const inside = nonzero ? winding !== 0 : winding % 2 !== 0;
+            const coverage = inside ? 1 : !magickFill ? 0
               : attrs["shape-rendering"] === "crispEdges" ? (distance <= 0.5 ? 1 : 0)
               : Math.max(0, 1 - distance) ** 2;
             if (coverage > 0) {

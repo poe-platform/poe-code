@@ -736,7 +736,7 @@ function* lavfiSteps(
   const fps = parseFloat(kv.rate ?? kv.r ?? "25") || 25;
   const duration =
     durationOverride ?? (parseFloat(kv.duration ?? kv.d ?? "1") || 1);
-  const frameCount = Math.max(1, Math.round(duration * fps));
+  const frameCount = Math.max(1, Math.ceil(duration * fps));
   const color = parseColorRgba(kv.color ?? kv.c ?? kv._0 ?? "blue");
   if (filterName === "color") {
     // The default color source is limited-range BT.601 YUV420P. Match

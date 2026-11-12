@@ -296,8 +296,9 @@ function policyConfig(safeBashInputs, compatibility = []) {
       'packages/safe-playwright-cloudflare/src/browser-codegen.generated.js',
       'packages/safe-playwright-cloudflare/src/browser-provider.generated.js',
       'packages/safe-bash-command-git/src/wasm.generated.ts',
-      // Generated codec artifact is authenticated by media-codecs/scripts/verify.mjs.
+      // Generated codec artifacts are authenticated by media-codecs/scripts/verify.mjs.
       'packages/media-codecs/vendor/runtime.js',
+      'packages/media-codecs/vendor/x264-encoder.js',
       'packages/git-rust/target/**',
       'packages/safe-bash-rust/target/**',
       'packages/safe-bash/src/commands/xan',

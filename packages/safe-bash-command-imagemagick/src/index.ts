@@ -7447,7 +7447,8 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
     let strokeOpacity: number | undefined;
     let affine: [number, number, number, number, number, number] = [1, 0, 0, 1, 0, 0];
     let clip: string | undefined;
-    const contexts: { kind: string; clip: string | undefined; image: typeof img; name: string; gradient: MagickDrawGradient | undefined; fill: RgbaColor; fillRule: string; tile: boolean | string; stroke: RgbaColor; strokeWidth: number; dashArray: number[]; dashOffset: number; linecap: "butt" | "round" | "square"; strokeLinejoin: string; strokeMiterlimit: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
+    let clipIsMask = false, svgCompliance = false;
+    const contexts: { kind: string; clip: string | undefined; clipIsMask: boolean; svgCompliance: boolean; image: typeof img; name: string; gradient: MagickDrawGradient | undefined; fill: RgbaColor; fillRule: string; tile: boolean | string; stroke: RgbaColor; strokeWidth: number; dashArray: number[]; dashOffset: number; linecap: "butt" | "round" | "square"; strokeLinejoin: string; strokeMiterlimit: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
     const tokens = yield* magickDrawTokensSteps(drawCmd);
     let i = 0;
     const num = () => {
@@ -7476,7 +7477,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         if (fillOpacity !== undefined && fill.a !== 0) fillColor.a = fillOpacity * 255;
         if (strokeOpacity !== undefined && stroke.a !== 0) strokeColor.a = strokeOpacity * 255;
         const paintFill = rgbaToCss(fillColor), paintStroke = rgbaToCss(strokeColor);
-        if (svgElements.length > 0 && ((tile && ["path", "polygon", "point"].includes(cmd)) || ["push", "pop", "clip-path", "mask", "image", "line", "polyline", "circle", "rectangle", "roundrectangle"].includes(cmd) ||
+        if (svgElements.length > 0 && ((tile && ["path", "polygon", "point"].includes(cmd)) || ["push", "pop", "clip-path", "mask", "compliance", "image", "line", "polyline", "circle", "rectangle", "roundrectangle"].includes(cmd) ||
             ((fillOpacity !== undefined || strokeOpacity !== undefined) && ["point", "rectangle"].includes(cmd)))) {
             yield { kind: "svg", svg: `<svg xmlns="http://www.w3.org/2000/svg" width="${img.width}" height="${img.height}"${state.antialias === false ? ' shape-rendering="crispEdges"' : ""}>${svgElements.join("")}</svg>` };
             svgElements.length = 0;
@@ -7512,7 +7513,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             if (kind !== "graphic-context" && kind !== "pattern" && kind !== "defs" && kind !== "clip-path" && kind !== "mask") throw new Error(`${cmd} drawing requires graphic-context, defs, clip-path or mask`);
             if (cmd === "push") {
                 const name = kind === "pattern" || kind === "clip-path" || kind === "mask" ? tokens[i++] ?? "" : "";
-                contexts.push({ kind, image: img, name, clip, gradient, fill, fillRule, tile, stroke, strokeWidth, dashArray, dashOffset, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity });
+                contexts.push({ kind, image: img, name, clip, clipIsMask, svgCompliance, gradient, fill, fillRule, tile, stroke, strokeWidth, dashArray, dashOffset, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity });
                 if (kind === "clip-path") {
                     // Clip geometry paints a black opening in a white protection mask.
                     clip = undefined;
@@ -7544,16 +7545,25 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                     yield { kind: "pattern-end" };
                 }
                 else if (kind === "clip-path" || kind === "mask") yield { kind: "clip-end" };
-                else if (clip !== context.clip) yield { kind: "clip", name: context.clip };
+                else if (clip !== context.clip || svgCompliance !== context.svgCompliance || clipIsMask !== context.clipIsMask)
+                    yield { kind: "clip", name: context.svgCompliance && !context.clipIsMask ? undefined : context.clip };
                 clip = context.clip;
                 img = context.image;
+                clipIsMask = context.clipIsMask;
+                svgCompliance = context.svgCompliance;
                 ({ gradient, fill, fillRule, tile, stroke, strokeWidth, dashArray, dashOffset, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity } = context);
             }
         }
         else if (cmd === "clip-path" || cmd === "mask") {
             const value = tokens[i++] ?? "";
             clip = value.startsWith("url(#") && value.endsWith(")") ? value.slice(5, -1) : value;
-            yield { kind: "clip", name: clip };
+            clipIsMask = cmd === "mask";
+            yield { kind: "clip", name: svgCompliance && !clipIsMask ? undefined : clip };
+        }
+        else if (cmd === "compliance") {
+            // Native SVG compliance bypasses MVG clip paths but retains masks.
+            svgCompliance = tokens[i++]?.toLowerCase() === "svg";
+            yield { kind: "clip", name: svgCompliance && !clipIsMask ? undefined : clip };
         }
         else if (cmd === "viewbox") {
             for (let coordinate = 0; coordinate < 4; coordinate++) num();

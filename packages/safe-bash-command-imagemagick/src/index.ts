@@ -2560,6 +2560,7 @@ function resolveMagickSpliceGeometry(raw: string, image: Pick<RgbaImage, "width"
     const { width, height } = image;
     // Rectangle numbers end at the first comma, but percent and ratio modifiers still apply.
     const comma = raw.indexOf(",");
+    const commaBeforeDimensions = comma >= 0 && ![...raw.slice(0, comma)].some(character => "xX:".includes(character));
     if (comma >= 0) raw = raw.slice(0, comma) + [...raw.slice(comma + 1)].filter(character => "%:/".includes(character)).join("");
     raw = raw.replaceAll("(", "").replaceAll(")", "");
     // GetGeometry accepts modifiers anywhere without interrupting dimensions or offsets.
@@ -2585,6 +2586,10 @@ function resolveMagickSpliceGeometry(raw: string, image: Pick<RgbaImage, "width"
     const offsetStart = [...normalized].findIndex((character, index) => (character === "+" || character === "-") && normalized[index - 1]?.toLowerCase() !== "e");
     const trailingDimension = offsetStart < 0 ? -1 : normalized.toLowerCase().indexOf("x", offsetStart);
     let g = parseMagickGeometry(trailingDimension < 0 ? normalized : normalized.slice(0, trailingDimension) + modifiers);
+    // A comma after the width prevents rectangle parsing; percentages still use the scalar.
+    if (commaBeforeDimensions && g.width !== undefined && !g.isPercent) {
+        g = { ...g, width: image.virtualCanvas?.width || width, height: image.virtualCanvas?.height || height, x: 0, y: 0 };
+    }
     // Native scalar percentages with offsets leave the input-sized rectangle untouched.
     if (dimensionSeparator < 0 && g.isPercent && g.width !== undefined && g.hasOffset) {
         return { ...g, width, height, x: 0, y: 0 };
@@ -2607,11 +2612,13 @@ function resolveMagickSpliceGeometry(raw: string, image: Pick<RgbaImage, "width"
         // retaining offsets before it and ignoring the trailing component.
         const dimensions = parseMagickGeometry(raw.slice(0, suffix));
         g = { ...g, aspectRatio: (dimensions.width ?? 0) / (dimensions.height ?? 1), x: dimensions.x, y: dimensions.y };
-    } else if (dimensionSeparator < 0 && raw[suffix] === ":") {
-        const dimensions = parseMagickGeometry(raw.replace(":", "x").replaceAll("@", "").replaceAll("#", ""));
+    } else if (raw[suffix] === ":") {
+        // A following x ends the ratio fields before any height or offsets are read.
+        const dimensions = parseMagickGeometry((dimensionSeparator < 0 ? raw : raw.slice(0, dimensionSeparator)).replace(":", "x").replaceAll("@", "").replaceAll("#", ""));
         // A zero numerator, including 0:0, inserts no columns; a zero denominator inserts no rows.
         const numerator = dimensions.width ?? 0;
         g = { ...g, aspectRatio: numerator === 0 ? 0 : numerator / (dimensions.height ?? 1) };
+        if (dimensionSeparator >= 0) g = { ...g, x: dimensions.x, y: dimensions.y };
         if (offsetStart === 0) {
             // A leading signed ratio numerator also supplies the horizontal offset.
             const offsets = parseMagickGeometry(normalized.slice(0, normalized.indexOf(":")));
@@ -2940,6 +2947,11 @@ function parseMagickStatisticGeometry(raw: string): string {
 }
 
 function validateMagickSpliceGeometry(raw: string): void {
+    // A slash ends flag scanning, so a later x cannot make scalar geometry valid.
+    const slash = raw.indexOf("/");
+    if (slash >= 0 && ![...raw.slice(0, slash)].some(character => "xX:%!<>#^@.".includes(character))) {
+        throw new Error(`invalid geometry: ${raw}`);
+    }
     // Geometry needs a value or modifier; parentheses and exponent markers supply neither.
     if (![...raw].some(c => "0123456789xX!#%.-:<>@^".includes(c)) || [...raw].some(c => c.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(c))) {
         throw new Error(`invalid argument for option '-splice': ${raw}`);

@@ -16,12 +16,13 @@ export async function multibandCompandAudio(
   for (const band of argument.split("|")) {
     const fields = band.trim().split(" ").filter(Boolean);
     if (fields.length < 4 || fields.length > 7) throw new Error("mcompand: expected rates, knee, points, crossover, and optional delay/volume/gain");
-    const [rates, knee, points, crossover, delay = "0", volume = "-900", gain = "0"] = fields;
+    // FFmpeg parses the seventh (gain) field after building the transfer curve, so it has no effect.
+    const [rates, knee, points, crossover, delay = "0", volume = "-900"] = fields;
     const times = rates!.split(",");
     if (times.length % 2) throw new Error("mcompand: attack/decay rates must be paired");
     const frequency = Number(crossover);
     if (!Number.isFinite(frequency) || frequency < 0 || frequency >= sampleRate / 2) throw new Error("mcompand: crossover must be below half the sample rate");
-    if (Number(delay) !== 0 || Number(gain) !== 0) throw new Error("mcompand: nonzero delay and gain are unsupported");
+    if (Number(delay) !== 0) throw new Error("mcompand: nonzero delay is unsupported");
     let low = remaining;
     if (frequency !== 0) {
       // Fourth-order Linkwitz-Riley crossover: square the Butterworth

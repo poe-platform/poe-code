@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { createHash } from "node:crypto";
 import { it } from "node:test";
 import { Volume } from "memfs";
 import { encodeWav } from "@poe-code/audio-ast";
@@ -8,6 +9,32 @@ import { multibandCompandAudio } from "./audio-mcompand.js";
 
 const samples = [[0, 600], [400, 1600], [12000, 1600], [0, 800], [4000, 1600], [0, 1000]]
   .flatMap(([amplitude, length]) => Array.from({ length: length! }, (_, i) => (i % 2 ? -1 : 1) * amplitude! / 32768 || 0));
+
+for (const seventh of ["6", "-6", "0", ""]) {
+  for (const graph of [false, true]) {
+    it(`mcompand seventh field ${seventh || "omitted"} preserves native PCM (${graph ? "graph" : "simple"})`, async () => {
+      const input = Buffer.alloc(4096);
+      for (let i = 0; i < 2048; i++) input.writeInt16LE(i * 131 % 8191 - 4095, i * 2);
+      const fs = Volume.fromJSON({ "/in.raw": input });
+      const output: Uint8Array[] = [], errors: Uint8Array[] = [];
+      const filter = `mcompand=args='0.01,0.08 6 -60/-30,-20/-18,0/-16 0 0 -90${seventh ? ` ${seventh}` : ""}'`;
+      const result = await createFfmpegCommand().execute({
+        args: ["-v", "error", "-f", "s16le", "-ar", "8000", "-ac", "1", "-i", "/in.raw",
+          ...(graph ? ["-filter_complex", `[0:a]${filter}[out]`, "-map", "[out]"] : ["-af", filter]), "-f", "s16le", "pipe:1"],
+        cwd: "/", env: {}, signal: new AbortController().signal,
+        fs: { async readFile(p: string) { return fs.readFileSync(p); }, async writeFile(p: string, b: Uint8Array) { fs.writeFileSync(p, b); }, async stat(p: string) { return fs.statSync(p); } },
+        stdin: (async function* () {})(), stdout: { async write(b: Uint8Array) { output.push(b); } }, stderr: { async write(b: Uint8Array) { errors.push(b); } }
+      } as never);
+      const error = Buffer.concat(errors).toString();
+      assert.equal(result.exitCode, 0, error);
+      assert.equal(error, "");
+      const pcm = Buffer.concat(output);
+      assert.equal(pcm.length, 4096);
+      // Native FFmpeg 7.0.2: the seventh field is parsed after the transfer curve is built.
+      assert.equal(createHash("sha256").update(pcm).digest("hex"), "c36f3c4f827dcf3ae385f02f3e77975aafcdfd31fa7271317dbae58769e63170");
+    });
+  }
+}
 
 async function run(filter: string, graph = false, sampleRate = 48000) {
   const fs = Volume.fromJSON({ "/out.wav": "keep" });

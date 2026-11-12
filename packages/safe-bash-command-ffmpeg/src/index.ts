@@ -6090,6 +6090,7 @@ async function applyVideoFilterChain(
       if (lastInputFrame) endTimeSeconds ??= lastInputFrame.ptsSeconds + lastInputFrame.durationSeconds;
       const expr = named.e ?? named.expr ?? positional[0] ?? "1";
       const variables = {
+        samples_n: NaN, consumed_samples_n: NaN, sample_rate: NaN,
         pos: NaN, pict_type: 0, I: 1, P: 2, B: 3,
         interlace_type: NaN, PROGRESSIVE: 0, TOPFIRST: 1, BOTTOMFIRST: 2,
         n: 0, t: NaN, pts: NaN, TB: 1 / timescale, start_pts: NaN, key: 0, selected_n: 0, scene: NaN,

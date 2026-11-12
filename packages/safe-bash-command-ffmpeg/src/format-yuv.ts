@@ -41,11 +41,14 @@ export async function formatYuv(
     const rgba = scaleVideoPicture({ ...frame, native }, width, height)!;
     return { ...frame, data: rgba, native: { ...native, rgba } };
   }
-  if (source && ((source.format === 4 && format === "yuv444p") || (source.format === 5 && format === "yuv422p")) &&
+  if (source && [0, 4, 5, 12, 13, 14].includes(source.format) &&
+      ["yuv420p", "yuv422p", "yuv444p"].includes(format) &&
       source.rgba === data && source.width === width && source.height === height) {
-    // Transpose negotiates 4:4:4 for asymmetric chroma; resample planes without an RGB round trip.
-    const sourceWidth = source.format === 4 ? Math.ceil(width / 2) : width;
+    // Resample native planes without clipping luma/chroma through an RGB round trip.
+    const sourceWidth = [0, 4, 12, 13].includes(source.format) ? Math.ceil(width / 2) : width;
+    const sourceHeight = [0, 12].includes(source.format) ? Math.ceil(height / 2) : height;
     const horizontal = scaleWeights(sourceWidth, chromaWidth, "bicubic");
+    const vertical = scaleWeights(sourceHeight, chromaHeight, "bicubic");
     // swscale normalizes horizontal coefficients to 14 bits with carried rounding error.
     for (const taps of horizontal) {
       let error = 0;
@@ -55,17 +58,30 @@ export async function formatYuv(
         error = value - tap.weight;
       }
     }
+    for (const taps of vertical) {
+      let error = 0;
+      for (const tap of taps) {
+        const value = tap.weight * 4096 + error;
+        tap.weight = Math.round(value);
+        error = value - tap.weight;
+      }
+    }
     pixels.set(source.pixels.subarray(0, lumaSize));
     for (let plane = 0; plane < 2; plane++) {
-      for (let y = 0; y < height; y++) {
+      for (let y = 0; y < chromaHeight; y++) {
         await yieldTurn(signal);
         signal?.throwIfAborted();
         for (let x = 0; x < chromaWidth; x++) {
           let value = 0;
-          for (const tap of horizontal[x]!) {
-            value += source.pixels[lumaSize + plane * sourceWidth * height + y * sourceWidth + tap.index]! * tap.weight;
+          for (const row of vertical[y]!) {
+            let horizontalValue = 0;
+            for (const tap of horizontal[x]!) {
+              horizontalValue += source.pixels[lumaSize + plane * sourceWidth * sourceHeight + row.index * sourceWidth + tap.index]! * tap.weight;
+            }
+            // swscale carries 15-bit horizontal samples into the 12-bit vertical filter.
+            value += Math.min(32767, Math.floor(horizontalValue / 128)) * row.weight;
           }
-          pixels[lumaSize + plane * chromaSize + y * chromaWidth + x] = Math.max(0, Math.min(255, Math.floor((value + 8192) / 16384)));
+          pixels[lumaSize + plane * chromaSize + y * chromaWidth + x] = Math.max(0, Math.min(255, Math.floor((value + 262144) / 524288)));
         }
       }
     }

@@ -273,7 +273,7 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
           append(native.pixels);
         } else {
           budget.checkOutputBytes(size + frame.width * frame.height + 2 * Math.ceil(frame.width / 2) * Math.ceil(frame.height / 2));
-          if (native?.format === 8 && native.rgba === frame.data && native.width === frame.width && native.height === frame.height) {
+          if (native && [4, 5, 8, 12, 13, 14].includes(native.format) && native.rgba === frame.data && native.width === frame.width && native.height === frame.height) {
             append((await formatYuv(frame, format, signal)).native!.pixels);
           } else {
             const { y, u, v } = rgbaToYuv420p(frame.data, frame.width, frame.height);

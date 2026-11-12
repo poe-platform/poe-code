@@ -6698,10 +6698,19 @@ async function applyVideoFilterChain(
         mapping[plane] = value;
       }
       current = await mapWork(current, async (frame) => {
-        const source = frame.native;
+        let source = frame.native;
         if (!source || source.rgba !== frame.data || source.width !== frame.width || source.height !== frame.height ||
             ![0, 4, 5, 12, 13, 14, 49, 68].includes(source.format)) {
           throw new Error("shuffleplanes: expected native planar YUV input");
+        }
+        // Luma/chroma mappings require equal-resolution planes throughout the filter.
+        if ([0, 4, 12, 13].includes(source.format) &&
+            (mapping[0] !== 0 || mapping[1] === 0 || mapping[2] === 0)) {
+          budget.allocateMemory(frame.width * frame.height * 7);
+          frame = await formatYuv(frame, "yuv444p", signal);
+          budget.checkCpu();
+          source = frame.native!;
+          pixelFormat = "yuv444p";
         }
         const sampleBytes = [49, 68].includes(source.format) ? 2 : 1;
         const hsub = [5, 14, 49, 68].includes(source.format) ? 1 : 2;

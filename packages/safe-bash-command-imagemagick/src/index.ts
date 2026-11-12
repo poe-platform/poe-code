@@ -23903,7 +23903,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         }
         const { format, path, pngCoder, bmpFormat, gifVersion, tiffBig } = inferOutputFormat(outSpec, "png");
         if (format === "psd") canvas = { ...canvas, bitsPerSample: state.inputDepth ?? 16 };
-        if (state.adjoin && gifVersion !== "87a" && (format === "gif" || format === "tiff" || format === "ico" || format === "psd") && sceneCount > 1 && !hasSceneOutputPattern(path)) {
+        if (state.adjoin && gifVersion !== "87a" && (format === "webp" || format === "gif" || format === "tiff" || format === "ico" || format === "psd") && sceneCount > 1 && !hasSceneOutputPattern(path)) {
             adjoinedPages.push(canvas);
             return;
         }
@@ -24320,8 +24320,8 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     }
     if (adjoinedPages.length) {
         const { path, format, gifVersion, tiffBig } = output;
-        const image = yield* (format === "tiff" ? prepareTiffPages(adjoinedPages) : format === "ico" ? prepareIcoPages(adjoinedPages) : format === "psd" ? preparePhotoshopPages(adjoinedPages, format) : prepareGifFrames(adjoinedPages));
-        const { data } = encodeImage(image, { format, ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), gifVersion, tiffBig, tiffEndian: state.inputEndian === "msb" ? "msb" : "lsb", ...(state.inputDepth === undefined ? {} : { tiffIntegerDepth: state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32 }), ...(image.pageHeight === undefined ? {} : { pageHeight: image.pageHeight }), gifInterlace: state.gifInterlace, transparentColor: state.transparentColor });
+        const image = yield* (format === "tiff" ? prepareTiffPages(adjoinedPages) : format === "ico" ? prepareIcoPages(adjoinedPages) : format === "psd" ? preparePhotoshopPages(adjoinedPages, format) : prepareGifFrames(adjoinedPages, false, 1, format));
+        const { data } = encodeImage(image, { format, ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), gifVersion, tiffBig, tiffEndian: state.inputEndian === "msb" ? "msb" : "lsb", ...(state.inputDepth === undefined ? {} : { tiffIntegerDepth: state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32 }), ...(image.pageHeight === undefined ? {} : { pageHeight: image.pageHeight }), gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, ...(format === "webp" ? { quality: state.quality, webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) });
         for (const page of adjoinedPages) detachRgbaBuffer(page.data);
         detachRgbaBuffer(image.data);
         if (path === "-") stdoutChunks.push(data);
@@ -24666,7 +24666,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
         catch (error) { return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + `montage: ${(error as Error).message}\n` }; }
         const adjoin = state.adjoin && n > cols * rows && output.path !== "-" && (output.format === "ppm" || output.format === "rgb" || output.format === "miff") && !hasSceneOutputPattern(output.path);
         const pages = new StoredImageStack(backend.storage, signal);
-        const adjoinedPages = state.adjoin && output.gifVersion !== "87a" && (output.format === "gif" || output.format === "tiff" || output.format === "ico" || output.format === "psd") && n > cols * rows && !hasSceneOutputPattern(output.path)
+        const adjoinedPages = state.adjoin && output.gifVersion !== "87a" && (output.format === "webp" || output.format === "gif" || output.format === "tiff" || output.format === "ico" || output.format === "psd") && n > cols * rows && !hasSceneOutputPattern(output.path)
             ? new StoredImageStack(backend.storage, signal) : undefined;
         const stdoutChunks: Uint8Array[] = [];
         let stdout = "";
@@ -24824,8 +24824,8 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 ? prepareStoredTiffPages(adjoinedPages, (await adjoinedPages.get(0))!, backend, signal)
                 : output.format === "psd" ? await prepareStoredPhotoshopPages(adjoinedPages, backend, signal, output.format)
                 : output.format === "ico" ? await prepareStoredIcoPages(adjoinedPages, (await adjoinedPages.get(0))!, backend, signal)
-                : await prepareStoredGifFrames(adjoinedPages, backend, signal);
-            const bytes = await backend.publish(image, output.path.replaceAll("%%", "%"), { format: output.format, ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), gifVersion: output.gifVersion, tiffBig: output.tiffBig, tiffEndian: state.inputEndian === "msb" ? "msb" : "lsb", ...(state.inputDepth === undefined ? {} : { tiffIntegerDepth: state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32 }), ...(image.pageHeight === undefined ? {} : { pageHeight: image.pageHeight }), gifInterlace: state.gifInterlace, transparentColor: state.transparentColor });
+                : await prepareStoredGifFrames(adjoinedPages, backend, signal, false, 1, output.format);
+            const bytes = await backend.publish(image, output.path.replaceAll("%%", "%"), { format: output.format, ...(state.tiffCompression === undefined ? {} : { tiffCompression: state.tiffCompression }), gifVersion: output.gifVersion, tiffBig: output.tiffBig, tiffEndian: state.inputEndian === "msb" ? "msb" : "lsb", ...(state.inputDepth === undefined ? {} : { tiffIntegerDepth: state.inputDepth <= 8 ? 8 : state.inputDepth <= 16 ? 16 : 32 }), ...(image.pageHeight === undefined ? {} : { pageHeight: image.pageHeight }), gifInterlace: state.gifInterlace, transparentColor: state.transparentColor, ...(output.format === "webp" ? { quality: state.quality, webpExact: state.webpExact ?? false, smartSubsample: state.webpSmartSubsample ?? false, alphaCompression: state.webpAlphaCompression ?? 1, alphaQuality: state.webpAlphaQuality ?? 100, effort: state.webpMethod ?? 4, lossless: state.webpLossless ?? state.quality >= 100 } : {}) });
             if (bytes) stdoutChunks.push(bytes);
         }
         if (adjoin || n > cols * rows) await backend.publishPending();

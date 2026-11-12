@@ -11248,8 +11248,11 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
         // Native modulation geometry defaults omitted components to 100.
         let value = "", component = 0;
         for (const c of raw) {
-            if (c === "," || c === "/") value += component++ === 0 ? "x" : "+";
-            else if (c.trim() !== "" && !"!#%()<>@\\^".includes(c)) value += c;
+            if (c === "," || c === "/") {
+                // A leading plus belongs to brightness, including its hexadecimal form.
+                if (component === 0 && value.startsWith("+")) value = normalizeMagickOffsets(value).slice(1);
+                value += component++ === 0 ? "x" : "+";
+            } else if (c.trim() !== "" && !"!#%()<>@\\^".includes(c)) value += c;
         }
         // A trailing separator omits a component; rectangle geometry would give it zero.
         let geometry = parseMagickGeometry(value.endsWith("+") || value.endsWith("-") ? value.slice(0, -1) : value);

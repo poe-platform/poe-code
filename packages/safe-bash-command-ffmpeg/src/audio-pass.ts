@@ -12,19 +12,20 @@ export async function passAudio(
   const name = filter.split("=", 1)[0]!.split("@", 1)[0]!;
   const lowpass = name === "lowpass";
   const bandpass = name === "bandpass";
+  const bandreject = name === "bandreject";
   const lowShelf = name === "bass" || name === "lowshelf";
   const shelf = lowShelf || name === "treble" || name === "highshelf";
   let enable: string | undefined;
   let precision = -1;
   let normalize = false;
   let selected: string[] | undefined;
-  const options = { frequency: lowShelf ? 100 : lowpass ? 500 : 3000, poles: 2, mix: 1, width: shelf || bandpass ? 0.5 : 0.707, width_type: 3, blocksize: 0, gain: 0 };
+  const options = { frequency: lowShelf ? 100 : lowpass ? 500 : 3000, poles: 2, mix: 1, width: shelf || bandpass || bandreject ? 0.5 : 0.707, width_type: 3, blocksize: 0, gain: 0 };
   const aliases: Record<string, keyof typeof options> = {
     frequency: "frequency", f: "frequency", poles: "poles", p: "poles", mix: "mix", m: "mix",
     width: "width", w: "width", width_type: "width_type", t: "width_type",
     blocksize: "blocksize", b: "blocksize"
   };
-  if (bandpass) { delete aliases.poles; delete aliases.p; }
+  if (bandpass || bandreject) { delete aliases.poles; delete aliases.p; }
   if (shelf) { aliases.gain = "gain"; aliases.g = "gain"; }
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const [index, option] of (argument ? argument.split(":") : []).entries()) {
@@ -150,10 +151,10 @@ export async function passAudio(
     const a0 = options.poles === 1 ? 1 : 1 + alpha;
     a1 = options.poles === 1 ? -Math.exp(-angle) : -2 * Math.cos(angle) / a0;
     a2 = options.poles === 1 ? 0 : (1 - alpha) / a0;
-    b0 = bandpass ? alpha / a0 : options.poles === 1
+    b0 = bandreject ? 1 / a0 : bandpass ? alpha / a0 : options.poles === 1
       ? lowpass ? 1 + a1 : (1 - a1) / 2
       : (1 + (lowpass ? -Math.cos(angle) : Math.cos(angle))) / (2 * a0);
-    b1 = bandpass ? 0 : options.poles === 1 ? lowpass ? 0 : -b0 : (lowpass ? 2 : -2) * b0;
+    b1 = bandreject ? a1 : bandpass ? 0 : options.poles === 1 ? lowpass ? 0 : -b0 : (lowpass ? 2 : -2) * b0;
     b2 = bandpass ? -b0 : options.poles === 1 ? 0 : b0;
   }
   // Match FFmpeg's DC normalization before rounding coefficients to float.

@@ -894,7 +894,8 @@ function* lavfiSteps(
     tracks: parsed.tracks.map((t) =>
       t.type === "video"
         ? { ...t, duration: Math.round(frameCount / fps * t.timescale), samples: [], decodedVideoFrames: frames,
-          codecDescriptions: t.codecDescriptions.map(codec => ({ ...codec, sarWidth, sarHeight })) }
+          // Generated frames do not inherit the synthetic H.264 track's chroma siting.
+          codecDescriptions: t.codecDescriptions.map(codec => ({ ...codec, sarWidth, sarHeight, chromaLocation: undefined })) }
         : t
     )
   };

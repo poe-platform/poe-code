@@ -23789,6 +23789,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     const outSpec = operands[operands.length - 1]!;
     const inPaths = operands.slice(0, -1);
     let inputErrors = "";
+    let firstInputFormat = "";
     const fastMetaDims: { width: number; height: number }[] = [];
     let canStreamTiles = !shadow && !transforms.some(operations => operations.length > 0) && !frame && borderW === 0 && variableCells && !labels.some(Boolean);
     if (canStreamTiles) {
@@ -23804,6 +23805,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                     canStreamTiles = false;
                     break;
                 }
+                if (fastMetaDims.length === 0) firstInputFormat = meta.format.toUpperCase();
                 fastMetaDims.push({ width: meta.width + borderW * 2, height: meta.height + borderW * 2 });
             } catch {
                 canStreamTiles = false;
@@ -23839,7 +23841,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
         if (outSpec.toLowerCase().startsWith("info:")) {
             canvas = { ...canvas, bitsPerSample: state.inputDepth ?? 16 };
             stdout += state.formatStr !== undefined
-                ? yield* formatMagickPropertyStringSteps(state.formatStr, canvas, () => canvas, { analysis, outputFilePath: outSpec.slice(5), sceneIdx: page, outputScene: page, sceneCount, quality: state.quality })
+                ? yield* formatMagickPropertyStringSteps(state.formatStr, canvas, () => canvas, { inputFormat: page === 0 ? firstInputFormat : "", analysis, outputFilePath: outSpec.slice(5), sceneIdx: page, outputScene: page, sceneCount, quality: state.quality })
                 : `${canvas.width}x${canvas.height} ${canvas.magickColorspace ?? "sRGB"} 8-bit\n`;
             detachRgbaBuffer(canvas.data);
             return;
@@ -24121,6 +24123,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             for (let thumb of loadedList) {
                 const loaded = thumb;
                 if (++cooperativeWork % 64 === 0) yield;
+                if (images.length === 0) firstInputFormat = (loaded as MagickImage)[magickInput]?.inputFormat ?? loaded.format.toUpperCase();
                 const isNull = (loaded as MagickImage)[magickInput]?.filePath === "null:";
                 if (cellW !== undefined || cellH !== undefined) {
                     const previous = thumb;
@@ -24319,6 +24322,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
     const variableCells = !frame && !squareCells && cellW === undefined && cellH === undefined;
     if (operands.length < 2) { await probeImageArguments(argv, input, stdinBytes, signal); return { exitCode: 1, stdout: "", stderr: analysis.warnings.replaceAll("magick: ", "montage: ") + "montage: missing an image filename\n" }; }
     const outSpec = operands.at(-1)!, paths = operands.slice(0, -1);
+    let firstInputFormat = "";
         let textureImage: StoredRgbaImage | undefined;
         if (texture !== undefined) {
             try { textureImage = await parseStoredCompareInput(texture, state, backend, signal); }
@@ -24360,6 +24364,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             try {
                 const metadata = await readImageMetadataFromSource(source, signal, undefined, backend.storage);
                 if (!metadata.width || !metadata.height) { fast = false; continue; }
+                if (index === 0) firstInputFormat = metadata.format.toUpperCase();
                 const width = metadata.width + borderW * 2, height = metadata.height + borderW * 2;
                 maxThumbW = Math.max(maxThumbW, width); maxThumbH = Math.max(maxThumbH, height);
                 await sources.set(BigInt(index * 5 + 2), BigInt(width)); await sources.set(BigInt(index * 5 + 3), BigInt(height));
@@ -24538,6 +24543,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 const errorsBefore = inputErrors;
                 try {
                     const loaded = await loadTiles({ path, size: sizes[index]!, transforms: transforms[index]! }, async image => {
+                        if (images.length === 0) firstInputFormat = (image as StoredMagickImage)[magickInput]?.inputFormat ?? image.format.toUpperCase();
                         const source = (image as StoredMagickImage)[magickInput];
                         if (cellW !== undefined || cellH !== undefined) {
                             const resize = magickResizeOptions(image, geometry, state.kernel ?? "lanczossharp");
@@ -24678,7 +24684,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                 canvas = { ...canvas, bitsPerSample: state.inputDepth ?? 16 };
                 const target = outSpec.slice(5), page = pageStart / (cols * rows);
                 const text = state.formatStr !== undefined
-                    ? await formatRetainedIdentify(state.formatStr, canvas, { analysis, outputFilePath: target, sceneIdx: page, outputScene: page, sceneCount: Math.ceil(n / (cols * rows)), quality: state.quality }, async () => ({ image: canvas, storage: backend.storage }), signal)
+                    ? await formatRetainedIdentify(state.formatStr, canvas, { inputFormat: page === 0 ? firstInputFormat : "", analysis, outputFilePath: target, sceneIdx: page, outputScene: page, sceneCount: Math.ceil(n / (cols * rows)), quality: state.quality }, async () => ({ image: canvas, storage: backend.storage }), signal)
                     : `${canvas.width}x${canvas.height} ${canvas.magickColorspace ?? "sRGB"} 8-bit\n`;
                 if ((!target || target === "-") && input.stdout) await writeIdentifyText(input.stdout, text, signal);
                 else stdout += text;

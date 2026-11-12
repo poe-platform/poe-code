@@ -20,8 +20,8 @@ export async function interpolateFrameRate(
     if (!key || !keys.includes(key)) throw new Error(`framerate: unsupported option ${key ?? part}`);
     options[key] = (separator < 0 ? part : part.slice(separator + 1)).trim();
   }
-  const frameRate = parseFilterExpression(options.fps ?? "50", "framerate", {
-    ntsc: 30000 / 1001, pal: 25, film: 24, "ntsc-film": 24000 / 1001,
+  const frameRate = options.fps === "ntsc-film" ? 24000 / 1001 : parseFilterExpression(options.fps ?? "50", "framerate", {
+    ntsc: 30000 / 1001, pal: 25, film: 24,
     qntsc: 30000 / 1001, qpal: 25, sntsc: 30000 / 1001, spal: 25
   });
   if (frameRate <= 0 || frameRate > 2147483647) throw new Error("framerate: invalid frame rate");

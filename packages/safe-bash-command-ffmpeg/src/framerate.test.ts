@@ -36,6 +36,16 @@ for (const graph of [false, true]) {
 }
 
 // Complete byte sequences captured from FFmpeg 7.0.2 with the same argv/input.
+for (const rate of ["ntsc-film", "24000/1001", "film"]) {
+  for (const option of [rate, `fps=${rate}`]) {
+    it(`matches native exit status and bytes for framerate=${option}`, async () => {
+      const result = await run(`framerate=${option}`, [11, 37], 2, 2);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.deepEqual(result.bytes, Buffer.concat([Buffer.alloc(16, 11), Buffer.alloc(32, 37)]));
+    });
+  }
+}
+
 for (const [filter, expected] of [
   ["fps=5", [10, 30, 30, 60, 100, 150, 210, 210]],
   ["framerate=5:flags=0", [10, 26, 48, 76, 110, 150, 198, 210]],

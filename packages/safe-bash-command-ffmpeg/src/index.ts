@@ -4626,8 +4626,17 @@ async function applyVideoFilterChain(
         return { width, height, data, ptsSeconds: f.ptsSeconds,
           durationSeconds: f.durationSeconds, keyframe: true };
       }, signal);
-    } else if (name === "lutrgb") {
-      const expressions = ["val", "val", "val", "val"];
+    } else if (name === "lutrgb" || name === "lut") {
+      const gray = name === "lut";
+      if (gray && !["gray", "gray8", "gray16le", "gray16be"].includes(pixelFormat ?? "")) {
+        throw new Error("lut: requires 8/16-bit grayscale input");
+      }
+      const depth = gray && (pixelFormat === "gray16le" || pixelFormat === "gray16be") ? 16 : 8;
+      const size = 2 ** depth;
+      const maximum = 255 * 2 ** (depth - 8);
+      const channels = gray ? 1 : 4;
+      const tableBytes = size * channels * (depth / 8);
+      const expressions = gray ? ["clipval", "clipval", "clipval", "clipval"] : ["val", "val", "val", "val"];
       let sawNamed = false;
       for (const [index, option] of (argStr ? positional : []).entries()) {
         const separator = option.indexOf("=");
@@ -4635,26 +4644,27 @@ async function applyVideoFilterChain(
         if (key === "enable") { sawNamed = true; continue; }
         const channel = ["r", "g", "b", "a"].indexOf(key ?? "");
         const component = channel >= 0 ? channel : ["c0", "c1", "c2", "c3"].indexOf(key ?? "");
-        if (component < 0 || separator < 0 && sawNamed) throw new Error("lutrgb: unknown option");
+        if (component < 0 || separator < 0 && sawNamed) throw new Error(`${name}: unknown option`);
         sawNamed ||= separator >= 0;
         expressions[component] = separator < 0 ? option : option.slice(separator + 1);
       }
-      budget.allocateMemory(1024);
+      budget.allocateMemory(tableBytes);
       try {
-        const tables = new Uint8Array(1024);
+        const tables = depth === 16 ? new Uint16Array(size * channels) : new Uint8Array(size * channels);
         const registers = new Float64Array(10);
         let width = -1, height = -1;
         current = await mapWork(current, async (frame, n) => {
           if (frame.width !== width || frame.height !== height) {
             width = frame.width; height = frame.height;
-            for (let channel = 0; channel < 4; channel++) {
+            for (let channel = 0; channel < channels; channel++) {
               await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
-              for (let value = 0; value < 256; value++) {
-                const result = parseFilterExpression(expressions[channel]!, "lutrgb", {
-                  val: value, negval: 255 - value, minval: 0, maxval: 255, clipval: value,
+              for (let value = 0; value < size; value++) {
+                if (value % 1024 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+                const result = parseFilterExpression(expressions[channel]!, name, {
+                  val: value, negval: Math.max(0, maximum - value), minval: 0, maxval: maximum, clipval: Math.min(value, maximum),
                   w: width, h: height
                 });
-                tables[channel * 256 + value] = Math.max(0, Math.min(255, Math.trunc(result)));
+                tables[channel * size + value] = Math.max(0, Math.min(maximum, Math.trunc(result)));
               }
             }
           }
@@ -4664,16 +4674,33 @@ async function applyVideoFilterChain(
             parseFilterExpression(named.enable, "lutrgb enable", variables, undefined, registers);
             if (!(Math.abs(parseFilterExpression(named.enable, "lutrgb enable", variables, undefined, registers)) >= 0.5)) return frame;
           }
+          if (depth === 16) {
+            const source = frame.native;
+            if (!source || ![29, 30].includes(source.format) || source.rgba !== frame.data ||
+                source.width !== frame.width || source.height !== frame.height) {
+              throw new Error("lut: requires retained 16-bit grayscale samples");
+            }
+            budget.allocateMemory(source.pixels.byteLength + frame.data.byteLength);
+            const pixels = source.pixels.slice();
+            const samples = new DataView(pixels.buffer, pixels.byteOffset, pixels.byteLength);
+            for (let i = 0; i < pixels.length; i += 2) {
+              if (i % 65536 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
+              samples.setUint16(i, tables[samples.getUint16(i, source.format === 30)]!, source.format === 30);
+            }
+            const native = { ...source, pixels };
+            const data = scaleVideoPicture({ ...frame, native }, frame.width, frame.height)!;
+            return { ...frame, data, native: { ...native, rgba: data } };
+          }
           const data = frame.data.slice();
           for (let i = 0; i < data.length; i++) {
             if (i % 65536 === 0) { await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu(); }
-            data[i] = tables[(i % 4) * 256 + data[i]!]!;
+            if (!gray || i % 4 !== 3) data[i] = tables[(gray ? 0 : i % 4) * size + data[i]!]!;
           }
           const { native: ignoredNative, ...rest } = frame;
           return { ...rest, data };
         }, signal);
       } finally {
-        budget.releaseMemory(1024);
+        budget.releaseMemory(tableBytes);
       }
     } else if (name === "prewitt") {
       current = await prewitt(current, argStr, pixelFormat, budget, signal);

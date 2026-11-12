@@ -3843,7 +3843,8 @@ function* applyMagickEvaluateSteps(img: RgbaImage, op: string, rawNum: number, i
                     next = Math.fround(Math.fround(cur * 257) * vFactor) / 257;
                     break;
                 case "divide":
-                    next = cur / (vFactor || 1);
+                    // Store the quotient as a native Q16-HDRI float32 Quantum.
+                    next = Math.fround(Math.fround(cur * 257) / (vFactor || 1)) / 257;
                     break;
                 case "pow":
                     // Native stores the Q16 result as a float32 Quantum, including overflow.

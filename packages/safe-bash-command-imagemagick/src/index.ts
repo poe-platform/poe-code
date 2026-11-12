@@ -23904,7 +23904,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             adjoinedPages.push(canvas);
             return;
         }
-        if (format === "jpeg" || format === "tiff") {
+        if (format === "jpeg" || format === "tiff" || format === "tga") {
             const samples = canvas.data16 ?? canvas.data;
             let gray = true;
             for (let offset = 0; gray && offset < samples.length; offset += 4) {
@@ -24780,7 +24780,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
             }
             if (adjoinedPages) { await adjoinedPages.push(canvas); continue; }
             if (adjoin) { await pages.push(canvas); continue; }
-            if (output.format === "jpeg" || output.format === "tiff") {
+            if (output.format === "jpeg" || output.format === "tiff" || output.format === "tga") {
                 let gray = true;
                 const depth = canvas.storedData16 ? 2 : 1;
                 const position = canvas.storedData16?.position ?? canvas.position;

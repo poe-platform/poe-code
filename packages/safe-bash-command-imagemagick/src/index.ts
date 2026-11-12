@@ -6963,7 +6963,7 @@ async function createStoredCanvas(width: number, height: number, color: RgbaColo
     return image;
 }
 
-type MagickDrawShape = { kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number; angularStep: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor });
+type MagickDrawShape = { kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "circle"; radius: number; angularStep: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor; linecap: "butt" | "round" | "square" });
 type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string } | ({ kind: "floodfill" } | { kind: "paint-point" } | { kind: "reset" } | { kind: "replace" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
 
 function parseMagickCopyGeometry(image: Pick<RgbaImage, "width" | "height">, geometry: string, offset: string) {
@@ -7054,7 +7054,7 @@ function* drawPointPixelSteps(image: Pick<RgbaImage, "width" | "height" | "space
 
 function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape: MagickDrawShape, highDepth = false, tile?: Pick<RgbaImage, "width" | "height">): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const quantum = highDepth ? 65535 : 255, scale = highDepth ? 257 : 1;
-    const radius = shape.shape === "circle" ? shape.radius : shape.shape === "line" ? shape.width / 2 : 0;
+    const radius = shape.shape === "circle" ? shape.radius : shape.shape === "line" ? shape.width / 2 * (shape.linecap === "square" ? Math.SQRT2 : 1) : 0;
     const x0 = Math.max(0, Math.floor(shape.shape === "rectangle" ? shape.x : Math.min(shape.x, shape.shape === "line" ? shape.x1 : shape.x) - radius - 1));
     const y0 = Math.max(0, Math.floor(shape.shape === "rectangle" ? shape.y : Math.min(shape.y, shape.shape === "line" ? shape.y1 : shape.y) - radius - 1));
     const x1 = Math.min(image.width, Math.ceil(shape.shape === "rectangle" ? shape.x + shape.width : Math.max(shape.x, shape.shape === "line" ? shape.x1 : shape.x) + radius + 1));
@@ -7100,11 +7100,37 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
                 // Native edge bounds exclude the leading edge and include the
                 // trailing edge. Stroke coverage extends 3/4 pixel past midwidth.
                 const mid = shape.width / 2;
-                if (x <= Math.min(shape.x, shape.x1) - mid - 0.5 || x > Math.max(shape.x, shape.x1) + mid + 0.5 ||
-                    y <= Math.min(shape.y, shape.y1) - mid - 0.5 || y > Math.max(shape.y, shape.y1) + mid + 0.5) continue;
+                if (mid <= 1 && (x <= Math.min(shape.x, shape.x1) - mid - 0.5 || x > Math.max(shape.x, shape.x1) + mid + 0.5 ||
+                    y <= Math.min(shape.y, shape.y1) - mid - 0.5 || y > Math.max(shape.y, shape.y1) + mid + 0.5)) continue;
                 coverage = distance <= Math.abs(mid - 0.25) ? 1 : Math.max(0, mid + 0.75 - distance) ** 2;
                 // ImageMagick thresholds stroke coverage at one third without antialiasing.
                 if (shape.antialias === false) coverage = coverage >= 1 / 3 ? 1 : 0;
+                // Thick strokes are filled outlines; round caps are separate
+                // endpoint disks composited over that outline. Thin strokes use
+                // ImageMagick's distance coverage regardless of the cap setting.
+                if (mid > 1) {
+                    const length = Math.sqrt(lengthSquared) || 1;
+                    const along = lengthSquared > 0 ? ((x - shape.x) * dx + (y - shape.y) * dy) / length : y - shape.y;
+                    const across = lengthSquared > 0 ? Math.abs((x - shape.x) * dy - (y - shape.y) * dx) / length : Math.abs(x - shape.x);
+                    const extension = shape.linecap === "square" ? mid : 0;
+                    const outside = Math.hypot(Math.max(0, -extension - along, along - Math.sqrt(lengthSquared) - extension), Math.max(0, across - mid));
+                    const extentX = lengthSquared > 0 ? (Math.abs(dx) * extension + Math.abs(dy) * mid) / length : mid;
+                    const extentY = (Math.abs(dy) * extension + Math.abs(dx) * mid) / length;
+                    const insideBounds = x >= Math.floor(Math.min(shape.x, shape.x1) - extentX + 0.5) && x <= Math.floor(Math.max(shape.x, shape.x1) + extentX + 0.5)
+                        && y >= Math.floor(Math.min(shape.y, shape.y1) - extentY + 0.5) && y <= Math.floor(Math.max(shape.y, shape.y1) + extentY + 0.5);
+                    coverage = (lengthSquared > 0 || shape.linecap === "round") && insideBounds ? Math.max(0, 1 - outside) ** 2 : 0;
+                    if (shape.antialias === false) coverage = coverage >= 0.5 ? 1 : 0;
+                    if (shape.linecap === "round") {
+                        for (let endpoint = 0; endpoint < 2; endpoint++) {
+                            const cx = endpoint === 0 ? shape.x : shape.x1, cy = endpoint === 0 ? shape.y : shape.y1;
+                            if (x <= cx - mid - 0.5 || x > cx + mid + 0.5 || y <= cy - mid - 0.5 || y > cy + mid + 0.5) continue;
+                            const capDistance = Math.hypot(x - cx, y - cy);
+                            let capCoverage = capDistance <= Math.abs(mid - 0.25) ? 1 : Math.max(0, mid + 0.75 - capDistance) ** 2;
+                            if (shape.antialias === false) capCoverage = capCoverage >= 1 / 3 ? 1 : 0;
+                            coverage += capCoverage * (1 - shape.color.a / 255 * coverage);
+                        }
+                    }
+                }
                 fillCoverage = Math.max(0, 1 - distance) ** 2;
                 if (shape.antialias === false) fillCoverage = fillCoverage >= 0.5 ? 1 : 0;
                 }
@@ -7252,12 +7278,13 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
     let tile = state.tile !== undefined;
     let stroke = state.stroke;
     let strokeWidth = state.strokeWidth;
+    let linecap: "butt" | "round" | "square" = "butt";
     let strokeLinejoin = "miter", strokeMiterlimit = 10;
     let fillRule = "evenodd";
     let fillOpacity: number | undefined;
     let strokeOpacity: number | undefined;
     let affine: [number, number, number, number, number, number] = [1, 0, 0, 1, 0, 0];
-    const contexts: { fill: RgbaColor; fillRule: string; tile: boolean; stroke: RgbaColor; strokeWidth: number; strokeLinejoin: string; strokeMiterlimit: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
+    const contexts: { fill: RgbaColor; fillRule: string; tile: boolean; stroke: RgbaColor; strokeWidth: number; linecap: "butt" | "round" | "square"; strokeLinejoin: string; strokeMiterlimit: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
     const tokens = yield* magickDrawTokensSteps(drawCmd);
     let i = 0;
     const num = () => {
@@ -7282,11 +7309,11 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         const transformed = affine.some((value, index) => value !== (index === 0 || index === 3 ? 1 : 0));
         if (cmd === "push" || cmd === "pop") {
             if (tokens[i++]?.toLowerCase() !== "graphic-context") throw new Error(`${cmd} drawing requires graphic-context`);
-            if (cmd === "push") contexts.push({ fill, fillRule, tile, stroke, strokeWidth, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity });
+            if (cmd === "push") contexts.push({ fill, fillRule, tile, stroke, strokeWidth, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity });
             else {
                 const context = contexts.pop();
                 if (!context) throw new Error("Cannot pop graphic-context without a matching push");
-                ({ fill, fillRule, tile, stroke, strokeWidth, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity } = context);
+                ({ fill, fillRule, tile, stroke, strokeWidth, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity } = context);
             }
         }
         else if (cmd === "viewbox") {
@@ -7339,6 +7366,11 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         }
         else if (cmd === "stroke-width" || cmd === "strokewidth") {
             strokeWidth = Math.max(0, num());
+        }
+        else if (cmd === "stroke-linecap") {
+            const value = tokens[i++]?.toLowerCase();
+            if (value !== "butt" && value !== "round" && value !== "square") throw new Error("stroke-linecap drawing requires butt, round or square");
+            linecap = value;
         }
         else if (cmd === "color" || cmd === "alpha") {
             const px = num(), py = num(), method = tokens[i++]?.toLowerCase();
@@ -7434,12 +7466,12 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const y0 = num();
             const x1 = num();
             const y1 = num();
-            const lineStroke = stroke.a === 0 ? paintFill : paintStroke;
-            if (!transformed && svgElements.length === 0) {
-                yield { kind: "shape", shape: "line", tile: false, color: strokeColor, fill: fillColor, x: x0, y: y0, x1, y1, width: Math.max(1, strokeWidth), antialias: state.antialias !== false };
-            } else {
-                svgElements.push(`<line x1="${x0}" y1="${y0}" x2="${x1}" y2="${y1}" stroke="${lineStroke}" stroke-width="${Math.max(1, strokeWidth)}"/>`);
-            }
+            const scale = Math.sqrt(Math.abs(affine[0] * affine[3] - affine[1] * affine[2]));
+            if (!Number.isFinite(scale)) throw new Error("Drawing requires a finite stroke scale");
+            yield { kind: "shape", shape: "line", tile: false, color: strokeColor, fill: fillColor,
+                x: affine[0] * x0 + affine[2] * y0 + affine[4], y: affine[1] * x0 + affine[3] * y0 + affine[5],
+                x1: affine[0] * x1 + affine[2] * y1 + affine[4], y1: affine[1] * x1 + affine[3] * y1 + affine[5],
+                width: Math.max(1, strokeWidth * scale), linecap, antialias: state.antialias !== false };
         }
         else if (cmd === "point") {
             const px = num(), py = num();
@@ -7472,7 +7504,7 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                     point.y >= Math.min(first.y, last.y) && point.y <= Math.max(first.y, last.y);
             }
             if (straight) {
-                yield { kind: "shape", shape: "line", tile: false, color: strokeColor, fill: fillColor, x: first.x, y: first.y, x1: last.x, y1: last.y, width: Math.max(1, strokeWidth), antialias: state.antialias !== false };
+                yield { kind: "shape", shape: "line", tile: false, color: strokeColor, fill: fillColor, x: first.x, y: first.y, x1: last.x, y1: last.y, width: Math.max(1, strokeWidth), linecap, antialias: state.antialias !== false };
             } else {
                 const points = pts.map(point => `${point.x},${point.y}`).join(" ");
                 // Native uses joined outlines only when the stroke radius exceeds one pixel.

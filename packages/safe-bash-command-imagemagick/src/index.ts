@@ -2697,11 +2697,13 @@ function resolveMagickChopGeometry(raw: string, image: Pick<RgbaImage, "width" |
         return { ...g, width: pageWidth, height: pageHeight, x: 0, y: 0 };
     }
     const suffix = [...raw].findIndex(character => character === ":" || character === "/");
-    if (dimensionSeparator >= 0 && suffix > dimensionSeparator) {
+    if (dimensionSeparator >= 0 && suffix >= 0) {
         // A slash stops GetGeometry before dimensions or offsets are read.
         if (raw[suffix] === "/") return { ...g, width: pageWidth, height: pageHeight, x: 0, y: 0 };
-        // A colon uses the first two dimensions as a ratio, retaining preceding offsets.
-        const dimensions = parseMagickGeometry(raw.slice(0, suffix).replaceAll("#", "").replaceAll("!", "").replaceAll("^", "").replaceAll("%", ""));
+        // A colon uses the first two dimensions as a ratio. An x after the colon
+        // ends those fields, leaving an omitted denominator at one.
+        const ratio = suffix > dimensionSeparator ? raw.slice(0, suffix) : raw.slice(0, dimensionSeparator).replace(":", "x");
+        const dimensions = parseMagickGeometry(ratio.replaceAll("#", "").replaceAll("!", "").replaceAll("^", "").replaceAll("%", ""));
         g = { ...dimensions, aspectRatio: (dimensions.width ?? 0) / (dimensions.height ?? 1) };
     }
     // Native GetGeometry leaves the page rectangle untouched when a scalar
@@ -3159,7 +3161,7 @@ function validateMagickTransformGeometry(raw: string, option: string): void {
     for (const char of value) {
         if (char === "x" || char === "X" || char === ":") dimensions = true;
         if ((char.trim() !== "" && !"0123456789eExX!#%()+,-./:<>@\\^".includes(char)) ||
-            (!dimensions && ((char === "/" && option !== "-loop") || (char === "," && !(option === "-roll" && value.toLowerCase().includes("x")) && !forcedRegionResize && value[0] !== "+" && value[0] !== "-")))) {
+            (!dimensions && ((char === "/" && option !== "-loop") || (char === "," && !((option === "-roll" || option === "-chop") && value.toLowerCase().includes("x")) && !forcedRegionResize && value[0] !== "+" && value[0] !== "-")))) {
             throw new Error(`invalid argument for option '${option}': ${raw}`);
         }
     }

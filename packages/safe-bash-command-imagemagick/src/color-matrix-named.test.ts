@@ -6,6 +6,31 @@ import { createMagickCommand } from "./index.js";
 
 const pixels = [200, 21, 62, 128, 15, 99, 51, 255, 0, 0, 0, 200];
 
+// Native ImageMagick 7.1.2-35 Q16-HDRI, two pixels of big-endian RGBA16.
+it.each([
+    { kernel: "Square:2x0.25", expected: "47c847c847c847c885c585c585c585c5" },
+    { kernel: "Square:2x0", expected: "00000000000000000000000000000000" },
+    { kernel: "Square:1x0.5", expected: "5757575757577070a3a3a3a3a3a3cfcf" },
+    { kernel: "Square:2x1", expected: "ffffffffffffffffffffffffffffffff" },
+    { kernel: "Square:2", expected: "ffffffffffffffffffffffffffffffff" }
+])("magick applies the $kernel weight through the command API", async ({ kernel, expected }) => {
+    const args = createCommandArguments([
+        "xc:#173e5970", "xc:#b56829cf", "+append", "-color-matrix", kernel,
+        "-depth", "16", "-endian", "MSB", "rgba:-"
+    ]);
+    const chunks: Uint8Array[] = [];
+    let stderr = "";
+    const result = await createMagickCommand().execute({
+        command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs: new MemoryFileSystem(),
+        signal: new AbortController().signal, stdin: (async function* () {})(),
+        stdout: { async write(bytes) { chunks.push(bytes); } },
+        stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+    });
+    expect(result.exitCode, stderr).toBe(0);
+    expect(stderr).toBe("");
+    expect(Buffer.concat(chunks).toString("hex")).toBe(expected);
+});
+
 // Native Square radii at or below one use a 3x3 kernel, preserving alpha.
 it.each([
     { radius: -3, expected: "60606080" },

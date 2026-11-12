@@ -1385,11 +1385,16 @@ function parseMagickColorMatrix(spec: string): { m: number[]; cols: number; rows
         for (let i = 0; i < perimeter.length; i++)
             named[perimeter[(i + steps) % perimeter.length]!] = values[perimeter[i]!]!;
     }
-    else if (name === "square" && (argument === undefined || Number.isFinite(argument))) {
+    else if (name === "square") {
+        const values = separator < 0 || spec.slice(separator + 1).trim() === "" ? []
+            : spec.slice(separator + 1).toLowerCase().split("x").map(Number);
+        if (values.length > 2 || !values.every(Number.isFinite))
+            throw new Error("Invalid color matrix: invalid Square geometry");
+        const [radius = 1, weight = 1] = values;
         // Only RGB, black, alpha and the constant column affect a color matrix.
-        // Larger all-ones kernels have the same effect as a 6x6 matrix.
-        const size = Math.min(6, Math.max(3, Math.floor(2 * (argument ?? 1) + 1)));
-        named = new Array<number>(size * size).fill(1);
+        // Larger uniform kernels have the same effect as a 6x6 matrix.
+        const size = Math.min(6, Math.max(3, Math.floor(2 * radius + 1)));
+        named = new Array<number>(size * size).fill(weight);
     }
     else if (name === "laplacian" && (argument === undefined || Number.isFinite(argument))) {
         named = laplacianKernel(argument ?? 0);

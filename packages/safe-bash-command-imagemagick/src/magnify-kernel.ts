@@ -1,5 +1,5 @@
 /*!
- * Fish2x rules adapted from ImageMagick 7.1.2-35 MagickCore/resize.c.
+ * Fish2x and Eagle3x/Eagle3xB rules adapted from ImageMagick 7.1.2-35 MagickCore/resize.c.
  * Copyright 1999 ImageMagick Studio LLC. Licensed under the ImageMagick
  * License (https://imagemagick.org/license/); see ../LICENSE for its text.
  * Modified for bounded TypeScript RGBA raster processing.
@@ -11,15 +11,11 @@ import type { VirtualPixelMethod } from "./warp-kernel.js";
 import { magickIntensity } from "./intensity.js";
 import { virtualPixelIndex } from "./virtual-pixel.js";
 
-export type MagnifyMethod = "fish2x" | "hq2x" | "epbx2x" | "scale2x" | "eagle2x" | "scale3x" | "eagle3x" | "xbr2x";
+export type MagnifyMethod = "fish2x" | "hq2x" | "epbx2x" | "scale2x" | "eagle2x" | "scale3x" | "eagle3x" | "eagle3xb" | "xbr2x";
 
 export function parseMagnifyMethod(value: string): MagnifyMethod {
     const method = value.toLowerCase();
-    if (method === "fish2x" || method === "hq2x" || method === "epbx2x" || method === "scale2x" || method === "eagle2x" || method === "scale3x" || method === "eagle3x" || method === "xbr2x") return method;
-    // Native defaults unknown names to Scale2x, but these names select distinct algorithms.
-    if (["eagle3xb"].includes(method)) {
-        throw new Error(`Unsupported magnify method: ${value}`);
-    }
+    if (method === "fish2x" || method === "hq2x" || method === "epbx2x" || method === "scale2x" || method === "eagle2x" || method === "scale3x" || method === "eagle3x" || method === "eagle3xb" || method === "xbr2x") return method;
     return "scale2x";
 }
 
@@ -29,7 +25,7 @@ export function* magnifyPixelSteps(image: Pick<RgbaImage, "width" | "height" | "
     const hue = image.space !== "cmyk" && (!!image.hueSamples || image.storedHueSamples !== undefined);
     const evaluate = !hue && (!!image.evaluateSamples || image.storedEvaluateSamples !== undefined);
     const Samples = hue || evaluate ? Float64Array : Uint16Array;
-    const factor = method === "scale3x" || method === "eagle3x" ? 3 : 2;
+    const factor = method === "scale3x" || method === "eagle3x" || method === "eagle3xb" ? 3 : 2;
     const radius = method === "xbr2x" ? 2 : 1;
     const gray = virtualPixel === "white" ? 65535 : virtualPixel === "gray" ? 32768 : 0;
     const fill = virtualPixel === "background" || virtualPixel.endsWith("-tile")
@@ -116,18 +112,20 @@ export function* magnifyPixelSteps(image: Pick<RgbaImage, "width" | "height" | "
                 if (eq(1, 2) && eq(2, 5)) selected[1] = 2;
                 if (eq(3, 6) && eq(6, 7)) selected[2] = 6;
                 if (eq(5, 8) && eq(8, 7)) selected[3] = 8;
-            } else if (method === "eagle3x") {
+            } else if (method === "eagle3x" || method === "eagle3xb") {
                 const topLeft = eq(0, 1) && eq(0, 3), topRight = eq(1, 2) && eq(2, 5);
                 const bottomLeft = eq(3, 6) && eq(6, 7), bottomRight = eq(5, 7) && eq(7, 8);
                 if (topLeft) selected[0] = 0;
                 if (topRight) selected[2] = 1;
                 if (bottomLeft) selected[6] = 3;
                 if (bottomRight) selected[8] = 5;
-                // Adjacent matching corners have identical pixels, so their native average is a copy.
-                if (topLeft && topRight) selected[1] = 0;
-                if (topLeft && bottomLeft) selected[3] = 0;
-                if (topRight && bottomRight) selected[5] = 2;
-                if (bottomLeft && bottomRight) selected[7] = 6;
+                if (method === "eagle3x") {
+                    // Adjacent matching corners have identical pixels, so their native average is a copy.
+                    if (topLeft && topRight) selected[1] = 0;
+                    if (topLeft && bottomLeft) selected[3] = 0;
+                    if (topRight && bottomRight) selected[5] = 2;
+                    if (bottomLeft && bottomRight) selected[7] = 6;
+                }
             } else if (method === "epbx2x") {
                 if (!eq(3, 5) && !eq(1, 7) && (
                     eq(4, 3) || eq(4, 7) || eq(4, 5) || eq(4, 1) ||

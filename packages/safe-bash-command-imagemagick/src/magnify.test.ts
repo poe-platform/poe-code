@@ -71,18 +71,25 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     });
 }
 
-it.each(["eagle3xb"])("does not silently substitute Scale2x for unsupported %s", async method => {
-    const filesystem = new MemoryFileSystem();
-    const original = new TextEncoder().encode("KEEP");
-    await filesystem.writeFile("/out", original);
-    let stderr = "";
-    const result = await createMagickCommand().execute({
-        command: "magick", args: ["xc:red", "-define", `magnify:method=${method}`, "-magnify", "-depth", "8", "rgb:out"],
-        cwd: "/", env: {}, fs: filesystem, signal: new AbortController().signal,
-        stdin: (async function* () {})(), stdout: { async write() {} },
-        stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+// ImageMagick 7.1.2-35 Q16-HDRI: this checker distinguishes Eagle3xB from Eagle3x.
+for (const mode of ["buffered", "retained", "sync", "command"] as const) {
+    it(`${mode}: Eagle3xB matches native checker pixels`, async () => {
+        const input = Buffer.concat([Buffer.from("P6\n4 4\n255\n"), Buffer.from([...Buffer.from("ffff00ffffffffffff0000ff0000ff00", "hex")].flatMap(value => [value, value, value]))]);
+        const filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/in.ppm", input);
+        const files = new Map<string, Uint8Array>([["/in.ppm", input]]);
+        const args = ["/in.ppm", "-define", "magnify:method=eagle3xb", "-magnify", "-depth", "8", mode === "command" ? "gray:-" : "gray:/out"];
+        const chunks: Uint8Array[] = [];
+        let stderr = "";
+        const result = mode === "command" ? { ...await createMagickCommand().execute({
+            command: "magick", args, cwd: "/", env: {}, fs: filesystem, signal: new AbortController().signal,
+            stdin: (async function* () {})(),
+            stdout: { async write(bytes) { chunks.push(bytes.slice()); } },
+            stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
+        }), stderr } : mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "buffered" ? files : { filesystem, cwd: "/" });
+        expect(result.exitCode).toBe(0);
+        expect("stderr" in result ? result.stderr : stderr).toBe("");
+        const output = mode === "command" ? Buffer.concat(chunks) : mode === "retained" ? await filesystem.readFile("/out") : files.get("/out")!;
+        expect(Buffer.from(output).toString("hex")).toBe("ffffffffffff000000ffffffffffffffffff000000ffffffffffffffffffff00ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff00000000ffffffffffffff000000000000ffffffffff00000000000000ffffff00000000000000ffff000000000000000000ffffff000000000000000000ffffff000000");
     });
-    expect(result.exitCode).toBe(1);
-    expect(stderr).toContain(`Unsupported magnify method: ${method}`);
-    expect(await filesystem.readFile("/out")).toEqual(original);
-});
+}

@@ -12376,6 +12376,12 @@ function* optimizeFrameRectanglesSteps(stack: RgbaImage[], fuzz: number, optimiz
     for (let n = stack.length - 1; n >= 0; n--) {
         let current = stack[n]!;
         const previous = n > 0 ? stack[n - 1]! : { ...current, width: 0, height: 0 };
+        // Clearing the first coalesced canvas is equivalent to restoring its empty predecessor.
+        if (optimize && n === 1 && previous.disposal === 2) {
+            stack[0] = { ...previous, disposal: 3 };
+            if (n === stack.length - 1) stack[n] = { ...current, disposal: 3 };
+            continue;
+        }
         if ((n > 0 && (current.width !== previous.width || current.height !== previous.height)) ||
             (typeof current.disposal === "number" ? current.disposal : 0) > 1 ||
             (typeof previous.disposal === "number" ? previous.disposal : 0) > 1) continue;
@@ -12451,6 +12457,12 @@ async function optimizeStoredFrameRectangles(stack: StoredImageStack, backend: C
     for (let n = stack.length - 1; n >= 0; n--) {
         let current = (await stack.get(n))!;
         const previous = n > 0 ? (await stack.get(n - 1))! : { ...current, width: 0, height: 0 };
+        // Clearing the first coalesced canvas is equivalent to restoring its empty predecessor.
+        if (optimize && n === 1 && previous.disposal === 2) {
+            await stack.set(0, { ...previous, disposal: 3 });
+            if (n === stack.length - 1) await stack.set(n, { ...current, disposal: 3 });
+            continue;
+        }
         if ((n > 0 && (current.width !== previous.width || current.height !== previous.height)) ||
             (typeof current.disposal === "number" ? current.disposal : 0) > 1 ||
             (typeof previous.disposal === "number" ? previous.disposal : 0) > 1) continue;

@@ -1511,7 +1511,11 @@ APNG output (`out.apng` or `-f apng`) writes all video frames into one animation
 `level_out`, `amount`, `drive`, `blend`, `freq`, `ceil`, and `listen`, including
 positional options and use in audio filter chains. `listen` accepts case-insensitive
 `y`/`n` and `enabled`/`disabled`, as well as `1`/`0`, `true`/`false`, `yes`/`no`,
-and `on`/`off`, including in runtime commands. Numeric options accept expressions
+and `on`/`off`, including in runtime commands. Numeric `listen` values must be decimal
+integers equal to 0 or 1; signs and leading zeros are accepted (`+1`, `01`, `-0`).
+Decimals, exponent notation, hex, and other integers fail at startup with status
+234. Invalid runtime values log a boolean parse error and preserve the previous mix.
+Numeric options accept expressions
 with per-option `min`, `max`, and `default` constants, such as `amount=default` or
 `drive=max`, including in runtime commands. `default` always restores the declared
 default value. `enable` selects whole audio

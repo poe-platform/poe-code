@@ -1,12 +1,13 @@
 import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
 import { parseFilterExpression } from "./filter-expression.js";
+import { parseFilterBoolean } from "./filter-boolean.js";
 import { validateWeaveGenericOption } from "./weave-generic-option.js";
 
 export async function exciteAudio(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   frames: readonly { start: number; end: number; pts: number; pos?: number | undefined }[],
-  budget: MediaBudgetTracker, signal?: AbortSignal,
+  budget: MediaBudgetTracker, reportError: (message: string) => Promise<void>, signal?: AbortSignal,
   commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<Float64Array[]> {
   let enable: string | undefined;
@@ -16,10 +17,10 @@ export async function exciteAudio(
   const names = Object.keys(options) as (keyof typeof options)[];
   const setOption = (key: keyof typeof options, value: string) => {
     const [min, max] = ranges[key];
-    const number = key !== "listen" ? parseFilterExpression(value, "aexciter", { min, max, default: defaults[key] })
-      : ["true", "yes", "on", "y", "enabled"].includes(value.toLowerCase()) ? 1
-      : key === "listen" && ["false", "no", "off", "n", "disabled"].includes(value.toLowerCase()) ? 0 : Number(value);
-    if (!value || !Number.isFinite(number) || key === "listen" && !Number.isInteger(number)) {
+    const number = key === "listen"
+      ? Number(parseFilterBoolean(value, `aexciter: Unable to parse option value "${value}" as boolean`))
+      : parseFilterExpression(value, "aexciter", { min, max, default: defaults[key] });
+    if (!value || !Number.isFinite(number)) {
       throw new Error(`aexciter: invalid ${key}`);
     }
     if (number < min || number > max) throw new RangeError(`aexciter: invalid ${key}`);
@@ -68,7 +69,10 @@ export async function exciteAudio(
         } else if (Object.hasOwn(options, command.action)) {
           setOption(command.action as keyof typeof options, command.expression);
         }
-      } catch { /* Native asendcmd continues after a rejected command. */ }
+      } catch (error) {
+        // Native asendcmd keeps the previous value after a rejected command.
+        if (command.action === "listen") await reportError((error as Error).message);
+      }
     }
     let enabled = true;
     if (enable !== undefined) {

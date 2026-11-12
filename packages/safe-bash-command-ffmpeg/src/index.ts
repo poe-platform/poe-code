@@ -15671,7 +15671,9 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           const commands = audioCommands.filter(command => command.target === "aexciter" || command.target === filterTarget)
                             .sort((a, b) => a.sample - b.sample);
                           audioCommands = audioCommands.filter(command => command.target !== "aexciter" && command.target !== filterTarget);
-                          stretched = await exciteAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal, commands);
+                          stretched = await exciteAudio(stretched, origRate, trimmed, audioTimestamps, budget, async message => {
+                            if (logLevel >= 16) await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${message}\n`), context.signal);
+                          }, context.signal, commands);
                           filteredSampleFormat = "dbl";
                         } else if (filterName === "atilt") {
                           const commands = audioCommands.filter(command => command.target === "atilt" || command.target === filterTarget)

@@ -5569,7 +5569,7 @@ async function applyVideoFilterChain(
       const targetFps = parseFilterExpression(options.fps ?? "25", "fps: frame rate", {
         source_fps: frameRateKnown ? 1 / ((current[0]?.durationSeconds ?? 1 / timescale) * frameRateScale) : Infinity,
         ntsc: 30000 / 1001, pal: 25, film: 24, "ntsc_film": 24000 / 1001
-      });
+      }, undefined, new Float64Array(10), []);
       if (targetFps === Infinity) throw new Error("fps: frame rate: The encoder timebase is not set.");
       if (targetFps <= 0) throw new Error("fps: frame rate: must be positive");
       frameRateKnown = true;

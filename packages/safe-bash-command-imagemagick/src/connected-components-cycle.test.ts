@@ -15,7 +15,7 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
             stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
         }) : mode === "sync" ? runConvertCliSync(args, files)
             : await runConvertCli(args, mode === "buffered" ? files : { filesystem, cwd: "/" });
-        expect(result.exitCode, "stderr" in result ? result.stderr : stderr).toBe(0);
+        expect(result.exitCode, "stderr" in result && typeof result.stderr === "string" ? result.stderr : stderr).toBe(0);
         return { files, filesystem, stdout: "stdout" in result ? result.stdout : stdout };
     }
 

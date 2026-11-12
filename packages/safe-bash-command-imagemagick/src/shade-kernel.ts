@@ -8,7 +8,7 @@ import { regionContains, type Region } from "./region.js";
 import { blendMaskedPixel } from "./write-mask.js";
 
 /** Directional surface normals from a 3x3 intensity neighborhood. */
-export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { magickColorspace?: string | undefined }, spec: string, argument: number, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, intensity = "rec709luma", seed?: bigint, meta = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
+export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "data16" | "space" | "hueSamples"> & Partial<Pick<StoredRgbaImage, "storedData16" | "storedHueSamples">> & { magickColorspace?: string | undefined; alphaSeparate?: boolean | undefined; alphaBlend?: boolean | undefined }, spec: string, argument: number, background: RgbaColor, method: VirtualPixelMethod = "edge", channels?: { r: boolean; g: boolean; b: boolean; a: boolean; k?: boolean }, intensity = "rec709luma", seed?: bigint, meta = false): Generator<ConvolveRequest | undefined, void, Uint8Array | undefined> {
     const geometry = [...spec.toLowerCase()].filter(character => character.trim() && !"()!%<>^@#".includes(character)).join("")
         .replaceAll(",", "x").replaceAll("/", "x").replaceAll(":", "x");
     const fields: string[] = [];
@@ -35,7 +35,8 @@ export function* shadePixelSteps(image: Pick<RgbaImage, "width" | "height" | "ha
     const lightX = Math.cos(a) * Math.cos(e), lightY = Math.sin(a) * Math.cos(e), lightZ = Math.sin(e);
     const { width, height } = image, highDepth = !!(image.data16 || image.storedData16), quantum = highDepth ? 65535 : 255;
     const cmyk = image.space === "cmyk", hue = !!image.hueSamples || image.storedHueSamples !== undefined;
-    const mask = channels ? [channels.r, channels.g, channels.b, channels.a && image.hasAlpha] : [true, true, true, image.hasAlpha];
+    const alpha = image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false;
+    const mask = channels ? [channels.r, channels.g, channels.b, channels.a && alpha] : [true, true, true, alpha];
     if (image.space === "b-w" || image.space === "grey16") mask[1] = mask[2] = mask[0]!;
     const gray = method === "white" ? 255 : method === "gray" ? 255 / 2 : 0;
     const fill = (method === "background" || method.endsWith("-tile") ? [background.r, background.g, background.b, background.a] : [gray, gray, gray, method === "transparent" ? 0 : 255]).map(value => value * quantum / 255);

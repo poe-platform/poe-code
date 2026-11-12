@@ -1762,6 +1762,9 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   const thirdMoments = new Array<number>(channels).fill(0), fourthMoments = new Array<number>(channels).fill(0);
   const minima = new Array<number>(channels).fill(Number.MAX_VALUE), maxima = new Array<number>(channels).fill(-Number.MAX_VALUE);
   const histograms = statistics ? Array.from({ length: channels }, () => new Float64Array(65536)) : undefined;
+  // Select float quanta in two radix passes, keeping memory independent of image size.
+  const medianBins = statistics ? Array.from({ length: channels }, () => new Float64Array(65536)) : undefined;
+  const quantum = new Float32Array(1), quantumBits = new Uint32Array(quantum.buffer);
   let min = 65535;
   let max = 0;
   let opaque = true;
@@ -1844,6 +1847,9 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
           minima[c] = Math.min(minima[c]!, v);
           maxima[c] = Math.max(maxima[c]!, v);
           histograms[c]![Math.max(0, Math.min(65535, Math.round(v)))]!++;
+          quantum[0] = v;
+          const key = (quantumBits[0]! & 0x80000000 ? ~quantumBits[0]! : quantumBits[0]! ^ 0x80000000) >>> 0;
+          medianBins![c]![key >>> 16]!++;
         }
       }
       if (selectedChannels[c]) {
@@ -1858,6 +1864,41 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
   let skewness = 0, kurtosis = 0;
   let entropy = 0;
   if (statistics) {
+    const upperBins = new Uint32Array(channels);
+    const medianRanks = new Array<number>(channels).fill(Math.floor((count - 1) / 2));
+    for (let c = 0; c < channels; c++) {
+      const bins = medianBins![c]!;
+      let upper = 0;
+      for (; upper < 65535 && medianRanks[c]! >= bins[upper]!; upper++) {
+        if (upper % 8192 === 0) yield;
+        medianRanks[c]! -= bins[upper]!;
+      }
+      upperBins[c] = upper;
+      bins.fill(0);
+    }
+    for (let offset = 0; offset < img.width * img.height * 4; offset += chunkSize) {
+      yield;
+      const length = Math.min(chunkSize, img.width * img.height * 4 - offset);
+      const chunk = load ? yield* load(offset, length) : {
+        data: img.data!.subarray(offset, offset + length), data16: img.data16?.subarray(offset, offset + length),
+        hueSamples: img.hueSamples?.subarray(offset, offset + length), evaluateSamples: img.evaluateSamples?.subarray(offset, offset + length)
+      };
+      const selection = yield* readMaskSelectionSteps(img, offset, length, loadMask);
+      const samples = chunk.data16 ?? chunk.data, range = chunk.data16 ? 65535 : 255;
+      for (let i = 0; i < length; i += 4) {
+        if (selection && selection[i / 4] !== 1) continue;
+        for (let c = 0; c < channels; c++) {
+          const channel = channelIds[c]!, inkChannel = channel === 8 ? 3 : channel;
+          quantum[0] = img.space === "cmyk" && channel !== 3
+            ? (chunk.hueSamples ? chunk.hueSamples[i + inkChannel]!
+              : rgbToCmyk(samples[i]! / range, samples[i + 1]! / range, samples[i + 2]! / range)[inkChannel]!) * 65535
+            : chunk.hueSamples && img.space !== "cmyk" ? chunk.hueSamples[i + channel]! * 65535
+            : chunk.evaluateSamples ? chunk.evaluateSamples[i + channel]! * 257 : samples[i + channel]! * 65535 / range;
+          const key = (quantumBits[0]! & 0x80000000 ? ~quantumBits[0]! : quantumBits[0]! ^ 0x80000000) >>> 0;
+          if (key >>> 16 === upperBins[c]) medianBins![c]![key & 65535]!++;
+        }
+      }
+    }
     statistics.mean = 0;
     statistics.standard_deviation = 0;
     // Native empty-channel extrema retain the Q16-normalized double limits.
@@ -1882,7 +1923,6 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
         // ImageMagick normalizes by occupied bins; constant channels contribute zero.
         if (distinct > 1) entropy += channelEntropy / Math.log2(distinct) / selectedCount;
       }
-      let median = 0, cumulative = 0;
       statistics[`skewness.${channel}`] = 0;
       statistics[`kurtosis.${channel}`] = 0;
       if (deviation > 0) {
@@ -1899,11 +1939,14 @@ function* magickPixelPropertiesSteps<Step=never, Resume=void>(
           kurtosis += (fourth - 3) / selectedCount;
         }
       }
-      for (; median < 65535; median++) {
-        if (median % 8192 === 0) yield;
-        cumulative += histogram[median]!;
-        if (cumulative >= Math.ceil(count / 2)) break;
+      let lower = 0;
+      for (; lower < 65535 && medianRanks[c]! >= medianBins![c]![lower]!; lower++) {
+        if (lower % 8192 === 0) yield;
+        medianRanks[c]! -= medianBins![c]![lower]!;
       }
+      const key = ((upperBins[c]! << 16) | lower) >>> 0;
+      quantumBits[0] = key & 0x80000000 ? key ^ 0x80000000 : ~key;
+      const median = minima[c] === Number.MAX_VALUE ? 65535 : quantum[0]!;
       statistics[`minima.${channel}`] = minima[c]! / 65535;
       statistics[`maxima.${channel}`] = maxima[c]! / 65535;
       statistics[`median.${channel}`] = median / 65535;
@@ -2307,7 +2350,15 @@ function* formatStoredFxSteps(property:string,{image,storage}:IdentifyRaster,get
     if (error instanceof FxStatisticsDemand) {
      const target = source.get(error.image) as StoredRgbaImage;
      const result: Record<string, number> = {};
-     yield* magickPixelPropertiesSteps(target, (position, length) => loadIdentifyPixels({ image: target, storage }, signal, position, length), result, false, undefined, context.channelSelection, context.precision);
+     yield* magickPixelPropertiesSteps(target, (position, length) => loadIdentifyPixels({ image: target, storage }, signal, position, length), result, false, function*(position, length): Generator<IdentifyStep, Uint8Array | Float64Array, void> {
+      let data!: Uint8Array | Float64Array;
+      yield { async run() {
+       const mask = target.readMask!;
+       data = mask.storedEvaluateSamples === undefined ? await storage.read(mask.position! + position, length, signal ? { signal } : undefined)
+        : new Float64Array((await storage.read(mask.storedEvaluateSamples + position * 8, length * 8, signal ? { signal } : undefined)).slice().buffer);
+      } };
+      return data;
+     }, context.channelSelection, context.precision);
      frameStatistics.set(error.image, result);
      continue;
     }

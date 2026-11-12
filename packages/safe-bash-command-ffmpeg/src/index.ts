@@ -22424,6 +22424,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (err instanceof RangeError && msg.startsWith("gradfun:")) return { exitCode: 222 };
             if (msg === "gradfun: invalid expression" || msg === "gradfun: invalid or unsupported expression" ||
                 msg === "gradfun: too many positional options") return { exitCode: 234 };
+            if (msg === "select: invalid or unsupported expression") return { exitCode: 234 };
             if (msg.startsWith("framestep:")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (err instanceof RangeError && msg.startsWith("thumbnail:")) return { exitCode: 222 };
             if (msg.startsWith("loop: unsupported option ")) return { exitCode: 8 };

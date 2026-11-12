@@ -55,7 +55,8 @@ export const audioFadeCurves: Record<string, (gain: number) => number> = {
   sinc: gain => gain >= 1 ? 1 : Math.sin(Math.PI * (1 - gain)) / (Math.PI * (1 - gain)),
   isinc: gain => gain <= 0 ? 0 : 1 - Math.sin(Math.PI * gain) / (Math.PI * gain),
   quat: gain => gain * gain * gain * gain,
-  quatr: gain => gain ** 0.25,
+  // Nested square roots match FFmpeg 7.0.2-static's rounding before PCM conversion.
+  quatr: gain => Math.sqrt(Math.sqrt(gain)),
   qsin2: gain => Math.sin(gain * Math.PI / 2) ** 2,
   hsin2: gain => ((1 - Math.cos(gain * Math.PI)) / 2) ** 2
 };

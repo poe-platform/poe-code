@@ -8661,12 +8661,12 @@ function imageOutputFormat(codec: string | undefined, extension: string): ImageF
     case "mjpeg": case "jpg": case "jpeg": return "jpeg";
     case "libwebp": case "libwebp_anim": case "webp": return "webp";
     case "targa": case "tga": return "tga";
-    case "qoi": case "gif": case "bmp": case "ppm": case "pam": case "pgm": case "tiff": return format;
+    case "qoi": case "gif": case "bmp": case "ppm": case "pam": case "pgm": case "pbm": case "tiff": return format;
     default: return "png";
   }
 }
 
-const imageEncoders = ["png", "mjpeg", "webp", "libwebp", "libwebp_anim", "gif", "bmp", "ppm", "pam", "pgm", "qoi", "targa", "tiff"];
+const imageEncoders = ["png", "mjpeg", "webp", "libwebp", "libwebp_anim", "gif", "bmp", "ppm", "pam", "pgm", "pbm", "qoi", "targa", "tiff"];
 
 function validateAudioEncoder(codec: string | undefined, doc: MediaDocument, plugins: readonly MediaAstPlugin[]): void {
   if (codec === undefined || codec === "copy" || !doc.tracks.some(track => track.type === "audio")) return;
@@ -9860,7 +9860,7 @@ export function evalSyncFfmpeg(
       const limit = Math.min(frames.length, maxVideoFrames ?? Infinity);
       const imgFmt = imageOutputFormat(videoCodec, outExt);
       if (imgFmt === "ppm") return undefined;
-      if (imgFmt === "pam") return undefined;
+      if (imgFmt === "pam" || imgFmt === "pbm") return undefined;
       for (let idx = 0; idx < limit; idx++) {
         const f = frames[idx]!;
         const fileName = formatImageSequence(outputTarget, idx + (outputStartNumber ?? 1)) ?? outputTarget;
@@ -14166,6 +14166,12 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 imageOutputFormat(videoCodec, outputTarget.split(".").pop()?.toLowerCase() ?? "") === "qoi"
                 ? "rgb24" : rawPixelFormat;
               vfFilters.push(`format=${pixelFormat}`);
+            }
+
+            if (videoCodec !== "copy" && (imageOutput || numberedImageOutput) &&
+                imageOutputFormat(videoCodec, outputTarget.split(".").pop()?.toLowerCase() ?? "") === "pbm") {
+              // PBM packs black as 1; reuse monochrome dithering before the image encoder packs it.
+              vfFilters.push("format=monob");
             }
 
             // Apply output-level time slicing (`-ss`, `-to`, `-t`)

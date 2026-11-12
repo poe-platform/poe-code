@@ -16,6 +16,7 @@ export async function surroundAudio(
   let windowOverlap = 0.5;
   let lfeLow = 128, lfeHigh = 256;
   let outputChannels = 6;
+  const inputLevels = [1, 1];
   const outputLevels = { fl_out: 1, fr_out: 1, fc_out: 1, lfe_out: 1, bl_out: 1, br_out: 1 };
   const spread = {
     flx: 0.5, frx: 0.5, fcx: 0.5, blx: 0.5, brx: 0.5, slx: 0.5, srx: 0.5, bcx: 0.5,
@@ -39,12 +40,13 @@ export async function surroundAudio(
         throw new RangeError(`surround: ${key} must be between 0 and 10`);
       }
       // FFmpeg 7.0.2 overwrites these global levels with per-channel defaults.
-    } else if (key !== undefined && Object.hasOwn(outputLevels, key)) {
+    } else if (key === "fl_in" || key === "fr_in" || (key !== undefined && Object.hasOwn(outputLevels, key))) {
       const number = parseFilterExpression(value, "surround", { min: 0, max: 10, default: 1 });
       if (!Number.isFinite(number) || number < 0 || number > 10) {
         throw new RangeError(`surround: ${key} must be between 0 and 10`);
       }
-      outputLevels[key as keyof typeof outputLevels] = Math.fround(number);
+      if (key === "fl_in" || key === "fr_in") inputLevels[key === "fl_in" ? 0 : 1] = Math.fround(number);
+      else outputLevels[key as keyof typeof outputLevels] = Math.fround(number);
     } else if (key !== undefined && Object.hasOwn(spread, key)) {
       const global = key === "allx" || key === "ally";
       const min = global ? -1 : 0.06;
@@ -134,7 +136,7 @@ export async function surroundAudio(
   for (let start = 0; start < length; start += hop) {
     await yieldTurn(signal); signal?.throwIfAborted(); budget.checkCpu();
     for (let c = 0; c < 2; c++) {
-      for (let i = 0; i < size; i++) real[c]![i] = f(f(channels[c]![start - (size - hop) + i] ?? 0) * window[i]!);
+      for (let i = 0; i < size; i++) real[c]![i] = f(f(f(channels[c]![start - (size - hop) + i] ?? 0) * window[i]!) * inputLevels[c]!);
       imaginary[c]!.fill(0);
       if (scratch) transform(real[c]!, imaginary[c]!, false, scratch);
       else dialogueSpectrum(real[c]!, imaginary[c]!, cosine);

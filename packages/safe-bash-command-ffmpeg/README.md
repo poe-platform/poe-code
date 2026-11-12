@@ -694,6 +694,8 @@ Set `lfe_low` (0–256 Hz, default 128) and `lfe_high` (0–512 Hz, default 256)
 to tune the LFE transition band without changing the other speakers. Both accept
 expressions and round to integer Hz with ties to even. The low cutoff must be
 less than the high cutoff, including when `lfe=0`; invalid ordering returns 234.
+Set `fl_in` or `fr_in` (0–10, default 1) to scale the left or right input
+before upmixing; muting both inputs produces silence.
 Set `fl_out`, `fr_out`, `fc_out`, `lfe_out`, `bl_out`, or `br_out` to adjust
 only that speaker's output level (0–10, default 1); zero silences the speaker.
 These levels accept expressions and the constants `min`, `max`, and `default`.

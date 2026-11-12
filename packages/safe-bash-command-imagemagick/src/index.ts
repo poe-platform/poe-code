@@ -19175,7 +19175,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                                             : new Uint8Array(Float64Array.from(original ? new Uint16Array(original.slice().buffer) : pixels, value => original ? value / 257 : value).buffer);
                                     if (hue !== undefined) {
                                         const samples = new Float64Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 8);
-                                        for (let i = 0; i < samples.length; i++) samples[i] *= 255;
+                                        for (let i = 0; i < samples.length; i++) samples[i] = samples[i]! * 255;
                                     }
                                     if (!frame.hasAlpha && frame.alphaBlend !== true) {
                                         const samples = new Float64Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 8);

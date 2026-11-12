@@ -1413,6 +1413,9 @@ adaptive filter to input and desired PCM signals with matching sample rates and 
 Both upstream branches are evaluated, channels adapt independently, and output ends at the
 shorter input. Options are `order`, `mu`, `eps`, `leakage`, `out_mode` (`i` input, `d` desired,
 `o` residual, `n` input minus estimate, `e` estimate), and `precision` (`auto`, `float`, `double`).
+Both `anlmf` and `anlms` accept fractional expressions for `order`, `out_mode`, and `precision`,
+checking bounds before rounding to the nearest integer with ties to even. For example,
+`order=3.5` and `order=4.5` both select four taps, and `out_mode=2.5` selects residual output.
 Named instances and downstream audio filters are supported. Both filters accept timeline
 `enable` expressions such as `enable=gte(t\,0.064)`; disabled frames pass through the
 input while the adaptive state continues updating. Both `anlmf` and `anlms`

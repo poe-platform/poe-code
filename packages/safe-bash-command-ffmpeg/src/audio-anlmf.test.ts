@@ -59,7 +59,7 @@ it("anlmf noise mode passes input through when adaptation is disabled", async ()
   assert.equal(actual.result.exitCode, 0, actual.stderr);
   assert.deepEqual(actual.frames, input);
 });
-for (const option of ["order=0", "order=4.5", "mu=3", "eps=-1", "leakage=2", "out_mode=bad", "precision=bad", "unknown=1"]) {
+for (const option of ["order=0", "order=32768", "mu=3", "eps=-1", "leakage=2", "out_mode=bad", "precision=bad", "unknown=1"]) {
   it(`anlmf rejects ${option}`, async () => {
     const actual = await run(`anlmf=${option}`);
     assert.notEqual(actual.result.exitCode, 0);

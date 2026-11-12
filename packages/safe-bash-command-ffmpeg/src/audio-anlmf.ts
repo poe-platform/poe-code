@@ -32,9 +32,12 @@ export async function adaptiveAudio(
       min, max, default: defaults[key]!,
       ...Object.fromEntries(choices.map((choice, index) => [choice, index]))
     });
-    if (!value || !Number.isFinite(numeric) || numeric < min || numeric > max ||
-      (["order", "out_mode", "precision"].includes(key) && !Number.isInteger(numeric))) throw new Error(`${name}: invalid ${key}`);
-    options[key] = Math.fround(numeric);
+    if (!value || !Number.isFinite(numeric) || numeric < min || numeric > max) throw new Error(`${name}: invalid ${key}`);
+    if (["order", "out_mode", "precision"].includes(key)) {
+      // Native integer options validate the range before rounding ties to even.
+      const floor = Math.floor(numeric);
+      options[key] = numeric - floor === 0.5 ? floor + floor % 2 : Math.round(numeric);
+    } else options[key] = Math.fround(numeric);
   }
   const a = first.decodedAudio;
   const b = desired.decodedAudio;

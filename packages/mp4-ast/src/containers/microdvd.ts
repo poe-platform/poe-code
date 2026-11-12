@@ -18,7 +18,7 @@ function readLine(line: string): { start: number; end: number; text: string } | 
 }
 
 function parseMicrodvd(bytes: Uint8Array, options?: ParseMediaOptions): MediaDocument {
-  let timescale = 24000 / 1001;
+  let timescale = options?.subtitleFrameRate ?? 24000 / 1001;
   let duration = 0;
   let samples: MediaSample[] = [];
   for (const line of decodeUtf8(bytes).replaceAll("\r", "\n").split("\n")) {

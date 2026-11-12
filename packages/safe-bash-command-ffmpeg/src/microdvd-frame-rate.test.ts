@@ -40,3 +40,43 @@ for (const header of ["{0}{0}25", "{0}{1}25", "{1}{0}25", "{1}{1}25", "{1}{1}25 
     }
   }
 }
+
+for (const { rate, header, expected } of [
+  { rate: "25", header: "", expected: "1\n00:00:01,000 --> 00:00:02,000\nFirst\n\n2\n00:00:03,000 --> 00:00:04,000\nLast\n\n" },
+  { rate: "30000/1001", header: "", expected: "1\n00:00:00,834 --> 00:00:01,668\nFirst\n\n2\n00:00:02,503 --> 00:00:03,337\nLast\n\n" },
+  { rate: "", header: "", expected: "1\n00:00:01,043 --> 00:00:02,086\nFirst\n\n2\n00:00:03,128 --> 00:00:04,171\nLast\n\n" },
+  { rate: "30", header: "{1}{1}25\n", expected: "1\n00:00:01,000 --> 00:00:02,000\nFirst\n\n2\n00:00:03,000 --> 00:00:04,000\nLast\n\n" }
+]) {
+  for (const explicit of [false, true]) {
+    for (const sync of [false, true]) {
+      it(`${sync ? "sync" : "async"} ${explicit ? "explicit" : "detected"} MicroDVD SRT uses fallback ${rate || "default"} with ${header ? "embedded rate" : "no header"}`, async () => {
+        const input = `${header}{25}{50}First\n{75}{100}Last\n`;
+        const volume = Volume.fromJSON({ "/input.sub": input });
+        const args = ["-v", "error", ...(explicit ? ["-f", "microdvd"] : []), ...(rate ? ["-subfps", rate] : []), "-i", "/input.sub",
+          "-f", "srt", sync ? "/output" : "pipe:1"];
+        let stdout = "";
+        if (sync) {
+          assert.equal(evalSyncFfmpeg(args, undefined,
+            path => volume.existsSync(path) ? volume.readFileSync(path) as Buffer : undefined,
+            (path, bytes) => { volume.writeFileSync(path, bytes); return true; }), "");
+          stdout = volume.readFileSync("/output", "utf8").toString();
+        } else {
+          let stderr = "";
+          const result = await createFfmpegCommand().execute({
+            args, cwd: "/", env: {}, signal: new AbortController().signal,
+            fs: {
+              async readFile(path: string) { return volume.readFileSync(path); },
+              async stat(path: string) { return volume.statSync(path); }
+            },
+            stdin: (async function* () {})(),
+            stdout: { async write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } },
+            stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
+          } as never);
+          assert.equal(result.exitCode, 0, stderr);
+          assert.equal(stderr, "");
+        }
+        assert.equal(stdout, expected);
+      });
+    }
+  }
+}

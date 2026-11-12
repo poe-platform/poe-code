@@ -707,7 +707,7 @@ export interface ParseMediaOptions {
   readonly decodeAudio?: boolean | undefined;
   /** Keep encoded subtitle packets, including blank timed-text packets, when false. */
   readonly decodeSubtitles?: boolean | undefined;
-  /** Frame rate for frame-based subtitle input (AQTitle defaults to 25). */
+  /** Frame rate for frame-based subtitle input (AQTitle defaults to 25; MicroDVD to 24000/1001, with embedded rates taking precedence). */
   readonly subtitleFrameRate?: number | undefined;
 }
 

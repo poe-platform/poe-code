@@ -20386,7 +20386,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       const seek = Math.round((outputSs ?? 0) * origRate);
                       const duration = outputDuration ?? (outputTo === undefined ? undefined : outputTo - (outputSs ?? 0));
                       const initialPts = audioTimestamps[0]?.pts ?? 0;
-                      const firstPts = Math.max(Number.isNaN(initialPts) ? 0 : initialPts, outputSs === undefined ? -Infinity : seek);
+                      // An explicit output seek anchors the duration even if audio starts later.
+                      const firstPts = outputSs === undefined ? (Number.isNaN(initialPts) ? 0 : initialPts) : seek;
                       const endPts = duration === undefined ? Infinity : firstPts + Math.round(duration * origRate);
                       const ranges: { start: number; end: number }[] = [];
                       const frames: typeof audioTimestamps = [];

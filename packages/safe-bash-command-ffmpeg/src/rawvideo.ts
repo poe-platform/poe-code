@@ -418,6 +418,40 @@ export async function serializeRawVideo(track: MediaTrack, codec: string | undef
           view.setUint16(pixel * 2, Math.max(0, Math.min(65535, gray)), littleEndian);
         }
         append(bytes);
+      } else if (format === "grayf32le" || format === "gbrpf32le" || format === "gbrapf32le") {
+        const planeSize = frame.width * frame.height;
+        const channels = format === "grayf32le" ? 1 : format === "gbrapf32le" ? 4 : 3;
+        const length = planeSize * channels * 4;
+        budget.checkOutputBytes(size + length);
+        const bytes = new Uint8Array(length);
+        const view = new DataView(bytes.buffer);
+        // swscale normalizes rounded 16-bit samples with a float32 multiplier.
+        const normalize = Math.fround(1 / 65535);
+        for (let pixel = 0; pixel < planeSize; pixel++) {
+          if (pixel % 4096 === 0) budget.checkCpu();
+          const r = frame.data[pixel * 4]!;
+          const g = frame.data[pixel * 4 + 1]!;
+          const b = frame.data[pixel * 4 + 2]!;
+          const luma = (8414 * r + 16519 * g + 3208 * b + 524544) >> 9;
+          if (channels === 1) {
+            // Float grayscale retains limited-range BT.601 luma.
+            view.setFloat32(pixel * 4, luma * 4 * normalize, true);
+            continue;
+          }
+          // Match swscale's 14-bit RGB-to-YUV and 19-bit inverse conversion.
+          const y = (luma * 8 - 8192) * 9539 + 8192;
+          const u = ((-4865 * r - 9528 * g + 14392 * b + 4194560) >> 9) * 8 - 65536;
+          const v = ((14392 * r - 12061 * g - 2332 * b + 4194560) >> 9) * 8 - 65536;
+          view.setFloat32(pixel * 4, Math.max(0, Math.min(65535, (y - v * 6660 - u * 3209) >> 14)) * normalize, true);
+          view.setFloat32((planeSize + pixel) * 4, Math.max(0, Math.min(65535, (y + u * 16525) >> 14)) * normalize, true);
+          view.setFloat32((planeSize * 2 + pixel) * 4, Math.max(0, Math.min(65535, (y + v * 13075) >> 14)) * normalize, true);
+          if (channels === 4) {
+            // Packed alpha is expanded to 14 bits before widening to 16 bits.
+            const alpha = frame.data[pixel * 4 + 3]!;
+            view.setFloat32((planeSize * 3 + pixel) * 4, ((alpha << 6) | (alpha >> 2)) * 4 * normalize, true);
+          }
+        }
+        append(bytes);
       } else if (format === "gbrp" || format === "gbrap") {
         const planeSize = frame.width * frame.height;
         const length = planeSize * (format === "gbrap" ? 4 : 3);

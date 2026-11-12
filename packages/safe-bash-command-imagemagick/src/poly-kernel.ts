@@ -55,7 +55,9 @@ export function* polyPixelSteps(size: number, inputs: readonly (Pick<RgbaImage, 
     const hue = !!canvas.magickColorspace && canvas.magickColorspace !== "RGB" && canvas.magickColorspace !== "scRGB" && canvas.magickColorspace !== "Gray" && !cmyk;
     const sourceChannels = inputs.some(image => image[magickInput]?.channelMask) ? inputs.map(image => {
         const mask = image[magickInput]?.channelMask;
-        return mask ? [mask.r, mask.g, mask.b, mask.a, mask.k === true] : undefined;
+        // Gray masks update physical channels only; its G/B aliases stay writable.
+        const gray = image.space === "b-w" || image.space === "grey16";
+        return mask ? [mask.r, gray || mask.g, gray || mask.b, mask.a, mask.k === true] : undefined;
     }) : undefined;
     // The first image supplies the output channel selection; each term also
     // requires that channel to be selected on its own source image.

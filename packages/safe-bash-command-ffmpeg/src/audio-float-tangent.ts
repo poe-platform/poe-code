@@ -18,14 +18,14 @@ function truncate(value: number): number {
   return bits.getFloat32(0);
 }
 
-// Soundfield angles lie between -pi and pi.
+// Surround soundfield angles are bounded to two turns.
 export function soundfieldTangent(angle: number): number {
   const quadrant = Math.round(angle / (Math.PI / 2));
   const remainder = angle - quadrant * (Math.PI / 2);
   let x = f(remainder), y = f(remainder - x);
   const inverse = quadrant % 2 ? -1 : 1;
   const absolute = Math.abs(x), sign = x < 0 ? -1 : 1;
-  if (absolute < 2 ** -28) return inverse === 1 ? x : -1 / x;
+  if (absolute < 2 ** -28) return inverse === 1 ? x : f(-1 / x);
   if (absolute >= f(0.6744)) {
     x *= sign; y *= sign;
     x = f(f(f(0.78539812565) - x) + f(f(3.7748947079e-8) - y));

@@ -16,7 +16,7 @@ export async function surroundAudio(
   let lfeMode = 0;
   let windowOverlap = 0.5;
   let lfeLow = 128, lfeHigh = 256;
-  let outputChannels = 6, focus = 0;
+  let outputChannels = 6, focus = 0, angle = 90;
   const inputLevels = [1, 1];
   const outputLevels = { fl_out: 1, fr_out: 1, fc_out: 1, lfe_out: 1, bl_out: 1, br_out: 1 };
   const spread = {
@@ -62,6 +62,12 @@ export async function surroundAudio(
         throw new RangeError(`surround: ${key} must be between ${min} and 15`);
       }
       spread[key as keyof typeof spread] = Math.fround(number);
+    } else if (key === "angle") {
+      const number = parseFilterExpression(value, "surround", { min: 0, max: 360, default: 90 });
+      if (!Number.isFinite(number) || number < 0 || number > 360) {
+        throw new RangeError("surround: angle must be between 0 and 360");
+      }
+      angle = Math.fround(number);
     } else if (key === "win_size" || key === "lfe_low" || key === "lfe_high") {
       const min = key === "win_size" ? 1024 : 0;
       const max = key === "win_size" ? 65536 : key === "lfe_low" ? 256 : 512;
@@ -126,6 +132,12 @@ export async function surroundAudio(
   const outReal = new Float64Array(size), outImaginary = new Float64Array(size);
   // FFmpeg uses float spectra and a square-root Hann window.
   const f = Math.fround, pi = f(Math.PI), halfPi = f(Math.PI / 2);
+  const reference = f(f(angle * pi) / 180);
+  // Radius of the square soundfield boundary (FFmpeg r_distance).
+  const radius = (a: number): number => {
+    const tangent = soundfieldTangent(a), inverse = f(1 / tangent);
+    return Math.min(f(Math.sqrt(f(1 + f(tangent * tangent)))), f(Math.sqrt(f(1 + f(inverse * inverse)))));
+  };
   const window = Float32Array.from({ length: size }, (_, i) => Math.sqrt(f(0.5 * (1 - Math.cos(2 * Math.PI * i / (size - 1)))) / size));
   let max = 0;
   // Reuse the inverse workspace to sum shifted windows in native float order.
@@ -164,6 +176,15 @@ export async function surroundAudio(
         const balanceCosine = f(Math.cos(f(f(difference * halfPi) + pi)));
         const phaseCosine = f(Math.cos(f(halfPi - f(phase / pi))));
         let y = Math.max(-1, Math.min(1, f(f(f(balanceCosine * phaseCosine) * f(Math.LN10)) + 1)));
+        if (angle !== 90) {
+          let a = phaseAngle(x, y);
+          let r = f(f(Math.hypot(x, y)) / radius(a));
+          a = Math.abs(a) <= f(Math.PI / 4) ? f(a * f(reference / halfPi))
+            : f(pi + f(f(f(f(f(-2 * pi) + reference) * f(pi - Math.abs(a))) * Math.sign(a)) / f(3 * halfPi)));
+          r = f(r * radius(a));
+          x = Math.max(-1, Math.min(1, f(f(Math.sin(a)) * r)));
+          y = Math.max(-1, Math.min(1, f(f(Math.cos(a)) * r)));
+        }
         if (focus !== 0) {
           const angle = phaseAngle(x, y);
           const tangent = soundfieldTangent(angle), reciprocal = f(1 / tangent);

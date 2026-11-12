@@ -704,6 +704,7 @@ As in FFmpeg 7.0.2, per-channel defaults override these global levels, so they
 leave the audio unchanged, including when set to zero.
 `focus` adjusts soundfield concentration from -1 (defocused) to 1 (focused);
 zero retains the default. It accepts expressions and `min`, `max`, and `default`.
+Use `angle=45` to adjust the soundfield angle (0–360 degrees, default 90).
 Other layouts and surround options are rejected.
 
 `stereotools` supports stereo channel mute (`mutel`, `muter`), phase inversion

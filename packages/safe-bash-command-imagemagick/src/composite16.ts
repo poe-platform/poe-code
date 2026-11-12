@@ -99,14 +99,20 @@ export function* composite16PixelSteps(base: Raster, overlay: Raster, left: numb
                     for (let c = 0; c < 3; c++) sourceSamples[i + c] = sourceInks[i + c]! * 255;
                 }
             }
-            if (inks && (name !== "copy" || sourceInks) && (!channels || channels[4])) for (let i = 0; i < samples.length; i += 4) {
-                const j = outsideX ? 0 : i;
-                const alpha = overlay.hasAlpha ? sourceSamples[j + 3]! / 255 : 1;
-                const destinationAlpha = base.hasAlpha ? samples[i + 3]! / 255 : 1;
-                const total = alpha + destinationAlpha * (1 - alpha);
-                const black = sourceInks?.[j + 3] ?? 0;
-                inks[i + 3] = name === "copy" ? black : total === 0 ? 0
-                    : (black * alpha + inks[i + 3]! * destinationAlpha * (1 - alpha)) / total;
+            if (inks && (name !== "copy" || sourceInks) && (!channels || channels[4])) {
+                const destination = new Float64Array(samples.length), source = new Float64Array(samples.length);
+                for (let i = 0; i < samples.length; i += 4) {
+                    const j = outsideX ? 0 : i;
+                    destination[i] = inks[i + 3]! * 255;
+                    destination[i + 3] = base.hasAlpha ? samples[i + 3]! : 255;
+                    source[i] = (sourceInks?.[j + 3] ?? 0) * 255;
+                    source[i + 3] = overlay.hasAlpha ? sourceSamples[j + 3]! : 255;
+                }
+                const result = new Float64Array(samples.length);
+                // Black is an independent ink channel and uses the selected compose operator.
+                yield* compositePixelsSteps({ ...base, width: count, height: 1, data: destination },
+                    { ...overlay, width: count, height: 1, data: source }, result, mode, 0, 0, args, fuzz, clipToOverlay);
+                for (let i = 0; i < samples.length; i += 4) inks[i + 3] = result[i]! / 255;
             }
             // Native Copy premultiplies RGB when the source crosses the canvas boundary.
             if (clippedCopy) for (let i = 0; i < sourceSamples.length; i += 4)

@@ -15533,7 +15533,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 const width = im.width + bw * 2, height = im.height + bh * 2;
                 const readMask = im.readMask ? yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
                 // Native decoration creates a zero-valued write-mask channel.
-                const borderColor = (im as MagickImage)[magickInput]?.borderColor ?? state.borderColor;
+                const borderColor: RgbaColor & { cmyk?: readonly number[] } = (im as MagickImage)[magickInput]?.borderColor ?? state.borderColor;
                 if ((im.space === "b-w" || im.space === "grey16") && (borderColor.r !== borderColor.g || borderColor.g !== borderColor.b))
                     im = yield* parseMagickPixelOperation(["-colorspace", "sRGB"], state, 0)!.apply(im);
                 const writeMask = im.writeMask ? yield* createSolidRgbaImageSteps(width, height, { r: 0, g: 0, b: 0, a: 255 }) : undefined;
@@ -15551,13 +15551,14 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                         { width, height, hasAlpha: im.hasAlpha || !im.inactiveAlpha && borderColor.a < 255 }), alphaBlend: !im.inactiveAlpha && borderColor.a < 255 ? true : im.alphaBlend, region: undefined, writeMask, readMask, metaChannels, virtualCanvas: magickBorderCanvas(im, bw, bh) };
                 }
                 let canvas = yield* createSolidRgbaImageSteps(width, height, borderColor);
-                // Border colors are raw samples in the source image's working colorspace.
                 if (im.magickColorspace) canvas = yield* setColorspacePixels(canvas, im.magickColorspace);
+                // Decoration colors are ink values in a CMYK destination.
+                if (im.space === "cmyk") canvas = yield* fillCmykPixels(canvas, borderColor.cmyk ?? [borderColor.r / 255, borderColor.g / 255, borderColor.b / 255, 0]);
                 if (im.alphaBlend === false) im = yield* prepareInactiveAlphaOutput(im);
-                const composed = yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, bw, bh, state.composeArgs, signal, state.alphaFuzz, true);
-                return { ...composed,
-                    ...(im.inactiveAlpha ? { hasAlpha: false, inactiveAlpha: true, alphaBlend: im.alphaBlend, alphaSeparate: im.alphaSeparate } : {}),
-                    writeMask, readMask, metaChannels, virtualCanvas: magickBorderCanvas(im, bw, bh) };
+                const composed = im.space === "cmyk"
+                    ? yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, im, bw, bh, state.composeRaw, state.composeArgs, false, state.alphaFuzz, true, undefined, true), signal, canvas, [canvas, im])
+                    : yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, bw, bh, state.composeArgs, signal, state.alphaFuzz, true);
+                return { ...composed, ...(im.inactiveAlpha ? { hasAlpha: false, inactiveAlpha: true, alphaBlend: im.alphaBlend, alphaSeparate: im.alphaSeparate } : {}), writeMask, readMask, metaChannels, virtualCanvas: magickBorderCanvas(im, bw, bh) };
             }));
         }
         else if (t === "-shave") {
@@ -15787,14 +15788,10 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
                 // Non-Over composition reads alpha samples directly; Off means opaque source pixels.
                 if (state.composeRaw.toLowerCase() !== "over" && !im.hasAlpha && !im.inactiveAlpha) im = yield* prepareInactiveAlphaOutput(im);
                 stack[sceneIdx] = state.composeRaw.toLowerCase() === "over" ? canvas
-<<<<<<< HEAD
-                    : yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, fw, fh, state.composeArgs, signal, state.alphaFuzz, true);
-                if (im.inactiveAlpha) stack[sceneIdx] = { ...stack[sceneIdx]!, hasAlpha: false };
-=======
                     : im.space === "cmyk"
                         ? yield* applyMagickRasterSteps(canvas, composite16PixelSteps(canvas, im, fw, fh, state.composeRaw, state.composeArgs, false, state.alphaFuzz, true, undefined, true), signal, canvas, [canvas, im])
                         : yield* applyMagickCompositeLayerSteps(canvas, im, state.composeRaw, fw, fh, state.composeArgs, signal, state.alphaFuzz, true);
->>>>>>> 7f98622748 (fix(imagemagick): compose CMYK frames in ink channels)
+                if (im.inactiveAlpha) stack[sceneIdx] = { ...stack[sceneIdx]!, hasAlpha: false };
             }
         }
         else if (t === "-deskew") {
@@ -20720,14 +20717,11 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 if (composeRaw.toLowerCase() === "over") return canvas;
                 // Non-Over composition reads alpha samples directly; Off means opaque source pixels.
                 if (!image.hasAlpha && !image.inactiveAlpha) image = await transformStoredMagickPixels(image, backend, { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal);
-<<<<<<< HEAD
-                const composed = await compositeStoredMagick(canvas, image, backend, signal, left, top, composeRaw, composeArgs, false, true, false, false, alphaFuzz, true);
+                const composed = image.space === "cmyk"
+                    ? await transformStoredMagickRaster(canvas, backend,
+                        composite16PixelSteps(canvas, image, left, top, composeRaw, composeArgs, false, alphaFuzz, true, undefined, true), signal, canvas, [canvas, image])
+                    : await compositeStoredMagick(canvas, image, backend, signal, left, top, composeRaw, composeArgs, false, true, false, false, alphaFuzz, true);
                 return image.inactiveAlpha ? { ...composed, hasAlpha: false } : composed;
-=======
-                if (image.space === "cmyk") return transformStoredMagickRaster(canvas, backend,
-                    composite16PixelSteps(canvas, image, left, top, composeRaw, composeArgs, false, alphaFuzz, true, undefined, true), signal, canvas, [canvas, image]);
-                return compositeStoredMagick(canvas, image, backend, signal, left, top, composeRaw, composeArgs, false, true, false, false, alphaFuzz, true);
->>>>>>> 7f98622748 (fix(imagemagick): compose CMYK frames in ink channels)
             });
         } else if (!operandsOnly && token === "-border") {
             const raw = tokens[++i] ?? "", defaultBorderColor = state.borderColor, compose = state.composeRaw, composeArgs = state.composeArgs, fuzz = state.alphaFuzz, optionProperties = state.optionProperties;
@@ -20744,7 +20738,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const readMask = image.readMask ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
                 // Native decoration creates a zero-valued write-mask channel.
                 const storedWriteMask = image.storedWriteMask ? await createStoredCanvas(width, height, { r: 0, g: 0, b: 0, a: 255 }, backend, signal) : undefined;
-                const background = (image as StoredMagickImage)[magickInput]?.borderColor ?? defaultBorderColor;
+                const background: RgbaColor & { cmyk?: readonly number[] } = (image as StoredMagickImage)[magickInput]?.borderColor ?? defaultBorderColor;
                 if ((image.space === "b-w" || image.space === "grey16") && (background.r !== background.g || background.g !== background.b))
                     image = await transformStoredMagickPixels(image, backend, parseMagickPixelOperation(["-colorspace", "sRGB"], createDefaultState(), 0)!, signal);
                 const storedMetaChannels: BaseStoredRgbaImage[] = [];
@@ -20761,13 +20755,19 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                         { width, height, hasAlpha: image.hasAlpha || !image.inactiveAlpha && background.a < 255 }), alphaBlend: !image.inactiveAlpha && background.a < 255 ? true : image.alphaBlend, region: undefined, storedWriteMask, readMask, storedMetaChannels, virtualCanvas: magickBorderCanvas(image, left, top) };
                 }
                 let canvas = await createStoredCanvas(width, height, background, backend, signal);
-                // Label the canvas without converting its border-color samples.
                 const colorspace = image.magickColorspace;
                 if (colorspace) canvas = await transformStoredMagickPixels(canvas, backend,
                     { end: 0, highDepth: true, evaluate: true, apply: canvas => setColorspacePixels(canvas, colorspace) }, signal);
+                if (image.space === "cmyk") {
+                    const inks = background.cmyk ?? [background.r / 255, background.g / 255, background.b / 255, 0];
+                    canvas = await transformStoredMagickPixels(canvas, backend, { end: 0, apply: image => fillCmykPixels(image, inks) }, signal);
+                }
                 if (image.alphaBlend === false) image = await transformStoredMagickPixels(image, backend,
                     { end: 0, highDepth: true, evaluate: true, apply: prepareInactiveAlphaOutput }, signal);
-                return { ...await compositeStoredMagick(canvas, image, backend, signal, left, top, compose, composeArgs, false, true, false, false, fuzz, true),
+                const composed = image.space === "cmyk"
+                    ? await transformStoredMagickRaster(canvas, backend, composite16PixelSteps(canvas, image, left, top, compose, composeArgs, false, fuzz, true, undefined, true), signal, canvas, [canvas, image])
+                    : await compositeStoredMagick(canvas, image, backend, signal, left, top, compose, composeArgs, false, true, false, false, fuzz, true);
+                return { ...composed,
                     ...(image.inactiveAlpha ? { hasAlpha: false, inactiveAlpha: true, alphaBlend: image.alphaBlend, alphaSeparate: image.alphaSeparate } : {}),
                     storedWriteMask, readMask, storedMetaChannels, virtualCanvas: magickBorderCanvas(image, left, top) };
             });

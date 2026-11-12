@@ -3,9 +3,13 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { expect, it } from "vitest";
 import { createMagickCommand, createMontageCommand, runMontageCli, runMontageCliSync } from "./index.js";
 
-// ImageMagick 7.1.2-35 Q16-HDRI RGBA8 output for a half-transparent red tile.
+// ImageMagick 7.1.2-35 Q16-HDRI RGBA8 output for translucent color tiles.
 for (const mode of ["sync", "buffered", "retained", "magick", "montage"] as const) {
   it.each([
+    { background: "none", inputs: ["xc:#dc502080", "-alpha", "extract"], hex: "808080ff" },
+    { background: "none", inputs: ["xc:#dc502080", "-alpha", "copy"], hex: "dc50206a" },
+    { background: "none", inputs: ["xc:#dc502080", "-alpha", "shape"], hex: "0000006a" },
+    { background: "navy", inputs: ["xc:#dc502080", "-alpha", "shape"], hex: "000080ff" },
     { inputs: ["xc:#dc502080", "-matte"], background: "none", hex: "dc502080" },
     { inputs: ["xc:#dc502080", "+matte"], background: "none", hex: "dc502080" },
     { inputs: ["xc:#dc502080", "-alpha", "off", "-matte"], background: "navy", hex: "dc5020ff" },

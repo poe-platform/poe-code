@@ -23333,7 +23333,7 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
         else if (t === "-alpha") {
             const value = argv[i + 1];
             if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -alpha\n" };
-            if (!["off", "remove"].includes(value.toLowerCase()))
+            if (!["off", "remove", "extract", "copy", "shape"].includes(value.toLowerCase()))
                 return { exitCode: 1, stdout: "", stderr: `montage: unsupported alpha mode '${value}'\n` };
             const operation = parseMagickPixelOperation(argv, state, i)!;
             queuedTransforms.push({ kind: "alpha", operation });

@@ -2293,6 +2293,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
             channelData[channel]![sample] = a.channelData[channel]![sample]! * gain;
           }
         }
+        const samplesPerTick = (audioGraphTimeBases.get(first) ?? 1 / a.sampleRate) * a.sampleRate;
         const frames: MediaTrack["samples"][number][] = [];
         const cursors = sources.map(() => ({ index: 0, start: 0, end: 0, pts: 0 }));
         for (let start = 0; start < length;) {

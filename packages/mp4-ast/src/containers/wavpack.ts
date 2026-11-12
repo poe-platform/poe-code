@@ -154,12 +154,15 @@ function decodeBlock(block: Uint8Array, budget: MediaBudgetTracker): Float64Arra
   budget.allocateMemory(count * (flags & 0x40000000 ? 2 : channels) * 8);
   const output = Array.from({ length: channels }, () => new Float64Array(count));
   const extended = parts.get(9);
-  if (flags & 0x100 && (!extended || extended.length !== 4 || extended[0])) throw new Error("Unsupported WavPack extended integer bitstream");
+  if (flags & 0x100 && (!extended || extended.length !== 4)) throw new Error("Invalid WavPack extended integer metadata");
+  const extraBits = flags & 0x100 ? extended![0]! : 0;
+  if (extraBits > 31) throw new Error("Invalid WavPack extended integer width");
   const floatInfo = flags & 0x80 ? parts.get(8) : undefined;
   if (flags & 0x80 && (!floatInfo || floatInfo.length !== 4)) throw new Error("Missing or invalid WavPack float metadata");
   const extra = parts.get(12);
   if (floatInfo && extra && (extra.length <= 4 || extra.length % 2)) throw new Error("Invalid WavPack float bitstream");
-  let extraBit = 32, floatCrc = 0xffffffff;
+  if (extraBits && (!extra || extra.length * 8 < 32 + count * channels * extraBits)) throw new Error("Missing or truncated WavPack extended integer bitstream");
+  let extraBit = 32, floatCrc = 0xffffffff, extraCrc = 0xffffffff;
   const floatView = new DataView(new ArrayBuffer(4));
   const readExtra = (width: number): number => {
     if (!extra || extraBit + width > extra.length * 8) throw new Error("Truncated WavPack float bitstream");
@@ -236,6 +239,10 @@ function decodeBlock(block: Uint8Array, budget: MediaBudgetTracker): Float64Arra
     for (let ch = 0; ch < channels; ch++) {
       let value = values[ch]!;
       crc = (Math.imul(crc, 3) + value) >>> 0;
+      if (extraBits) {
+        value = (value << extraBits) | readExtra(extraBits);
+        extraCrc = (Math.imul(extraCrc, 9) + (value & 0xffff) * 3 + (value >>> 16)) >>> 0;
+      }
       if (flags & 0x100) {
         const zeros = extended![1]!, ones = extended![2]!, dups = extended![3]!;
         if (zeros > 31 || ones > 31 || dups > 31) throw new Error("Invalid WavPack integer shift");
@@ -248,6 +255,7 @@ function decodeBlock(block: Uint8Array, budget: MediaBudgetTracker): Float64Arra
   }
   if (crc !== view.getUint32(28, true)) throw new Error("WavPack audio checksum mismatch");
   if (floatInfo && extra && floatCrc !== new DataView(extra.buffer, extra.byteOffset, extra.byteLength).getUint32(0, true)) throw new Error("WavPack float checksum mismatch");
+  if (extraBits && extraCrc !== new DataView(extra!.buffer, extra!.byteOffset, extra!.byteLength).getUint32(0, true)) throw new Error("WavPack extended integer checksum mismatch");
   if (flags & 0x40000000) output.push(output[0]!.slice());
   return output;
 }

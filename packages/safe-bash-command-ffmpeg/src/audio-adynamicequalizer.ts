@@ -5,10 +5,11 @@ import { parseFilterExpression } from "./filter-expression.js";
 export async function listenDynamicEqualizer(
   channels: readonly (Float32Array | Float64Array)[], sampleRate: number, filter: string,
   budget: MediaBudgetTracker, signal?: AbortSignal, sampleFormat = "s16",
-  frames: readonly { start: number; end: number; pts: number }[] = [{ start: 0, end: channels[0]?.length ?? 0, pts: 0 }]
+  frames: readonly { start: number; end: number; pts: number }[] = [{ start: 0, end: channels[0]?.length ?? 0, pts: 0 }],
+  commands: readonly { sample: number; action: string; expression: string }[] = []
 ): Promise<(Float32Array | Float64Array)[]> {
   const options = {
-    threshold: 0, dfrequency: 1000, dqfactor: 1, tfrequency: 1000, tqfactor: 1,
+    threshold: 0, dfrequency: 1000, dqfactor: 1, dftype: 0, tfrequency: 1000, tqfactor: 1,
     attack: 20, release: 200, ratio: 1, makeup: 0, range: 50
   };
   const ranges = {
@@ -23,7 +24,15 @@ export async function listenDynamicEqualizer(
   let listenOnlyOption: string | undefined;
   let precision = 0;
   let tftype = 0;
-  let dftype = 0;
+  function parseDetectorOption(key: "dfrequency" | "dqfactor" | "dftype", value: string): number {
+    const number = parseFilterExpression(value, "adynamicequalizer",
+      key === "dftype" ? { bandpass: 0, lowpass: 1, highpass: 2, peak: 3 } : {});
+    const [min, max] = key === "dftype" ? [0, 3] : ranges[key];
+    if (!value || !Number.isFinite(number) || number < min! || number > max!) {
+      throw new Error(`adynamicequalizer: invalid ${key}`);
+    }
+    return key !== "dftype" ? number : number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
+  }
   const argument = filter.includes("=") ? filter.slice(filter.indexOf("=") + 1) : "";
   for (const option of argument ? argument.split(":") : []) {
     const separator = option.indexOf("=");
@@ -32,12 +41,8 @@ export async function listenDynamicEqualizer(
     if (key === "enable") {
       enable = value;
       parseFilterExpression(enable, "adynamicequalizer enable", { n: 0, t: 0 });
-    } else if (key === "dftype") {
-      const number = parseFilterExpression(value, "adynamicequalizer", { bandpass: 0, lowpass: 1, highpass: 2, peak: 3 });
-      if (!Number.isFinite(number) || number < 0 || number > 3) {
-        throw new Error("adynamicequalizer: invalid dftype");
-      }
-      dftype = number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number);
+    } else if (key === "dfrequency" || key === "dqfactor" || key === "dftype") {
+      options[key] = parseDetectorOption(key, value);
     } else if (key === "mode") {
       const number = parseFilterExpression(value, "adynamicequalizer", {
         listen: -1, cutbelow: 0, cutabove: 1, boostbelow: 2, boostabove: 3
@@ -82,16 +87,20 @@ export async function listenDynamicEqualizer(
   const SampleArray = double ? Float64Array : Float32Array;
   // Round each operation only when processing with float coefficients and state.
   const f = double ? (value: number) => value : Math.fround;
-  const frequency = f(Math.min(options.dfrequency, sampleRate * 0.5));
-  const g = f(Math.tan(f(Math.PI * frequency / sampleRate)));
-  const k = f(1 / f(options.dqfactor));
-  const a0 = f(1 / f(1 + f(g * f(g + k))));
-  const a1 = f(g * a0);
-  const a2 = f(g * a1);
-  // Native highpass omits the direct input; peak mixes it with -k*band - 2*low.
-  const inputMix = dftype === 3 ? 1 : 0;
-  const bandMix = dftype === 0 ? k : dftype === 1 ? 0 : -k;
-  const lowMix = dftype === 0 ? 0 : dftype === 1 ? 1 : dftype === 2 ? -1 : -2;
+  function detectorCoefficients({ dfrequency, dqfactor, dftype }: typeof options) {
+    const frequency = f(Math.min(dfrequency, sampleRate * 0.5));
+    const g = f(Math.tan(f(Math.PI * frequency / sampleRate)));
+    const k = f(1 / f(dqfactor));
+    const a0 = f(1 / f(1 + f(g * f(g + k))));
+    const a1 = f(g * a0);
+    const a2 = f(g * a1);
+    // Native highpass omits the direct input; peak mixes it with -k*band - 2*low.
+    const inputMix = dftype === 3 ? 1 : 0;
+    const bandMix = dftype === 0 ? k : dftype === 1 ? 0 : -k;
+    const lowMix = dftype === 0 ? 0 : dftype === 1 ? 1 : dftype === 2 ? -1 : -2;
+    return { a0, a1, a2, inputMix, bandMix, lowMix };
+  }
+  const initialCoefficients = detectorCoefficients(options);
   const targetG = f(Math.tan(f(Math.PI * f(Math.min(options.tfrequency, sampleRate * 0.5)) / sampleRate)));
   const attack = 1 - Math.exp(-1 / (options.attack * 0.001 * sampleRate));
   const release = 1 - Math.exp(-1 / (options.release * 0.001 * sampleRate));
@@ -109,6 +118,9 @@ export async function listenDynamicEqualizer(
   const output = channels.map(channel => new SampleArray(channel.length));
   let work = 0;
   for (const [c, channel] of channels.entries()) {
+    const detector = { ...options };
+    let { a0, a1, a2, inputMix, bandMix, lowMix } = initialCoefficients;
+    let commandIndex = 0;
     let state0 = 0;
     let state1 = 0;
     let targetState0 = 0;
@@ -122,6 +134,16 @@ export async function listenDynamicEqualizer(
     let targetBandMix = 0;
     let targetLowMix = 0;
     for (const [n, frame] of frames.entries()) {
+      while (commandIndex < commands.length && commands[commandIndex]!.sample <= frame.start) {
+        const command = commands[commandIndex++]!;
+        const key = command.action;
+        if (key !== "dfrequency" && key !== "dqfactor" && key !== "dftype") continue;
+        try {
+          detector[key] = parseDetectorOption(key, command.expression);
+          // Reconfigure the detector without resetting its per-channel history.
+          ({ a0, a1, a2, inputMix, bandMix, lowMix } = detectorCoefficients(detector));
+        } catch { /* Native retains the current settings after a rejected command. */ }
+      }
       const enabled = enable === undefined || Math.abs(parseFilterExpression(enable, "adynamicequalizer enable", {
         n, t: frame.pts / sampleRate
       })) >= 0.5;

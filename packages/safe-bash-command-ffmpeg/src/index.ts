@@ -14355,6 +14355,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                             || ["limit", "level_in", "level_out", "level", "release", "asc", "asc_level", "enable"].includes(action!) && (target === "alimiter" || target?.startsWith("alimiter@"))
                             || action === "makeup" && (target === "agate" || target?.startsWith("agate@"))
                             || target === "acompressor" || target?.startsWith("acompressor@")
+                            || ["dfrequency", "dqfactor", "dftype"].includes(action!) && (target === "adynamicequalizer" || target?.startsWith("adynamicequalizer@"))
                             || ["basefreq", "sensitivity"].includes(action!) && (target === "adynamicsmooth" || target?.startsWith("adynamicsmooth@"))
                             || ["level", "type"].includes(action!) && (target === "adenorm" || target?.startsWith("adenorm@"))
                             || target === "atilt" || target?.startsWith("atilt@")
@@ -15666,7 +15667,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                           stretched = await smoothAudio(stretched, origRate, trimmed, audioTimestamps, budget, context.signal, commands);
                           filteredSampleFormat = "dblp";
                         } else if (filterName === "adynamicequalizer") {
-                          stretched = await listenDynamicEqualizer(stretched, origRate, trimmed, budget, context.signal, filteredSampleFormat, audioTimestamps);
+                          const commands = audioCommands.filter(command => command.target === "adynamicequalizer" || command.target === filterTarget)
+                            .sort((a, b) => a.sample - b.sample);
+                          audioCommands = audioCommands.filter(command => command.target !== "adynamicequalizer" && command.target !== filterTarget);
+                          stretched = await listenDynamicEqualizer(stretched, origRate, trimmed, budget, context.signal, filteredSampleFormat, audioTimestamps, commands);
                           filteredSampleFormat = stretched[0] instanceof Float64Array ? "dblp" : "fltp";
                         } else if (filterName === "acrusher") {
                           if (!autoConversionFilters && filteredSampleFormat !== "dbl") throw new Error(audioConversionDisabled);

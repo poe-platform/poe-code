@@ -8270,7 +8270,7 @@ function inferOutputFormat(spec: string, fallback: ImageFormat = "png", inputFor
     const fmt = extToImageFormat(ext);
     if (fmt) return { ...inferOutputFormat(`${ext}:${spec}`, fallback), path: spec };
   }
-  if (prefixMatch && inputFormat === "XC" && prefixMatch[1]!.toLowerCase() !== "info") {
+  if (prefixMatch && inputFormat === "XC" && !["info", "null"].includes(prefixMatch[1]!.toLowerCase())) {
     throw new Error("no encode delegate for this image format 'XC'");
   }
   if (spec === "-" && inputFormat) {

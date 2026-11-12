@@ -1508,9 +1508,7 @@ async function renderShowwavespic(
       width <= 0 || height <= 0 || !Number.isSafeInteger(width * height * 4)) {
     throw new Error("showwavespic: invalid image size");
   }
-  const splitOption = options.split_channels ?? "0";
-  if (!["0", "1", "false", "true"].includes(splitOption)) throw new Error("showwavespic: invalid split_channels");
-  const split = splitOption === "1" || splitOption === "true";
+  const split = parseFilterBoolean(options.split_channels ?? "0", "showwavespic: invalid split_channels");
   function numericOption(key: string, names: string[]): number {
     const max = names.length - 1;
     let value: number;

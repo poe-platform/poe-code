@@ -49,6 +49,8 @@ function parseLrc(bytes: Uint8Array): MediaDocument {
           case "ar": metadata.artist = value; break;
           case "al": metadata.album = value; break;
           case "au": custom.author = value; break;
+          case "by": custom.creator = value; break;
+          case "ve": custom.encoder_version = value; break;
           case "length": custom.length = value; break;
           default: custom[line.slice(1, colon)] = value; break;
         }

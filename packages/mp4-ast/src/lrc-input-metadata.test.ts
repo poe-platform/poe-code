@@ -29,3 +29,12 @@ it("preserves empty and colon-containing values and replaces repeated headers", 
     title: "Last", artist: "", custom: { author: " Writer: Name ", length: "02:00" }
   });
 });
+
+it("maps LRC by and ve headers to creator and encoder_version", () => {
+  const bytes = new TextEncoder().encode("[by:Alpha]\n[ve:1.0]\n[00:01.20]First\n");
+  const doc = lrcAst().parse(bytes);
+  assert.deepEqual(doc.metadata, { custom: { creator: "Alpha", encoder_version: "1.0" } });
+  assert.deepEqual(lrcAst().probe!(bytes, {}).format.tags, { creator: "Alpha", encoder_version: "1.0" });
+  assert.equal(doc.tracks[0]!.samples[0]!.pts, 1200);
+  assert.equal(new TextDecoder().decode(doc.tracks[0]!.samples[0]!.data), "First");
+});

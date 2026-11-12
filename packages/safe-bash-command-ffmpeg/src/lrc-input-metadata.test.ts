@@ -7,6 +7,7 @@ import { createFfmpegCommand, evalSyncFfmpeg } from "./index.js";
 const cases = [
   { header: "[ti:Verse]\n[ar:Band]\n[al:Book]\n[au:Writer]\n",
     metadata: "title=Verse\nartist=Band\nalbum=Book\nauthor=Writer\n" },
+  { header: "[by:Alpha]\n[ve:1.0]\n", metadata: "creator=Alpha\nencoder_version=1.0\n" },
   { header: "[length:02:00]\n", metadata: "length=02:00\n" },
   { header: "[offset:500]\n", metadata: "" },
   { header: "", metadata: "" }
@@ -16,9 +17,9 @@ for (const sync of [false, true]) {
   for (const explicit of [false, true]) {
     for (const { header, metadata } of cases) {
       it(`${sync ? "sync" : "async"} imports LRC metadata (${explicit ? "explicit" : "detected"}): ${header}`, async () => {
-        const volume = Volume.fromJSON({ "/in.lrc": `${header}[00:05.00]end\n` });
-        const args = ["-v", "error", ...(explicit ? ["-f", "lrc"] : []), "-i", "/in.lrc",
-          "-bitexact", "-f", "ffmetadata", sync ? "/out" : "pipe:1"];
+        const volume = Volume.fromJSON({ "/in.alias.lrc": `${header}[00:01.20]First\n` });
+        const args = ["-v", "error", ...(explicit ? ["-f", "lrc"] : []), "-i", "/in.alias.lrc",
+          "-fflags", "+bitexact", "-f", "ffmetadata", sync ? "/out" : "pipe:1"];
         let output = "";
         if (sync) {
           assert.equal(evalSyncFfmpeg(args, undefined,

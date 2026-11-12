@@ -7126,46 +7126,46 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
                         coverage = coverage >= 1 / 3 ? 1 : 0;
                     }
                 } else {
-                const dx = shape.x1 - shape.x, dy = shape.y1 - shape.y;
-                const lengthSquared = dx * dx + dy * dy;
-                const t = lengthSquared === 0 ? 0 : Math.max(0, Math.min(1, ((x - shape.x) * dx + (y - shape.y) * dy) / lengthSquared));
-                const distance = Math.hypot(x - shape.x - t * dx, y - shape.y - t * dy);
-                // Native edge bounds exclude the leading edge and include the
-                // trailing edge. Stroke coverage extends 3/4 pixel past midwidth.
-                const mid = shape.width / 2;
-                if (mid <= 1 && (x <= Math.min(shape.x, shape.x1) - mid - 0.5 || x > Math.max(shape.x, shape.x1) + mid + 0.5 ||
-                    y <= Math.min(shape.y, shape.y1) - mid - 0.5 || y > Math.max(shape.y, shape.y1) + mid + 0.5)) continue;
-                coverage = distance <= Math.abs(mid - 0.25) ? 1 : Math.max(0, mid + 0.75 - distance) ** 2;
-                // ImageMagick thresholds stroke coverage at one third without antialiasing.
-                if (shape.antialias === false) coverage = coverage >= 1 / 3 ? 1 : 0;
-                // Thick strokes are filled outlines; round caps are separate
-                // endpoint disks composited over that outline. Thin strokes use
-                // ImageMagick's distance coverage regardless of the cap setting.
-                if (mid > 1) {
-                    const length = Math.sqrt(lengthSquared) || 1;
-                    const along = lengthSquared > 0 ? ((x - shape.x) * dx + (y - shape.y) * dy) / length : y - shape.y;
-                    const across = lengthSquared > 0 ? Math.abs((x - shape.x) * dy - (y - shape.y) * dx) / length : Math.abs(x - shape.x);
-                    const extension = shape.linecap === "square" ? mid : 0;
-                    const outside = Math.hypot(Math.max(0, -extension - along, along - Math.sqrt(lengthSquared) - extension), Math.max(0, across - mid));
-                    const extentX = lengthSquared > 0 ? (Math.abs(dx) * extension + Math.abs(dy) * mid) / length : mid;
-                    const extentY = (Math.abs(dy) * extension + Math.abs(dx) * mid) / length;
-                    const insideBounds = x >= Math.floor(Math.min(shape.x, shape.x1) - extentX + 0.5) && x <= Math.floor(Math.max(shape.x, shape.x1) + extentX + 0.5)
-                        && y >= Math.floor(Math.min(shape.y, shape.y1) - extentY + 0.5) && y <= Math.floor(Math.max(shape.y, shape.y1) + extentY + 0.5);
-                    coverage = (lengthSquared > 0 || shape.linecap === "round") && insideBounds ? Math.max(0, 1 - outside) ** 2 : 0;
-                    if (shape.antialias === false) coverage = coverage >= 0.5 ? 1 : 0;
-                    if (shape.linecap === "round") {
-                        for (let endpoint = 0; endpoint < 2; endpoint++) {
-                            const cx = endpoint === 0 ? shape.x : shape.x1, cy = endpoint === 0 ? shape.y : shape.y1;
-                            if (x <= cx - mid - 0.5 || x > cx + mid + 0.5 || y <= cy - mid - 0.5 || y > cy + mid + 0.5) continue;
-                            const capDistance = Math.hypot(x - cx, y - cy);
-                            let capCoverage = capDistance <= Math.abs(mid - 0.25) ? 1 : Math.max(0, mid + 0.75 - capDistance) ** 2;
-                            if (shape.antialias === false) capCoverage = capCoverage >= 1 / 3 ? 1 : 0;
-                            coverage += capCoverage * (1 - shape.color.a / 255 * coverage);
+                    const dx = shape.x1 - shape.x, dy = shape.y1 - shape.y;
+                    const lengthSquared = dx * dx + dy * dy;
+                    const t = lengthSquared === 0 ? 0 : Math.max(0, Math.min(1, ((x - shape.x) * dx + (y - shape.y) * dy) / lengthSquared));
+                    const distance = Math.hypot(x - shape.x - t * dx, y - shape.y - t * dy);
+                    // Native edge bounds exclude the leading edge and include the
+                    // trailing edge. Stroke coverage extends 3/4 pixel past midwidth.
+                    const mid = shape.width / 2;
+                    if (mid <= 1 && (x <= Math.min(shape.x, shape.x1) - mid - 0.5 || x > Math.max(shape.x, shape.x1) + mid + 0.5 ||
+                        y <= Math.min(shape.y, shape.y1) - mid - 0.5 || y > Math.max(shape.y, shape.y1) + mid + 0.5)) continue;
+                    coverage = distance <= Math.abs(mid - 0.25) ? 1 : Math.max(0, mid + 0.75 - distance) ** 2;
+                    // ImageMagick thresholds stroke coverage at one third without antialiasing.
+                    if (shape.antialias === false) coverage = coverage >= 1 / 3 ? 1 : 0;
+                    // Thick strokes are filled outlines; round caps are separate
+                    // endpoint disks composited over that outline. Thin strokes use
+                    // ImageMagick's distance coverage regardless of the cap setting.
+                    if (mid > 1) {
+                        const length = Math.sqrt(lengthSquared) || 1;
+                        const along = lengthSquared > 0 ? ((x - shape.x) * dx + (y - shape.y) * dy) / length : y - shape.y;
+                        const across = lengthSquared > 0 ? Math.abs((x - shape.x) * dy - (y - shape.y) * dx) / length : Math.abs(x - shape.x);
+                        const extension = shape.linecap === "square" ? mid : 0;
+                        const outside = Math.hypot(Math.max(0, -extension - along, along - Math.sqrt(lengthSquared) - extension), Math.max(0, across - mid));
+                        const extentX = lengthSquared > 0 ? (Math.abs(dx) * extension + Math.abs(dy) * mid) / length : mid;
+                        const extentY = (Math.abs(dy) * extension + Math.abs(dx) * mid) / length;
+                        const insideBounds = x >= Math.floor(Math.min(shape.x, shape.x1) - extentX + 0.5) && x <= Math.floor(Math.max(shape.x, shape.x1) + extentX + 0.5)
+                            && y >= Math.floor(Math.min(shape.y, shape.y1) - extentY + 0.5) && y <= Math.floor(Math.max(shape.y, shape.y1) + extentY + 0.5);
+                        coverage = (lengthSquared > 0 || shape.linecap === "round") && insideBounds ? Math.max(0, 1 - outside) ** 2 : 0;
+                        if (shape.antialias === false) coverage = coverage >= 0.5 ? 1 : 0;
+                        if (shape.linecap === "round") {
+                            for (let endpoint = 0; endpoint < 2; endpoint++) {
+                                const cx = endpoint === 0 ? shape.x : shape.x1, cy = endpoint === 0 ? shape.y : shape.y1;
+                                if (x <= cx - mid - 0.5 || x > cx + mid + 0.5 || y <= cy - mid - 0.5 || y > cy + mid + 0.5) continue;
+                                const capDistance = Math.hypot(x - cx, y - cy);
+                                let capCoverage = capDistance <= Math.abs(mid - 0.25) ? 1 : Math.max(0, mid + 0.75 - capDistance) ** 2;
+                                if (shape.antialias === false) capCoverage = capCoverage >= 1 / 3 ? 1 : 0;
+                                coverage += capCoverage * (1 - shape.color.a / 255 * coverage);
+                            }
                         }
                     }
-                }
-                fillCoverage = Math.max(0, 1 - distance) ** 2;
-                if (shape.antialias === false) fillCoverage = fillCoverage >= 0.5 ? 1 : 0;
+                    fillCoverage = Math.max(0, 1 - distance) ** 2;
+                    if (shape.antialias === false) fillCoverage = fillCoverage >= 0.5 ? 1 : 0;
                 }
                 if (fillCoverage > 0 && shape.fill.a > 0) {
                     const alpha = shape.fill.a / 255 * fillCoverage, da = opacity / quantum;
@@ -7504,19 +7504,12 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                 svgElements.push(`<path data-magick-fill="1" d="M ${rx},${ry} H ${rx + rw - 1} V ${ry + rh - 1} H ${rx} Z" fill="${paintFill}" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
             } else if (fill.a !== 0 && (strokeColor.a === 0 || strokeWidth <= 0) && svgElements.length === 0) {
                 yield { kind: "shape", shape: "rectangle", gradient, tile, color: fillColor, x: rx, y: ry, width: rw, height: rh };
-            } else if (!transformed) {
+            } else {
                 const margin = strokeWidth / 2 + 1;
                 yield { kind: "shape", shape: "boundary", points: [[rx, ry], [rx + rw - 1, ry], [rx + rw - 1, ry + rh - 1], [rx, ry + rh - 1]],
                     tile: false, color: strokeWidth > 0 ? strokeColor : { ...strokeColor, a: 0 }, fill: fillColor,
                     x: rx - margin, y: ry - margin, width: rw - 1 + margin * 2, height: rh - 1 + margin * 2,
                     strokeWidth, antialias: state.antialias !== false };
-            } else {
-                if (fill.a !== 0) {
-                    svgElements.push(`<rect x="${rx}" y="${ry}" width="${rw}" height="${rh}" fill="${paintFill}"/>`);
-                }
-                if (stroke.a > 0 && strokeWidth > 0) {
-                    svgElements.push(`<polygon points="${rx},${ry} ${rx + rw - 1},${ry} ${rx + rw - 1},${ry + rh - 1} ${rx},${ry + rh - 1}" fill="none" stroke="${paintStroke}" stroke-width="${strokeWidth}"/>`);
-                }
             }
         }
         else if (cmd === "roundrectangle") {

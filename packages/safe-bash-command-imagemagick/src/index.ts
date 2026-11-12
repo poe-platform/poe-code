@@ -1,3 +1,4 @@
+import { dashStrokePolygons, polygonFillCoverage, type DrawPoint } from "./draw-dash.js";
 import { boundaryCoverage, boundaryEdges, roundRectanglePoints, type BoundaryPoint } from "./draw-boundary.js";
 import { gaussianKernelWeights, laplacianKernel } from "./named-kernel.js";
 import { strokeOutline } from "./stroke-outline.js";
@@ -6963,7 +6964,7 @@ async function createStoredCanvas(width: number, height: number, color: RgbaColo
     return image;
 }
 
-type MagickDrawShape = { kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "boundary"; points: readonly BoundaryPoint[]; width: number; height: number; strokeWidth: number; fill: RgbaColor } | { shape: "circle"; radius: number; angularStep: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor; linecap: "butt" | "round" | "square" });
+type MagickDrawShape = { kind: "shape"; tile: boolean; color: RgbaColor; x: number; y: number; antialias?: boolean } & ({ shape: "rectangle"; width: number; height: number } | { shape: "boundary"; points: readonly BoundaryPoint[]; width: number; height: number; strokeWidth: number; fill: RgbaColor } | { shape: "circle"; radius: number; angularStep: number } | { shape: "polygon"; points: readonly DrawPoint[]; width: number; height: number } | { shape: "line"; x1: number; y1: number; width: number; fill: RgbaColor; linecap: "butt" | "round" | "square" });
 type MagickDrawStep = MagickDrawShape | { kind: "svg"; svg: string } | ({ kind: "floodfill" } | { kind: "paint-point" } | { kind: "reset" } | { kind: "replace" }) & { x: number; y: number; color: RgbaColor; alphaOnly: boolean; fillToBorder: boolean };
 
 function parseMagickCopyGeometry(image: Pick<RgbaImage, "width" | "height">, geometry: string, offset: string) {
@@ -7056,10 +7057,10 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
     const quantum = highDepth ? 65535 : 255, scale = highDepth ? 257 : 1;
     const edges = shape.shape === "boundary" ? yield* boundaryEdges(shape.points) : undefined;
     const radius = shape.shape === "circle" ? shape.radius : shape.shape === "line" ? shape.width / 2 * (shape.linecap === "square" ? Math.SQRT2 : 1) : 0;
-    const x0 = Math.max(0, Math.floor((shape.shape === "rectangle" || shape.shape === "boundary") ? shape.x : Math.min(shape.x, shape.shape === "line" ? shape.x1 : shape.x) - radius - 1));
-    const y0 = Math.max(0, Math.floor((shape.shape === "rectangle" || shape.shape === "boundary") ? shape.y : Math.min(shape.y, shape.shape === "line" ? shape.y1 : shape.y) - radius - 1));
-    const x1 = Math.min(image.width, Math.ceil((shape.shape === "rectangle" || shape.shape === "boundary") ? shape.x + shape.width : Math.max(shape.x, shape.shape === "line" ? shape.x1 : shape.x) + radius + 1));
-    const y1 = Math.min(image.height, Math.ceil((shape.shape === "rectangle" || shape.shape === "boundary") ? shape.y + shape.height : Math.max(shape.y, shape.shape === "line" ? shape.y1 : shape.y) + radius + 1));
+    const x0 = Math.max(0, Math.floor((shape.shape === "rectangle" || shape.shape === "polygon" || shape.shape === "boundary") ? shape.x : Math.min(shape.x, shape.shape === "line" ? shape.x1 : shape.x) - radius - 1));
+    const y0 = Math.max(0, Math.floor((shape.shape === "rectangle" || shape.shape === "polygon" || shape.shape === "boundary") ? shape.y : Math.min(shape.y, shape.shape === "line" ? shape.y1 : shape.y) - radius - 1));
+    const x1 = Math.min(image.width, Math.ceil((shape.shape === "rectangle" || shape.shape === "polygon" || shape.shape === "boundary") ? shape.x + shape.width : Math.max(shape.x, shape.shape === "line" ? shape.x1 : shape.x) + radius + 1));
+    const y1 = Math.min(image.height, Math.ceil((shape.shape === "rectangle" || shape.shape === "polygon" || shape.shape === "boundary") ? shape.y + shape.height : Math.max(shape.y, shape.shape === "line" ? shape.y1 : shape.y) + radius + 1));
     for (let start = 0; start < image.width * image.height; start += 1024) {
         yield;
         const count = Math.min(1024, image.width * image.height - start), bytes = yield { kind: "read", position: start * 4, length: count * 4, highDepth };
@@ -7068,7 +7069,8 @@ function* drawShapePixelSteps(image: Pick<RgbaImage, "width" | "height">, shape:
         for (let i = 0; i < count; i++) {
             const x = (start + i) % image.width, y = Math.floor((start + i) / image.width);
             if (x < x0 || x >= x1 || y < y0 || y >= y1) continue;
-            let coverage = 1;
+            let coverage = shape.shape === "polygon" ? polygonFillCoverage(shape.points, x, y) : 1;
+            if (shape.shape === "polygon" && shape.antialias === false) coverage = coverage >= 0.5 ? 1 : 0;
             if (shape.shape === "circle") {
                 // ImageMagick traces circles with angular steps of 1/(8r), then
                 // fills boundary pixels and squares the exterior distance fade.
@@ -7281,19 +7283,33 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
     let tile = state.tile !== undefined;
     let stroke = state.stroke;
     let strokeWidth = state.strokeWidth;
+    let dashArray: number[] = [], dashOffset = 0;
     let linecap: "butt" | "round" | "square" = "butt";
     let strokeLinejoin = "miter", strokeMiterlimit = 10;
     let fillRule = "evenodd";
     let fillOpacity: number | undefined;
     let strokeOpacity: number | undefined;
     let affine: [number, number, number, number, number, number] = [1, 0, 0, 1, 0, 0];
-    const contexts: { fill: RgbaColor; fillRule: string; tile: boolean; stroke: RgbaColor; strokeWidth: number; linecap: "butt" | "round" | "square"; strokeLinejoin: string; strokeMiterlimit: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
+    const contexts: { fill: RgbaColor; fillRule: string; tile: boolean; stroke: RgbaColor; strokeWidth: number; dashArray: number[]; dashOffset: number; linecap: "butt" | "round" | "square"; strokeLinejoin: string; strokeMiterlimit: number; affine: typeof affine; fillOpacity: number | undefined; strokeOpacity: number | undefined }[] = [];
     const tokens = yield* magickDrawTokensSteps(drawCmd);
     let i = 0;
     const num = () => {
         const value = Number(tokens[i++]);
         if (!Number.isFinite(value)) throw new Error("Drawing requires finite numeric coordinates");
         return value;
+    };
+    const dashedStroke = function* (points: readonly DrawPoint[], color: RgbaColor): Generator<MagickDrawStep | undefined> {
+        const scale = Math.sqrt(Math.abs(affine[0] * affine[3] - affine[1] * affine[2]));
+        if (!Number.isFinite(scale)) throw new Error("Drawing requires a finite stroke scale");
+        if (scale === 0) return;
+        const mapped = points.map(([x, y]): DrawPoint => [affine[0] * x + affine[2] * y + affine[4], affine[1] * x + affine[3] * y + affine[5]]);
+        for (const polygon of dashStrokePolygons(mapped, dashArray, dashOffset, strokeWidth, scale)) {
+            if (!polygon) { yield; continue; }
+            if (polygon.length < 3) continue;
+            let x = Infinity, y = Infinity, x1 = -Infinity, y1 = -Infinity;
+            for (const point of polygon) { x = Math.min(x, point[0]); y = Math.min(y, point[1]); x1 = Math.max(x1, point[0]); y1 = Math.max(y1, point[1]); }
+            yield { kind: "shape", shape: "polygon", tile: false, color, points: polygon, x: x - 1, y: y - 1, width: x1 - x + 2, height: y1 - y + 2, antialias: state.antialias !== false };
+        }
     };
     while (i < tokens.length) {
         if (++cooperativeWork % 65536 === 0)
@@ -7312,11 +7328,11 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
         const transformed = affine.some((value, index) => value !== (index === 0 || index === 3 ? 1 : 0));
         if (cmd === "push" || cmd === "pop") {
             if (tokens[i++]?.toLowerCase() !== "graphic-context") throw new Error(`${cmd} drawing requires graphic-context`);
-            if (cmd === "push") contexts.push({ fill, fillRule, tile, stroke, strokeWidth, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity });
+            if (cmd === "push") contexts.push({ fill, fillRule, tile, stroke, strokeWidth, dashArray, dashOffset, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity });
             else {
                 const context = contexts.pop();
                 if (!context) throw new Error("Cannot pop graphic-context without a matching push");
-                ({ fill, fillRule, tile, stroke, strokeWidth, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity } = context);
+                ({ fill, fillRule, tile, stroke, strokeWidth, dashArray, dashOffset, linecap, strokeLinejoin, strokeMiterlimit, affine, fillOpacity, strokeOpacity } = context);
             }
         }
         else if (cmd === "viewbox") {
@@ -7379,6 +7395,21 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             if (value !== "butt" && value !== "round" && value !== "square") throw new Error("stroke-linecap drawing requires butt, round or square");
             linecap = value;
         }
+        else if (cmd === "stroke-dasharray") {
+            dashArray = [];
+            if (tokens[i]?.toLowerCase() === "none") i++;
+            else {
+                while (i < tokens.length && !Number.isNaN(Number(tokens[i]))) {
+                    const length = num();
+                    if (length <= 0) throw new Error("Drawing dash lengths must be positive");
+                    dashArray.push(length);
+                    if (++cooperativeWork % 65536 === 0) yield;
+                }
+                if (dashArray.length === 0) throw new Error("Drawing requires a dash array or none");
+                if (dashArray.length % 2) dashArray = dashArray.concat(dashArray);
+            }
+        }
+        else if (cmd === "stroke-dashoffset") dashOffset = num();
         else if (cmd === "color" || cmd === "alpha") {
             const px = num(), py = num(), method = tokens[i++]?.toLowerCase();
             const x = affine[0] * px + affine[2] * py + affine[4], y = affine[1] * px + affine[3] * py + affine[5];
@@ -7489,12 +7520,20 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
             const y0 = num();
             const x1 = num();
             const y1 = num();
-            const scale = Math.sqrt(Math.abs(affine[0] * affine[3] - affine[1] * affine[2]));
-            if (!Number.isFinite(scale)) throw new Error("Drawing requires a finite stroke scale");
-            yield { kind: "shape", shape: "line", tile: false, color: strokeColor, fill: fillColor,
-                x: affine[0] * x0 + affine[2] * y0 + affine[4], y: affine[1] * x0 + affine[3] * y0 + affine[5],
-                x1: affine[0] * x1 + affine[2] * y1 + affine[4], y1: affine[1] * x1 + affine[3] * y1 + affine[5],
-                width: Math.max(1, strokeWidth * scale), linecap, antialias: state.antialias !== false };
+            if (dashArray.length > 0 && strokeColor.a > 0 && strokeWidth > 0) {
+                if (fillColor.a > 0) yield { kind: "shape", shape: "line", tile: false, color: { ...strokeColor, a: 0 }, fill: fillColor,
+                    x: affine[0] * x0 + affine[2] * y0 + affine[4], y: affine[1] * x0 + affine[3] * y0 + affine[5],
+                    x1: affine[0] * x1 + affine[2] * y1 + affine[4], y1: affine[1] * x1 + affine[3] * y1 + affine[5],
+                    width: 1, linecap, antialias: state.antialias !== false };
+                yield* dashedStroke([[x0, y0], [x1, y1]], strokeColor);
+            } else {
+                const scale = Math.sqrt(Math.abs(affine[0] * affine[3] - affine[1] * affine[2]));
+                if (!Number.isFinite(scale)) throw new Error("Drawing requires a finite stroke scale");
+                yield { kind: "shape", shape: "line", tile: false, color: strokeColor, fill: fillColor,
+                    x: affine[0] * x0 + affine[2] * y0 + affine[4], y: affine[1] * x0 + affine[3] * y0 + affine[5],
+                    x1: affine[0] * x1 + affine[2] * y1 + affine[4], y1: affine[1] * x1 + affine[3] * y1 + affine[5],
+                    width: Math.max(1, strokeWidth * scale), linecap, antialias: state.antialias !== false };
+            }
         }
         else if (cmd === "point") {
             const px = num(), py = num();
@@ -7526,7 +7565,9 @@ function* magickDrawSteps(img: Pick<RgbaImage, "width" | "height">, drawCmd: str
                     point.x >= Math.min(first.x, last.x) && point.x <= Math.max(first.x, last.x) &&
                     point.y >= Math.min(first.y, last.y) && point.y <= Math.max(first.y, last.y);
             }
-            if (straight) {
+            if (cmd === "polyline" && dashArray.length > 0 && strokeColor.a > 0 && strokeWidth > 0) {
+                yield* dashedStroke(pts.map(point => [point.x, point.y]), strokeColor);
+            } else if (straight) {
                 yield { kind: "shape", shape: "line", tile: false, color: strokeColor, fill: fillColor, x: first.x, y: first.y, x1: last.x, y1: last.y, width: Math.max(1, strokeWidth), linecap, antialias: state.antialias !== false };
             } else {
                 const points = pts.map(point => `${point.x},${point.y}`).join(" ");

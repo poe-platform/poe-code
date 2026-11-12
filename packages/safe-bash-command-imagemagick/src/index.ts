@@ -1,6 +1,7 @@
 import { dashStrokePolygons, polygonFillCoverage, type DrawPoint } from "./draw-dash.js";
 import { boundaryCoverage, boundaryEdges, roundRectanglePoints, type BoundaryPoint } from "./draw-boundary.js";
 import { gaussianKernelWeights, laplacianKernel } from "./named-kernel.js";
+import { namedColorMatrixKernel } from "./color-matrix-kernel.js";
 import { strokeOutline } from "./stroke-outline.js";
 import { readMpc } from "./mpc-input.js";
 import { htmlImageMap } from "./html-output.js";
@@ -1360,6 +1361,8 @@ function parseMagickConvolveKernel(spec: string, normalize = true, reverse = fal
 function parseMagickColorMatrix(spec: string): { m: number[]; cols: number; rows: number } {
     const separator = spec.indexOf(":");
     const name = (separator < 0 ? spec : spec.slice(0, separator)).trim().toLowerCase();
+    const kernel = namedColorMatrixKernel(name, parseSelectiveBlurGeometry(separator < 0 ? "" : spec.slice(separator + 1)));
+    if (kernel) return kernel;
     let parameter = separator < 0 ? "" : spec.slice(separator + 1).trim();
     if (name === "sobel") {
         // Sobel uses only the first geometry field, without scaling for geometry flags.

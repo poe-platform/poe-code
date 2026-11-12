@@ -21615,6 +21615,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const msg = err instanceof Error ? err.message : String(err);
             await writeBytes(context.stderr, encodeUtf8(`ffmpeg: ${msg}\n`), context.signal);
             if (msg === "Cannot write filename by pts of the frames.") return { exitCode: 234 };
+            if (msg === "Cannot write more than one file with the same name. Use a numbered pattern or -update 1.") return { exitCode: 234 };
             if (checksumOutput && msg.startsWith("Unknown hash algorithm '")) {
               for (const destination of protocolTargets) {
                 await writeMediaOutput(context, destination, new Uint8Array(0), budget);

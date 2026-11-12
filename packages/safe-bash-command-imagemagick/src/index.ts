@@ -11356,6 +11356,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             const quantum = data16 ? 65535 : 255;
             const offset = (brightness / 100 * 65535 - 65535 / 2) * slope + 65535 / 2;
             const mask = [channels.r, channels.g, channels.b, channels.a && (image.hasAlpha || image.alphaSeparate === true && image.alphaBlend !== false), cmyk && channels.k];
+            if (image.space === "b-w" || image.space === "grey16") mask[1] = mask[2] = channels.r;
             for (let idx = 0; idx < out.length; idx += 4) {
                 if (idx % 65536 === 0) yield;
                 for (let channel = 0; channel < mask.length; channel++) {

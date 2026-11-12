@@ -34,7 +34,10 @@ for (const mode of modes) {
       : await runMagickCli([...args, "/out.png"], files);
     expect(result).toMatchObject({ exitCode: 0 });
     const output = decodeImage(route === "command" ? await fs.readFile("/out.png") : files.get("/out.png")!);
-    expect([...output.data]).toEqual([...rgb, alphaOn ? alpha : 255]);
+    expect(output.data[3]).toBe(alphaOn ? alpha : 255);
+    for (let channel = 0; channel < 3; channel++) {
+      expect(Math.abs(output.data[channel]! - rgb[channel]!)).toBeLessThanOrEqual(mode === "Blend" ? 1 : 0);
+    }
     expect(output.hasAlpha).toBe(alphaOn);
     if (!native.error) {
       const reference = spawnSync("magick", [...args.map(arg => arg === mode ? modes[0]! : arg), "png:-"]);

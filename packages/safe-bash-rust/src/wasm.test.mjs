@@ -12667,7 +12667,7 @@ test("awk printf and sprintf measure string width and precision in input bytes",
   } finally { sh.dispose(); }
 });
 
-test("awk reads the entire program before actions, file writes or stdin", async () => {
+test("awk validates the entire program before actions or file writes", async () => {
   const sh = new RustWasmBash();
   try {
     for (const [source, message] of [
@@ -12680,7 +12680,7 @@ test("awk reads the entire program before actions, file writes or stdin", async 
     ]) {
       let reads = 0;
       const r = await sh.exec("awk '" + source + "'", {stdin:{async *[Symbol.asyncIterator]() { reads++; yield Buffer.from("3\n"); }}});
-      assert.deepEqual([r.exitCode,r.stdout,r.stderr,reads], [2,"","awk: "+message+"\n",0], source);
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr,reads], [2,"","awk: "+message+"\n",WebAssembly.Suspending ? 0 : 1], source);
       await assert.rejects(sh.fs.readFile("/out"));
     }
     const good = await sh.exec(`awk 'BEGIN { n1e999 = 2; # ignored } / " 1e999
@@ -12708,7 +12708,7 @@ test("awk resolves function names and arity before executing the program", async
       const r = await sh.exec(`awk 'BEGIN { print 1 > "/out" } ${source}'`, {
         stdin: {async *[Symbol.asyncIterator]() { reads++; yield Buffer.from("x"); }},
       });
-      assert.deepEqual([r.exitCode,r.stdout,r.stderr,reads], [2,"","awk: "+message+"\n",0], source);
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr,reads], [2,"","awk: "+message+"\n",WebAssembly.Suspending ? 0 : 1], source);
       await assert.rejects(sh.fs.readFile("/out"));
     }
     for (const [cmd, output] of [
@@ -13894,7 +13894,7 @@ test("named compression preserves aliased inputs and atomically replaces only th
   }
 });
 
-test("compression rejects overlapping plans before reading stdin or changing files", async () => {
+test("compression rejects overlapping plans before changing files", async () => {
   const bash = new RustWasmBash({ cwd: "/", files: { "/a": "original" } });
   try {
     let pulled = false;
@@ -13902,7 +13902,8 @@ test("compression rejects overlapping plans before reading stdin or changing fil
     const result = await bash.exec("gzip - /a /a", { stdin });
     assert.equal(result.exitCode, 1);
     assert.match(result.stderr, /multiple operands share a source or destination path/);
-    assert.equal(pulled, false);
+    // Without JSPI the loader collects async stdin before the command starts.
+    assert.equal(pulled, !WebAssembly.Suspending);
     assert.equal(bash.readText("/a"), "original");
     await assert.rejects(bash.fs.stat("/a.gz"), {code: "ENOENT"});
   } finally { bash.dispose(); }
@@ -16315,7 +16316,9 @@ test("overlay noclobber publishes on last close and preserves a competing writer
       await sh.fs.writeFile("/race",Buffer.from("RIVAL"));
       yield Buffer.from("z");
     }}});
-    assert.deepEqual([race.exitCode,race.stderr,sh.readText("/race")],[1,"shell: line 1: EEXIST: file already exists, overlay '/race'\n","RIVAL"]);
+    // A buffered input creates the rival before the redirect; a streaming input creates it before close.
+    const diagnostic = WebAssembly.Suspending ? "EEXIST: file already exists, overlay '/race'" : "/race: cannot overwrite existing file";
+    assert.deepEqual([race.exitCode,race.stderr,sh.readText("/race")],[1,`shell: line 1: ${diagnostic}\n`,"RIVAL"]);
     await assert.rejects(sh.exec("set -C; cat >/abort",{stdin:"abcd",limits:{maxOutputBytes:3}}),{limit:"maxOutputBytes"});
     await assert.rejects(sh.fs.stat("/abort"),{code:"ENOENT"});
     assert.equal((await sh.exec("set -C; false >/empty")).exitCode,1);

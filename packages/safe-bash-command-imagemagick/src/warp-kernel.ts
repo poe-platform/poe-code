@@ -218,12 +218,13 @@ export function* warpPixelSteps(source: Pick<RgbaImage, "width" | "height" | "ha
                     const opacity = source.alphaBlend === false ? maximum : pixel[3]!, unassociatedWeight = weight;
                     // Stored alpha survives even when it does not weight colors.
                     alpha += pixel[3]! * weight; total += weight;
-                    // Native mesh divides unassociated colors by interpolated alpha;
-                    // average excludes transparent RGB.
+                    // Mesh normalizes by alpha; Point resampling's PixelInfo path
+                    // also alpha-weights colors, unlike channel interpolation.
+                    // Average excludes transparent RGB.
                     if (interpolation === "mesh") colorTotal += weight * opacity / maximum;
                     else if (averageSize || interpolation === "catrom" || interpolation === "spline") colorTotal += weight;
                     // Native Catrom and spline keep the interpolated premultiplied colors.
-                    if (filtered || interpolation === "blend" || interpolation === "bilinear" || interpolation === "catrom" || interpolation === "spline") weight *= opacity / maximum;
+                    if (filtered || interpolation === "blend" || interpolation === "bilinear" || interpolation === "mesh" && kernel === "nearest" || interpolation === "catrom" || interpolation === "spline") weight *= opacity / maximum;
                     else if (averageSize) weight *= Number(opacity > 0);
                     red += pixel[0]! * (plan.channels?.[0] === false ? unassociatedWeight : weight);
                     green += pixel[1]! * (plan.channels?.[1] === false ? unassociatedWeight : weight);

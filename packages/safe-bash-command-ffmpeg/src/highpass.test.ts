@@ -81,7 +81,7 @@ it("keeps channel histories separate", async () => {
   assert.ok(audio.channelData[1]!.every(value => value === 0));
 });
 
-for (const options of ["f=NaN", "f=-1", "f=1000000", "f=", "p=0", "p=3", "p=1.5", "m=-1", "m=1.1", "unknown=1"]) {
+for (const options of ["f=NaN", "f=-1", "f=1000000", "f=", "p=0", "p=3", "p=2.1", "m=-1", "m=1.1", "unknown=1"]) {
   it(`rejects invalid highpass ${options} without overwriting`, async () => {
     const { fs, result, stderr } = await run(`highpass=${options}`);
     assert.equal(result.exitCode, 1);

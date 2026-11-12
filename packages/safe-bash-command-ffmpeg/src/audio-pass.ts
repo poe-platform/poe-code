@@ -84,12 +84,12 @@ export async function passAudio(
     if (!value || !Number.isFinite(number)
       || key === "frequency" && (number < 0 || number > 999999)
       || key === "gain" && (number < -900 || number > 900)
-      || key === "poles" && number !== 1 && number !== 2
+      || key === "poles" && (number < 1 || number > 2)
       || key === "width" && (number < 0 || number > 99999)
       || key === "blocksize" && (number < 0 || number > 32768)
-      || key === "width_type" && (!Number.isInteger(number) || number < 1 || number > 5)
+      || key === "width_type" && (number < 1 || number > 5)
       || key === "mix" && (number < 0 || number > 1)) throw new Error(`${name}: invalid ${key}`);
-    options[key] = key === "blocksize"
+    options[key] = key === "blocksize" || key === "poles" || key === "width_type"
       ? (number % 1 === 0.5 ? 2 * Math.round(number / 2) : Math.round(number)) : number;
   }
   const inputFormat = sampleFormat;

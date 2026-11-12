@@ -11716,7 +11716,8 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
                 const x = (pixelOffset + idx / 4) % imageWidth, y = Math.floor((pixelOffset + idx / 4) / imageWidth);
                 const outsideRegion = im.region && !regionContains(im.region, x, y);
                 const protection = outsideRegion ? 1 : writeMask ? (0.212656 * writeMask.data[maskOffset]! + 0.715158 * writeMask.data[maskOffset + 1]! + 0.072186 * writeMask.data[maskOffset + 2]!) / 255 : 0;
-                const alpha = im.hasAlpha ? evaluateSamples[idx + 3]! / 255 : 1;
+                // Mask compositing uses retained opacity even when alpha is inactive.
+                const alpha = im.hasAlpha || im.alphaBlend !== false ? evaluateSamples[idx + 3]! / 255 : 1;
                 let editedAlpha = alpha;
                 // Numeric levels sync all channels together, including the unbounded alpha.
                 if (protection > 0 && !colorEndpoints && mask[3]) {

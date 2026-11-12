@@ -23281,6 +23281,10 @@ function* parseMontageArguments<Step>(argv: readonly string[], frameCount: (path
             queuedTransforms.push({ kind: type, operation });
             i = operation.end;
         }
+        else if (t === "-matte" || t === "+matte") {
+            // Montage accepts these compatibility switches without changing tile alpha.
+            continue;
+        }
         else if (t === "-alpha") {
             const value = argv[i + 1];
             if (value === undefined) return { exitCode: 1, stdout: "", stderr: "montage: missing argument for -alpha\n" };

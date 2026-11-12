@@ -8661,12 +8661,12 @@ function imageOutputFormat(codec: string | undefined, extension: string): ImageF
     case "mjpeg": case "jpg": case "jpeg": return "jpeg";
     case "libwebp": case "libwebp_anim": case "webp": return "webp";
     case "targa": case "tga": return "tga";
-    case "qoi": case "gif": case "bmp": case "ppm": case "pam": case "pgm": case "pbm": case "tiff": return format;
+    case "qoi": case "gif": case "bmp": case "ppm": case "pam": case "pgm": case "pbm": case "tiff": case "exr": return format;
     default: return "png";
   }
 }
 
-const imageEncoders = ["png", "mjpeg", "webp", "libwebp", "libwebp_anim", "gif", "bmp", "ppm", "pam", "pgm", "pbm", "qoi", "targa", "tiff"];
+const imageEncoders = ["png", "mjpeg", "webp", "libwebp", "libwebp_anim", "gif", "bmp", "ppm", "pam", "pgm", "pbm", "qoi", "targa", "tiff", "exr"];
 
 function validateAudioEncoder(codec: string | undefined, doc: MediaDocument, plugins: readonly MediaAstPlugin[]): void {
   if (codec === undefined || codec === "copy" || !doc.tracks.some(track => track.type === "audio")) return;

@@ -88,7 +88,9 @@ The `lavfi` `anullsrc` audio source preserves channel counts and speaker assignm
 
 `sine=frequency=400:beep_factor=2` mixes a 40 ms beep into the start of each second, at twice the tone amplitude and `frequency * beep_factor` Hz. `b` aliases `beep_factor`; zero (the default) disables the beep.
 
-The `lavfi` color source uses FFmpeg 7's limited-range BT.601 RGB samples: red
+The `lavfi` color source accepts positional color, size, rate, and duration:
+`color=red:4x4:1:1` is equivalent to `color=c=red:s=4x4:r=1:d=1`.
+It uses FFmpeg 7's limited-range BT.601 RGB samples: red
 becomes `(253, 0, 0)` in PNG output; existing RGB PNG inputs retain their samples.
 The `testsrc` counter accepts `decimals=N` or `n=N` (0–17, default 0), displaying
 truncated ticks of 10⁻ᴺ seconds; for example, `n=2` displays `50` at 0.5 seconds.

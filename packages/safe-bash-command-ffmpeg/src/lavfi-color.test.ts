@@ -5,6 +5,28 @@ import { Volume } from "memfs";
 import { decodeImage, encodeImage } from "@poe-code/image-ast/portable";
 import { createFfmpegCommand } from "./index.js";
 
+for (const source of [
+  "color=red:4x4:r=1:d=1",
+  "color=red:s=4x4:r=1:d=1",
+  "color=c=red:s=4x4:r=1:d=1",
+  "color=red:4x4:1:1"
+]) {
+  it(`exports the same 4x4 red PNG for ${source}`, async () => {
+    const bytes = await run(Volume.fromJSON({}), ["-v", "error", "-f", "lavfi", "-i", source,
+      "-frames:v", "1", "-c:v", "png", "-f", "image2pipe", "pipe:1"]);
+    const image = decodeImage(bytes);
+    assert.equal(image.width, 4);
+    assert.equal(image.height, 4);
+    assert.deepEqual([...image.data], Array.from({ length: 16 }, () => [253, 0, 0, 255]).flat());
+  });
+}
+
+it("uses positional color source rate and duration", async () => {
+  const volume = Volume.fromJSON({});
+  await run(volume, ["-v", "error", "-f", "lavfi", "-i", "color=red:4x4:2:1", "/o%d.png"]);
+  assert.deepEqual(volume.readdirSync("/"), ["o1.png", "o2.png"]);
+});
+
 it("matches FFmpeg 7.0.2 default lavfi red RGB PNG samples in both frames", async () => {
   const volume = Volume.fromJSON({});
   await run(volume, ["-y", "-v", "error", "-f", "lavfi", "-i",

@@ -672,6 +672,7 @@ function* lavfiSteps(
   const filterName = (eqIdx >= 0 ? spec.slice(0, eqIdx) : spec).trim().toLowerCase();
   const argsPart = eqIdx >= 0 ? spec.slice(eqIdx + 1) : "";
   const kv: Record<string, string> = {};
+  let positionalIndex = 0;
   let decimals = 0;
   for (const part of argsPart.split(":")) {
     if (++work % 1024 === 0) yield;
@@ -687,7 +688,9 @@ function* lavfiSteps(
         decimals = roundToEven(number);
       }
     } else if (part.trim()) {
-      kv._0 = part.trim();
+      const key = filterName === "color" ? ["c", "s", "r", "d", "sar"][positionalIndex++] : "_0";
+      if (key === undefined) throw new Error("color: too many positional options");
+      kv[key] = part.trim();
     }
   }
 

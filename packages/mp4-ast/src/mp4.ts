@@ -2361,7 +2361,10 @@ export function* sliceMp4Steps(doc: MediaDocument, options: SliceMediaOptions = 
     }
 
     const slicedSamples: MediaSample[] = [];
-    let runningDts = 0;
+    // A copied audio packet can start after the requested cut. Keep that gap
+    // in its timestamps instead of moving the first retained packet to zero.
+    let runningDts = options.copyAudio && track.type === "audio" && !track.decodedAudio
+      ? Math.max(0, (materialized.samples[actualStartIdx]?.dts ?? startTick) - startTick) : 0;
 
     let promotedFirstSampleData: Uint8Array | undefined;
     if (

@@ -482,6 +482,9 @@ export function* morphPixelSteps(a: ResizeImage, b: ResizeImage, width: number, 
             const samples = next.value!;
             if (samples.kind !== "samples") return;
             position = samples.position;
+            // MorphImages blends the float quantum pixels stored by ResizeImage.
+            const quantum = inks || highDepth ? 1 : 257;
+            for (let i = 0; i < samples.data.length; i++) samples.data[i] = Math.fround(samples.data[i]! * quantum) / quantum;
             const input = image === 0 ? a : b;
             if (!input.hasAlpha && input.inactiveAlpha) {
                 // Resize copies inactive alpha at the filter bisector, without weighting colors.

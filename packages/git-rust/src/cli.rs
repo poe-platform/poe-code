@@ -4927,29 +4927,29 @@ pub fn execute_git_cli_with_input(
                 return CliResult::err(129, "usage: git merge-file [-p] [-L <name>] <current-file> <base-file> <other-file>\n");
             }
             let cur_path = absolute_path(&effective_cwd, files[0]);
-            let base_path = absolute_path(&effective_cwd, files[1]);
-            let other_path = absolute_path(&effective_cwd, files[2]);
-            let cur_str = fs.read_str(&cur_path).unwrap_or_default();
-            let base_str = fs.read_str(&base_path).unwrap_or_default();
-            let other_str = fs.read_str(&other_path).unwrap_or_default();
+            let mut contents = Vec::new();
+            for file in &files[..3] {
+                match fs.read_file(&absolute_path(&effective_cwd, file)) {
+                    Ok(bytes) => contents.push(bytes),
+                    Err(error) => return CliResult::err(255, format!("error: Could not read {file}: {}\n", error.message)),
+                }
+            }
             let our_lbl = labels.first().copied().unwrap_or(files[0]);
             let base_lbl = labels.get(1).copied().unwrap_or(files[1]);
             let their_lbl = labels.get(2).copied().unwrap_or(files[2]);
-            let merged = crate::utils::merge_file([base_lbl, our_lbl, their_lbl], [&base_str, &cur_str, &other_str]);
-            if to_stdout {
-                let mut res = CliResult::ok(merged.merged_text);
-                if !merged.clean_merge {
-                    res.exit_code = 1;
-                }
-                res
+            let merged = crate::utils::merge_file_bytes([base_lbl, our_lbl, their_lbl], [&contents[1], &contents[0], &contents[2]]);
+            let mut res = if to_stdout {
+                CliResult::ok_bytes(merged.merged_bytes)
             } else {
-                fs.write_str(&cur_path, &merged.merged_text);
-                let mut res = CliResult::ok("");
-                if !merged.clean_merge {
-                    res.exit_code = 1;
+                if let Err(error) = fs.write_file(&cur_path, &merged.merged_bytes) {
+                    return CliResult::err(255, format!("error: Could not write {}: {}\n", files[0], error.message));
                 }
-                res
+                CliResult::ok("")
+            };
+            if !merged.clean_merge {
+                res.exit_code = 1;
             }
+            res
         }
         "fmt-merge-msg" => {
             let mut custom_msg: Option<&str> = None;

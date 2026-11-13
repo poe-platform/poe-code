@@ -181,18 +181,24 @@ fn composite_image_pixel(dest: &mut [u8; 4], value: [u8; 4]) {
 }
 
 // Horizontal subpixel spans of the intersected form bounding boxes, in device space.
-type ClipRow = [(f64, f64); 4];
+struct ClipRow {
+    spans: Option<[(f64, f64); 4]>,
+    path: Option<std::sync::Arc<Vec<u16>>>,
+    offset: usize,
+}
 fn clip_coverage(row: &Option<ClipRow>, x: usize) -> u8 {
-    let Some(spans) = row else {
+    let Some(row) = row else {
         return 255;
     };
+    let path = row.path.as_ref().map_or(255, |mask| ((mask[row.offset + x].count_ones() * 255 + 8) / 16) as u8);
+    let Some(spans) = &row.spans else { return path; };
     let x = (x * 4) as f64;
     let count: f64 = spans
         .iter()
         .map(|&(a, b)| (b.min(x + 3.) - a.max(x) + 1.).max(0.))
         .sum();
     let coverage = count / 16.;
-    (coverage * coverage.sqrt() * 255.).round() as u8
+    div255(u32::from((coverage * coverage.sqrt() * 255.).round() as u8) * u32::from(path)) as u8
 }
 
 // Poppler stores device color operands in 16.16. Its lexer accumulates the
@@ -208,6 +214,7 @@ struct Bitmap {
     page_clip: Point,
     backend: RasterBackend,
     form_clips: Vec<[Point; 4]>,
+    path_clip: Option<std::sync::Arc<Vec<u16>>>,
     clip_antialias: bool,
     white_background: bool,
     w: usize,
@@ -218,7 +225,9 @@ struct Bitmap {
 impl Bitmap {
     fn clip_row(&mut self, y: usize, span: Option<(f64, f64)>) -> Option<Option<ClipRow>> {
         if self.form_clips.is_empty() {
-            return Some(None);
+            return Some(self.path_clip.as_ref().map(|path| ClipRow {
+                spans: None, path: Some(path.clone()), offset: y * self.w,
+            }));
         }
         self.work = self.work.checked_sub(16 * self.form_clips.len())?;
         let samples = if self.clip_antialias { 4 } else { 1 };
@@ -285,7 +294,11 @@ impl Bitmap {
             let (lo, hi) = spans[0];
             spans.fill((lo * 4., hi * 4. + 3.));
         }
-        Some((!inside_span).then_some(spans))
+        Some((!inside_span || self.path_clip.is_some()).then(|| ClipRow {
+            spans: (!inside_span).then_some(spans),
+            path: self.path_clip.clone(),
+            offset: y * self.w,
+        }))
     }
 
     fn transformed_image(
@@ -563,6 +576,68 @@ impl Bitmap {
                 cairo_over(&mut self.pixels[y * self.w + x], color, mask, alpha, 128);
             }
         }
+        Some(())
+    }
+
+    fn intersect_path(&mut self, paths: &[Vec<Point>], even: bool) -> Option<()> {
+        // Keep subpixel membership, not just alpha: intersecting two shapes in
+        // the same pixel must intersect their geometry. q/Q share these masks.
+        let count = self.w.checked_mul(self.h)?;
+        let points = paths.iter().try_fold(0usize, |n, p| n.checked_add(p.len()))?;
+        self.work = self.work.checked_sub(count.checked_mul(2)?.checked_add(points.checked_mul(64)?)?)?;
+        let mut mask = vec![0u16; count];
+        let mut edges = Vec::with_capacity(points);
+        let mut lo = [self.w as f64, self.h as f64];
+        let mut hi = [0f64; 2];
+        for path in paths {
+            for (&a, &b) in path.iter().zip(path.iter().cycle().skip(1)) {
+                if !a.iter().chain(b.iter()).all(|v| v.is_finite()) { return None; }
+                if a[1] == b[1] { continue; }
+                for i in 0..2 {
+                    lo[i] = lo[i].min(a[i]).min(b[i]);
+                    hi[i] = hi[i].max(a[i]).max(b[i]);
+                }
+                edges.push((a, b));
+            }
+        }
+        let [x0, y0] = lo.map(|v| v.floor() as usize);
+        let x1 = self.w.min(hi[0].ceil() as usize);
+        let y1 = self.h.min(hi[1].ceil() as usize);
+        let samples = if self.clip_antialias { 4 } else { 1 };
+        let mut crossings = Vec::with_capacity(edges.len());
+        for y in y0..y1 {
+            for row in 0..samples {
+                // Include sorting and every subpixel visit in the work budget.
+                let sorting = edges.len().checked_mul((edges.len().max(1).ilog2() as usize) + 1)?;
+                self.work = self.work.checked_sub(sorting.checked_add(x1.saturating_sub(x0).checked_mul(samples)?)?)?;
+                crossings.clear();
+                let sy = y as f64 + (row as f64 + 0.5) / samples as f64;
+                for &(a, b) in &edges {
+                    if (a[1] <= sy && b[1] > sy) || (b[1] <= sy && a[1] > sy) {
+                        let x = a[0] + (sy - a[1]) / (b[1] - a[1]) * (b[0] - a[0]);
+                        crossings.push((x, if a[1] < b[1] { 1 } else { -1 }));
+                    }
+                }
+                crossings.sort_by(|a, b| a.0.total_cmp(&b.0));
+                let mut it = crossings.iter().peekable();
+                let mut winding = 0;
+                for x in x0..x1 {
+                    for col in 0..samples {
+                        let sx = x as f64 + (col as f64 + 0.5) / samples as f64;
+                        while it.peek().is_some_and(|(v, _)| *v <= sx) {
+                            winding += it.next()?.1;
+                        }
+                        if if even { winding % 2 != 0 } else { winding != 0 } {
+                            mask[y * self.w + x] |= if samples == 1 { u16::MAX } else { 1 << (row * 4 + col) };
+                        }
+                    }
+                }
+            }
+        }
+        if let Some(prior) = &self.path_clip {
+            for (pixel, old) in mask.iter_mut().zip(prior.iter()) { *pixel &= old; }
+        }
+        self.path_clip = Some(std::sync::Arc::new(mask));
         Some(())
     }
 
@@ -895,6 +970,7 @@ impl PageSource<'_> {
             page_clip: page_clip.map(|v| (v * 256.).round_ties_even()),
             backend: opt.backend,
             form_clips: vec![],
+            path_clip: None,
             clip_antialias: opt.antialias,
             white_background: !opt.transparent,
             w,
@@ -909,6 +985,7 @@ impl PageSource<'_> {
         let mut width = 1.;
         let (mut fill_alpha, mut stroke_alpha) = (1., 1.);
         let mut paths: Vec<Vec<Point>> = vec![];
+        let mut pending_clip = None;
         let mut stack = vec![];
         let mut forms = vec![];
         self.draw_page(&page, |event, objects| {
@@ -931,11 +1008,14 @@ impl PageSource<'_> {
                         stroke_alpha,
                         std::mem::take(&mut paths),
                         std::mem::take(&mut stack),
+                        bitmap.path_clip.clone(),
+                        pending_clip.take(),
                     ));
                     return Some(());
                 }
                 Draw::EndForm => {
-                    (fill, stroke, width, fill_alpha, stroke_alpha, paths, stack) = forms.pop()?;
+                    if pending_clip.is_some() { return None; }
+                    (fill, stroke, width, fill_alpha, stroke_alpha, paths, stack, bitmap.path_clip, pending_clip) = forms.pop()?;
                     bitmap.form_clips.pop()?;
                     return Some(());
                 }
@@ -1013,11 +1093,11 @@ impl PageSource<'_> {
                     if stack.len() >= 256 {
                         return None;
                     }
-                    stack.push((fill, stroke, width, fill_alpha, stroke_alpha));
+                    stack.push((fill, stroke, width, fill_alpha, stroke_alpha, bitmap.path_clip.clone()));
                 }
                 b"Q" => {
                     if let Some(state) = stack.pop() {
-                        (fill, stroke, width, fill_alpha, stroke_alpha) = state;
+                        (fill, stroke, width, fill_alpha, stroke_alpha, bitmap.path_clip) = state;
                     }
                 }
                 b"rg" | b"RG" | b"g" | b"G" => {
@@ -1112,13 +1192,25 @@ impl PageSource<'_> {
                         }
                         bitmap.paint(&outlines, stroke, stroke_alpha, false, opt.antialias, xy == 0. && yx == 0.)?;
                     }
-                    paths.clear();
                 }
-                b"n" => paths.clear(),
+                b"n" => {}
+                b"W" | b"W*" => {
+                    if !args.is_empty() { return None; }
+                    pending_clip = Some(op == b"W*");
+                }
                 _ => {}
+            }
+            // W/W* defer the intersection until the path-ending operator has
+            // painted using the previous clip. Paths are not part of q/Q state.
+            if matches!(op, b"n" | b"f" | b"F" | b"f*" | b"B" | b"B*" | b"b" | b"b*" | b"S" | b"s") {
+                if let Some(even) = pending_clip.take() {
+                    bitmap.intersect_path(&paths, even)?;
+                }
+                paths.clear();
             }
             Some(())
         })?;
+        if pending_clip.is_some() { return None; }
         let mut pixels = bitmap.pixels;
         if bitmap.white_background {
             for p in &mut pixels { over_white(p, bitmap.backend); }

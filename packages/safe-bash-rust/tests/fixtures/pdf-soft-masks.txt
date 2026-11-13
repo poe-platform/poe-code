@@ -1,0 +1,42 @@
+# RGB probes at 72 dpi, top-left origin. Original four cases: PDFium reference.
+# Additional cases: Poppler 26.08, cross-checked against TypeScript.
+# transform: gs-time CTM + Form Matrix/BBox; group: constant alpha applied once;
+# paints: fill, stroke, text, image, shading; image: existing image SMask control.
+mask-alpha 25 50 255 128 128
+mask-alpha 75 50 255 255 255
+mask-luminosity 25 50 255 127 127
+mask-luminosity 75 50 255 255 255
+mask-reset 80 80 0 0 255
+mask-reset 25 50 255 127 127
+mask-none 75 50 255 0 0
+mask-transform 5 50 255 255 255
+mask-transform 25 50 255 127 127
+mask-transform 50 50 255 127 127
+mask-transform 65 50 255 255 255
+mask-nested 25 50 255 127 127
+mask-nested 75 50 255 255 255
+mask-group 25 50 255 191 191
+mask-group 75 50 255 255 255
+mask-form 25 50 255 127 127
+mask-form 75 50 255 255 255
+mask-backdrop 25 50 255 127 127
+mask-backdrop 75 50 255 191 191
+mask-image 25 50 255 127 127
+mask-image 75 50 255 127 127
+mask-paints 25 10 255 127 127
+mask-paints 75 10 255 255 255
+mask-paints 25 35 255 127 127
+mask-paints 75 35 255 255 255
+mask-paints 12 50 255 127 127
+mask-paints 25 70 255 127 127
+mask-paints 75 70 255 255 255
+mask-paints 25 90 255 127 127
+mask-paints 75 90 255 255 255
+mask-text 20 50 255 0 0
+mask-text 90 50 255 255 255
+mask-alpha-backdrop 5 50 255 0 0
+mask-alpha-backdrop 15 50 255 0 0
+mask-alpha-backdrop 35 50 255 255 255
+mask-alpha-backdrop 75 50 255 0 0
+mask-constant 25 50 255 191 191
+mask-constant 75 50 255 255 255

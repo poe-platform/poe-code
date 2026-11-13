@@ -40,6 +40,45 @@ pub(super) struct Group {
     isolated: bool,
 }
 impl Bitmap {
+    pub(super) fn end_soft_mask(
+        &mut self,
+        group: Group,
+        mask: super::super::pdf_text_layout::SoftMask,
+        limit: usize,
+        bytes: &mut usize,
+    ) -> Option<()> {
+        let count = self.pixels.len();
+        // Retained masks can be shared by q/Q and Form states. Charge each
+        // allocation to the page budget even after a state releases it.
+        *bytes = bytes.checked_add(count.checked_mul(8)?)?;
+        if *bytes > limit { return None; }
+        self.work = self.work.checked_sub(count.checked_mul(16)?)?;
+        let mut values = Vec::new();
+        values.try_reserve_exact(count).ok()?;
+        let [p0, p1, _, p3] = *self.form_clips.last()?;
+        let (a, b, c, d) = (p1[0] - p0[0], p1[1] - p0[1], p3[0] - p0[0], p3[1] - p0[1]);
+        let det = a * d - b * c;
+        let outside_alpha = 0.3 * mask.backdrop[0] + 0.59 * mask.backdrop[1] + 0.11 * mask.backdrop[2];
+        for (i, p) in self.pixels.iter().enumerate() {
+            let alpha = f64::from(p[3]) / 255.;
+            values.push(if mask.luminosity {
+                [0.3, 0.59, 0.11].iter().enumerate().map(|(i, w)|
+                    w * (f64::from(p[i]) / 255. * alpha + mask.backdrop[i] * (1. - alpha))
+                ).sum::<f64>().clamp(0., 1.)
+            } else {
+                let (x, y) = ((i % self.w) as f64 + 0.5 - p0[0], (i / self.w) as f64 + 0.5 - p0[1]);
+                let (u, v) = ((d * x - c * y) / det, (a * y - b * x) / det);
+                if !(0. ..1.).contains(&u) || !(0. ..1.).contains(&v) { outside_alpha } else { alpha }
+            });
+        }
+        self.pixels = group.pixels;
+        self.group_alpha = group.alpha;
+        self.white_background = group.white;
+        self.soft_mask = Some(std::rc::Rc::new(values));
+        *bytes = bytes.checked_sub(count.checked_mul(12)?)?;
+        Some(())
+    }
+
     pub(super) fn begin_group(
         &mut self,
         isolated: bool,
@@ -107,6 +146,7 @@ impl Bitmap {
                         .clamp(0., 1.)
                 })
             };
+            let opacity = opacity * self.soft_mask.as_ref().map_or(1., |m| m[i]);
             cover(&mut self.group_alpha, i, a * opacity);
             self.blend.composite(dest, source, a * opacity);
         }

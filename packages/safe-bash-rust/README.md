@@ -62,6 +62,10 @@ Forms composite once with their entry opacity and blend mode, including nested
 isolated and non-isolated RGB groups. Knockout groups and other explicit group
 color spaces are rejected. Live intermediate surfaces share the raster memory
 budget; unsupported groups and exhausted budgets leave existing output intact.
+Graphics-state Alpha and Luminosity soft masks apply to all paint types, with
+Form bounds/transforms, backdrops, nested masks, and saved/reset mask states.
+Mask groups use RGB; non-identity transfer functions and malformed or recursive
+masks fail without replacing output. Image soft masks remain supported.
 
 ### 1. Zero-Dependency Rust Shell with `MemoryVfs`
 

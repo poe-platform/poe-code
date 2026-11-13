@@ -7,6 +7,10 @@ use std::{collections::BTreeMap, rc::Rc};
 pub(in super::super) mod widths;
 
 use super::{ID, Matrix, concat};
+#[path = "pdf_soft_mask.rs"]
+mod pdf_soft_mask;
+use super::Objects;
+pub(super) use pdf_soft_mask::SoftMask;
 fn shift(m: &mut Matrix, x: f64, y: f64) {
     m[4] += m[0] * x + m[2] * y;
     m[5] += m[1] * x + m[3] * y;
@@ -83,7 +87,8 @@ struct Resources<'a> {
     xobjects: BTreeMap<std::borrow::Cow<'a, [u8]>, super::ObjectId>,
 }
 pub(super) enum Draw<'a, 'b> {
-    BeginForm([f64; 4], Matrix, Option<Value<'static>>),
+    BeginForm([f64; 4], Matrix, Option<Value<'static>>, Option<SoftMask>),
+    ClearMask,
     EndForm,
     Transparency { fill: Option<f64>, stroke: Option<f64>, blend: Option<BlendMode> },
     Shading(Value<'static>, Matrix),
@@ -276,6 +281,46 @@ impl<'a> PageSource<'a> {
         self.draw_streams(&streams, st, &mut vec![resources], &mut emit)
     }
 
+    fn draw_form(
+        &mut self,
+        id: super::ObjectId,
+        mut child: State,
+        scopes: &mut Vec<Resources<'a>>,
+        mask: Option<SoftMask>,
+        emit: &mut impl FnMut(Draw<'_, '_>, &mut super::Objects<'a>) -> Option<()>,
+    ) -> Option<()> {
+        if scopes.len() >= 100 || scopes.iter().any(|scope| scope.form == Some(id)) { return None; }
+        let (dict, _) = self.objects.object(id)?;
+        if dict.get(b"Subtype")?.word()? != b"/Form" { return None; }
+        let Value::Array(bounds) = self.objects.resolve(dict.get(b"BBox")?)? else { return None; };
+        if bounds.len() != 4 { return None; }
+        let mut bbox = [0.; 4];
+        for (out, v) in bbox.iter_mut().zip(bounds) {
+            *out = self.objects.resolve(&v)?.number()?;
+            if !out.is_finite() { return None; }
+        }
+        if let Some(v) = dict.get(b"Matrix") {
+            let Value::Array(values) = self.objects.resolve(v)? else { return None; };
+            if values.len() != 6 { return None; }
+            let mut m = [0.; 6];
+            for (out, v) in m.iter_mut().zip(values) {
+                *out = self.objects.resolve(&v)?.number()?;
+                if !out.is_finite() { return None; }
+            }
+            child.ctm = concat(m, child.ctm);
+        }
+        let mut local = Resources { form: Some(id), ..Resources::default() };
+        if let Some(res) = dict.get(b"Resources") { local.load(&mut self.objects, res)?; }
+        scopes.push(local);
+        let group = dict.get(b"Group").map(|v| v.clone().into_owned());
+        if mask.is_some() && group.is_none() { return None; }
+        emit(Draw::BeginForm(bbox, child.ctm, group, mask), &mut self.objects)?;
+        self.draw_streams(&[id], child, scopes, emit)?;
+        emit(Draw::EndForm, &mut self.objects)?;
+        scopes.pop();
+        Some(())
+    }
+
     fn draw_streams(
         &mut self,
         streams: &[super::ObjectId],
@@ -347,6 +392,16 @@ impl<'a> PageSource<'a> {
                         Some(selected?)
                     } else { None };
                     emit(Draw::Transparency { fill, stroke, blend }, &mut self.objects)?;
+                    if let Some(value) = dict.get(b"SMask") {
+                        let value = self.objects.resolve(value)?;
+                        if value.word() == Some(b"/None") {
+                            emit(Draw::ClearMask, &mut self.objects)?;
+                        } else {
+                            let mask = SoftMask::read(&mut self.objects, &value)?;
+                            let id = value.get(b"G")?.reference()?;
+                            self.draw_form(id, st.clone(), scopes, Some(mask), emit)?;
+                        }
+                    }
                 }
                 if op == b"BI" {
                     let (fields, pixels) = super::pdf_content_edit::inline(&mut c, &mut self.objects.tokens).ok()?;
@@ -368,36 +423,7 @@ impl<'a> PageSource<'a> {
                 {
                     let (dict, _) = self.objects.object(id)?;
                     if dict.get(b"Subtype").and_then(Value::word) == Some(b"/Form") {
-                        if scopes.len() <= 100
-                            && !scopes.iter().any(|scope| scope.form == Some(id))
-                            && let Some(Value::Array(bounds)) =
-                                dict.get(b"BBox").and_then(|v| self.objects.resolve(v))
-                            && let [x0, y0, x1, y1, ..] = bounds.as_slice()
-                        {
-                            let bbox = [x0.poppler_number()?, y0.poppler_number()?, x1.poppler_number()?, y1.poppler_number()?];
-                            let mut child = st.clone();
-                            if let Some(Value::Array(values)) =
-                                dict.get(b"Matrix").and_then(|v| self.objects.resolve(v))
-                            {
-                                let m = std::array::from_fn(|i| {
-                                    values.get(i).and_then(Value::poppler_number).unwrap_or(0.)
-                                });
-                                child.ctm = concat(m, st.ctm);
-                            }
-                            let mut local = Resources {
-                                form: Some(id),
-                                ..Resources::default()
-                            };
-                            if let Some(res) = dict.get(b"Resources") {
-                                local.load(&mut self.objects, res)?;
-                            }
-                            scopes.push(local);
-                            let group = dict.get(b"Group").map(|v| v.clone().into_owned());
-                            emit(Draw::BeginForm(bbox, child.ctm, group), &mut self.objects)?;
-                            self.draw_streams(&[id], child, scopes, emit)?;
-                            emit(Draw::EndForm, &mut self.objects)?;
-                            scopes.pop();
-                        }
+                        self.draw_form(id, st.clone(), scopes, None, emit)?;
                     } else {
                         emit(Draw::Image(ImageStream::Object(id), st.ctm), &mut self.objects)?;
                     }
@@ -597,7 +623,18 @@ impl<'a> PageSource<'a> {
             .page_dict(*self.pages.get(pno.checked_sub(1)?)?, &self.tree)?;
         let mut runs: Vec<TextLine> = vec![];
         let mut space = false;
+        let mut forms = Vec::new();
+        let mut in_mask = false;
         self.draw_page(&page, |event, _| {
+            match &event {
+                Draw::BeginForm(_, _, _, mask) => {
+                    forms.push(in_mask);
+                    in_mask |= mask.is_some();
+                }
+                Draw::EndForm => in_mask = forms.pop()?,
+                _ => {},
+            }
+            if in_mask { return Some(()); }
             if let Draw::Glyph {
                 code,
                 program,

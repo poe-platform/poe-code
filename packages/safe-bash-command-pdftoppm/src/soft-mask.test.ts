@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
 import { PdfDocument, decodePng, dictDelete, dictGet } from "@poe-code/pdf-ast";
-import { runPdftoppmCli } from "./index.js";
+import { runPdftoppmCli, runPdftocairoCli } from "./index.js";
 
 it.each([true, false])("renders Alpha-mask backdrop outside its bounds (BC=%s)", async backdrop => {
   const bytes = new Uint8Array(readFileSync(new URL("../../pdf-ast/src/fixtures/pdfjs-smask_alpha_bc.pdf", import.meta.url)));
@@ -24,3 +24,34 @@ it.each([true, false])("renders Alpha-mask backdrop outside its bounds (BC=%s)",
     expected!.forEach((value, i) => expect(Math.abs(actual![i]! - value)).toBeLessThanOrEqual(1));
   }
 });
+
+const fixtures = new URL("../../safe-bash-rust/tests/fixtures/", import.meta.url);
+const cases = readFileSync(new URL("pdf-soft-masks.txt", fixtures), "utf8")
+  .trim().split("\n").filter(line => !line.startsWith("#")).map(line => line.split(" "));
+for (const run of [runPdftoppmCli, runPdftocairoCli]) {
+  it(`${run.name} composites graphics-state soft masks and preserves ordinary Forms`, async () => {
+    for (const name of new Set(cases.map(row => row[0]!))) {
+      const input = new Uint8Array(readFileSync(new URL(`${name}.pdf`, fixtures)));
+      const files = new Map([["input.pdf", input]]);
+      const result = await run(["-png", "-r", "72", "-singlefile", "input.pdf", "page"], files);
+      expect(result.exitCode, result.stderr).toBe(0);
+      const png = decodePng(files.get("page.png")!);
+      for (const row of cases.filter(row => row[0] === name)) {
+        const [x, y, ...rgb] = row.slice(1).map(Number);
+        const at = (y! * png.width + x!) * 4;
+        rgb.forEach((value, i) => expect(Math.abs(png.data[at + i]! - value), `${run.name} ${row}`).toBeLessThanOrEqual(2));
+      }
+    }
+  });
+}
+
+for (const run of [runPdftoppmCli, runPdftocairoCli]) {
+  it(`${run.name} rejects recursive masks without replacing output`, async () => {
+    const input = readFileSync(new URL("mask-nested.pdf", fixtures));
+    const cyclic = Buffer.from(input.toString("latin1").replace("/G 7 0 R", "/G 6 0 R"), "latin1");
+    const existing = new TextEncoder().encode("existing");
+    const files = new Map([["input.pdf", new Uint8Array(cyclic)], ["page.png", existing]]);
+    await expect(run(["-png", "-r", "72", "-singlefile", "input.pdf", "page"], files)).rejects.toMatchObject({ code: "E_LIMIT" });
+    expect(files.get("page.png")).toEqual(existing);
+  });
+}

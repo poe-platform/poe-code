@@ -17010,3 +17010,5 @@ import "./pdf-blend.test.mjs";
 import "./pdf-cid-font.test.mjs";
 
 import "./pdf-groups.test.mjs";
+
+import "./pdf-soft-masks.test.mjs";

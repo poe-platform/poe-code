@@ -280,6 +280,7 @@ struct Bitmap {
     h: usize,
     pixels: Vec<[u8; 4]>,
     group_alpha: Option<Vec<f64>>,
+    soft_mask: Option<std::rc::Rc<Vec<f64>>>,
     work: usize,
 }
 impl Bitmap {
@@ -447,7 +448,7 @@ impl Bitmap {
                 let v = ((px * yx + py * yy) as usize).min(h - 1);
                 let mut value = scaled[v * w + u];
                 value[3] = div255(u32::from(value[3]) * u32::from(clip_coverage(&clip, x))) as u8;
-                value[3] = (f64::from(value[3]) * opacity).round() as u8;
+                value[3] = (f64::from(value[3]) * opacity * self.soft_mask.as_ref().map_or(1., |m| m[y * self.w + x])).round() as u8;
                 pdf_group::cover(&mut self.group_alpha, y * self.w + x, f64::from(value[3]) / 255.);
                 composite_image_pixel(&mut self.pixels[y * self.w + x], value, self.blend);
             }
@@ -556,7 +557,7 @@ impl Bitmap {
                     let mut value = sample(x, y, &mut self.work)?;
                     value[3] =
                         div255(u32::from(value[3]) * u32::from(clip_coverage(&clip, x))) as u8;
-                    value[3] = (f64::from(value[3]) * opacity).round() as u8;
+                    value[3] = (f64::from(value[3]) * opacity * self.soft_mask.as_ref().map_or(1., |m| m[dest_y * self.w + x])).round() as u8;
                     pdf_group::cover(&mut self.group_alpha, dest_y * self.w + x, f64::from(value[3]) / 255.);
                     composite_image_pixel(&mut self.pixels[dest_y * self.w + x], value, self.blend);
                 }
@@ -620,6 +621,7 @@ impl Bitmap {
                 let coverage = if !aa { 255 } else if let Some(row) = &box_row { row.alpha(x) }
                     else { pdf_cairo_path::area_alpha(areas[x - xs.start]) };
                 let mut opacity = mul255(mul255(coverage.into(), clip_coverage(&clip, x).into()), (opacity * 255.).round() as u32);
+                opacity = (f64::from(opacity) * self.soft_mask.as_ref().map_or(1., |m| m[y * self.w + x])).round() as u32;
                 if opacity == 0 {
                     continue;
                 }
@@ -754,6 +756,7 @@ impl Bitmap {
                 let clip = self.clip_row(y, None)?;
                 let mut draw = |x, coverage: u8| {
                     let alpha = mul255(mul255(coverage.into(), clip_coverage(&clip, x).into()), (opacity * 255.).round() as u32);
+                    let alpha = (f64::from(alpha) * self.soft_mask.as_ref().map_or(1., |m| m[y * self.w + x])).round() as u32;
                     if alpha > 0 {
                         pdf_group::cover(&mut self.group_alpha, y * self.w + x, f64::from(alpha) / 255.);
                         cairo_over(&mut self.pixels[y * self.w + x], &solid, alpha, alpha, 127, self.blend);
@@ -821,7 +824,7 @@ impl Bitmap {
                     f64::from(count) / 16.
                 } else {
                     f64::from(u8::from(count >= 8))
-                } * (f64::from(clip_coverage(&clip,x0+x)) / 255.) * opacity;
+                } * (f64::from(clip_coverage(&clip,x0+x)) / 255.) * opacity * self.soft_mask.as_ref().map_or(1., |m| m[y * self.w + x0 + x]);
                 if a == 0. {
                     continue;
                 }
@@ -1043,6 +1046,7 @@ impl PageSource<'_> {
         } else { [w as f64, h as f64] };
         let mut bitmap = Bitmap {
             group_alpha: None,
+            soft_mask: None,
             blend: BlendMode::Normal,
             page_clip: page_clip.map(|v| (v * 256.).round_ties_even()),
             backend: opt.backend,
@@ -1095,7 +1099,7 @@ impl PageSource<'_> {
                             if !t.is_finite() { return None; }
                             if (t < 0. && !shading.extend[0]) || (t > 1. && !shading.extend[1]) { continue; }
                             let [r, g, b] = shading.color(t.clamp(0., 1.))?;
-                            let alpha = (f64::from(coverage) * fill_alpha).round() as u8;
+                            let alpha = (f64::from(coverage) * fill_alpha * bitmap.soft_mask.as_ref().map_or(1., |m| m[y * w + x])).round() as u8;
                             pdf_group::cover(&mut bitmap.group_alpha, y * w + x, f64::from(alpha) / 255.);
                             composite_image_pixel(&mut bitmap.pixels[y * w + x], [r, g, b, alpha], bitmap.blend);
                         }
@@ -1108,8 +1112,13 @@ impl PageSource<'_> {
                     if let Some(alpha) = stroke { stroke_alpha = alpha; }
                     return Some(());
                 }
-                Draw::BeginForm([x0, y0, x1, y1], [a, b, c, d, e, f], group) => {
+                Draw::ClearMask => { bitmap.soft_mask = None; return Some(()); }
+                Draw::BeginForm([x0, y0, x1, y1], [a, b, c, d, e, f], group, mask) => {
                     let isolated = match group { Some(v) => Some(pdf_group::read(objects, &v)?), None => None };
+                    let prior_clips = mask.as_ref().map(|_| std::mem::take(&mut bitmap.form_clips));
+                    let prior_path = bitmap.path_clip.clone();
+                    if mask.is_some() { bitmap.path_clip = None; }
+                    let prior_mask = bitmap.soft_mask.clone();
                     let pt = |x, y| point(a * x + c * y + e, b * x + d * y + f);
                     bitmap
                         .form_clips
@@ -1126,15 +1135,19 @@ impl PageSource<'_> {
                         bitmap.blend,
                         std::mem::take(&mut paths),
                         std::mem::take(&mut stack),
-                        bitmap.path_clip.clone(),
+                        prior_path,
                         pending_clip.take(),
                         text_clip.take(),
                         match isolated {
-                            Some(isolated) => Some(bitmap.begin_group(isolated, opt.limit, &mut group_bytes)?),
+                            Some(isolated) => Some(bitmap.begin_group(mask.is_some() || isolated, opt.limit, &mut group_bytes)?),
                             None => None,
                         },
+                        prior_mask,
+                        prior_clips,
+                        mask,
                     ));
                     if isolated.is_some() {
+                        bitmap.soft_mask = None;
                         fill_alpha = 1.;
                         stroke_alpha = 1.;
                         bitmap.blend = BlendMode::Normal;
@@ -1143,10 +1156,17 @@ impl PageSource<'_> {
                 }
                 Draw::EndForm => {
                     if pending_clip.is_some() || text_clip.is_some() { return None; }
-                    let group;
-                    (fill, stroke, fill_space, stroke_space, style, fill_alpha, stroke_alpha, bitmap.blend, paths, stack, bitmap.path_clip, pending_clip, text_clip, group) = forms.pop()?;
-                    if let Some(group) = group { bitmap.end_group(group, fill_alpha, &mut group_bytes)?; }
+                    let (group, prior_clips, mask);
+                    (fill, stroke, fill_space, stroke_space, style, fill_alpha, stroke_alpha, bitmap.blend, paths, stack, bitmap.path_clip, pending_clip, text_clip, group, bitmap.soft_mask, prior_clips, mask) = forms.pop()?;
+                    if let Some(group) = group {
+                        if let Some(mask) = mask {
+                            bitmap.end_soft_mask(group, mask, opt.limit, &mut group_bytes)?;
+                        } else {
+                            bitmap.end_group(group, fill_alpha, &mut group_bytes)?;
+                        }
+                    }
                     bitmap.form_clips.pop()?;
+                    if let Some(clips) = prior_clips { bitmap.form_clips = clips; }
                     return Some(());
                 }
                 Draw::Image(stream, matrix) => {
@@ -1253,11 +1273,11 @@ impl PageSource<'_> {
                         return None;
                     }
                     bitmap.work = bitmap.work.checked_sub(style.dash.len())?;
-                    stack.push((fill, stroke, fill_space, stroke_space, style.clone(), fill_alpha, stroke_alpha, bitmap.blend, bitmap.path_clip.clone()));
+                    stack.push((fill, stroke, fill_space, stroke_space, style.clone(), fill_alpha, stroke_alpha, bitmap.blend, bitmap.path_clip.clone(), bitmap.soft_mask.clone()));
                 }
                 b"Q" => {
                     if let Some(state) = stack.pop() {
-                        (fill, stroke, fill_space, stroke_space, style, fill_alpha, stroke_alpha, bitmap.blend, bitmap.path_clip) = state;
+                        (fill, stroke, fill_space, stroke_space, style, fill_alpha, stroke_alpha, bitmap.blend, bitmap.path_clip, bitmap.soft_mask) = state;
                     }
                 }
                 b"cs" | b"CS" => {

@@ -1092,6 +1092,7 @@ pub(crate) fn merge_trees_3way(
             }
         } else {
             // Both modified or modify/delete conflict
+            let mut conflict_content = None;
             match (o, t) {
                 (Some(o_ent), Some(t_ent)) => {
                     let o_bytes = read_blob(fs, gitdir, &o_ent.oid, None)?.blob;
@@ -1102,7 +1103,7 @@ pub(crate) fn merge_trees_3way(
                         Vec::new()
                     };
                     if is_binary(&o_bytes) || is_binary(&t_bytes) || is_binary(&b_bytes) {
-                        conflicts.push(path.clone());
+                        conflict_content = Some(o_bytes);
                     } else {
                         let o_str = String::from_utf8_lossy(&o_bytes);
                         let b_str = String::from_utf8_lossy(&b_bytes);
@@ -1131,38 +1132,49 @@ pub(crate) fn merge_trees_3way(
                                 },
                             ));
                         } else {
-                            conflicts.push(path.clone());
-                            if !abort_on_conflict && !dry_run {
-                                if let Some(d) = dir {
-                                    fs.write_str(&join(&[d, &path]), &merged.merged_text);
-                                }
-                                GitIndexManager::acquire(fs, gitdir, |index| {
-                                    let dummy_stat = FileStat {
-                                        kind: NodeKind::File,
-                                        mode: 0o100644,
-                                        size: 0,
-                                        ino: 0,
-                                        dev: 0,
-                                        uid: 0,
-                                        gid: 0,
-                                        ctime_seconds: 0,
-                                        ctime_nanoseconds: 0,
-                                        mtime_seconds: 0,
-                                        mtime_nanoseconds: 0,
-                                    };
-                                    if let Some(b_ent) = b {
-                                        index.insert(&path, Some(&dummy_stat), &b_ent.oid, 1);
-                                    }
-                                    index.insert(&path, Some(&dummy_stat), &o_ent.oid, 2);
-                                    index.insert(&path, Some(&dummy_stat), &t_ent.oid, 3);
-                                    Ok(())
-                                })?;
-                            }
+                            conflict_content = Some(merged.merged_text.into_bytes());
                         }
                     }
                 }
                 _ => {
-                    conflicts.push(path.clone());
+                    if let Some(entry) = o.or(t) {
+                        conflict_content = Some(read_blob(fs, gitdir, &entry.oid, None)?.blob);
+                    }
+                }
+            }
+            if let Some(content) = conflict_content {
+                conflicts.push(path.clone());
+                if !abort_on_conflict && !dry_run {
+                    if let Some(d) = dir {
+                        let mode = o.or(t).map(|entry| entry.mode.as_str()).unwrap_or("100644");
+                        fs.write_with_mode(
+                            &join(&[d, &path]),
+                            &content,
+                            u32::from_str_radix(mode, 8).unwrap_or(0o100644),
+                        );
+                    }
+                    GitIndexManager::acquire(fs, gitdir, |index| {
+                        index.delete(&path);
+                        for (stage, entry) in [(1, b), (2, o), (3, t)] {
+                            if let Some(entry) = entry {
+                                let stat = FileStat {
+                                    kind: NodeKind::File,
+                                    mode: u32::from_str_radix(&entry.mode, 8).unwrap_or(0o100644),
+                                    size: 0,
+                                    ino: 0,
+                                    dev: 0,
+                                    uid: 0,
+                                    gid: 0,
+                                    ctime_seconds: 0,
+                                    ctime_nanoseconds: 0,
+                                    mtime_seconds: 0,
+                                    mtime_nanoseconds: 0,
+                                };
+                                index.insert(&path, Some(&stat), &entry.oid, stage);
+                            }
+                        }
+                        Ok(())
+                    })?;
                 }
             }
         }

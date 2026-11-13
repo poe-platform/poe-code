@@ -25,7 +25,8 @@ const geometry = layoutGraph(graph);
 const svg = optimizeSvg(renderSvg(geometry), { precision: 2 });
 ```
 
-`layoutGraph` accepts `{ graph, node, edge }` attribute overrides. Dimensions and
+`layoutGraph` accepts `{ graph, node, edge }` attribute defaults; explicit DOT attributes and
+lexical DOT defaults take precedence. Dimensions and
 coordinates in its result are points (72 points per inch), with the origin at
 the top left. Nodes contain centers, dimensions, ranks, resolved attributes and
 record port centers. Edges preserve their original direction, expose the cycle

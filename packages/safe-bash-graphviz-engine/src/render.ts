@@ -240,7 +240,7 @@ export async function renderGraph(
       ast.statements.unshift({ kind: "attributes", target, attributes: options[target]! });
   admit(ast, limits);
   if (format === "canon") return new TextEncoder().encode(serializeDot(ast));
-  const graph = layoutGraph(ast, options);
+  const graph = layoutGraph(ast);
   if (layout === "neato") {
     if (120 * graph.nodes.length ** 2 > limits.maxLayoutCost)
       throw new UsageError("graph layout cost limit exceeded");

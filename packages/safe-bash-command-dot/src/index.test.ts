@@ -1,3 +1,5 @@
+import { readFileSync } from "node:fs";
+import { layoutGraph, parseDot, renderSvg } from "@poe-code/graphviz-ast";
 import { expect, test } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource } from "safe-bash-contracts";
@@ -67,4 +69,20 @@ test.each(["svg", "pdf", "png"])("renders DOT to %s in the VFS", async format =>
   if (format === "svg") expect(new TextDecoder().decode(bytes)).toContain("Build");
   if (format === "pdf") expect(PdfDocument.load(bytes).pageCount).toBe(1);
   if (format === "png") expect(decodePng(bytes).width).toBeGreaterThan(0);
+});
+
+test("DOT colors beat command defaults and canon retains the same effective styles", async () => {
+  const source = readFileSync(new URL("../../graphviz-ast/fixtures/styles.dot", import.meta.url), "utf8");
+  const defaults = ["-Gbgcolor=#000000", "-Nfillcolor=#edf5ff", "-Nshape=box", "-Nstyle=rounded,filled", "-Ecolor=#637f96"];
+  const svg = await run(source, ["-Tsvg", ...defaults]);
+  const canon = await run(source, ["-Tcanon", ...defaults]);
+  expect(svg.exitCode).toBe(0);
+  expect(canon.exitCode).toBe(0);
+  expect(svg.stdout).toBe(renderSvg(layoutGraph(parseDot(canon.stdout))));
+  for (const color of ["#fffaf0", "#edf5ff", "#ccfbf1", "#e0f2fe", "#fce7f3"])
+    expect(svg.stdout).toContain(`fill="${color}"`);
+  for (const color of ["#d97706", "#637f96", "#7c3aed"])
+    expect(svg.stdout).toContain(`stroke="${color}"`);
+  expect(svg.stdout).not.toContain('fill="#000000"');
+  expect((await run("digraph { a }", ["-Tsvg", ...defaults])).stdout).toContain('fill="#000000"');
 });

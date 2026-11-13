@@ -152,11 +152,11 @@ function ports(node: LayoutNode): void {
 
 export function layoutGraph(graph: DotGraph, options: LayoutOptions = {}): GraphLayout {
   const model = resolveGraph(graph);
-  const attributes = { ...model.attributes, ...options.graph };
+  const attributes = { ...options.graph, ...model.attributes };
   const rankdir = attributes.rankdir ?? "TB";
   const horizontal = rankdir === "LR" || rankdir === "RL";
   const nodes: LayoutNode[] = model.nodes.map((n) => {
-    const attrs = { ...n.attributes, ...options.node };
+    const attrs = { ...options.node, ...n.attributes };
     const [width, height] = nodeSize(n.id, attrs);
     return { id: n.id, attributes: attrs, width, height, x: 0, y: 0, rank: 0, ports: {} };
   });
@@ -175,7 +175,7 @@ export function layoutGraph(graph: DotGraph, options: LayoutOptions = {}): Graph
   const representatives = [...new Set(parent.map((_, i) => find(i)))];
   const groupIndex = new Map(representatives.map((r, i) => [r, i]));
   const groupOf = nodes.map((_, i) => groupIndex.get(find(i))!);
-  const edgeAttributes = model.edges.map((e) => ({ ...e.attributes, ...options.edge }));
+  const edgeAttributes = model.edges.map((e) => ({ ...options.edge, ...e.attributes }));
   const labelSizes = edgeAttributes.map((a) => {
     const size = numeric(a.fontsize, 14, 1);
     const lines = labelLines(a.label ?? "");

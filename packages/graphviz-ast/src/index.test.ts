@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { parseDot, serializeDot, layoutGraph, renderSvg, optimizeSvg } from "./index.js";
 
@@ -196,4 +197,31 @@ describe("SVG output", () => {
     expect(result).toContain('d="m10 10H15V15c1 2 3 4 5 6Z"');
     expect(result).toContain('transform="translate(1.12 2.54)"');
   });
+});
+
+it("uses caller attributes only as fallbacks for ordered DOT styles", () => {
+  const source = readFileSync(new URL("../fixtures/styles.dot", import.meta.url), "utf8");
+  const graph = parseDot(source);
+  const layout = layoutGraph(graph, {
+    graph: { bgcolor: "#000000" },
+    node: { fillcolor: "#edf5ff", shape: "box", style: "rounded,filled" },
+    edge: { color: "#637f96" }
+  });
+  expect(layout.attributes.bgcolor).toBe("#fffaf0");
+  expect(layout.nodes.map((n) => n.attributes.fillcolor)).toEqual([
+    "#edf5ff",
+    "#ccfbf1",
+    "#e0f2fe",
+    "#e0f2fe",
+    "#fce7f3"
+  ]);
+  expect(layout.edges.map((e) => e.attributes.color)).toEqual(["#d97706", "#637f96", "#7c3aed"]);
+  const svg = renderSvg(layout);
+  for (const color of ["#fffaf0", "#edf5ff", "#ccfbf1", "#e0f2fe", "#fce7f3"])
+    expect(svg).toContain(`fill="${color}"`);
+  for (const color of ["#d97706", "#637f96", "#7c3aed"]) expect(svg).toContain(`stroke="${color}"`);
+  expect(
+    layoutGraph(parseDot("digraph { a }"), { graph: { bgcolor: "#000000" } }).attributes.bgcolor
+  ).toBe("#000000");
+  expect(graph).toEqual(parseDot(source));
 });

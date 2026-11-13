@@ -3823,13 +3823,33 @@ mod graphviz_unit_tests {
 
     #[test]
     fn explicit_dot_styles_override_command_line_defaults() {
+        let source = include_str!("../../../graphviz-ast/fixtures/styles.dot");
         let vfs = MemoryVfs::new();
-        let out = cmd_graphviz("dot", &gv_args(&["-Tsvg", "-Nfillcolor=blue", "-Nstyle=filled", "-Ecolor=red"]),
-            "digraph { a [fillcolor=gold]; a -> b [color=purple] }", "/", &vfs);
-        assert_eq!(out.exit_code, 0);
-        for style in ["fill=\"gold\"", "fill=\"blue\"", "stroke=\"purple\""] {
-            assert!(out.stdout.contains(style), "missing {style}");
+        let defaults = ["-Gbgcolor=#000000", "-Nfillcolor=#edf5ff", "-Nshape=box", "-Nstyle=rounded,filled", "-Ecolor=#637f96"];
+        let mut args = gv_args(&defaults);
+        args.push("-Tsvg".into());
+        let svg = cmd_graphviz("dot", &args, source, "/", &vfs);
+        assert_eq!(svg.exit_code, 0, "{}", svg.stderr);
+        for color in ["#fffaf0", "#edf5ff", "#ccfbf1", "#e0f2fe", "#fce7f3"] {
+            assert!(svg.stdout.contains(&format!("fill=\"{color}\"")), "missing fill {color}");
         }
+        for color in ["#d97706", "#637f96", "#7c3aed"] {
+            assert!(svg.stdout.contains(&format!("stroke=\"{color}\"")), "missing stroke {color}");
+        }
+        assert!(!svg.stdout.contains("fill=\"#000000\""));
+        let fallback = cmd_graphviz("dot", &args, "digraph { a }", "/", &vfs);
+        assert_eq!(fallback.exit_code, 0);
+        assert!(fallback.stdout.contains("fill=\"#000000\""));
+        *args.last_mut().unwrap() = "-Tcanon".into();
+        let canon = cmd_graphviz("dot", &args, source, "/", &vfs);
+        assert_eq!(canon.exit_code, 0);
+        let canonical_svg = cmd_graphviz("dot", &gv_args(&["-Tsvg"]), &canon.stdout, "/", &vfs);
+        assert_eq!(canonical_svg.exit_code, 0);
+        assert_eq!(svg.stdout, canonical_svg.stdout);
+        let public_svg = render_dot_svg(source, &[("bgcolor", "#000000")],
+            &[("fillcolor", "#edf5ff"), ("shape", "box"), ("style", "rounded,filled")],
+            &[("color", "#637f96")]).unwrap();
+        assert_eq!(svg.stdout.as_bytes(), public_svg);
     }
 
     #[test]

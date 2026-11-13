@@ -635,6 +635,42 @@ dual_fixture_test!(cli_merge_base_and_is_ancestor, cli_merge_base_and_is_ancesto
     assert_eq!(r_anc_no.exit_code, 1);
 });
 
+dual_fixture_test!(cli_merge_base_criss_cross, cli_merge_base_criss_cross_sub, "test-merge", |f| {
+    let tree = execute_git_cli(&f.fs, &f.dir, &["write-tree"]);
+    assert_eq!(tree.exit_code, 0);
+    let make_commit = |message: &str, parents: &[&str]| {
+        let mut args = vec!["commit-tree", tree.stdout.trim(), "-m", message];
+        for parent in parents {
+            args.extend(["-p", *parent]);
+        }
+        let result = execute_git_cli(&f.fs, &f.dir, &args);
+        assert_eq!(result.exit_code, 0, "{}", result.stderr);
+        result.stdout.trim().to_string()
+    };
+    let root = make_commit("root", &[]);
+    let x = make_commit("x", &[&root]);
+    let y = make_commit("y", &[&root]);
+    let u = make_commit("u", &[&x, &y]);
+    let v = make_commit("v", &[&y, &x]);
+    for (left, right) in [(&u, &v), (&v, &u)] {
+        let result = execute_git_cli(&f.fs, &f.dir, &["merge-base", left, right]);
+        assert_eq!(result.exit_code, 0);
+        assert!(result.stderr.is_empty());
+        assert_eq!(result.stdout.lines().count(), 1);
+        assert!([x.as_str(), y.as_str()].contains(&result.stdout.trim()));
+        for flag in ["--all", "-a"] {
+            let result = execute_git_cli(&f.fs, &f.dir, &["merge-base", flag, left, right]);
+            assert_eq!(result.exit_code, 0);
+            assert!(result.stderr.is_empty());
+            let mut bases: Vec<_> = result.stdout.lines().collect();
+            bases.sort();
+            let mut expected = vec![x.as_str(), y.as_str()];
+            expected.sort();
+            assert_eq!(bases, expected);
+        }
+    }
+});
+
 dual_fixture_test!(cli_check_ignore_default_and_quiet, cli_check_ignore_default_and_quiet_sub, "test-isIgnored", |f| {
     f.fs.write_str(&join(&[&f.dir, ".gitignore"]), "i.txt\n");
     let r_ignored = execute_git_cli(&f.fs, &f.dir, &["check-ignore", "i.txt"]);

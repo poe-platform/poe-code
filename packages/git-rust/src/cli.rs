@@ -3022,7 +3022,10 @@ pub fn execute_git_cli_with_input(
                 }
             } else {
                 match crate::commands::plumbing::find_merge_base(fs, &gitdir, &[oid1, oid2]) {
-                    Ok(bases) if !bases.is_empty() => {
+                    Ok(mut bases) if !bases.is_empty() => {
+                        if !sub_args.contains(&"--all") && !sub_args.contains(&"-a") {
+                            bases.truncate(1);
+                        }
                         CliResult::ok(bases.into_iter().map(|b| format!("{b}\n")).collect::<String>())
                     }
                     _ => CliResult::err(1, ""),

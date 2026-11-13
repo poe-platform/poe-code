@@ -1,3 +1,4 @@
+import { Resvg } from "@resvg/resvg-js";
 import { readFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { dirname, join } from "node:path";
@@ -500,5 +501,31 @@ describe("renderPng", () => {
       Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])
     );
     expect(png.length).toBeGreaterThan(8);
+  });
+});
+
+describe("SVG opacity compositing", () => {
+  const cases = readFileSync(new URL("../fixtures/opacity.tsv", import.meta.url), "utf8")
+    .trim()
+    .split("\n")
+    .map((line) => line.split("\t"));
+  it.each(cases)("composites %s once", (_name, svg, probes) => {
+    const png = renderPng(svg);
+    expect(png.readUInt32BE(16)).toBe(120);
+    expect(png.readUInt32BE(20)).toBe(80);
+    // Decode the actual public PNG output without relying on its encoder/filter choices.
+    const decoded = new Resvg(
+      `<svg xmlns="http://www.w3.org/2000/svg" width="120" height="80"><image width="120" height="80" href="data:image/png;base64,${png.toString("base64")}"/></svg>`,
+      { font: { loadSystemFonts: false } }
+    ).render().pixels;
+    for (const probe of probes.split(";")) {
+      const [x, y, ...rgba] = probe.split(",").map(Number);
+      const at = (y * 120 + x) * 4;
+      rgba.forEach((value, channel) => {
+        // resvg exposes premultiplied RGBA.
+        const expected = channel < 3 ? Math.round(value * rgba[3] / 255) : value;
+        expect(Math.abs(decoded[at + channel] - expected), probe).toBeLessThanOrEqual(1);
+      });
+    }
   });
 });

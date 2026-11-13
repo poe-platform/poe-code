@@ -56,3 +56,20 @@ test('raster optimization preserves clipped, translucent and offscreen shapes',a
 test('PNG reconstruction preserves multiple RGBA rows and alpha',async()=>{
  const{createRequire}=await import('node:module'),{inflateSync}=await import('node:zlib'),native=createRequire(import.meta.url)('../dist/terminal-png-rust.node');const width=37,height=11,rgba=Buffer.from(Array.from({length:width*height*4},(_,i)=>(i*37+(i>>>5))%256)),png=native.terminalEncodePng(width,height,rgba);let at=8,data=[];while(at<png.length){let length=png.readUInt32BE(at);if(png.toString('ascii',at+4,at+8)==='IDAT')data.push(png.subarray(at+8,at+8+length));at+=12+length;}const filtered=inflateSync(Buffer.concat(data)),decoded=Buffer.alloc(rgba.length);for(let y=0;y<height;y++){const filter=filtered[y*(width*4+1)];assert.ok([0,2].includes(filter));for(let x=0;x<width*4;x++){const i=y*width*4+x;decoded[i]=(filtered[y*(width*4+1)+1+x]+(filter===2&&y>0?decoded[i-width*4]:0))%256;}}assert.deepEqual(decoded,rgba);
 });
+
+test('native raster composites the shared opacity fixtures once', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { createRequire } = await import('node:module');
+  const native = createRequire(import.meta.url)('../dist/terminal-png-rust.node');
+  const fixtures = readFileSync(new URL('../../terminal-png/fixtures/opacity.tsv', import.meta.url), 'utf8');
+  for (const line of fixtures.trim().split('\n')) {
+    const [name, svg, probes] = line.split('\t');
+    const pixels = native.terminalRasterRgba(svg);
+    for (const probe of probes.split(';')) {
+      const [x, y, ...rgba] = probe.split(',').map(Number);
+      rgba.forEach((value, channel) => {
+        assert.ok(Math.abs(pixels[(y * 120 + x) * 4 + channel] - value) <= 1, `${name}: ${probe}`);
+      });
+    }
+  }
+});

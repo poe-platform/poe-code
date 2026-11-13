@@ -50,6 +50,7 @@ impl Matrix {
 struct Paint {
     fill: Option<[u8; 4]>,
     opacity: f64,
+    fill_opacity: f64,
     font_size: f64,
     bold: bool,
     italic: bool,
@@ -64,6 +65,7 @@ impl Default for Paint {
         Self {
             fill: Some([0, 0, 0, 255]),
             opacity: 1.0,
+            fill_opacity: 1.0,
             font_size: 16.0,
             bold: false,
             italic: false,
@@ -247,6 +249,7 @@ fn transform(value: &str) -> Result<Matrix, &'static str> {
 impl Paint {
     fn apply(&self, e: &Element) -> Result<Self, &'static str> {
         let mut out = self.clone();
+        out.opacity = 1.0;
         let mut attrs = e
             .attributes
             .iter()
@@ -259,12 +262,11 @@ impl Paint {
                 }
             }
         }
-        let mut fill_opacity = None;
         for (key, value) in attrs {
             match key {
                 "fill" => out.fill = color(value),
-                "opacity" => out.opacity *= number(value).unwrap_or(1.0).clamp(0.0, 1.0),
-                "fill-opacity" => fill_opacity = number(value),
+                "opacity" => out.opacity = number(value).unwrap_or(1.0).clamp(0.0, 1.0),
+                "fill-opacity" => out.fill_opacity = number(value).unwrap_or(1.0).clamp(0.0, 1.0),
                 "font-size" => out.font_size = number(value).unwrap_or(out.font_size),
                 "font-weight" => {
                     out.bold = value == "bold" || number(value).is_some_and(|v| v >= 600.0)
@@ -283,9 +285,6 @@ impl Paint {
                 }
                 _ => {}
             }
-        }
-        if let Some(opacity) = fill_opacity {
-            out.opacity *= opacity.clamp(0.0, 1.0);
         }
         Ok(out)
     }
@@ -369,8 +368,35 @@ struct Canvas {
     image: Image,
     glyphs: HashMap<(usize, u16), Outline>,
     characters: usize,
+    layer_pixels: usize,
 }
 impl Canvas {
+    fn layer(
+        &mut self,
+        opacity: f64,
+        draw: impl FnOnce(&mut Self) -> Result<(), &'static str>,
+    ) -> Result<(), &'static str> {
+        if opacity == 1.0 {
+            return draw(self);
+        }
+        // Cumulative pixels bound both live layer memory and compositing work,
+        // including sequential siblings as well as nested groups.
+        let pixels = self.image.rgba.len() / 4;
+        self.layer_pixels += pixels;
+        if self.layer_pixels > 64 * 1024 * 1024 {
+            return Err("SVG opacity layers exceed pixel budget");
+        }
+        let background = std::mem::replace(&mut self.image.rgba, vec![0; pixels * 4]);
+        let result = draw(self);
+        let foreground = std::mem::replace(&mut self.image.rgba, background);
+        result?;
+        let width = self.image.width as usize;
+        for (i, color) in foreground.as_chunks::<4>().0.iter().enumerate() {
+            self.blend(i % width, i / width, *color, 1.0, opacity);
+        }
+        Ok(())
+    }
+
     fn blend(&mut self, x: usize, y: usize, color: [u8; 4], coverage: f64, opacity: f64) {
         let alpha = coverage * opacity * f64::from(color[3]) / 255.0;
         if alpha <= 0.0 {
@@ -481,7 +507,13 @@ impl Canvas {
             }
             for (x, cov) in coverage.iter().copied().enumerate() {
                 if cov > 0.0 {
-                    self.blend(x + min_x, y, color, cov.min(1.0), paint.opacity);
+                    self.blend(
+                        x + min_x,
+                        y,
+                        color,
+                        cov.min(1.0),
+                        paint.opacity * paint.fill_opacity,
+                    );
                 }
             }
         }
@@ -550,7 +582,17 @@ impl Canvas {
         parent: &Paint,
         cursor: &mut (f64, f64),
     ) -> Result<(), &'static str> {
-        let paint = parent.apply(e)?;
+        let mut paint = parent.apply(e)?;
+        let opacity = paint.opacity;
+        paint.opacity = 1.0;
+        self.layer(opacity, |canvas| canvas.text_content(e, &paint, cursor))
+    }
+    fn text_content(
+        &mut self,
+        e: &Element,
+        paint: &Paint,
+        cursor: &mut (f64, f64),
+    ) -> Result<(), &'static str> {
         let x = e
             .attribute("x")
             .map(numbers)
@@ -572,7 +614,7 @@ impl Canvas {
         let mut index = 0;
         for child in &e.children {
             match child {
-                Node::Element(span) => self.text(span, &paint, cursor)?,
+                Node::Element(span) => self.text(span, paint, cursor)?,
                 Node::Text(text) => {
                     for ch in text.chars() {
                         self.characters += 1;
@@ -608,7 +650,7 @@ impl Canvas {
                             ..Matrix::identity()
                         });
                         let edges = glyph_edges(outline, matrix);
-                        self.fill(&edges, &paint)?;
+                        self.fill(&edges, paint)?;
                         let advance = f64::from(font.advance(glyph)?) * scale;
                         if paint.underline {
                             self.rect(
@@ -616,7 +658,7 @@ impl Canvas {
                                 cursor.1 + paint.font_size * 0.1,
                                 advance,
                                 paint.font_size * 0.06,
-                                &paint,
+                                paint,
                             )?;
                         }
                         if paint.strike {
@@ -625,7 +667,7 @@ impl Canvas {
                                 cursor.1 - paint.font_size * 0.3,
                                 advance,
                                 paint.font_size * 0.06,
-                                &paint,
+                                paint,
                             )?;
                         }
                         cursor.0 += advance;
@@ -650,11 +692,14 @@ impl Canvas {
         }
         match name {
             "svg" | "g" => {
-                for node in &e.children {
-                    if let Node::Element(child) = node {
-                        self.element(child, &paint)?;
+                self.layer(paint.opacity, |canvas| {
+                    for node in &e.children {
+                        if let Node::Element(child) = node {
+                            canvas.element(child, &paint)?;
+                        }
                     }
-                }
+                    Ok(())
+                })?;
             }
             "rect" => self.rect(
                 attribute(e, "x", 0.0),
@@ -732,6 +777,7 @@ pub fn render(svg: &str) -> Result<Image, &'static str> {
         image,
         glyphs: HashMap::new(),
         characters: 0,
+        layer_pixels: 0,
     };
     let mut paint = Paint::default();
     if let Some(view) = root.attribute("viewBox") {
@@ -752,4 +798,30 @@ pub fn render(svg: &str) -> Result<Image, &'static str> {
     }
     canvas.element(&root, &paint)?;
     Ok(canvas.image)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn opacity_layers_bound_nested_memory_and_sibling_work() {
+        let mut canvas = Canvas {
+            image: Image {
+                width: 1,
+                height: 1,
+                rgba: vec![0; 4],
+            },
+            glyphs: HashMap::new(),
+            characters: 0,
+            layer_pixels: 64 * 1024 * 1024 - 1,
+        };
+        let error = "SVG opacity layers exceed pixel budget";
+        assert_eq!(canvas.layer(0.5, |c| c.layer(0.5, |_| Ok(()))), Err(error));
+        assert_eq!(canvas.image.rgba, vec![0; 4]);
+        canvas.layer_pixels = 64 * 1024 * 1024 - 1;
+        assert!(canvas.layer(0.5, |_| Ok(())).is_ok());
+        assert_eq!(canvas.layer(0.5, |_| Ok(())), Err(error));
+        assert!(canvas.layer(1.0, |_| Ok(())).is_ok());
+    }
 }

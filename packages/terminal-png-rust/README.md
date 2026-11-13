@@ -39,10 +39,11 @@ bundled; cores use std and own JSON code, with no runtime SDK or resvg fallback.
 Font and Unicode data licenses are included. Python bindings are not yet added.
 
 The terminal SVG dialect supports rectangles, circles, ellipses, polygons,
-transforms, groups, text/spans, colors, styles and bundled font outlines. General
+transforms, groups, text/spans, colors, styles and bundled font outlines. Element
+opacity composites once, separately from inherited fill opacity. General
 SVG paths, clipping, gradients, masks, filters, strokes, rounded rectangles and
 complex text shaping remain incomplete. Drawing budgets bound XML, dimensions,
-glyphs and outlines. This private additive package keeps existing imports intact.
+glyphs, outlines and cumulative opacity-layer pixels (64 million). This private additive package keeps existing imports intact.
 
 The existing renderer/CLI comparisons pass, together with Unicode conformance
 vectors and native image/codec checks. Representative dimensions match the SDK;

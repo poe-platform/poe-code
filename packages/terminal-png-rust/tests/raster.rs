@@ -33,3 +33,24 @@ fn fractional_rectangles_preserve_pixel_coverage() {
     assert_eq!(image.rgba[3], 255);
     assert_eq!(image.rgba[(16 + 1) * 4 + 3], 255);
 }
+
+#[test]
+fn opacity_composites_elements_once() {
+    for line in include_str!("../../terminal-png/fixtures/opacity.tsv").lines() {
+        let fields: Vec<_> = line.split('\t').collect();
+        let image = render(fields[1]).unwrap();
+        assert_eq!((image.width, image.height), (120, 80));
+        for probe in fields[2].split(';') {
+            let values: Vec<usize> = probe.split(',').map(|v| v.parse().unwrap()).collect();
+            let at = (values[1] * 120 + values[0]) * 4;
+            for channel in 0..4 {
+                assert!(
+                    (image.rgba[at + channel] as i32 - values[channel + 2] as i32).abs() <= 1,
+                    "{}: {probe}: {:?}",
+                    fields[0],
+                    &image.rgba[at..at + 4]
+                );
+            }
+        }
+    }
+}

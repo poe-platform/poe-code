@@ -163,6 +163,23 @@ fn measure(s: &str, size: f64, bold: bool) -> f64 {
 fn snap(v: f64) -> i32 {
     (v / 8.).ceil() as i32 * 8
 }
+#[cfg(test)]
+mod quote_tests {
+    #[test]
+    fn quote_escapes_are_decoded_before_wrapping() {
+        assert_eq!(
+            super::text_block(
+                "Search query: cheap flights #quot;new york#quot;",
+                14., false, 240., 10,
+            ),
+            super::text_block(
+                "Search query: cheap flights \"new york\"",
+                14., false, 240., 10,
+            )
+        );
+    }
+}
+
 fn text_block(
     text: &str,
     size: f64,
@@ -173,6 +190,11 @@ fn text_block(
     let mut normalized = String::with_capacity(text.len());
     let mut tail = text;
     while !tail.is_empty() {
+        if let Some(rest) = tail.strip_prefix("#quot;") {
+            normalized.push('"');
+            tail = rest;
+            continue;
+        }
         let skip = if tail.starts_with("\\n") || tail.starts_with("\r\n") {
             2
         } else if tail.starts_with('\r') {

@@ -24,6 +24,11 @@ export function normalizeLabelText(input: string): string {
   let i = 0;
   while (i < input.length) {
     const ch = input[i]!;
+    if (ch === "#" && input.startsWith("#quot;", i)) {
+      out += '"';
+      i += 6;
+      continue;
+    }
     if (ch === "\r") {
       if (input[i + 1] === "\n") i++;
       out += "\n";

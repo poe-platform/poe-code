@@ -8,6 +8,24 @@ import { rasterizeScene } from "./raster.js";
 import { serializeSceneToSvg } from "./svg.js";
 
 describe("SVG serializer, 4x4 subpixel rasterizer, and RFC 2083 PNG codec", () => {
+  it("decodes Mermaid quote escapes before measuring and wrapping flowchart labels", () => {
+    const scene = layoutMermaid(parseMermaid('flowchart TD\nQ["Search query: cheap flights #quot;new york#quot;"]'));
+    const node = scene.nodes[0]!;
+    assert.equal(node.lines.map((line) => line.text).join(" "), 'Search query: cheap flights "new york"');
+    const svg = serializeSceneToSvg(scene);
+    assert.ok(svg.includes("&quot;new"));
+    assert.ok(svg.includes("york&quot;"));
+    assert.ok(!svg.includes("#quot;"));
+    for (const line of node.lines) {
+      assert.ok(line.x - line.width / 2 >= node.x);
+      assert.ok(line.x + line.width / 2 <= node.x + node.width);
+      assert.ok(line.y - line.fontSize >= node.y);
+      assert.ok(line.y <= node.y + node.height);
+    }
+    const literal = layoutMermaid(parseMermaid("flowchart TD\nQ['Search query: cheap flights \"new york\"']"));
+    assert.deepEqual(scene.nodes, literal.nodes);
+  });
+
   it("serializes valid escaped SVG with elevation shadow filter, dart markers, and viewBox, and blocks <script>", () => {
     assert.throws(
       () => parseMermaid(`flowchart LR\nA([Start <script>]) --> B`),

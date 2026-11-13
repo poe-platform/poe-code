@@ -68,12 +68,14 @@ struct Resources<'a> {
     form: Option<super::ObjectId>,
     fonts: BTreeMap<std::borrow::Cow<'a, [u8]>, Rc<Font>>,
     graphics: BTreeMap<std::borrow::Cow<'a, [u8]>, Value<'a>>,
+    shadings: BTreeMap<std::borrow::Cow<'a, [u8]>, Value<'a>>,
     xobjects: BTreeMap<std::borrow::Cow<'a, [u8]>, super::ObjectId>,
 }
 pub(super) enum Draw<'a, 'b> {
     BeginForm([f64; 4], Matrix),
     EndForm,
     Opacity { fill: Option<f64>, stroke: Option<f64> },
+    Shading(Value<'static>, Matrix),
     Image(ImageStream<'a>, Matrix),
     Operator(&'a [u8], &'a [Value<'b>], Matrix),
     Glyph {
@@ -90,6 +92,10 @@ pub(super) enum Draw<'a, 'b> {
 impl<'a> Resources<'a> {
     fn load(&mut self, objects: &mut super::Objects<'a>, res: &Value<'a>) -> Option<()> {
         let res = objects.resolve(res)?;
+        if let Some(value) = res.get(b"Shading") {
+            let Value::Dict(entries) = objects.resolve(value)? else { return None; };
+            self.shadings.extend(entries);
+        }
         if let Some(value) = res.get(b"ExtGState") {
             let Value::Dict(entries) = objects.resolve(value)? else { return None; };
             self.graphics.extend(entries);
@@ -231,6 +237,12 @@ impl<'a> PageSource<'a> {
                 };
                 let num = |i: usize| args.get(i)?.poppler_number();
                 emit(Draw::Operator(op, &args, st.ctm), &mut self.objects)?;
+                if op == b"sh" {
+                    if args.len() != 1 { return None; }
+                    let name = args[0].word()?.strip_prefix(b"/")?;
+                    let value = scopes.iter().rev().find_map(|scope| scope.shadings.get(name))?;
+                    emit(Draw::Shading(value.clone().into_owned(), st.ctm), &mut self.objects)?;
+                }
                 if op == b"gs" {
                     if args.len() != 1 { return None; }
                     let name = args[0].word()?.strip_prefix(b"/")?;

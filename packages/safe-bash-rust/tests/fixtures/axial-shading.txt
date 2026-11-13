@@ -1,0 +1,13 @@
+transformed|0 0.5 -1 0 100 25 cm /Blend sh|/Coords [0 0 100 0] /Extend [false false]|50,10,255,255,255 50,50,128,0,128 50,90,255,255,255
+sheared|1 0 1 1 0 0 cm /Blend sh|/Coords [0 0 100 0] /Extend [true true]|50,50,255,0,0 80,50,178,0,77
+extend false|/Blend sh|/Coords [25 0 75 0] /Extend [false false]|10,50,255,255,255 50,50,128,0,128 90,50,255,255,255
+extend true|/Blend sh|/Coords [25 0 75 0] /Extend [true true]|10,50,255,0,0 50,50,128,0,128 90,50,0,0,255
+clip|20 20 60 60 re W n /Blend sh|/Coords [0 0 100 0] /Extend [true true]|10,50,255,255,255 50,50,128,0,128 90,50,255,255,255 50,10,255,255,255
+bbox|/Blend sh|/Coords [0 0 100 0] /Extend [true true] /BBox [20 20 80 80]|10,50,255,255,255 50,50,128,0,128 90,50,255,255,255
+restore|q 0 0 10 10 re W n /Blend sh Q /Blend sh|/Coords [0 0 100 0] /Extend [true true]|50,50,128,0,128 90,50,26,0,229
+exponent|/Blend sh|/Coords [0 0 100 0] /Function << /FunctionType 2 /Domain [0 1] /C0 [1 0 0] /C1 [0 0 1] /N 2 >>|50,50,191,0,64
+domain and range|/Blend sh|/Coords [0 0 100 0] /Domain [0.2 0.8] /Function << /FunctionType 2 /Domain [0 1] /Range [0 0.6 0 1 0 1] /C0 [1 0 0] /C1 [0 0 1] /N 1 >>|10,50,153,0,66 50,50,128,0,128
+function array|/Blend sh|/Coords [0 0 100 0] /Function [<< /FunctionType 2 /Domain [0 1] /C0 [1] /C1 [0] /N 1 >> << /FunctionType 2 /Domain [0 1] /C0 [0] /C1 [0] /N 1 >> << /FunctionType 2 /Domain [0 1] /N 1 >>]|50,50,128,0,128
+gray|/Blend sh|/ColorSpace /DeviceGray /Coords [0 0 100 0] /Function << /FunctionType 2 /Domain [0 1] /N 1 >>|50,50,128,128,128
+form|/Fm Do|/Coords [0 0 100 0] /Extend [true true]|20,50,255,255,255 50,50,128,0,128 80,50,255,255,255
+even odd|0 0 100 100 re 40 40 20 20 re W* n /Blend sh|/Coords [0 0 100 0] /Extend [true true]|20,50,204,0,51 50,50,255,255,255 80,50,51,0,204

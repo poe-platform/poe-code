@@ -7,7 +7,9 @@ mod pdf_cairo_image;
 mod pdf_cairo_path;
 #[path = "pdf_glyph.rs"]
 mod pdf_glyph;
-use super::{PageSource, Value};
+use super::{Objects, PageSource, Value};
+#[path = "pdf_axial_shading.rs"]
+mod pdf_axial_shading;
 type Point = [f64; 2];
 #[derive(Clone, Copy, PartialEq)]
 pub(in crate::commands::archive) enum RasterBackend {
@@ -990,6 +992,35 @@ impl PageSource<'_> {
         let mut forms = vec![];
         self.draw_page(&page, |event, objects| {
             let (op, args, ctm) = match event {
+                Draw::Shading(value, [a, b, c, d, e, f]) => {
+                    let shading = pdf_axial_shading::Axial::read(objects, &value)?;
+                    let [xx, yx] = axis(a, b);
+                    let [xy, yy] = axis(c, d);
+                    let [tx, ty] = point(e, f);
+                    let det = xx * yy - xy * yx;
+                    if !det.is_finite() || det == 0. { return None; }
+                    let [x0, y0, x1, y1] = shading.coords;
+                    let (dx, dy) = (x1 - x0, y1 - y0);
+                    let length = dx * dx + dy * dy;
+                    if !length.is_finite() { return None; }
+                    bitmap.work = bitmap.work.checked_sub(w.checked_mul(h)?.checked_mul(8)?)?;
+                    for y in 0..h {
+                        let clip = bitmap.clip_row(y, None)?;
+                        for x in 0..w {
+                            let coverage = clip_coverage(&clip, x);
+                            if coverage == 0 { continue; }
+                            let (px, py) = (x as f64 + 0.5 - tx, y as f64 + 0.5 - ty);
+                            let (u, v) = ((yy * px - xy * py) / det, (xx * py - yx * px) / det);
+                            if shading.bbox.is_some_and(|b| u < b[0] || u > b[2] || v < b[1] || v > b[3]) { continue; }
+                            let t = ((u - x0) * dx + (v - y0) * dy) / length;
+                            if !t.is_finite() { return None; }
+                            if (t < 0. && !shading.extend[0]) || (t > 1. && !shading.extend[1]) { continue; }
+                            let [r, g, b] = shading.color(t.clamp(0., 1.))?;
+                            composite_image_pixel(&mut bitmap.pixels[y * w + x], [r, g, b, (f64::from(coverage) * fill_alpha).round() as u8]);
+                        }
+                    }
+                    return Some(());
+                }
                 Draw::Opacity { fill, stroke } => {
                     if let Some(alpha) = fill { fill_alpha = alpha; }
                     if let Some(alpha) = stroke { stroke_alpha = alpha; }

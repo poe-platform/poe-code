@@ -16933,3 +16933,5 @@ test("embedded TrueType rejects overflowing cmap groups without replacing output
 });
 
 import "./pdf-opacity.test.mjs";
+
+import "./pdf-shading.test.mjs";

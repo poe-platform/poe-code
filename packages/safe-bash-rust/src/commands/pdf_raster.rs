@@ -294,6 +294,7 @@ impl Bitmap {
         mask: Option<&Image>,
         [a, b, c, d, e, f]: [f64; 6],
         limit: usize,
+        opacity: f64,
     ) -> Option<()> {
         // Image coordinates start at the top left. First scale in image space,
         // then map device pixel centers back into that bitmap.
@@ -373,6 +374,7 @@ impl Bitmap {
                 let v = ((px * yx + py * yy) as usize).min(h - 1);
                 let mut value = scaled[v * w + u];
                 value[3] = div255(u32::from(value[3]) * u32::from(clip_coverage(&clip, x))) as u8;
+                value[3] = (f64::from(value[3]) * opacity).round() as u8;
                 composite_image_pixel(&mut self.pixels[y * self.w + x], value);
             }
             Some(())
@@ -433,6 +435,7 @@ impl Bitmap {
         mask: Option<Image>,
         matrix: [f64; 6],
         limit: usize,
+        opacity: f64,
     ) -> Option<()> {
         let [a, b, c, d, e, f] = matrix;
         let det = a * d - b * c;
@@ -441,7 +444,7 @@ impl Bitmap {
         }
         // Splash scales an upright image across inclusive device bounds, then clips it.
         if self.backend == RasterBackend::Splash && !(a > 0. && b == 0. && c == 0.) {
-            return self.transformed_image(&im, mask.as_ref(), matrix, limit);
+            return self.transformed_image(&im, mask.as_ref(), matrix, limit, opacity);
         }
         if self.backend == RasterBackend::Splash {
             let left = e.floor();
@@ -479,6 +482,7 @@ impl Bitmap {
                     let mut value = sample(x, y, &mut self.work)?;
                     value[3] =
                         div255(u32::from(value[3]) * u32::from(clip_coverage(&clip, x))) as u8;
+                    value[3] = (f64::from(value[3]) * opacity).round() as u8;
                     composite_image_pixel(&mut self.pixels[dest_y * self.w + x], value);
                 }
             }
@@ -540,7 +544,7 @@ impl Bitmap {
             for x in pixels {
                 let coverage = if !aa { 255 } else if let Some(row) = &box_row { row.alpha(x) }
                     else { pdf_cairo_path::area_alpha(areas[x - xs.start]) };
-                let mut opacity = mul255(coverage.into(), clip_coverage(&clip, x).into());
+                let mut opacity = mul255(mul255(coverage.into(), clip_coverage(&clip, x).into()), (opacity * 255.).round() as u32);
                 if opacity == 0 {
                     continue;
                 }
@@ -562,7 +566,7 @@ impl Bitmap {
         Some(())
     }
 
-    fn paint(&mut self, paths: &[Vec<Point>], color: [f64; 3], even: bool, aa: bool, boxes: bool) -> Option<()> {
+    fn paint(&mut self, paths: &[Vec<Point>], color: [f64; 3], opacity: f64, even: bool, aa: bool, boxes: bool) -> Option<()> {
         let mut lo = [self.w as f64, self.h as f64];
         let mut hi = [0f64; 2];
         let mut edges = vec![];
@@ -605,7 +609,7 @@ impl Bitmap {
             for y in y0..y1 {
                 let clip = self.clip_row(y, None)?;
                 let mut draw = |x, coverage: u8| {
-                    let alpha = mul255(coverage.into(), clip_coverage(&clip, x).into());
+                    let alpha = mul255(mul255(coverage.into(), clip_coverage(&clip, x).into()), (opacity * 255.).round() as u32);
                     if alpha > 0 {
                         cairo_over(&mut self.pixels[y * self.w + x], &solid, alpha, alpha, 127);
                     }
@@ -672,7 +676,7 @@ impl Bitmap {
                     f64::from(count) / 16.
                 } else {
                     f64::from(u8::from(count >= 8))
-                } * (f64::from(clip_coverage(&clip,x0+x)) / 255.);
+                } * (f64::from(clip_coverage(&clip,x0+x)) / 255.) * opacity;
                 if a == 0. {
                     continue;
                 }
@@ -903,11 +907,17 @@ impl PageSource<'_> {
         let mut fill = [0.; 3];
         let mut stroke = [0.; 3];
         let mut width = 1.;
+        let (mut fill_alpha, mut stroke_alpha) = (1., 1.);
         let mut paths: Vec<Vec<Point>> = vec![];
         let mut stack = vec![];
         let mut forms = vec![];
         self.draw_page(&page, |event, objects| {
             let (op, args, ctm) = match event {
+                Draw::Opacity { fill, stroke } => {
+                    if let Some(alpha) = fill { fill_alpha = alpha; }
+                    if let Some(alpha) = stroke { stroke_alpha = alpha; }
+                    return Some(());
+                }
                 Draw::BeginForm([x0, y0, x1, y1], [a, b, c, d, e, f]) => {
                     let pt = |x, y| point(a * x + c * y + e, b * x + d * y + f);
                     bitmap
@@ -917,13 +927,15 @@ impl PageSource<'_> {
                         fill,
                         stroke,
                         width,
+                        fill_alpha,
+                        stroke_alpha,
                         std::mem::take(&mut paths),
                         std::mem::take(&mut stack),
                     ));
                     return Some(());
                 }
                 Draw::EndForm => {
-                    (fill, stroke, width, paths, stack) = forms.pop()?;
+                    (fill, stroke, width, fill_alpha, stroke_alpha, paths, stack) = forms.pop()?;
                     bitmap.form_clips.pop()?;
                     return Some(());
                 }
@@ -967,7 +979,7 @@ impl PageSource<'_> {
                         let [xx, yx] = axis(a, b);
                         let [xy, yy] = axis(-c, -d);
                         let [tx, ty] = point(e + c, f + d);
-                        bitmap.image(image, mask, [xx, yx, xy, yy, tx, ty], opt.limit)?;
+                        bitmap.image(image, mask, [xx, yx, xy, yy, tx, ty], opt.limit, fill_alpha)?;
                     }
                     return Some(());
                 }
@@ -989,7 +1001,7 @@ impl PageSource<'_> {
                             &mut bitmap.work,
                             |x, y| point(x * matrix[0] + y * matrix[2] + matrix[4], x * matrix[1] + y * matrix[3] + matrix[5]),
                         )?;
-                        bitmap.paint(&outline, fill, false, opt.text_aa, true)?;
+                        bitmap.paint(&outline, fill, fill_alpha, false, opt.text_aa, true)?;
                     }
                     return Some(());
                 }
@@ -1001,11 +1013,11 @@ impl PageSource<'_> {
                     if stack.len() >= 256 {
                         return None;
                     }
-                    stack.push((fill, stroke, width));
+                    stack.push((fill, stroke, width, fill_alpha, stroke_alpha));
                 }
                 b"Q" => {
                     if let Some(state) = stack.pop() {
-                        (fill, stroke, width) = state;
+                        (fill, stroke, width, fill_alpha, stroke_alpha) = state;
                     }
                 }
                 b"rg" | b"RG" | b"g" | b"G" => {
@@ -1051,7 +1063,7 @@ impl PageSource<'_> {
                 }
                 b"f" | b"F" | b"f*" | b"B" | b"B*" | b"b" | b"b*" | b"S" | b"s" => {
                     if op != b"S" && op != b"s" {
-                        bitmap.paint(&paths, fill, op.ends_with(b"*"), opt.antialias, true)?;
+                        bitmap.paint(&paths, fill, fill_alpha, op.ends_with(b"*"), opt.antialias, true)?;
                     }
                     if !matches!(op, b"f" | b"F" | b"f*") {
                         let [xx, yx] = axis(ctm[0], ctm[1]);
@@ -1098,7 +1110,7 @@ impl PageSource<'_> {
                                 ]);
                             }
                         }
-                        bitmap.paint(&outlines, stroke, false, opt.antialias, xy == 0. && yx == 0.)?;
+                        bitmap.paint(&outlines, stroke, stroke_alpha, false, opt.antialias, xy == 0. && yx == 0.)?;
                     }
                     paths.clear();
                 }

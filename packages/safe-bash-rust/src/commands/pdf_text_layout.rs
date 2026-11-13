@@ -67,11 +67,13 @@ struct State {
 struct Resources<'a> {
     form: Option<super::ObjectId>,
     fonts: BTreeMap<std::borrow::Cow<'a, [u8]>, Rc<Font>>,
+    graphics: BTreeMap<std::borrow::Cow<'a, [u8]>, Value<'a>>,
     xobjects: BTreeMap<std::borrow::Cow<'a, [u8]>, super::ObjectId>,
 }
 pub(super) enum Draw<'a, 'b> {
     BeginForm([f64; 4], Matrix),
     EndForm,
+    Opacity { fill: Option<f64>, stroke: Option<f64> },
     Image(ImageStream<'a>, Matrix),
     Operator(&'a [u8], &'a [Value<'b>], Matrix),
     Glyph {
@@ -88,6 +90,10 @@ pub(super) enum Draw<'a, 'b> {
 impl<'a> Resources<'a> {
     fn load(&mut self, objects: &mut super::Objects<'a>, res: &Value<'a>) -> Option<()> {
         let res = objects.resolve(res)?;
+        if let Some(value) = res.get(b"ExtGState") {
+            let Value::Dict(entries) = objects.resolve(value)? else { return None; };
+            self.graphics.extend(entries);
+        }
         if let Some(Value::Dict(entries)) = res.get(b"XObject").and_then(|v| objects.resolve(v)) {
             self.xobjects.extend(
                 entries
@@ -225,6 +231,22 @@ impl<'a> PageSource<'a> {
                 };
                 let num = |i: usize| args.get(i)?.poppler_number();
                 emit(Draw::Operator(op, &args, st.ctm), &mut self.objects)?;
+                if op == b"gs" {
+                    if args.len() != 1 { return None; }
+                    let name = args[0].word()?.strip_prefix(b"/")?;
+                    let value = scopes.iter().rev().find_map(|scope| scope.graphics.get(name))?;
+                    let dict = self.objects.resolve(value)?;
+                    if !matches!(dict, Value::Dict(_)) { return None; }
+                    let mut alpha = |key: &[u8]| -> Option<Option<f64>> {
+                        let Some(value) = dict.get(key) else { return Some(None); };
+                        let n = self.objects.resolve(value)?.number()?;
+                        if !n.is_finite() || !(0. ..=1.).contains(&n) { return None; }
+                        Some(Some(n))
+                    };
+                    let fill = alpha(b"ca")?;
+                    let stroke = alpha(b"CA")?;
+                    emit(Draw::Opacity { fill, stroke }, &mut self.objects)?;
+                }
                 if op == b"BI" {
                     let (fields, pixels) = super::pdf_content_edit::inline(&mut c, &mut self.objects.tokens).ok()?;
                     let dict = super::pdf_externalize::image_dict(&fields);

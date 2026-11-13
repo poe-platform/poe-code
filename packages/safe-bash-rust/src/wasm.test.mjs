@@ -16930,3 +16930,5 @@ test("embedded TrueType rejects overflowing cmap groups without replacing output
     assert.equal(Buffer.from(await bash.fs.readFile("/page.png")).toString(), "existing");
   } finally { await bash.dispose(); }
 });
+
+import "./pdf-opacity.test.mjs";

@@ -92,7 +92,7 @@ function* dashRuns(path: StrokeSubpath, pattern: StrokeDashPattern, phase: numbe
       distance += step; remaining -= step;
       if (index % 2 === 0) {
         if (!current.length) yield* appendStrokePoint(current, point);
-        yield* appendStrokePoint(current, [start[0] + dx * distance / distanceTotal, start[1] + dy * distance / distanceTotal]);
+        yield* appendStrokePoint(current, distance === distanceTotal ? end : [start[0] + dx * distance / distanceTotal, start[1] + dy * distance / distanceTotal]);
       }
     }
   }

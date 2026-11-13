@@ -7,11 +7,13 @@ mod pdf_cairo_image;
 mod pdf_cairo_path;
 #[path = "pdf_glyph.rs"]
 mod pdf_glyph;
-#[path = "pdf_text_stroke.rs"]
-mod pdf_text_stroke;
 use super::{Objects, PageSource, Value};
 #[path = "pdf_axial_shading.rs"]
 mod pdf_axial_shading;
+#[path = "pdf_stroke.rs"]
+mod pdf_stroke;
+#[path = "pdf_text_stroke.rs"]
+mod pdf_text_stroke;
 type Point = [f64; 2];
 #[derive(Clone, Copy, PartialEq)]
 pub(in crate::commands::archive) enum RasterBackend {
@@ -1027,7 +1029,7 @@ impl PageSource<'_> {
         let mut stroke = [0.; 3];
         let mut fill_space = 1;
         let mut stroke_space = 1;
-        let mut style = pdf_text_stroke::Stroke::default();
+        let mut style = pdf_stroke::Stroke::default();
         let (mut fill_alpha, mut stroke_alpha) = (1., 1.);
         let mut paths: Vec<Vec<Point>> = vec![];
         let mut pending_clip = None;
@@ -1179,6 +1181,7 @@ impl PageSource<'_> {
                     if stack.len() >= 256 {
                         return None;
                     }
+                    bitmap.work = bitmap.work.checked_sub(style.dash.len())?;
                     stack.push((fill, stroke, fill_space, stroke_space, style.clone(), fill_alpha, stroke_alpha, bitmap.path_clip.clone()));
                 }
                 b"Q" => {
@@ -1224,12 +1227,7 @@ impl PageSource<'_> {
                 b"J" => style.cap = n(0)? as i32,
                 b"j" => style.join = n(0)? as i32,
                 b"M" => style.miter = n(0)?,
-                b"d" => {
-                    let Value::Array(values) = args.first()? else { return None; };
-                    bitmap.work = bitmap.work.checked_sub(values.len())?;
-                    style.dash = values.iter().map(Value::poppler_number).collect::<Option<_>>()?;
-                    style.phase = n(1)?;
-                }
+                b"d" => style.set_dash(args, &mut bitmap.work)?,
                 b"re" => {
                     let (x, y, w, h) = (n(0)?, n(1)?, n(2)?, n(3)?);
                     paths.push(vec![
@@ -1258,55 +1256,16 @@ impl PageSource<'_> {
                     }
                 }
                 b"f" | b"F" | b"f*" | b"B" | b"B*" | b"b" | b"b*" | b"S" | b"s" => {
+                    if matches!(op, b"s" | b"b" | b"b*") && let Some(path) = paths.last_mut() {
+                        path.push(*path.first()?);
+                    }
                     if op != b"S" && op != b"s" {
                         bitmap.paint(&paths, fill, fill_alpha, op.ends_with(b"*"), opt.antialias, true)?;
                     }
                     if !matches!(op, b"f" | b"F" | b"f*") {
                         let [xx, yx] = axis(ctm[0], ctm[1]);
                         let [xy, yy] = axis(ctm[2], ctm[3]);
-                        let det = xx * yy - xy * yx;
-                        let cairo = opt.backend == RasterBackend::Cairo;
-                        let width = style.width;
-                        let adjusted = cairo && (width * (xx + xy)).abs() <= 1.
-                            && (width * (yx + yy)).abs() <= 1. && det != 0.;
-                        let half = if adjusted {
-                            ((yy - xy) / det).abs().min(((xx - yx) / det).abs()) / 2.
-                        } else { width / 2. };
-                        let fixed = |v: f64| (v * 256.).round_ties_even() / 256.;
-                        let mut outlines = vec![];
-                        for path in &paths {
-                            for seg in path.windows(2) {
-                                let mut a = seg[0];
-                                let mut b = seg[1];
-                                if cairo {
-                                    if adjusted && ((b[0] - a[0]).abs() < 0.5 || (b[1] - a[1]).abs() < 0.5) {
-                                        a = a.map(|v| v.floor() + 0.5);
-                                        b = b.map(|v| v.floor() + 0.5);
-                                    } else {
-                                        a = a.map(fixed);
-                                        b = b.map(fixed);
-                                    }
-                                }
-                                let (x, y) = (b[0] - a[0], b[1] - a[1]);
-                                // Normalize the tangent in user space; the line width is
-                                // specified there, even for unequal DPI or a sheared CTM.
-                                let (ux, uy) = (yy * x - xy * y, xx * y - yx * x);
-                                let len = ux.hypot(uy);
-                                if len == 0. {
-                                    continue;
-                                }
-                                let (u, v) = (-uy / len * half, ux / len * half);
-                                let mut normal = [xx * u + xy * v, yx * u + yy * v];
-                                if cairo { normal = normal.map(fixed); }
-                                let [nx, ny] = normal;
-                                outlines.push(vec![
-                                    [a[0] + nx, a[1] + ny],
-                                    [b[0] + nx, b[1] + ny],
-                                    [b[0] - nx, b[1] - ny],
-                                    [a[0] - nx, a[1] - ny],
-                                ]);
-                            }
-                        }
+                        let outlines = style.outlines(&paths, [xx, yx, xy, yy], opt.backend == RasterBackend::Cairo, &mut bitmap.work)?;
                         bitmap.paint(&outlines, stroke, stroke_alpha, false, opt.antialias, xy == 0. && yx == 0.)?;
                     }
                 }

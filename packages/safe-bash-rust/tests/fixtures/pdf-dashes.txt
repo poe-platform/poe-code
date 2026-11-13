@@ -1,0 +1,29 @@
+# name | PDF content after red stroke and width 4 | x,y,color probes (top-left pixels)
+phase | [10 10] 5 d 10 50 m 90 50 l S | 12,50,red 18,50,white 28,50,red
+odd | [10] 0 d 10 50 m 90 50 l S | 15,50,red 25,50,white 35,50,red
+odd phase wraps | [10 5 5] 25 d 10 50 m 90 50 l S | 12,50,white 17,50,red 22,50,white 28,50,red
+negative phase | [10 10] -5 d 10 50 m 90 50 l S | 12,50,white 18,50,red 28,50,white
+large phase | [10 10] 1000005 d 10 50 m 90 50 l S | 12,50,red 18,50,white 28,50,red
+restore | [10 10] 0 d q [] 0 d 10 30 m 90 30 l S Q 10 50 m 90 50 l S | 25,70,red 15,50,red 25,50,white
+subpath reset | [10 10] 5 d 10 50 m 33 50 l 50 50 l 10 70 m 50 70 l S | 18,50,white 38,50,white 18,30,white 28,30,red
+scaled | [10 10] 0 d 2 0 0 1 0 0 cm 5 50 m 45 50 l S | 25,50,red 35,50,white 55,50,red
+vertical scale | [10 10] 0 d 1 0 0 2 0 0 cm 50 5 m 50 45 l S | 50,75,red 50,65,white 50,45,red
+sheared | [10 10] 0 d 1 0.5 0 1 0 0 cm 10 20 m 90 20 l S | 15,72,red 25,67,white 35,62,red
+butt caps | 8 w 0 J [10 10] 0 d 10 50 m 90 50 l S | 8,50,white 22,50,white 15,50,red
+round caps | 8 w 1 J [10 10] 0 d 10 50 m 90 50 l S | 8,50,red 22,50,red 25,50,white 6,46,white
+square caps | 8 w 2 J [10 10] 0 d 10 50 m 90 50 l S | 7,47,red 22,47,red 25,50,white
+cap restore | 8 w 0 J [10 10] 0 d q 2 J 10 30 m 90 30 l S Q 10 50 m 90 50 l S | 7,70,red 7,50,white 25,50,white
+round dots | 8 w 1 J [0 20] 0 d 10 50 m 90 50 l S | 10,50,red 20,50,white 30,50,red 90,50,white
+square dots | 8 w 2 J [0 20] 0 d 10 50 m 90 50 l S | 7,47,red 20,50,white 27,47,red 90,50,white
+butt dots | [0 20] 0 d 10 50 m 90 50 l S | 10,50,white 30,50,white
+zero gaps | [10 0 10 10] 0 d 10 50 m 90 50 l S | 15,50,red 25,50,red 35,50,white 45,50,red
+all zero recovery | [0 0] 0 d 10 50 m 90 50 l S | 15,50,red 25,50,red
+negative entry recovery | [-10 10 10] 0 d 10 50 m 90 50 l S | 15,50,red 25,50,white
+nonnumeric recovery | [null 10 10] 0 d 10 50 m 90 50 l S | 15,50,white 25,50,red 35,50,red
+nonarray recovery | [10 10] 0 d null 0 d 10 50 m 90 50 l S | 15,50,red 25,50,white
+solid reset | [10 10] 0 d [] 0 d 10 50 m 90 50 l S | 15,50,red 25,50,red
+closed rectangle | [10 10] 0 d 10 20 40 40 re S | 15,80,red 25,80,white 50,55,red 50,45,white
+close and stroke | [10 10] 0 d 10 20 m 50 20 l 50 60 l 10 60 l s | 10,55,white 10,45,red
+straight cubic | [10 10] 0 d 10 50 m 30 50 60 50 90 50 c S | 15,50,red 25,50,white 35,50,red
+dash through corner | 8 w [30 10] 0 d 10 20 m 30 20 l 30 60 l S | 32,82,red 30,65,white 30,45,red
+closed seam join | 8 w [30 10] 5 d 10 20 20 20 re S | 7,82,red 15,80,red 30,67,white

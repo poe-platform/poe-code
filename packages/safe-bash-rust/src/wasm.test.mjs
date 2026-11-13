@@ -1,5 +1,5 @@
-import "./pdf-text-stroke.wasm.test.mjs";
 import "./pdf-path-clipping.test.mjs";
+import "./pdf-text-stroke.wasm.test.mjs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { gunzipSync } from "node:zlib";
@@ -16963,6 +16963,44 @@ test("DeviceCMYK fill/stroke and color-space restoration match TypeScript", asyn
           }
         }
       }
+    }
+  } finally { await bash.dispose(); }
+});
+
+test("PDF dash arrays, phase, caps, transforms and restoration match shared pixel cases", async () => {
+  const { readFileSync } = await import("node:fs");
+  const { decodePng } = await import("@poe-code/pdf-ast");
+  const input = readFileSync(new URL("../tests/fixtures/dashed.pdf", import.meta.url));
+  const cases = readFileSync(new URL("../tests/fixtures/pdf-dashes.txt", import.meta.url), "utf8").trim().split("\n").filter(line => !line.startsWith("#")).map(line => line.split(" | "));
+  const withContent = content => {
+    content = `1 0 0 RG 4 w ${content}\n`;
+    const object = Buffer.from(`4 0 obj\n<< /Length ${content.length} >>\nstream\n${content}endstream\nendobj\n`);
+    return Buffer.concat([input, object, Buffer.from(`xref\n4 1\n${String(input.length).padStart(10, "0")} 00000 n \ntrailer\n<< /Size 5 /Root 1 0 R /Prev 319 >>\nstartxref\n${input.length + object.length}\n%%EOF\n`)]);
+  };
+  const bash = new RustWasmBash({ cwd: "/", forceNative: true });
+  try {
+    for (const command of ["pdftoppm", "pdftocairo"]) {
+      for (const [name, content, probes] of [["attached fixture", undefined, "15,50,red 25,50,white"], ...cases]) {
+        await bash.fs.writeFile("/input.pdf", content === undefined ? input : withContent(content));
+        const result = await bash.exec(`${command} -png -r 72 -singlefile /input.pdf /page`);
+        assert.equal(result.exitCode, 0, `${command}: ${name}: ${result.stderr}`);
+        const png = decodePng(await bash.fs.readFile("/page.png"));
+        for (const probe of probes.split(" ")) {
+          const [x, y, color] = probe.split(",");
+          const at = (Number(y) * png.width + Number(x)) * 4;
+          assert.deepEqual([...png.data.slice(at, at + 3)], color === "red" ? [255, 0, 0] : [255, 255, 255], `${command}: ${name}: ${probe}`);
+        }
+        if (content === undefined) {
+          let colored = 0;
+          for (let i = 0; i < png.data.length; i += 4) if (png.data[i + 1] !== 255) colored++;
+          assert.equal(colored, 160);
+        }
+      }
+      await bash.fs.writeFile("/input.pdf", withContent("[0.000000001 0.000000001] 0 d 10 50 m 90 50 l S"));
+      const existing = new Uint8Array([1, 2, 3]);
+      await bash.fs.writeFile("/page.png", existing);
+      assert.notEqual((await bash.exec(`${command} -png -r 72 -singlefile /input.pdf /page`)).exitCode, 0);
+      assert.deepEqual(await bash.fs.readFile("/page.png"), existing);
     }
   } finally { await bash.dispose(); }
 });

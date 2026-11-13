@@ -726,9 +726,15 @@ fn emit_hunk(
         for &line in ours {
             merged_text.push_str(line);
         }
+        if !merged_text.ends_with('\n') {
+            merged_text.push('\n');
+        }
         merged_text.push_str("=======\n");
         for &line in theirs {
             merged_text.push_str(line);
+        }
+        if !merged_text.ends_with('\n') {
+            merged_text.push('\n');
         }
         merged_text.push_str(&format!(">>>>>>> {their_name}\n"));
     }

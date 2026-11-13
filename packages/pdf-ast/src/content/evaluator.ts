@@ -1402,10 +1402,12 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
         if (img) yield* emit({ kind: "image", value: img });
       }
     } else if (operator === "g") {
+      st.fillColorSpaceName = "DeviceGray";
       const v = num(0, 0);
       st.fillColor = { r: v, g: v, b: v };
       st.fillPatternName = undefined;
     } else if (operator === "G") {
+      st.strokeColorSpaceName = "DeviceGray";
       const v = num(0, 0);
       st.strokeColor = { r: v, g: v, b: v };
     } else if (operator === "cs") {
@@ -1413,6 +1415,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     } else if (operator === "CS") {
       if (ops[0]?.kind === "name") st.strokeColorSpaceName = ops[0].decoded;
     } else if (operator === "rg" || operator === "sc" || operator === "scn") {
+      if (operator === "rg") st.fillColorSpaceName = "DeviceRGB";
       const lastOp = ops[ops.length - 1];
       if (operator === "scn" && lastOp?.kind === "name") {
         st.fillPatternName = lastOp.decoded;
@@ -1424,11 +1427,14 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
         st.fillColor = yield* resolveScColorOperands(operator === "rg" ? "DeviceRGB" : st.fillColorSpaceName, ops, activeResources);
       }
     } else if (operator === "RG" || operator === "SC" || operator === "SCN") {
+      if (operator === "RG") st.strokeColorSpaceName = "DeviceRGB";
       st.strokeColor = yield* resolveScColorOperands(operator === "RG" ? "DeviceRGB" : st.strokeColorSpaceName, ops, activeResources);
     } else if (operator === "k") {
+      st.fillColorSpaceName = "DeviceCMYK";
       st.fillColor = yield* resolveScColorOperands("DeviceCMYK", ops, activeResources);
       st.fillPatternName = undefined;
     } else if (operator === "K") {
+      st.strokeColorSpaceName = "DeviceCMYK";
       st.strokeColor = yield* resolveScColorOperands("DeviceCMYK", ops, activeResources);
     } else if (operator === "gs" && activeResources && ops[0]?.kind === "name") {
       const extDict = yield* resolveEvaluationDict(dictGet(activeResources, "ExtGState"), ["Resources", "ExtGState"]);

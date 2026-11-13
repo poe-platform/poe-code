@@ -16935,3 +16935,33 @@ test("embedded TrueType rejects overflowing cmap groups without replacing output
 import "./pdf-opacity.test.mjs";
 
 import "./pdf-shading.test.mjs";
+
+test("DeviceCMYK fill/stroke and color-space restoration match TypeScript", async () => {
+  const {readFileSync} = await import("node:fs");
+  const {decodePng} = await import("@poe-code/pdf-ast");
+  const {runPdftoppmCli, runPdftocairoCli} = await import("../../safe-bash-command-pdftoppm/dist/index.js");
+  const input = readFileSync(new URL("../../pdf-ast/src/fixtures/device-cmyk.pdf", import.meta.url));
+  const red = [255, 46, 23], white = [255, 255, 255], black = [44, 46, 53];
+  const colors = [red, white, black, [6, 6, 12], [32, 28, 21], red, white, red,
+    [251, 49, 153], [0, 0, 0], [255, 235, 61], [255, 0, 0], red, white, red];
+  const bash = new RustWasmBash({cwd: "/", files: {"/input.pdf": input}});
+  try {
+    for (const [command, run] of [["pdftoppm", runPdftoppmCli], ["pdftocairo", runPdftocairoCli]]) {
+      const result = await bash.exec(`${command} -png -r 72 -singlefile /input.pdf /page`);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const files = new Map([["in.pdf", input]]);
+      const ts = await run(["-png", "-r", "72", "-singlefile", "in.pdf", "out"], files);
+      assert.equal(ts.exitCode, 0, ts.stderr);
+      for (const bitmap of [decodePng(await bash.fs.readFile("/page.png")), decodePng(files.get("out.png"))]) {
+        assert.deepEqual([bitmap.width, bitmap.height], [300, 40]);
+        for (const [i, color] of colors.entries()) {
+          for (const y of [10, 30]) {
+            const expected = y === 30 && (i === 5 || i === 7) ? [0, 185, 242] : y === 30 && i === 6 ? black : color;
+            const at = (y * bitmap.width + i * 20 + 10) * 4;
+            assert.deepEqual(Array.from(bitmap.data.subarray(at, at + 4)), [...expected, 255], `${command}, swatch ${i}, row ${y}`);
+          }
+        }
+      }
+    }
+  } finally { await bash.dispose(); }
+});

@@ -350,3 +350,13 @@ assertions before this optimization.
 from Mozilla PDF.js revision `91041fb94d6744bc2a5bccd9aad28d617faa8195`
 (Apache-2.0), SHA-256 `0d87537cfba850b7501db8010801bebe62b9cc19776ae387f9dafc61e00b1699`.
 It covers checkerboard tiling and axial shading inside embedded glyphs.
+
+# DeviceCMYK graphics state
+
+`device-cmyk.pdf` is a locally authored, uncompressed 300 × 40 point PDF under
+this package's MIT license. Its labeled content stream paints paired fill/stroke
+swatches for red, zero ink, process/rich black, mixed ink, independent colors,
+`q`/`Q` restoration, and transitions between DeviceCMYK, DeviceRGB and DeviceGray.
+TypeScript, native Rust and Wasm command regressions share these bytes and use
+pdf-ast's existing PDF.js conversion values, rather than a device-specific
+PDFium or Poppler profile.

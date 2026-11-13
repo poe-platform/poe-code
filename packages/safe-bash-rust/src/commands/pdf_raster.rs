@@ -212,6 +212,45 @@ fn cairo_component(value: &Value<'_>) -> Option<f64> {
     Some(f64::from((fixed * 65535 + 32768) >> 24) / 255.)
 }
 
+// Adapted from Mozilla PDF.js DeviceCmykCS (Copyright Mozilla Foundation,
+// Apache-2.0; see LICENSE.PDFJS), as used by pdf-ast's content evaluator.
+// The SWOP approximation and byte rounding intentionally match TypeScript;
+// device-dependent reference renderers can use different CMYK profiles.
+fn device_cmyk(ink: [f64; 4]) -> [f64; 3] {
+    let [c, m, y, k] = ink.map(|v| v.clamp(0., 1.));
+    [
+        255. + c
+            * (-4.387332384609988 * c
+                + 54.48615194189176 * m
+                + 18.82290502165302 * y
+                + 212.25662451639585 * k
+                + -285.2331026137004)
+            + m * (1.7149763477362134 * m - 5.6096736904047315 * y + -17.873870861415444 * k
+                - 5.497006427196366)
+            + y * (-2.5217340131683033 * y - 21.248923337353073 * k + 17.5119270841813)
+            + k * (-21.86122147463605 * k - 189.48180835922747),
+        255. + c
+            * (8.841041422036149 * c
+                + 60.118027045597366 * m
+                + 6.871425592049007 * y
+                + 31.159100130055922 * k
+                + -79.2970844816548)
+            + m * (-15.310361306967817 * m + 17.575251261109482 * y + 131.35250912493976 * k
+                - 190.9453302588951)
+            + y * (4.444339102852739 * y + 9.8632861493405 * k - 24.86741582555878)
+            + k * (-20.737325471181034 * k - 187.80453709719578),
+        255. + c
+            * (0.8842522430003296 * c + 8.078677503112928 * m + 30.89978309703729 * y
+                - 0.23883238689178934 * k
+                + -14.183576799673286)
+            + m * (10.49593273432072 * m + 63.02378494754052 * y + 50.606957656360734 * k
+                - 112.23884253719248)
+            + y * (0.03296041114873217 * y + 115.60384449646641 * k + -193.58209356861505)
+            + k * (-22.33816807309886 * k - 180.12613974708367),
+    ]
+    .map(|v| v.clamp(0., 255.).round_ties_even() / 255.)
+}
+
 struct Bitmap {
     page_clip: Point,
     backend: RasterBackend,
@@ -984,6 +1023,8 @@ impl PageSource<'_> {
         let mut faces = std::collections::BTreeMap::new();
         let mut fill = [0.; 3];
         let mut stroke = [0.; 3];
+        let mut fill_space = 1;
+        let mut stroke_space = 1;
         let mut width = 1.;
         let (mut fill_alpha, mut stroke_alpha) = (1., 1.);
         let mut paths: Vec<Vec<Point>> = vec![];
@@ -1034,6 +1075,8 @@ impl PageSource<'_> {
                     forms.push((
                         fill,
                         stroke,
+                        fill_space,
+                        stroke_space,
                         width,
                         fill_alpha,
                         stroke_alpha,
@@ -1046,7 +1089,7 @@ impl PageSource<'_> {
                 }
                 Draw::EndForm => {
                     if pending_clip.is_some() { return None; }
-                    (fill, stroke, width, fill_alpha, stroke_alpha, paths, stack, bitmap.path_clip, pending_clip) = forms.pop()?;
+                    (fill, stroke, fill_space, stroke_space, width, fill_alpha, stroke_alpha, paths, stack, bitmap.path_clip, pending_clip) = forms.pop()?;
                     bitmap.form_clips.pop()?;
                     return Some(());
                 }
@@ -1124,24 +1167,45 @@ impl PageSource<'_> {
                     if stack.len() >= 256 {
                         return None;
                     }
-                    stack.push((fill, stroke, width, fill_alpha, stroke_alpha, bitmap.path_clip.clone()));
+                    stack.push((fill, stroke, fill_space, stroke_space, width, fill_alpha, stroke_alpha, bitmap.path_clip.clone()));
                 }
                 b"Q" => {
                     if let Some(state) = stack.pop() {
-                        (fill, stroke, width, fill_alpha, stroke_alpha, bitmap.path_clip) = state;
+                        (fill, stroke, fill_space, stroke_space, width, fill_alpha, stroke_alpha, bitmap.path_clip) = state;
                     }
                 }
-                b"rg" | b"RG" | b"g" | b"G" => {
-                    let component = |i| if opt.backend == RasterBackend::Splash { n(i) } else { cairo_component(args.get(i)?) };
-                    let c = if op.len() == 2 {
-                        [component(0)?, component(1)?, component(2)?]
-                    } else {
-                        [component(0)?; 3]
+                b"cs" | b"CS" => {
+                    let space = match args.first()?.word()? {
+                        b"/DeviceGray" => 1,
+                        b"/DeviceRGB" => 3,
+                        b"/DeviceCMYK" => 4,
+                        _ => return Some(()),
                     };
-                    if op[0].is_ascii_lowercase() {
-                        fill = c;
+                    let color = if space == 4 { device_cmyk([0., 0., 0., 1.]) } else { [0.; 3] };
+                    if op == b"cs" {
+                        (fill_space, fill) = (space, color);
                     } else {
-                        stroke = c;
+                        (stroke_space, stroke) = (space, color);
+                    }
+                }
+                b"rg" | b"RG" | b"g" | b"G" | b"k" | b"K" | b"sc" | b"SC" | b"scn" | b"SCN" => {
+                    let lower = op[0].is_ascii_lowercase();
+                    let space = match op {
+                        b"g" | b"G" => 1,
+                        b"rg" | b"RG" => 3,
+                        b"k" | b"K" => 4,
+                        _ => if lower { fill_space } else { stroke_space },
+                    };
+                    let component = |i| if opt.backend == RasterBackend::Splash { n(i) } else { cairo_component(args.get(i)?) };
+                    let c = match space {
+                        4 => device_cmyk([n(0)?, n(1)?, n(2)?, n(3)?]),
+                        3 => [component(0)?, component(1)?, component(2)?],
+                        _ => [component(0)?; 3],
+                    };
+                    if lower {
+                        (fill_space, fill) = (space, c);
+                    } else {
+                        (stroke_space, stroke) = (space, c);
                     }
                 }
                 b"w" => width = n(0)?,

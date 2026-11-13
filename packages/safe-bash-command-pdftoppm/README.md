@@ -18,6 +18,13 @@ Zero-dependency Poppler `pdftoppm` page renderer for `@poe-platform/safe-bash` p
 
 `pdftoppm -mono` preserves midtones with a 4×4 ordered dither screen in both PBM and raster image output. It matches Poppler’s dispersed screen below 300 DPI; at higher resolutions it keeps the ordered screen instead of Poppler’s randomized clustered dots.
 
+DeviceCMYK fills and strokes use the PDF.js SWOP approximation in TypeScript and
+Rust (native and Wasm). Zero ink renders white; process black (`0 0 0 1`) renders
+RGB `(44,46,53)`. CMYK is device-dependent: red (`0 1 1 0`) renders `(255,46,23)`
+here, while PDFium's reference renders `(238,29,35)`. No external color profile is
+required. `k`/`K` select DeviceCMYK for later `sc`/`SC` operations, and `q`/`Q`
+save and restore both the colors and their color spaces.
+
 ## Quick Start
 
 ```ts

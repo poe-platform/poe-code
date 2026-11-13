@@ -49,6 +49,12 @@ In Cloudflare Workers, import `createRustWasmBash` from the package and configur
 
 ## Quick Start
 
+PDF DeviceCMYK fills and strokes use the same PDF.js SWOP approximation as the
+TypeScript renderer, including graphics-state save/restore. Zero ink is white;
+process black (`0 0 0 1`) is RGB `(44,46,53)`. Device-dependent profiles can differ:
+red (`0 1 1 0`) is `(255,46,23)` here and `(238,29,35)` in the PDFium reference.
+See [the PDF.js license](./LICENSE.PDFJS).
+
 ### 1. Zero-Dependency Rust Shell with `MemoryVfs`
 
 ```rust

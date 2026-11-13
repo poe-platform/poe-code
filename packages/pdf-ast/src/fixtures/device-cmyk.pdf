@@ -1,0 +1,88 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Kids [3 0 R] /Count 1 >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 300 40] /Resources << >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<< /Length 1204 >>
+stream
+8 w
+% red
+0 1 1 0 k 0 1 1 0 K
+0 20 20 20 re f
+0 10 m 20 10 l S
+% zero ink
+0 0 0 0 k 0 0 0 0 K
+20 20 20 20 re f
+20 10 m 40 10 l S
+% process black
+0 0 0 1 k 0 0 0 1 K
+40 20 20 20 re f
+40 10 m 60 10 l S
+% rich black
+1 1 1 1 k 1 1 1 1 K
+60 20 20 20 re f
+60 10 m 80 10 l S
+% mixed ink
+0.1 0.2 0.3 1 k 0.1 0.2 0.3 1 K
+80 20 20 20 re f
+80 10 m 100 10 l S
+% independent fill and stroke
+0 1 1 0 k 1 0 0 0 K
+100 20 20 20 re f
+100 10 m 120 10 l S
+% saved colors
+q 0 0 0 0 k 0 0 0 1 K
+120 20 20 20 re f
+120 10 m 140 10 l S
+% restored colors
+Q
+140 20 20 20 re f
+140 10 m 160 10 l S
+% CMYK replaces gray
+0.5 g 0.5 G 0 1 1 0 k 0 1 1 0 K 0 1 0 0 sc 0 1 0 0 SC
+160 20 20 20 re f
+160 10 m 180 10 l S
+% saved gray
+q 0 g 0 G
+180 20 20 20 re f
+180 10 m 200 10 l S
+% restored CMYK space
+Q 0 0 1 0 scn 0 0 1 0 SCN
+200 20 20 20 re f
+200 10 m 220 10 l S
+% RGB replaces CMYK
+q 0 0 1 rg 0 0 1 RG 1 0 0 sc 1 0 0 SC
+220 20 20 20 re f
+220 10 m 240 10 l S
+% restored CMYK after RGB
+Q 0 1 1 0 sc 0 1 1 0 SC
+240 20 20 20 re f
+240 10 m 260 10 l S
+% gray replaces CMYK
+0 g 0 G 1 sc 1 SC
+260 20 20 20 re f
+260 10 m 280 10 l S
+% explicit CMYK space
+/DeviceCMYK cs /DeviceCMYK CS 0 1 1 0 scn 0 1 1 0 SCN
+280 20 20 20 re f
+280 10 m 300 10 l S
+endstream
+endobj
+xref
+0 5
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000218 00000 n 
+trailer
+<< /Root 1 0 R /Size 5 >>
+startxref
+1473
+%%EOF

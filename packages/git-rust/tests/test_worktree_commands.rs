@@ -142,7 +142,7 @@ fn test_merge_fast_forward_abort_merge_cherry_pick_and_stash() {
         // Fast-forward merge
         let report_ff = merge(
             &fm.fs,
-            Some(&fm.dir),
+            None,
             &fm.gitdir,
             Some("a"),
             "b",
@@ -167,7 +167,7 @@ fn test_merge_fast_forward_abort_merge_cherry_pick_and_stash() {
         let fm2 = load_fixture("test-merge", is_sub);
         let report_3way = merge(
             &fm2.fs,
-            Some(&fm2.dir),
+            None,
             &fm2.gitdir,
             Some("b"),
             "c",
@@ -215,6 +215,7 @@ fn test_merge_fast_forward_abort_merge_cherry_pick_and_stash() {
 
         // Merge conflict + abortMerge
         let fm_conflict = load_fixture("test-abortMerge", is_sub);
+        checkout(&fm_conflict.fs, &fm_conflict.dir, Some(&fm_conflict.gitdir), Some("a"), None, None, false, false, false, true, false).unwrap();
         let conflict_res = merge(
             &fm_conflict.fs,
             Some(&fm_conflict.dir),

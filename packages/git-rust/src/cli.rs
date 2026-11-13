@@ -2127,21 +2127,6 @@ pub fn execute_git_cli_with_input(
                                 .to_string(),
                         );
                     }
-                    if r.fast_forward {
-                        let _ = checkout(
-                            fs,
-                            &repo_root,
-                            Some(&gitdir),
-                            Some("HEAD"),
-                            None,
-                            None,
-                            false,
-                            false,
-                            false,
-                            true,
-                            false,
-                        );
-                    }
                     let _ = crate::hooks::run_hook(
                         fs,
                         &repo_root,

@@ -685,19 +685,6 @@ pub fn pull(
                 author,
                 committer,
             )?;
-            checkout(
-                fs,
-                dir,
-                Some(&gdir),
-                Some(&target_branch),
-                None,
-                None,
-                false,
-                false,
-                false,
-                true,
-                false,
-            )?;
         }
     }
     Ok(())

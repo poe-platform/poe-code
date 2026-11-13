@@ -956,6 +956,12 @@ pub fn merge(
     }
 
     if fast_forward && base_oid.as_deref() == Some(our_oid.as_str()) {
+        if dir.is_some() && !dry_run {
+            merge_trees_3way(
+                fs, dir, &gdir, &our_oid, Some(&our_oid), &their_oid,
+                &our_ref, "base", theirs, abort_on_conflict, false,
+            )?;
+        }
         if !dry_run && !no_update_branch {
             GitRefManager::write_ref(fs, &gdir, &our_full, &their_oid)?;
         }
@@ -1098,6 +1104,54 @@ pub(crate) fn merge_trees_3way(
         all_paths.insert(k.clone());
     }
 
+    // Check every path before publishing even the first conflict marker or index entry.
+    // Paths unchanged by the incoming side must retain their local worktree and index state.
+    if let Some(d) = dir {
+        GitIndexManager::acquire(fs, gitdir, |index| {
+            let entries: BTreeMap<_, _> = index.entries().into_iter()
+                .map(|entry| (entry.path.clone(), entry)).collect();
+            let mut overwritten = Vec::new();
+            for path in &all_paths {
+                let ours = our_map.get(path);
+                let theirs = their_map.get(path);
+                if ours == theirs || base_map.get(path) == theirs {
+                    continue;
+                }
+                let expected = ours.map(|entry| (entry.oid.as_str(), entry.mode.clone()));
+                let staged = entries.get(path).map(|entry| (entry.oid.as_str(), format!("{:06o}", entry.mode)));
+                let working = compute_workdir_oid(fs, d, gitdir, path);
+                let actual = if ours.is_some_and(|entry| entry.entry_type == "commit") {
+                    staged.clone()
+                } else {
+                    working.as_ref().map(|(oid, stat)|
+                        (oid.as_str(), format!("{:06o}", crate::utils::normalize_mode(stat.mode))))
+                };
+                if staged != expected || actual != expected
+                    || (fs.lstat(&join(&[d, path])).is_ok_and(|stat| stat.is_directory())
+                        && !theirs.or(ours).is_some_and(|entry| entry.entry_type == "commit")) {
+                    overwritten.push(path.clone());
+                }
+                if theirs.is_some() {
+                    assert_no_symlink_in_leading_path(fs, d, path)?;
+                    let mut parent = path.as_str();
+                    while let Some((prefix, _)) = parent.rsplit_once('/') {
+                        if fs.lstat(&join(&[d, prefix])).is_ok_and(|stat| !stat.is_directory())
+                            && !(our_map.contains_key(prefix) && !their_map.contains_key(prefix)) {
+                            overwritten.push(prefix.to_string());
+                        }
+                        parent = prefix;
+                    }
+                }
+            }
+            if !overwritten.is_empty() {
+                overwritten.sort();
+                overwritten.dedup();
+                return Err(GitError::checkout_conflict(overwritten));
+            }
+            Ok(())
+        })?;
+    }
+
     let mut final_entries: Vec<(String, TreeEntry)> = Vec::new();
     let mut conflicts: Vec<String> = Vec::new();
 
@@ -1228,40 +1282,44 @@ pub(crate) fn merge_trees_3way(
         }
     }
 
-    if !conflicts.is_empty() {
-        if !abort_on_conflict && !dry_run
-            && let Some(d) = dir {
-                GitIndexManager::acquire(fs, gitdir, |index| {
-                    for (path, entry) in &final_entries {
-                        if entry.entry_type == "blob" {
-                            let full = join(&[d, path]);
-                            let blob = read_blob(fs, gitdir, &entry.oid, None)?.blob;
-                            let mode_num = u32::from_str_radix(&entry.mode, 8).unwrap_or(0o100644);
-                            fs.write_with_mode(&full, &blob, mode_num);
-                            let st = fs.lstat(&full).ok();
-                            index.insert(path, st.as_ref(), &entry.oid, 0);
-                        }
-                    }
-                    Ok(())
-                })?;
-            }
-        return Ok((EMPTY_TREE_OID.to_string(), conflicts));
-    }
-
-    let merged_tree_oid = write_directory_tree_recursive(fs, gitdir, &final_entries, "", dry_run)?;
-    if !dry_run
+    let merged_tree_oid = if conflicts.is_empty() {
+        write_directory_tree_recursive(fs, gitdir, &final_entries, "", dry_run)?
+    } else {
+        EMPTY_TREE_OID.to_string()
+    };
+    if !dry_run && (conflicts.is_empty() || !abort_on_conflict)
         && let Some(d) = dir {
             GitIndexManager::acquire(fs, gitdir, |index| {
-                index.clear();
-                let kept: std::collections::BTreeSet<_> = final_entries.iter().map(|(path, _)| path).collect();
-                for path in our_map.keys() {
-                    if !kept.contains(path) { let _ = fs.unlink(&join(&[d, path])); }
+                let kept: BTreeSet<_> = final_entries.iter().map(|(path, _)| path).collect();
+                for (path, entry) in &our_map {
+                    if !kept.contains(path) && !conflicts.contains(path) {
+                        if entry.entry_type != "commit" {
+                            let _ = fs.unlink(&join(&[d, path]));
+                        }
+                        index.delete(path);
+                    }
                 }
                 for (path, entry) in &final_entries {
+                    if our_map.get(path) == Some(entry) {
+                        continue;
+                    }
                     let full = join(&[d, path]);
+                    if entry.entry_type == "commit" {
+                        let _ = fs.mkdir(&full);
+                        if let Ok(mut st) = fs.lstat(&full) {
+                            st.mode = 0o160000;
+                            st.size = 0;
+                            index.insert(path, Some(&st), &entry.oid, 0);
+                        }
+                        continue;
+                    }
                     let blob = read_blob(fs, gitdir, &entry.oid, None)?.blob;
-                    let mode_num = u32::from_str_radix(&entry.mode, 8).unwrap_or(0o100644);
-                    fs.write_with_mode(&full, &blob, mode_num);
+                    if entry.mode == "120000" {
+                        let _ = fs.writelink(&full, &blob);
+                    } else {
+                        let mode_num = u32::from_str_radix(&entry.mode, 8).unwrap_or(0o100644);
+                        fs.write_with_mode(&full, &blob, mode_num);
+                    }
                     if let Ok(st) = fs.lstat(&full) {
                         index.insert(path, Some(&st), &entry.oid, 0);
                     }
@@ -1270,7 +1328,7 @@ pub(crate) fn merge_trees_3way(
             })?;
         }
 
-    Ok((merged_tree_oid, Vec::new()))
+    Ok((merged_tree_oid, conflicts))
 }
 
 pub fn fast_forward(
@@ -1295,6 +1353,15 @@ pub fn fast_forward(
     let their_oid = GitRefManager::resolve(fs, &gdir, their_ref, None)?;
     if our_oid != their_oid && !is_descendent(fs, &gdir, &their_oid, &our_oid, None)? {
         return Err(GitError::fast_forward());
+    }
+    if !force {
+        merge_trees_3way(
+            fs, Some(dir), &gdir, &our_oid, Some(&our_oid), &their_oid,
+            &our_branch, "base", their_ref, false, false,
+        )?;
+        GitRefManager::write_ref(fs, &gdir, &our_full, &their_oid)?;
+        GitRefManager::write_symbolic_ref(fs, &gdir, "HEAD", &our_full)?;
+        return Ok(their_oid);
     }
     GitRefManager::write_ref(fs, &gdir, &our_full, &their_oid)?;
     checkout(

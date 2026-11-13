@@ -262,7 +262,7 @@ dual_fixture_test!(merge_conflict_returns_merge_conflict_error, merge_conflict_r
         timestamp: 1262356920,
         timezone_offset: -0.0,
     };
-    let err = merge(&f.fs, Some(&f.dir), &f.gitdir, Some("a"), "c", true, false, false, false, false, None, Some(author), None).unwrap_err();
+    let err = merge(&f.fs, None, &f.gitdir, Some("a"), "c", true, false, false, false, false, None, Some(author), None).unwrap_err();
     assert_eq!(err.code, ErrorCode::MergeConflictError);
 });
 

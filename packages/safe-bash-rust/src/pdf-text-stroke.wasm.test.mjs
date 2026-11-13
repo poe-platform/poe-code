@@ -1,13 +1,17 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createRustWasmBash } from "./index.js";
-import { PdfDocument, cosDict, cosName, cosStream, dictSet, decodePng } from "@poe-code/pdf-ast";
+import { PdfDocument, cosDict, cosName, cosArray, cosNumber, cosStream, dictSet, decodePng } from "@poe-code/pdf-ast";
 import { runPdftoppmCli, runPdftocairoCli } from "safe-bash-command-pdftoppm";
 
 function pdf(stream) {
   const doc = PdfDocument.create(), page = doc.addPage([100, 100]);
   const font = doc.cos.allocateObject(cosDict({ Type: cosName("Font"), Subtype: cosName("Type1"), BaseFont: cosName("Helvetica") }));
-  dictSet(page.pageDict, "Resources", cosDict({ Font: cosDict({ F1: font }) }));
+  const resources = cosDict({ Font: cosDict({ F1: font }) });
+  const form = doc.cos.allocateObject(cosStream(new TextEncoder().encode("BT /F1 40 Tf 7 Tr 10 20 Td (A) Tj ET 1 0 0 rg 0 0 100 100 re f"), {
+    compress: false, dict: cosDict({ Type: cosName("XObject"), Subtype: cosName("Form"), BBox: cosArray([0, 0, 100, 100].map(value => cosNumber(value))), Resources: resources }),
+  }));
+  dictSet(page.pageDict, "Resources", cosDict({ Font: cosDict({ F1: font }), XObject: cosDict({ Fm: form }) }));
   dictSet(page.pageDict, "Contents", doc.cos.allocateObject(cosStream(new TextEncoder().encode(stream), { compress: false })));
   return doc.save();
 }
@@ -62,27 +66,83 @@ test("PDF text strokes match TypeScript colors, transforms and stroke state in W
   } finally { await bash.dispose(); }
 });
 
-test("PDF text stroke geometry failures preserve output in TypeScript and Wasm", async () => {
-  const input = pdf("[.000000001 .000000001] 0 d BT /F1 60 Tf 1 Tr 10 20 Td (A) Tj ET");
+test("PDF text geometry and malformed input failures preserve output in TypeScript and Wasm", async () => {
+  for (const input of [
+    pdf("[.000000001 .000000001] 0 d BT /F1 60 Tf 1 Tr 10 20 Td (A) Tj ET"),
+    pdf("[.000000001 .000000001] 0 d BT /F1 60 Tf 5 Tr 10 20 Td (A) Tj ET"),
+    new TextEncoder().encode("%PDF-1.4\nmalformed"),
+  ]) {
+    const bash = await createRustWasmBash();
+    try {
+      for (const [command, run] of [["pdftoppm", runPdftoppmCli], ["pdftocairo", runPdftocairoCli]]) {
+        for (const existing of [false, true]) {
+          const files = new Map([["/input.pdf", input]]), sentinel = new TextEncoder().encode("existing output");
+          await bash.fs.writeFile("/input.pdf", input);
+          if (existing) { files.set("/page.png", sentinel); await bash.fs.writeFile("/page.png", sentinel); }
+          const args = ["-png", "-r", "72", "-singlefile", "/input.pdf", "/page"];
+          if (input.length < 100) assert.notEqual((await run(args, files)).exitCode, 0);
+          else await assert.rejects(run(args, files), { code: "E_LIMIT" });
+          const wasm = await bash.exec(`${command} ${args.join(" ")}`);
+          assert.notEqual(wasm.exitCode, 0);
+          if (existing) {
+            assert.deepEqual(files.get("/page.png"), sentinel);
+            assert.deepEqual(await bash.fs.readFile("/page.png"), sentinel);
+          } else {
+            assert.equal(files.has("/page.png"), false);
+            assert.equal((await bash.exec("test -e /page.png")).exitCode, 1);
+          }
+          await bash.exec("rm -f /page.png");
+        }
+      }
+    } finally { await bash.dispose(); }
+  }
+});
+
+
+test("PDF text clipping unions glyphs at ET and preserves graphics state in TypeScript and Wasm", async () => {
   const bash = await createRustWasmBash();
+  const paint = "1 0 0 rg 0 0 100 100 re f";
+  const clip = "BT /F1 40 Tf 7 Tr 10 20 Td (AA) Tj ET";
+  const image = "q 100 0 0 100 0 0 cm BI /W 1 /H 1 /BPC 8 /CS /RGB /F /AHx ID FF0000> EI Q";
+  const cases = [
+    ...[4, 5, 6, 7].map(mode => `BT /F1 40 Tf ${mode} Tr 10 20 Td (A) Tj (A) Tj ET ${paint}`),
+    `${clip} ${paint}`,
+    `0 0 35 100 re W n ${clip} ${paint}`,
+    `q ${clip} Q ${paint}`,
+    `BT /F1 40 Tf 7 Tr 10 20 Td (AA) Tj ${image} ET`,
+    `${clip} ${image}`,
+    `BT /F1 40 Tf 7 Tr ( ) Tj ET ${paint}`,
+    `/Fm Do ${paint}`,
+    `/Fm Do`,
+    `BT /F1 40 Tf 7 Tr 10 20 Td (AA) Tj /Fm Do ET ${paint}`,
+    `${clip} /Fm Do`,
+    `${clip} BT /F1 40 Tf 7 Tr 10 20 Td (A) Tj ET ${paint}`,
+    `BT /F1 40 Tf 7 Tr 1 0 0 1 10 20 Tm (A) Tj 1 0 0 1 15 20 Tm (A) Tj ET ${paint}`,
+  ];
   try {
     for (const [command, run] of [["pdftoppm", runPdftoppmCli], ["pdftocairo", runPdftocairoCli]]) {
-      for (const existing of [false, true]) {
-        const files = new Map([["/input.pdf", input]]), sentinel = new TextEncoder().encode("existing output");
-        await bash.fs.writeFile("/input.pdf", input);
-        if (existing) { files.set("/page.png", sentinel); await bash.fs.writeFile("/page.png", sentinel); }
+      for (const [index, stream] of cases.entries()) {
+        const input = pdf(stream), files = new Map([["/input.pdf", input]]);
         const args = ["-png", "-r", "72", "-singlefile", "/input.pdf", "/page"];
-        await assert.rejects(run(args, files), { code: "E_LIMIT" });
-        const wasm = await bash.exec(`${command} ${args.join(" ")}`);
-        assert.notEqual(wasm.exitCode, 0);
-        if (existing) {
-          assert.deepEqual(files.get("/page.png"), sentinel);
-          assert.deepEqual(await bash.fs.readFile("/page.png"), sentinel);
-        } else {
-          assert.equal(files.has("/page.png"), false);
-          assert.equal((await bash.exec("test -e /page.png")).exitCode, 1);
+        assert.equal((await run(args, files)).exitCode, 0);
+        await bash.fs.writeFile("/input.pdf", input);
+        const result = await bash.exec(`${command} ${args.join(" ")}`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const expected = decodePng(files.get("/page.png")), actual = decodePng(await bash.fs.readFile("/page.png"));
+        let mismatch = 0, red = 0;
+        for (let i = 0; i < actual.data.length; i += 4) {
+          const a = actual.data[i] > 180 && actual.data[i + 1] < 100;
+          const e = expected.data[i] > 180 && expected.data[i + 1] < 100;
+          red += a;
+          mismatch += a !== e;
         }
-        await bash.exec("rm -f /page.png");
+        assert.ok(mismatch < 100, `${command} case ${index}: ${mismatch} misplaced pixels`);
+        if (index < 6 || index === 8) {
+          assert.ok(red > 100 && red < 1000, `${command} case ${index}: ${red} red pixels`);
+          assert.deepEqual([...actual.data.subarray(0, 3)], [255, 255, 255]);
+        }
+        if (index === 6 || index === 7) assert.equal(red, 10000);
+        if (index === 9) assert.equal(red, 0);
       }
     }
   } finally { await bash.dispose(); }

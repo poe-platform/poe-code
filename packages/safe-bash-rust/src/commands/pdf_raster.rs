@@ -625,12 +625,22 @@ impl Bitmap {
     }
 
     fn intersect_path(&mut self, paths: &[Vec<Point>], even: bool) -> Option<()> {
-        // Keep subpixel membership, not just alpha: intersecting two shapes in
-        // the same pixel must intersect their geometry. q/Q share these masks.
         let count = self.w.checked_mul(self.h)?;
-        let points = paths.iter().try_fold(0usize, |n, p| n.checked_add(p.len()))?;
-        self.work = self.work.checked_sub(count.checked_mul(2)?.checked_add(points.checked_mul(64)?)?)?;
+        self.work = self.work.checked_sub(count.checked_mul(2)?)?;
         let mut mask = vec![0u16; count];
+        self.union_path(&mut mask, paths, even)?;
+        if let Some(prior) = &self.path_clip {
+            for (pixel, old) in mask.iter_mut().zip(prior.iter()) { *pixel &= old; }
+        }
+        self.path_clip = Some(std::sync::Arc::new(mask));
+        Some(())
+    }
+
+    fn union_path(&mut self, mask: &mut [u16], paths: &[Vec<Point>], even: bool) -> Option<()> {
+        // Retain subpixel membership so glyph unions and clip intersections
+        // operate on geometry, including overlapping and reflected glyphs.
+        let points = paths.iter().try_fold(0usize, |n, p| n.checked_add(p.len()))?;
+        self.work = self.work.checked_sub(points.checked_mul(64)?)?;
         let mut edges = Vec::with_capacity(points);
         let mut lo = [self.w as f64, self.h as f64];
         let mut hi = [0f64; 2];
@@ -679,10 +689,6 @@ impl Bitmap {
                 }
             }
         }
-        if let Some(prior) = &self.path_clip {
-            for (pixel, old) in mask.iter_mut().zip(prior.iter()) { *pixel &= old; }
-        }
-        self.path_clip = Some(std::sync::Arc::new(mask));
         Some(())
     }
 
@@ -1033,6 +1039,7 @@ impl PageSource<'_> {
         let (mut fill_alpha, mut stroke_alpha) = (1., 1.);
         let mut paths: Vec<Vec<Point>> = vec![];
         let mut pending_clip = None;
+        let mut text_clip: Option<Vec<u16>> = None;
         let mut stack = vec![];
         let mut forms = vec![];
         self.draw_page(&page, |event, objects| {
@@ -1089,12 +1096,13 @@ impl PageSource<'_> {
                         std::mem::take(&mut stack),
                         bitmap.path_clip.clone(),
                         pending_clip.take(),
+                        text_clip.take(),
                     ));
                     return Some(());
                 }
                 Draw::EndForm => {
-                    if pending_clip.is_some() { return None; }
-                    (fill, stroke, fill_space, stroke_space, style, fill_alpha, stroke_alpha, paths, stack, bitmap.path_clip, pending_clip) = forms.pop()?;
+                    if pending_clip.is_some() || text_clip.is_some() { return None; }
+                    (fill, stroke, fill_space, stroke_space, style, fill_alpha, stroke_alpha, paths, stack, bitmap.path_clip, pending_clip, text_clip) = forms.pop()?;
                     bitmap.form_clips.pop()?;
                     return Some(());
                 }
@@ -1152,7 +1160,7 @@ impl PageSource<'_> {
                     mode,
                     ..
                 } => {
-                    if matches!(mode, 0 | 1 | 2 | 4 | 5 | 6) {
+                    if matches!(mode, 0 | 1 | 2 | 4 | 5 | 6 | 7) {
                         let outline = pdf_glyph::outline(
                             &mut faces,
                             family,
@@ -1161,6 +1169,14 @@ impl PageSource<'_> {
                             &mut bitmap.work,
                             |x, y| point(x * matrix[0] + y * matrix[2] + matrix[4], x * matrix[1] + y * matrix[3] + matrix[5]),
                         )?;
+                        if mode >= 4 {
+                            if text_clip.is_none() {
+                                let count = w.checked_mul(h)?;
+                                bitmap.work = bitmap.work.checked_sub(count)?;
+                                text_clip = Some(vec![0; count]);
+                            }
+                            bitmap.union_path(text_clip.as_mut()?, &outline, false)?;
+                        }
                         if matches!(mode, 0 | 2 | 4 | 6) {
                             bitmap.paint(&outline, fill, fill_alpha, false, opt.text_aa, true)?;
                         }
@@ -1177,6 +1193,18 @@ impl PageSource<'_> {
             let n = |i: usize| args.get(i)?.poppler_number();
             let pt = |x, y| point(x * ctm[0] + y * ctm[2] + ctm[4], x * ctm[1] + y * ctm[3] + ctm[5]);
             match op {
+                b"BT" => {
+                    if text_clip.is_some() { return None; }
+                }
+                b"ET" => {
+                    if let Some(mut mask) = text_clip.take() {
+                        bitmap.work = bitmap.work.checked_sub(mask.len())?;
+                        if let Some(prior) = &bitmap.path_clip {
+                            for (pixel, old) in mask.iter_mut().zip(prior.iter()) { *pixel &= old; }
+                        }
+                        bitmap.path_clip = Some(std::sync::Arc::new(mask));
+                    }
+                }
                 b"q" => {
                     if stack.len() >= 256 {
                         return None;
@@ -1286,7 +1314,7 @@ impl PageSource<'_> {
             }
             Some(())
         })?;
-        if pending_clip.is_some() { return None; }
+        if pending_clip.is_some() || text_clip.is_some() { return None; }
         let mut pixels = bitmap.pixels;
         if bitmap.white_background {
             for p in &mut pixels { over_white(p, bitmap.backend); }

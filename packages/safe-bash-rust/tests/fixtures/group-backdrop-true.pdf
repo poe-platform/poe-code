@@ -1,0 +1,44 @@
+%PDF-1.4
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Count 1 /Kids [3 0 R] >>
+endobj
+3 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 100 100] /Resources << /ExtGState << /half << /ca .5 /CA .5 >> /entry << /ca .5 /CA .25 /BM /Multiply >> /inner << /ca .5 /CA .5 /BM /Screen >> >> /XObject << /Fm 5 0 R /Nested 6 0 R >> >> /Contents 4 0 R >>
+endobj
+4 0 obj
+<<  /Length 72 >>
+stream
+0.2 0.6 0.4 rg 0 0 100 100 re f
+/half gs /Fm Do
+1 0 0 rg 0 0 10 10 re f
+endstream
+endobj
+5 0 obj
+<< /Type /XObject /Subtype /Form /BBox [0 0 100 100] /Resources << /ExtGState << /half << /ca .5 /CA .5 >> /entry << /ca .5 /CA .25 /BM /Multiply >> /inner << /ca .5 /CA .5 /BM /Screen >> >> /XObject << /Fm 5 0 R /Nested 6 0 R >> >> /Group << /S /Transparency /I true /K false >> /Length 52 >>
+stream
+1 0 0 rg 10 10 50 50 re f 0 0 1 rg 40 40 50 50 re f
+endstream
+endobj
+6 0 obj
+<< /Type /XObject /Subtype /Form /BBox [0 0 100 100] /Resources << /ExtGState << /half << /ca .5 /CA .5 >> /entry << /ca .5 /CA .25 /BM /Multiply >> /inner << /ca .5 /CA .5 /BM /Screen >> >> /XObject << /Fm 5 0 R /Nested 6 0 R >> >> /Group << /S /Transparency /I true /K false >> /Length 26 >>
+stream
+0 0 1 rg 10 10 80 80 re f
+endstream
+endobj
+xref
+0 7
+0000000000 65535 f 
+0000000009 00000 n 
+0000000058 00000 n 
+0000000115 00000 n 
+0000000382 00000 n 
+0000000504 00000 n 
+0000000882 00000 n 
+trailer
+<< /Size 7 /Root 1 0 R >>
+startxref
+1234
+%%EOF

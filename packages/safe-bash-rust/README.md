@@ -57,7 +57,11 @@ See [the PDF.js license](./LICENSE.PDFJS).
 
 PDF raster output applies the standard `/BM` blend modes to paths, text, images,
 and shading, including constant opacity and saved graphics state. Invalid or
-unsupported blend selections fail without replacing the page output.
+unsupported blend selections fail without replacing the page output. Transparency
+Forms composite once with their entry opacity and blend mode, including nested
+isolated and non-isolated RGB groups. Knockout groups and other explicit group
+color spaces are rejected. Live intermediate surfaces share the raster memory
+budget; unsupported groups and exhausted budgets leave existing output intact.
 
 ### 1. Zero-Dependency Rust Shell with `MemoryVfs`
 

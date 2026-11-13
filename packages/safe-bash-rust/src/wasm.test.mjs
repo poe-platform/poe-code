@@ -17008,3 +17008,5 @@ test("PDF dash arrays, phase, caps, transforms and restoration match shared pixe
 import "./pdf-blend.test.mjs";
 
 import "./pdf-cid-font.test.mjs";
+
+import "./pdf-groups.test.mjs";

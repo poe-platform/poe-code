@@ -83,7 +83,7 @@ struct Resources<'a> {
     xobjects: BTreeMap<std::borrow::Cow<'a, [u8]>, super::ObjectId>,
 }
 pub(super) enum Draw<'a, 'b> {
-    BeginForm([f64; 4], Matrix),
+    BeginForm([f64; 4], Matrix, Option<Value<'static>>),
     EndForm,
     Transparency { fill: Option<f64>, stroke: Option<f64>, blend: Option<BlendMode> },
     Shading(Value<'static>, Matrix),
@@ -392,7 +392,8 @@ impl<'a> PageSource<'a> {
                                 local.load(&mut self.objects, res)?;
                             }
                             scopes.push(local);
-                            emit(Draw::BeginForm(bbox, child.ctm), &mut self.objects)?;
+                            let group = dict.get(b"Group").map(|v| v.clone().into_owned());
+                            emit(Draw::BeginForm(bbox, child.ctm, group), &mut self.objects)?;
                             self.draw_streams(&[id], child, scopes, emit)?;
                             emit(Draw::EndForm, &mut self.objects)?;
                             scopes.pop();

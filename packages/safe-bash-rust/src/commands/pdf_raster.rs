@@ -15,6 +15,8 @@ mod pdf_axial_shading;
 mod pdf_stroke;
 #[path = "pdf_text_stroke.rs"]
 mod pdf_text_stroke;
+#[path = "pdf_group.rs"]
+mod pdf_group;
 type Point = [f64; 2];
 #[derive(Clone, Copy, PartialEq)]
 pub(in crate::commands::archive) enum RasterBackend {
@@ -277,6 +279,7 @@ struct Bitmap {
     w: usize,
     h: usize,
     pixels: Vec<[u8; 4]>,
+    group_alpha: Option<Vec<f64>>,
     work: usize,
 }
 impl Bitmap {
@@ -445,6 +448,7 @@ impl Bitmap {
                 let mut value = scaled[v * w + u];
                 value[3] = div255(u32::from(value[3]) * u32::from(clip_coverage(&clip, x))) as u8;
                 value[3] = (f64::from(value[3]) * opacity).round() as u8;
+                pdf_group::cover(&mut self.group_alpha, y * self.w + x, f64::from(value[3]) / 255.);
                 composite_image_pixel(&mut self.pixels[y * self.w + x], value, self.blend);
             }
             Some(())
@@ -553,6 +557,7 @@ impl Bitmap {
                     value[3] =
                         div255(u32::from(value[3]) * u32::from(clip_coverage(&clip, x))) as u8;
                     value[3] = (f64::from(value[3]) * opacity).round() as u8;
+                    pdf_group::cover(&mut self.group_alpha, dest_y * self.w + x, f64::from(value[3]) / 255.);
                     composite_image_pixel(&mut self.pixels[dest_y * self.w + x], value, self.blend);
                 }
             }
@@ -630,6 +635,7 @@ impl Bitmap {
                     continue;
                 }
                 let (color, mask) = if im.stencil { (&im.pixels[0], alpha) } else { (&src, opacity) };
+                pdf_group::cover(&mut self.group_alpha, y * self.w + x, f64::from(alpha) / 255.);
                 cairo_over(&mut self.pixels[y * self.w + x], color, mask, alpha, 128, self.blend);
             }
         }
@@ -749,6 +755,7 @@ impl Bitmap {
                 let mut draw = |x, coverage: u8| {
                     let alpha = mul255(mul255(coverage.into(), clip_coverage(&clip, x).into()), (opacity * 255.).round() as u32);
                     if alpha > 0 {
+                        pdf_group::cover(&mut self.group_alpha, y * self.w + x, f64::from(alpha) / 255.);
                         cairo_over(&mut self.pixels[y * self.w + x], &solid, alpha, alpha, 127, self.blend);
                     }
                 };
@@ -818,6 +825,7 @@ impl Bitmap {
                 if a == 0. {
                     continue;
                 }
+                pdf_group::cover(&mut self.group_alpha, y * self.w + x0 + x, a);
                 let px = &mut self.pixels[y * self.w + x0 + x];
                 if self.white_background && self.backend != RasterBackend::Cairo && self.blend == BlendMode::Normal { over_white(px, self.backend); }
                 if self.blend != BlendMode::Normal {
@@ -1034,6 +1042,7 @@ impl PageSource<'_> {
             [(boxpt[0] * sx - left as f64).min(w as f64), (boxpt[1] * sy - top as f64).min(h as f64)]
         } else { [w as f64, h as f64] };
         let mut bitmap = Bitmap {
+            group_alpha: None,
             blend: BlendMode::Normal,
             page_clip: page_clip.map(|v| (v * 256.).round_ties_even()),
             backend: opt.backend,
@@ -1059,6 +1068,7 @@ impl PageSource<'_> {
         let mut text_clip: Option<Vec<u16>> = None;
         let mut stack = vec![];
         let mut forms = vec![];
+        let mut group_bytes = w.checked_mul(h)?.checked_mul(4)?;
         self.draw_page(&page, |event, objects| {
             let (op, args, ctm) = match event {
                 Draw::Shading(value, [a, b, c, d, e, f]) => {
@@ -1085,7 +1095,9 @@ impl PageSource<'_> {
                             if !t.is_finite() { return None; }
                             if (t < 0. && !shading.extend[0]) || (t > 1. && !shading.extend[1]) { continue; }
                             let [r, g, b] = shading.color(t.clamp(0., 1.))?;
-                            composite_image_pixel(&mut bitmap.pixels[y * w + x], [r, g, b, (f64::from(coverage) * fill_alpha).round() as u8], bitmap.blend);
+                            let alpha = (f64::from(coverage) * fill_alpha).round() as u8;
+                            pdf_group::cover(&mut bitmap.group_alpha, y * w + x, f64::from(alpha) / 255.);
+                            composite_image_pixel(&mut bitmap.pixels[y * w + x], [r, g, b, alpha], bitmap.blend);
                         }
                     }
                     return Some(());
@@ -1096,7 +1108,8 @@ impl PageSource<'_> {
                     if let Some(alpha) = stroke { stroke_alpha = alpha; }
                     return Some(());
                 }
-                Draw::BeginForm([x0, y0, x1, y1], [a, b, c, d, e, f]) => {
+                Draw::BeginForm([x0, y0, x1, y1], [a, b, c, d, e, f], group) => {
+                    let isolated = match group { Some(v) => Some(pdf_group::read(objects, &v)?), None => None };
                     let pt = |x, y| point(a * x + c * y + e, b * x + d * y + f);
                     bitmap
                         .form_clips
@@ -1116,12 +1129,23 @@ impl PageSource<'_> {
                         bitmap.path_clip.clone(),
                         pending_clip.take(),
                         text_clip.take(),
+                        match isolated {
+                            Some(isolated) => Some(bitmap.begin_group(isolated, opt.limit, &mut group_bytes)?),
+                            None => None,
+                        },
                     ));
+                    if isolated.is_some() {
+                        fill_alpha = 1.;
+                        stroke_alpha = 1.;
+                        bitmap.blend = BlendMode::Normal;
+                    }
                     return Some(());
                 }
                 Draw::EndForm => {
                     if pending_clip.is_some() || text_clip.is_some() { return None; }
-                    (fill, stroke, fill_space, stroke_space, style, fill_alpha, stroke_alpha, bitmap.blend, paths, stack, bitmap.path_clip, pending_clip, text_clip) = forms.pop()?;
+                    let group;
+                    (fill, stroke, fill_space, stroke_space, style, fill_alpha, stroke_alpha, bitmap.blend, paths, stack, bitmap.path_clip, pending_clip, text_clip, group) = forms.pop()?;
+                    if let Some(group) = group { bitmap.end_group(group, fill_alpha, &mut group_bytes)?; }
                     bitmap.form_clips.pop()?;
                     return Some(());
                 }

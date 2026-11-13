@@ -256,3 +256,76 @@ it("renders a distant CID through caller-backed map ranges without materializing
   expect(await renderOperationStreamWindow(expected,operations,{x:0,y:0,width:bitmap.width,height:bitmap.height},{scale:0.5})).toEqual(bitmap);
  }finally{await backing.close();await doc.close();await source.close();expect(await fs.readdir("/scratch")).toEqual([]);}
 });
+
+// U+0020 maps to empty glyph 2; glyph 32 contains a triangle. Treating an
+// empty outline as a missing mapping therefore paints a visible wrong glyph.
+function emptyMappedGlyphPdf(text: string, blankLetter = false) {
+  const original = triangleFont().bytes;
+  const bytes = new Uint8Array(1024);
+  bytes.set(original);
+  const view = new DataView(bytes.buffer);
+  view.setUint16(200, 33); // maxp.numGlyphs
+  view.setUint16(238, 33); // hhea.numberOfHMetrics
+  view.setUint32(68, 400); view.setUint32(72, 33 * 4); // hmtx
+  view.setUint32(84, 544); view.setUint32(88, 34 * 2); // loca
+  view.setUint32(100, 800); view.setUint32(104, 48); // glyf
+  for (let i = 0; i < 33; i++) view.setUint16(400 + i * 4, 700);
+  for (let i = 0; i < 34; i++) view.setUint16(544 + i * 2, i < 2 ? 0 : i < 33 ? 12 : 24);
+  bytes.set(original.subarray(256, 280), 800);
+  bytes.set(original.subarray(256, 280), 824);
+  view.setUint32(120, 52); // cmap length
+  const at = 312;
+  view.setUint16(at + 2, 40); view.setUint16(at + 6, 6);
+  [32, 65, 65535, 0, 32, 65, 65535, 65506, blankLetter ? 65473 : 65472, 1, 0, 0, 0]
+    .forEach((value, i) => view.setUint16(at + 14 + i * 2, value));
+  const doc = PdfDocument.create(), page = doc.addPage([100, 50]);
+  const font = cosDict({
+    Type: cosName("Font"), Subtype: cosName("TrueType"), BaseFont: cosName("Helvetica"),
+    Encoding: cosName("WinAnsiEncoding"), FirstChar: cosNumber(32),
+    Widths: cosArray(Array.from({ length: 34 }, () => cosNumber(700))),
+    FontDescriptor: cosDict({ FontFile2: doc.cos.allocateObject(cosStream(bytes)) }),
+  });
+  dictSet(page.pageDict, "Resources", cosDict({ Font: cosDict({ F: doc.cos.allocateObject(font) }) }));
+  page.setRawContentStream(`BT /F 20 Tf 5 10 Td (${text}) Tj ET`);
+  return doc.save();
+}
+
+it.each([false, true])("keeps empty mapped TrueType glyphs blank (retained=%s)", async retained => {
+  const { createMemoryFileSystem } = await import("@poe-code/safe-fs");
+  const { PagedStorage } = await import("@poe-code/safe-fs/storage");
+  const { PdfFileSource } = await import("../source.js");
+  const { PdfRetainedDocument } = await import("../retained-document.js");
+  const { renderOperationStreamWindow } = await import("../render/raster.js");
+  for (const [text, blankLetter] of [[" ", false], ["A", true], ["A A", false]] as const) {
+    const bytes = emptyMappedGlyphPdf(text, blankLetter);
+    const display = PdfDocument.load(bytes).getPage(0).evaluateDisplayList();
+    let bitmap;
+    if (!retained) bitmap = renderDisplayListToBitmap(display, { scale: 1, transparent: true });
+    else {
+      const fs = createMemoryFileSystem(); await fs.mkdir("/scratch"); await fs.writeFile("/input", bytes);
+      const resources = { fs, directory: "/scratch" }, source = await PdfFileSource.open(fs, "/input");
+      const doc = await PdfRetainedDocument.open(source, resources);
+      const backing = new PagedStorage({ fs, cwd: "/scratch", env: {}, signal: new AbortController().signal }, 2);
+      try {
+        const page = (await doc.pages().next()).value!;
+        bitmap = await renderOperationStreamWindow(display, async function* () {
+          for await (const event of page.evaluateSteps(resources, { imageStorage: backing }))
+            if (!event.captured) yield event.operation;
+        }, { x: 0, y: 0, width: 100, height: 50 }, { scale: 1, transparent: true });
+      } finally { await backing.close(); await doc.close(); await source.close(); }
+    }
+    const painted = (left: number, right: number) => {
+      let count = 0;
+      for (let y = 0; y < bitmap.height; y++) for (let x = left; x < right; x++)
+        if (bitmap.data[(y * bitmap.width + x) * 4 + 3]! > 0) count++;
+      return count;
+    };
+    if (text === "A A") {
+      expect(painted(0, 10)).toBeGreaterThan(10);
+      expect(painted(10, 30)).toBe(0);
+      expect(painted(30, 50)).toBeGreaterThan(10);
+      expect(display.glyphs.map(glyph => glyph.matrix[4])).toEqual([5, 19, 33]);
+    } else expect(painted(0, 100)).toBe(0);
+    expect(display.glyphs.map(glyph => glyph.unicode).join("")).toBe(text);
+  }
+});

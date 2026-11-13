@@ -2111,7 +2111,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
               } else if ((font?.embeddedTrueType || font?.storedTrueType || font?.embeddedCff || font?.standardOutlines) && st.textRenderMode !== 3) {
                 const cp = item.unicode ? item.unicode.codePointAt(0) : undefined;
                 const cidFont = font.subtype === "Type0" && (font.embeddedTrueType ?? font.storedTrueType);
-                if (cidFont || font.simpleToGid) evaluatedType3 = true; // An empty mapped glyph must not fall back to standard text.
+                if (font.embeddedTrueType || font.storedTrueType) evaluatedType3 = true; // An empty mapped glyph must not fall back to standard text.
                 const glyphCode = item.cid ?? item.charCode;
                 let glyphId = font.cidToGid ? font.cidToGid[glyphCode] ?? 0 : glyphCode;
                 if(font.storedCidToGid){
@@ -2137,7 +2137,6 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                     return reply;
                   };
                   storedGlyph=yield* read(selected);
-                  if(!storedGlyph.count&&!cidFont&&!font.simpleToGid)storedGlyph=yield* read(item.charCode);
                   if((yield* fontWidth(font,item.charCode)) === undefined&&!cidFont){
                     if(font.simpleToGid)advance1000=(yield* number("width",simpleGid))*1000/retained.unitsPerEm;
                     else if(cp!==undefined)advance1000=Math.round((yield* number("width",selected))*1000/retained.unitsPerEm);
@@ -2155,9 +2154,6 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                   else throw new PdfError("E_CAPABILITY", "Source-backed CFF outlines require geometry storage");
                 } else if (cp !== undefined) {
                   glyphOutline = (font.embeddedTrueType ?? font.standardOutlines!).getGlyphOutline(cp);
-                }
-                if (glyphOutline.length === 0 && font.embeddedTrueType && !cidFont && !font.simpleToGid) {
-                  glyphOutline = font.embeddedTrueType.getGlyphOutlineByGid(item.charCode);
                 }
                 if ((yield* fontWidth(font,item.charCode)) === undefined && font.embeddedTrueType && !cidFont) {
                   const ttAdv = font.simpleToGid

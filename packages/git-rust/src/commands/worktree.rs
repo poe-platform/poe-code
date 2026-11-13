@@ -1074,19 +1074,15 @@ pub(crate) fn merge_trees_3way(
         let b = base_map.get(&path);
         let t = their_map.get(&path);
 
-        let o_oid = o.map(|e| e.oid.as_str());
-        let b_oid = b.map(|e| e.oid.as_str());
-        let t_oid = t.map(|e| e.oid.as_str());
-
-        if o_oid == t_oid {
+        if o == t {
             if let Some(entry) = o {
                 final_entries.push((path, entry.clone()));
             }
-        } else if o_oid == b_oid {
+        } else if o == b {
             if let Some(entry) = t {
                 final_entries.push((path, entry.clone()));
             }
-        } else if t_oid == b_oid {
+        } else if t == b {
             if let Some(entry) = o {
                 final_entries.push((path, entry.clone()));
             }
@@ -1095,6 +1091,26 @@ pub(crate) fn merge_trees_3way(
             let mut conflict_content = None;
             match (o, t) {
                 (Some(o_ent), Some(t_ent)) => {
+                    // Content and executable mode can change independently on either side.
+                    let mode = if b.is_some_and(|entry| entry.mode == o_ent.mode) {
+                        &t_ent.mode
+                    } else {
+                        &o_ent.mode
+                    };
+                    let b_oid = b.map(|entry| entry.oid.as_str());
+                    let content = if o_ent.oid == t_ent.oid || Some(t_ent.oid.as_str()) == b_oid {
+                        Some(o_ent)
+                    } else if Some(o_ent.oid.as_str()) == b_oid {
+                        Some(t_ent)
+                    } else {
+                        None
+                    };
+                    if let Some(entry) = content {
+                        let mut entry = entry.clone();
+                        entry.mode = mode.clone();
+                        final_entries.push((path, entry));
+                        continue;
+                    }
                     let o_bytes = read_blob(fs, gitdir, &o_ent.oid, None)?.blob;
                     let t_bytes = read_blob(fs, gitdir, &t_ent.oid, None)?.blob;
                     let b_bytes = if let Some(b_ent) = b {
@@ -1125,7 +1141,7 @@ pub(crate) fn merge_trees_3way(
                             final_entries.push((
                                 path.clone(),
                                 TreeEntry {
-                                    mode: o_ent.mode.clone(),
+                                    mode: mode.clone(),
                                     path: path.clone(),
                                     oid: merged_oid,
                                     entry_type: "blob".to_string(),

@@ -869,7 +869,7 @@ pub fn find_merge_base(
     oids: &[String],
 ) -> Result<Vec<String>, GitError> {
     let gdir = discover_gitdir(fs, gitdir);
-    let passes = oids.len();
+    let passes = oids.len().min(2);
     if passes == 0 {
         return Ok(Vec::new());
     }
@@ -899,7 +899,8 @@ pub fn find_merge_base(
     let mut heads: Vec<(usize, String)> = oids
         .iter()
         .enumerate()
-        .map(|(idx, o)| (idx, o.clone()))
+        // All remaining heads represent one hypothetical merge opposite the first head.
+        .map(|(idx, o)| (idx.min(1), o.clone()))
         .collect();
 
     while !heads.is_empty() {

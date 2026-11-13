@@ -3030,7 +3030,14 @@ pub fn execute_git_cli_with_input(
                     Err(e) => CliResult::err(128, format!("fatal: {}\n", e.message)),
                 }
             } else {
-                match crate::commands::plumbing::find_merge_base(fs, &gitdir, &[oid1, oid2]) {
+                let mut oids = vec![oid1, oid2];
+                for &name in &positionals[2..] {
+                    let Ok(oid) = crate::cli_history::resolve_commit(fs, &gitdir, name) else {
+                        return CliResult::err(128, format!("fatal: Not a valid commit name {name}\n"));
+                    };
+                    oids.push(oid);
+                }
+                match crate::commands::plumbing::find_merge_base(fs, &gitdir, &oids) {
                     Ok(mut bases) if !bases.is_empty() => {
                         if !sub_args.contains(&"--all") && !sub_args.contains(&"-a") {
                             bases.truncate(1);

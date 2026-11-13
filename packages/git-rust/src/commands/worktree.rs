@@ -935,15 +935,7 @@ pub fn merge(
         });
     }
 
-    let bases = find_merge_base(fs, &gdir, &[our_oid.clone(), their_oid.clone()])?;
-    if bases.len() != 1 {
-        if bases.is_empty() {
-            // Treat empty tree as virtual ancestor
-        } else {
-            return Err(GitError::merge_not_supported());
-        }
-    }
-    let base_oid = bases.first().cloned();
+    let base_oid = recursive_merge_base(fs, &gdir, &our_oid, &their_oid)?;
 
     if base_oid.as_deref() == Some(their_oid.as_str()) {
         return Ok(MergeReport {
@@ -1050,28 +1042,35 @@ pub(crate) fn recursive_merge_base(
     ours: &str,
     theirs: &str,
 ) -> Result<Option<String>, GitError> {
-    let bases = find_merge_base(fs, gitdir, &[ours.to_string(), theirs.to_string()])?;
-    let mut bases = bases.into_iter();
-    let Some(mut base) = bases.next() else {
+    let mut bases = find_merge_base(fs, gitdir, &[ours.to_string(), theirs.to_string()])?;
+    // A stable order makes the virtual ancestor independent of parent traversal order.
+    bases.sort();
+    let Some(mut base) = bases.first().cloned() else {
         return Ok(None);
     };
-    for next in bases {
+    for next in bases.into_iter().skip(1) {
         let ancestor = recursive_merge_base(fs, gitdir, &base, &next)?;
-        let (tree, conflicts) = merge_trees_3way(
-            fs, None, gitdir, &base, ancestor.as_deref(), &next,
-            "ours", "base", "theirs", true, false,
+        // Keep conflicts in the virtual tree; only conflicts between the final tips
+        // belong in the user's index and worktree.
+        let (tree, _) = merge_trees_3way(
+            fs,
+            None,
+            gitdir,
+            &base,
+            ancestor.as_deref(),
+            &next,
+            "Temporary merge branch 1",
+            "merged common ancestors",
+            "Temporary merge branch 2",
+            false,
+            false,
         )?;
-        // The tree merger cannot yet materialize conflicted virtual ancestors.
-        // Never use its empty-tree conflict result as a successful merge base.
-        if !conflicts.is_empty() {
-            return Err(GitError::merge_not_supported());
-        }
-        let mut commit = read_commit(fs, gitdir, &base)?.commit;
-        commit.tree = tree;
-        commit.parent = vec![base, next];
-        commit.message = "merged common ancestors\n".to_string();
-        commit.gpgsig = None;
-        base = write_commit(fs, gitdir, &commit)?;
+        let mut virtual_commit = read_commit(fs, gitdir, &base)?.commit;
+        virtual_commit.tree = tree;
+        virtual_commit.parent = vec![base, next];
+        virtual_commit.message = "merged common ancestors\n".to_string();
+        virtual_commit.gpgsig = None;
+        base = write_commit(fs, gitdir, &virtual_commit)?;
     }
     Ok(Some(base))
 }

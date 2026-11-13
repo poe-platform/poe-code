@@ -86,6 +86,7 @@ pub(super) enum Draw<'a, 'b> {
         baseline: f64,
         size: f64,
         matrix: Matrix,
+        ctm: Matrix,
         mode: i32,
     },
 }
@@ -411,6 +412,7 @@ impl<'a> PageSource<'a> {
                                         bounds: [x, y - size * 0.2, right, y + size * 0.8],
                                         baseline: y,
                                         matrix,
+                                        ctm: st.ctm,
                                         mode: st.mode,
                                     },
                                     &mut self.objects,

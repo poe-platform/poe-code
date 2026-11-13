@@ -7,6 +7,8 @@ mod pdf_cairo_image;
 mod pdf_cairo_path;
 #[path = "pdf_glyph.rs"]
 mod pdf_glyph;
+#[path = "pdf_text_stroke.rs"]
+mod pdf_text_stroke;
 use super::{Objects, PageSource, Value};
 #[path = "pdf_axial_shading.rs"]
 mod pdf_axial_shading;
@@ -1025,7 +1027,7 @@ impl PageSource<'_> {
         let mut stroke = [0.; 3];
         let mut fill_space = 1;
         let mut stroke_space = 1;
-        let mut width = 1.;
+        let mut style = pdf_text_stroke::Stroke::default();
         let (mut fill_alpha, mut stroke_alpha) = (1., 1.);
         let mut paths: Vec<Vec<Point>> = vec![];
         let mut pending_clip = None;
@@ -1072,12 +1074,13 @@ impl PageSource<'_> {
                     bitmap
                         .form_clips
                         .push([pt(x0, y0), pt(x1, y0), pt(x1, y1), pt(x0, y1)]);
+                    bitmap.work = bitmap.work.checked_sub(style.dash.len())?;
                     forms.push((
                         fill,
                         stroke,
                         fill_space,
                         stroke_space,
-                        width,
+                        style.clone(),
                         fill_alpha,
                         stroke_alpha,
                         std::mem::take(&mut paths),
@@ -1089,7 +1092,7 @@ impl PageSource<'_> {
                 }
                 Draw::EndForm => {
                     if pending_clip.is_some() { return None; }
-                    (fill, stroke, fill_space, stroke_space, width, fill_alpha, stroke_alpha, paths, stack, bitmap.path_clip, pending_clip) = forms.pop()?;
+                    (fill, stroke, fill_space, stroke_space, style, fill_alpha, stroke_alpha, paths, stack, bitmap.path_clip, pending_clip) = forms.pop()?;
                     bitmap.form_clips.pop()?;
                     return Some(());
                 }
@@ -1143,10 +1146,11 @@ impl PageSource<'_> {
                     family,
                     program,
                     matrix,
+                    ctm,
                     mode,
                     ..
                 } => {
-                    if matches!(mode, 0 | 2 | 4 | 6) {
+                    if matches!(mode, 0 | 1 | 2 | 4 | 5 | 6) {
                         let outline = pdf_glyph::outline(
                             &mut faces,
                             family,
@@ -1155,7 +1159,15 @@ impl PageSource<'_> {
                             &mut bitmap.work,
                             |x, y| point(x * matrix[0] + y * matrix[2] + matrix[4], x * matrix[1] + y * matrix[3] + matrix[5]),
                         )?;
-                        bitmap.paint(&outline, fill, fill_alpha, false, opt.text_aa, true)?;
+                        if matches!(mode, 0 | 2 | 4 | 6) {
+                            bitmap.paint(&outline, fill, fill_alpha, false, opt.text_aa, true)?;
+                        }
+                        if matches!(mode, 1 | 2 | 5 | 6) {
+                            let [a, b] = axis(ctm[0], ctm[1]);
+                            let [c, d] = axis(ctm[2], ctm[3]);
+                            let outline = pdf_text_stroke::outline(&outline, &style, [a, b, c, d], &mut bitmap.work)?;
+                            bitmap.paint(&outline, stroke, stroke_alpha, false, opt.text_aa, false)?;
+                        }
                     }
                     return Some(());
                 }
@@ -1167,11 +1179,11 @@ impl PageSource<'_> {
                     if stack.len() >= 256 {
                         return None;
                     }
-                    stack.push((fill, stroke, fill_space, stroke_space, width, fill_alpha, stroke_alpha, bitmap.path_clip.clone()));
+                    stack.push((fill, stroke, fill_space, stroke_space, style.clone(), fill_alpha, stroke_alpha, bitmap.path_clip.clone()));
                 }
                 b"Q" => {
                     if let Some(state) = stack.pop() {
-                        (fill, stroke, fill_space, stroke_space, width, fill_alpha, stroke_alpha, bitmap.path_clip) = state;
+                        (fill, stroke, fill_space, stroke_space, style, fill_alpha, stroke_alpha, bitmap.path_clip) = state;
                     }
                 }
                 b"cs" | b"CS" => {
@@ -1208,7 +1220,16 @@ impl PageSource<'_> {
                         (stroke_space, stroke) = (space, c);
                     }
                 }
-                b"w" => width = n(0)?,
+                b"w" => style.width = n(0)?,
+                b"J" => style.cap = n(0)? as i32,
+                b"j" => style.join = n(0)? as i32,
+                b"M" => style.miter = n(0)?,
+                b"d" => {
+                    let Value::Array(values) = args.first()? else { return None; };
+                    bitmap.work = bitmap.work.checked_sub(values.len())?;
+                    style.dash = values.iter().map(Value::poppler_number).collect::<Option<_>>()?;
+                    style.phase = n(1)?;
+                }
                 b"re" => {
                     let (x, y, w, h) = (n(0)?, n(1)?, n(2)?, n(3)?);
                     paths.push(vec![
@@ -1245,6 +1266,7 @@ impl PageSource<'_> {
                         let [xy, yy] = axis(ctm[2], ctm[3]);
                         let det = xx * yy - xy * yx;
                         let cairo = opt.backend == RasterBackend::Cairo;
+                        let width = style.width;
                         let adjusted = cairo && (width * (xx + xy)).abs() <= 1.
                             && (width * (yx + yy)).abs() <= 1. && det != 0.;
                         let half = if adjusted {

@@ -1,3 +1,4 @@
+import "./pdf-text-stroke.wasm.test.mjs";
 import "./pdf-path-clipping.test.mjs";
 import assert from "node:assert/strict";
 import test from "node:test";

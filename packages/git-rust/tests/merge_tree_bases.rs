@@ -82,11 +82,13 @@ fn merge_tree_preserves_deletion_across_multiple_bases() {
         &f.dir,
         &["merge-tree", "--write-tree", &left, &right],
     );
-    assert_eq!(result.exit_code, 128);
-    assert!(
-        result
-            .stderr
-            .contains("Merges with conflicts are not supported")
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    let tree = execute_git_cli(
+        &f.fs,
+        &f.dir,
+        &["ls-tree", "--name-only", result.stdout.trim()],
     );
+    assert_eq!(tree.exit_code, 0, "{}", tree.stderr);
+    assert_eq!(tree.stdout, "u\nv\n");
     assert_eq!(f.fs.read(&format!("{gitdir}/index")), index);
 }

@@ -1758,19 +1758,19 @@ fn gv_xy(p: GvPoint) -> String {
     format!("{},{}", gv_fmt(p.x), gv_fmt(p.y))
 }
 
-fn gv_spline_path(points: &[GvPoint]) -> String {
+fn gv_spline_path(points: &[GvPoint], horizontal: bool) -> String {
     if points.len() < 2 {
         return String::new();
     }
     if points.len() == 2 {
         let a = points[0];
         let b = points[1];
-        let mid_y = (a.y + b.y) / 2.0;
+        let mid = if horizontal { (a.x + b.x) / 2.0 } else { (a.y + b.y) / 2.0 };
         return format!(
             "M{}C{} {} {}",
             gv_xy(a),
-            gv_xy(GvPoint { x: a.x, y: mid_y }),
-            gv_xy(GvPoint { x: b.x, y: mid_y }),
+            gv_xy(if horizontal { GvPoint { x: mid, y: a.y } } else { GvPoint { x: a.x, y: mid } }),
+            gv_xy(if horizontal { GvPoint { x: mid, y: b.y } } else { GvPoint { x: b.x, y: mid } }),
             gv_xy(b)
         );
     }
@@ -1987,6 +1987,13 @@ fn gv_layout_graph(graph: &GvDotGraph, options: &GvLayoutOptions) -> GvGraphLayo
             ea
         })
         .collect();
+    let label_sizes: Vec<(f64, f64)> = edge_attributes.iter().map(|attrs| {
+        let size = gv_numeric(attrs.get("fontsize"), 14.0, 1.0);
+        let lines = gv_label_lines(attrs.get("label").unwrap_or(""), "");
+        (lines.iter().map(|line| gv_text_width(line, size, attrs.get("fontname"))).fold(0.0f64, f64::max),
+         if attrs.get("label").is_some() { lines.len() as f64 * size * 1.2 } else { 0.0 })
+    }).collect();
+    let rank_scale = if label_sizes.iter().any(|size| size.1 > 0.0) { 2 } else { 1 };
     let mut original_arcs: Vec<GvArc> = Vec::new();
     for (i, e) in model.edges.iter().enumerate() {
         let from = group_of[node_index(&e.tail.id)];
@@ -2088,7 +2095,7 @@ fn gv_layout_graph(graph: &GvDotGraph, options: &GvLayoutOptions) -> GvGraphLayo
         .iter()
         .enumerate()
         .map(|(i, n)| GvVertex {
-            rank: ranks.get(group_of[i]).copied().unwrap_or(0),
+            rank: ranks.get(group_of[i]).copied().unwrap_or(0) * rank_scale,
             width: if horizontal { n.height } else { n.width },
             height: if horizontal { n.width } else { n.height },
             x: 0.0,
@@ -2098,6 +2105,7 @@ fn gv_layout_graph(graph: &GvDotGraph, options: &GvLayoutOptions) -> GvGraphLayo
         .collect();
     let mut segments: Vec<GvArc> = Vec::new();
     let mut routes: Vec<Vec<usize>> = Vec::new();
+    let mut label_vertices = vec![None; model.edges.len()];
     for (i, e) in model.edges.iter().enumerate() {
         let mut from = node_index(&e.tail.id);
         let mut to = node_index(&e.head.id);
@@ -2110,11 +2118,14 @@ fn gv_layout_graph(graph: &GvDotGraph, options: &GvLayoutOptions) -> GvGraphLayo
         let r_to = vertices[to].rank;
         if r_to > r_from + 1 {
             for rank in (r_from + 1)..r_to {
+                let (width, height) = label_sizes[i];
+                let labeled = height > 0.0 && rank == (r_from + r_to) / 2;
+                if labeled { label_vertices[i] = Some(vertices.len()); }
                 route.push(vertices.len());
                 vertices.push(GvVertex {
                     rank,
-                    width: 0.0,
-                    height: 0.0,
+                    width: if labeled { ((if horizontal { height } else { width }) + 6.0) * 2.0 } else { 0.0 },
+                    height: if labeled { if horizontal { width } else { height } } else { 0.0 },
                     x: 0.0,
                     y: 0.0,
                     order: 0,
@@ -2174,23 +2185,9 @@ fn gv_layout_graph(graph: &GvDotGraph, options: &GvLayoutOptions) -> GvGraphLayo
         .get("ranksep")
         .and_then(|s| s.split(' ').next());
     let ranksep = gv_numeric(ranksep_first, 0.5, 0.0) * 72.0;
-    let mut gaps = vec![ranksep; layers.len()];
+    let gap = ranksep / rank_scale as f64 + if rank_scale == 2 { 12.0 } else { 0.0 };
+    let mut gaps = vec![gap; layers.len()];
     gaps[0] = 0.0;
-    if horizontal {
-        for (route, attrs) in routes.iter().zip(&edge_attributes) {
-            if route.len() != 2 { continue; }
-            let a = vertices[route[0]].rank;
-            let b = vertices[route[1]].rank;
-            if a == b { continue; }
-            if let Some(label) = attrs.get("label") {
-                let size = gv_numeric(attrs.get("fontsize"), 14.0, 1.0);
-                let width = gv_label_lines(label, "").iter()
-                    .map(|line| gv_text_width(line, size, attrs.get("fontname")))
-                    .fold(0.0f64, f64::max);
-                gaps[a.max(b)] = gaps[a.max(b)].max(width + 20.0);
-            }
-        }
-    }
     gv_assign_coordinates(&layers, &mut vertices, &segments, nodesep, &gaps);
 
     let max_y = vertices
@@ -2300,6 +2297,34 @@ fn gv_layout_graph(graph: &GvDotGraph, options: &GvLayoutOptions) -> GvGraphLayo
                 .iter()
                 .map(|&v| transform(vertices[v].x, vertices[v].y))
                 .collect();
+            if let Some(vertex) = label_vertices[i]
+                && splines != "line" && splines != "false"
+            {
+                let middle = routes[i].iter().position(|&v| v == vertex).unwrap();
+                let center = points[middle];
+                let clearance = (if horizontal { label_sizes[i].0 } else { label_sizes[i].1 }) / 2.0 + 12.0;
+                let direction = if (if horizontal { head.x-tail.x } else { head.y-tail.y }) > 0.0 { 1.0 } else { -1.0 };
+                let mut before = center;
+                let mut after = center;
+                let mut departure = GvPoint { x: tail.x, y: tail.y };
+                let mut arrival = GvPoint { x: head.x, y: head.y };
+                if horizontal {
+                    before.x -= clearance * direction;
+                    after.x += clearance * direction;
+                    departure.x += direction * (tail.width/2.0 + 6.0);
+                    arrival.x -= direction * (head.width/2.0 + 6.0);
+                } else {
+                    before.y -= clearance * direction;
+                    after.y += clearance * direction;
+                    departure.y += direction * (tail.height/2.0 + 6.0);
+                    arrival.y -= direction * (head.height/2.0 + 6.0);
+                }
+                points.splice(middle..=middle, [before, before, center, after, after]);
+                // Leave the node rank before turning into the reserved label lane.
+                points.splice(1..1, [departure, departure]);
+                let last = points.len()-1;
+                points.splice(last..last, [arrival, arrival]);
+            }
             let key = (e.tail.id.clone(), e.head.id.clone());
             let parallel = if let Some((_, cnt)) = parallels.iter_mut().find(|(k, _)| *k == key) {
                 let cur = *cnt;
@@ -2396,7 +2421,10 @@ fn gv_layout_graph(graph: &GvDotGraph, options: &GvLayoutOptions) -> GvGraphLayo
                 points = orthogonal;
             }
             let middle = points.len() / 2;
-            let label = if points.len() % 2 == 0 {
+            let label = if let Some(vertex) = label_vertices[i] {
+                let offset = (if horizontal { label_sizes[i].1 } else { label_sizes[i].0 }) / 2.0 + 6.0;
+                transform(vertices[vertex].x + if horizontal { -offset } else { offset }, vertices[vertex].y)
+            } else if points.len() % 2 == 0 {
                 GvPoint {
                     x: (points[middle - 1].x + points[middle].x) / 2.0,
                     y: (points[middle - 1].y + points[middle].y) / 2.0,
@@ -2434,8 +2462,13 @@ fn gv_layout_graph(graph: &GvDotGraph, options: &GvLayoutOptions) -> GvGraphLayo
             y: c.y + c.height,
         });
     }
-    for e in &edges {
+    for (i, e) in edges.iter().enumerate() {
         all_pts.extend_from_slice(&e.points);
+        if e.attributes.get("label").is_some() {
+            let (width, height) = label_sizes[i];
+            all_pts.push(GvPoint { x: e.label.x-width/2.0, y: e.label.y-height/2.0 });
+            all_pts.push(GvPoint { x: e.label.x+width/2.0, y: e.label.y+height/2.0 });
+        }
     }
     let min_x = all_pts.iter().map(|p| p.x).fold(0.0f64, f64::min);
     let min_y = all_pts.iter().map(|p| p.y).fold(0.0f64, f64::min);
@@ -2465,7 +2498,7 @@ fn gv_layout_graph(graph: &GvDotGraph, options: &GvLayoutOptions) -> GvGraphLayo
         e.path = if splines == "none" || splines.is_empty() {
             String::new()
         } else if splines == "true" || splines == "spline" {
-            gv_spline_path(&e.points)
+            gv_spline_path(&e.points, horizontal)
         } else {
             e.points
                 .iter()
@@ -2888,7 +2921,7 @@ fn gv_render_svg(layout: &GvGraphLayout) -> String {
             content.push(gv_svg_text(
                 lbl,
                 e.label.x,
-                e.label.y - 8.0,
+                e.label.y,
                 &e.attributes,
                 "",
             ));
@@ -3808,13 +3841,69 @@ mod graphviz_unit_tests {
     }
 
     #[test]
+    fn calendar_labels_clear_connectors_nodes_and_canvas() {
+        let fixture = include_str!("../../../graphviz-ast/fixtures/calendar.dot");
+        for direction in ["TB", "BT"] {
+            for multiline in [false, true] {
+                let source = fixture.replace("rankdir=TB", &format!("rankdir={direction}"));
+                let source = if multiline {
+                    source.replace("no break", "no break\\nnext meeting")
+                } else { source };
+                let defaults = [("fontsize", "20"), ("fontname", "Helvetica")];
+                let mut options = GvLayoutOptions::default();
+                for (key, value) in defaults {
+                    options.node.insert(key, value);
+                    options.edge.insert(key, value);
+                }
+                let layout = gv_layout_graph(&gv_parse_dot(&source).unwrap(), &options);
+                let svg = String::from_utf8(crate::render_dot_svg(&source, &[], &defaults, &defaults).unwrap()).unwrap();
+                assert_eq!(svg, gv_render_svg(&layout));
+                for edge in &layout.edges {
+                    let Some(label) = edge.attributes.get("label") else { continue };
+                    let lines = gv_label_lines(label, "");
+                    let width = lines.iter().map(|line| gv_text_width(line, 20.0, Some("Helvetica"))).fold(0.0f64, f64::max);
+                    let height = lines.len() as f64 * 24.0;
+                    let left = edge.label.x - width / 2.0;
+                    let right = edge.label.x + width / 2.0;
+                    let top = edge.label.y - height / 2.0;
+                    let bottom = edge.label.y + height / 2.0;
+                    assert!(left >= 0.0 && right <= layout.width && top >= 0.0 && bottom <= layout.height);
+                    for node in &layout.nodes {
+                        assert!(right <= node.x - node.width / 2.0 || left >= node.x + node.width / 2.0
+                            || bottom <= node.y - node.height / 2.0 || top >= node.y + node.height / 2.0);
+                    }
+                    for connector in &layout.edges {
+                        // These chains have straight shafts, including the default spline.
+                        for point in &connector.points {
+                            assert!((point.x - connector.points[0].x).abs() < 0.001);
+                            assert!(left > point.x + 0.5);
+                        }
+                        assert!(svg.contains(&format!("d=\"{}\"", connector.path)));
+                        let arrow = gv_svg_arrow(*connector.points.last().unwrap(), connector.points[connector.points.len() - 2], &connector.attributes);
+                        assert!(svg.contains(&arrow));
+                        let coordinates = arrow.split("points=\"").nth(1).unwrap().split('"').next().unwrap();
+                        for point in coordinates.split_whitespace() {
+                            let x: f64 = point.split(',').next().unwrap().parse().unwrap();
+                            assert!(left > x + 0.5);
+                        }
+                    }
+                    assert!(svg.contains(&gv_svg_text(label, edge.label.x, edge.label.y, &edge.attributes, "")));
+                }
+                for edge in layout.edges.iter().filter(|edge| edge.attributes.get("label").is_none()) {
+                    assert!((edge.points[0].y - edge.points.last().unwrap().y).abs() <= 60.001);
+                }
+            }
+        }
+    }
+
+    #[test]
     fn horizontal_edge_labels_fit_between_the_node_boundaries() {
         for direction in ["LR", "RL"] {
             let graph = gv_parse_dot(&format!("digraph {{ rankdir={direction}; a -> b [label=\"AWS PrivateLink\",fontsize=20]; b -> c }}")).unwrap();
             let layout = gv_layout_graph(&graph, &GvLayoutOptions::default());
             let edge = &layout.edges[0];
-            let left = edge.points[0].x.min(edge.points[1].x);
-            let right = edge.points[0].x.max(edge.points[1].x);
+            let left = edge.points[0].x.min(edge.points.last().unwrap().x);
+            let right = edge.points[0].x.max(edge.points.last().unwrap().x);
             let half = gv_text_width("AWS PrivateLink", 20.0, None) / 2.0;
             assert!(edge.label.x - half > left && edge.label.x + half < right);
             assert!((layout.edges[1].points[0].x - layout.edges[1].points[1].x).abs() < right - left);

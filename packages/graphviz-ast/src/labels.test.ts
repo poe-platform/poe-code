@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { layoutGraph, parseDot, renderSvg } from "./index.js";
 import { labelLines, textWidth } from "./metrics.js";
@@ -244,4 +245,57 @@ it("keeps parallel connectors clear of neighboring disconnected nodes", () => {
       }
     }
   }
+});
+
+it.each(["TB", "BT"])("renders the calendar with clear labels in %s", (direction) => {
+  const fixture = readFileSync(new URL("../fixtures/calendar.dot", import.meta.url), "utf8");
+  for (const multiline of [false, true]) {
+    let source = fixture.replace("rankdir=TB", `rankdir=${direction}`);
+    if (multiline) source = source.replace("no break", "no break\\nnext meeting");
+    const defaults = { fontsize: "20", fontname: "Helvetica" };
+    const graph = layoutGraph(parseDot(source), { node: defaults, edge: defaults });
+    const svg = renderSvg(graph);
+    for (const edge of graph.edges) {
+      if (!edge.attributes.label) {
+        expect(Math.abs(edge.points[0]!.y - edge.points.at(-1)!.y)).toBeLessThanOrEqual(60.001);
+        continue;
+      }
+      const lines = labelLines(edge.attributes.label);
+      const label = {
+        ...edge.label,
+        width: Math.max(...lines.map((line) => textWidth(line, 20, "Helvetica"))),
+        height: lines.length * 24
+      };
+      for (const node of graph.nodes) expect(overlaps(label, node)).toBe(false);
+      const left = label.x - label.width / 2;
+      expect(left).toBeGreaterThanOrEqual(0);
+      expect(label.x + label.width / 2).toBeLessThanOrEqual(graph.width);
+      expect(label.y - label.height / 2).toBeGreaterThanOrEqual(0);
+      expect(label.y + label.height / 2).toBeLessThanOrEqual(graph.height);
+      for (const connector of graph.edges) {
+        for (const point of connector.points) {
+          expect(point.x).toBeCloseTo(connector.points[0]!.x);
+          expect(left).toBeGreaterThan(point.x + 0.5);
+        }
+        expect(svg).toContain(`d="${connector.path}"`);
+      }
+      // Every polygon in this rounded-box fixture is an actual rendered arrowhead.
+      for (const match of svg.matchAll(/<polygon[^>]*points="([^"]+)"/g)) {
+        for (const point of match[1]!.trim().split(/\s+/)) {
+          expect(left).toBeGreaterThan(Number(point.split(",")[0]) + 0.5);
+        }
+      }
+      for (const [i, line] of lines.entries()) {
+        const y = label.y + (i - (lines.length - 1) / 2) * 24 + 7;
+        expect(svg).toContain(`y="${Math.round(y * 1000) / 1000}"`);
+        expect(svg).toContain(`>${line}</text>`);
+      }
+    }
+  }
+});
+
+it("keeps unlabeled calendar chains compact", () => {
+  const graph = layoutGraph(parseDot("digraph { a -> b -> c -> d -> e }"));
+  for (const edge of graph.edges)
+    expect(Math.abs(edge.points[0]!.y - edge.points.at(-1)!.y)).toBeCloseTo(36);
 });

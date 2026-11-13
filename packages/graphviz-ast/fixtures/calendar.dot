@@ -1,0 +1,1 @@
+digraph { rankdir=TB; bgcolor="#f8fafc"; node [shape=box style="rounded,filled" fillcolor="#e0f2fe"]; a[label="11–noon   Project sync"]; b[label="Noon–1   Interview" fillcolor="#ccfbf1"]; c[label="2:30–3:30   Enrollment"]; d[label="3–5   Calibration" fillcolor="#fef3c7"]; e[label="5–6   Chess"]; a->b[label="no break"]; b->c; c->d[label="overlap: 3–3:30" color="#d97706"]; d->e; }

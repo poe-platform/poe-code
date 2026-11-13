@@ -1077,6 +1077,7 @@ pub(crate) fn recursive_merge_base(
 }
 
 #[allow(clippy::too_many_arguments)]
+// Without a worktree directory, merge only into objects and leave repository state untouched.
 pub(crate) fn merge_trees_3way(
     fs: &MemoryFs,
     dir: Option<&str>,
@@ -1246,15 +1247,19 @@ pub(crate) fn merge_trees_3way(
             }
             if let Some(content) = conflict_content {
                 conflicts.push(path.clone());
-                if !abort_on_conflict && !dry_run {
-                    if let Some(d) = dir {
-                        let mode = o.or(t).map(|entry| entry.mode.as_str()).unwrap_or("100644");
-                        fs.write_with_mode(
-                            &join(&[d, &path]),
-                            &content,
-                            u32::from_str_radix(mode, 8).unwrap_or(0o100644),
-                        );
+                if dir.is_none() {
+                    if let Some(entry) = o.or(t) {
+                        let mut entry = entry.clone();
+                        entry.oid = _write_object(fs, gitdir, "blob", &content, "content", None, dry_run)?;
+                        final_entries.push((path.clone(), entry));
                     }
+                } else if !abort_on_conflict && !dry_run && let Some(d) = dir {
+                    let mode = o.or(t).map(|entry| entry.mode.as_str()).unwrap_or("100644");
+                    fs.write_with_mode(
+                        &join(&[d, &path]),
+                        &content,
+                        u32::from_str_radix(mode, 8).unwrap_or(0o100644),
+                    );
                     GitIndexManager::acquire(fs, gitdir, |index| {
                         index.delete(&path);
                         for (stage, entry) in [(1, b), (2, o), (3, t)] {
@@ -1282,7 +1287,7 @@ pub(crate) fn merge_trees_3way(
         }
     }
 
-    let merged_tree_oid = if conflicts.is_empty() {
+    let merged_tree_oid = if conflicts.is_empty() || dir.is_none() {
         write_directory_tree_recursive(fs, gitdir, &final_entries, "", dry_run)?
     } else {
         EMPTY_TREE_OID.to_string()

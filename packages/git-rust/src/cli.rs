@@ -4864,9 +4864,9 @@ pub fn execute_git_cli_with_input(
                 &our_oid,
                 base_oid.as_deref(),
                 &their_oid,
-                "ours",
+                positionals[if write_tree_mode { 0 } else { 1 }],
                 "base",
-                "theirs",
+                positionals[if write_tree_mode { 1 } else { 2 }],
                 false,
                 false,
             ) {

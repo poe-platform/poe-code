@@ -1,6 +1,14 @@
 import type { Attributes, DotGraph, NodeRef } from "./dot.js";
 import { resolveGraph } from "./model.js";
-import { nodeSize, numeric, pair, recordFields, type RecordField } from "./metrics.js";
+import {
+  nodeSize,
+  numeric,
+  pair,
+  recordFields,
+  labelLines,
+  textWidth,
+  type RecordField
+} from "./metrics.js";
 import {
   feedbackOrder,
   assignRanks,
@@ -60,12 +68,13 @@ const fmt = (n: number) => String(Math.round(n * 1000) / 1000);
 const xy = (p: Point) => `${fmt(p.x)},${fmt(p.y)}`;
 
 /** Cubic uniform B-spline segments, clamped to the two edge endpoints. */
-function splinePath(points: Point[]): string {
+function splinePath(points: Point[], horizontal: boolean): string {
   if (points.length < 2) return "";
   if (points.length === 2) {
     const a = points[0]!;
     const b = points[1]!;
-    return `M${xy(a)}C${xy({ x: a.x, y: (a.y + b.y) / 2 })} ${xy({ x: b.x, y: (a.y + b.y) / 2 })} ${xy(b)}`;
+    const mid = horizontal ? (a.x + b.x) / 2 : (a.y + b.y) / 2;
+    return `M${xy(a)}C${xy(horizontal ? { x: mid, y: a.y } : { x: a.x, y: mid })} ${xy(horizontal ? { x: mid, y: b.y } : { x: b.x, y: mid })} ${xy(b)}`;
   }
   const p = [points[0]!, points[0]!, ...points, points.at(-1)!, points.at(-1)!];
   let result = `M${xy(points[0]!)}`;
@@ -167,6 +176,14 @@ export function layoutGraph(graph: DotGraph, options: LayoutOptions = {}): Graph
   const groupIndex = new Map(representatives.map((r, i) => [r, i]));
   const groupOf = nodes.map((_, i) => groupIndex.get(find(i))!);
   const edgeAttributes = model.edges.map((e) => ({ ...e.attributes, ...options.edge }));
+  const labelSizes = edgeAttributes.map((a) => {
+    const size = numeric(a.fontsize, 14, 1);
+    const lines = labelLines(a.label ?? "");
+    return {
+      width: Math.max(...lines.map((line) => textWidth(line, size, a.fontname)), 0),
+      height: a.label ? lines.length * size * 1.2 : 0
+    };
+  });
   const originalArcs: Arc[] = model.edges.flatMap((e, i) => {
     const from = groupOf[index.get(e.tail.id)!]!;
     const to = groupOf[index.get(e.head.id)!]!;
@@ -209,16 +226,23 @@ export function layoutGraph(graph: DotGraph, options: LayoutOptions = {}): Graph
     for (let v = 0; v < representatives.length; v++)
       if (v !== max && !maxGroups.has(v)) arcs.push({ from: v, to: max, minlen: 1, weight: 0 });
   const ranks = assignRanks(representatives.length, arcs, order);
+  const rankScale = labelSizes.some((size) => size.height) ? 2 : 1;
   const vertices: Vertex[] = nodes.map((n, i) => ({
-    rank: ranks[groupOf[i]!] ?? 0,
+    rank: (ranks[groupOf[i]!] ?? 0) * rankScale,
     width: horizontal ? n.height : n.width,
     height: horizontal ? n.width : n.height,
     x: 0,
     y: 0,
     order: 0
   }));
+  for (const [i, edge] of model.edges.entries()) {
+    if (edge.tail.id === edge.head.id)
+      vertices[index.get(edge.tail.id)!]!.width +=
+        2 * (48 + (horizontal ? labelSizes[i]!.height : labelSizes[i]!.width));
+  }
   const segments: Arc[] = [];
   const routes: number[][] = [];
+  const labelVertices = new Map<number, number>();
   model.edges.forEach((e, i) => {
     let from = index.get(e.tail.id)!;
     let to = index.get(e.head.id)!;
@@ -226,8 +250,19 @@ export function layoutGraph(graph: DotGraph, options: LayoutOptions = {}): Graph
     if (reverse) [from, to] = [to, from];
     const route = [from];
     for (let rank = vertices[from]!.rank + 1; rank < vertices[to]!.rank; rank++) {
+      const size = labelSizes[i]!;
+      const labeled =
+        size.height > 0 && rank === Math.floor((vertices[from]!.rank + vertices[to]!.rank) / 2);
+      if (labeled) labelVertices.set(i, vertices.length);
       route.push(vertices.length);
-      vertices.push({ rank, width: 0, height: 0, x: 0, y: 0, order: 0 });
+      vertices.push({
+        rank,
+        width: labeled ? ((horizontal ? size.height : size.width) + 6) * 2 : 0,
+        height: labeled ? (horizontal ? size.width : size.height) : 0,
+        x: 0,
+        y: 0,
+        order: 0
+      });
     }
     route.push(to);
     for (let j = 1; j < route.length; j++)
@@ -258,7 +293,7 @@ export function layoutGraph(graph: DotGraph, options: LayoutOptions = {}): Graph
     vertices,
     segments,
     numeric(attributes.nodesep, 0.25) * 72,
-    numeric(attributes.ranksep?.split(" ")[0], 0.5) * 72
+    (numeric(attributes.ranksep?.split(" ")[0], 0.5) * 72) / rankScale + (rankScale === 2 ? 12 : 0)
   );
   const maxY = Math.max(...vertices.map((v) => v.y), 0);
   const transform = (p: Point): Point => {
@@ -299,17 +334,59 @@ export function layoutGraph(graph: DotGraph, options: LayoutOptions = {}): Graph
   const edges: LayoutEdge[] = model.edges.map((e, i) => {
     const tail = nodes[index.get(e.tail.id)!]!;
     const head = nodes[index.get(e.head.id)!]!;
+    const labelVertex = labelVertices.get(i);
     let points = routes[i]!.map((v) => transform(vertices[v]!));
+    if (labelVertex !== undefined && splines !== "line" && splines !== "false") {
+      const middle = routes[i]!.indexOf(labelVertex);
+      const center = points[middle]!;
+      const clearance = (horizontal ? labelSizes[i]!.width : labelSizes[i]!.height) / 2 + 12;
+      const direction =
+        (horizontal ? points.at(-1)!.x - points[0]!.x : points.at(-1)!.y - points[0]!.y) > 0
+          ? 1
+          : -1;
+      const before = {
+        x: center.x - (horizontal ? clearance * direction : 0),
+        y: center.y - (horizontal ? 0 : clearance * direction)
+      };
+      const after = {
+        x: center.x + (horizontal ? clearance * direction : 0),
+        y: center.y + (horizontal ? 0 : clearance * direction)
+      };
+      points.splice(middle, 1, before, before, center, after, after);
+      // Leave the node's rank before turning sideways into the label lane.
+      // Otherwise a wide fan-out can run through a neighboring node.
+      const axis = horizontal ? "x" : "y";
+      const departure = { x: tail.x, y: tail.y };
+      const arrival = { x: head.x, y: head.y };
+      departure[axis] += direction * ((horizontal ? tail.width : tail.height) / 2 + 6);
+      arrival[axis] -= direction * ((horizontal ? head.width : head.height) / 2 + 6);
+      points.splice(1, 0, departure, departure);
+      points.splice(points.length - 1, 0, arrival, arrival);
+    }
     const key = JSON.stringify([e.tail.id, e.head.id]);
     const parallel = parallels.get(key) ?? 0;
     parallels.set(key, parallel + 1);
     if (tail === head) {
+      const offset = 32 + parallel * 12;
+      const start = horizontal
+        ? { x: tail.x - tail.width / 4, y: tail.y - tail.height / 2 }
+        : { x: tail.x + tail.width / 2, y: tail.y - tail.height / 4 };
+      const end = horizontal
+        ? { x: tail.x + tail.width / 4, y: tail.y - tail.height / 2 }
+        : { x: tail.x + tail.width / 2, y: tail.y + tail.height / 4 };
       points = [
-        { x: tail.x + tail.width / 2, y: tail.y },
-        { x: tail.x + tail.width / 2 + 32 + parallel * 12, y: tail.y - tail.height },
-        { x: tail.x + tail.width / 2 + 32 + parallel * 12, y: tail.y + tail.height },
-        { x: tail.x + tail.width / 2, y: tail.y + tail.height / 4 }
+        start,
+        { x: start.x + (horizontal ? 0 : offset), y: start.y - (horizontal ? offset : 0) },
+        { x: end.x + (horizontal ? 0 : offset), y: end.y - (horizontal ? offset : 0) },
+        end
       ];
+      points[0] = boundary(tail, points[1]!, e.tail);
+      points[points.length - 1] = boundary(tail, points.at(-2)!, e.head);
+      if (splines === "ortho") {
+        const axis = horizontal ? "x" : "y";
+        points[1]![axis] = points[0]![axis];
+        points[2]![axis] = points[3]![axis];
+      }
     } else {
       if (tail.rank === head.rank) {
         const offset = 30 + parallel * 12;
@@ -331,8 +408,9 @@ export function layoutGraph(graph: DotGraph, options: LayoutOptions = {}): Graph
       points[0] = boundary(tail, points[1]!, e.tail);
       points[points.length - 1] = boundary(head, points.at(-2)!, e.head);
     }
-    if (splines === "line" || splines === "false") points = [points[0]!, points.at(-1)!];
-    if (splines === "ortho") {
+    if (tail !== head && (splines === "line" || splines === "false"))
+      points = [points[0]!, points.at(-1)!];
+    if (splines === "ortho" && tail !== head) {
       const orthogonal: Point[] = [points[0]!];
       for (let j = 1; j < points.length; j++) {
         const a = points[j - 1]!;
@@ -350,8 +428,93 @@ export function layoutGraph(graph: DotGraph, options: LayoutOptions = {}): Graph
       reversed: tail.rank > head.rank,
       points,
       path: "",
-      label: points[Math.floor(points.length / 2)]!
+      label:
+        labelVertex !== undefined
+          ? transform({
+              x:
+                vertices[labelVertex]!.x +
+                (horizontal ? -1 : 1) *
+                  ((horizontal ? labelSizes[i]!.height : labelSizes[i]!.width) / 2 + 6),
+              y: vertices[labelVertex]!.y
+            })
+          : points[Math.floor(points.length / 2)]!
     };
+  });
+  // Labels occupy real space: try the middle of each route segment, on either
+  // side, and move out only when a node or an earlier label blocks that space.
+  const occupied = nodes.map((n) => ({ x: n.x, y: n.y, width: n.width, height: n.height }));
+  for (const [i, edge] of edges.entries()) {
+    if (labelVertices.has(i) && splines !== "line" && splines !== "false")
+      occupied.push({ ...edge.label, ...labelSizes[i]! });
+  }
+  edges.forEach((edge, i) => {
+    if (!edge.attributes.label || edge.attributes.style?.includes("invis")) return;
+    const size = labelSizes[i]!;
+    if (labelVertices.has(i) && splines !== "line" && splines !== "false") {
+      return;
+    }
+    const segments = edge.points
+      .slice(1)
+      .map((b, j) => {
+        const a = edge.points[j]!;
+        return { a, b, length: Math.hypot(b.x - a.x, b.y - a.y) };
+      })
+      .sort((a, b) => b.length - a.length);
+    let placed = false;
+    for (let step = 0; step <= occupied.length && !placed; step++) {
+      for (const { a, b } of segments) {
+        const length = Math.hypot(b.x - a.x, b.y - a.y) || 1;
+        const nx = (b.y - a.y) / length,
+          ny = -(b.x - a.x) / length;
+        const offset =
+          Math.abs(nx) * (size.width / 2 + 6) + Math.abs(ny) * (size.height / 2 + 6) + 2;
+        for (const side of [1, -1]) {
+          const distance = side * (offset + step * (offset * 2 + 6));
+          const candidate = {
+            x: (a.x + b.x) / 2 + nx * distance,
+            y: (a.y + b.y) / 2 + ny * distance,
+            ...size
+          };
+          if (
+            occupied.some(
+              (box) =>
+                Math.abs(box.x - candidate.x) < (box.width + size.width) / 2 + 6 &&
+                Math.abs(box.y - candidate.y) < (box.height + size.height) / 2 + 6
+            )
+          )
+            continue;
+          if (
+            edges.some((other) =>
+              other.points.slice(1).some((end, j) => {
+                const start = other.points[j]!;
+                let low = 0,
+                  high = 1;
+                for (const axis of ["x", "y"] as const) {
+                  const radius = (axis === "x" ? size.width : size.height) / 2 + 6;
+                  const delta = end[axis] - start[axis];
+                  const offset = candidate[axis] - start[axis];
+                  if (!delta) {
+                    if (Math.abs(offset) > radius) return false;
+                  } else {
+                    const a = (offset - radius) / delta,
+                      b = (offset + radius) / delta;
+                    low = Math.max(low, Math.min(a, b));
+                    high = Math.min(high, Math.max(a, b));
+                  }
+                }
+                return low <= high;
+              })
+            )
+          )
+            continue;
+          edge.label = { x: candidate.x, y: candidate.y };
+          occupied.push(candidate);
+          placed = true;
+          break;
+        }
+        if (placed) break;
+      }
+    }
   });
   const [mx, my] = pair(attributes.margin, 0);
   const [px, py] = pair(attributes.pad, 0.0555);
@@ -364,7 +527,15 @@ export function layoutGraph(graph: DotGraph, options: LayoutOptions = {}): Graph
       { x: c.x, y: c.y },
       { x: c.x + c.width, y: c.y + c.height }
     ]),
-    ...edges.flatMap((e) => e.points)
+    ...edges.flatMap((e) => e.points),
+    ...edges.flatMap((e, i) =>
+      e.attributes.label && !e.attributes.style?.includes("invis")
+        ? [
+            { x: e.label.x - labelSizes[i]!.width / 2, y: e.label.y - labelSizes[i]!.height / 2 },
+            { x: e.label.x + labelSizes[i]!.width / 2, y: e.label.y + labelSizes[i]!.height / 2 }
+          ]
+        : []
+    )
   ];
   const minX = Math.min(...all.map((p) => p.x), 0);
   const minY = Math.min(...all.map((p) => p.y), 0);
@@ -391,7 +562,7 @@ export function layoutGraph(graph: DotGraph, options: LayoutOptions = {}): Graph
       splines === "none" || splines === ""
         ? ""
         : splines === "true" || splines === "spline"
-          ? splinePath(e.points)
+          ? splinePath(e.points, horizontal)
           : e.points.map((p, i) => `${i ? "L" : "M"}${xy(p)}`).join("");
   }
   const labelHeight = attributes.label ? numeric(attributes.fontsize, 14) * 1.2 + 12 : 0;

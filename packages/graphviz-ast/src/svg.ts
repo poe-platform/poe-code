@@ -176,7 +176,7 @@ export function renderSvg(layout: GraphLayout): string {
         content.push(arrow(e.points[0]!, e.points[1]!, e.attributes));
     }
     if (e.attributes.label)
-      content.push(text(e.attributes.label, e.label.x, e.label.y - 8, e.attributes));
+      content.push(text(e.attributes.label, e.label.x, e.label.y, e.attributes));
     content.push("</g>");
   }
   for (const n of layout.nodes) {

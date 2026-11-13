@@ -34,7 +34,9 @@ bounding rectangles and member IDs. The result is JSON-serializable.
 
 Layouts support `TB`, `BT`, `LR`, `RL`, rank groups, node/rank separation, margins,
 padding, cubic splines, orthogonal routes, polylines, straight lines and hidden
-edges. Supported shapes include rectangles, ellipses, circles, double circles,
+edges. Edge labels reserve layout space, including multiline labels; canvas bounds
+include label extents. Self-loops work with spline, polyline, orthogonal and straight
+routing. Supported shapes include rectangles, ellipses, circles, double circles,
 diamonds, plaintext, records, rounded records, cylinders, folders, components,
 notes and tabs. Font advances are estimated deterministically; installed fonts
 do not affect geometry. HTML label markup is retained in the AST and its text

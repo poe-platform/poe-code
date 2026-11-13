@@ -144,6 +144,16 @@ pub(super) fn encode(im: &Raster, density: u32, limit: usize) -> Result<Vec<u8>,
 mod lossless;
 
 pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster, &'static str> {
+    if !signature(bytes)
+        || bytes.len() < 12
+        || u32::from_le_bytes(bytes[4..8].try_into().unwrap()) as usize != bytes.len() - 8
+        || chunks(bytes)
+            .map(|(_, data)| 8 + data.len().next_multiple_of(2))
+            .sum::<usize>()
+            != bytes.len() - 12
+    {
+        return Err("Invalid WebP container");
+    }
     let hdr = header(bytes)?;
     let (w, h) = (hdr.width as usize, hdr.height as usize);
     let count = w
@@ -160,8 +170,14 @@ pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster, &'static str>
         pixels: Vec::new(),
     };
     for (kind, data) in chunks(bytes) {
-        if kind != b"VP8L" || data.len() < 5 || data[0] != 0x2f {
+        if kind == b"VP8 " {
+            return Err("Unsupported lossy WebP");
+        }
+        if kind != b"VP8L" {
             continue;
+        }
+        if data.len() < 5 || data[0] != 0x2f || data[4] >> 5 != 0 {
+            return Err("Invalid WebP lossless header");
         }
         if data.get(5..7) == Some(&[0, 0x78])
             && data.len() > 8
@@ -174,17 +190,83 @@ pub(super) fn decode(bytes: &[u8], limit: usize) -> Result<Raster, &'static str>
             im.pixels = raw.chunks_exact(4).map(|p| p.try_into().unwrap()).collect();
             return Ok(im);
         }
-        match lossless::decode(data, w, h, limit) {
-            Ok(pixels) => {
-                im.pixels = pixels;
-                return Ok(im);
-            }
-            Err("image exceeds memory budget") => return Err("image exceeds memory budget"),
-            Err(_) => {}
-        }
+        im.pixels = lossless::decode(data, w, h, limit)?;
+        return Ok(im);
     }
-    // The production image library returns opaque black for lossy VP8.
-    im.orientation = None;
-    im.pixels = vec![[0, 0, 0, 255]; count];
-    Ok(im)
+    Err("Unsupported WebP image")
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::vfs::{MemoryVfs, SafeBashFs};
+
+    // Pillow/libwebp controls, independently decoded with libwebp:
+    // lossy: every pixel [231, 39, 81, 255]; lossless: [230, 40, 80, 255].
+    const LOSSY: &[u8] = &[
+        82, 73, 70, 70, 58, 0, 0, 0, 87, 69, 66, 80, 86, 80, 56, 32, 46, 0, 0, 0, 144, 1, 0, 157,
+        1, 42, 8, 0, 6, 0, 0, 192, 18, 37, 160, 2, 116, 186, 0, 3, 152, 0, 254, 241, 77, 175, 198,
+        243, 121, 173, 107, 127, 253, 245, 83, 255, 125, 84, 255, 223, 85, 63, 239, 100, 128, 0,
+    ];
+    const LOSSLESS: &[u8] = &[
+        82, 73, 70, 70, 34, 0, 0, 0, 87, 69, 66, 80, 86, 80, 56, 76, 22, 0, 0, 0, 47, 7, 64, 1, 0,
+        7, 80, 148, 154, 23, 170, 255, 1, 128, 32, 252, 111, 155, 136, 232, 127, 8,
+    ];
+
+    fn convert(fs: &MemoryVfs) -> crate::commands::BuiltinOutcome {
+        crate::commands::archive::try_run_archive_command(
+            "convert",
+            &["/source.webp".into(), "/result.png".into()],
+            "",
+            "/",
+            &Default::default(),
+            fs,
+        )
+        .unwrap()
+    }
+
+    fn rejects_without_publication(bytes: &[u8]) {
+        let fs = MemoryVfs::new();
+        fs.write_file("/source.webp", bytes).unwrap();
+        assert_ne!(convert(&fs).exit_code, 0, "input: {bytes:?}");
+        assert!(fs.read_file("/result.png").is_err());
+        fs.write_file("/result.png", b"existing image").unwrap();
+        assert_ne!(convert(&fs).exit_code, 0, "input: {bytes:?}");
+        assert_eq!(fs.read_file("/result.png").unwrap(), b"existing image");
+    }
+
+    #[test]
+    fn webp_lossy_is_explicitly_unsupported() {
+        assert!(matches!(decode(LOSSY, 4096), Err("Unsupported lossy WebP")));
+        rejects_without_publication(LOSSY);
+    }
+
+    #[test]
+    fn webp_lossless_matches_independent_pixels() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/source.webp", LOSSLESS).unwrap();
+        assert_eq!(convert(&fs).exit_code, 0);
+        let im = Raster::decode(&fs.read_file("/result.png").unwrap(), 4096).unwrap();
+        assert_eq!((im.width, im.height), (8, 6));
+        assert_eq!(im.pixels, vec![[230, 40, 80, 255]; 48]);
+    }
+
+    #[test]
+    fn webp_truncation_and_corruption_do_not_publish() {
+        for bytes in [LOSSY, LOSSLESS] {
+            for end in 0..bytes.len() {
+                assert!(decode(&bytes[..end], 4096).is_err());
+                if signature(&bytes[..end]) {
+                    rejects_without_publication(&bytes[..end]);
+                }
+            }
+        }
+        let mut corrupt = LOSSLESS.to_vec();
+        corrupt[24] |= 0x20; // Reserved VP8L version.
+        rejects_without_publication(&corrupt);
+        let mut truncated = LOSSLESS[..30].to_vec();
+        truncated[4..8].copy_from_slice(&22u32.to_le_bytes());
+        truncated[16..20].copy_from_slice(&10u32.to_le_bytes());
+        rejects_without_publication(&truncated);
+    }
 }

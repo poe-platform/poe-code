@@ -15310,12 +15310,12 @@ mod media_unit_tests {
     }
 
     #[test]
-    fn png_preserves_webp_pixel_alpha_even_when_the_header_claims_opacity() {
+    fn convert_rejects_webp_without_a_lossless_bitstream() {
         let fs = MemoryVfs::new();
         fs.write_file("/damaged", &hex_dec("5249464612000000574542505650384c050000002f0100000000")).unwrap();
         let r = cmd_media_doc("convert", &media_args(&["damaged","-flop","out.png"]), "", "/", &fs);
-        assert_eq!(r.exit_code, 0);
-        assert_eq!(hex_enc(&sha256_bytes(&fs.read_file("/out.png").unwrap())), "b93a1b6c3fdb5effa5718380af38c23439f98cb4521b69b2feeff515f73bc05f");
+        assert_eq!(r.exit_code, 1);
+        assert!(!fs.exists("/out.png"));
     }
 
     #[test]

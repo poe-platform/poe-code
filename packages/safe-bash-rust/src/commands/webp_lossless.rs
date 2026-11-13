@@ -81,7 +81,10 @@ impl Decoder<'_> {
         let mut shift = 0;
         while shift < n {
             let i = self.bit / 8;
-            let Some(&v) = self.data.get(i) else { break };
+            let Some(&v) = self.data.get(i) else {
+                self.bit += n - shift;
+                break;
+            };
             let offset = self.bit % 8;
             let take = (8 - offset).min(n - shift);
             value |= ((usize::from(v) >> offset) & ((1 << take) - 1)) << shift;
@@ -377,12 +380,16 @@ fn predict(mode: u8, l: Pixel, t: Pixel, tl: Pixel, tr: Pixel) -> Pixel {
     }
 }
 pub(super) fn decode(payload: &[u8], w: usize, h: usize, limit: usize) -> Result<Vec<Pixel>> {
-    Decoder {
+    let mut decoder = Decoder {
         data: payload,
         bit: 40,
         remaining: limit,
+    };
+    let pixels = decoder.image(w, h, true)?;
+    if decoder.bit > payload.len() * 8 {
+        return Err("Truncated WebP lossless bitstream");
     }
-    .image(w, h, true)
+    Ok(pixels)
 }
 
 const DIST: [(i8, i8); 120] = [

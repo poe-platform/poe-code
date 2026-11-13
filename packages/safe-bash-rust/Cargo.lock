@@ -27,4 +27,12 @@ dependencies = [
  "config-mutations-rust",
  "mcp-protocol-rust",
  "poe-agent-rust",
+ "terminal-png-rust",
+]
+
+[[package]]
+name = "terminal-png-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
 ]

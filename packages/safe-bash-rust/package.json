@@ -45,7 +45,8 @@
     "@poe-platform/safe-bash": "*",
     "esbuild": "0.28.1",
     "mcp-protocol-rust": "*",
-    "workerd": "1.20260708.1"
+    "workerd": "1.20260708.1",
+    "terminal-png-rust": "*"
   },
   "repository": {
     "type": "git",

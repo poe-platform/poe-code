@@ -17,7 +17,13 @@ pub(in crate::commands::archive) struct TextLine {
     pub bounds: [f64; 4],
     baseline: f64,
 }
+pub(super) enum Program {
+    Standard,
+    TrueType(Vec<u8>),
+    Unsupported,
+}
 struct Font {
+    program: Program,
     name: Rc<str>,
     start: usize,
     widths: Vec<f64>,
@@ -71,6 +77,7 @@ pub(super) enum Draw<'a, 'b> {
     Glyph {
         byte: u8,
         family: &'a Rc<str>,
+        program: &'a Program,
         bounds: [f64; 4],
         baseline: f64,
         size: f64,
@@ -103,10 +110,30 @@ impl<'a> Resources<'a> {
                     }
                     _ => vec![],
                 };
+                let descriptor = match dict.get(b"FontDescriptor") {
+                    Some(value) => Some(objects.resolve(value)?),
+                    None => None,
+                };
+                let program = if let Some(file) = descriptor.as_ref().and_then(|d| d.get(b"FontFile2")) {
+                    if dict.get(b"Subtype").and_then(Value::word) == Some(b"/TrueType")
+                        && dict.get(b"Encoding").and_then(|v| objects.resolve(v)).as_ref().and_then(Value::word) == Some(b"/WinAnsiEncoding")
+                    {
+                        Program::TrueType(objects.decoded_stream(file.reference()?)?.into_owned())
+                    } else {
+                        Program::Unsupported
+                    }
+                } else if matches!(dict.get(b"Subtype").and_then(Value::word), Some(b"/Type0" | b"/TrueType"))
+                    || descriptor.as_ref().is_some_and(|d| d.get(b"FontFile").is_some() || d.get(b"FontFile3").is_some())
+                {
+                    Program::Unsupported
+                } else {
+                    Program::Standard
+                };
                 let name = Rc::from(String::from_utf8_lossy(family).as_ref());
                 self.fonts.insert(
                     key,
                     Rc::new(Font {
+                        program,
                         name,
                         start,
                         widths,
@@ -168,6 +195,7 @@ impl<'a> PageSource<'a> {
         emit: &mut impl FnMut(Draw<'_, '_>, &mut super::Objects<'a>) -> Option<()>,
     ) -> Option<()> {
         let default_font = Font {
+            program: Program::Standard,
             name: Rc::from("Helvetica"),
             start: 0,
             widths: vec![],
@@ -344,6 +372,7 @@ impl<'a> PageSource<'a> {
                                     Draw::Glyph {
                                         byte: b,
                                         family: &font.name,
+                                        program: &font.program,
                                         size,
                                         bounds: [x, y - size * 0.2, right, y + size * 0.8],
                                         baseline: y,

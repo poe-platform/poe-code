@@ -105,7 +105,10 @@ impl<'a> Font<'a> {
                 }
                 bytes(map, 14, segments * 8 + 2)?;
             } else {
-                bytes(map, 16, u32(map, 12)? as usize * 12)?;
+                let length = (u32(map, 12)? as usize)
+                    .checked_mul(12)
+                    .ok_or("invalid cmap group count")?;
+                bytes(map, 16, length)?;
             }
             if chosen.is_none() || format == 12 {
                 chosen = Some((map, format));

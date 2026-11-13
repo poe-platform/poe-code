@@ -14,3 +14,4 @@ crate-type = ["rlib", "cdylib"]
 mcp-protocol-rust = { path = "../mcp-protocol-rust" }
 poe-agent-rust = { path = "../poe-agent-rust" }
 config-mutations-rust = { path = "../config-mutations-rust" }
+terminal-png-rust = { path = "../terminal-png-rust" }

@@ -975,6 +975,7 @@ impl PageSource<'_> {
                 Draw::Glyph {
                     byte,
                     family,
+                    program,
                     matrix,
                     mode,
                     ..
@@ -983,6 +984,7 @@ impl PageSource<'_> {
                         let outline = pdf_glyph::outline(
                             &mut faces,
                             family,
+                            program,
                             byte,
                             &mut bitmap.work,
                             |x, y| point(x * matrix[0] + y * matrix[2] + matrix[4], x * matrix[1] + y * matrix[3] + matrix[5]),

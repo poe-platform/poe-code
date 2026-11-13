@@ -16854,3 +16854,79 @@ test("PNG checksum failures preserve output through Wasm convert", async () => {
     assert.deepEqual(Buffer.from(await bash.fs.readFile("/result.ppm")), expected);
   } finally { await bash.dispose(); }
 });
+
+test("embedded simple TrueType fonts render, keep spaces blank, and fail without overwriting", async () => {
+  const {readFileSync} = await import("node:fs");
+  const {decodePng} = await import("@poe-code/pdf-ast");
+  const input = readFileSync(new URL("../tests/fixtures/embedded-font.pdf", import.meta.url));
+  const replace = (bytes, from, to) => {
+    assert.equal(from.length, to.length);
+    const copy = Buffer.from(bytes), at = copy.indexOf(from);
+    assert.ok(at >= 0);
+    copy.set(Buffer.from(to), at);
+    return copy;
+  };
+  const blank = replace(replace(input, "Invoice 0123", "            "), "Text must survive", "                 ");
+  const standard = replace(replace(replace(input, "/FontDescriptor", "/UnusedFontDesc"), "/DejaVuSans", "/Helvetica "), "/TrueType", "/Type1   ");
+  const invalid = replace(input, "/FontFile2 6", "/FontFile2 5");
+  const bash = await createRustWasmBash();
+  try {
+    for (const command of ["pdftoppm", "pdftocairo"]) {
+      for (const [bytes, visible] of [[input, true], [blank, false], [standard, true]]) {
+        await bash.fs.writeFile("/input.pdf", bytes);
+        const result = await bash.exec(`${command} -png -r 72 -singlefile /input.pdf /page`);
+        assert.equal(result.exitCode, 0, result.stderr);
+        const png = decodePng(await bash.fs.readFile("/page.png"));
+        let dark = 0;
+        for (let y = 20; y < 115; y++) for (let x = 15; x < 305; x++) {
+          const i = (y * png.width + x) * 4;
+          if (Math.max(...png.data.subarray(i, i + 3)) < 60) dark++;
+        }
+        if (visible) assert.ok(dark > 1000, `${dark} dark text pixels`);
+        else assert.equal(dark, 0);
+      }
+      await bash.fs.writeFile("/input.pdf", invalid);
+      await bash.fs.writeFile("/page.png", Buffer.from("existing"));
+      assert.notEqual((await bash.exec(`${command} -png -r 72 -singlefile /input.pdf /page`)).exitCode, 0);
+      assert.equal(Buffer.from(await bash.fs.readFile("/page.png")).toString(), "existing");
+    }
+  } finally { await bash.dispose(); }
+});
+
+test("embedded TrueType rejects overflowing cmap groups without replacing output", async () => {
+  const {readFileSync} = await import("node:fs");
+  const {inflateSync, deflateSync} = await import("node:zlib");
+  const input = readFileSync(new URL("../tests/fixtures/embedded-font.pdf", import.meta.url));
+  const start = input.indexOf("stream\n", input.indexOf("6 0 obj")) + 7;
+  const font = inflateSync(input.subarray(start, start + 379116));
+  let changed = 0;
+  for (let i = 0; i < font.readUInt16BE(4); i++) {
+    const at = 12 + i * 16;
+    if (["name", "GPOS", "GSUB", "kern"].includes(font.toString("ascii", at, at + 4))) {
+      const offset = font.readUInt32BE(at + 8);
+      font.fill(0, offset, offset + font.readUInt32BE(at + 12));
+    }
+    if (font.toString("ascii", at, at + 4) !== "cmap") continue;
+    const cmap = font.readUInt32BE(at + 8);
+    for (let j = 0; j < font.readUInt16BE(cmap + 2); j++) {
+      const subtable = cmap + font.readUInt32BE(cmap + 8 + j * 8);
+      if (font.readUInt16BE(subtable) === 12) {
+        font.writeUInt32BE(0x40000000, subtable + 12);
+        changed++;
+      }
+    }
+  }
+  assert.ok(changed > 0);
+  const encoded = deflateSync(font, {level:9});
+  assert.ok(encoded.length <= 379116);
+  input.fill(0, start, start + 379116);
+  input.set(encoded, start);
+  const bash = await createRustWasmBash();
+  try {
+    await bash.fs.writeFile("/input.pdf", input);
+    await bash.fs.writeFile("/page.png", Buffer.from("existing"));
+    const result = await bash.exec("pdftoppm -png -r 72 -singlefile /input.pdf /page");
+    assert.notEqual(result.exitCode, 0);
+    assert.equal(Buffer.from(await bash.fs.readFile("/page.png")).toString(), "existing");
+  } finally { await bash.dispose(); }
+});

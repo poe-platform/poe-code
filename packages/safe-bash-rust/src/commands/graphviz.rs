@@ -3841,6 +3841,70 @@ mod graphviz_unit_tests {
     }
 
     #[test]
+    fn todo_fanout_labels_clear_nodes_and_strokes() {
+        let fixture = include_str!("../../../graphviz-ast/src/fixtures/todos.dot");
+        for direction in ["LR", "RL"] {
+            for multiline in [false, true] {
+                let source = fixture.replace("rankdir=LR", &format!("rankdir={direction}"));
+                let source = if multiline { source.replace("label=\"3\"", "label=\"3\\nremaining\"") } else { source };
+                let graph = gv_parse_dot(&source).unwrap();
+                let mut options = GvLayoutOptions::default();
+                for attrs in [&mut options.node, &mut options.edge] {
+                    attrs.set("fontsize".into(), "20".into());
+                    attrs.set("fontname".into(), "Helvetica".into());
+                }
+                let layout = gv_layout_graph(&graph, &options);
+                let labels: Vec<_> = layout.edges.iter().map(|e| {
+                    let lines = gv_label_lines(e.attributes.get("label").unwrap(), "");
+                    let width = lines.iter().map(|l| gv_text_width(l, 20.0, Some("Helvetica"))).fold(0.0f64, f64::max);
+                    (e.label.x, e.label.y, width, lines.len() as f64 * 24.0)
+                }).collect();
+                let overlaps = |a: (f64,f64,f64,f64), b: (f64,f64,f64,f64)| (a.0-b.0).abs() < (a.2+b.2)/2.0 && (a.1-b.1).abs() < (a.3+b.3)/2.0;
+                for (i, &label) in labels.iter().enumerate() {
+                    for node in &layout.nodes {
+                        assert!(!overlaps(label, (node.x,node.y,node.width,node.height)), "{direction}: label {i} overlaps {}", node.id);
+                    }
+                    for (j, &other) in labels.iter().enumerate() {
+                        if i != j { assert!(!overlaps(label, other)); }
+                    }
+                    assert!(label.0-label.2/2.0 >= 0.0 && label.1-label.3/2.0 >= 0.0);
+                    assert!(label.0+label.2/2.0 <= layout.width && label.1+label.3/2.0 <= layout.height);
+                }
+                for edge in &layout.edges {
+                    let mut commands = edge.path.split('C');
+                    let point = |s: &str| { let mut xy=s.split(',').map(|v| v.parse::<f64>().unwrap()); (xy.next().unwrap(),xy.next().unwrap()) };
+                    let mut start = point(commands.next().unwrap().trim_start_matches('M'));
+                    for command in commands {
+                        let pts: Vec<_> = command.split_whitespace().map(point).collect();
+                        for k in 0..=100 {
+                            let t = k as f64 / 100.0;
+                            let u = 1.0-t;
+                            let x = u.powi(3)*start.0+3.0*u*u*t*pts[0].0+3.0*u*t*t*pts[1].0+t.powi(3)*pts[2].0;
+                            let y = u.powi(3)*start.1+3.0*u*u*t*pts[0].1+3.0*u*t*t*pts[1].1+t.powi(3)*pts[2].1;
+                            for &label in &labels { assert!(!overlaps(label,(x,y,1.0,1.0)), "stroke intersects label"); }
+                        }
+                        start = pts[2];
+                    }
+                    let arrow = gv_svg_arrow(*edge.points.last().unwrap(), edge.points[edge.points.len()-2], &edge.attributes);
+                    let coordinates = arrow.split("points=\"").nth(1).unwrap().split('"').next().unwrap();
+                    for coordinates in coordinates.split_whitespace() {
+                        let (x,y) = point(coordinates);
+                        for &label in &labels { assert!(!overlaps(label,(x,y,1.0,1.0)), "arrow intersects label"); }
+                    }
+                    let lane = edge.points.iter().find(|p| (p.x-edge.label.x).abs() < 0.001).unwrap();
+                    let height = gv_label_lines(edge.attributes.get("label").unwrap(), "").len() as f64 * 24.0;
+                    assert!((lane.y-edge.label.y-height/2.0-6.0).abs() < 0.001);
+                    let head = layout.nodes.iter().find(|n| n.id == edge.head.id).unwrap();
+                    let end = edge.points.last().unwrap();
+                    assert!(((end.x-head.x).abs()-head.width/2.0).abs() < 0.001);
+                    assert!((end.y-head.y).abs() <= head.height/2.0);
+                    assert!((start.0-end.x).abs() < 0.001 && (start.1-end.y).abs() < 0.001);
+                }
+            }
+        }
+    }
+
+    #[test]
     fn calendar_labels_clear_connectors_nodes_and_canvas() {
         let fixture = include_str!("../../../graphviz-ast/fixtures/calendar.dot");
         for direction in ["TB", "BT"] {

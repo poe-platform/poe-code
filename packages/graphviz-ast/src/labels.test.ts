@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { layoutGraph, parseDot, renderSvg } from "./index.js";
 import { labelLines, textWidth } from "./metrics.js";
 
+const todos = readFileSync(new URL("./fixtures/todos.dot", import.meta.url), "utf8");
+
 const bounds = (label: string, x: number, y: number, size = 14) => {
   const lines = labelLines(label);
   return {
@@ -290,6 +292,59 @@ it.each(["TB", "BT"])("renders the calendar with clear labels in %s", (direction
         expect(svg).toContain(`y="${Math.round(y * 1000) / 1000}"`);
         expect(svg).toContain(`>${line}</text>`);
       }
+    }
+  }
+});
+
+it.each(["LR", "RL"])("keeps the todo counts beside their branches in %s", (direction) => {
+  for (const multiline of [false, true]) {
+    let source = todos.replace("rankdir=LR", `rankdir=${direction}`);
+    if (multiline) source = source.replace('label="3"', 'label="3\\nremaining"');
+    const graph = layoutGraph(parseDot(source), {
+      node: { fontsize: "20", fontname: "Helvetica" },
+      edge: { fontsize: "20", fontname: "Helvetica" }
+    });
+    const labels = graph.edges.map((e) => bounds(e.attributes.label!, e.label.x, e.label.y, 20));
+    for (const label of labels) {
+      for (const node of graph.nodes) expect(overlaps(label, node)).toBe(false);
+      for (const other of labels) if (label !== other) expect(overlaps(label, other)).toBe(false);
+      expect(label.x - label.width / 2).toBeGreaterThanOrEqual(0);
+      expect(label.y - label.height / 2).toBeGreaterThanOrEqual(0);
+      expect(label.x + label.width / 2).toBeLessThanOrEqual(graph.width);
+      expect(label.y + label.height / 2).toBeLessThanOrEqual(graph.height);
+    }
+    const svg = renderSvg(graph);
+    for (const match of svg.matchAll(/<polygon[^>]*points="([^"]+)"/g)) {
+      for (const coordinates of match[1]!.trim().split(/\s+/)) {
+        const [x, y] = coordinates.split(",").map(Number);
+        for (const label of labels) expect(overlaps({ x: x!, y: y!, width: 1, height: 1 }, label)).toBe(false);
+      }
+    }
+    for (const edge of graph.edges) {
+      const commands = edge.path.split("C");
+      let start = commands.shift()!.slice(1).split(",").map(Number);
+      for (const command of commands) {
+        const [a, b, end] = command.split(" ").map((p) => p.split(",").map(Number));
+        for (let k = 0; k <= 100; k++) {
+          const t = k / 100, u = 1 - t;
+          const point = {
+            x: u ** 3 * start[0]! + 3 * u * u * t * a![0]! + 3 * u * t * t * b![0]! + t ** 3 * end![0]!,
+            y: u ** 3 * start[1]! + 3 * u * u * t * a![1]! + 3 * u * t * t * b![1]! + t ** 3 * end![1]!,
+            width: 1, height: 1
+          };
+          for (const label of labels) expect(overlaps(point, label)).toBe(false);
+        }
+        start = end!;
+      }
+      const lane = edge.points.find((point) => Math.abs(point.x - edge.label.x) < 0.001)!;
+      const label = bounds(edge.attributes.label!, edge.label.x, edge.label.y, 20);
+      expect(lane.y - (label.y + label.height / 2)).toBeCloseTo(6);
+      const head = graph.nodes.find((n) => n.id === edge.head.id)!;
+      const end = edge.points.at(-1)!;
+      expect(Math.abs(end.x - head.x)).toBeCloseTo(head.width / 2);
+      expect(Math.abs(end.y - head.y)).toBeLessThanOrEqual(head.height / 2);
+      expect(start[0]).toBeCloseTo(end.x);
+      expect(start[1]).toBeCloseTo(end.y);
     }
   }
 });

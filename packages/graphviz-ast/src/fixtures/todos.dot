@@ -1,0 +1,1 @@
+digraph {rankdir=LR; bgcolor="#f9fafb"; node [shape=box style="rounded,filled" fillcolor="#e5f5ef"]; a[label="7 open · General"]; a->b[label="2"]; b[label="Vendor · project follow-ups"]; a->c[label="2"]; c[label="Server bots · retirement and outreach"]; a->d[label="3"]; d[label="API models · vendor evaluation"]; }

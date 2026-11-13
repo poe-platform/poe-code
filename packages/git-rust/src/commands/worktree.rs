@@ -1083,6 +1083,37 @@ pub(crate) fn recursive_merge_base(
     Ok(Some(base))
 }
 
+// Only pair unique deleted blobs with unique additions; copies and ambiguous matches
+// must retain the ordinary per-path merge behavior.
+fn exact_renames(
+    base: &BTreeMap<String, TreeEntry>,
+    side: &BTreeMap<String, TreeEntry>,
+) -> BTreeMap<String, String> {
+    let mut deleted: BTreeMap<&str, Vec<&String>> = BTreeMap::new();
+    let mut added: BTreeMap<&str, Vec<&String>> = BTreeMap::new();
+    for (path, entry) in base {
+        if entry.entry_type == "blob" && !side.contains_key(path) {
+            deleted.entry(&entry.oid).or_default().push(path);
+        }
+    }
+    for (path, entry) in side {
+        if entry.entry_type == "blob" && !base.contains_key(path) {
+            added.entry(&entry.oid).or_default().push(path);
+        }
+    }
+    deleted
+        .into_iter()
+        .filter_map(|(oid, sources)| {
+            let destinations = added.get(oid)?;
+            if sources.len() == 1 && destinations.len() == 1 {
+                Some((sources[0].clone(), destinations[0].clone()))
+            } else {
+                None
+            }
+        })
+        .collect()
+}
+
 #[allow(clippy::too_many_arguments)]
 // Without a worktree directory, merge only into objects and leave repository state untouched.
 pub(crate) fn merge_trees_3way(
@@ -1105,6 +1136,45 @@ pub(crate) fn merge_trees_3way(
     let mut base_map = BTreeMap::new();
     if let Some(b_oid) = base_commit_oid {
         collect_tree_map(fs, gitdir, b_oid, "", &mut base_map)?;
+    }
+
+    let mut conflicts: Vec<String> = Vec::new();
+    // Object-only merges can align renamed paths without changing worktree/index
+    // bookkeeping, which still needs the original paths for its safety checks.
+    if dir.is_none() {
+        let our_renames = exact_renames(&base_map, &our_map);
+        let their_renames = exact_renames(&base_map, &their_map);
+        let sources: BTreeSet<_> = our_renames.keys().chain(their_renames.keys()).collect();
+        for source in sources {
+            match (our_renames.get(source), their_renames.get(source)) {
+                (Some(ours), Some(theirs)) if ours != theirs => {
+                    base_map.remove(source);
+                    conflicts.extend([source.clone(), ours.clone(), theirs.clone()]);
+                }
+                (ours, theirs) => {
+                    let destination = ours.or(theirs).unwrap();
+                    let other = if ours.is_some() {
+                        &mut their_map
+                    } else {
+                        &mut our_map
+                    };
+                    // An independently added destination needs a separate add/add merge.
+                    if (ours.is_none() || theirs.is_none()) && other.contains_key(destination) {
+                        continue;
+                    }
+                    let mut base = base_map.remove(source).unwrap();
+                    if let Some(mut entry) = other.remove(source) {
+                        entry.path = destination.clone();
+                        other.insert(destination.clone(), entry);
+                    } else if ours.is_none() || theirs.is_none() {
+                        conflicts.push(destination.clone());
+                        continue;
+                    }
+                    base.path = destination.clone();
+                    base_map.insert(destination.clone(), base);
+                }
+            }
+        }
     }
 
     let mut all_paths = BTreeSet::new();
@@ -1161,7 +1231,6 @@ pub(crate) fn merge_trees_3way(
     }
 
     let mut final_entries: Vec<(String, TreeEntry)> = Vec::new();
-    let mut conflicts: Vec<String> = Vec::new();
 
     for path in all_paths {
         let o = our_map.get(&path);

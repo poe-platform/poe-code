@@ -1,3 +1,4 @@
+use super::pdf_blend::BlendMode;
 // Position simple-font text using PDF text and graphics matrices (PDF 32000-1 §9).
 use super::super::{Cursor, text};
 use super::{PageSource, Value, pdf_bitmap::ImageStream};
@@ -74,7 +75,7 @@ struct Resources<'a> {
 pub(super) enum Draw<'a, 'b> {
     BeginForm([f64; 4], Matrix),
     EndForm,
-    Opacity { fill: Option<f64>, stroke: Option<f64> },
+    Transparency { fill: Option<f64>, stroke: Option<f64>, blend: Option<BlendMode> },
     Shading(Value<'static>, Matrix),
     Image(ImageStream<'a>, Matrix),
     Operator(&'a [u8], &'a [Value<'b>], Matrix),
@@ -258,7 +259,18 @@ impl<'a> PageSource<'a> {
                     };
                     let fill = alpha(b"ca")?;
                     let stroke = alpha(b"CA")?;
-                    emit(Draw::Opacity { fill, stroke }, &mut self.objects)?;
+                    let blend = if let Some(value) = dict.get(b"BM") {
+                        let value = self.objects.resolve(value)?;
+                        let candidates = match &value { Value::Array(items) => items.as_slice(), _ => std::slice::from_ref(&value) };
+                        let mut selected = None;
+                        for candidate in candidates {
+                            let candidate = self.objects.resolve(candidate)?;
+                            let name = candidate.word()?.strip_prefix(b"/")?;
+                            if let Some(mode) = BlendMode::read(name) { selected = Some(mode); break; }
+                        }
+                        Some(selected?)
+                    } else { None };
+                    emit(Draw::Transparency { fill, stroke, blend }, &mut self.objects)?;
                 }
                 if op == b"BI" {
                     let (fields, pixels) = super::pdf_content_edit::inline(&mut c, &mut self.objects.tokens).ok()?;

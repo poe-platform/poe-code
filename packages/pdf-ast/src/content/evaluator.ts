@@ -1477,14 +1477,25 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
             st.softMask = { ...(params.geometryStorage ? {retainedId: maskIdentity++} : {}), subtype: subtype.decoded, bounds, operations: captured instanceof StoredOperationsWriter ? [] : captured, ...(captured instanceof StoredOperationsWriter ? {storedOperations:captured.snapshot()} : {}), ...parameters.value };
           }
         }
-        const bmNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "BM", true), true);
-        if (bmNode?.kind === "name") {
-          st.blendMode = bmNode.decoded === "Compatible" ? "Normal" : bmNode.decoded;
-        } else if (bmNode?.kind === "array" && (bmNode.storedItems?.length ?? bmNode.items.length) > 0) {
-          const firstBm = yield* resolveEvaluationNode((yield* evaluationArrayPrefix(bmNode, 1))[0]);
-          if (firstBm?.kind === "name") {
-            st.blendMode = firstBm.decoded === "Compatible" ? "Normal" : firstBm.decoded;
-          }
+        const bmValue = yield* lookupEvaluationDictionary(gsDict, "BM", true);
+        if (bmValue) {
+          const bmNode = yield* resolveEvaluationNode(bmValue, true);
+          if (!bmNode) throw new PdfError("E_PARSE", "Invalid PDF blend mode");
+          let selected: string | undefined;
+          const selectBlend = function* (candidate: PdfCosNode): EvaluationWork<void> {
+            if (selected) return;
+            const name = yield* resolveEvaluationNode(candidate);
+            if (name?.kind !== "name") throw new PdfError("E_PARSE", "Invalid PDF blend mode");
+            if (["Normal", "Compatible", "Multiply", "Screen", "Overlay", "Darken", "Lighten",
+              "ColorDodge", "ColorBurn", "HardLight", "SoftLight", "Difference", "Exclusion",
+              "Hue", "Saturation", "Color", "Luminosity"].includes(name.decoded)) {
+              selected = name.decoded === "Compatible" ? "Normal" : name.decoded;
+            }
+          };
+          if (bmNode.kind === "array") yield* visitEvaluationArray(bmNode, selectBlend);
+          else yield* selectBlend(bmNode);
+          if (!selected) throw new PdfError("E_CAPABILITY", "Unsupported PDF blend mode");
+          st.blendMode = selected;
         }
         const caNode = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "ca", true), true);
         if (caNode?.kind === "number") st.fillAlpha = Math.max(0, Math.min(1, caNode.value));

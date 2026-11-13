@@ -25,6 +25,10 @@ here, while PDFium's reference renders `(238,29,35)`. No external color profile 
 required. `k`/`K` select DeviceCMYK for later `sc`/`SC` operations, and `q`/`Q`
 save and restore both the colors and their color spaces.
 
+PDF blend modes (including Multiply, Screen, and Difference) apply across paths,
+text, images, and shading in TypeScript and Rust. Invalid or unsupported blend
+selections fail without replacing the page output.
+
 ## Quick Start
 
 ```ts

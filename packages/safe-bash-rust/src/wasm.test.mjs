@@ -17004,3 +17004,5 @@ test("PDF dash arrays, phase, caps, transforms and restoration match shared pixe
     }
   } finally { await bash.dispose(); }
 });
+
+import "./pdf-blend.test.mjs";

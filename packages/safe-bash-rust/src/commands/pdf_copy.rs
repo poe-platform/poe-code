@@ -30,6 +30,8 @@ pub(super) use pdf_text_layout::widths::WIDTHS;
 #[path = "pdf_bitmap.rs"]
 mod pdf_bitmap;
 pub(in crate::commands::archive) use pdf_bitmap::{ImageRead, NativeImage};
+#[path = "pdf_blend.rs"]
+mod pdf_blend;
 #[path = "pdf_raster.rs"]
 mod pdf_raster;
 pub(in crate::commands::archive) use pdf_raster::{RasterBackend, RasterOptions};

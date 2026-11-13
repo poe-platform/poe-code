@@ -55,6 +55,10 @@ process black (`0 0 0 1`) is RGB `(44,46,53)`. Device-dependent profiles can dif
 red (`0 1 1 0`) is `(255,46,23)` here and `(238,29,35)` in the PDFium reference.
 See [the PDF.js license](./LICENSE.PDFJS).
 
+PDF raster output applies the standard `/BM` blend modes to paths, text, images,
+and shading, including constant opacity and saved graphics state. Invalid or
+unsupported blend selections fail without replacing the page output.
+
 ### 1. Zero-Dependency Rust Shell with `MemoryVfs`
 
 ```rust

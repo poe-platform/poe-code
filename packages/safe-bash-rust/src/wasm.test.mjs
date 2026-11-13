@@ -8794,6 +8794,47 @@ test("magick writes pixel and alpha streams into a standard PDF from files and c
   } finally { wasm.dispose(); }
 });
 
+test("PDF commands reject malformed documents without publishing blank pages", async () => {
+  const { PdfDocument } = await import("@poe-code/pdf-ast");
+  const doc = PdfDocument.create();
+  doc.addPage([24, 32]);
+  doc.addPage([24, 32]).drawText("second page", {x: 1, y: 12, fontSize: 6});
+  const valid = doc.save();
+  for (const bytes of [
+    "%PDF-1.4\nnot a PDF document\n%%EOF\n",
+    valid.slice(0, 32),
+    "%PDF-1.4\n1 0 obj\n<< /Type /Pages /Kids [] /Count 0 >>\nendobj\ntrailer\n<< /Root 1 0 R >>\n%%EOF\n",
+    valid,
+  ]) {
+    const bash = new RustWasmBash({cwd: "/", forceNative: true, files: {"/source.pdf": bytes}});
+    try {
+      for (const command of ["pdfinfo /source.pdf", ...["pdftoppm", "pdftocairo"].map(
+        name => `${name} -png -scale-to 800 -f 1 -l 1 /source.pdf /page`,
+      )]) {
+        const result = await bash.exec(command);
+        if (bytes === valid) {
+          assert.equal(result.exitCode, 0, result.stderr);
+        } else {
+          assert.notEqual(result.exitCode, 0, command);
+          assert.notEqual(result.stderr, "");
+          assert.equal(result.stdout, "");
+          assert.equal((await bash.exec("test -e /page-1.png")).exitCode, 1);
+        }
+      }
+      if (bytes === valid) {
+        const result = await bash.exec("pdftoppm -r 72 /source.pdf /all");
+        assert.equal(result.exitCode, 0, result.stderr);
+        const blank = await bash.fs.readFile("/all-1.ppm");
+        const text = await bash.fs.readFile("/all-2.ppm");
+        assert.ok(blank.length > 0);
+        assert.equal(text.length, blank.length);
+        assert.notDeepEqual(text, blank);
+        assert.ok((await bash.fs.readFile("/page-1.png")).length > 0);
+      }
+    } finally { await bash.dispose(); }
+  }
+});
+
 test("pdftoppm paints embedded RGB and alpha pixels at page coordinates", async () => {
   const { createHash } = await import("node:crypto");
   const { PdfDocument, encodePng } = await import("@poe-code/pdf-ast");

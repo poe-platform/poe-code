@@ -382,6 +382,11 @@ fn content_text(bytes: &[u8], tokens: &mut usize) -> Option<String> {
         }
         let v = c.value(0, tokens, false)?;
         match v.word() {
+            Some(b"BI") => {
+                pdf_copy::pdf_content_edit::inline(&mut c, tokens).ok()?;
+                last = None;
+                continue;
+            }
             Some(b"BT") => {
                 in_text = true;
                 baseline = 0.0;

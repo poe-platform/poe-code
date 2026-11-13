@@ -10,7 +10,7 @@ mod pdf_json;
 #[path = "pdf_stamp.rs"]
 pub(super) mod pdf_stamp;
 #[path = "pdf_content_edit.rs"]
-mod pdf_content_edit;
+pub(super) mod pdf_content_edit;
 #[path = "pdf_externalize.rs"]
 mod pdf_externalize;
 #[path = "pdf_prune_resources.rs"]

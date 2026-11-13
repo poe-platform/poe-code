@@ -8442,7 +8442,7 @@ fn cmd_pdfinfo(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     let (doc, encryption) = match pdf_reader::read(&b,supplied) {
         Ok((doc,security)) => (doc,security.map(|s| s.poppler_description())),
         Err(pdf_reader::PASSWORD) => return err_out("Command Line Error: Incorrect password\n",1),
-        Err(_) => {
+        Err(_) if is_legacy_pdf(&b) => {
             let doc = PdfDoc::parse(&b);
             if doc.encrypted.as_deref().is_some_and(|p| !p.is_empty() && p != supplied) {
                 return err_out("Command Line Error: Incorrect password\n",1);
@@ -8450,6 +8450,7 @@ fn cmd_pdfinfo(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
             let info = doc.encrypted.as_ref().map(|_| "yes (print:yes copy:yes change:yes addNotes:yes algorithm:AES-256)".to_owned());
             (doc,info)
         }
+        Err(error) => return err_out(&format!("Syntax Error: {error}\n"), 1),
     };
     let page_count = doc.pages.len().max(1);
     let fp = first_p.unwrap_or(1).max(1);
@@ -9858,7 +9859,19 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
             1,
         );
     }
-    let doc = PdfDoc::parse(&b);
+    let supplied = pw_opt.as_deref().unwrap_or("");
+    let doc = match pdf_reader::read(&b, supplied) {
+        Ok((doc, _)) => doc,
+        Err(_) if is_legacy_pdf(&b) => PdfDoc::parse(&b),
+        Err(error) => {
+            let message = if error == pdf_reader::PASSWORD {
+                "PDF Error: Invalid PDF password\n".to_owned()
+            } else {
+                format!("PDF Error: {error}\n")
+            };
+            return err_out(if quiet { "" } else { &message }, 1);
+        }
+    };
     if let Some(ref enc_pw) = doc.encrypted {
         let supplied = pw_opt.as_deref().unwrap_or("");
         if !enc_pw.is_empty() && supplied != enc_pw {
@@ -10003,7 +10016,14 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
         scale: [scale_to.unwrap_or(0), scale_to_x.unwrap_or(0), scale_to_y.unwrap_or(0)],
         crop: [crop_x,crop_y,crop_w.unwrap_or(0.),crop_h.unwrap_or(0.)], cropbox, limit: fs.max_input_bytes(),
     };
-    let mut source = if matches!(fmt, "TIFF" | "JPEG" | "PNG" | "PPM" | "PGM" | "PBM") { pdf_reader::PageSource::open(&b,pw_opt.as_deref().unwrap_or("")).ok() } else { None };
+    let mut source = if is_legacy_pdf(&b) {
+        None
+    } else {
+        match pdf_reader::PageSource::open(&b, supplied) {
+            Ok(source) => Some(source),
+            Err(error) => return err_out(if quiet { String::new() } else { format!("PDF Error: {error}\n") }.as_str(), 1),
+        }
+    };
     let mut render = |pno| {
         if let Some(source) = source.as_mut() { return source.raster(pno, &options); }
         if matches!(fmt, "JPEG" | "TIFF") { return None; }
@@ -16775,6 +16795,8 @@ mod media_unit_tests {
             let mut pdf = pdf.into_bytes(); pdf[start..start+data.len()].copy_from_slice(data);
             fs.write_file("/inline.pdf",&pdf).unwrap();
             let run = |name, args: &[&str]| cmd_media_doc(name, &media_args(args), "", "/", &fs);
+            let info = run("pdfinfo", &["inline.pdf"]);
+            assert_eq!(info.exit_code,0,"{}",info.stderr);
             let listing = run("pdfimages", &["-list","inline.pdf"]);
             assert_eq!(listing.exit_code,0,"{}",listing.stderr);
             assert_eq!(listing.stdout.lines().nth(2), Some("   1     0 image       2     1  rgb     3   8  image  no   [inline]      18    14    0B 0.0%"));

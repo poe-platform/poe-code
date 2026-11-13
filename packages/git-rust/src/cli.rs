@@ -4852,9 +4852,10 @@ pub fn execute_git_cli_with_input(
                 let Ok(t_oid) = crate::cli_history::resolve_commit(fs, &gitdir, positionals[1]) else {
                     return CliResult::err(128, format!("fatal: not a valid commit '{}'\n", positionals[1]));
                 };
-                let b_oid = crate::commands::plumbing::find_merge_base(fs, &gitdir, &[o_oid.clone(), t_oid.clone()])
-                    .ok()
-                    .and_then(|v| v.into_iter().next());
+                let b_oid = match crate::commands::worktree::recursive_merge_base(fs, &gitdir, &o_oid, &t_oid) {
+                    Ok(base) => base,
+                    Err(e) => return CliResult::err(128, format!("fatal: {}\n", e.message)),
+                };
                 (b_oid, o_oid, t_oid)
             } else if positionals.len() >= 3 {
                 let b_oid = crate::cli_history::resolve_commit(fs, &gitdir, positionals[0]).ok();

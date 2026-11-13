@@ -1038,6 +1038,38 @@ pub fn merge(
     })
 }
 
+pub(crate) fn recursive_merge_base(
+    fs: &MemoryFs,
+    gitdir: &str,
+    ours: &str,
+    theirs: &str,
+) -> Result<Option<String>, GitError> {
+    let bases = find_merge_base(fs, gitdir, &[ours.to_string(), theirs.to_string()])?;
+    let mut bases = bases.into_iter();
+    let Some(mut base) = bases.next() else {
+        return Ok(None);
+    };
+    for next in bases {
+        let ancestor = recursive_merge_base(fs, gitdir, &base, &next)?;
+        let (tree, conflicts) = merge_trees_3way(
+            fs, None, gitdir, &base, ancestor.as_deref(), &next,
+            "ours", "base", "theirs", true, false,
+        )?;
+        // The tree merger cannot yet materialize conflicted virtual ancestors.
+        // Never use its empty-tree conflict result as a successful merge base.
+        if !conflicts.is_empty() {
+            return Err(GitError::merge_not_supported());
+        }
+        let mut commit = read_commit(fs, gitdir, &base)?.commit;
+        commit.tree = tree;
+        commit.parent = vec![base, next];
+        commit.message = "merged common ancestors\n".to_string();
+        commit.gpgsig = None;
+        base = write_commit(fs, gitdir, &commit)?;
+    }
+    Ok(Some(base))
+}
+
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn merge_trees_3way(
     fs: &MemoryFs,

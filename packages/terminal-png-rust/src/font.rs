@@ -49,7 +49,8 @@ pub struct Font<'a> {
     long_loca: bool,
 }
 impl<'a> Font<'a> {
-    pub fn new(data: &'a [u8]) -> Result<Self, Error> {
+    /// Decode glyph tables without requiring a Unicode cmap (PDF CID subsets).
+    pub fn from_glyphs(data: &'a [u8]) -> Result<Self, Error> {
         if u32(data, 0)? != 0x00010000 {
             return Err("font must contain TrueType outlines");
         }
@@ -79,6 +80,20 @@ impl<'a> Font<'a> {
             0,
             usize::from(metrics) * 4 + usize::from(glyphs - metrics) * 2,
         )?;
+        Ok(Self {
+            head,
+            hmtx,
+            loca,
+            glyf: table(data, b"glyf")?,
+            cmap: &[],
+            format: 0,
+            glyphs,
+            metrics,
+            long_loca: mode == 1,
+        })
+    }
+    pub fn new(data: &'a [u8]) -> Result<Self, Error> {
+        let mut font = Self::from_glyphs(data)?;
         let maps = table(data, b"cmap")?;
         let count = u16(maps, 2)? as usize;
         bytes(maps, 4, count * 8)?;
@@ -115,17 +130,9 @@ impl<'a> Font<'a> {
             }
         }
         let (cmap, format) = chosen.ok_or("Unicode cmap missing")?;
-        Ok(Self {
-            head,
-            hmtx,
-            loca,
-            glyf: table(data, b"glyf")?,
-            cmap,
-            format,
-            glyphs,
-            metrics,
-            long_loca: mode == 1,
-        })
+        font.cmap = cmap;
+        font.format = format;
+        Ok(font)
     }
     pub fn units_per_em(&self) -> u16 {
         u16(self.head, 18).unwrap()

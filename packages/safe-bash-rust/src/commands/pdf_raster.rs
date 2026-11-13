@@ -1171,7 +1171,7 @@ impl PageSource<'_> {
                 }
                 Draw::Operator(op, args, ctm) => (op, args, ctm),
                 Draw::Glyph {
-                    byte,
+                    code,
                     family,
                     program,
                     matrix,
@@ -1184,7 +1184,7 @@ impl PageSource<'_> {
                             &mut faces,
                             family,
                             program,
-                            byte,
+                            code,
                             &mut bitmap.work,
                             |x, y| point(x * matrix[0] + y * matrix[2] + matrix[4], x * matrix[1] + y * matrix[3] + matrix[5]),
                         )?;

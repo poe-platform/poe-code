@@ -1,5 +1,5 @@
 use super::pdf_blend::BlendMode;
-// Position simple-font text using PDF text and graphics matrices (PDF 32000-1 §9).
+// Position text using PDF text and graphics matrices (PDF 32000-1 §9).
 use super::super::{Cursor, text};
 use super::{PageSource, Value, pdf_bitmap::ImageStream};
 use std::{collections::BTreeMap, rc::Rc};
@@ -21,6 +21,7 @@ pub(in crate::commands::archive) struct TextLine {
 pub(super) enum Program {
     Standard,
     TrueType(Vec<u8>),
+    CidTrueType { bytes: Vec<u8>, map: Option<Vec<u8>> },
     Unsupported,
 }
 struct Font {
@@ -28,9 +29,13 @@ struct Font {
     name: Rc<str>,
     start: usize,
     widths: Vec<f64>,
+    cid_widths: Option<(BTreeMap<u16, f64>, f64)>,
 }
 impl Font {
-    fn advance(&self, b: u8) -> f64 {
+    fn advance(&self, b: u16) -> f64 {
+        if let Some((widths, default)) = &self.cid_widths {
+            return widths.get(&b).copied().unwrap_or(*default);
+        }
         if let Some(width) = (b as usize)
             .checked_sub(self.start)
             .and_then(|i| self.widths.get(i))
@@ -51,6 +56,11 @@ impl Font {
         };
         f64::from(widths::WIDTHS[row][usize::from(b)])
     }
+}
+// Identity-H codes and CID width keys are unsigned 16-bit integers.
+fn cid_number(value: &Value<'_>) -> Option<u16> {
+    let n = value.number()?;
+    (n.is_finite() && (0. ..=65535.).contains(&n) && n.fract() == 0.).then_some(n as u16)
 }
 #[derive(Clone)]
 struct State {
@@ -80,7 +90,7 @@ pub(super) enum Draw<'a, 'b> {
     Image(ImageStream<'a>, Matrix),
     Operator(&'a [u8], &'a [Value<'b>], Matrix),
     Glyph {
-        byte: u8,
+        code: u16,
         family: &'a Rc<str>,
         program: &'a Program,
         bounds: [f64; 4],
@@ -117,6 +127,70 @@ impl<'a> Resources<'a> {
                     .and_then(Value::word)
                     .and_then(|w| w.strip_prefix(b"/"))
                     .unwrap_or(&key);
+                if dict.get(b"Subtype").and_then(Value::word) == Some(b"/Type0") {
+                    let mut font = Font {
+                        program: Program::Unsupported,
+                        name: Rc::from(String::from_utf8_lossy(family).as_ref()),
+                        start: 0,
+                        widths: vec![],
+                        cid_widths: None,
+                    };
+                    if dict.get(b"Encoding").and_then(|v| objects.resolve(v)).as_ref().and_then(Value::word) == Some(b"/Identity-H") {
+                        let Value::Array(descendants) = objects.resolve(dict.get(b"DescendantFonts")?)? else { return None; };
+                        if descendants.len() != 1 { return None; }
+                        let cid = objects.resolve(&descendants[0])?;
+                        if cid.get(b"Subtype").and_then(Value::word) == Some(b"/CIDFontType2") {
+                            let descriptor = objects.resolve(cid.get(b"FontDescriptor")?)?;
+                            let bytes = objects.decoded_stream(descriptor.get(b"FontFile2")?.reference()?)?.into_owned();
+                            let map = match cid.get(b"CIDToGIDMap") {
+                                None => None,
+                                Some(v) if objects.resolve(v)?.word() == Some(b"/Identity") => None,
+                                Some(_) => {
+                                    let bytes = objects.decoded_stream(cid.get(b"CIDToGIDMap")?.reference()?)?.into_owned();
+                                    if bytes.len() > 65536 * 2 || bytes.len() % 2 != 0 { return None; }
+                                    Some(bytes)
+                                }
+                            };
+                            let default = match cid.get(b"DW") {
+                                Some(v) => objects.resolve(v)?.number()?,
+                                None => 1000.,
+                            };
+                            if !default.is_finite() { return None; }
+                            let mut widths = BTreeMap::new();
+                            if let Some(v) = cid.get(b"W") {
+                                let Value::Array(values) = objects.resolve(v)? else { return None; };
+                                let mut values = values.iter();
+                                while let Some(first) = values.next() {
+                                    let first = cid_number(&objects.resolve(first)?)?;
+                                    let next = objects.resolve(values.next()?)?;
+                                    match next {
+                                        Value::Array(entries) => {
+                                            if usize::from(first) + entries.len() > 65536 { return None; }
+                                            objects.tokens = objects.tokens.checked_sub(entries.len())?;
+                                            for (i, value) in entries.iter().enumerate() {
+                                                let width = objects.resolve(value)?.number()?;
+                                                if !width.is_finite() { return None; }
+                                                widths.insert(first + i as u16, width);
+                                            }
+                                        }
+                                        last => {
+                                            let last = cid_number(&last)?;
+                                            let count = usize::from(last.checked_sub(first)?) + 1;
+                                            objects.tokens = objects.tokens.checked_sub(count)?;
+                                            let width = objects.resolve(values.next()?)?.number()?;
+                                            if !width.is_finite() { return None; }
+                                            for code in first..=last { widths.insert(code, width); }
+                                        }
+                                    }
+                                }
+                            }
+                            font.program = Program::CidTrueType { bytes, map };
+                            font.cid_widths = Some((widths, default));
+                        }
+                    }
+                    self.fonts.insert(key, Rc::new(font));
+                    continue;
+                }
                 let start = dict.get(b"FirstChar").and_then(Value::number).unwrap_or(0.) as usize;
                 let widths = match dict.get(b"Widths").and_then(|w| objects.resolve(w)) {
                     Some(Value::Array(a)) => {
@@ -151,6 +225,7 @@ impl<'a> Resources<'a> {
                         name,
                         start,
                         widths,
+                        cid_widths: None,
                     }),
                 );
             }
@@ -213,6 +288,7 @@ impl<'a> PageSource<'a> {
             name: Rc::from("Helvetica"),
             start: 0,
             widths: vec![],
+            cid_widths: None,
         };
         let (mut tm, mut lm) = (ID, ID);
         let mut stack = Vec::new();
@@ -401,7 +477,11 @@ impl<'a> PageSource<'a> {
                             let Value::String { bytes: raw, .. } = item else {
                                 continue;
                             };
-                            for &b in raw {
+                            let composite = matches!(font.program, Program::CidTrueType { .. });
+                            let length = if composite { 2 } else { 1 };
+                            if raw.len() % length != 0 { return None; }
+                            for bytes in raw.chunks_exact(length) {
+                                let b = if composite { u16::from_be_bytes([bytes[0], bytes[1]]) } else { u16::from(bytes[0]) };
                                 let m = concat(tm, st.ctm);
                                 let scale = m[0].hypot(m[1]);
                                 let size = st.size * scale;
@@ -409,7 +489,7 @@ impl<'a> PageSource<'a> {
                                 let y = m[5] + st.rise;
                                 let advance = font.advance(b) * st.size / 1000.;
                                 let dx =
-                                    (advance + st.spacing + if b == 32 { st.word } else { 0. })
+                                    (advance + st.spacing + if !composite && b == 32 { st.word } else { 0. })
                                         * st.hscale;
                                 shift(&mut tm, dx, 0.);
                                 let right = x + scale * dx.abs().max(advance);
@@ -417,7 +497,7 @@ impl<'a> PageSource<'a> {
                                     concat([st.size * st.hscale, 0., 0., st.size, 0., st.rise], m);
                                 emit(
                                     Draw::Glyph {
-                                        byte: b,
+                                        code: b,
                                         family: &font.name,
                                         program: &font.program,
                                         size,
@@ -518,7 +598,8 @@ impl<'a> PageSource<'a> {
         let mut space = false;
         self.draw_page(&page, |event, _| {
             if let Draw::Glyph {
-                byte: b,
+                code,
+                program,
                 family,
                 size,
                 bounds,
@@ -526,6 +607,9 @@ impl<'a> PageSource<'a> {
                 ..
             } = event
             {
+                // CID glyph IDs are not Unicode; extraction needs a ToUnicode CMap.
+                if matches!(program, Program::CidTrueType { .. }) { return None; }
+                let b = u8::try_from(code).ok()?;
                 if matches!(b, b' ' | b'\t') {
                     space = true;
                     return Some(());

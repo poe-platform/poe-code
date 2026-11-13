@@ -1,0 +1,159 @@
+[
+  {
+    "name": "identity",
+    "update": "",
+    "expected": "visible"
+  },
+  {
+    "name": "mapped",
+    "update": "\n5 0 obj\n<< /Length 157  >>\nstream\n0.94 0.97 1 rg 0 0 420 120 re f 0.1 0.2 0.4 rg BT /F1 26 Tf 20 55 Td <000100020003000400050006000700080009000a000b000c000d000e000f00100011001200130014> Tj ET\nendstream\nendobj\n6 0 obj\n<< /Type /Font /Subtype /CIDFontType2 /BaseFont /DejaVuSans /FontDescriptor 7 0 R /CIDToGIDMap 10 0 R /DW 1000 /W [1 [695 615 592 278 615 818 318 636 636 636 636 318 1000 318 550 613 352 615 318 764]] >>\nendobj\n10 0 obj\n<< /Length 85 /Filter /ASCIIHexDecode >>\nstream\n0000003500480059004c0048005a0003001500130015001900030af6000300460044004900ab0003033d>\nendstream\nendobj\nxref\n5 1\n0000381187 00000 n \n6 1\n0000381396 00000 n \n10 1\n0000381615 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381775\n%%EOF\n",
+    "expected": "visible",
+    "same": "identity"
+  },
+  {
+    "name": "width-array",
+    "update": "\n5 0 obj\n<< /Length 89  >>\nstream\n0.94 0.97 1 rg 0 0 420 120 re f 0.1 0.2 0.4 rg BT /F1 26 Tf 20 55 Td <003500350035> Tj ET\nendstream\nendobj\n6 0 obj\n<< /Type /Font /Subtype /CIDFontType2 /BaseFont /DejaVuSans /FontDescriptor 7 0 R /CIDToGIDMap /Identity /DW 1000 /W [53 [695]] >>\nendobj\nxref\n5 1\n0000381187 00000 n \n6 1\n0000381327 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381473\n%%EOF\n",
+    "expected": "visible"
+  },
+  {
+    "name": "width-range",
+    "update": "\n5 0 obj\n<< /Length 89  >>\nstream\n0.94 0.97 1 rg 0 0 420 120 re f 0.1 0.2 0.4 rg BT /F1 26 Tf 20 55 Td <003500350035> Tj ET\nendstream\nendobj\n6 0 obj\n<< /Type /Font /Subtype /CIDFontType2 /BaseFont /DejaVuSans /FontDescriptor 7 0 R /CIDToGIDMap /Identity /DW 1000 /W [53 55 695] >>\nendobj\nxref\n5 1\n0000381187 00000 n \n6 1\n0000381327 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381474\n%%EOF\n",
+    "expected": "visible",
+    "same": "width-array"
+  },
+  {
+    "name": "width-default",
+    "update": "\n5 0 obj\n<< /Length 89  >>\nstream\n0.94 0.97 1 rg 0 0 420 120 re f 0.1 0.2 0.4 rg BT /F1 26 Tf 20 55 Td <003500350035> Tj ET\nendstream\nendobj\n6 0 obj\n<< /Type /Font /Subtype /CIDFontType2 /BaseFont /DejaVuSans /FontDescriptor 7 0 R /CIDToGIDMap /Identity /DW 695 >>\nendobj\nxref\n5 1\n0000381187 00000 n \n6 1\n0000381327 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381458\n%%EOF\n",
+    "expected": "visible",
+    "same": "width-array"
+  },
+  {
+    "name": "default-1000",
+    "update": "\n5 0 obj\n<< /Length 89  >>\nstream\n0.94 0.97 1 rg 0 0 420 120 re f 0.1 0.2 0.4 rg BT /F1 26 Tf 20 55 Td <003500350035> Tj ET\nendstream\nendobj\n6 0 obj\n<< /Type /Font /Subtype /CIDFontType2 /BaseFont /DejaVuSans /FontDescriptor 7 0 R /CIDToGIDMap /Identity /DW 1000 >>\nendobj\nxref\n5 1\n0000381187 00000 n \n6 1\n0000381327 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381459\n%%EOF\n",
+    "expected": "visible"
+  },
+  {
+    "name": "default-omitted",
+    "update": "\n5 0 obj\n<< /Length 89  >>\nstream\n0.94 0.97 1 rg 0 0 420 120 re f 0.1 0.2 0.4 rg BT /F1 26 Tf 20 55 Td <003500350035> Tj ET\nendstream\nendobj\n6 0 obj\n<< /Type /Font /Subtype /CIDFontType2 /BaseFont /DejaVuSans /FontDescriptor 7 0 R /CIDToGIDMap /Identity  >>\nendobj\nxref\n5 1\n0000381187 00000 n \n6 1\n0000381327 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381451\n%%EOF\n",
+    "expected": "visible",
+    "same": "default-1000"
+  },
+  {
+    "name": "blank",
+    "update": "\n5 0 obj\n<< /Length 89  >>\nstream\n0.94 0.97 1 rg 0 0 420 120 re f 0.1 0.2 0.4 rg BT /F1 26 Tf 20 55 Td <000300030003> Tj ET\nendstream\nendobj\nxref\n5 1\n0000381187 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381327\n%%EOF\n",
+    "expected": "blank"
+  },
+  {
+    "name": "transformed",
+    "update": "\n5 0 obj\n<< /Length 231  >>\nstream\n0.94 0.97 1 rg 0 0 420 120 re f 0.1 0.2 0.4 rg q 0.95 0.15 -0.1 0.9 15 5 cm BT /F1 20 Tf 0.9 0.2 0.1 1 20 35 Tm 2 Tc 70 Tz 4 Ts [<003500480059004c0048005a0003001500130015001900030af6000300460044004900ab0003033d> 120 <0035>] TJ ET Q\nendstream\nendobj\nxref\n5 1\n0000381187 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381470\n%%EOF\n",
+    "expected": "visible"
+  },
+  {
+    "name": "word-zero",
+    "update": "\n5 0 obj\n<< /Length 89  >>\nstream\n0.94 0.97 1 rg 0 0 420 120 re f 0.1 0.2 0.4 rg BT /F1 26 Tf 20 55 Td <002000200020> Tj ET\nendstream\nendobj\nxref\n5 1\n0000381187 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381327\n%%EOF\n",
+    "expected": "visible"
+  },
+  {
+    "name": "word-spacing",
+    "update": "\n5 0 obj\n<< /Length 96  >>\nstream\n0.94 0.97 1 rg 0 0 420 120 re f 0.1 0.2 0.4 rg BT 200 Tw /F1 26 Tf 20 55 Td <002000200020> Tj ET\nendstream\nendobj\nxref\n5 1\n0000381187 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381334\n%%EOF\n",
+    "expected": "visible",
+    "same": "word-zero"
+  },
+  {
+    "name": "odd-code",
+    "update": "\n5 0 obj\n<< /Length 82  >>\nstream\n0.94 0.97 1 rg 0 0 420 120 re f 0.1 0.2 0.4 rg BT /F1 26 Tf 20 55 Td <00350> Tj ET\nendstream\nendobj\nxref\n5 1\n0000381187 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381320\n%%EOF\n",
+    "expected": "error"
+  },
+  {
+    "name": "odd-map",
+    "update": "\n5 0 obj\n<< /Length 81  >>\nstream\n0.94 0.97 1 rg 0 0 420 120 re f 0.1 0.2 0.4 rg BT /F1 26 Tf 20 55 Td <0001> Tj ET\nendstream\nendobj\n6 0 obj\n<< /Type /Font /Subtype /CIDFontType2 /BaseFont /DejaVuSans /FontDescriptor 7 0 R /CIDToGIDMap 10 0 R /DW 1000 /W [1 [695 615 592 278 615 818 318 636 636 636 636 318 1000 318 550 613 352 615 318 764]] >>\nendobj\n10 0 obj\n<< /Length 3 /Filter /ASCIIHexDecode >>\nstream\n00>\nendstream\nendobj\nxref\n5 1\n0000381187 00000 n \n6 1\n0000381319 00000 n \n10 1\n0000381538 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381615\n%%EOF\n",
+    "expected": "error"
+  },
+  {
+    "name": "invalid-glyph",
+    "update": "\n5 0 obj\n<< /Length 81  >>\nstream\n0.94 0.97 1 rg 0 0 420 120 re f 0.1 0.2 0.4 rg BT /F1 26 Tf 20 55 Td <0001> Tj ET\nendstream\nendobj\n6 0 obj\n<< /Type /Font /Subtype /CIDFontType2 /BaseFont /DejaVuSans /FontDescriptor 7 0 R /CIDToGIDMap 10 0 R /DW 1000 /W [1 [695 615 592 278 615 818 318 636 636 636 636 318 1000 318 550 613 352 615 318 764]] >>\nendobj\n10 0 obj\n<< /Length 85 /Filter /ASCIIHexDecode >>\nstream\nffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff>\nendstream\nendobj\nxref\n5 1\n0000381187 00000 n \n6 1\n0000381319 00000 n \n10 1\n0000381538 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381698\n%%EOF\n",
+    "expected": "error"
+  },
+  {
+    "name": "invalid-map-data",
+    "update": "\n6 0 obj\n<< /Type /Font /Subtype /CIDFontType2 /BaseFont /DejaVuSans /FontDescriptor 7 0 R /CIDToGIDMap 10 0 R /DW 1000 /W [1 [695 615 592 278 615 818 318 636 636 636 636 318 1000 318 550 613 352 615 318 764]] >>\nendobj\n10 0 obj\n<< /Length 17 /Filter /FlateDecode >>\nstream\nnot a zlib stream\nendstream\nendobj\nxref\n6 1\n0000381187 00000 n \n10 1\n0000381406 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381495\n%%EOF\n",
+    "expected": "error"
+  },
+  {
+    "name": "oversized-map",
+    "update": "\n6 0 obj\n<< /Type /Font /Subtype /CIDFontType2 /BaseFont /DejaVuSans /FontDescriptor 7 0 R /CIDToGIDMap 10 0 R /DW 1000 /W [1 [695 615 592 278 615 818 318 636 636 636 636 318 1000 318 550 613 352 615 318 764]] >>\nendobj\n10 0 obj\n<< /Length 299 /Filter [/ASCIIHexDecode /FlateDecode] >>\nstream\n789cedc13101000000c2a0f54fed650ba0000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000006e00200001>\nendstream\nendobj\nxref\n6 1\n0000381187 00000 n \n10 1\n0000381406 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381796\n%%EOF\n",
+    "expected": "error"
+  },
+  {
+    "name": "negative-cid",
+    "update": "\n6 0 obj\n<< /Type /Font /Subtype /CIDFontType2 /BaseFont /DejaVuSans /FontDescriptor 7 0 R /CIDToGIDMap /Identity /DW 1000 /W [-1 [500]] >>\nendobj\nxref\n6 1\n0000381187 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381333\n%%EOF\n",
+    "expected": "error"
+  },
+  {
+    "name": "large-cid",
+    "update": "\n6 0 obj\n<< /Type /Font /Subtype /CIDFontType2 /BaseFont /DejaVuSans /FontDescriptor 7 0 R /CIDToGIDMap /Identity /DW 1000 /W [65536 [500]] >>\nendobj\nxref\n6 1\n0000381187 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381336\n%%EOF\n",
+    "expected": "error"
+  },
+  {
+    "name": "overflow-widths",
+    "update": "\n6 0 obj\n<< /Type /Font /Subtype /CIDFontType2 /BaseFont /DejaVuSans /FontDescriptor 7 0 R /CIDToGIDMap /Identity /DW 1000 /W [65535 [500 500]] >>\nendobj\nxref\n6 1\n0000381187 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381340\n%%EOF\n",
+    "expected": "error"
+  },
+  {
+    "name": "reversed-range",
+    "update": "\n6 0 obj\n<< /Type /Font /Subtype /CIDFontType2 /BaseFont /DejaVuSans /FontDescriptor 7 0 R /CIDToGIDMap /Identity /DW 1000 /W [50 40 500] >>\nendobj\nxref\n6 1\n0000381187 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381334\n%%EOF\n",
+    "expected": "error"
+  },
+  {
+    "name": "fractional-cid",
+    "update": "\n6 0 obj\n<< /Type /Font /Subtype /CIDFontType2 /BaseFont /DejaVuSans /FontDescriptor 7 0 R /CIDToGIDMap /Identity /DW 1000 /W [1.5 [500]] >>\nendobj\nxref\n6 1\n0000381187 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381334\n%%EOF\n",
+    "expected": "error"
+  },
+  {
+    "name": "missing-width",
+    "update": "\n6 0 obj\n<< /Type /Font /Subtype /CIDFontType2 /BaseFont /DejaVuSans /FontDescriptor 7 0 R /CIDToGIDMap /Identity /DW 1000 /W [1 2] >>\nendobj\nxref\n6 1\n0000381187 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381328\n%%EOF\n",
+    "expected": "error"
+  },
+  {
+    "name": "vertical",
+    "update": "\n4 0 obj\n<< /Type /Font /Subtype /Type0 /BaseFont /DejaVuSans /Encoding /Identity-V /DescendantFonts [6 0 R] >>\nendobj\nxref\n4 1\n0000381187 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381305\n%%EOF\n",
+    "expected": "error"
+  },
+  {
+    "name": "custom-cmap",
+    "update": "\n4 0 obj\n<< /Type /Font /Subtype /Type0 /BaseFont /DejaVuSans /Encoding /CustomCode /DescendantFonts [6 0 R] >>\nendobj\nxref\n4 1\n0000381187 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381305\n%%EOF\n",
+    "expected": "error"
+  },
+  {
+    "name": "cff",
+    "update": "\n6 0 obj\n<< /Type /Font /Subtype /CIDFontType0 /BaseFont /DejaVuSans /FontDescriptor 7 0 R /CIDToGIDMap /Identity /DW 1000 /W [3 [318] 19 [636] 21 [636] 25 [636] 53 [695] 68 [613] 70 [550] 72 [615] 73 [352] 76 [278] 89 [592] 90 [818] 171 [615] 829 [764] 2806 [1000]] >>\nendobj\nxref\n6 1\n0000381187 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381463\n%%EOF\n",
+    "expected": "error"
+  },
+  {
+    "name": "invalid-font",
+    "update": "\n7 0 obj\n<< /Type /FontDescriptor /FontFile2 5 0 R >>\nendobj\nxref\n7 1\n0000381187 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381247\n%%EOF\n",
+    "expected": "error"
+  },
+  {
+    "name": "absent-map",
+    "update": "\n6 0 obj\n<< /Type /Font /Subtype /CIDFontType2 /BaseFont /DejaVuSans /FontDescriptor 7 0 R  /DW 1000 /W [3 [318] 19 [636] 21 [636] 25 [636] 53 [695] 68 [613] 70 [550] 72 [615] 73 [352] 76 [278] 89 [592] 90 [818] 171 [615] 829 [764] 2806 [1000]] >>\nendobj\nxref\n6 1\n0000381187 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381441\n%%EOF\n",
+    "expected": "visible",
+    "same": "identity"
+  },
+  {
+    "name": "font-budget",
+    "update": "\n3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 420 120] /Resources << /Font << /F0 4 0 R /F1 4 0 R /F2 4 0 R /F3 4 0 R /F4 4 0 R /F5 4 0 R /F6 4 0 R /F7 4 0 R /F8 4 0 R /F9 4 0 R /F10 4 0 R /F11 4 0 R /F12 4 0 R /F13 4 0 R /F14 4 0 R /F15 4 0 R /F16 4 0 R /F17 4 0 R /F18 4 0 R /F19 4 0 R /F20 4 0 R /F21 4 0 R /F22 4 0 R /F23 4 0 R /F24 4 0 R /F25 4 0 R /F26 4 0 R /F27 4 0 R /F28 4 0 R /F29 4 0 R /F30 4 0 R /F31 4 0 R >> >> /Contents 5 0 R >>\nendobj\nxref\n3 1\n0000381187 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381645\n%%EOF\n",
+    "expected": "error"
+  },
+  {
+    "name": "notdef",
+    "update": "\n5 0 obj\n<< /Length 89  >>\nstream\n0.94 0.97 1 rg 0 0 420 120 re f 0.1 0.2 0.4 rg BT /F1 26 Tf 20 55 Td <000000000000> Tj ET\nendstream\nendobj\nxref\n5 1\n0000381187 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381327\n%%EOF\n",
+    "expected": "visible"
+  },
+  {
+    "name": "short-map",
+    "update": "\n5 0 obj\n<< /Length 89  >>\nstream\n0.94 0.97 1 rg 0 0 420 120 re f 0.1 0.2 0.4 rg BT /F1 26 Tf 20 55 Td <fffffffffffe> Tj ET\nendstream\nendobj\n6 0 obj\n<< /Type /Font /Subtype /CIDFontType2 /BaseFont /DejaVuSans /FontDescriptor 7 0 R /CIDToGIDMap 10 0 R /DW 1000 /W [1 [695 615 592 278 615 818 318 636 636 636 636 318 1000 318 550 613 352 615 318 764]] >>\nendobj\n10 0 obj\n<< /Length 5 /Filter /ASCIIHexDecode >>\nstream\n0000>\nendstream\nendobj\nxref\n5 1\n0000381187 00000 n \n6 1\n0000381327 00000 n \n10 1\n0000381546 00000 n \ntrailer\n<< /Size 11 /Root 1 0 R /Prev 380918 >>\nstartxref\n381625\n%%EOF\n",
+    "expected": "visible",
+    "same": "notdef"
+  }
+]

@@ -60,13 +60,26 @@ pub(super) fn outline(
     faces: &mut BTreeMap<&'static str, Vec<u8>>,
     name: &str,
     program: &super::super::pdf_text_layout::Program,
-    byte: u8,
+    code: u16,
     work: &mut usize,
     transform: impl Fn(f64, f64) -> Point,
 ) -> Option<Vec<Vec<Point>>> {
     match program {
         super::super::pdf_text_layout::Program::TrueType(bytes) => {
-            return truetype(bytes, byte, work, transform);
+            return truetype(bytes, code, false, work, transform);
+        }
+        super::super::pdf_text_layout::Program::CidTrueType { bytes, map } => {
+            let glyph = match map {
+                None => code,
+                Some(map) => {
+                    let offset = usize::from(code) * 2;
+                    // Unlisted CIDs select the font's .notdef glyph (PDF §9.7.4.2).
+                    map.get(offset..offset + 2)
+                        .map(|b| u16::from_be_bytes([b[0], b[1]]))
+                        .unwrap_or(0)
+                }
+            };
+            return truetype(bytes, glyph, true, work, transform);
         }
         super::super::pdf_text_layout::Program::Unsupported => return None,
         super::super::pdf_text_layout::Program::Standard => {}
@@ -99,7 +112,7 @@ pub(super) fn outline(
                 .0,
         ),
     };
-    let i = usize::from(byte) * 4;
+    let i = usize::from(u8::try_from(code).ok()?) * 4;
     let offset =
         |i: usize| Some(u32::from_le_bytes(bytes.get(i..i + 4)?.try_into().ok()?) as usize);
     let mut input = bytes.get(offset(i)?..offset(i + 4)?)?;
@@ -131,7 +144,8 @@ pub(super) fn outline(
 // PDF WinAnsi maps character codes through Unicode into the font's cmap.
 fn truetype(
     bytes: &[u8],
-    byte: u8,
+    code: u16,
+    direct: bool,
     work: &mut usize,
     transform: impl Fn(f64, f64) -> Point,
 ) -> Option<Vec<Vec<Point>>> {
@@ -144,15 +158,22 @@ fn truetype(
     // Charge parsing as well as curve subdivision against the page work budget.
     *work =
         work.checked_sub(usize::from(u16::from_be_bytes(bytes.get(4..6)?.try_into().ok()?)) * 8)?;
-    let font = Font::new(bytes).ok()?;
-    let cp = match byte {
+    let font = if direct {
+        Font::from_glyphs(bytes)
+    } else {
+        Font::new(bytes)
+    }
+    .ok()?;
+    let cp = match code {
         0x7f => 0x2022,
-        0x80..=0x9f => WIN_ANSI[usize::from(byte - 0x80)],
+        0x80..=0x9f => WIN_ANSI[usize::from(code - 0x80)],
         0xa0 => 32,
         0xad => 45,
-        _ => u32::from(byte),
+        _ => u32::from(code),
     };
-    let contours = font.outline(font.glyph_index(cp)).ok()?;
+    let contours = font
+        .outline(if direct { code } else { font.glyph_index(cp) })
+        .ok()?;
     let scale = f64::from(font.units_per_em());
     let point = |p: FontPoint| transform(p.x / scale, p.y / scale);
     let mut paths = Vec::new();

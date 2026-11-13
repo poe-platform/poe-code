@@ -220,6 +220,7 @@ export function* resolvePageFontsSteps(rootRef: PdfCosRef | undefined, resources
         const descendants = subtype === "Type0" ? yield* resolveArray(yield* field(fObj, "DescendantFonts"), true) : undefined;
         const cidDict = descendants ? yield* resolveDict(yield* arrayCursor(descendants).next(), true) : undefined;
         if (subtype === "Type0") {
+            defaultWidth = 1000;
             if (cidDict) {
                 const dwNode = (yield* resolve((yield* field(cidDict, "DW"))));
                 if (dwNode?.kind === "number")

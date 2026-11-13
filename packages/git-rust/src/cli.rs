@@ -2047,8 +2047,13 @@ pub fn execute_git_cli_with_input(
             let mut args = sub_args.iter().copied();
             let mut message = None;
             let mut target = None;
+            let mut allow_unrelated_histories = false;
             while let Some(arg) = args.next() {
-                if arg == "-m" || arg == "--message" {
+                if arg == "--allow-unrelated-histories" {
+                    allow_unrelated_histories = true;
+                } else if arg == "--no-allow-unrelated-histories" {
+                    allow_unrelated_histories = false;
+                } else if arg == "-m" || arg == "--message" {
                     let Some(value) = args.next() else {
                         return CliResult::err(129, "error: missing merge message\n");
                     };
@@ -2101,6 +2106,7 @@ pub fn execute_git_cli_with_input(
                 Some(message.unwrap_or(&default_message)),
                 Some(author),
                 Some(committer),
+                allow_unrelated_histories,
             ) {
                 Ok(r) => {
                     if squash {
@@ -2136,6 +2142,9 @@ pub fn execute_git_cli_with_input(
                         None,
                     );
                     CliResult::ok(format!("Merged {}\n", r.oid.unwrap_or_default()))
+                }
+                Err(e) if e.code == crate::errors::ErrorCode::UnrelatedHistoriesError => {
+                    CliResult::err(128, format!("fatal: {}\n", e.message))
                 }
                 Err(e) => CliResult::err(1, format!("CONFLICT: {}\n", e.message)),
             }

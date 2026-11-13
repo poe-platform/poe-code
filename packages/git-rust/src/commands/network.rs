@@ -684,6 +684,7 @@ pub fn pull(
                 None,
                 author,
                 committer,
+                false,
             )?;
         }
     }

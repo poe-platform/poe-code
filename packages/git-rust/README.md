@@ -1,6 +1,6 @@
 # git-rust
 
-Full-featured Rust Git implementation with both a standalone native CLI binary (`git-rust`) for local host development and an import-free WebAssembly engine for `@poe-platform/safe-bash`.
+Full-featured Rust Git implementation with both a standalone native CLI binary (`git-rust`) for local host development and an import-free WebAssembly engine for `@poe-platform/safe-bash`. Merging histories without a common ancestor requires `git merge --allow-unrelated-histories`; the default refusal leaves HEAD, index, and worktree unchanged. The Rust `merge` API takes `allow_unrelated_histories` as its final argument; pass `false` for the default protection.
 
 ## Why git-rust?
 

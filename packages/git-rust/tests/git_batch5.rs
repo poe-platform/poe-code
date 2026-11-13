@@ -148,6 +148,7 @@ dual_fixture_test!(merge_prevent_if_unmerged_paths, merge_prevent_if_unmerged_pa
             timezone_offset: 0.0,
         }),
         None,
+        false,
     )
     .unwrap_err();
     assert_eq!(err.code, ErrorCode::UnmergedPathsError);
@@ -155,7 +156,7 @@ dual_fixture_test!(merge_prevent_if_unmerged_paths, merge_prevent_if_unmerged_pa
 
 dual_fixture_test!(merge_master_into_master_already_merged, merge_master_into_master_already_merged_sub, "test-merge", |f| {
     let desired_oid = resolve_ref(&f.fs, &f.gitdir, "master", None).unwrap();
-    let m = merge(&f.fs, None, &f.gitdir, Some("master"), "master", true, false, false, false, false, None, None, None).unwrap();
+    let m = merge(&f.fs, None, &f.gitdir, Some("master"), "master", true, false, false, false, false, None, None, None, false).unwrap();
     assert!(m.already_merged);
     assert!(!m.fast_forward);
     assert_eq!(m.oid.as_deref(), Some(desired_oid.as_str()));
@@ -163,7 +164,7 @@ dual_fixture_test!(merge_master_into_master_already_merged, merge_master_into_ma
 
 dual_fixture_test!(merge_medium_into_master_already_merged, merge_medium_into_master_already_merged_sub, "test-merge", |f| {
     let desired_oid = resolve_ref(&f.fs, &f.gitdir, "master", None).unwrap();
-    let m = merge(&f.fs, None, &f.gitdir, Some("master"), "medium", true, false, false, false, false, None, None, None).unwrap();
+    let m = merge(&f.fs, None, &f.gitdir, Some("master"), "medium", true, false, false, false, false, None, None, None, false).unwrap();
     assert!(m.already_merged);
     assert!(!m.fast_forward);
     assert_eq!(m.oid.as_deref(), Some(desired_oid.as_str()));
@@ -171,7 +172,7 @@ dual_fixture_test!(merge_medium_into_master_already_merged, merge_medium_into_ma
 
 dual_fixture_test!(merge_oldest_into_master_already_merged, merge_oldest_into_master_already_merged_sub, "test-merge", |f| {
     let desired_oid = resolve_ref(&f.fs, &f.gitdir, "master", None).unwrap();
-    let m = merge(&f.fs, None, &f.gitdir, Some("master"), "oldest", true, false, false, false, false, None, None, None).unwrap();
+    let m = merge(&f.fs, None, &f.gitdir, Some("master"), "oldest", true, false, false, false, false, None, None, None, false).unwrap();
     assert!(m.already_merged);
     assert!(!m.fast_forward);
     assert_eq!(m.oid.as_deref(), Some(desired_oid.as_str()));
@@ -179,7 +180,7 @@ dual_fixture_test!(merge_oldest_into_master_already_merged, merge_oldest_into_ma
 
 dual_fixture_test!(merge_master_into_oldest_fast_forward, merge_master_into_oldest_fast_forward_sub, "test-merge", |f| {
     let desired_oid = resolve_ref(&f.fs, &f.gitdir, "master", None).unwrap();
-    let m = merge(&f.fs, None, &f.gitdir, Some("oldest"), "master", true, false, false, false, false, None, None, None).unwrap();
+    let m = merge(&f.fs, None, &f.gitdir, Some("oldest"), "master", true, false, false, false, false, None, None, None, false).unwrap();
     assert!(!m.already_merged);
     assert!(m.fast_forward);
     assert_eq!(m.oid.as_deref(), Some(desired_oid.as_str()));
@@ -189,7 +190,7 @@ dual_fixture_test!(merge_master_into_oldest_fast_forward, merge_master_into_olde
 dual_fixture_test!(merge_master_into_oldest_dry_run_does_not_move_ref, merge_master_into_oldest_dry_run_does_not_move_ref_sub, "test-merge", |f| {
     let orig_oldest = resolve_ref(&f.fs, &f.gitdir, "oldest", None).unwrap();
     let desired_oid = resolve_ref(&f.fs, &f.gitdir, "master", None).unwrap();
-    let m = merge(&f.fs, None, &f.gitdir, Some("oldest"), "master", true, false, true, false, false, None, None, None).unwrap();
+    let m = merge(&f.fs, None, &f.gitdir, Some("oldest"), "master", true, false, true, false, false, None, None, None, false).unwrap();
     assert!(m.fast_forward);
     assert_eq!(m.oid.as_deref(), Some(desired_oid.as_str()));
     assert_eq!(resolve_ref(&f.fs, &f.gitdir, "oldest", None).unwrap(), orig_oldest);
@@ -198,7 +199,7 @@ dual_fixture_test!(merge_master_into_oldest_dry_run_does_not_move_ref, merge_mas
 dual_fixture_test!(merge_master_into_oldest_no_update_branch, merge_master_into_oldest_no_update_branch_sub, "test-merge", |f| {
     let orig_oldest = resolve_ref(&f.fs, &f.gitdir, "oldest", None).unwrap();
     let desired_oid = resolve_ref(&f.fs, &f.gitdir, "master", None).unwrap();
-    let m = merge(&f.fs, None, &f.gitdir, Some("oldest"), "master", true, false, false, true, false, None, None, None).unwrap();
+    let m = merge(&f.fs, None, &f.gitdir, Some("oldest"), "master", true, false, false, true, false, None, None, None, false).unwrap();
     assert!(m.fast_forward);
     assert_eq!(m.oid.as_deref(), Some(desired_oid.as_str()));
     assert_eq!(resolve_ref(&f.fs, &f.gitdir, "oldest", None).unwrap(), orig_oldest);
@@ -211,7 +212,7 @@ dual_fixture_test!(merge_no_fast_forward_creates_merge_commit, merge_no_fast_for
         timestamp: 1262356920,
         timezone_offset: -0.0,
     };
-    let m = merge(&f.fs, None, &f.gitdir, Some("a"), "b", false, false, false, false, false, None, Some(author), None).unwrap();
+    let m = merge(&f.fs, None, &f.gitdir, Some("a"), "b", false, false, false, false, false, None, Some(author), None, false).unwrap();
     assert!(!m.fast_forward);
     assert!(m.merge_commit);
     let c = read_commit(&f.fs, &f.gitdir, m.oid.as_ref().unwrap()).unwrap();
@@ -225,7 +226,7 @@ dual_fixture_test!(merge_fast_forward_only_fails_when_diverged, merge_fast_forwa
         timestamp: 1262356920,
         timezone_offset: -0.0,
     };
-    let err = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, true, false, false, false, None, Some(author), None).unwrap_err();
+    let err = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, true, false, false, false, None, Some(author), None, false).unwrap_err();
     assert_eq!(err.code, ErrorCode::FastForwardError);
 });
 
@@ -236,7 +237,7 @@ dual_fixture_test!(merge_three_way_clean_branches_a_and_b, merge_three_way_clean
         timestamp: 1262356920,
         timezone_offset: -0.0,
     };
-    let m = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, false, false, false, false, None, Some(author), None).unwrap();
+    let m = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, false, false, false, false, None, Some(author), None, false).unwrap();
     assert!(m.merge_commit);
     assert!(!m.fast_forward);
     assert_eq!(m.oid.as_deref(), Some("7150b24425e03cb67a72b020ba77b7d64f229d89"));
@@ -250,7 +251,7 @@ dual_fixture_test!(merge_three_way_clean_with_custom_message, merge_three_way_cl
         timestamp: 1262356920,
         timezone_offset: -0.0,
     };
-    let m = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, false, false, false, false, Some("Custom merge message\n"), Some(author), None).unwrap();
+    let m = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, false, false, false, false, Some("Custom merge message\n"), Some(author), None, false).unwrap();
     let c = read_commit(&f.fs, &f.gitdir, m.oid.as_ref().unwrap()).unwrap();
     assert_eq!(c.commit.message, "Custom merge message\n");
 });
@@ -262,7 +263,7 @@ dual_fixture_test!(merge_conflict_returns_merge_conflict_error, merge_conflict_r
         timestamp: 1262356920,
         timezone_offset: -0.0,
     };
-    let err = merge(&f.fs, None, &f.gitdir, Some("a"), "c", true, false, false, false, false, None, Some(author), None).unwrap_err();
+    let err = merge(&f.fs, None, &f.gitdir, Some("a"), "c", true, false, false, false, false, None, Some(author), None, false).unwrap_err();
     assert_eq!(err.code, ErrorCode::MergeConflictError);
 });
 
@@ -274,7 +275,7 @@ dual_fixture_test!(merge_conflict_with_abort_on_conflict_false_writes_conflict_m
         timezone_offset: -0.0,
     };
     checkout(&f.fs, &f.dir, Some(&f.gitdir), Some("a"), None, None, false, false, false, true, true).unwrap();
-    let err = merge(&f.fs, Some(&f.dir), &f.gitdir, Some("a"), "b", true, false, false, false, false, None, Some(author), None).unwrap_err();
+    let err = merge(&f.fs, Some(&f.dir), &f.gitdir, Some("a"), "b", true, false, false, false, false, None, Some(author), None, false).unwrap_err();
     assert_eq!(err.code, ErrorCode::MergeConflictError);
     let actual_gitdir = discover_gitdir(&f.fs, &f.gitdir);
     GitIndexManager::acquire(&f.fs, &actual_gitdir, |index| {
@@ -294,7 +295,7 @@ dual_fixture_test!(abort_merge_restores_index_and_worktree, abort_merge_restores
         timezone_offset: -0.0,
     };
     checkout(&f.fs, &f.dir, Some(&f.gitdir), Some("a"), None, None, false, false, false, true, true).unwrap();
-    let _ = merge(&f.fs, Some(&f.dir), &f.gitdir, Some("a"), "c", true, false, false, false, false, None, Some(author), None);
+    let _ = merge(&f.fs, Some(&f.dir), &f.gitdir, Some("a"), "c", true, false, false, false, false, None, Some(author), None, false);
 
     abort_merge(&f.fs, &f.dir, Some(&f.gitdir), Some("HEAD")).unwrap();
     let actual_gitdir = discover_gitdir(&f.fs, &f.gitdir);
@@ -312,7 +313,7 @@ dual_fixture_test!(abort_merge_preserves_untracked_files_in_worktree, abort_merg
         timezone_offset: -0.0,
     };
     checkout(&f.fs, &f.dir, Some(&f.gitdir), Some("a"), None, None, false, false, false, true, true).unwrap();
-    let _ = merge(&f.fs, Some(&f.dir), &f.gitdir, Some("a"), "b", true, false, false, false, false, None, Some(author), None);
+    let _ = merge(&f.fs, Some(&f.dir), &f.gitdir, Some("a"), "b", true, false, false, false, false, None, Some(author), None, false);
     f.fs.write_str(&join(&[&f.dir, "c"]), "new text for file c");
 
     abort_merge(&f.fs, &f.dir, Some(&f.gitdir), Some("HEAD")).unwrap();
@@ -498,7 +499,7 @@ dual_fixture_test!(checkout_switches_between_two_branches_cleanly, checkout_swit
 
 dual_fixture_test!(merge_fast_forward_only_succeeds_when_linear, merge_fast_forward_only_succeeds_when_linear_sub, "test-merge", |f| {
     let desired_oid = resolve_ref(&f.fs, &f.gitdir, "master", None).unwrap();
-    let m = merge(&f.fs, None, &f.gitdir, Some("oldest"), "master", true, true, false, false, false, None, None, None).unwrap();
+    let m = merge(&f.fs, None, &f.gitdir, Some("oldest"), "master", true, true, false, false, false, None, None, None, false).unwrap();
     assert!(m.fast_forward);
     assert_eq!(m.oid.as_deref(), Some(desired_oid.as_str()));
 });
@@ -506,7 +507,7 @@ dual_fixture_test!(merge_fast_forward_only_succeeds_when_linear, merge_fast_forw
 dual_fixture_test!(merge_uses_configured_user_identity_when_author_none, merge_uses_configured_user_identity_when_author_none_sub, "test-merge", |f| {
     set_config(&f.fs, &f.gitdir, "user.name", Some("Config Merger"), false).unwrap();
     set_config(&f.fs, &f.gitdir, "user.email", Some("merger@example.com"), false).unwrap();
-    let m = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, false, false, false, false, None, None, None).unwrap();
+    let m = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, false, false, false, false, None, None, None, false).unwrap();
     assert!(m.merge_commit);
     let c = read_commit(&f.fs, &f.gitdir, m.oid.as_ref().unwrap()).unwrap();
     assert_eq!(c.commit.author.name, "Config Merger");
@@ -516,7 +517,7 @@ dual_fixture_test!(merge_uses_configured_user_identity_when_author_none, merge_u
 dual_fixture_test!(merge_missing_author_and_config_returns_missing_name_error, merge_missing_author_and_config_returns_missing_name_error_sub, "test-merge", |f| {
     set_config(&f.fs, &f.gitdir, "user.name", None, false).unwrap();
     set_config(&f.fs, &f.gitdir, "user.email", None, false).unwrap();
-    let err = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, false, false, false, false, None, None, None).unwrap_err();
+    let err = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, false, false, false, false, None, None, None, false).unwrap_err();
     assert_eq!(err.code, ErrorCode::MissingNameError);
 });
 
@@ -533,7 +534,7 @@ dual_fixture_test!(merge_custom_committer_distinct_from_author, merge_custom_com
         timestamp: 1262356999,
         timezone_offset: 0.0,
     };
-    let m = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, false, false, false, false, None, Some(author), Some(committer)).unwrap();
+    let m = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, false, false, false, false, None, Some(author), Some(committer), false).unwrap();
     let c = read_commit(&f.fs, &f.gitdir, m.oid.as_ref().unwrap()).unwrap();
     assert_eq!(c.commit.author.name, "Author One");
     assert_eq!(c.commit.committer.name, "Committer Two");
@@ -723,7 +724,7 @@ dual_fixture_test!(checkout_removes_files_absent_in_target_branch, checkout_remo
 dual_fixture_test!(merge_defaults_ours_to_current_branch_when_none, merge_defaults_ours_to_current_branch_when_none_sub, "test-merge", |f| {
     git_rust::write_ref(&f.fs, &f.gitdir, "HEAD", "refs/heads/oldest", true, true).unwrap();
     let desired_oid = resolve_ref(&f.fs, &f.gitdir, "master", None).unwrap();
-    let m = merge(&f.fs, None, &f.gitdir, None, "master", true, false, false, false, false, None, None, None).unwrap();
+    let m = merge(&f.fs, None, &f.gitdir, None, "master", true, false, false, false, false, None, None, None, false).unwrap();
     assert!(m.fast_forward);
     assert_eq!(m.oid.as_deref(), Some(desired_oid.as_str()));
 });
@@ -735,7 +736,7 @@ dual_fixture_test!(merge_three_way_updates_ours_branch_ref, merge_three_way_upda
         timestamp: 1262356920,
         timezone_offset: -0.0,
     };
-    let m = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, false, false, false, false, None, Some(author), None).unwrap();
+    let m = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, false, false, false, false, None, Some(author), None, false).unwrap();
     assert_eq!(resolve_ref(&f.fs, &f.gitdir, "a", None).unwrap(), m.oid.unwrap());
 });
 
@@ -747,7 +748,7 @@ dual_fixture_test!(merge_three_way_dry_run_leaves_ours_branch_ref_unchanged, mer
         timestamp: 1262356920,
         timezone_offset: -0.0,
     };
-    let m = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, false, true, false, false, None, Some(author), None).unwrap();
+    let m = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, false, true, false, false, None, Some(author), None, false).unwrap();
     assert!(m.merge_commit);
     assert_eq!(resolve_ref(&f.fs, &f.gitdir, "a", None).unwrap(), orig_a);
 });
@@ -760,7 +761,7 @@ dual_fixture_test!(merge_three_way_no_update_branch_leaves_ref_unchanged, merge_
         timestamp: 1262356920,
         timezone_offset: -0.0,
     };
-    let m = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, false, false, true, false, None, Some(author), None).unwrap();
+    let m = merge(&f.fs, None, &f.gitdir, Some("a"), "b", true, false, false, true, false, None, Some(author), None, false).unwrap();
     assert!(!m.merge_commit);
     assert!(m.oid.is_none());
     assert!(m.tree.is_some());
@@ -775,7 +776,7 @@ dual_fixture_test!(merge_conflict_with_abort_on_conflict_true_leaves_index_clean
         timezone_offset: -0.0,
     };
     checkout(&f.fs, &f.dir, Some(&f.gitdir), Some("a"), None, None, false, false, false, true, true).unwrap();
-    let err = merge(&f.fs, Some(&f.dir), &f.gitdir, Some("a"), "b", true, false, false, false, true, None, Some(author), None).unwrap_err();
+    let err = merge(&f.fs, Some(&f.dir), &f.gitdir, Some("a"), "b", true, false, false, false, true, None, Some(author), None, false).unwrap_err();
     assert_eq!(err.code, ErrorCode::MergeConflictError);
     let actual_gitdir = discover_gitdir(&f.fs, &f.gitdir);
     GitIndexManager::acquire(&f.fs, &actual_gitdir, |index| {
@@ -792,7 +793,7 @@ dual_fixture_test!(abort_merge_with_default_commit_parameter, abort_merge_with_d
         timezone_offset: -0.0,
     };
     checkout(&f.fs, &f.dir, Some(&f.gitdir), Some("a"), None, None, false, false, false, true, true).unwrap();
-    let _ = merge(&f.fs, Some(&f.dir), &f.gitdir, Some("a"), "b", true, false, false, false, false, None, Some(author), None);
+    let _ = merge(&f.fs, Some(&f.dir), &f.gitdir, Some("a"), "b", true, false, false, false, false, None, Some(author), None, false);
     abort_merge(&f.fs, &f.dir, Some(&f.gitdir), None).unwrap();
     let actual_gitdir = discover_gitdir(&f.fs, &f.gitdir);
     GitIndexManager::acquire(&f.fs, &actual_gitdir, |index| {

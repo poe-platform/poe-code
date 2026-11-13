@@ -907,6 +907,7 @@ pub fn merge(
     message: Option<&str>,
     author: Option<Author>,
     committer: Option<Author>,
+    allow_unrelated_histories: bool,
 ) -> Result<MergeReport, GitError> {
     let gdir = discover_gitdir(fs, gitdir);
     GitIndexManager::acquire(fs, &gdir, |index| {
@@ -936,6 +937,13 @@ pub fn merge(
     }
 
     let base_oid = recursive_merge_base(fs, &gdir, &our_oid, &their_oid)?;
+    if base_oid.is_none() && !allow_unrelated_histories {
+        return Err(GitError::new(
+            ErrorCode::UnrelatedHistoriesError,
+            "refusing to merge unrelated histories",
+            BTreeMap::new(),
+        ));
+    }
 
     if base_oid.as_deref() == Some(their_oid.as_str()) {
         return Ok(MergeReport {

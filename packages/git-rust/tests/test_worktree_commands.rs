@@ -159,6 +159,7 @@ fn test_merge_fast_forward_abort_merge_cherry_pick_and_stash() {
                 timezone_offset: 0.0,
             }),
             None,
+            false,
         )
         .unwrap();
         assert!(report_ff.fast_forward || report_ff.merge_commit);
@@ -184,6 +185,7 @@ fn test_merge_fast_forward_abort_merge_cherry_pick_and_stash() {
                 timezone_offset: 0.0,
             }),
             None,
+            false,
         )
         .unwrap();
         assert!(report_3way.merge_commit);
@@ -209,6 +211,7 @@ fn test_merge_fast_forward_abort_merge_cherry_pick_and_stash() {
                 timezone_offset: 0.0,
             }),
             None,
+            false,
         )
         .unwrap_err();
         assert_eq!(unmerged_err.code, ErrorCode::UnmergedPathsError);
@@ -235,6 +238,7 @@ fn test_merge_fast_forward_abort_merge_cherry_pick_and_stash() {
                 timezone_offset: 0.0,
             }),
             None,
+            false,
         );
         let conflict_err = conflict_res.unwrap_err();
         assert_eq!(conflict_err.code, ErrorCode::MergeConflictError);

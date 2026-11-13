@@ -722,21 +722,31 @@ fn emit_hunk(
         }
     } else {
         *clean_merge = false;
+        // Keep agreed lines outside the conflict markers, as Git does.
+        let prefix = ours.iter().zip(theirs).take_while(|(a, b)| a == b).count();
+        let suffix = ours[prefix..].iter().rev().zip(theirs[prefix..].iter().rev())
+            .take_while(|(a, b)| a == b).count();
+        for &line in &ours[..prefix] {
+            merged_text.push_str(line);
+        }
         merged_text.push_str(&format!("<<<<<<< {our_name}\n"));
-        for &line in ours {
+        for &line in &ours[prefix..ours.len() - suffix] {
             merged_text.push_str(line);
         }
         if !merged_text.ends_with('\n') {
             merged_text.push('\n');
         }
         merged_text.push_str("=======\n");
-        for &line in theirs {
+        for &line in &theirs[prefix..theirs.len() - suffix] {
             merged_text.push_str(line);
         }
         if !merged_text.ends_with('\n') {
             merged_text.push('\n');
         }
         merged_text.push_str(&format!(">>>>>>> {their_name}\n"));
+        for &line in &ours[ours.len() - suffix..] {
+            merged_text.push_str(line);
+        }
     }
 }
 
@@ -781,6 +791,18 @@ fn lcs_indices(a: &[&str], b: &[&str]) -> Vec<(usize, usize)> {
     let mut pairs = Vec::new();
     while i < n && j < m {
         if a[i] == b[j] {
+            // Continue an existing edit across repeated lines when doing so
+            // preserves the LCS. Otherwise an arbitrary match can split one
+            // deletion into independent hunks and hide a merge conflict.
+            let (after_i, after_j) = pairs.last().map_or((0, 0), |&(x, y)| (x + 1, y + 1));
+            if i > after_i && dp[i + 1][j] == dp[i][j] {
+                i += 1;
+                continue;
+            }
+            if j > after_j && dp[i][j + 1] == dp[i][j] {
+                j += 1;
+                continue;
+            }
             pairs.push((i, j));
             i += 1;
             j += 1;

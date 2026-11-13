@@ -16812,3 +16812,45 @@ test("GPG rejects competing keyring replacements and cleans up its private stage
     }
   } finally { rust.dispose(); }
 });
+
+
+test("PNG checksum failures preserve output through Wasm convert", async () => {
+  // Same independent 8x6 RGBA fixture as tests/png_validation.rs and the TS command regression.
+  const png = Buffer.from("89504e470d0a1a0a0000000d4948445200000008000000060806000000fe05dffb0000001649444154789c637ca611f09f010f60c2273958140000d34502699b0d22dc0000000049454e44ae426082", "hex");
+  for (const type of ["IHDR", "IDAT", "IEND"]) {
+    const bytes = Buffer.from(png);
+    for (let at = 8; at < bytes.length;) {
+      const length = bytes.readUInt32BE(at);
+      if (bytes.toString("ascii", at + 4, at + 8) === type) {
+        bytes[at + 8 + length] ^= 1;
+        break;
+      }
+      at += length + 12;
+    }
+    for (const existing of [false, true]) {
+      const files = { "/source.png": bytes };
+      if (existing) files["/result.png"] = "existing output";
+      const bash = new RustWasmBash({ cwd: "/", files });
+      try {
+        const result = await bash.exec("convert /source.png /result.png");
+        assert.notEqual(result.exitCode, 0, type);
+        assert.match(result.stderr, /CRC/);
+        if (existing) {
+          assert.equal(Buffer.from(await bash.fs.readFile("/result.png")).toString(), "existing output");
+        } else {
+          assert.equal((await bash.exec("test -e /result.png")).exitCode, 1);
+        }
+      } finally { await bash.dispose(); }
+    }
+  }
+  const bash = new RustWasmBash({ cwd: "/", files: { "/source.png": png } });
+  try {
+    const info = await bash.exec("identify -format '%w %h' /source.png");
+    assert.equal(info.exitCode, 0, info.stderr);
+    assert.equal(info.stdout, "8 6");
+    const result = await bash.exec("convert /source.png /result.ppm");
+    assert.equal(result.exitCode, 0, result.stderr);
+    const expected = Buffer.concat([Buffer.from("P6\n8 6\n255\n"), Buffer.from(Array.from({ length: 8 * 6 }, () => [230, 40, 80]).flat())]);
+    assert.deepEqual(Buffer.from(await bash.fs.readFile("/result.ppm")), expected);
+  } finally { await bash.dispose(); }
+});

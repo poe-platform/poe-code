@@ -49,6 +49,18 @@ impl<'a> Png<'a> {
                 result.truncated = true;
                 break;
             };
+            let Some(rest) = chunks[8 + len..].get(4..) else {
+                result.truncated = true;
+                break;
+            };
+            let checksum = u32::from_be_bytes(chunks[8 + len..12 + len].try_into().unwrap());
+            if crate::commands::codecs::crc32_ieee(&chunks[4..8 + len]) != checksum {
+                if chunks[4] & 32 == 0 {
+                    return Err("PNG critical chunk CRC mismatch");
+                }
+                chunks = rest;
+                continue;
+            }
             match &chunks[4..8] {
                 b"IHDR" if len >= 13 => result.ihdr = Some(data),
                 b"pHYs" if len >= 9 => {
@@ -73,10 +85,6 @@ impl<'a> Png<'a> {
                 b"IEND" => break,
                 _ => {}
             }
-            let Some(rest) = chunks[8 + len..].get(4..) else {
-                result.truncated = true;
-                break;
-            };
             chunks = rest;
         }
         Ok(result)

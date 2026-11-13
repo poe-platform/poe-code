@@ -11,7 +11,7 @@ use crate::managers::{
 use crate::models::{CommitObject, GitIndex, GitTree, TreeEntry};
 use crate::storage::{_write_object, hash_object, resolve_filepath_entry};
 use crate::utils::{
-    is_binary, join, merge_file, Author,
+    is_binary, join, merge_file_bytes, Author,
 };
 
 const EMPTY_TREE_OID: &str = "4b825dc642cb6eb9a060e54bf8d69288fbee4904";
@@ -1208,19 +1208,16 @@ pub(crate) fn merge_trees_3way(
                     if is_binary(&o_bytes) || is_binary(&t_bytes) || is_binary(&b_bytes) {
                         conflict_content = Some(o_bytes);
                     } else {
-                        let o_str = String::from_utf8_lossy(&o_bytes);
-                        let b_str = String::from_utf8_lossy(&b_bytes);
-                        let t_str = String::from_utf8_lossy(&t_bytes);
-                        let merged = merge_file(
+                        let merged = merge_file_bytes(
                             [base_label, our_label, their_label],
-                            [b_str.as_ref(), o_str.as_ref(), t_str.as_ref()],
+                            [&b_bytes, &o_bytes, &t_bytes],
                         );
                         if merged.clean_merge {
                             let merged_oid = _write_object(
                                 fs,
                                 gitdir,
                                 "blob",
-                                merged.merged_text.as_bytes(),
+                                &merged.merged_bytes,
                                 "content",
                                 None,
                                 dry_run,
@@ -1235,7 +1232,7 @@ pub(crate) fn merge_trees_3way(
                                 },
                             ));
                         } else {
-                            conflict_content = Some(merged.merged_text.into_bytes());
+                            conflict_content = Some(merged.merged_bytes);
                         }
                     }
                 }

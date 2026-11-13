@@ -610,12 +610,26 @@ pub struct MergeFileResult {
 }
 
 pub fn merge_file(branches: [&str; 3], contents: [&str; 3]) -> MergeFileResult {
+    let result = merge_file_bytes(branches, contents.map(str::as_bytes));
+    MergeFileResult {
+        clean_merge: result.clean_merge,
+        // Input lines and conflict labels are UTF-8, and only whole lines are copied.
+        merged_text: String::from_utf8(result.merged_bytes).expect("UTF-8 merge inputs"),
+    }
+}
+
+pub(crate) struct MergeBytesResult {
+    pub clean_merge: bool,
+    pub merged_bytes: Vec<u8>,
+}
+
+pub(crate) fn merge_file_bytes(branches: [&str; 3], contents: [&[u8]; 3]) -> MergeBytesResult {
     let our_name = branches[1];
     let their_name = branches[2];
 
-    let base_lines = split_lines_keep_empty(contents[0]);
-    let our_lines = split_lines_keep_empty(contents[1]);
-    let their_lines = split_lines_keep_empty(contents[2]);
+    let base_lines = contents[0].split_inclusive(|&byte| byte == b'\n').collect::<Vec<_>>();
+    let our_lines = contents[1].split_inclusive(|&byte| byte == b'\n').collect::<Vec<_>>();
+    let their_lines = contents[2].split_inclusive(|&byte| byte == b'\n').collect::<Vec<_>>();
 
     let matches_oa = lcs_indices(&base_lines, &our_lines);
     let matches_ob = lcs_indices(&base_lines, &their_lines);
@@ -630,7 +644,7 @@ pub fn merge_file(branches: [&str; 3], contents: [&str; 3]) -> MergeFileResult {
         ob_map[o_idx] = Some(b_idx);
     }
 
-    let mut merged_text = String::new();
+    let mut merged_bytes = Vec::new();
     let mut clean_merge = true;
 
     let mut o_cur = 0;
@@ -648,11 +662,11 @@ pub fn merge_file(branches: [&str; 3], contents: [&str; 3]) -> MergeFileResult {
                         &their_lines[b_cur..b_sync],
                         our_name,
                         their_name,
-                        &mut merged_text,
+                        &mut merged_bytes,
                         &mut clean_merge,
                     );
                 }
-                merged_text.push_str(base_lines[o_cur]);
+                merged_bytes.extend_from_slice(base_lines[o_cur]);
                 o_cur += 1;
                 a_cur = a_sync + 1;
                 b_cur = b_sync + 1;
@@ -674,7 +688,7 @@ pub fn merge_file(branches: [&str; 3], contents: [&str; 3]) -> MergeFileResult {
                 &their_lines[b_cur..b_next],
                 our_name,
                 their_name,
-                &mut merged_text,
+                &mut merged_bytes,
                 &mut clean_merge,
             );
             o_cur = o_next;
@@ -692,33 +706,33 @@ pub fn merge_file(branches: [&str; 3], contents: [&str; 3]) -> MergeFileResult {
             &their_lines[b_cur..],
             our_name,
             their_name,
-            &mut merged_text,
+            &mut merged_bytes,
             &mut clean_merge,
         );
     }
 
-    MergeFileResult {
+    MergeBytesResult {
         clean_merge,
-        merged_text,
+        merged_bytes,
     }
 }
 
 fn emit_hunk(
-    base: &[&str],
-    ours: &[&str],
-    theirs: &[&str],
+    base: &[&[u8]],
+    ours: &[&[u8]],
+    theirs: &[&[u8]],
     our_name: &str,
     their_name: &str,
-    merged_text: &mut String,
+    merged_bytes: &mut Vec<u8>,
     clean_merge: &mut bool,
 ) {
     if ours == base {
         for &line in theirs {
-            merged_text.push_str(line);
+            merged_bytes.extend_from_slice(line);
         }
     } else if theirs == base || ours == theirs {
         for &line in ours {
-            merged_text.push_str(line);
+            merged_bytes.extend_from_slice(line);
         }
     } else {
         *clean_merge = false;
@@ -727,53 +741,30 @@ fn emit_hunk(
         let suffix = ours[prefix..].iter().rev().zip(theirs[prefix..].iter().rev())
             .take_while(|(a, b)| a == b).count();
         for &line in &ours[..prefix] {
-            merged_text.push_str(line);
+            merged_bytes.extend_from_slice(line);
         }
-        merged_text.push_str(&format!("<<<<<<< {our_name}\n"));
+        merged_bytes.extend_from_slice(format!("<<<<<<< {our_name}\n").as_bytes());
         for &line in &ours[prefix..ours.len() - suffix] {
-            merged_text.push_str(line);
+            merged_bytes.extend_from_slice(line);
         }
-        if !merged_text.ends_with('\n') {
-            merged_text.push('\n');
+        if !merged_bytes.ends_with(b"\n") {
+            merged_bytes.push(b'\n');
         }
-        merged_text.push_str("=======\n");
+        merged_bytes.extend_from_slice(b"=======\n");
         for &line in &theirs[prefix..theirs.len() - suffix] {
-            merged_text.push_str(line);
+            merged_bytes.extend_from_slice(line);
         }
-        if !merged_text.ends_with('\n') {
-            merged_text.push('\n');
+        if !merged_bytes.ends_with(b"\n") {
+            merged_bytes.push(b'\n');
         }
-        merged_text.push_str(&format!(">>>>>>> {their_name}\n"));
+        merged_bytes.extend_from_slice(format!(">>>>>>> {their_name}\n").as_bytes());
         for &line in &ours[ours.len() - suffix..] {
-            merged_text.push_str(line);
+            merged_bytes.extend_from_slice(line);
         }
     }
 }
 
-fn split_lines_keep_empty(s: &str) -> Vec<&str> {
-    if s.is_empty() {
-        return Vec::new();
-    }
-    let mut lines = Vec::new();
-    let bytes = s.as_bytes();
-    let mut start = 0;
-    let mut i = 0;
-    while i < bytes.len() {
-        if bytes[i] == b'\n' {
-            lines.push(&s[start..=i]);
-            i += 1;
-            start = i;
-        } else {
-            i += 1;
-        }
-    }
-    if start < bytes.len() {
-        lines.push(&s[start..]);
-    }
-    lines
-}
-
-fn lcs_indices(a: &[&str], b: &[&str]) -> Vec<(usize, usize)> {
+fn lcs_indices(a: &[&[u8]], b: &[&[u8]]) -> Vec<(usize, usize)> {
     let n = a.len();
     let m = b.len();
     let mut dp = vec![vec![0u32; m + 1]; n + 1];

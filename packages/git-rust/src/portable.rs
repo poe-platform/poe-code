@@ -44,7 +44,7 @@ fn bytes(value: &Value) -> Result<Vec<u8>, GitError> {
         return Err(GitError::internal("invalid hex bytes"));
     }
     let mut out = Vec::with_capacity(hex.len() / 2);
-    for pair in hex.chunks_exact(2) {
+    for pair in hex.as_chunks::<2>().0 {
         out.push((hex_nibble(pair[0])? << 4) | hex_nibble(pair[1])?);
     }
     Ok(out)

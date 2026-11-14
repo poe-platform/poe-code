@@ -31459,6 +31459,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     let mut number_sections = false;
     let mut ascii = false;
     let mut strip_comments = false;
+    let mut file_scope = false;
     let mut shift_heading: i32 = 0;
     let mut meta: BTreeMap<String, String> = BTreeMap::new();
     let mut header_inc = String::new();
@@ -31639,12 +31640,14 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 return err_out("E_OPTION: Invalid raw-content policy\n", 2);
             }
             i += 2;
+        } else if a == "--file-scope" {
+            file_scope = true;
+            i += 1;
         } else if matches!(
             a.as_str(),
             "--lossy"
                 | "--fail-if-warnings"
                 | "--yes"
-                | "--file-scope"
                 | "--sandbox"
                 | "--citeproc"
                 | "-C"
@@ -31791,13 +31794,16 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         .or_else(|| out_path.as_deref().and_then(infer_fmt))
         .unwrap_or_else(|| "html".to_string());
 
-    let raw_bytes: Vec<u8> = if files.is_empty() || (files.len() == 1 && files[0] == "-") {
-        crate::vfs::stream_string_to_bytes(stdin)
+    let join_text = matches!(in_fmt.as_str(), "markdown" | "markdown_github" | "markdown_mmd"
+        | "markdown_phpextra" | "markdown_strict" | "md" | "commonmark" | "commonmark_x"
+        | "gfm" | "plain" | "rst" | "latex" | "html" | "html5");
+    let raw_inputs: Vec<Vec<u8>> = if files.is_empty() || (files.len() == 1 && files[0] == "-") {
+        vec![crate::vfs::stream_string_to_bytes(stdin)]
     } else {
-        let mut buf = Vec::new();
+        let mut inputs: Vec<Vec<u8>> = Vec::new();
         for f in &files {
-            if f == "-" {
-                buf.extend_from_slice(&crate::vfs::stream_string_to_bytes(stdin));
+            let bytes = if f == "-" {
+                crate::vfs::stream_string_to_bytes(stdin)
             } else {
                 let full = resolve_posix_path(cwd, f);
                 if let Ok(meta) = fs.stat(&full)
@@ -31806,81 +31812,94 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                     return err_out("E_IO: Capability failed\n", 9);
                 }
                 match fs.read_file(&full) {
-                    Ok(b) => buf.extend_from_slice(&b),
+                    Ok(b) => b,
                     Err(_) => return err_out("E_IO: Capability failed\n", 9),
                 }
+            };
+            if !file_scope && let Some(buf) = inputs.last_mut() {
+                if join_text {
+                    if !buf.ends_with(b"\n") { buf.push(b'\n'); }
+                    buf.push(b'\n');
+                }
+                buf.extend_from_slice(&bytes);
+            } else {
+                inputs.push(bytes);
             }
         }
-        buf
+        inputs
     };
 
     let input_from_html = matches!(in_fmt.as_str(), "html" | "html5");
-    let Some(mut blocks) = (match in_fmt.as_str() {
-        "html" | "html5" => Some(parse_pandoc_html(&String::from_utf8_lossy(&raw_bytes))),
-        "latex" => parse_pandoc_latex(&String::from_utf8_lossy(&raw_bytes)),
-        "rtf" => parse_pandoc_rtf(&String::from_utf8_lossy(&raw_bytes)),
-        "json" => match parse_pandoc_json(&String::from_utf8_lossy(&raw_bytes)) {
-            Ok(blocks) => Some(blocks),
-            Err(error) => return err_out(&format!("JSON parse error: {error}\n"), 64),
-        },
-        "csv" | "tsv" => {
-            let delim = if in_fmt == "tsv" { '\t' } else { ',' };
-            let recs = parse_csv_rows(&String::from_utf8_lossy(&raw_bytes), delim);
-            if recs.is_empty() {
-                Some(Vec::new())
-            } else {
-                Some(vec![PandocBlock::Table(pandoc_table::Table::simple(recs[0].clone(), recs[1..].to_vec(), None))])
-            }
-        }
-        "xlsx" => {
-            let fname = files
-                .first()
-                .map(|f| f.rsplit('/').next().unwrap_or(f.as_str()))
-                .unwrap_or("Sheet1");
-            let sheets = read_xlsx_all_sheets(&raw_bytes, fname);
-            let mut b = Vec::new();
-            for sh in sheets {
-                b.push(PandocBlock::Header(
-                    1,
-                    pandoc_slug(&sh.name),
-                    vec![PandocInline::Text(sh.name)],
-                ));
-                if !sh.rows.is_empty() {
-                    b.push(PandocBlock::Table(pandoc_table::Table::simple(
-                        sh.rows[0].clone(),
-                        sh.rows[1..].to_vec(), None,
-                    )));
+    let mut blocks = Vec::new();
+    for raw_bytes in raw_inputs {
+        let Some(input_blocks) = (match in_fmt.as_str() {
+            "html" | "html5" => Some(parse_pandoc_html(&String::from_utf8_lossy(&raw_bytes))),
+            "latex" => parse_pandoc_latex(&String::from_utf8_lossy(&raw_bytes)),
+            "rtf" => parse_pandoc_rtf(&String::from_utf8_lossy(&raw_bytes)),
+            "json" => match parse_pandoc_json(&String::from_utf8_lossy(&raw_bytes)) {
+                Ok(blocks) => Some(blocks),
+                Err(error) => return err_out(&format!("JSON parse error: {error}\n"), 64),
+            },
+            "csv" | "tsv" => {
+                let delim = if in_fmt == "tsv" { '\t' } else { ',' };
+                let recs = parse_csv_rows(&String::from_utf8_lossy(&raw_bytes), delim);
+                if recs.is_empty() {
+                    Some(Vec::new())
+                } else {
+                    Some(vec![PandocBlock::Table(pandoc_table::Table::simple(recs[0].clone(), recs[1..].to_vec(), None))])
                 }
             }
-            Some(b)
-        }
-        "docx" => match pandoc_docx::read(&raw_bytes, fs.shell_limits().max_input_bytes) {
-            Ok(blocks) => Some(blocks),
-            Err((status, message)) => return err_out(message, status),
-        },
-        "odt" | "epub" | "epub3" => {
-            let entries = read_office_archive(&raw_bytes);
-            if let Some(md_bytes) = entries.get("__pandoc_source.md") {
-                parse_pandoc_markdown(&String::from_utf8_lossy(md_bytes), false, PandocPipeTables::Markdown, 0, pandoc_list::Tasks::Markdown)
-            } else if let Some(content_xml) = entries.get("content.xml") {
-                Some(parse_pandoc_html(&String::from_utf8_lossy(content_xml)))
-            } else if let Some(ch_xml) = entries.get("EPUB/ch1.xhtml") {
-                Some(parse_pandoc_html(&String::from_utf8_lossy(ch_xml)))
-            } else {
-                parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), false, PandocPipeTables::Markdown, 0, pandoc_list::Tasks::Markdown)
+            "xlsx" => {
+                let fname = files
+                    .first()
+                    .map(|f| f.rsplit('/').next().unwrap_or(f.as_str()))
+                    .unwrap_or("Sheet1");
+                let sheets = read_xlsx_all_sheets(&raw_bytes, fname);
+                let mut b = Vec::new();
+                for sh in sheets {
+                    b.push(PandocBlock::Header(
+                        1,
+                        pandoc_slug(&sh.name),
+                        vec![PandocInline::Text(sh.name)],
+                    ));
+                    if !sh.rows.is_empty() {
+                        b.push(PandocBlock::Table(pandoc_table::Table::simple(
+                            sh.rows[0].clone(),
+                            sh.rows[1..].to_vec(), None,
+                        )));
+                    }
+                }
+                Some(b)
             }
-        }
-        _ => {
-            let tasks = if !extension(from_fmt.as_deref(), &in_fmt, "task_lists") { pandoc_list::Tasks::Disabled }
-                else if matches!(in_fmt.as_str(), "commonmark" | "commonmark_x" | "gfm") { pandoc_list::Tasks::CommonMark }
-                else { pandoc_list::Tasks::Markdown };
-            let pipe_tables = extension(from_fmt.as_deref(), &in_fmt, "pipe_tables");
-            let tables = if !pipe_tables { PandocPipeTables::Disabled }
-                else if matches!(in_fmt.as_str(), "commonmark" | "commonmark_x" | "gfm") { PandocPipeTables::CommonMark }
-                else { PandocPipeTables::Markdown };
-            parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), strip_comments, tables, 0, tasks)
-        }
-    }) else { return err_out("pandoc: document nesting limit exceeded\n", 1) };
+            "docx" => match pandoc_docx::read(&raw_bytes, fs.shell_limits().max_input_bytes) {
+                Ok(blocks) => Some(blocks),
+                Err((status, message)) => return err_out(message, status),
+            },
+            "odt" | "epub" | "epub3" => {
+                let entries = read_office_archive(&raw_bytes);
+                if let Some(md_bytes) = entries.get("__pandoc_source.md") {
+                    parse_pandoc_markdown(&String::from_utf8_lossy(md_bytes), false, PandocPipeTables::Markdown, 0, pandoc_list::Tasks::Markdown)
+                } else if let Some(content_xml) = entries.get("content.xml") {
+                    Some(parse_pandoc_html(&String::from_utf8_lossy(content_xml)))
+                } else if let Some(ch_xml) = entries.get("EPUB/ch1.xhtml") {
+                    Some(parse_pandoc_html(&String::from_utf8_lossy(ch_xml)))
+                } else {
+                    parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), false, PandocPipeTables::Markdown, 0, pandoc_list::Tasks::Markdown)
+                }
+            }
+            _ => {
+                let tasks = if !extension(from_fmt.as_deref(), &in_fmt, "task_lists") { pandoc_list::Tasks::Disabled }
+                    else if matches!(in_fmt.as_str(), "commonmark" | "commonmark_x" | "gfm") { pandoc_list::Tasks::CommonMark }
+                    else { pandoc_list::Tasks::Markdown };
+                let pipe_tables = extension(from_fmt.as_deref(), &in_fmt, "pipe_tables");
+                let tables = if !pipe_tables { PandocPipeTables::Disabled }
+                    else if matches!(in_fmt.as_str(), "commonmark" | "commonmark_x" | "gfm") { PandocPipeTables::CommonMark }
+                    else { PandocPipeTables::Markdown };
+                parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), strip_comments, tables, 0, tasks)
+            }
+        }) else { return err_out("pandoc: document nesting limit exceeded\n", 1) };
+        blocks.extend(input_blocks);
+    }
 
     if shift_heading != 0 {
         for b in &mut blocks {

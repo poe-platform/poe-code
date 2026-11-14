@@ -1,0 +1,230 @@
+[
+  {
+    "name": "full",
+    "source": "[a][id]\n\n[id]: /target",
+    "targets": [
+      {
+        "kind": "Link",
+        "target": [
+          "/target",
+          ""
+        ]
+      }
+    ],
+    "plain": "a\n"
+  },
+  {
+    "name": "collapsed",
+    "source": "[a][]\n\n[a]: /target",
+    "targets": [
+      {
+        "kind": "Link",
+        "target": [
+          "/target",
+          ""
+        ]
+      }
+    ],
+    "plain": "a\n"
+  },
+  {
+    "name": "shortcut",
+    "source": "[a]\n\n[a]: /target",
+    "targets": [
+      {
+        "kind": "Link",
+        "target": [
+          "/target",
+          ""
+        ]
+      }
+    ],
+    "plain": "a\n"
+  },
+  {
+    "name": "normalization",
+    "source": "[a][A  B]\n\n[a b]: /target",
+    "targets": [
+      {
+        "kind": "Link",
+        "target": [
+          "/target",
+          ""
+        ]
+      }
+    ],
+    "plain": "a\n"
+  },
+  {
+    "name": "duplicate",
+    "source": "[a][id]\n\n[id]: /first\n[id]: /second",
+    "targets": [
+      {
+        "kind": "Link",
+        "target": [
+          "/second",
+          ""
+        ]
+      }
+    ],
+    "plain": "a\n"
+  },
+  {
+    "name": "title",
+    "source": "[a][id]\n\n[id]: /target \"title\"",
+    "targets": [
+      {
+        "kind": "Link",
+        "target": [
+          "/target",
+          "title"
+        ]
+      }
+    ],
+    "plain": "a\n"
+  },
+  {
+    "name": "before",
+    "source": "[id]: /target\n\n[a][id]",
+    "targets": [
+      {
+        "kind": "Link",
+        "target": [
+          "/target",
+          ""
+        ]
+      }
+    ],
+    "plain": "a\n"
+  },
+  {
+    "name": "missing",
+    "source": "[a][missing]",
+    "targets": [],
+    "plain": "[a][missing]\n"
+  },
+  {
+    "name": "code",
+    "source": "`[a][id]` and [a][id]\n\n[id]: /target",
+    "targets": [
+      {
+        "kind": "Link",
+        "target": [
+          "/target",
+          ""
+        ]
+      }
+    ],
+    "plain": "[a][id] and a\n"
+  },
+  {
+    "name": "fenced-definition",
+    "source": "[a][id]\n\n```\n[id]: /target\n```",
+    "targets": [],
+    "plain": "[a][id]\n\n    [id]: /target\n"
+  },
+  {
+    "name": "quote",
+    "source": "> [a][id]\n\n[id]: /target",
+    "targets": [
+      {
+        "kind": "Link",
+        "target": [
+          "/target",
+          ""
+        ]
+      }
+    ],
+    "plain": "  a\n"
+  },
+  {
+    "name": "list",
+    "source": "- [a][id]\n\n[id]: /target",
+    "targets": [
+      {
+        "kind": "Link",
+        "target": [
+          "/target",
+          ""
+        ]
+      }
+    ],
+    "plain": "- a\n"
+  },
+  {
+    "name": "heading",
+    "source": "# [a][id]\n\n[id]: /target",
+    "targets": [
+      {
+        "kind": "Link",
+        "target": [
+          "/target",
+          ""
+        ]
+      }
+    ],
+    "plain": "a\n"
+  },
+  {
+    "name": "table",
+    "source": "| Name |\n| --- |\n| [a][id] |\n\n[id]: /target",
+    "targets": [
+      {
+        "kind": "Link",
+        "target": [
+          "/target",
+          ""
+        ]
+      }
+    ],
+    "plain": "  Name\n  ------\n  a\n"
+  },
+  {
+    "name": "image",
+    "source": "![a][id]\n\n[id]: /target",
+    "targets": [
+      {
+        "kind": "Image",
+        "target": [
+          "/target",
+          ""
+        ]
+      }
+    ],
+    "plain": "[a]\n"
+  },
+  {
+    "name": "escaped",
+    "source": "\\[a][id]\n\n[id]: /target",
+    "targets": [
+      {
+        "kind": "Link",
+        "target": [
+          "/target",
+          ""
+        ]
+      }
+    ],
+    "plain": "[a]id\n"
+  },
+  {
+    "name": "inline",
+    "source": "[a](/target \"title\")",
+    "targets": [
+      {
+        "kind": "Link",
+        "target": [
+          "/target",
+          "title"
+        ]
+      }
+    ],
+    "plain": "a\n"
+  },
+  {
+    "name": "paragraph-definition",
+    "source": "hello\n[id]: /target\n\n[a][id]",
+    "targets": [],
+    "plain": "hello [id]: /target\n\n[a][id]\n"
+  }
+]

@@ -304,7 +304,7 @@ export async function parseCommonMarkBlocks(
       if (!candidate) break;
       context.charge("references", 1);
       context.charge("retainedBytes", (candidate.label.length + candidate.destination.length + candidate.title.length) * 2 + 128);
-      if (!labels.has(candidate.label)) {
+      if (extensions.pandoc_last_reference || !labels.has(candidate.label)) {
         labels.add(candidate.label);
         document.definitions.push({
           label: candidate.label, destination: candidate.destination, title: candidate.title,

@@ -265,6 +265,7 @@ pub(super) fn read(data: &[u8], mut remaining: usize) -> Result<Vec<PandocBlock>
             PandocPipeTables::Markdown,
             0,
             pandoc_list::Tasks::Markdown,
+            true,
         )
         .ok_or(INVALID);
     };
@@ -708,6 +709,11 @@ impl Writer {
                     }
                     self.inlines(children, properties)?;
                     self.document.write_str("</w:hyperlink>")?;
+                }
+                PandocInline::Image(_, children, _, _) => {
+                    self.inlines(&[PandocInline::Text("[".into())], properties)?;
+                    self.inlines(children, properties)?;
+                    self.inlines(&[PandocInline::Text("]".into())], properties)?;
                 }
                 PandocInline::Code(_, code) => {
                     write!(

@@ -65,7 +65,7 @@ export function expandPandocTabs() {
 
 export function pandocMarkdownExtensions(selection?: FormatSelection) {
   const name = selection?.name ?? selection?.descriptor?.name ?? "commonmark";
-  return {...selection?.extensions, autolinkClasses: selection?.autolinkClasses ?? false, pandoc_code_blocks: true, pandoc_task_groups: ["gfm", "commonmark", "commonmark_x"].includes(name)};
+  return {...selection?.extensions, autolinkClasses: selection?.autolinkClasses ?? false, pandoc_code_blocks: true, pandoc_task_groups: ["gfm", "commonmark", "commonmark_x"].includes(name), pandoc_last_reference: !["gfm", "commonmark", "commonmark_x"].includes(name)};
 }
 
 export const readCommonMark: ReaderCapability["read"] = async (input, context, selection) => {

@@ -1,5 +1,5 @@
 use super::{
-    JVal, PandocAttr, PandocBlock, PandocInline, pandoc_blocks_to_json, parse_pandoc_md_inlines,
+    JVal, PandocAttr, PandocBlock, PandocInline, MdqDefinitions, pandoc_blocks_to_json, parse_pandoc_md_inlines,
 };
 use std::fmt::Alignment;
 
@@ -23,6 +23,7 @@ impl Table {
         header: Vec<String>,
         rows: Vec<Vec<String>>,
         align: Option<Vec<Option<Alignment>>>,
+        definitions: Option<&MdqDefinitions>,
     ) -> Self {
         let cols = (0..header.len())
             .map(|i| (align.as_ref().and_then(|v| v[i]), 0.))
@@ -32,7 +33,7 @@ impl Table {
                 .enumerate()
                 .map(|(column, text)| {
                     let nodes = if align.is_some() {
-                        parse_pandoc_md_inlines(&text)
+                        parse_pandoc_md_inlines(&text, definitions)
                     } else {
                         let mut nodes = Vec::new();
                         for (i, word) in text.split(' ').enumerate() {

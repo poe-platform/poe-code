@@ -1,6 +1,6 @@
 use super::{
     JVal, PandocBlock, PandocInline, PandocPipeTables, jval_obj_get, mdq_interrupts_paragraph,
-    mdq_list_marker, parse_pandoc_markdown,
+    mdq_list_marker, parse_pandoc_markdown_with_defs, MdqDefinitions,
 };
 
 #[derive(Debug, Clone)]
@@ -138,10 +138,10 @@ pub(super) fn read(
     lines: &[&str],
     i: &mut usize,
     (marker, start): (u8, Option<usize>),
-    strip_comments: bool,
     tables: PandocPipeTables,
     depth: usize,
     tasks: Tasks,
+    defs: &MdqDefinitions,
 ) -> Option<PandocBlock> {
     let mut items = Vec::new();
     let mut loose = false;
@@ -233,12 +233,12 @@ pub(super) fn read(
                 source.insert(mark.len(), ' ');
             }
         }
-        items.push(parse_pandoc_markdown(
+        items.push(parse_pandoc_markdown_with_defs(
             &source,
-            strip_comments,
             tables,
             depth + 1,
             tasks,
+            defs,
         )?);
     }
     if !loose {

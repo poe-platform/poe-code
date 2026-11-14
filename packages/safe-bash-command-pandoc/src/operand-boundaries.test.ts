@@ -42,5 +42,10 @@ for (const mode of ["standalone", "command"] as const) {
       expect(result.exitCode).toBe(0);
       expect(JSON.parse(result.stdout).blocks.filter((block: {t: string}) => block.t === "BulletList")).toHaveLength(flag.length ? 2 : 1);
     });
+    it(`${mode} ${flag.join(" ")} scopes reference definitions to the document`, async () => {
+      expect(await run("[a][id]", "[id]: /target", ["/a.md", "/b.md"], flag)).toMatchObject({
+        exitCode: 0, stdout: flag.length ? "[a][id]\n" : "a\n", stderr: "",
+      });
+    });
   }
 }

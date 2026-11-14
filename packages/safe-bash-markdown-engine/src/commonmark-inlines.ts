@@ -192,7 +192,7 @@ export async function parseCommonMarkInlines(
   const refs = new Map<string, BlockDefinition>();
   for (const definition of definitions) {
     if (context.sinceYield !== undefined && context.sinceYield < 255) context.checkpoint(); else await context.cooperate();
-    if (!refs.has(definition.label)) refs.set(definition.label, definition);
+    if (extensions.pandoc_last_reference || !refs.has(definition.label)) refs.set(definition.label, definition);
   }
   const root: Node = { value: "", children: null, previous: null, next: null };
   let tail = root;

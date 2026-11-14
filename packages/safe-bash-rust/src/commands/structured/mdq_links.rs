@@ -293,6 +293,7 @@ pub(super) enum Style {
 #[derive(Default)]
 pub(super) struct Definitions {
     links: HashMap<String, Target>,
+    pub last_link_wins: bool,
     pub notes: HashMap<String, Vec<super::MdqBlock>>,
     pub note_keys: HashSet<String>,
 }
@@ -344,7 +345,7 @@ fn label(raw: &str) -> Option<(&str, usize)> {
     None
 }
 
-fn definition(raw: &str) -> Option<(String, Target, usize)> {
+pub(super) fn definition(raw: &str) -> Option<(String, Target, usize)> {
     let (key, after) = label(raw)?;
     if key
         .strip_prefix('^')
@@ -390,7 +391,8 @@ fn definition(raw: &str) -> Option<(String, Target, usize)> {
 
 pub(super) fn extract<'a>(mut paragraph: &'a str, defs: &mut Definitions) -> &'a str {
     while let Some((key, target, used)) = definition(paragraph) {
-        defs.links.entry(key).or_insert(target);
+        if defs.last_link_wins { defs.links.insert(key, target); }
+        else { defs.links.entry(key).or_insert(target); }
         paragraph = &paragraph[used..];
     }
     paragraph

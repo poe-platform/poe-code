@@ -159,7 +159,7 @@ export class RetainedCommonMarkBlocks {
       this.context.charge("references", 1); this.context.charge("retainedBytes", (candidate.label.length + candidate.destination.end - candidate.destination.start + candidate.title.end - candidate.title.start) * 2 + 128);
       const firstLine = await this.line(first); let last = firstLine;
       for (let i = 0; i < candidate.count; i++) {last = await this.line(first); offset += last.range.end - last.range.start + 1; first = last.next; consumed++;}
-      if (!await this.lookup(candidate.label)) {
+      if (this.extensions.pandoc_last_reference || !await this.lookup(candidate.label)) {
         const label = await this.source.append([candidate.label]), bucket = this.buckets + this.hash(candidate.label) * 8, previous = (await this.get(bucket, 1))[0]!;
         const record = await this.record([label.start, label.end, candidate.destination.start, candidate.destination.end, candidate.title.start, candidate.title.end, firstLine.line, firstLine.column, last.line, last.column + last.range.end - last.range.start - 1, 0, previous]);
         if (this.lastDefinition) await this.put(this.lastDefinition + 80, [record]); else this.firstDefinition = record;

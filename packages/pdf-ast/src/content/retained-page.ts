@@ -82,7 +82,9 @@ export async function prepareRetainedPageContent(document: PdfRetainedReader, pa
   for await (const ignored of appearances(resources, false)) { void ignored; }
   async function* events(): AsyncGenerator<PdfContentEvent, void, void> {
     options.onAllocation?.(chunkBytes * 5);
+    yield { kind: "begin-group", group: { kind: "graphics-group", ops: [] } };
     yield* parseContentStreamEvents(page.streamContents(), storage, { ...options, ...(options.imageStorage ? {pathStorage:options.imageStorage} : {}) });
+    yield { kind: "end-group" };
     // Keep the prepass resources intact: an earlier appearance may use a resource
     // introduced by a later one, matching the buffered merged-resource behavior.
     options.onAllocation?.(64);

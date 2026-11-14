@@ -20,7 +20,7 @@ it.each([false, true])("preserves transformed appearances, resource precedence a
     cosDict({ Rect: numbers([0, 0, 10, 10]), AP: cosDict({ N: doc.cos.allocateObject(cosStream(new Uint8Array())) }), V: cosString("empty fallback"), Subtype: cosName("Widget") }),
   ]));
   const expected = page.evaluateDisplayList({ hideAnnotations });
-  const resources = cosDict(); const nodes: PdfContentNode[] = [...page.getContentAst()]; let appearance: PdfContentNode[] = [];
+  const resources = cosDict(); const nodes: PdfContentNode[] = [{ kind: "graphics-group", ops: [...page.getContentAst()] }]; let appearance: PdfContentNode[] = [];
   const work = preparePageAppearanceSteps(page.pageDict, page.getResourcesDict(), resources, hideAnnotations);
   let step = work.next();
   while (!step.done) {

@@ -246,6 +246,7 @@ impl<'a> PageSource<'a> {
     pub(super) fn draw_page(
         &mut self,
         page: &Value<'a>,
+        annotations: bool,
         mut emit: impl FnMut(Draw<'_, '_>, &mut super::Objects<'a>) -> Option<()>,
     ) -> Option<()> {
         let mut node = page;
@@ -266,7 +267,7 @@ impl<'a> PageSource<'a> {
             node = parent;
         }
         let streams = match page.get(b"Contents") {
-            None => return Some(()),
+            None => vec![],
             Some(Value::Ref(r)) => vec![*r],
             Some(Value::Array(a)) => a.iter().map(Value::reference).collect::<Option<Vec<_>>>()?,
             _ => return None,
@@ -282,7 +283,75 @@ impl<'a> PageSource<'a> {
             word: 0.,
             hscale: 1.,
         };
-        self.draw_streams(&streams, st, &mut vec![resources], &mut emit)
+        let mut scopes = vec![resources];
+        emit(Draw::Operator(b"q", &[], ID), &mut self.objects)?;
+        self.draw_streams(&streams, st.clone(), &mut scopes, &mut emit)?;
+        emit(Draw::Operator(b"Q", &[], ID), &mut self.objects)?;
+        if annotations {
+            self.draw_annotations(page, st, &mut scopes, &mut emit)?;
+        }
+        Some(())
+    }
+
+    fn draw_annotations(
+        &mut self,
+        page: &Value<'a>,
+        st: State,
+        scopes: &mut Vec<Resources<'a>>,
+        emit: &mut impl FnMut(Draw<'_, '_>, &mut super::Objects<'a>) -> Option<()>,
+    ) -> Option<()> {
+        let Some(value) = page.get(b"Annots") else { return Some(()); };
+        let value = self.objects.resolve(value)?;
+        if value.word() == Some(b"null") { return Some(()); }
+        let Value::Array(items) = value else { return None; };
+        for item in items {
+            let annot = self.objects.resolve(&item)?;
+            let flags = match annot.get(b"F") {
+                Some(v) => self.objects.resolve(v)?.number()? as u32,
+                None => 0,
+            };
+            if flags & (2 | 32) != 0 { continue; }
+            let Some(ap) = annot.get(b"AP") else { continue; };
+            let ap = self.objects.resolve(ap)?;
+            let Some(normal) = ap.get(b"N") else { continue; };
+            let mut id = normal.reference();
+            let appearance = self.objects.resolve(normal)?;
+            // Appearance state names, including Off, select an ordinary stream.
+            if appearance.get(b"BBox").is_none() {
+                let Some(state) = annot.get(b"AS") else { continue; };
+                let state = self.objects.resolve(state)?;
+                id = appearance.get(state.word()?.strip_prefix(b"/")?)?.reference();
+            }
+            let id = id?;
+            let (appearance, _) = self.objects.object(id)?;
+            let rect = self.objects.resolve(annot.get(b"Rect")?)?.rectangle(Value::number)?;
+            let bbox = self.objects.resolve(appearance.get(b"BBox")?)?.rectangle(Value::number)?;
+            let mut matrix = ID;
+            if let Some(value) = appearance.get(b"Matrix") {
+                let Value::Array(values) = self.objects.resolve(value)? else { return None; };
+                if values.len() != 6 { return None; }
+                for (out, value) in matrix.iter_mut().zip(values) {
+                    *out = self.objects.resolve(&value)?.number()?;
+                    if !out.is_finite() { return None; }
+                }
+            }
+            let [a,b,c,d,e,f] = matrix;
+            let corners = [(bbox[0],bbox[1]),(bbox[2],bbox[1]),(bbox[0],bbox[3]),(bbox[2],bbox[3])]
+                .map(|(x,y)| [a*x+c*y+e,b*x+d*y+f]);
+            let min = [0,1].map(|i| corners.iter().map(|p|p[i]).fold(f64::INFINITY,f64::min));
+            let max = [0,1].map(|i| corners.iter().map(|p|p[i]).fold(f64::NEG_INFINITY,f64::max));
+            let width = (rect[2]-rect[0]).abs();
+            let height = (rect[3]-rect[1]).abs();
+            if width == 0. || height == 0. { continue; }
+            if max[0] <= min[0] || max[1] <= min[1] { return None; }
+            let sx = width/(max[0]-min[0]);
+            let sy = height/(max[1]-min[1]);
+            let mut child = st.clone();
+            child.ctm = [sx,0.,0.,sy,rect[0].min(rect[2])-min[0]*sx,rect[1].min(rect[3])-min[1]*sy];
+            if child.ctm.iter().any(|v|!v.is_finite()) { return None; }
+            self.draw_form(id, child, scopes, None, emit)?;
+        }
+        Some(())
     }
 
     fn draw_form(
@@ -631,7 +700,7 @@ impl<'a> PageSource<'a> {
         let mut space = false;
         let mut forms = Vec::new();
         let mut in_mask = false;
-        self.draw_page(&page, |event, _| {
+        self.draw_page(&page, false, |event, _| {
             match &event {
                 Draw::BeginForm(_, _, _, mask) => {
                     forms.push(in_mask);

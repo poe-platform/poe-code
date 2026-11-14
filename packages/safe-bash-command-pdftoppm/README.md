@@ -28,6 +28,11 @@ save and restore both the colors and their color spaces.
 PDF blend modes (including Multiply, Screen, and Difference) apply across paths,
 text, images, and shading in TypeScript and Rust. Invalid or unsupported blend
 selections fail without replacing the page output.
+Visible annotation appearances render after page content in both TypeScript and
+Rust, including named states such as `Off`, rotated appearances and reversed
+annotation rectangles. Their bounding boxes clip paint, and page graphics state
+does not leak into the appearances. Hidden and NoView flags are respected;
+use `-hide-annotations` to render only the page content.
 
 ## Quick Start
 

@@ -434,6 +434,7 @@ pub(in crate::commands::archive) fn render_svg(
                 scale_before_rotation: false,
                 crop: [0.; 4],
                 cropbox: false,
+                hide_annotations: false,
                 limit,
             },
         )

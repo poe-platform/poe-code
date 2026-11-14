@@ -39,6 +39,7 @@ pub(in crate::commands::archive) struct RasterOptions<'a> {
     pub scale_before_rotation: bool,
     pub crop: [f64; 4],
     pub cropbox: bool,
+    pub hide_annotations: bool,
     pub limit: usize,
 }
 
@@ -1073,7 +1074,7 @@ impl PageSource<'_> {
         let mut stack = vec![];
         let mut forms = vec![];
         let mut group_bytes = w.checked_mul(h)?.checked_mul(4)?;
-        self.draw_page(&page, |event, objects| {
+        self.draw_page(&page, !opt.hide_annotations, |event, objects| {
             let (op, args, ctm) = match event {
                 Draw::Shading(value, [a, b, c, d, e, f]) => {
                     let shading = pdf_axial_shading::Axial::read(objects, &value)?;

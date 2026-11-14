@@ -771,7 +771,7 @@ impl PageSource<'_> {
         let node = self
             .objects
             .page_dict(*self.pages.get(page.checked_sub(1)?)?, &self.tree)?;
-        self.draw_page(&node, |event, objects| {
+        self.draw_page(&node, false, |event, objects| {
             if let Draw::Image(stream, matrix, colors) = event
                 && let Some(image) = Image::read(objects, stream, matrix, limit, mode, colors)?
             {

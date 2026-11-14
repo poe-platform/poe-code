@@ -761,7 +761,7 @@ export class PdfPage {
 
   evaluateDisplayList(options?: { readonly hideAnnotations?: boolean | undefined }): PdfDisplayList {
     const { width, height } = this.getSize();
-    const baseNodes = [...this.getContentAst()];
+    const baseNodes: PdfContentNode[] = [{ kind: "graphics-group", ops: [...this.getContentAst()] }];
     const pageRes = this.getResourcesDict();
     const evalResourcesDict = cosDict({});
     const work = preparePageAppearanceSteps(this.pageDict, pageRes, evalResourcesDict, options?.hideAnnotations);

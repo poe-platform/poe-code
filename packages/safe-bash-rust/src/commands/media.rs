@@ -9522,6 +9522,7 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
     let mut crop_x = 0.;
     let mut crop_y = 0.;
     let mut cropbox = false;
+    let mut hide_annotations = false;
     let mut transparent = false;
     let mut antialias = true;
     let mut text_aa = true;
@@ -9807,7 +9808,8 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
             }
             "-cropbox" => cropbox = true,
             "-transp" => transparent = true,
-            "-hide-annotations" | "-overprint" | "-level2"
+            "-hide-annotations" => hide_annotations = true,
+            "-overprint" | "-level2"
             | "-level3" | "-origpagesizes" | "-nocrop" | "-expand" | "-noshrink"
             | "-nocenter" | "-duplex" => {}
             a if a == "-" || !a.starts_with('-') => pos.push(a.to_string()),
@@ -10014,7 +10016,7 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
         format: fmt, color: color_mode, transparent, antialias, text_aa, dpi: [dpi_x,dpi_y],
         scale_before_rotation,
         scale: [scale_to.unwrap_or(0), scale_to_x.unwrap_or(0), scale_to_y.unwrap_or(0)],
-        crop: [crop_x,crop_y,crop_w.unwrap_or(0.),crop_h.unwrap_or(0.)], cropbox, limit: fs.max_input_bytes(),
+        crop: [crop_x,crop_y,crop_w.unwrap_or(0.),crop_h.unwrap_or(0.)], cropbox, hide_annotations, limit: fs.max_input_bytes(),
     };
     let mut source = if is_legacy_pdf(&b) {
         None

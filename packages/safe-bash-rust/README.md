@@ -76,6 +76,11 @@ Indexed images support packed 1/2/4/8-bit rows, RGB/gray/CMYK palettes,
 resource color spaces, string or stream lookups, Decode, masks and interpolation.
 Invalid or unsupported palettes and malformed Decode values fail rendering before
 the page output is replaced. A null Decode value uses the default mapping.
+PDF rasterizers paint visible annotation `/AP /N` Form appearances after page
+content, including named states such as `Off`, transformed bounds, local resources
+and page rotation. Hidden and NoView annotations remain hidden;
+`-hide-annotations` excludes all appearances. Appearance bounds clip their paint,
+and page graphics state cannot clip or recolor subsequent annotations.
 
 ### 1. Zero-Dependency Rust Shell with `MemoryVfs`
 

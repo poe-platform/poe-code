@@ -203,6 +203,9 @@ limits and owned scratch cleanup; returning early releases its traversal index.
 
 `page.evaluateSteps(storage, options)` pulls complete retained-page paint
 operations, including annotation appearances and widget fallback text.
+Appearance states include `Off`; appearances use normalized rectangles and clip
+to their transformed bounding boxes. Page content has its own graphics-state
+scope, so its final transform or clip cannot hide or move subsequent appearances.
 `hideAnnotations` matches the buffered page option. A resource prepass preserves
 fonts and other resources supplied by later appearances; each prepass cursor
 closes before the next annotation, then appearance events stream on demand.

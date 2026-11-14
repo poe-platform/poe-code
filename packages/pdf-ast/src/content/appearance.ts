@@ -89,7 +89,7 @@ export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCo
       let renderedApStream = false;
       const apDict = (yield* resolveDict(dictGet(annotDict, "AP")));
       let apN = apDict ? (yield* resolveNode(dictGet(apDict, "N"))) : undefined;
-      if (apN?.kind === "dict" && vNode?.kind === "name" && vNode.decoded !== "Off") {
+      if (apN?.kind === "dict" && vNode?.kind === "name") {
         apN = (yield* resolveNode(dictGet(apN, vNode.decoded)));
       }
       if (apN?.kind === "stream") {
@@ -126,6 +126,8 @@ export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCo
           const r3Node = rectArr && rectArr.items[3] ? (yield* resolveNode(rectArr.items[3])) : undefined;
           const rectW = r2Node?.kind === "number" ? Math.max(1, Math.abs(r2Node.value - rx0)) : 20;
           const rectH = r3Node?.kind === "number" ? Math.max(1, Math.abs(r3Node.value - ry0)) : 20;
+          if (r2Node?.kind === "number") rx0 = Math.min(rx0, r2Node.value);
+          if (r3Node?.kind === "number") ry0 = Math.min(ry0, r3Node.value);
           const bboxArr = (yield* resolveArray(dictGet(apN.dict, "BBox")));
           let bx0 = 0, by0 = 0, bw = rectW, bh = rectH;
           if (bboxArr && bboxArr.items.length >= 4) {
@@ -192,6 +194,7 @@ export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCo
               ],
             });
           }
+          ops.push({ kind: "path-op", segments: [{ kind: "rect", x: bx0, y: by0, width: bw, height: bh }], paint: "n", clip: "W" });
           yield { kind: "appearance", stream: apN, nodes: ops };
         }
       }

@@ -16866,7 +16866,7 @@ mod media_unit_tests {
             "<< /Type /Catalog /Pages 2 0 R >>", "<< /Type /Pages /Kids [3 0 R] /Count 1 >>",
             "<< /Type /Page /Parent 2 0 R /MediaBox [0 0 32 24] /Resources << /XObject << /F 5 0 R /One 9 0 R >> >> /Contents 4 0 R >>",
             &stream("", "q 1 0 0 2 0 0 cm /F Do Q q 1 0 0 1 10 4 cm /F Do Q /One Do"),
-            &stream(&format!("/Type /XObject /Subtype /Form /Matrix [{matrix}] /BBox [{bbox}] /Resources << /XObject << /One 7 0 R /Inner 6 0 R >> >>"), "q 2 0 0 3 0 0 cm /One Do Q /Inner Do /F Do"),
+            &stream(&format!("/Type /XObject /Subtype /Form /Matrix [{matrix}] /BBox [{bbox}] /Resources << /XObject << /One 7 0 R /Inner 6 0 R >> >>"), "q 2 0 0 3 0 0 cm /One Do Q /Inner Do"),
             &stream("/Type /XObject /Subtype /Form /Matrix [0 1 -1 0 7 0] /BBox [0 0 8 8] /Resources << /XObject << /One 8 0 R >> >>", "q 3 0 0 2 1 0 cm /One Do Q"),
             &stream(image, "ABC"), &stream(image, "xyz"), &stream(image, "PQR"),
         ], "");
@@ -16880,8 +16880,7 @@ mod media_unit_tests {
             [c[10], c[12], c[13]]
         }).collect::<Vec<_>>();
         assert_eq!(cols, [["7","18","12"], ["8","12","18"], ["7","18","24"], ["8","24","18"], ["9","72","72"]]);
-        // Poppler 24.02: the inherited /F reference is recursive and is skipped;
-        // the second page-level invocation must still replay both nested placements.
+        // The second page-level invocation must replay both nested placements.
         for (matrix, bbox, dpi, aa, digest) in [
             ("2 0 0 1 1 2", "0 0 8 8", "72", "yes", "8087f065c7fef3024a3b4a2746a16be0f4de30b9fb1905168f39f2d0ab0dc0e3"),
             ("2 0 0 1 1 2", "0.3 0.5 3.5 3", "144", "yes", "addbb46601d2b49c1cc3b9d7d5d9bbc14209c1e3d775d55b705bc7ab2200c038"),

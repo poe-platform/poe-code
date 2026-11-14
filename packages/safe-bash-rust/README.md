@@ -66,6 +66,9 @@ Graphics-state Alpha and Luminosity soft masks apply to all paint types, with
 Form bounds/transforms, backdrops, nested masks, and saved/reset mask states.
 Mask groups use RGB; non-identity transfer functions and malformed or recursive
 masks fail without replacing output. Image soft masks remain supported.
+Indexed images support packed 1/2/4/8-bit rows, RGB/gray/CMYK palettes,
+resource color spaces, string or stream lookups, Decode, masks and interpolation.
+Invalid or unsupported palettes fail rendering before the page output is replaced.
 
 ### 1. Zero-Dependency Rust Shell with `MemoryVfs`
 

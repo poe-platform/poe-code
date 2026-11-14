@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { expect, it, vi } from "vitest";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
-import { cosArray, cosDict, cosName, cosNumber, cosStream, dictSet, type PdfCosDict } from "../ast.js";
+import { cosArray, cosDict, cosName, cosNumber, cosStream, cosString, dictSet, type PdfCosDict } from "../ast.js";
 import { PdfDocument } from "../document.js";
 import { PdfRetainedDocument } from "../retained-document.js";
 import { PdfFileSource } from "../source.js";
@@ -187,4 +187,22 @@ it.each(['jpeg','jpx','jbig2'])('charges %s codec staging and cleans it on early
   const controller=new AbortController(),failure=new Error('cancel rows'),cancelled=await PdfRetainedDecodedImage.open(f.document,f.image,f.storage,{signal:controller.signal}),output=cancelled.rows();await output.next();controller.abort(failure);await expect(output.next()).rejects.toBe(failure);await cancelled.close();expect(await f.storage.fs.readdir('/scratch')).toEqual(baseline);
   const failed=await PdfRetainedDecodedImage.open(f.document,f.image,f.storage),sinkFailure=new Error('sink');await expect((async()=>{for await(const ignored of failed.rows()){void ignored;throw sinkFailure;}})()).rejects.toBe(sinkFailure);await failed.close();expect(await f.storage.fs.readdir('/scratch')).toEqual(baseline);
  }finally{await f.close();}
+});
+
+it.each([1, 2, 4, 8])("applies Indexed %i-bit color keys to original padded samples before Decode", async bits => {
+  const row = Math.ceil(3 * bits / 8), samples = new Uint8Array(row * 2);
+  for (const [i, value] of [0, 1, 0, 1, 0, 1].entries()) {
+    const bit = (i % 3) * bits;
+    samples[Math.floor(i / 3) * row + (bit >> 3)]! |= value << (8 - bits - bit % 8);
+  }
+  const f = await open(samples, cosDict({ Width: cosNumber(3), BitsPerComponent: cosNumber(bits),
+    ColorSpace: cosArray([cosName("Indexed"), cosName("DeviceRGB"), cosNumber(1), cosString(new Uint8Array([255, 0, 0, 0, 0, 255]))]),
+    Mask: cosArray([cosNumber(1), cosNumber(1)]), Decode: cosArray([cosNumber(1), cosNumber(0)]),
+  }));
+  const image = await PdfRetainedDecodedImage.open(f.document, f.image, f.storage, { chunkBytes: 1 });
+  const actual = await collect(image.rows());
+  expect(actual).toEqual(f.expected.rgba);
+  expect([actual[3], actual[7], actual[11], actual[15], actual[19], actual[23]]).toEqual([255, 0, 255, 0, 255, 0]);
+  expect([...actual.slice(0, 4)]).toEqual([0, 0, 255, 255]);
+  await image.close(); await f.close();
 });

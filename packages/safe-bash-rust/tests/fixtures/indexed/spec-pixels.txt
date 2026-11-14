@@ -1,0 +1,15 @@
+# ISO 32000-1 tables 89/90: round decoded indices, then clamp to [0, hival].
+clamp-8 23 75 0 0 255
+clamp-8 77 75 0 0 255
+packed-4 23 25 255 0 0
+packed-4 50 25 0 255 0
+packed-4 77 25 0 0 255
+packed-4 23 75 255 255 255
+packed-4 50 75 0 0 255
+packed-4 77 75 0 255 0
+decode-reverse 23 75 255 0 0
+decode-reverse 77 75 0 0 255
+decode-domain 23 25 255 0 0
+decode-domain 77 25 0 0 255
+decode-domain 23 75 0 0 255
+decode-domain 77 75 255 0 0

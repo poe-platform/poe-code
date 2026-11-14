@@ -81,6 +81,7 @@ struct State {
 #[derive(Default)]
 struct Resources<'a> {
     form: Option<super::ObjectId>,
+    colors: Option<Value<'a>>,
     fonts: BTreeMap<std::borrow::Cow<'a, [u8]>, Rc<Font>>,
     graphics: BTreeMap<std::borrow::Cow<'a, [u8]>, Value<'a>>,
     shadings: BTreeMap<std::borrow::Cow<'a, [u8]>, Value<'a>>,
@@ -92,7 +93,7 @@ pub(super) enum Draw<'a, 'b> {
     EndForm,
     Transparency { fill: Option<f64>, stroke: Option<f64>, blend: Option<BlendMode> },
     Shading(Value<'static>, Matrix),
-    Image(ImageStream<'a>, Matrix),
+    Image(ImageStream<'a>, Matrix, Option<&'a Value<'b>>),
     Operator(&'a [u8], &'a [Value<'b>], Matrix),
     Glyph {
         code: u16,
@@ -109,6 +110,9 @@ pub(super) enum Draw<'a, 'b> {
 impl<'a> Resources<'a> {
     fn load(&mut self, objects: &mut super::Objects<'a>, res: &Value<'a>) -> Option<()> {
         let res = objects.resolve(res)?;
+        if let Some(value) = res.get(b"ColorSpace") {
+            self.colors = Some(value.clone());
+        }
         if let Some(value) = res.get(b"Shading") {
             let Value::Dict(entries) = objects.resolve(value)? else { return None; };
             self.shadings.extend(entries);
@@ -406,7 +410,8 @@ impl<'a> PageSource<'a> {
                 if op == b"BI" {
                     let (fields, pixels) = super::pdf_content_edit::inline(&mut c, &mut self.objects.tokens).ok()?;
                     let dict = super::pdf_externalize::image_dict(&fields);
-                    emit(Draw::Image(ImageStream::Inline(dict, pixels), st.ctm), &mut self.objects)?;
+                    let colors = scopes.iter().rev().find_map(|scope| scope.colors.as_ref());
+                    emit(Draw::Image(ImageStream::Inline(dict, pixels), st.ctm, colors), &mut self.objects)?;
                 }
                 if op == b"Do"
                     && let Some(id) = args
@@ -425,7 +430,8 @@ impl<'a> PageSource<'a> {
                     if dict.get(b"Subtype").and_then(Value::word) == Some(b"/Form") {
                         self.draw_form(id, st.clone(), scopes, None, emit)?;
                     } else {
-                        emit(Draw::Image(ImageStream::Object(id), st.ctm), &mut self.objects)?;
+                        let colors = scopes.iter().rev().find_map(|scope| scope.colors.as_ref());
+                        emit(Draw::Image(ImageStream::Object(id), st.ctm, colors), &mut self.objects)?;
                     }
                 }
                 match op {

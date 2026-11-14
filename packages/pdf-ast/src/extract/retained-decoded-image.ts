@@ -114,6 +114,7 @@ export class PdfRetainedDecodedImage {
     async function number(node: PdfCosNode | undefined, fallback: number) { const value = await resolve(node); return value?.kind === "number" ? value.value : fallback; }
     async function pairs(dict: PdfCosDict) {
       const value = await resolve((await readPdfDictionaryValue(dict, "Decode", signal)) ?? (await readPdfDictionaryValue(dict, "D", signal))); if (value?.kind !== "array") return undefined;
+      if (value.items.length % 2 !== 0) throw new PdfError("E_PARSE", "Invalid image Decode");
       charge(value.items.length * 16); const result: [number, number][] = [];
       for (let i = 0; i + 1 < value.items.length; i += 2) { const low = await resolve(value.items[i]), high = await resolve(value.items[i + 1]); if (low?.kind === "number" && high?.kind === "number") result.push([low.value, high.value]); }
       return result.length ? result : undefined;
@@ -251,9 +252,10 @@ export class PdfRetainedDecodedImage {
           signal?.throwIfAborted();
           let indices: Uint8Array | undefined;
           if (bounds && color.colorSpace === "index") {
-            indices = new Uint8Array(width);
-            const length = Math.min(width, Math.max(0, samples.size - y * width));
-            for (let offset = 0; offset < length; offset += chunkBytes) indices.set(await samples.read(y * width + offset, Math.min(chunkBytes, length - offset), signal), offset);
+            const rowBytes = Math.ceil(width * bitsPerComponent / 8);
+            indices = new Uint8Array(rowBytes);
+            const length = Math.min(rowBytes, Math.max(0, samples.size - y * rowBytes));
+            for (let offset = 0; offset < length; offset += chunkBytes) indices.set(await samples.read(y * rowBytes + offset, Math.min(chunkBytes, length - offset), signal), offset);
           }
           for (let x = 0; x < width; x++) {
             if (x > 0 && x % 16384 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); signal?.throwIfAborted(); }
@@ -262,7 +264,8 @@ export class PdfRetainedDecodedImage {
               if (row[at] === 0) { row[at] = Math.max(0, Math.min(255, Math.round(fill.r * 255))); row[at + 1] = Math.max(0, Math.min(255, Math.round(fill.g * 255))); row[at + 2] = Math.max(0, Math.min(255, Math.round(fill.b * 255))); row[at + 3] = Math.max(0, Math.min(255, Math.round(fill.alpha * 255))); } else row[at + 3] = 0;
             } else {
               if (bounds) {
-                const sample = color.colorSpace === "index" ? (indices?.[x] ?? 0) : row[at]!;
+                const bit = x * bitsPerComponent;
+                const sample = color.colorSpace === "index" ? ((indices?.[bit >> 3] ?? 0) >> (8 - bitsPerComponent - (bit % 8))) & ((1 << bitsPerComponent) - 1) : row[at]!;
                 const match = color.colorSpace === "rgb" && bounds.length >= 6 ? row[at]! >= bounds[0]! && row[at]! <= bounds[1]! && row[at + 1]! >= bounds[2]! && row[at + 1]! <= bounds[3]! && row[at + 2]! >= bounds[4]! && row[at + 2]! <= bounds[5]! : sample >= bounds[0]! && sample <= bounds[1]!;
                 if (match) row[at + 3] = 0;
               }

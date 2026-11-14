@@ -1169,9 +1169,9 @@ impl PageSource<'_> {
                     if let Some(clips) = prior_clips { bitmap.form_clips = clips; }
                     return Some(());
                 }
-                Draw::Image(stream, matrix) => {
+                Draw::Image(stream, matrix, colors) => {
                     let mode = super::ImageRead::Raster;
-                    if let Some(mut image) = Image::read(objects, stream, matrix, opt.limit, mode)? {
+                    if let Some(mut image) = Image::read(objects, stream, matrix, opt.limit, mode, colors)? {
                         if image.stencil {
                             // Convert PDF 16.16 color components to device bytes.
                             let [r, g, b] = fill.map(|c: f64| ((((c.clamp(0., 1.) * 65536.) as u32) * 255 + 32768) >> 16) as u8);
@@ -1181,7 +1181,7 @@ impl PageSource<'_> {
                         }
                         let mask = match image.mask {
                             Some(id) => {
-                                let mut mask = Image::read(objects, ImageStream::Object(id), matrix, opt.limit, mode)??;
+                                let mut mask = Image::read(objects, ImageStream::Object(id), matrix, opt.limit, mode, colors)??;
                                 if mask.components != 1 { return None; }
                                 if opt.backend == RasterBackend::Splash && mask.stencil && mask.width <= image.width && mask.height <= image.height {
                                     // Splash expands the one-bit mask over the inclusive image bounds,

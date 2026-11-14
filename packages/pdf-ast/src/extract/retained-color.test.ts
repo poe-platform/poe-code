@@ -60,7 +60,7 @@ it("retains calibrated and tint state usable after closing the document", async 
 });
 it("bounds aliases and codec-state admission and cleans staging on failure", async () => {
   const f = await fixture(); const before = await f.storage.fs.readdir("/scratch");
-  await expect(resolveRetainedImageColor(f.doc, cosName("Cycle"), f.resources, f.storage, { maxDepth: 3 })).rejects.toThrow("depth");
+  await expect(resolveRetainedImageColor(f.doc, cosName("Cycle"), f.resources, f.storage, { maxDepth: 3 })).rejects.toThrow("Cyclic");
   await expect(resolveRetainedImageColor(f.doc, cosName("Palette"), f.resources, f.storage, { maxWorkingBytes: 1 })).rejects.toThrow("limit");
   expect(await f.storage.fs.readdir("/scratch")).toEqual(before); await f.close();
 });
@@ -99,7 +99,7 @@ it("retains only addressable palette entries while validating the remaining stre
     for (let i = 0; i < 1024; i++) { chunks++; yield reused; }
   });
   const color = await resolveRetainedImageColor(f.doc, cosName("Palette"), f.resources, f.storage, { maxWorkingBytes: 4096, maxStagingBytes: 768 });
-  expect(color.palette).toEqual(new Uint8Array(768).fill(17)); expect(chunks).toBe(1024);
+  expect(color.palette).toEqual(new Uint8Array(6).fill(17)); expect(chunks).toBe(1024);
   decode.mockImplementation(async function* () { yield new Uint8Array(1024); throw new Error("malformed tail"); });
   await expect(resolveRetainedImageColor(f.doc, cosName("Palette"), f.resources, f.storage, { maxWorkingBytes: 4096, maxStagingBytes: 768 })).rejects.toThrow("malformed tail");
   expect(await f.storage.fs.readdir("/scratch")).toEqual(before); await f.close();

@@ -17012,3 +17012,5 @@ import "./pdf-cid-font.test.mjs";
 import "./pdf-groups.test.mjs";
 
 import "./pdf-soft-masks.test.mjs";
+
+import "./pdf-indexed.test.mjs";

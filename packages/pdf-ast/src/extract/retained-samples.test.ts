@@ -54,6 +54,11 @@ it.each(["rgb", "gray", "cmyk", "index"] as const)("matches buffered %s conversi
   const color = { colorSpace, components: colorSpace === "rgb" ? 3 : colorSpace === "cmyk" ? 4 : 1, palette: new Uint8Array([0, 10, 20, 30, 40, 50]) };
   for (const bpc of [1, 2, 4, 8, 16]) for (const size of [0, 1, 7, 29, 43, 44, 65, 66, 87, 88, 131, 132]) {
     const samples = Array.from({ length: size }, (_, i) => (i * 37 + 11) & 255); const source = await fixture(samples);
+    if (colorSpace === "index" && bpc === 16) {
+      expect(() => drainWork(decodeSamplesToRgbaSteps(new Uint8Array(samples), 11, 2, bpc, color))).toThrow("Unsupported Indexed sample depth");
+      await expect(collect(decodeRetainedSampleRows(source, 11, 2, bpc, color))).rejects.toThrow("Unsupported Indexed sample depth");
+      await source.close(); continue;
+    }
     const expected = drainWork(decodeSamplesToRgbaSteps(new Uint8Array(samples), 11, 2, bpc, color, undefined, [[1, 0]]));
     const actual = (await collect(decodeRetainedSampleRows(source, 11, 2, bpc, color, { decode: [[1, 0]] }))).flat();
     expect(actual).toEqual([...expected]); await source.close();

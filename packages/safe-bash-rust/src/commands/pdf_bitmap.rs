@@ -41,6 +41,20 @@ pub(super) enum ImageStream<'a> {
     Inline(Value<'static>, &'a [u8]),
 }
 
+fn image_color<'a>(objects: &mut Objects<'a>, mut color: Value<'a>, colors: Option<&Value<'_>>) -> Option<Value<'a>> {
+    for _ in 0..100 {
+        color = objects.filter_value(color)?;
+        match color.word() {
+            Some(b"/DeviceRGB" | b"/DeviceGray" | b"/DeviceCMYK") | None => return Some(color),
+            Some(name) => {
+                let resources = objects.filter_value(colors?.clone().into_owned())?;
+                color = resources.get(name.strip_prefix(b"/")?)?.clone();
+            }
+        }
+    }
+    None
+}
+
 pub(in crate::commands::archive) struct Image {
     jpeg: bool,
     pub(super) stencil: bool,
@@ -67,6 +81,7 @@ impl Image {
         matrix: Matrix,
         limit: usize,
         mode: ImageRead,
+        colors: Option<&Value<'_>>,
     ) -> Option<Option<Self>> {
         let (id, dict, length, encoded) = match stream {
             ImageStream::Object(id) => {
@@ -127,11 +142,48 @@ impl Image {
         let number = |k: &[u8]| uint(dict.get(k)?.word()?);
         let (width, height) = (number(b"Width")?, number(b"Height")?);
         let stencil = dict.get(b"ImageMask").and_then(Value::word) == Some(b"true");
-        let components = match dict.get(b"ColorSpace").and_then(Value::word) {
+        // Keep pdfimages listing/extraction behavior independent of raster support.
+        let rendering = matches!(mode, ImageRead::Raster | ImageRead::Pixels);
+        let color = if rendering && !stencil {
+            Some(image_color(objects, dict.get(b"ColorSpace")?.clone(), colors)?)
+        } else { dict.get(b"ColorSpace").cloned() };
+        let mut palette = None;
+        let components = match color.as_ref().and_then(Value::word) {
             _ if stencil => 1,
             Some(b"/DeviceRGB") => 3,
             Some(b"/DeviceGray") => 1,
             Some(b"/DeviceCMYK") => 4,
+            _ if rendering => {
+                let Value::Array(entries) = color? else { return None; };
+                if entries.len() != 4 || !matches!(objects.filter_value(entries[0].clone())?.word(), Some(b"/Indexed" | b"/I")) {
+                    return None;
+                }
+                let base = image_color(objects, entries[1].clone(), colors)?;
+                let components = match base.word()? {
+                    b"/DeviceRGB" => 3,
+                    b"/DeviceGray" => 1,
+                    b"/DeviceCMYK" => 4,
+                    _ => return None,
+                };
+                let high = objects.filter_value(entries[2].clone())?.number()?;
+                if !high.is_finite() || !(0. ..=255.).contains(&high) || high.fract() != 0. { return None; }
+                let (id, value, stream) = objects.lookup_object(&entries[3])?;
+                let lookup = if stream.is_some() {
+                    objects.decoded_stream(id?)?.into_owned()
+                } else if let Value::String { bytes, .. } = value { bytes } else { return None; };
+                let size = (high as usize + 1) * components;
+                if lookup.len() < size || lookup.len() > limit { return None; }
+                let mut entries = Vec::with_capacity(high as usize + 1);
+                for p in lookup[..size].chunks_exact(components) {
+                    entries.push(match components {
+                        1 => [p[0], p[0], p[0], 255],
+                        3 => [p[0], p[1], p[2], 255],
+                        _ => device_cmyk(std::array::from_fn(|i| f64::from(p[i]) / 255.), true),
+                    });
+                }
+                palette = Some(entries);
+                1
+            }
             _ => return Some(None),
         };
         let format = mode.format(components);
@@ -139,6 +191,7 @@ impl Image {
             return None;
         }
         let bits = if stencil { 1 } else { number(b"BitsPerComponent")? };
+        if palette.is_some() && (!matches!(bits, 1 | 2 | 4 | 8) || fax || jpeg) { return None; }
         if !matches!(bits, 1 | 2 | 4 | 8 | 16)
             || fax && (bits != 1 || components != 1)
             || jpeg && bits != 8
@@ -346,7 +399,8 @@ impl Image {
                         _ => {
                             let mask = (1u8 << bits) - 1;
                             let bit = i * bits;
-                            ((row[bit / 8] >> (8 - bits - bit % 8)) & mask) * (255 / mask)
+                            let sample = (row[bit / 8] >> (8 - bits - bit % 8)) & mask;
+                            if palette.is_some() { sample } else { sample * (255 / mask) }
                         }
                     };
                     for x in 0..width {
@@ -368,7 +422,7 @@ impl Image {
         // Preserve the key result across color conversion (CMYK uses all four channels).
         let opacity = if let Some(ranges) = key {
             if pixels.len() > limit / 5 { return None; }
-            let shift = 8usize.saturating_sub(bits);
+            let shift = if palette.is_some() { 0 } else { 8usize.saturating_sub(bits) };
             Some(pixels.iter().map(|p| {
                 let matched = (0..components).all(|i| {
                     let sample = i32::from(p[i] >> shift);
@@ -378,7 +432,26 @@ impl Image {
             }).collect::<Vec<u8>>())
         } else { None };
         let mut ink_ranges = [(0., 1.); 4];
-        if !mono_extract && !pixels.is_empty() {
+        let indexed = palette.is_some();
+        if let Some(palette) = palette {
+            let max = ((1usize << bits) - 1) as f64;
+            let (lo, hi) = match dict.get(b"Decode") {
+                None => (0., max),
+                Some(value) => {
+                    let Value::Array(ranges) = objects.filter_value(value.clone())? else { return None; };
+                    if ranges.len() != 2 { return None; }
+                    let lo = objects.filter_value(ranges[0].clone())?.number()?;
+                    let hi = objects.filter_value(ranges[1].clone())?.number()?;
+                    if !lo.is_finite() || !hi.is_finite() { return None; }
+                    (lo, hi)
+                }
+            };
+            for p in &mut pixels {
+                // Decode operates in the index domain, before clamping to hival.
+                let index = (lo + (hi - lo) * f64::from(p[0]) / max).round().clamp(0., (palette.len() - 1) as f64) as usize;
+                *p = palette[index];
+            }
+        } else if !mono_extract && !pixels.is_empty() {
             if let Some(v) = dict.get(b"Decode") {
                 let Value::Array(ranges) = objects.filter_value(v.clone())? else {
                     return None;
@@ -456,13 +529,13 @@ impl Image {
             mask,
             has_alpha: key.is_some(),
             fax,
-            bits,
+            bits: if indexed { 8 } else { bits },
             rgb48,
             jpeg,
             native,
             width,
             height,
-            components,
+            components: if indexed { 3 } else { components },
             length,
             id,
             interpolate,
@@ -696,15 +769,15 @@ impl PageSource<'_> {
             .objects
             .page_dict(*self.pages.get(page.checked_sub(1)?)?, &self.tree)?;
         self.draw_page(&node, |event, objects| {
-            if let Draw::Image(stream, matrix) = event
-                && let Some(image) = Image::read(objects, stream, matrix, limit, mode)?
+            if let Draw::Image(stream, matrix, colors) = event
+                && let Some(image) = Image::read(objects, stream, matrix, limit, mode, colors)?
             {
                 let id = image.id;
                 let mask = image.mask;
                 handle(image, None)?;
                 if mode != ImageRead::Pixels
                     && let Some(mask) = mask
-                    && let Some(mask_image) = Image::read(objects, ImageStream::Object(mask), matrix, limit, mode)?
+                    && let Some(mask_image) = Image::read(objects, ImageStream::Object(mask), matrix, limit, mode, colors)?
                 {
                     handle(mask_image, id)?;
                 }

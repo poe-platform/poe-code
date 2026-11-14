@@ -195,7 +195,7 @@ function *resolveColorSpaceInfoSteps(doc: ParsedCosDocument, node: PdfCosNode | 
 export function *imageColorSpaceProgram(
   csNode: PdfCosNode | undefined,
   resourcesDict: PdfCosDict | undefined,
-  maxDepth = Infinity, depth = 0
+  maxDepth = Infinity, depth = 0, activeNames = new Set<string>()
 ): Generator<PdfImageColorRequest | undefined, ResolvedColorSpace, unknown> {
   if (depth > maxDepth) throw new PdfError("E_LIMIT", "PDF image color depth limit exceeded");
   let work = 0;
@@ -219,23 +219,32 @@ export function *imageColorSpaceProgram(
     }
     const mapped = resourcesDict ? (yield {kind:"resource",resources:resourcesDict,category:"ColorSpace",name}) as PdfCosNode | undefined : undefined;
     if (mapped) {
-      return (yield* imageColorSpaceProgram(mapped, resourcesDict, maxDepth, depth + 1));
+      if (activeNames.has(name)) throw new PdfError("E_PARSE", "Cyclic image color space");
+      activeNames.add(name);
+      try { return (yield* imageColorSpaceProgram(mapped, resourcesDict, maxDepth, depth + 1, activeNames)); }
+      finally { activeNames.delete(name); }
     }
-    return { colorSpace: "rgb", colorSpaceLabel: "rgb", components: 3 };
+    throw new PdfError("E_CAPABILITY", `Unsupported image color space: ${name}`);
   }
 
   if (resolved.kind === "array" && resolved.items.length > 0) {
     const first = (yield { kind: "resolve", node: resolved.items[0] }) as PdfCosNode | undefined;
     const kindName = first?.kind === "name" ? first.decoded : "";
     if (kindName === "Indexed" || kindName === "I") {
-      const baseInfo = (yield* imageColorSpaceProgram(resolved.items[1], resourcesDict, maxDepth, depth + 1));
+      if (resolved.items.length !== 4) throw new PdfError("E_PARSE", "Invalid Indexed color space");
+      const baseInfo = (yield* imageColorSpaceProgram(resolved.items[1], resourcesDict, maxDepth, depth + 1, activeNames));
+      if (baseInfo.colorSpace === "index") throw new PdfError("E_PARSE", "Indexed base cannot be Indexed");
       const hivalNode = (yield { kind: "resolve", node: resolved.items[2] }) as PdfCosNode | undefined;
-      const hival = hivalNode?.kind === "number" ? Math.max(0, Math.min(255, Math.floor(hivalNode.value))) : 255;
+      if (hivalNode?.kind !== "number" || !Number.isInteger(hivalNode.value) || hivalNode.value < 0 || hivalNode.value > 255) throw new PdfError("E_PARSE", "Invalid Indexed hival");
+      const hival = hivalNode.value;
       const lookupNode = (yield { kind: "resolve", node: resolved.items[3] }) as PdfCosNode | undefined;
       let palette: Uint8Array | undefined;
       if (lookupNode?.kind === "stream" || lookupNode?.kind === "string") {
         palette = (yield { kind: "palette", node: lookupNode, maxBytes: 256 * Math.max(1, baseInfo.components) }) as Uint8Array;
       }
+      const paletteBytes = (hival + 1) * baseInfo.components;
+      if (!palette || palette.length < paletteBytes) throw new PdfError("E_PARSE", "Missing or truncated Indexed palette");
+      palette = palette.subarray(0, paletteBytes);
       let resolvedBaseComp = baseInfo.components;
       if (
         palette &&
@@ -496,6 +505,7 @@ function *parseDecodePairsSteps(
   let work = 0;
   const rawDecode = dictGet(dict, "Decode") ?? dictGet(dict, "D");
   const decodeArr = doc ? doc.resolveArray(rawDecode) : rawDecode?.kind === "array" ? rawDecode : undefined;
+  if (decodeArr && decodeArr.items.length % 2 !== 0) throw new PdfError("E_PARSE", "Invalid image Decode");
   if (!decodeArr || decodeArr.items.length < 2) return undefined;
   const pairs: Array<readonly [number, number]> = [];
   for (let i = 0; i + 1 < decodeArr.items.length; i += 2) {
@@ -714,6 +724,10 @@ function *decodeSamplesToRgbaProgram(
     }
   } else if (csInfo.colorSpace === "index") {
     const pal = csInfo.palette;
+    if (![1, 2, 4, 8].includes(bpc)) throw new PdfError("E_CAPABILITY", "Unsupported Indexed sample depth");
+    const max = (1 << bpc) - 1;
+    const pair = decodePairs?.[0] ?? [0, max];
+    if (decodePairs && (decodePairs.length !== 1 || !pair.every(Number.isFinite))) throw new PdfError("E_PARSE", "Invalid Indexed Decode");
     const baseComp = csInfo.baseComponents ?? 3;
     const rowBits = width * bpc;
     const rowBytes = Math.max(1, Math.ceil(rowBits / 8));
@@ -738,6 +752,7 @@ function *decodeSamplesToRgbaProgram(
           idx = (b >> shift) & 0x01;
         }
         const p = y * width + x;
+        if (pal) idx = Math.max(0, Math.min(pal.length / baseComp - 1, Math.round(pair[0]! + idx * (pair[1]! - pair[0]!) / max)));
         if (pal && idx * baseComp + (baseComp - 1) < pal.length) {
           if (baseComp === 1) {
             const g = pal[idx]!;
@@ -1044,7 +1059,11 @@ export function *decodeXObjectImageToRgbaSteps(
         } else if (bounds.length >= 2) {
           for (let p = 0; p < width * height; p++) {
     if (++work % 16384 === 0) yield;
-            const v = csInfo.colorSpace === "index" ? (decodedSamples[p] ?? 0) : rgba[p * 4]!;
+            const rowBytes = Math.ceil(width * bitsPerComponent / 8);
+            const bit = (p % width) * bitsPerComponent;
+            const v = csInfo.colorSpace === "index"
+              ? ((decodedSamples[Math.floor(p / width) * rowBytes + (bit >> 3)] ?? 0) >> (8 - bitsPerComponent - (bit % 8))) & ((1 << bitsPerComponent) - 1)
+              : rgba[p * 4]!;
             if (v >= bounds[0]! && v <= bounds[1]!) {
               rgba[p * 4 + 3] = 0;
             }

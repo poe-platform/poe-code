@@ -7208,7 +7208,7 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             return err_out("qpdf: --json-stream-data=file requires --json-stream-prefix or an output file\n",2);
         }
         if let Ok(mut source) = source {
-            let (json,files) = match source.qpdf_json(jv,edits.inline_images,json_keys.iter().any(|k| k == "pages"),
+            let (json,files) = match source.qpdf_json(jv,edits.inline_images,&json_keys,
                 &json_objects,&json_stream_data,(&stream_prefix,out_file.as_deref()),fs.shell_limits().max_output_bytes) {
                 Ok(result) => result,
                 Err(e) => return err_out(e,1),

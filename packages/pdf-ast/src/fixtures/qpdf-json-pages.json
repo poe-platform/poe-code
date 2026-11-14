@@ -1,0 +1,610 @@
+[
+  {
+    "version": 1,
+    "keys": [
+      "pages"
+    ],
+    "expected": {
+      "version": 1,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "pages": [
+        {
+          "contents": [
+            "4 0 R"
+          ],
+          "images": [
+            {
+              "bitspercomponent": 8,
+              "colorspace": "/DeviceRGB",
+              "decodeparms": [
+                null
+              ],
+              "filter": [
+                "/FlateDecode"
+              ],
+              "filterable": true,
+              "height": 1,
+              "name": "/Im",
+              "object": "5 0 R",
+              "width": 1
+            }
+          ],
+          "label": {
+            "/P": "\u03c0",
+            "/S": "/r",
+            "/St": 4
+          },
+          "object": "3 0 R",
+          "outlines": [
+            {
+              "dest": [
+                "3 0 R",
+                "/Fit"
+              ],
+              "object": "6 0 R",
+              "title": "chapter"
+            }
+          ],
+          "pageposfrom1": 1
+        },
+        {
+          "contents": [
+            "8 0 R"
+          ],
+          "images": [],
+          "label": {
+            "/P": "\u03c0",
+            "/S": "/r",
+            "/St": 5
+          },
+          "object": "7 0 R",
+          "outlines": [],
+          "pageposfrom1": 2
+        }
+      ]
+    }
+  },
+  {
+    "version": 1,
+    "keys": [
+      "outlines"
+    ],
+    "expected": {
+      "version": 1,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "outlines": [
+        {
+          "dest": [
+            "3 0 R",
+            "/Fit"
+          ],
+          "destpageposfrom1": 1,
+          "kids": [],
+          "object": "6 0 R",
+          "open": true,
+          "title": "chapter"
+        }
+      ]
+    }
+  },
+  {
+    "version": 1,
+    "keys": [
+      "pages",
+      "pagelabels",
+      "outlines"
+    ],
+    "expected": {
+      "version": 1,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "pages": [
+        {
+          "contents": [
+            "4 0 R"
+          ],
+          "images": [
+            {
+              "bitspercomponent": 8,
+              "colorspace": "/DeviceRGB",
+              "decodeparms": [
+                null
+              ],
+              "filter": [
+                "/FlateDecode"
+              ],
+              "filterable": true,
+              "height": 1,
+              "name": "/Im",
+              "object": "5 0 R",
+              "width": 1
+            }
+          ],
+          "label": {
+            "/P": "\u03c0",
+            "/S": "/r",
+            "/St": 4
+          },
+          "object": "3 0 R",
+          "outlines": [
+            {
+              "dest": [
+                "3 0 R",
+                "/Fit"
+              ],
+              "object": "6 0 R",
+              "title": "chapter"
+            }
+          ],
+          "pageposfrom1": 1
+        },
+        {
+          "contents": [
+            "8 0 R"
+          ],
+          "images": [],
+          "label": {
+            "/P": "\u03c0",
+            "/S": "/r",
+            "/St": 5
+          },
+          "object": "7 0 R",
+          "outlines": [],
+          "pageposfrom1": 2
+        }
+      ],
+      "pagelabels": [
+        {
+          "index": 0,
+          "label": {
+            "/P": "\u03c0",
+            "/S": "/r",
+            "/St": 4
+          }
+        }
+      ],
+      "outlines": [
+        {
+          "dest": [
+            "3 0 R",
+            "/Fit"
+          ],
+          "destpageposfrom1": 1,
+          "kids": [],
+          "object": "6 0 R",
+          "open": true,
+          "title": "chapter"
+        }
+      ]
+    }
+  },
+  {
+    "version": 2,
+    "keys": [
+      "pages"
+    ],
+    "expected": {
+      "version": 2,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "pages": [
+        {
+          "contents": [
+            "4 0 R"
+          ],
+          "images": [
+            {
+              "bitspercomponent": 8,
+              "colorspace": "/DeviceRGB",
+              "decodeparms": [
+                null
+              ],
+              "filter": [
+                "/FlateDecode"
+              ],
+              "filterable": true,
+              "height": 1,
+              "name": "/Im",
+              "object": "5 0 R",
+              "width": 1
+            }
+          ],
+          "label": {
+            "/P": "u:\u03c0",
+            "/S": "/r",
+            "/St": 4
+          },
+          "object": "3 0 R",
+          "outlines": [
+            {
+              "dest": [
+                "3 0 R",
+                "/Fit"
+              ],
+              "object": "6 0 R",
+              "title": "chapter"
+            }
+          ],
+          "pageposfrom1": 1
+        },
+        {
+          "contents": [
+            "8 0 R"
+          ],
+          "images": [],
+          "label": {
+            "/P": "u:\u03c0",
+            "/S": "/r",
+            "/St": 5
+          },
+          "object": "7 0 R",
+          "outlines": [],
+          "pageposfrom1": 2
+        }
+      ]
+    }
+  },
+  {
+    "version": 2,
+    "keys": [
+      "outlines"
+    ],
+    "expected": {
+      "version": 2,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "outlines": [
+        {
+          "dest": [
+            "3 0 R",
+            "/Fit"
+          ],
+          "destpageposfrom1": 1,
+          "kids": [],
+          "object": "6 0 R",
+          "open": true,
+          "title": "chapter"
+        }
+      ]
+    }
+  },
+  {
+    "version": 2,
+    "keys": [
+      "pages",
+      "pagelabels",
+      "outlines"
+    ],
+    "expected": {
+      "version": 2,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "pages": [
+        {
+          "contents": [
+            "4 0 R"
+          ],
+          "images": [
+            {
+              "bitspercomponent": 8,
+              "colorspace": "/DeviceRGB",
+              "decodeparms": [
+                null
+              ],
+              "filter": [
+                "/FlateDecode"
+              ],
+              "filterable": true,
+              "height": 1,
+              "name": "/Im",
+              "object": "5 0 R",
+              "width": 1
+            }
+          ],
+          "label": {
+            "/P": "u:\u03c0",
+            "/S": "/r",
+            "/St": 4
+          },
+          "object": "3 0 R",
+          "outlines": [
+            {
+              "dest": [
+                "3 0 R",
+                "/Fit"
+              ],
+              "object": "6 0 R",
+              "title": "chapter"
+            }
+          ],
+          "pageposfrom1": 1
+        },
+        {
+          "contents": [
+            "8 0 R"
+          ],
+          "images": [],
+          "label": {
+            "/P": "u:\u03c0",
+            "/S": "/r",
+            "/St": 5
+          },
+          "object": "7 0 R",
+          "outlines": [],
+          "pageposfrom1": 2
+        }
+      ],
+      "pagelabels": [
+        {
+          "index": 0,
+          "label": {
+            "/P": "u:\u03c0",
+            "/S": "/r",
+            "/St": 4
+          }
+        }
+      ],
+      "outlines": [
+        {
+          "dest": [
+            "3 0 R",
+            "/Fit"
+          ],
+          "destpageposfrom1": 1,
+          "kids": [],
+          "object": "6 0 R",
+          "open": true,
+          "title": "chapter"
+        }
+      ]
+    }
+  },
+  {
+    "version": 1,
+    "keys": [
+      "objects"
+    ],
+    "mode": "inline",
+    "expected": {
+      "version": 1,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "objects": {
+        "1 0 R": {
+          "/Names": {
+            "/Dests": {
+              "/Names": [
+                "chapter",
+                [
+                  "3 0 R",
+                  "/Fit"
+                ]
+              ]
+            }
+          },
+          "/Outlines": {
+            "/First": "6 0 R"
+          },
+          "/PageLabels": {
+            "/Nums": [
+              0,
+              {
+                "/P": "\u03c0",
+                "/S": "/r",
+                "/St": 4
+              }
+            ]
+          },
+          "/Pages": "2 0 R",
+          "/Type": "/Catalog"
+        },
+        "2 0 R": {
+          "/Count": 2,
+          "/Kids": [
+            "3 0 R",
+            "7 0 R"
+          ],
+          "/Resources": {
+            "/XObject": {
+              "/Im": "5 0 R"
+            }
+          },
+          "/Type": "/Pages"
+        },
+        "3 0 R": {
+          "/Contents": "4 0 R",
+          "/MediaBox": [
+            0,
+            0,
+            10,
+            20
+          ],
+          "/Parent": "2 0 R",
+          "/Type": "/Page"
+        },
+        "4 0 R": {
+          "/Length": 4
+        },
+        "5 0 R": {
+          "/BitsPerComponent": 8,
+          "/ColorSpace": "/DeviceRGB",
+          "/Filter": "/FlateDecode",
+          "/Height": 1,
+          "/Length": 11,
+          "/Subtype": "/Image",
+          "/Type": "/XObject",
+          "/Width": 1
+        },
+        "6 0 R": {
+          "/Dest": "chapter",
+          "/Title": "chapter"
+        },
+        "7 0 R": {
+          "/Contents": [
+            "8 0 R"
+          ],
+          "/MediaBox": [
+            0,
+            0,
+            10,
+            20
+          ],
+          "/Parent": "2 0 R",
+          "/Resources": {},
+          "/Type": "/Page"
+        },
+        "8 0 R": {
+          "/Length": 4
+        },
+        "trailer": {
+          "/Root": "1 0 R",
+          "/Size": 9
+        }
+      }
+    }
+  },
+  {
+    "version": 2,
+    "keys": [
+      "qpdf"
+    ],
+    "mode": "inline",
+    "expected": {
+      "version": 2,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "qpdf": [
+        {
+          "jsonversion": 2,
+          "pdfversion": "1.4",
+          "pushedinheritedpageresources": false,
+          "calledgetallpages": false,
+          "maxobjectid": 8
+        },
+        {
+          "obj:1 0 R": {
+            "value": {
+              "/Names": {
+                "/Dests": {
+                  "/Names": [
+                    "u:chapter",
+                    [
+                      "3 0 R",
+                      "/Fit"
+                    ]
+                  ]
+                }
+              },
+              "/Outlines": {
+                "/First": "6 0 R"
+              },
+              "/PageLabels": {
+                "/Nums": [
+                  0,
+                  {
+                    "/P": "u:\u03c0",
+                    "/S": "/r",
+                    "/St": 4
+                  }
+                ]
+              },
+              "/Pages": "2 0 R",
+              "/Type": "/Catalog"
+            }
+          },
+          "obj:2 0 R": {
+            "value": {
+              "/Count": 2,
+              "/Kids": [
+                "3 0 R",
+                "7 0 R"
+              ],
+              "/Resources": {
+                "/XObject": {
+                  "/Im": "5 0 R"
+                }
+              },
+              "/Type": "/Pages"
+            }
+          },
+          "obj:3 0 R": {
+            "value": {
+              "/Contents": "4 0 R",
+              "/MediaBox": [
+                0,
+                0,
+                10,
+                20
+              ],
+              "/Parent": "2 0 R",
+              "/Type": "/Page"
+            }
+          },
+          "obj:4 0 R": {
+            "stream": {
+              "data": "cSBRCg==",
+              "dict": {}
+            }
+          },
+          "obj:5 0 R": {
+            "stream": {
+              "data": "/wAA",
+              "dict": {
+                "/BitsPerComponent": 8,
+                "/ColorSpace": "/DeviceRGB",
+                "/Height": 1,
+                "/Subtype": "/Image",
+                "/Type": "/XObject",
+                "/Width": 1
+              }
+            }
+          },
+          "obj:6 0 R": {
+            "value": {
+              "/Dest": "u:chapter",
+              "/Title": "u:chapter"
+            }
+          },
+          "obj:7 0 R": {
+            "value": {
+              "/Contents": [
+                "8 0 R"
+              ],
+              "/MediaBox": [
+                0,
+                0,
+                10,
+                20
+              ],
+              "/Parent": "2 0 R",
+              "/Resources": {},
+              "/Type": "/Page"
+            }
+          },
+          "obj:8 0 R": {
+            "stream": {
+              "data": "cSBRCg==",
+              "dict": {}
+            }
+          },
+          "trailer": {
+            "value": {
+              "/Root": "1 0 R",
+              "/Size": 9
+            }
+          }
+        }
+      ]
+    }
+  }
+]

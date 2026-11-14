@@ -1,0 +1,548 @@
+[
+  {
+    "version": 1,
+    "keys": [],
+    "expected": {
+      "version": 1,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "pages": [
+        {
+          "contents": [],
+          "images": [],
+          "label": null,
+          "object": "3 0 R",
+          "outlines": [],
+          "pageposfrom1": 1
+        }
+      ],
+      "pagelabels": [],
+      "acroform": {
+        "fields": [],
+        "hasacroform": false,
+        "needappearances": false
+      },
+      "attachments": {},
+      "encrypt": {
+        "capabilities": {
+          "accessibility": true,
+          "extract": true,
+          "moddifyannotations": true,
+          "modify": true,
+          "modifyassembly": true,
+          "modifyforms": true,
+          "modifyother": true,
+          "printhigh": true,
+          "printlow": true
+        },
+        "encrypted": false,
+        "ownerpasswordmatched": false,
+        "parameters": {
+          "P": 0,
+          "R": 0,
+          "V": 0,
+          "bits": 0,
+          "filemethod": "none",
+          "key": null,
+          "method": "none",
+          "streammethod": "none",
+          "stringmethod": "none"
+        },
+        "recovereduserpassword": null,
+        "userpasswordmatched": false
+      },
+      "outlines": [],
+      "objects": {
+        "1 0 R": {
+          "/Pages": "2 0 R",
+          "/Type": "/Catalog"
+        },
+        "2 0 R": {
+          "/Count": 1,
+          "/Kids": [
+            "3 0 R"
+          ],
+          "/Type": "/Pages"
+        },
+        "3 0 R": {
+          "/MediaBox": [
+            0,
+            0,
+            10,
+            20
+          ],
+          "/Parent": "2 0 R",
+          "/Resources": {},
+          "/Type": "/Page"
+        },
+        "trailer": {
+          "/Root": "1 0 R",
+          "/Size": 4
+        }
+      },
+      "objectinfo": {
+        "1 0 R": {
+          "stream": {
+            "filter": null,
+            "is": false,
+            "length": null
+          }
+        },
+        "2 0 R": {
+          "stream": {
+            "filter": null,
+            "is": false,
+            "length": null
+          }
+        },
+        "3 0 R": {
+          "stream": {
+            "filter": null,
+            "is": false,
+            "length": null
+          }
+        }
+      }
+    }
+  },
+  {
+    "version": 1,
+    "keys": [
+      "pages"
+    ],
+    "expected": {
+      "version": 1,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "pages": [
+        {
+          "contents": [],
+          "images": [],
+          "label": null,
+          "object": "3 0 R",
+          "outlines": [],
+          "pageposfrom1": 1
+        }
+      ]
+    }
+  },
+  {
+    "version": 1,
+    "keys": [
+      "pages",
+      "pages"
+    ],
+    "expected": {
+      "version": 1,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "pages": [
+        {
+          "contents": [],
+          "images": [],
+          "label": null,
+          "object": "3 0 R",
+          "outlines": [],
+          "pageposfrom1": 1
+        }
+      ]
+    }
+  },
+  {
+    "version": 1,
+    "keys": [
+      "pages",
+      "pagelabels"
+    ],
+    "expected": {
+      "version": 1,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "pages": [
+        {
+          "contents": [],
+          "images": [],
+          "label": null,
+          "object": "3 0 R",
+          "outlines": [],
+          "pageposfrom1": 1
+        }
+      ],
+      "pagelabels": []
+    }
+  },
+  {
+    "version": 1,
+    "keys": [
+      "objects"
+    ],
+    "expected": {
+      "version": 1,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "objects": {
+        "1 0 R": {
+          "/Pages": "2 0 R",
+          "/Type": "/Catalog"
+        },
+        "2 0 R": {
+          "/Count": 1,
+          "/Kids": [
+            "3 0 R"
+          ],
+          "/Type": "/Pages"
+        },
+        "3 0 R": {
+          "/MediaBox": [
+            0,
+            0,
+            10,
+            20
+          ],
+          "/Parent": "2 0 R",
+          "/Resources": {},
+          "/Type": "/Page"
+        },
+        "trailer": {
+          "/Root": "1 0 R",
+          "/Size": 4
+        }
+      }
+    }
+  },
+  {
+    "version": 1,
+    "keys": [
+      "objectinfo"
+    ],
+    "expected": {
+      "version": 1,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "objectinfo": {
+        "1 0 R": {
+          "stream": {
+            "filter": null,
+            "is": false,
+            "length": null
+          }
+        },
+        "2 0 R": {
+          "stream": {
+            "filter": null,
+            "is": false,
+            "length": null
+          }
+        },
+        "3 0 R": {
+          "stream": {
+            "filter": null,
+            "is": false,
+            "length": null
+          }
+        }
+      }
+    }
+  },
+  {
+    "version": 2,
+    "keys": [],
+    "expected": {
+      "version": 2,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "pages": [
+        {
+          "contents": [],
+          "images": [],
+          "label": null,
+          "object": "3 0 R",
+          "outlines": [],
+          "pageposfrom1": 1
+        }
+      ],
+      "pagelabels": [],
+      "acroform": {
+        "fields": [],
+        "hasacroform": false,
+        "needappearances": false
+      },
+      "attachments": {},
+      "encrypt": {
+        "capabilities": {
+          "accessibility": true,
+          "extract": true,
+          "modify": true,
+          "modifyannotations": true,
+          "modifyassembly": true,
+          "modifyforms": true,
+          "modifyother": true,
+          "printhigh": true,
+          "printlow": true
+        },
+        "encrypted": false,
+        "ownerpasswordmatched": false,
+        "parameters": {
+          "P": 0,
+          "R": 0,
+          "V": 0,
+          "bits": 0,
+          "filemethod": "none",
+          "key": null,
+          "method": "none",
+          "streammethod": "none",
+          "stringmethod": "none"
+        },
+        "recovereduserpassword": null,
+        "userpasswordmatched": false
+      },
+      "outlines": [],
+      "qpdf": [
+        {
+          "jsonversion": 2,
+          "pdfversion": "1.4",
+          "pushedinheritedpageresources": false,
+          "calledgetallpages": true,
+          "maxobjectid": 3
+        },
+        {
+          "obj:1 0 R": {
+            "value": {
+              "/Pages": "2 0 R",
+              "/Type": "/Catalog"
+            }
+          },
+          "obj:2 0 R": {
+            "value": {
+              "/Count": 1,
+              "/Kids": [
+                "3 0 R"
+              ],
+              "/Type": "/Pages"
+            }
+          },
+          "obj:3 0 R": {
+            "value": {
+              "/MediaBox": [
+                0,
+                0,
+                10,
+                20
+              ],
+              "/Parent": "2 0 R",
+              "/Resources": {},
+              "/Type": "/Page"
+            }
+          },
+          "trailer": {
+            "value": {
+              "/Root": "1 0 R",
+              "/Size": 4
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "version": 2,
+    "keys": [
+      "pages"
+    ],
+    "expected": {
+      "version": 2,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "pages": [
+        {
+          "contents": [],
+          "images": [],
+          "label": null,
+          "object": "3 0 R",
+          "outlines": [],
+          "pageposfrom1": 1
+        }
+      ]
+    }
+  },
+  {
+    "version": 2,
+    "keys": [
+      "pages",
+      "pages"
+    ],
+    "expected": {
+      "version": 2,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "pages": [
+        {
+          "contents": [],
+          "images": [],
+          "label": null,
+          "object": "3 0 R",
+          "outlines": [],
+          "pageposfrom1": 1
+        }
+      ]
+    }
+  },
+  {
+    "version": 2,
+    "keys": [
+      "pages",
+      "pagelabels"
+    ],
+    "expected": {
+      "version": 2,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "pages": [
+        {
+          "contents": [],
+          "images": [],
+          "label": null,
+          "object": "3 0 R",
+          "outlines": [],
+          "pageposfrom1": 1
+        }
+      ],
+      "pagelabels": []
+    }
+  },
+  {
+    "version": 2,
+    "keys": [
+      "qpdf"
+    ],
+    "expected": {
+      "version": 2,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "qpdf": [
+        {
+          "jsonversion": 2,
+          "pdfversion": "1.4",
+          "pushedinheritedpageresources": false,
+          "calledgetallpages": false,
+          "maxobjectid": 3
+        },
+        {
+          "obj:1 0 R": {
+            "value": {
+              "/Pages": "2 0 R",
+              "/Type": "/Catalog"
+            }
+          },
+          "obj:2 0 R": {
+            "value": {
+              "/Count": 1,
+              "/Kids": [
+                "3 0 R"
+              ],
+              "/Type": "/Pages"
+            }
+          },
+          "obj:3 0 R": {
+            "value": {
+              "/MediaBox": [
+                0,
+                0,
+                10,
+                20
+              ],
+              "/Parent": "2 0 R",
+              "/Resources": {},
+              "/Type": "/Page"
+            }
+          },
+          "trailer": {
+            "value": {
+              "/Root": "1 0 R",
+              "/Size": 4
+            }
+          }
+        }
+      ]
+    }
+  },
+  {
+    "version": 2,
+    "keys": [
+      "pages",
+      "qpdf"
+    ],
+    "expected": {
+      "version": 2,
+      "parameters": {
+        "decodelevel": "generalized"
+      },
+      "pages": [
+        {
+          "contents": [],
+          "images": [],
+          "label": null,
+          "object": "3 0 R",
+          "outlines": [],
+          "pageposfrom1": 1
+        }
+      ],
+      "qpdf": [
+        {
+          "jsonversion": 2,
+          "pdfversion": "1.4",
+          "pushedinheritedpageresources": false,
+          "calledgetallpages": true,
+          "maxobjectid": 3
+        },
+        {
+          "obj:1 0 R": {
+            "value": {
+              "/Pages": "2 0 R",
+              "/Type": "/Catalog"
+            }
+          },
+          "obj:2 0 R": {
+            "value": {
+              "/Count": 1,
+              "/Kids": [
+                "3 0 R"
+              ],
+              "/Type": "/Pages"
+            }
+          },
+          "obj:3 0 R": {
+            "value": {
+              "/MediaBox": [
+                0,
+                0,
+                10,
+                20
+              ],
+              "/Parent": "2 0 R",
+              "/Resources": {},
+              "/Type": "/Page"
+            }
+          },
+          "trailer": {
+            "value": {
+              "/Root": "1 0 R",
+              "/Size": 4
+            }
+          }
+        }
+      ]
+    }
+  }
+]

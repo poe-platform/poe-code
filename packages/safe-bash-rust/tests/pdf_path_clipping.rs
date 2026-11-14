@@ -31,7 +31,7 @@ fn pdf(content: &str) -> String {
 
 #[test]
 fn path_clipping_pixels() {
-    for line in include_str!("fixtures/path-clipping.txt").lines() {
+    for line in include_str!("../../safe-bash-command-pdftoppm/src/testing/path-clipping.txt").lines() {
         let parts: Vec<_> = line.split('|').collect();
         for command in ["pdftoppm", "pdftocairo"] {
             let fs = MemoryVfs::new();

@@ -2,7 +2,7 @@ use safe_bash_rust::{
     MemoryVfs, SafeBashFs,
     commands::{archive::try_run_archive_command, codecs::inflate_raw},
 };
-const PDF: &[u8] = include_bytes!("fixtures/axial-shading.pdf");
+const PDF: &[u8] = include_bytes!("../../safe-bash-command-pdftoppm/src/testing/axial-shading.pdf");
 
 #[test]
 fn axial_gradient() {
@@ -72,7 +72,7 @@ fn pdf(content: &str, settings: &str) -> String {
 fn axial_transforms_extend_and_clipping() {
     use safe_bash_rust::{BackendMode, Shell, ShellOptions};
     use std::sync::Arc;
-    for line in include_str!("fixtures/axial-shading.txt").lines() {
+    for line in include_str!("../../safe-bash-command-pdftoppm/src/testing/axial-shading.txt").lines() {
         let parts: Vec<_> = line.split('|').collect();
         for command in ["pdftoppm", "pdftocairo"] {
             let fs = MemoryVfs::new();

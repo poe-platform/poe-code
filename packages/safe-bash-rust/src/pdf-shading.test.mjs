@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { decodePng } from "@poe-code/pdf-ast";
-import { shadingCases, shadingPdf } from "../tests/fixtures/axial-shading.mjs";
+import { shadingCases, shadingPdf } from "safe-bash-command-pdftoppm/testing/axial-shading";
 import { RustWasmBash } from "./index.js";
 
 test("Wasm axial shading: fixture, transforms, Extend, bbox and clipping", async () => {

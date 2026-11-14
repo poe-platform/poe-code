@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { runConvertCli } from "./index.js";
-import { decodePngImage } from "../../image-ast/src/codecs/png.js";
+import { decodePngImage } from "@poe-code/image-ast";
 
 // Independent Pillow fixture, shared byte-for-byte with Rust png_validation.rs.
 const png = Buffer.from("89504e470d0a1a0a0000000d4948445200000008000000060806000000fe05dffb0000001649444154789c637ca611f09f010f60c2273958140000d34502699b0d22dc0000000049454e44ae426082", "hex");

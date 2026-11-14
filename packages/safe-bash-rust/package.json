@@ -46,7 +46,8 @@
     "esbuild": "0.28.1",
     "mcp-protocol-rust": "*",
     "workerd": "1.20260708.1",
-    "terminal-png-rust": "*"
+    "terminal-png-rust": "*",
+    "safe-bash-command-pdftoppm": "*"
   },
   "repository": {
     "type": "git",

@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { decodePng } from "@poe-code/pdf-ast";
 import { RustWasmBash } from "./index.js";
-import { clippingCases, clippingPdf } from "../tests/fixtures/path-clipping.mjs";
+import { clippingCases, clippingPdf } from "safe-bash-command-pdftoppm/testing/path-clipping";
 
 for (const fixture of clippingCases) {
   test(`PDF path clipping: ${fixture.name}`, async () => {

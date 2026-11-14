@@ -12,11 +12,20 @@
       "workerd": "./dist/index.js",
       "browser": "./dist/index.js",
       "import": "./dist/index.js"
+    },
+    "./testing/axial-shading": {
+      "types": "./src/testing/axial-shading.d.mts",
+      "import": "./src/testing/axial-shading.mjs"
+    },
+    "./testing/path-clipping": {
+      "types": "./src/testing/path-clipping.d.mts",
+      "import": "./src/testing/path-clipping.mjs"
     }
   },
   "files": [
     "dist",
-    "LICENSE"
+    "LICENSE",
+    "src/testing"
   ],
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=browser --conditions=workerd --format=esm --target=es2022 --external:safe-bash-contracts --external:safe-bash-contracts/* --external:@poe-code/pdf-ast --external:@poe-code/pdf --external:pdf-lib --external:@pdf-lib/fontkit --external:@poe-code/image-ast --external:@poe-code/office-package --external:@poe-code/office-package/* --outfile=dist/index.js",

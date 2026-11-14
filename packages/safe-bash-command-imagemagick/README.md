@@ -1,5 +1,7 @@
 # `safe-bash-command-imagemagick`
 
+Buffered canvas generation rejects unsafe dimensions or initial pixel storage above 2 GiB minus one byte before allocating. This includes row padding and any 16-bit or floating-point sample planes. Earlier explicit writes survive a rejected canvas; the final destination is preserved. Filesystem conversions use paged storage and support cancellation; this buffered ceiling is not a total command memory limit.
+
 Use `-exit` to stop conversion successfully at that point. Earlier `-write` outputs are preserved; later arguments and the implicit final output are skipped.
 
 `magick xc:red h:-` writes a C header defining `static const unsigned char MagickImage[]` with the image’s PNM bytes. Use `h:output.bin` or `output.h` to write the header to a file.

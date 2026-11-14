@@ -6356,10 +6356,13 @@ function* createSolidRgbaImageSteps(width: number, height: number, color: RgbaCo
     yield;
     const w = Math.max(1, Math.round(width));
     const h = Math.max(1, Math.round(height));
+    const colorSamples = [color.r, color.g, color.b, color.a];
+    const evaluate = highDepth && colorSamples.some(value => !Number.isInteger(value * 257));
+    const bytes = w * h * (4 + (highDepth ? 8 : 0) + (evaluate ? 32 : 0)) + h;
+    if (!Number.isSafeInteger(bytes) || bytes > 0x7fffffff) throw new Error("Canvas dimensions exceed resource limits");
     const data = new Uint8Array(new ArrayBuffer(w * h * 4 + h), 0, w * h * 4);
     const data16 = highDepth ? new Uint16Array(w * h * 4) : undefined;
-    const colorSamples = [color.r, color.g, color.b, color.a];
-    const evaluateSamples = highDepth && colorSamples.some(value => !Number.isInteger(value * 257)) ? new Float64Array(w * h * 4) : undefined;
+    const evaluateSamples = evaluate ? new Float64Array(w * h * 4) : undefined;
     const samples = colorSamples.map(value => Math.round(value * 257));
     const tmp = Uint8Array.from(samples, value => Math.round(value / 257));
     const packed = new Uint32Array(tmp.buffer)[0]!;

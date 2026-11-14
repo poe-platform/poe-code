@@ -17017,3 +17017,4 @@ import "./pdf-soft-masks.test.mjs";
 import "./pdf-indexed.test.mjs";
 
 import "./magick-terminal-outputs.wasm.test.mjs";
+import "./magick-generated-allocation.wasm.test.mjs";

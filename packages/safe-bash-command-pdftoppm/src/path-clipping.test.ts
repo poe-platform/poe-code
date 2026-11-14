@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { decodePng } from "@poe-code/pdf-ast";
-import { clippingCases } from "./testing/path-clipping.mjs";
+import { clippingCases } from "./testing/path-clipping.js";
 import { runPdftoppmCli, runPdftocairoCli } from "./index.js";
 
 for (const run of [runPdftoppmCli, runPdftocairoCli]) {

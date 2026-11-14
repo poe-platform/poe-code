@@ -14,21 +14,22 @@
       "import": "./dist/index.js"
     },
     "./testing/axial-shading": {
-      "types": "./src/testing/axial-shading.d.mts",
-      "import": "./src/testing/axial-shading.mjs"
+      "types": "./dist/testing/axial-shading.d.ts",
+      "node": "./dist/testing/axial-shading.js",
+      "default": null
     },
     "./testing/path-clipping": {
-      "types": "./src/testing/path-clipping.d.mts",
-      "import": "./src/testing/path-clipping.mjs"
+      "types": "./dist/testing/path-clipping.d.ts",
+      "node": "./dist/testing/path-clipping.js",
+      "default": null
     }
   },
   "files": [
     "dist",
-    "LICENSE",
-    "src/testing"
+    "LICENSE"
   ],
   "scripts": {
-    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=browser --conditions=workerd --format=esm --target=es2022 --external:safe-bash-contracts --external:safe-bash-contracts/* --external:@poe-code/pdf-ast --external:@poe-code/pdf --external:pdf-lib --external:@pdf-lib/fontkit --external:@poe-code/image-ast --external:@poe-code/office-package --external:@poe-code/office-package/* --outfile=dist/index.js",
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc && esbuild src/index.ts --bundle --platform=browser --conditions=workerd --format=esm --target=es2022 --external:safe-bash-contracts --external:safe-bash-contracts/* --external:@poe-code/pdf-ast --external:@poe-code/pdf --external:pdf-lib --external:@pdf-lib/fontkit --external:@poe-code/image-ast --external:@poe-code/office-package --external:@poe-code/office-package/* --outfile=dist/index.js && cp -R src/testing dist/",
     "typecheck": "tsc --noEmit && tsc -p tsconfig.test.json",
     "lint": "eslint src && npm run typecheck",
     "test": "cd ../.. && vitest run packages/safe-bash-command-pdftoppm",

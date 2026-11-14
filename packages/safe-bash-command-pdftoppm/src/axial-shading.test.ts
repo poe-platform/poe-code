@@ -1,6 +1,6 @@
 import { expect, it } from "vitest";
 import { decodePng } from "@poe-code/pdf-ast";
-import { shadingCases } from "./testing/axial-shading.mjs";
+import { shadingCases } from "./testing/axial-shading.js";
 import { runPdftoppmCli, runPdftocairoCli } from "./index.js";
 
 for (const run of [runPdftoppmCli, runPdftocairoCli]) {

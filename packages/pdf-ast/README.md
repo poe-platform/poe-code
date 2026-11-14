@@ -8,7 +8,8 @@ Unified first-party PDF AST, parser, lossless editor, extractor, and 2D PNG rast
 `extractDocumentImagesSteps` expose bounded work generators for responsive
 page and pixel processing. Synchronous APIs remain available. Indexed images
 apply Decode in the index domain, clamp to the declared palette, and evaluate
-color-key masks against the original packed samples. Invalid palettes fail rendering.
+color-key masks against the original packed samples. Invalid palettes and malformed
+Decode values fail rendering; a null Decode value uses the default mapping.
 `renderDisplayListWindowSteps(list, {x, y, width, height}, options)` renders a
 pixel window in the scaled, unrotated media-box grid. Page, group and mask
 surfaces use that window, and image-mask caching is bounded. It preserves the

@@ -68,7 +68,8 @@ Mask groups use RGB; non-identity transfer functions and malformed or recursive
 masks fail without replacing output. Image soft masks remain supported.
 Indexed images support packed 1/2/4/8-bit rows, RGB/gray/CMYK palettes,
 resource color spaces, string or stream lookups, Decode, masks and interpolation.
-Invalid or unsupported palettes fail rendering before the page output is replaced.
+Invalid or unsupported palettes and malformed Decode values fail rendering before
+the page output is replaced. A null Decode value uses the default mapping.
 
 ### 1. Zero-Dependency Rust Shell with `MemoryVfs`
 

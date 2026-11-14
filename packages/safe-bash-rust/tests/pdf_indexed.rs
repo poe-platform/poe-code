@@ -27,6 +27,22 @@ fn indexed_images_render_and_invalid_palettes_preserve_output() {
             include_bytes!("fixtures/indexed/bad-decode.pdf").as_slice(),
         ),
         (
+            "bad-decode-name",
+            include_bytes!("fixtures/indexed/bad-decode-name.pdf").as_slice(),
+        ),
+        (
+            "bad-decode-empty",
+            include_bytes!("fixtures/indexed/bad-decode-empty.pdf").as_slice(),
+        ),
+        (
+            "bad-decode-type",
+            include_bytes!("fixtures/indexed/bad-decode-type.pdf").as_slice(),
+        ),
+        (
+            "bad-decode-extra-type",
+            include_bytes!("fixtures/indexed/bad-decode-extra-type.pdf").as_slice(),
+        ),
+        (
             "bad-fraction",
             include_bytes!("fixtures/indexed/bad-fraction.pdf").as_slice(),
         ),
@@ -61,6 +77,14 @@ fn indexed_images_render_and_invalid_palettes_preserve_output() {
         (
             "cmyk",
             include_bytes!("fixtures/indexed/cmyk.pdf").as_slice(),
+        ),
+        (
+            "decode-null",
+            include_bytes!("fixtures/indexed/decode-null.pdf").as_slice(),
+        ),
+        (
+            "decode-indirect-null",
+            include_bytes!("fixtures/indexed/decode-indirect-null.pdf").as_slice(),
         ),
         (
             "decode-1",

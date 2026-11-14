@@ -206,3 +206,35 @@ it.each([1, 2, 4, 8])("applies Indexed %i-bit color keys to original padded samp
   expect([...actual.slice(0, 4)]).toEqual([0, 0, 255, 255]);
   await image.close(); await f.close();
 });
+
+it.each([
+  ["name", cosName("Bogus")],
+  ["empty", cosArray([])],
+  ["type", cosArray([cosNumber(0), cosName("Bogus")])],
+  ["extra-type", cosArray([cosNumber(0), cosNumber(255), cosName("Bogus"), cosName("Bogus")])],
+] as const)("rejects malformed Indexed Decode %s in buffered and retained readers", async (_name, decode) => {
+  const bytes = new Uint8Array([0, 1, 1, 0]);
+  const entries = cosDict({
+    ColorSpace: cosArray([cosName("Indexed"), cosName("DeviceRGB"), cosNumber(1), cosString(new Uint8Array([255, 0, 0, 0, 0, 255]))]),
+    Decode: decode,
+  });
+  await expect(open(bytes, entries)).rejects.toThrow("Invalid image Decode");
+  const f = await open(bytes, entries, undefined, "", false);
+  const baseline = await f.storage.fs.readdir("/scratch");
+  try {
+    await expect(PdfRetainedDecodedImage.open(f.document, f.image, f.storage)).rejects.toThrow("Invalid image Decode");
+    expect(await f.storage.fs.readdir("/scratch")).toEqual(baseline);
+  } finally { await f.close(); }
+});
+
+it.each([false, true])("uses default Indexed Decode for a null dictionary value, indirect=%s", async indirect => {
+  const f = await open(new Uint8Array([0, 1, 1, 0]), cosDict({
+    ColorSpace: cosArray([cosName("Indexed"), cosName("DeviceRGB"), cosNumber(1), cosString(new Uint8Array([255, 0, 0, 0, 0, 255]))]),
+    Decode: { kind: "null" },
+  }), indirect ? (doc, dict) => { dictSet(dict, "Decode", doc.cos.allocateObject({ kind: "null" })); } : undefined);
+  const expected = new Uint8Array([255,0,0,255,0,0,255,255,0,0,255,255,255,0,0,255]);
+  expect(f.expected.rgba).toEqual(expected);
+  const image = await PdfRetainedDecodedImage.open(f.document, f.image, f.storage);
+  try { expect(await collect(image.rows())).toEqual(expected); }
+  finally { await image.close(); await f.close(); }
+});

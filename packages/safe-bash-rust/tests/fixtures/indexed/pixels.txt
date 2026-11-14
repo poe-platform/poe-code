@@ -89,3 +89,13 @@ stream 23 25 255 0 0
 stream 77 25 0 0 255
 stream 23 75 0 0 255
 stream 77 75 255 0 0
+decode-null 5 5 204 204 204
+decode-null 23 25 255 0 0
+decode-null 77 25 0 0 255
+decode-null 23 75 0 0 255
+decode-null 77 75 255 0 0
+decode-indirect-null 5 5 204 204 204
+decode-indirect-null 23 25 255 0 0
+decode-indirect-null 77 25 0 0 255
+decode-indirect-null 23 75 0 0 255
+decode-indirect-null 77 75 255 0 0

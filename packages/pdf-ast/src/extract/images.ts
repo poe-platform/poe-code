@@ -504,19 +504,19 @@ function *parseDecodePairsSteps(
 ): Generator<void, ReadonlyArray<readonly [number, number]> | undefined, void> {
   let work = 0;
   const rawDecode = dictGet(dict, "Decode") ?? dictGet(dict, "D");
-  const decodeArr = doc ? doc.resolveArray(rawDecode) : rawDecode?.kind === "array" ? rawDecode : undefined;
-  if (decodeArr && decodeArr.items.length % 2 !== 0) throw new PdfError("E_PARSE", "Invalid image Decode");
-  if (!decodeArr || decodeArr.items.length < 2) return undefined;
+  if (rawDecode === undefined) return undefined;
+  const decodeArr = doc ? doc.resolve(rawDecode) : rawDecode;
+  if (decodeArr?.kind === "null") return undefined;
+  if (decodeArr?.kind !== "array" || decodeArr.items.length < 2 || decodeArr.items.length % 2 !== 0) throw new PdfError("E_PARSE", "Invalid image Decode");
   const pairs: Array<readonly [number, number]> = [];
   for (let i = 0; i + 1 < decodeArr.items.length; i += 2) {
     if (++work % 16384 === 0) yield;
     const n0 = doc ? doc.resolve(decodeArr.items[i]) : decodeArr.items[i];
     const n1 = doc ? doc.resolve(decodeArr.items[i + 1]) : decodeArr.items[i + 1];
-    if (n0?.kind === "number" && n1?.kind === "number") {
-      pairs.push([n0.value, n1.value]);
-    }
+    if (n0?.kind !== "number" || n1?.kind !== "number" || !Number.isFinite(n0.value) || !Number.isFinite(n1.value)) throw new PdfError("E_PARSE", "Invalid image Decode");
+    pairs.push([n0.value, n1.value]);
   }
-  return pairs.length > 0 ? pairs : undefined;
+  return pairs;
 }
 
 function remapUnitSampleWithDecode(

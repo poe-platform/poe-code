@@ -113,11 +113,18 @@ export class PdfRetainedDecodedImage {
     }
     async function number(node: PdfCosNode | undefined, fallback: number) { const value = await resolve(node); return value?.kind === "number" ? value.value : fallback; }
     async function pairs(dict: PdfCosDict) {
-      const value = await resolve((await readPdfDictionaryValue(dict, "Decode", signal)) ?? (await readPdfDictionaryValue(dict, "D", signal))); if (value?.kind !== "array") return undefined;
-      if (value.items.length % 2 !== 0) throw new PdfError("E_PARSE", "Invalid image Decode");
+      const node = (await readPdfDictionaryValue(dict, "Decode", signal)) ?? (await readPdfDictionaryValue(dict, "D", signal));
+      if (node === undefined) return undefined;
+      const value = await resolve(node);
+      if (value?.kind === "null") return undefined;
+      if (value?.kind !== "array" || value.items.length < 2 || value.items.length % 2 !== 0) throw new PdfError("E_PARSE", "Invalid image Decode");
       charge(value.items.length * 16); const result: [number, number][] = [];
-      for (let i = 0; i + 1 < value.items.length; i += 2) { const low = await resolve(value.items[i]), high = await resolve(value.items[i + 1]); if (low?.kind === "number" && high?.kind === "number") result.push([low.value, high.value]); }
-      return result.length ? result : undefined;
+      for (let i = 0; i + 1 < value.items.length; i += 2) {
+        const low = await resolve(value.items[i]), high = await resolve(value.items[i + 1]);
+        if (low?.kind !== "number" || high?.kind !== "number" || !Number.isFinite(low.value) || !Number.isFinite(high.value)) throw new PdfError("E_PARSE", "Invalid image Decode");
+        result.push([low.value, high.value]);
+      }
+      return result;
     }
     try {
       const dict = image.dict; let width = Math.max(1, Math.round(await number((await readPdfDictionaryValue(dict, "Width", signal)) ?? (await readPdfDictionaryValue(dict, "W", signal)), 1)));

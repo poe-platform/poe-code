@@ -437,14 +437,17 @@ impl Image {
             let max = ((1usize << bits) - 1) as f64;
             let (lo, hi) = match dict.get(b"Decode") {
                 None => (0., max),
-                Some(value) => {
-                    let Value::Array(ranges) = objects.filter_value(value.clone())? else { return None; };
-                    if ranges.len() != 2 { return None; }
-                    let lo = objects.filter_value(ranges[0].clone())?.number()?;
-                    let hi = objects.filter_value(ranges[1].clone())?.number()?;
-                    if !lo.is_finite() || !hi.is_finite() { return None; }
-                    (lo, hi)
-                }
+                Some(value) => match objects.filter_value(value.clone())? {
+                    // PDF dictionary entries with null values are omitted.
+                    Value::Word(word) if word.as_ref() == b"null" => (0., max),
+                    Value::Array(ranges) if ranges.len() == 2 => {
+                        let lo = objects.filter_value(ranges[0].clone())?.number()?;
+                        let hi = objects.filter_value(ranges[1].clone())?.number()?;
+                        if !lo.is_finite() || !hi.is_finite() { return None; }
+                        (lo, hi)
+                    }
+                    _ => return None,
+                },
             };
             for p in &mut pixels {
                 // Decode operates in the index domain, before clamping to hival.

@@ -24,7 +24,8 @@ function run(command, args) {
 assert.ok(run(compiler, ["--version"]).startsWith("emcc (Emscripten gcc/clang-like replacement + linker emulating GNU ld) 4.0.13"));
 run("tar", ["-xf", archive, "-C", output]);
 const source = join(output, "lcms2-2.17"), artifact = join(output, "runtime.js");
-run(compiler, ["-O2", "-I" + join(source, "include"),
+run("patch", ["--batch", "--forward", "--directory", source, "-p1", "-i", join(root, "scripts/icc/type2-boundary.patch")]);
+run(compiler, ["-O2", "-ffile-prefix-map=" + source + "=lcms2-2.17", "-I" + join(source, "include"),
     ...readdirSync(join(source, "src")).filter(name => name.endsWith(".c")).sort().map(name => join(source, "src", name)),
     "-sWASM=0", "-sWASM_ASYNC_COMPILATION=0", "-sMODULARIZE=1", "-sEXPORT_ES6=1", "-sENVIRONMENT=web", "-sFILESYSTEM=0",
     "-sALLOW_MEMORY_GROWTH=1", "-sINITIAL_MEMORY=4194304", "-sMAXIMUM_MEMORY=67108864", "-sSTACK_SIZE=262144", "-sMALLOC=emmalloc", "-sABORTING_MALLOC=0",
@@ -44,5 +45,5 @@ function check(node) {
 check(entry);
 assert.equal(code.slice(entry.start, entry.start + 6), "async ");
 const licenses = readFileSync(join(root, "src/icc/LICENSE.LittleCMS"), "utf8") + "\n\n" + ["Emscripten", "musl", "compiler-rt"].map(name => readFileSync(join(root, "src/font/LICENSE." + name), "utf8")).join("\n\n");
-writeFileSync(join(root, "src/icc/runtime.js"), "/* eslint-disable */\n/*! Generated LittleCMS 2.17. See scripts/icc/build.mjs.\n" + licenses.replaceAll("*/", "* /") + "\n*/\n" + code.slice(0, entry.start) + code.slice(entry.start + 6));
+writeFileSync(join(root, "src/icc/runtime.js"), "/* eslint-disable */\n/*! Generated LittleCMS 2.17 with ICC type-2 boundary corrections. See scripts/icc/build.mjs.\n" + licenses.replaceAll("*/", "* /") + "\n*/\n" + code.slice(0, entry.start) + code.slice(entry.start + 6));
 console.log("Generated src/icc/runtime.js");

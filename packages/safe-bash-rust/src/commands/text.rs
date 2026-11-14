@@ -6202,13 +6202,17 @@ struct PatchOpts {
     work_cwd: String,
 }
 
-fn decode_patch_header_path(raw_line: &str) -> (String, bool) {
+fn decode_patch_header_path(raw_line: &str) -> Result<(String, bool), BuiltinOutcome> {
+    let invalid = || err_out("patch: invalid UTF-8 or NUL in filename\n", 2);
+    // Bodies use the shell's reversible byte representation; filenames still
+    // belong to the filesystem's UTF-8 path domain.
+    let raw_line = crate::vfs::stream_utf8(raw_line).map_err(|_| invalid())?;
     let is_epoch = raw_line.split_once('\t').is_some_and(|(_, ts)| {
         let t = ts.trim();
         t.starts_with("1970-01-01 00:00:00") || t.starts_with("1969-12-31 ")
     });
     let trimmed = raw_line.trim_start();
-    if let Some(rest) = trimmed.strip_prefix('"') {
+    let decoded = if let Some(rest) = trimmed.strip_prefix('"') {
         let mut bytes = Vec::new();
         let chars: Vec<char> = rest.chars().collect();
         let mut idx = 0usize;
@@ -6249,12 +6253,14 @@ fn decode_patch_header_path(raw_line: &str) -> (String, bool) {
                 bytes.extend_from_slice(ch.encode_utf8(&mut buf).as_bytes());
             }
         }
-        return (String::from_utf8_lossy(&bytes).into_owned(), is_epoch);
-    }
-    if let Some((before_tab, _)) = trimmed.split_once('\t') {
-        return (before_tab.trim_end().to_string(), is_epoch);
-    }
-    (trimmed.split_whitespace().next().unwrap_or("").to_string(), is_epoch)
+        String::from_utf8(bytes).map_err(|_| invalid())?
+    } else if let Some((before_tab, _)) = trimmed.split_once('\t') {
+        before_tab.trim_end().to_string()
+    } else {
+        trimmed.split_whitespace().next().unwrap_or("").to_string()
+    };
+    if decoded.contains('\0') { return Err(invalid()); }
+    Ok((crate::vfs::shell_text(&decoded).into_owned(), is_epoch))
 }
 
 fn context_range_to_unified(r: &str) -> String {
@@ -6384,15 +6390,6 @@ fn convert_context_diff_to_unified(text: &str) -> String {
         i += 1;
     }
     out
-}
-
-fn patch_stream_text(bytes: &[u8]) -> Result<std::borrow::Cow<'_, str>, BuiltinOutcome> {
-    if bytes.contains(&0) {
-        return Err(err_out("patch: binary input is unsupported (NUL byte)\n", 2));
-    }
-    std::str::from_utf8(bytes)
-        .map(crate::vfs::shell_text)
-        .map_err(|_| err_out("patch: binary input is unsupported (invalid UTF-8)\n", 2))
 }
 
 fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
@@ -6703,10 +6700,7 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     } else {
         crate::vfs::stream_string_to_bytes(stdin)
     };
-    let patch_text = match patch_stream_text(&patch_bytes) {
-        Ok(text) => text.into_owned(),
-        Err(error) => return error,
-    };
+    let patch_text = crate::vfs::bytes_to_stream_string(&patch_bytes);
     // A CR in a hunk is file content unless the patch itself uses CRLF throughout.
     opts.strip_cr = !binary && patch_text.ends_with("\r\n")
         && patch_text.split_terminator('\n').all(|line| line.ends_with('\r'));
@@ -6722,7 +6716,10 @@ fn cmd_patch(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             break;
         }
         if let Some(path) = line.strip_prefix("Index: ") {
-            let (decoded, _) = decode_patch_header_path(path);
+            let (decoded, _) = match decode_patch_header_path(path) {
+                Ok(value) => value,
+                Err(error) => return error,
+            };
             normal_index = Some(resolve_patch_target_path(&decoded, opts.strip, &opts.work_cwd, fs));
         }
         if normal_diff_ranges(line).is_some() {
@@ -7027,11 +7024,6 @@ fn apply_unified_diff(
     let reverse = opts.reverse;
     let dry_run = opts.dry_run;
     let cwd = &opts.work_cwd;
-    if let Some(path) = output_override.filter(|p| *p != "-")
-        && let Ok(bytes) = fs.read_file(&resolve_posix_path(cwd, path))
-    {
-        patch_stream_text(&bytes)?;
-    }
     let action_verb = if dry_run { "checking" } else { "patching" };
     let transport_notice = if opts.strip_cr {
         "(Stripping trailing CRs from patch; use --binary to disable.)\n"
@@ -7170,14 +7162,14 @@ fn apply_unified_diff(
                     &mut any_file_failed,
                 ).map_err(io_error)?;
             }
-            let (dec_minus, is_ep) = decode_patch_header_path(minus_path);
+            let (dec_minus, is_ep) = decode_patch_header_path(minus_path)?;
             pending_minus_raw = dec_minus;
             pending_minus_epoch = is_ep;
             idx += 1;
             continue;
         }
         if let Some(plus_path) = line.strip_prefix("+++ ") {
-            let (raw_plus_owned, plus_epoch) = decode_patch_header_path(plus_path);
+            let (raw_plus_owned, plus_epoch) = decode_patch_header_path(plus_path)?;
             let raw_plus = raw_plus_owned.as_str();
             let old_is_null = !opts.was_normal_diff && (pending_minus_raw == "/dev/null" || pending_minus_epoch);
             let new_is_null = !opts.was_normal_diff && (raw_plus == "/dev/null" || plus_epoch);
@@ -7209,7 +7201,7 @@ fn apply_unified_diff(
             no_trailing_newline = false;
             file_lines.clear();
             if let Ok(bytes) = fs.read_file(&full) {
-                let s = patch_stream_text(&bytes)?;
+                let s = crate::vfs::bytes_to_stream_string(&bytes);
                 if !created_from_dev_null {
                     no_trailing_newline = !s.is_empty() && !s.ends_with('\n');
                     file_lines.extend(s.split_terminator('\n').map(str::to_owned));
@@ -7232,7 +7224,7 @@ fn apply_unified_diff(
                 if let Some(t) = &current_target {
                     let full = resolve_posix_path(cwd, t);
                     if let Ok(bytes) = fs.read_file(&full) {
-                        let s = patch_stream_text(&bytes)?;
+                        let s = crate::vfs::bytes_to_stream_string(&bytes);
                         no_trailing_newline = !s.is_empty() && !s.ends_with('\n');
                         file_lines = s.split_terminator('\n').map(|l| l.to_string()).collect();
                     }
@@ -7552,8 +7544,10 @@ fn apply_unified_diff(
             }
         }
         Ok((status_out, false))
+    } else if patch_text.is_empty() {
+        Ok((status_out, false))
     } else {
-        Ok((status_out, any_file_failed))
+        Err(err_out("patch: **** Only garbage was found in the patch input.\n", 2))
     }
 }
 

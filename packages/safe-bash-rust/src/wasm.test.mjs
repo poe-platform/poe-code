@@ -1,5 +1,6 @@
 import "./pdf-path-clipping.test.mjs";
 import "./pdf-text-stroke.wasm.test.mjs";
+import "./patch-bytes.wasm.test.mjs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { gunzipSync } from "node:zlib";

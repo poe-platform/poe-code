@@ -4,7 +4,9 @@ Run `patch` against an injected virtual filesystem with portable byte streams.
 Text patches from `diff -a` preserve NUL bytes in hunks and targets, including
 untouched bytes outside a hunk.
 Target and hunk content preserves non-UTF-8 bytes without transcoding.
-The native Rust command accepts only UTF-8 patch text and target files without NUL bytes, including with `--binary`.
+The TypeScript, native Rust and Wasm commands preserve arbitrary target and hunk
+bytes in unified, normal and context patches, including reversed patches and
+reject files. Filename headers must remain valid UTF-8 without NUL bytes.
 
 ```ts
 import { createPatchCommand, patchCommands } from "@poe-platform/safe-bash/commands/patch";

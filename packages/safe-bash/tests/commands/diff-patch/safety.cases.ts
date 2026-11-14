@@ -85,7 +85,9 @@ for (const binary of [Buffer.from([0, 65]), Buffer.from([0xff, 10]), Buffer.from
     assert.equal(diff.stderr, "");
     assert.deepEqual(Buffer.from(await diff.fs.readFile("/work/old")), binary);
     const patch = await run("patch", [], { files: { target: binary }, input: replacement });
-    assert.equal(patch.exitCode, 2);
+    assert.equal(patch.exitCode, 1);
+    assert.match(patch.stdout, /FAILED/u);
+    assert.equal(await contents(patch.fs, "target.rej"), replacement);
     assert.deepEqual(Buffer.from(await patch.fs.readFile("/work/target")), binary);
     const binaryPatch = await run("patch", [], { files: { target: "old\n" }, input: binary });
     assert.equal(binaryPatch.exitCode, 2);

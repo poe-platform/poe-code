@@ -9853,7 +9853,7 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
             1,
         );
     }
-    if !b.starts_with(b"%PDF-") {
+    if pdf_reader::header_version(&b).is_none() {
         return err_out(
             if quiet { "" } else { "PDF Error: Invalid PDF header: missing %PDF- signature\n" },
             1,

@@ -1,5 +1,70 @@
 use safe_bash_rust::{MemoryVfs, SafeBashFs, commands::archive::try_run_archive_command};
 
+#[test]
+fn rasterizers_accept_header_prefixes_and_ignore_unindexed_duplicates() {
+    // qpdf 12.4.2 accepts both inputs cleanly; PDFium renders solid red.
+    // An unindexed stream after EOF paints green and must not replace the page.
+    let prefixed = include_bytes!("fixtures/pdf-header-prefix.pdf");
+    let plain = &prefixed[b"leading bytes\n".len()..];
+    for command in ["pdftoppm", "pdftocairo"] {
+        let fs = MemoryVfs::new();
+        let mut expected = None;
+        for bytes in [plain, prefixed.as_slice()] {
+            for stdin in [false, true] {
+                fs.write_file("/input.pdf", bytes).unwrap();
+                let input = if stdin { "-" } else { "/input.pdf" };
+                let args = ["-png", "-r", "72", "-singlefile", input, "/page"].map(str::to_owned);
+                let result = try_run_archive_command(
+                    command,
+                    &args,
+                    if stdin {
+                        std::str::from_utf8(bytes).unwrap()
+                    } else {
+                        ""
+                    },
+                    "/",
+                    &Default::default(),
+                    &fs,
+                )
+                .unwrap();
+                assert_eq!(result.exit_code, 0, "{command}: {}", result.stderr);
+                assert!(result.stderr.is_empty());
+                let png = fs.read_file("/page.png").unwrap();
+                assert_eq!(&png[..8], b"\x89PNG\r\n\x1a\n");
+                if let Some(expected) = &expected {
+                    assert_eq!(&png, expected);
+                } else {
+                    expected = Some(png);
+                }
+                assert_eq!(fs.read_file("/input.pdf").unwrap(), bytes);
+            }
+        }
+        for bytes in [
+            b"leading bytes\n%PDF-1.4\nnot a document\n%%EOF\n".as_slice(),
+            b"not a PDF",
+        ] {
+            fs.write_file("/input.pdf", bytes).unwrap();
+            fs.write_file("/page.png", b"existing output").unwrap();
+            let args = ["-q", "-png", "-singlefile", "/input.pdf", "/page"].map(str::to_owned);
+            let result =
+                try_run_archive_command(command, &args, "", "/", &Default::default(), &fs).unwrap();
+            assert_ne!(result.exit_code, 0);
+            assert!(result.stderr.is_empty());
+            assert_eq!(fs.read_file("/page.png").unwrap(), b"existing output");
+        }
+    }
+    let fs = MemoryVfs::new();
+    fs.write_file("/input.pdf", prefixed).unwrap();
+    let args = ["-r", "72", "-singlefile", "/input.pdf", "/page"].map(str::to_owned);
+    let result =
+        try_run_archive_command("pdftoppm", &args, "", "/", &Default::default(), &fs).unwrap();
+    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+    let ppm = fs.read_file("/page.ppm").unwrap();
+    let pixels = ppm.strip_prefix(b"P6\n120 80\n255\n").unwrap();
+    assert_eq!(pixels.len(), 120 * 80 * 3);
+    assert!(pixels.chunks_exact(3).all(|pixel| pixel == [255, 0, 0]));
+}
+
 fn pdf(objects: &[&str]) -> String {
     let mut bytes = String::from("%PDF-1.4\n");
     let mut offsets = vec![0];

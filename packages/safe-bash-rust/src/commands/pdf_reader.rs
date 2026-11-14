@@ -464,7 +464,6 @@ struct Objects<'a> {
     security: Option<pdf_security::Security>,
     offset_repair: OffsetRepair,
     xref: BTreeMap<ObjectId, (Location, usize)>, // location and newest-revision traversal order
-    latest_members: BTreeMap<usize, usize>,
     streams: BTreeMap<usize, ObjectStream<'a>>,
     loading: BTreeSet<usize>,
     tokens: usize,
@@ -479,7 +478,6 @@ impl<'a> Objects<'a> {
             security: None,
             offset_repair: OffsetRepair::Strict,
             xref: BTreeMap::new(),
-            latest_members: BTreeMap::new(),
             streams: BTreeMap::new(),
             loading: BTreeSet::new(),
             tokens: 1_000_000,
@@ -840,9 +838,10 @@ fn index<'a>(bytes: &'a [u8], password: &str) -> Result<(Objects<'a>, Value<'a>)
 }
 
 fn strict_index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
-    let mut offset = last_xref(bytes)?;
+    // PDF offsets start at the header, even when the file has a leading prefix.
+    let header = bytes[..bytes.len().min(1024)].windows(5).position(|w| w == b"%PDF-")?;
+    let mut offset = last_xref(bytes)?.checked_add(header)?;
     let mut objects = Objects::new(bytes);
-    let mut latest_members = BTreeMap::new();
     // Keep the first traversal position for inspection, but the last row
     // in that revision determines the object's generation, offset or deletion.
     let mut rows = BTreeMap::new();
@@ -857,23 +856,14 @@ fn strict_index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
                 row.2 = location;
             }
         };
-        let trailer = objects.xref_revision(offset, &mut |id, location| {
-            if revisions.len() == 1 {
-                if let Some((_, Location::Member { container, .. })) = location {
-                    latest_members.insert(id, container);
-                } else {
-                    latest_members.remove(&id);
-                }
-            }
-            record(id, location)
-        })?;
-        let hybrid = trailer.get(b"XRefStm").map(|v| uint(v.word()?));
+        let trailer = objects.xref_revision(offset, &mut record)?;
+        let hybrid = trailer.get(b"XRefStm").map(|v| uint(v.word()?)?.checked_add(header));
         let supplement = match hybrid {
             Some(Some(p)) if p != offset => Some(objects.xref_revision(p, &mut record)?),
             Some(None) => return None,
             _ => None,
         };
-        let prev = trailer.get(b"Prev").map(|v| uint(v.word()?));
+        let prev = trailer.get(b"Prev").map(|v| uint(v.word()?)?.checked_add(header));
         for trailer in std::iter::once(trailer).chain(supplement) {
             let Value::Dict(entries) = trailer else {
                 return None;
@@ -892,13 +882,15 @@ fn strict_index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
             _ => return None,
         }
     }
-    objects.latest_members = latest_members;
     objects.xref = rows
         .into_iter()
         .filter_map(|(id, (_, order, location))| {
             location.map(|(generation, pos)| ((id, generation), (pos, order)))
         })
         .collect();
+    for (location, _) in objects.xref.values_mut() {
+        if let Location::File(offset) = location { *offset = offset.checked_add(header)?; }
+    }
     Some((objects, Value::Dict(latest)))
 }
 
@@ -1056,6 +1048,24 @@ fn read_pages<'a>(bytes: &[u8], objects: &mut Objects<'a>, trailer: Value<'a>) -
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn prefixed_pdfs_use_their_xref_instead_of_reconstructing_objects() {
+        for bytes in [
+            include_bytes!("../../../pdf-ast/src/fixtures/qpdf-prefixed-table.pdf").as_slice(),
+            include_bytes!("../../../pdf-ast/src/fixtures/qpdf-prefixed-stream.pdf").as_slice(),
+            include_bytes!("../../../pdf-ast/src/fixtures/qpdf-prefixed-incremental.pdf").as_slice(),
+            include_bytes!("../../../pdf-ast/src/fixtures/qpdf-prefixed-unindexed.pdf").as_slice(),
+            include_bytes!("../../../pdf-ast/src/fixtures/qpdf-prefixed-linearized.pdf").as_slice(),
+        ] {
+            let (mut objects, trailer) = strict_index(bytes).expect("header-relative xref");
+            let expected = read(&bytes[14..], "").unwrap().0;
+            let actual = read_pages(bytes, &mut objects, trailer).unwrap();
+            assert_eq!(actual.pages.len(), 1);
+            assert_eq!(actual.page_w, expected.page_w);
+            assert_eq!(actual.page_h, expected.page_h);
+        }
+    }
 
     #[test]
     fn stream_recovery_must_finish_looking_for_an_endobj_within_budget() {

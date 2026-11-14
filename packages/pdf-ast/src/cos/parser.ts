@@ -301,13 +301,13 @@ function findLastSubsequence(haystack: Uint8Array, needle: Uint8Array): number {
   return -1;
 }
 
-function parseHeaderVersion(bytes: Uint8Array): string {
+function parseHeader(bytes: Uint8Array): { version: string; offset: number } {
   const head = new TextDecoder("latin1").decode(bytes.subarray(0, Math.min(bytes.length, 1024)));
   const idx = head.indexOf("%PDF-");
   if (idx < 0) {
     throw new PdfError("E_PARSE", "Invalid PDF header: missing %PDF- signature");
   }
-  return head.slice(idx + 5, idx + 8);
+  return { version: head.slice(idx + 5, idx + 8), offset: idx };
 }
 
 function* parseObjectAtOffsetSteps(bytes: Uint8Array, offset: number, maxRecursionDepth: number, repair = false, onWarning?: ParseCosOptions["onWarning"]): Generator<void, PdfIndirectObject, void> {
@@ -337,11 +337,11 @@ function* parseObjectAtOffsetSteps(bytes: Uint8Array, offset: number, maxRecursi
   };
 }
 
-function* parseXrefRevisionAtSteps(bytes: Uint8Array, xrefOffset: number, maxDecompressedBytes: number, maxRecursionDepth: number, maxObjects: number, onWarning?: ParseCosOptions["onWarning"], xrefMode?: ParseCosOptions["xrefMode"]): Generator<void, PdfRevision, void> {
+function* parseXrefRevisionAtSteps(bytes: Uint8Array, xrefOffset: number, maxDecompressedBytes: number, maxRecursionDepth: number, maxObjects: number, onWarning?: ParseCosOptions["onWarning"], xrefMode?: ParseCosOptions["xrefMode"], headerOffset = 0): Generator<void, PdfRevision, void> {
   yield;
   let work = 0;
 
-  if (xrefOffset < 0 || xrefOffset >= bytes.length) {
+  if (!Number.isSafeInteger(xrefOffset) || xrefOffset < headerOffset || xrefOffset >= bytes.length) {
     throw new PdfError("E_PARSE", `Invalid xref offset: ${xrefOffset}`);
   }
   const lexer = new CosByteLexer(bytes, xrefOffset);
@@ -388,10 +388,11 @@ function* parseXrefRevisionAtSteps(bytes: Uint8Array, xrefOffset: number, maxDec
         }
         const objNum = startObj + i;
         if (flagTok.value === "n") {
+          if (!Number.isSafeInteger(offTok.value) || offTok.value < 0) throw new PdfError("E_PARSE", "Invalid uncompressed XRef offset");
           entries.set(objNum, {
             type: "uncompressed",
             objectNumber: objNum,
-            offset: offTok.value,
+            offset: offTok.value + headerOffset,
             generationNumber: genTok.value,
           });
         } else {
@@ -414,7 +415,7 @@ function* parseXrefRevisionAtSteps(bytes: Uint8Array, xrefOffset: number, maxDec
       xrefOffset,
       trailer: trailerNode,
       entries,
-      previousXrefOffset: prevNode?.kind === "number" ? prevNode.value : undefined,
+      previousXrefOffset: prevNode?.kind === "number" ? prevNode.value + headerOffset : undefined,
     };
   }
 
@@ -492,7 +493,7 @@ function* parseXrefRevisionAtSteps(bytes: Uint8Array, xrefOffset: number, maxDec
         entries.set(objNum, {
           type: "uncompressed",
           objectNumber: objNum,
-          offset: field1,
+          offset: field1 + headerOffset,
           generationNumber: field2,
         });
       } else if (field0 === 2) {
@@ -517,7 +518,7 @@ function* parseXrefRevisionAtSteps(bytes: Uint8Array, xrefOffset: number, maxDec
     xrefOffset,
     trailer: dict,
     entries,
-    previousXrefOffset: prevNode?.kind === "number" ? prevNode.value : undefined,
+    previousXrefOffset: prevNode?.kind === "number" ? prevNode.value + headerOffset : undefined,
   };
 }
 
@@ -669,7 +670,7 @@ export function* parseCosDocumentSteps(bytes: Uint8Array, options: ParseCosOptio
   yield;
   let work = 0;
 
-  const version = parseHeaderVersion(bytes);
+  const { version, offset: headerOffset } = parseHeader(bytes);
   const recovery = options.recovery ?? "strict";
   const maxObjects = options.maxObjects ?? Infinity;
   const maxDecompressedBytes = options.maxDecompressedBytes ?? Infinity;
@@ -702,13 +703,13 @@ export function* parseCosDocumentSteps(bytes: Uint8Array, options: ParseCosOptio
       }
     } else {
       try {
-        let currentXrefOffset: number | undefined = offsetTok.value;
+        let currentXrefOffset: number | undefined = offsetTok.value + headerOffset;
         const visitedOffsets = new Set<number>();
         while (currentXrefOffset !== undefined && !visitedOffsets.has(currentXrefOffset)) {
       if (++work % 16 === 0) yield;
 
           visitedOffsets.add(currentXrefOffset);
-          const rev: PdfRevision = (yield* parseXrefRevisionAtSteps(bytes, currentXrefOffset, maxDecompressedBytes, maxRecursionDepth, maxObjects, options.onWarning, options.xrefMode));
+          const rev: PdfRevision = (yield* parseXrefRevisionAtSteps(bytes, currentXrefOffset, maxDecompressedBytes, maxRecursionDepth, maxObjects, options.onWarning, options.xrefMode, headerOffset));
           revisions.push(rev);
           for (const [num, entry] of rev.entries.entries()) {
       if (++work % 16 === 0) yield;

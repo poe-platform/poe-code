@@ -1270,6 +1270,7 @@ function* executeQpdfCli(
       return { exitCode: 0, stdout: `${inputFile ?? "empty"} is not linearized\n`.repeat(showLinearization === "both" ? 2 : 1), stderr: "" };
     }
     if (linDict) {
+      const headerOffset = new TextDecoder("latin1").decode(cos.bytes.subarray(0, 1024)).indexOf("%PDF-");
       const numVal = (k: string, fb = 0) => {
         const n = cos.resolve(dictGet(linDict!, k));
         return n?.kind === "number" ? n.value : fb;
@@ -1282,11 +1283,11 @@ function* executeQpdfCli(
       const h0 = hint(0), h1 = hint(1);
       const values = { file_size: numVal("L"), first_page_object: numVal("O"), first_page_end: numVal("E"), npages: baseDoc.getPageCount(), xref_zero_offset: numVal("T"), first_page: numVal("P"), H_offset: h0, H_length: h1 };
       let hintStream;
-      for (const object of cos.objects.values()) if (object.span?.start === h0 && object.value.kind === "stream") { hintStream = object.value; break; }
+      for (const object of cos.objects.values()) if (object.span?.start === h0 + headerOffset && object.value.kind === "stream") { hintStream = object.value; break; }
       const hintBytes = hintStream ? cos.decodeStream(hintStream) : new Uint8Array();
       const shared = hintStream && cos.resolve(dictGet(hintStream.dict, "S")), outline = hintStream && cos.resolve(dictGet(hintStream.dict, "O"));
-      const validation = checkLinearization(values, cos.bytes.length, numVal("N"), hintBytes.length, shared?.kind === "number" ? shared.value : 0,
-        cos.revisions.at(-1)?.xrefOffset ?? 0, outline?.kind === "number" ? outline.value : undefined);
+      const validation = checkLinearization(values, cos.bytes.length - headerOffset, numVal("N"), hintBytes.length, shared?.kind === "number" ? shared.value : 0,
+        (cos.revisions.at(-1)?.xrefOffset ?? headerOffset) - headerOffset, outline?.kind === "number" ? outline.value : undefined);
       let step = validation.next();
       const pages = baseDoc.getPages();
       while (!step.done) {
@@ -1294,7 +1295,7 @@ function* executeQpdfCli(
         const request = step.value;
         let bytes: Uint8Array = new Uint8Array();
         if (!("kind" in request)) bytes = hintBytes.subarray(request.offset, request.offset + request.length);
-        else if (request.kind === "file") bytes = cos.bytes.subarray(request.offset, request.offset + request.length);
+        else if (request.kind === "file") bytes = cos.bytes.subarray(request.offset + headerOffset, request.offset + headerOffset + request.length);
         else if (request.kind === "layout") {
           const root = cos.rootRef;
           if (root?.kind === "ref") {
@@ -1313,7 +1314,7 @@ function* executeQpdfCli(
         } else {
           const number = request.kind === "page" ? pages[request.number]?.ref.objectNumber : request.number;
           const object = number === undefined ? undefined : cos.objects.get(number);
-          if (object?.span) { request.objectNumber = object.objectNumber; request.start = object.span.start; request.end = object.span.end; }
+          if (object?.span) { request.objectNumber = object.objectNumber; request.start = object.span.start - headerOffset; request.end = object.span.end - headerOffset; }
         }
         step = validation.next(bytes);
       }
@@ -1446,6 +1447,7 @@ function* executeQpdfCli(
   }
 
   if (showXref) {
+    const headerOffset = Math.max(0, new TextDecoder("latin1").decode(baseDoc.cos.bytes.subarray(0, 1024)).indexOf("%PDF-"));
     const lines: string[] = [];
     const revEntries = new Map(baseDoc.cos.revisions.flatMap(revision => [...revision.entries]).reverse());
     for (const [objNum, obj] of [...baseDoc.cos.objects.entries()].sort((a, b) => a[0] - b[0])) {
@@ -1456,7 +1458,7 @@ function* executeQpdfCli(
         );
       } else {
         const offset = xEntry?.offset ?? obj.span?.start;
-        lines.push(`${objNum}/${obj.generationNumber}: uncompressed; ${offset === undefined ? `type = ${obj.value.kind}` : `offset = ${offset}`}`);
+        lines.push(`${objNum}/${obj.generationNumber}: uncompressed; ${offset === undefined ? `type = ${obj.value.kind}` : `offset = ${offset - headerOffset}`}`);
       }
     }
     return { exitCode: 0, stdout: lines.join("\n") + "\n", stderr: "" };

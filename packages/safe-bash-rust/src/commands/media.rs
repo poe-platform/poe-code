@@ -8435,7 +8435,7 @@ fn cmd_pdfinfo(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> 
     if b.is_empty() {
         return err_out("Syntax Error: Document stream is empty\n", 1);
     }
-    if !b.starts_with(b"%PDF-") {
+    if pdf_reader::header_version(&b).is_none() {
         return err_out("Syntax Error: Invalid PDF header: missing %PDF- signature\n", 1);
     }
     let supplied = pw_opt.as_deref().unwrap_or("");

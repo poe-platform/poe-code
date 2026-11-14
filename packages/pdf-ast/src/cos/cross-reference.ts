@@ -27,14 +27,15 @@ export interface PdfCrossReference {
 
 const marker = new TextEncoder().encode("startxref");
 
-async function header(source: PdfFileSource, signal?: AbortSignal): Promise<string> {
+/** Read the version and byte origin used by header-relative PDF offsets. */
+export async function readPdfHeader(source: PdfFileSource, signal?: AbortSignal): Promise<{ version: string; offset: number }> {
   const bytes = new Uint8Array(Math.min(1024, source.size));
   let offset = 0;
   for await (const chunk of source.stream(0, bytes.length, signal)) { bytes.set(chunk, offset); offset += chunk.length; }
   const head = new TextDecoder("latin1").decode(bytes);
   const start = head.indexOf("%PDF-");
   if (start < 0) throw new PdfError("E_PARSE", "Invalid PDF header: missing %PDF- signature");
-  return head.slice(start + 5, start + 8);
+  return { version: head.slice(start + 5, start + 8), offset: start };
 }
 
 /** Locate the final startxref pointer with bounded reverse reads. */
@@ -71,11 +72,11 @@ export async function findPdfStartXref(source: PdfFileSource, options: PdfCrossR
   throw new PdfError("E_PARSE", "Invalid PDF trailer: missing startxref");
 }
 
-function link(trailer: PdfCosDict, key: string, size: number): number | undefined {
+function link(trailer: PdfCosDict, key: string, size: number, headerOffset: number): number | undefined {
   const node = dictGet(trailer, key);
   if (node?.kind !== "number") return undefined;
-  if (!Number.isSafeInteger(node.value) || node.value < 0 || node.value >= size) throw new PdfError("E_PARSE", `Invalid /${key} xref offset`);
-  return node.value;
+  if (!Number.isSafeInteger(node.value) || node.value < 0 || node.value >= size - headerOffset) throw new PdfError("E_PARSE", `Invalid /${key} xref offset`);
+  return node.value + headerOffset;
 }
 
 /** Discover and combine retained xref revisions without whole-document Maps.
@@ -87,8 +88,8 @@ export async function openPdfCrossReference(source: PdfFileSource, storage: PdfI
   const maxRevisions = options.maxRevisions ?? Infinity;
   if (maxRevisions !== Infinity && (!Number.isSafeInteger(maxRevisions) || maxRevisions < 0)) throw new RangeError("Invalid maxRevisions");
   options.signal?.throwIfAborted();
-  const version = await header(source, options.signal);
-  const xrefOffset = await findPdfStartXref(source, options);
+  const { version, offset: headerOffset } = await readPdfHeader(source, options.signal);
+  const xrefOffset = await findPdfStartXref(source, options) + headerOffset;
   const indexOptions = { ...options.index, ...(options.signal ? { signal: options.signal } : {}) };
   let visited: PdfObjectIndex | undefined;
   let revision: PdfObjectIndex | undefined;
@@ -133,7 +134,7 @@ export async function openPdfCrossReference(source: PdfFileSource, storage: PdfI
         async function* rows(): AsyncGenerator<PdfXRefEntry> {
           trailer = yield* readCosXrefRevision(source, current, options);
           metadata(trailer);
-          const hybrid = link(trailer, "XRefStm", source.size);
+          const hybrid = link(trailer, "XRefStm", source.size, headerOffset);
           if (hybrid !== undefined && hybrid !== current) {
             const supplement = yield* readCosXrefRevision(source, hybrid, options);
             metadata(supplement);
@@ -143,11 +144,11 @@ export async function openPdfCrossReference(source: PdfFileSource, storage: PdfI
         newest ??= trailer!;
         for await (const entry of revision.entries(options.signal)) {
           highestObject = Math.max(highestObject, entry.objectNumber);
-          yield entry;
+          yield entry.type === "uncompressed" ? { ...entry, offset: entry.offset! + headerOffset } : entry;
         }
         await revision.close();
         revision = undefined;
-        offset = link(trailer!, "Prev", source.size);
+        offset = link(trailer!, "Prev", source.size, headerOffset);
       }
     } catch (error) { failed = true; throw error; }
     finally {

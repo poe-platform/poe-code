@@ -217,29 +217,15 @@ impl<'a> PageSource<'a> {
 
     pub(in crate::commands::archive) fn qpdf_xref(&mut self) -> Option<String> {
         let mut out = String::new();
+        let bytes = self.objects.bytes;
+        let header = bytes[..bytes.len().min(1024)].windows(5).position(|w| w == b"%PDF-")?;
         for id in self.objects.xref.keys().copied().collect::<Vec<_>>() {
-            let (v, mut c) = self.objects.object(id)?;
-            c.skip();
-            let ty = match v {
-                Value::Dict(_) if c.0.starts_with(b"stream") => "stream",
-                Value::Dict(_) => "dict",
-                Value::Array(_) => "array",
-                Value::String { .. } => "string",
-                Value::Ref(_) => "ref",
-                Value::Word(w) if w.as_ref() == b"null" => "null",
-                Value::Word(w) if matches!(w.as_ref(), b"true" | b"false") => "boolean",
-                Value::Word(w) if w.starts_with(b"/") => "name",
-                Value::Word(_) => "number",
-            };
-            if let Some(container) = self.objects.latest_members.get(&id.0) {
-                writeln!(
-                    out,
-                    "{}/0: compressed; stream = {container}; index = undefined; type = {ty}",
-                    id.0
-                )
-                .ok()?;
-            } else {
-                writeln!(out, "{}/{}: uncompressed; type = {ty}", id.0, id.1).ok()?;
+            self.objects.object(id)?;
+            match self.objects.xref[&id].0 {
+                super::super::Location::File(offset) => writeln!(out,
+                    "{}/{}: uncompressed; offset = {}", id.0, id.1, offset.checked_sub(header)?).ok()?,
+                super::super::Location::Member { container, ordinal } => writeln!(out,
+                    "{}/0: compressed; stream = {container}, index = {ordinal}", id.0).ok()?,
             }
         }
         for &id in &self.pages {

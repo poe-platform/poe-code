@@ -1,0 +1,7 @@
+{
+  "table": "1/0: uncompressed; offset = 9\n2/0: uncompressed; offset = 58\n3/0: uncompressed; offset = 115\n",
+  "stream": "1/0: uncompressed; offset = 15\n2/0: compressed; stream = 1, index = 0\n3/0: compressed; stream = 1, index = 1\n4/0: compressed; stream = 1, index = 2\n5/0: uncompressed; offset = 242\n",
+  "incremental": "1/0: uncompressed; offset = 9\n2/0: uncompressed; offset = 58\n3/0: uncompressed; offset = 343\n",
+  "unindexed": "1/0: uncompressed; offset = 9\n2/0: uncompressed; offset = 58\n3/0: uncompressed; offset = 115\n",
+  "linearized": "1/0: uncompressed; offset = 706\n2/0: uncompressed; offset = 15\n3/0: uncompressed; offset = 460\n4/0: uncompressed; offset = 509\n5/0: uncompressed; offset = 618\n"
+}

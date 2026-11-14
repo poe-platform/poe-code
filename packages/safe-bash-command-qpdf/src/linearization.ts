@@ -2,11 +2,11 @@ import { linearizationAssignments } from "./linearization-assignments.js";
 import { checkLinearization } from "./linearization-check.js";
 import { linearizationReport } from "./linearization-report.js";
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
-import { PdfError, cosDict, dictGet, readCosXrefRevision, scanCosRangeObjects, type PdfCosDict, PdfFileSource, type PdfIndexStorage, type PdfRetainedDocument } from "@poe-code/pdf-ast";
+import { PdfError, cosDict, dictGet, readCosXrefRevision, readPdfHeader, scanCosRangeObjects, type PdfCosDict, PdfFileSource, type PdfIndexStorage, type PdfRetainedDocument } from "@poe-code/pdf-ast";
 
 /** Recover the buffered reader's insertion order without retaining its Map:
  * revision order (uncompressed before compressed), or repaired file order. */
-async function firstDictionary(document: PdfRetainedDocument, source: PdfFileSource, storage: PdfIndexStorage, signal: AbortSignal): Promise<PdfCosDict | undefined> {
+async function firstDictionary(document: PdfRetainedDocument, source: PdfFileSource, storage: PdfIndexStorage, signal: AbortSignal, headerOffset: number): Promise<PdfCosDict | undefined> {
   const backing = new PagedStorage({ fs: storage.fs, cwd: storage.directory, env: {}, signal }, 4);
   const seen = new IntegerTable(backing), revisions = new IntegerTable(backing), streams = new IntegerTable(backing);
   let failed = false;
@@ -33,7 +33,7 @@ async function firstDictionary(document: PdfRetainedDocument, source: PdfFileSou
             if (match && !compressed) compressed = match.dict;
             step = await revision.next();
           }
-          const previous = dictGet(step.value, "Prev"); offset = previous?.kind === "number" ? previous.value : undefined;
+          const previous = dictGet(step.value, "Prev"); offset = previous?.kind === "number" ? previous.value + headerOffset : undefined;
         } finally { await revision.return(cosDict({})); }
       }
       if (compressed) return compressed;
@@ -68,7 +68,8 @@ async function firstDictionary(document: PdfRetainedDocument, source: PdfFileSou
 
 export async function* linearizationParts(document: PdfRetainedDocument, source: PdfFileSource, storage: PdfIndexStorage,
   filename: string | undefined, pageCount: number, signal: AbortSignal, mode: "show" | "check" | "both" | "inspect", warnings: string[]): AsyncGenerator<string> {
-  const dict = await firstDictionary(document, source, storage, signal);
+  const { offset: headerOffset } = await readPdfHeader(source, signal);
+  const dict = await firstDictionary(document, source, storage, signal, headerOffset);
   if (!dict) { if (mode === "inspect") return; yield `${filename ?? "empty"} is not linearized\n`.repeat(mode === "both" ? 2 : 1); return; }
   async function number(key: string, fallback = 0) {
     const node = (await document.lookup(dictGet(dict!, key)))?.value; return node?.kind === "number" ? node.value : fallback;
@@ -82,7 +83,7 @@ export async function* linearizationParts(document: PdfRetainedDocument, source:
   let decoded: PdfFileSource | undefined, sharedOffset = 0, outlineOffset: number | undefined;
   try {
     for await (const entry of document.crossReference.index.entries(signal)) {
-      if (entry.type !== "uncompressed" || entry.offset !== values.H_offset) continue;
+      if (entry.type !== "uncompressed" || entry.offset !== values.H_offset + headerOffset) continue;
       const object = await document.objects.get(entry.objectNumber, entry.generationNumber ?? 0);
       if (!object?.stream || object.value.kind !== "dict") break;
       const shared = (await document.lookup(dictGet(object.value, "S")))?.value, outline = (await document.lookup(dictGet(object.value, "O")))?.value;
@@ -90,10 +91,10 @@ export async function* linearizationParts(document: PdfRetainedDocument, source:
       decoded = await PdfFileSource.fromStream(storage.fs, storage.directory, document.objects.decodeStream(entry.objectNumber, entry.generationNumber ?? 0), { signal });
       break;
     }
-    let mainXref = document.crossReference.xrefOffset;
+    let mainXref = document.crossReference.xrefOffset - headerOffset;
     const prev = dictGet(document.crossReference.trailer, "Prev");
     if (prev?.kind === "number") mainXref = prev.value;
-    const validation = checkLinearization(values, source.size, await number("N"), decoded?.size ?? 0, sharedOffset, mainXref, outlineOffset);
+    const validation = checkLinearization(values, source.size - headerOffset, await number("N"), decoded?.size ?? 0, sharedOffset, mainXref, outlineOffset);
     let validationStep = validation.next();
     const pages = document.pages();
     try {
@@ -102,7 +103,7 @@ export async function* linearizationParts(document: PdfRetainedDocument, source:
         const request = validationStep.value;
         let bytes: Uint8Array = new Uint8Array();
         if (!("kind" in request)) bytes = await decoded!.read(request.offset, request.length, signal);
-        else if (request.kind === "file") bytes = await source.read(request.offset, request.length, signal);
+        else if (request.kind === "file") bytes = await source.read(request.offset + headerOffset, request.length, signal);
         else if (request.kind === "layout") {
           const root = dictGet(document.crossReference.trailer, "Root");
           if (root?.kind === "ref") {
@@ -121,7 +122,7 @@ export async function* linearizationParts(document: PdfRetainedDocument, source:
           const number = request.kind === "page" ? (await pages.next()).value?.reference?.objectNumber : request.number;
           const entry = number === undefined ? undefined : await document.crossReference.index.get(number, signal);
           const object = entry?.type === "uncompressed" ? await document.objects.get(number!, entry.generationNumber ?? 0) : undefined;
-          if (object) { request.objectNumber = object.objectNumber; request.start = object.span.start; request.end = object.span.end; }
+          if (object) { request.objectNumber = object.objectNumber; request.start = object.span.start - headerOffset; request.end = object.span.end - headerOffset; }
         }
         validationStep = validation.next(bytes);
       }

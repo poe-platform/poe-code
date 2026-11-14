@@ -1049,8 +1049,11 @@ before advancing and keep the source/document open until iteration ends.
 `maxObjects`, `maxStreamBytes` and `signal` govern admission and cancellation.
 This low-level COS path preserves the graph; it does not flatten page trees or
 encrypt output. `findPdfStartXref(source, options)` locates the latest cross-reference
-revision with bounded reverse reads; pass the offset to `readCosXrefRevision`
-to inspect its rows without collecting the document.
+revision's header-relative pointer with bounded reverse reads. Add the `offset`
+from `readPdfHeader(source, signal)` before passing it to `readCosXrefRevision`,
+which returns the raw rows without collecting the document. Buffered and retained
+document readers handle prefixes before `%PDF-` automatically; their object spans,
+xref entries and revision offsets address the original source bytes.
 
 `PdfMutableObjectStore` holds edited objects and encoded stream chunks on the
 caller filesystem. Reserve references with `allocate()`, replace values with

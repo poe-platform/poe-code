@@ -1,6 +1,7 @@
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
 import { PdfError } from "../errors.js";
 import { cosDict, dictGet } from "../ast.js";
+import { readPdfHeader } from "./cross-reference.js";
 import { readCosXrefRevision } from "./range-xref.js";
 import { scanCosRangeObjects } from "./range-repair.js";
 import type { PdfFileSource } from "../source.js";
@@ -22,6 +23,7 @@ export async function* retainedObjectOrder(document: PdfRetainedDocument, source
   }
   try {
     if (document.crossReference.revisionCount) {
+      const { offset: headerOffset } = await readPdfHeader(source, signal);
       for (const kind of ["uncompressed", "compressed"]) {
         const revisions = new IntegerTable(backing);
         let offset: number | undefined = document.crossReference.xrefOffset;
@@ -35,7 +37,7 @@ export async function* retainedObjectOrder(document: PdfRetainedDocument, source
               if (entry?.type === kind && await candidate(number)) yield number;
               step = await revision.next();
             }
-            const previous = dictGet(step.value, "Prev"); offset = previous?.kind === "number" ? previous.value : undefined;
+            const previous = dictGet(step.value, "Prev"); offset = previous?.kind === "number" ? previous.value + headerOffset : undefined;
           } finally { await revision.return(cosDict({})); }
         }
       }

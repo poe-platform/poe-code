@@ -206,6 +206,12 @@ operations, including annotation appearances and widget fallback text.
 Appearance states include `Off`; appearances use normalized rectangles and clip
 to their transformed bounding boxes. Page content has its own graphics-state
 scope, so its final transform or clip cannot hide or move subsequent appearances.
+When `/AP /N` is absent or null, Highlight, Underline, StrikeOut, Squiggly,
+Square, Circle and Ink annotations render from their geometry, colors, border
+widths/dashes and opacity. Highlights use Multiply blending. Generated geometry
+is limited to 65,536 coordinate values/segments per annotation; malformed or
+excessive geometry fails explicitly. Other annotation types still need supplied
+appearances (apart from the existing widget-text fallback).
 `hideAnnotations` matches the buffered page option. A resource prepass preserves
 fonts and other resources supplied by later appearances; each prepass cursor
 closes before the next annotation, then appearance events stream on demand.

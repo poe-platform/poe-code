@@ -1436,9 +1436,11 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
     } else if (operator === "K") {
       st.strokeColorSpaceName = "DeviceCMYK";
       st.strokeColor = yield* resolveScColorOperands("DeviceCMYK", ops, activeResources);
-    } else if (operator === "gs" && activeResources && ops[0]?.kind === "name") {
-      const extDict = yield* resolveEvaluationDict(dictGet(activeResources, "ExtGState"), ["Resources", "ExtGState"]);
-      const gsDict = extDict ? yield* resolveEvaluationDict(yield* lookupEvaluationDictionary(extDict, ops[0].decoded, true), ["Resources", "ExtGState", ops[0].decoded], true) : undefined;
+    } else if (operator === "gs" && activeResources && (ops[0]?.kind === "name" || ops[0]?.kind === "dict")) {
+      // Synthesized annotations carry their graphics state inline so generated
+      // names cannot collide with page or appearance resource dictionaries.
+      const extDict = ops[0].kind === "name" ? yield* resolveEvaluationDict(dictGet(activeResources, "ExtGState"), ["Resources", "ExtGState"]) : undefined;
+      const gsDict = ops[0].kind === "dict" ? ops[0] : extDict ? yield* resolveEvaluationDict(yield* lookupEvaluationDictionary(extDict, ops[0].decoded, true), ["Resources", "ExtGState", ops[0].decoded], true) : undefined;
       if (gsDict) {
         const mask = yield* resolveEvaluationNode(yield* lookupEvaluationDictionary(gsDict, "SMask", true), false, undefined, true);
         if (mask?.kind === "name" && mask.decoded === "None") {
@@ -1543,7 +1545,7 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
           const pair = yield* evaluationArrayPrefix(fontArr, 2);
           const fSizeNode = yield* resolveEvaluationNode(pair[1]);
           if (fSizeNode?.kind === "number") st.fontSize = fSizeNode.value;
-          const gsFontKey = `__ExtGS_Font_${ops[0].decoded}`;
+          const gsFontKey = `__ExtGS_Font_${ops[0].kind === "name" ? ops[0].decoded : "inline"}`;
           const gsFontResources: PdfCosDict = {
             kind: "dict",
             entries: [

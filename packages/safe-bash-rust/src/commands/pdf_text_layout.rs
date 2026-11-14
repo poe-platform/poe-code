@@ -9,6 +9,8 @@ pub(in super::super) mod widths;
 use super::{ID, Matrix, concat};
 #[path = "pdf_soft_mask.rs"]
 mod pdf_soft_mask;
+#[path = "pdf_markup.rs"]
+mod pdf_markup;
 use super::Objects;
 pub(super) use pdf_soft_mask::SoftMask;
 fn shift(m: &mut Matrix, x: f64, y: f64) {
@@ -311,11 +313,12 @@ impl<'a> PageSource<'a> {
                 None => 0,
             };
             if flags & (2 | 32) != 0 { continue; }
-            let Some(ap) = annot.get(b"AP") else { continue; };
+            let Some(ap) = annot.get(b"AP") else { pdf_markup::draw(&annot, &mut self.objects, emit)?; continue; };
             let ap = self.objects.resolve(ap)?;
-            let Some(normal) = ap.get(b"N") else { continue; };
+            let Some(normal) = ap.get(b"N") else { pdf_markup::draw(&annot, &mut self.objects, emit)?; continue; };
             let mut id = normal.reference();
             let appearance = self.objects.resolve(normal)?;
+            if appearance.word() == Some(b"null") { pdf_markup::draw(&annot, &mut self.objects, emit)?; continue; }
             // Appearance state names, including Off, select an ordinary stream.
             if appearance.get(b"BBox").is_none() {
                 let Some(state) = annot.get(b"AS") else { continue; };

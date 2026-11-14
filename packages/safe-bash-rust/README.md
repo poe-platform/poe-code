@@ -81,6 +81,12 @@ content, including named states such as `Off`, transformed bounds, local resourc
 and page rotation. Hidden and NoView annotations remain hidden;
 `-hide-annotations` excludes all appearances. Appearance bounds clip their paint,
 and page graphics state cannot clip or recolor subsequent annotations.
+If `/AP /N` is missing or null, Highlight, Underline, StrikeOut, Squiggly,
+Square, Circle and Ink annotations render from their dictionary geometry,
+colors, border widths/dashes and opacity; highlights use Multiply blending.
+Generated geometry is bounded to 65,536 coordinate values/segments per annotation.
+Malformed or excessive geometry fails before replacing the page output.
+Other annotation types still require a supplied appearance.
 
 ### 1. Zero-Dependency Rust Shell with `MemoryVfs`
 

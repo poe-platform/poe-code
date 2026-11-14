@@ -1,5 +1,6 @@
+import { PdfError } from "../errors.js";
 import { PdfArrayCursor } from "./array-cursor.js";
-import { cosDict, cosNumber, cosString, decodePdfString, dictGet, dictSet, type PdfContentNode, type PdfCosArray, type PdfCosDict, type PdfCosNode, type PdfCosStream } from "../ast.js";
+import { cosArray, cosDict, cosName, cosNumber, cosString, decodePdfString, dictGet, dictSet, type PdfContentNode, type PdfPathSegment, type PdfCosArray, type PdfCosDict, type PdfCosNode, type PdfCosStream } from "../ast.js";
 import { optionalContentVisibilitySteps } from "./evaluator.js";
 
 export type PdfAppearanceRequest = { readonly kind: "dictionary-merge"; readonly destination: PdfCosDict; readonly source?: PdfCosDict } | { readonly kind: "resolve"; readonly node: PdfCosNode; readonly arrayPathPrefix?: readonly string[] }
@@ -200,6 +201,10 @@ export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCo
       }
 
       const subNode = (yield* resolveNode(dictGet(annotDict, "Subtype")));
+      if (!apN || apN.kind === "null") {
+        const markup = yield* markupAppearance(annotDict, subNode?.kind === "name" ? subNode.decoded : "", onAllocation);
+        if (markup) { yield {kind:"appearance",nodes:[markup]}; continue; }
+      }
       const isWidget =
         (subNode?.kind === "name" && subNode.decoded === "Widget") ||
         Boolean(dictGet(annotDict, "FT") || dictGet(annotDict, "T") || parentDict);
@@ -221,4 +226,134 @@ export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCo
       }] };
     }
   }
+}
+
+/** PDF markup dictionaries are sufficient to draw common annotations without /AP. */
+function* markupAppearance(annot: PdfCosDict, subtype: string, onAllocation?: (bytes: number) => void): AppearanceWork<PdfContentNode | undefined> {
+  if (!["Highlight", "Underline", "StrikeOut", "Squiggly", "Square", "Circle", "Ink"].includes(subtype)) return;
+  let remaining = 65536;
+  function* numbers(node: PdfCosNode | undefined): AppearanceWork<number[] | undefined> {
+    if (!node) return;
+    const resolved = yield* resolveNode(node);
+    if (resolved?.kind === "null") return;
+    const array = resolved?.kind === "array" ? resolved : undefined;
+    if (!array) throw new PdfError("E_PARSE", "Invalid PDF markup coordinates");
+    const cursor = new PdfArrayCursor(array), out: number[] = [];
+    for (let step = yield* cursor.next(); !step.done; step = yield* cursor.next()) {
+      if (--remaining < 0) throw new PdfError("E_LIMIT", "PDF markup geometry limit exceeded");
+      const value = yield* resolveNode(step.value);
+      if (value?.kind !== "number" || !Number.isFinite(value.value)) throw new PdfError("E_PARSE", "Invalid PDF markup coordinates");
+      onAllocation?.(16); out.push(value.value);
+    }
+    return out;
+  }
+  const rect = yield* numbers(dictGet(annot, "Rect"));
+  if (!rect || rect.length !== 4) throw new PdfError("E_PARSE", "Invalid PDF markup rectangle");
+  let bounds=[Math.min(rect[0]!,rect[2]!),Math.min(rect[1]!,rect[3]!),Math.max(rect[0]!,rect[2]!),Math.max(rect[1]!,rect[3]!)];
+  const ops: PdfContentNode[] = [];
+  const state = (operator: string, values: number[]) => { onAllocation?.(64 + values.length * 32); ops.push({kind:"state-op",operator,operands:values.map(v=>cosNumber(v))}); };
+  const path = (segments: PdfPathSegment[], paint: "S" | "f" | "b" | "s") => { onAllocation?.(64 + segments.length * 96); ops.push({kind:"path-op",segments,paint}); };
+  function color(values: number[] | undefined, stroke: boolean) {
+    if (!values?.length) return false;
+    if (![1,3,4].includes(values.length)) throw new PdfError("E_PARSE", "Invalid PDF markup color");
+    state(values.length === 1 ? stroke ? "G" : "g" : values.length === 3 ? stroke ? "RG" : "rg" : stroke ? "K" : "k", values);
+    return true;
+  }
+  const opacity = yield* resolveNode(dictGet(annot, "CA"));
+  if (opacity && opacity.kind !== "null" && (opacity.kind !== "number" || !Number.isFinite(opacity.value))) throw new PdfError("E_PARSE", "Invalid PDF markup opacity");
+  const alpha = opacity?.kind === "number" ? Math.max(0,Math.min(1,opacity.value)) : 1;
+  onAllocation?.(512);
+  ops.push({kind:"state-op",operator:"gs",operands:[cosDict({CA:cosNumber(alpha),ca:cosNumber(alpha),BM:cosName(subtype === "Highlight" ? "Multiply" : "Normal")})]});
+  const c = yield* numbers(dictGet(annot,"C"));
+  if (["Highlight","Underline","StrikeOut","Squiggly"].includes(subtype)) {
+    const quads = yield* numbers(dictGet(annot,"QuadPoints"));
+    if (!quads?.length) return;
+    if (quads.length % 8) throw new PdfError("E_PARSE", "Invalid PDF markup quadrilaterals");
+    bounds=[Infinity,Infinity,-Infinity,-Infinity];
+    for(let i=0;i<quads.length;i+=2) {bounds[0]=Math.min(bounds[0]!,quads[i]!);bounds[1]=Math.min(bounds[1]!,quads[i+1]!);bounds[2]=Math.max(bounds[2]!,quads[i]!);bounds[3]=Math.max(bounds[3]!,quads[i+1]!);}
+    color(c ?? (subtype === "Highlight" ? [1,1,0] : [0]),subtype !== "Highlight");
+    state("w",[1]);
+    for (let i=0;i<quads.length;i+=8) {
+      const q=quads.slice(i,i+8);
+      const left=Math.min(q[0]!,q[2]!,q[4]!,q[6]!),right=Math.max(q[0]!,q[2]!,q[4]!,q[6]!);
+      const bottom=Math.min(q[1]!,q[3]!,q[5]!,q[7]!),top=Math.max(q[1]!,q[3]!,q[5]!,q[7]!);
+      if (subtype === "Highlight") {
+        path([{kind:"move",x:q[0]!,y:q[1]!},{kind:"line",x:q[2]!,y:q[3]!},{kind:"line",x:q[6]!,y:q[7]!},{kind:"line",x:q[4]!,y:q[5]!},{kind:"close"}],"f");
+      } else if (subtype === "Squiggly") {
+        const count=Math.ceil((right-left)/2);
+        if (!Number.isFinite(count) || count > remaining) throw new PdfError("E_LIMIT", "PDF markup geometry limit exceeded");
+        remaining-=count;
+        const segments: PdfPathSegment[]=[{kind:"move",x:left,y:bottom+2}];
+        for(let n=1;n<=count;n++) {
+          const x=Math.min(right,left+n*2),fraction=(x-left-(n-1)*2)/2;
+          segments.push({kind:"line",x,y:bottom+((n%2 ? 2 : 0)+(n%2 ? -2 : 2)*fraction)});
+        }
+        path(segments,"S");
+      } else {
+        const y=subtype === "Underline" ? bottom+1 : (bottom+top)/2;
+        path([{kind:"move",x:left,y},{kind:"line",x:right,y}],"S");
+      }
+    }
+  } else {
+    const bs=yield* resolveDict(dictGet(annot,"BS"));
+    const border=yield* resolveArray(dictGet(annot,"Border"));
+    let borderWidth: number | undefined, borderDash: PdfCosNode | undefined;
+    if(border) {
+      const cursor=new PdfArrayCursor(border);let count=0;
+      for(let step=yield* cursor.next();!step.done;step=yield* cursor.next()) {
+        if(++count>4) throw new PdfError("E_PARSE","Invalid PDF markup border");
+        if(count===4) borderDash=step.value;
+        else {
+          const value=yield* resolveNode(step.value);
+          if(value?.kind!=="number" || !Number.isFinite(value.value)) throw new PdfError("E_PARSE","Invalid PDF markup border");
+          if(count===3) borderWidth=value.value;
+        }
+      }
+      if(count<3) throw new PdfError("E_PARSE","Invalid PDF markup border");
+    }
+    const w=bs ? yield* resolveNode(dictGet(bs,"W")) : undefined;
+    if (w && (w.kind !== "number" || !Number.isFinite(w.value))) throw new PdfError("E_PARSE","Invalid PDF markup border");
+    const width=Math.max(0,w?.kind === "number" ? w.value : borderWidth ?? 1);
+    state("w",[width]);
+    const stroke=color(c ?? [0],true) && width>0;
+    const style=bs ? yield* resolveNode(dictGet(bs,"S")) : undefined;
+    if ((style?.kind === "name" && style.decoded === "D") || (!bs && borderDash)) {
+      const dash=(yield* numbers(bs ? dictGet(bs,"D") : borderDash)) ?? [3];
+      if (dash.some(v=>v<0) || (dash.length>0 && !dash.some(v=>v>0))) throw new PdfError("E_PARSE","Invalid PDF markup dash");
+      ops.push({kind:"state-op",operator:"d",operands:[cosArray(dash.map(v=>cosNumber(v))),cosNumber(0)]});
+    }
+    if (subtype === "Ink") {
+      bounds=bounds.map((v,i)=>v+(i<2 ? -width/2 : width/2));
+      const lists=yield* resolveArray(dictGet(annot,"InkList"));
+      if (!lists || !stroke) return;
+      const cursor=new PdfArrayCursor(lists);
+      for(let step=yield* cursor.next();!step.done;step=yield* cursor.next()) {
+        if (--remaining<0) throw new PdfError("E_LIMIT","PDF markup geometry limit exceeded");
+        const points=yield* numbers(step.value);
+        if (!points || points.length%2) throw new PdfError("E_PARSE","Invalid PDF ink coordinates");
+        if (points.length<2) continue;
+        const segments:PdfPathSegment[]=[{kind:"move",x:points[0]!,y:points[1]!}];
+        for(let i=0;i<points.length;i+=2) segments.push({kind:"line",x:points[i]!,y:points[i+1]!});
+        path(segments,"S");
+      }
+    } else {
+      const fill=color(yield* numbers(dictGet(annot,"IC")),false);
+      if (!fill && !stroke) return;
+      const inset=width/2,x=Math.min(rect[0]!,rect[2]!)+inset,y=Math.min(rect[1]!,rect[3]!)+inset;
+      const rw=Math.abs(rect[2]!-rect[0]!)-width,rh=Math.abs(rect[3]!-rect[1]!)-width;
+      if (rw<=0 || rh<=0) return;
+      const paint=fill ? stroke ? "b" : "f" : "s";
+      if (subtype === "Square") path([{kind:"rect",x,y,width:rw,height:rh}],paint);
+      else {
+        const cx=x+rw/2,cy=y+rh/2,rx=rw/2,ry=rh/2,k=0.5523;
+        path([{kind:"move",x:cx,y:y+rh},
+          {kind:"cubic",x1:cx+k*rx,y1:y+rh,x2:x+rw,y2:cy+k*ry,x:x+rw,y:cy},
+          {kind:"cubic",x1:x+rw,y1:cy-k*ry,x2:cx+k*rx,y2:y,x:cx,y:y},
+          {kind:"cubic",x1:cx-k*rx,y1:y,x2:x,y2:cy-k*ry,x:x,y:cy},
+          {kind:"cubic",x1:x,y1:cy+k*ry,x2:cx-k*rx,y2:y+rh,x:cx,y:y+rh}],paint);
+      }
+    }
+  }
+  ops.unshift({kind:"path-op",segments:[{kind:"rect",x:bounds[0]!,y:bounds[1]!,width:bounds[2]!-bounds[0]!,height:bounds[3]!-bounds[1]!}],paint:"n",clip:"W"});
+  return {kind:"graphics-group",ops};
 }

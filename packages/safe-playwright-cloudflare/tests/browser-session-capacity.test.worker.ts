@@ -1,7 +1,7 @@
 import { DurableObject } from "cloudflare:workers";
 import { sessions, type BrowserWorker } from "@cloudflare/playwright";
 import { checkpointBrowserProfile, createPlaywrightCli } from "@poe-platform/safe-bash/playwright";
-import { agentCommands, createMemoryFileSystem, Shell } from "@poe-platform/safe-bash";
+import { standardCommands, seqCommands, createMemoryFileSystem, Shell } from "@poe-platform/safe-bash";
 import { createCloudflarePlaywrightAdapter } from "../src/index.js";
 
 interface Env {
@@ -35,7 +35,8 @@ export class CapacitySessions extends DurableObject<Env> {
   async run(command: string) {
     const before = this.#requests.length;
     const shell = new Shell({ fs: this.#fs })
-      .use(agentCommands())
+      .use(standardCommands())
+      .use(seqCommands())
       .use({ name: this.#cli.plugin.name, setup: this.#cli.plugin.setup });
     const signal = new AbortController();
     let result;

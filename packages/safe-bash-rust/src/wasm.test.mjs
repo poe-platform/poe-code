@@ -17015,3 +17015,5 @@ import "./pdf-groups.test.mjs";
 import "./pdf-soft-masks.test.mjs";
 
 import "./pdf-indexed.test.mjs";
+
+import "./magick-terminal-outputs.wasm.test.mjs";

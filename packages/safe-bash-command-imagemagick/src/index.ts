@@ -21466,6 +21466,7 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
         }
         const descriptionOutput = imageDescriptionOutput(outSpec);
         if (descriptionOutput !== undefined) return writeStoredDescriptionOutput(stack, descriptionOutput, input, backend, signal, state.inputDepth, false, state.precision);
+        if (outSpec.toLowerCase() === "null:" || outSpec.toLowerCase().startsWith("mpr:")) { if (!intermediate) await backend.publishPending(); return { exitCode: 0, stdout: "", stderr: "" }; }
         let output: ReturnType<typeof inferOutputFormat>;
         try { output = inferOutputFormat(outSpec, "png", (await stack.get(0))![magickInput]?.inputFormat, analysis); }
         catch (error) { return { exitCode: 1, stdout: "", stderr: `magick: ${(error as Error).message}\n` }; }
@@ -21473,7 +21474,6 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
             if (state.tiffCompression === "jpeg" && (await stack.get(index))!.space === "cmyk") return { exitCode: 1, stdout: "", stderr: "magick: CMYK TIFF does not support JPEG compression\n" };
             if ((await stack.get(index) as StoredRgbaImage).magickColorspace === "CIELab") return { exitCode: 1, stdout: "", stderr: "magick: unsupported colorspace 'Lab' for TIFF output\n" };
         }
-        if (outSpec.toLowerCase() === "null:" || outSpec.toLowerCase().startsWith("mpr:")) { if (!intermediate) await backend.publishPending(); return { exitCode: 0, stdout: "", stderr: "" }; }
         const lower = outSpec.toLowerCase(), info = lower.startsWith("info:");
         const ubrl = ubrlOutput(outSpec);
         const ftxt = lower.startsWith("ftxt:") || (lower.endsWith(".ftxt") && !outSpec.includes(":"));

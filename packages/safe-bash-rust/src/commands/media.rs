@@ -10707,8 +10707,9 @@ fn cmd_magick(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeB
         }
     }
     let has_writes=stack_steps.iter().any(|(_,s)|matches!(s,magick_stack::Step::Write(..)));
-    let use_stack=has_writes || (!is_mogrify && (stack_steps.len()>1 || stack_steps.iter().any(|(_,s)|match s {
-        magick_stack::Step::Input(token,_,_)=>magick_stack::tile_pattern(token).is_some() || !matches!(magick_stack::input_spec(token).1,magick_stack::Modifier::None),_=>false,
+    let discard_output=!is_mogrify && pos_files.last().is_some_and(|s|s.eq_ignore_ascii_case("null:") || s.get(..4).is_some_and(|p|p.eq_ignore_ascii_case("mpr:")));
+    let use_stack=discard_output || has_writes || (!is_mogrify && (stack_steps.len()>1 || stack_steps.iter().any(|(_,s)|match s {
+        magick_stack::Step::Input(token,_,_)=>token.get(..4).is_some_and(|p|p.eq_ignore_ascii_case("mpr:")) || magick_stack::tile_pattern(token).is_some() || !matches!(magick_stack::input_spec(token).1,magick_stack::Modifier::None),_=>false,
     }))) || stack_steps.iter().any(|(_,s)|matches!(s,magick_stack::Step::Edit(..)));
     let apply_pixels = |image: &mut png_pixels::Raster, range: std::ops::Range<usize>, gif_input: bool| {
         // GIFs decode to four channels even if they did not declare transparency.
@@ -10766,7 +10767,7 @@ fn cmd_magick(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeB
     };
     let raster_output = |input: &str, bytes: &[u8], dest: &str| -> Option<BuiltinOutcome> {
         let info=matches!(dest.to_ascii_lowercase().as_str(),"info:"|"info:-");
-        let dest=png_pixels::destination(dest).or_else(||has_writes.then_some(("png",dest)))?;
+        let dest=png_pixels::destination(dest).or_else(||(has_writes || discard_output).then_some(("png",dest)))?;
         let fail = |e: &str| if e == "internal error" { err_out("shell: line 1: internal error\n",1) } else { err_out(&format!("magick: {e}\n"),1) };
         let timing=gif::Timing { delays:delay.as_slice(), repeat, explicit_delay:delay.is_some() };
         let gif_input = canvas.is_none() && gif::signature(bytes) && !bytes[6..].starts_with(b"\n__IMG__:");
@@ -10791,7 +10792,12 @@ fn cmd_magick(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeB
             let mut snapshots=magick_stack::Snapshots::default();
             let limit=fs.max_input_bytes();
             let mut images=match magick_stack::evaluate(steps,ops.len(),transform,limit,|path|fs.read_file(&resolve_posix_path(cwd,path)),&mut snapshots) {
-                Ok(Some(images))=>images, Ok(None)=>return None,
+                Ok(Some(images))=>images,
+                Ok(None)=>{
+                    if !discard_output {return None;}
+                    let saved=snapshots.publish(cwd,fs);
+                    return Some(if saved.exit_code==0 {fail("unable to decode image")} else {saved});
+                }
                 Err(e)=>{
                     let saved=snapshots.publish(cwd,fs);
                     return Some(if saved.exit_code==0 {fail(&e)} else {saved});
@@ -10801,6 +10807,7 @@ fn cmd_magick(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeB
                 let saved=snapshots.publish(cwd,fs);
                 return Some(if saved.exit_code==0 {fail(&format!("no images defined '{}'",dest.1))} else {saved});
             }
+            if discard_output {return Some(snapshots.publish(cwd,fs));}
             if info {
                 let text=images.frames.iter().map(|s|format!("{}x{} sRGB 8-bit\n",s.image.width,s.image.height)).collect::<String>();
                 let saved=snapshots.publish(cwd,fs);

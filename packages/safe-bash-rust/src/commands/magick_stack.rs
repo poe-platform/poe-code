@@ -396,6 +396,9 @@ pub(super) fn evaluate(
         match step {
             Step::Input(token, size, kernel) => {
                 let (spec, modifier, tiles) = tile_operand(token);
+                if spec.get(..4).is_some_and(|prefix| prefix.eq_ignore_ascii_case("mpr:")) {
+                    return Err(format!("unable to open image '{token}'"));
+                }
                 let mut push = |mut im: Raster, format, timing| {
                     modifier.geometry(&mut im, *kernel, limit)?;
                     im.apply_tiles(&tiles, *size, *kernel, limit)?;
@@ -441,7 +444,9 @@ pub(super) fn evaluate(
                                 from_disk = data;
                                 &from_disk
                             }
-                            Err(e) if e.starts_with("ENOENT") => continue,
+                            Err(e) if e.starts_with("ENOENT") => {
+                                return Err(format!("unable to open image '{token}': No such file or directory"));
+                            }
                             Err(_) => return Ok(None),
                         }
                     };

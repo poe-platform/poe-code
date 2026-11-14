@@ -4,7 +4,65 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
+it.each(["mpr:final", "MPR:Final[0]", "null:"])("handles terminal destinations through the public command: %s", async destination => {
+    const filesystem = new MemoryFileSystem();
+    let stdout = "", stderr = "";
+    const result = await createMagickCommand().execute({
+        command: "magick", args: createCommandArguments(["-size", "1x1", "xc:blue", "-depth", "8", "-write", "saved.ppm", destination]).args,
+        cwd: "/", env: {}, fs: filesystem,
+        stdin: (async function* () {})(), signal: new AbortController().signal,
+        stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
+        stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
+    });
+    expect(result.exitCode).toBe(0);
+    expect(stdout).toBe("");
+    expect(stderr).toBe("");
+    expect((await filesystem.readdir("/")).map(entry => entry.name)).toEqual(["saved.ppm"]);
+    expect([...decodeImage(await filesystem.readFile("/saved.ppm")).data]).toEqual([0, 0, 255, 255]);
+});
+
 for (const mode of ["buffered", "retained", "sync"] as const) {
+    it.each(["mpr:final", "MPR:Final[0]", "null:"])(`discards terminal output without losing explicit writes in ${mode}: %s`, async destination => {
+        const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+        const run = (args: string[]) => mode === "sync" ? runConvertCliSync(args, files)
+            : runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        const names = async () => mode === "retained" ? (await filesystem.readdir("/")).map(entry => entry.name) : [...files.keys()];
+        expect(await run(["-size", "1x1", "xc:blue", destination])).toMatchObject({ exitCode: 0, stdout: "", stderr: "" });
+        expect(await names()).toEqual([]);
+        const keep = new TextEncoder().encode("KEEP");
+        if (mode === "retained") await filesystem.writeFile("/" + destination, keep);
+        else files.set(destination, keep);
+        expect(await run(["-size", "1x1", "xc:blue", "-depth", "8", "-write", "saved.ppm", destination])).toMatchObject({ exitCode: 0, stdout: "", stderr: "" });
+        expect((await names()).sort()).toEqual([destination, "saved.ppm"].sort());
+        const read = (name: string) => mode === "retained" ? filesystem.readFile("/" + name) : files.get(name)!;
+        expect(await read(destination)).toEqual(keep);
+        expect([...decodeImage(await read("saved.ppm")).data]).toEqual([0, 0, 255, 255]);
+        expect(await run(["saved.ppm", destination])).toMatchObject({ exitCode: 0, stdout: "", stderr: "" });
+        expect((await names()).sort()).toEqual([destination, "saved.ppm"].sort());
+        expect(await read(destination)).toEqual(keep);
+    });
+
+    it.each([["missing.png", "mpr:final"], ["mpr:final"], ["mpr:final", "later.png"], ["xc:blue", "missing.png", "mpr:final"]])(`validates terminal register images in ${mode}: %j`, async (...args) => {
+        const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
+        const result = mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).not.toBe(0);
+        expect(mode === "retained" ? await filesystem.readdir("/") : [...files.keys()]).toEqual([]);
+    });
+
+    it(`keeps earlier explicit writes when terminal output fails in ${mode}`, async () => {
+        const files = new Map([["broken.bin", new TextEncoder().encode("not an image")]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/broken.bin", files.get("broken.bin")!);
+        const args = ["xc:blue", "-depth", "8", "-write", "saved.ppm", "broken.bin", "mpr:final"];
+        const result = mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result.exitCode).not.toBe(0);
+        const output = mode === "retained" ? await filesystem.readFile("/saved.ppm") : files.get("saved.ppm")!;
+        expect([...decodeImage(output).data]).toEqual([0, 0, 255, 255]);
+        const names = mode === "retained" ? (await filesystem.readdir("/")).map(entry => entry.name) : [...files.keys()];
+        expect(names.sort()).toEqual(["broken.bin", "saved.ppm"]);
+    });
+
     it.each([
         { selector: "", colors: ["red", "lime", "blue"] },
         { selector: "[1]", colors: ["lime"] },

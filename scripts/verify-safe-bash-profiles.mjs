@@ -147,13 +147,14 @@ export const safeBashProfileBaselines = {
   "registryWithRegex": 6872429,
   // Full yq includes streamed input/output and caller-backed in-place output.
   "enabledConsumer": 7397103,
-  // Full also selects document/media engines, Pandoc and the CSV Python worker.
-  "full": 80537517,
+  // November 14 qualification attributes image/media growth and checks one
+  // retained ICC, font and media runtime; see the same source audit document.
+  "full": 82438418,
   "rootPythonLlm": 2150570,
   "splitCore": 1747898,
   "splitPythonLlm": 2146164,
   "splitEnabledConsumer": 7305556,
-  "splitFull": 79753271
+  "splitFull": 81596876
 };
 const reviewedBudgets = Object.fromEntries(Object.entries(safeBashProfileBaselines)
   .map(([name, bytes]) => [name, Math.ceil(bytes * 1.02)]));

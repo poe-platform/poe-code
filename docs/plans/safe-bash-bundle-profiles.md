@@ -181,6 +181,50 @@ The follow-up qualification fixes that ExifTool fixture by withholding the optio
 
 Fresh scoped tarballs from the shared checkout during integration through `0433d40fb2` measure core 1,752,173 bytes, Python/LLM 2,150,522, full 80,669,869 and split full 79,883,739. The earlier failing release measured 1,752,173, 2,150,522, 80,625,975 and 79,840,681 respectively. This fixture-only correction changes no consumer bytes or baselines; these shared-checkout measurements include subsequent concurrent command changes. The unchanged installed verifier passes all seventeen Worker profiles, ten portable exports and fourteen portable command scenarios within the previously qualified budgets. MCP consent/OAuth/account lookup remain 9,658/19,579/145,095 bytes. Publication remains unverified; passing these local gates does not establish completion of the release.
 
+### November 14 image/media qualification
+
+Fresh installed tarballs from `fa4db2e401` reproduce only the full and split-full
+absolute-budget failures: 82,438,418 and 81,596,876 bytes against ceilings of
+82,148,268 and 81,348,337. Those two measured totals become the new baselines.
+All other baselines, the 2% absolute and 5% incremental tolerances, the 16 KiB
+minimum allowance, engine exclusions and Worker checks remain unchanged.
+
+Source comparisons against the previous qualification commit `ce906cdc27` use
+identical esbuild browser/workerd ES2022 minification with package imports
+external. These owner-level measurements attribute functionality; they are not
+an additive decomposition of the differently shared installed graph:
+
+| Source owner | Before | After | Added behavior |
+| --- | ---: | ---: | --- |
+| ImageMagick | 2,007,952 | 2,917,885 | ICC runtime 392,190 bytes; command operations, color/channel handling and filters |
+| FFmpeg | 688,805 | 1,278,682 | Audio dialogue tables 174,829 bytes; audio/video filters and command handling |
+| image-ast | 580,856 | 679,519 | PSD/PSB, SIXEL, DDS, Palm, SGI and other image codecs |
+| mp4-ast | 457,059 | 475,461 | Container and packet handling |
+| Pandoc | 1,454,351 | 1,458,889 | Document conversion |
+| Python command | 361,022 | 361,022 | Unchanged |
+
+The installed full graph retains one ICC runtime, one font runtime and one
+media codec runtime including x264. Its canonical image entry contributes
+1,199,936 bytes; the media chunk contributes 9,768,130 bytes. The embedded CSV
+Python worker remains 30,086,674 bytes, selected only by full profiles. No
+duplicate of these engines accounts for the growth.
+
+Full and split-full JavaScript totals are 76,278,176 and 75,436,634 bytes,
+identical to CI for the same commit. The locally built Git Wasm is
+6,160,242 bytes, 15,724 bytes larger than CI's 6,144,518-byte asset; this difference
+is confined to the single selected Wasm asset. The Git-only profile remains
+within its existing budget. Core remains 1,753,857 bytes. Baseline qualification
+does not change runtime code or emitted consumer bytes in TypeScript or Rust.
+
+The maintained build completes 316 declared workspace build tasks and the root
+suffix stages. All 502 focused packaging tests pass, as do all 17 size/Worker
+profiles, ten portable export graphs and the unchanged MCP limits. Complete
+portable-command qualification remains unproven: streamed Markdown operand and
+YAML scenarios intermittently exceed the existing 30-second deadline. An
+isolated successful operand conversion still performs 10,845 remote page reads
+and 1,946 writes for 16 KiB of input. No deadline or assertion was relaxed.
+Successful publication remains a separate requirement.
+
 ## Git asset audit
 
 The historical Git Wasm grew from 2,878,331 to 5,310,726 bytes. Changes between the containing source revisions include signing (Ed25519/OpenSSH SSHSIG/OpenPGP), hooks/core.hooksPath, SSH transport and known_hosts, server hooks, standalone native host filesystem and credentials, upload-pack/receive-pack and SSH-to-HTTPS fallback. The packaging script selects the `git_rust.wasm` library artifact, not the separate `git-rust` executable. Native host filesystem/process/credential-helper adapters live in `src/main.rs`; their presence in the source diff is not evidence that those adapters caused library Wasm growth. The library includes portable crypto, hooks, SSH and wire modules. These are supported features, not demonstrated duplicate copies. This change preserves them. Core and unrelated profiles must carry zero Git assets; the selected Git profile must carry exactly one Wasm and execute repository initialization/status. The initial packed asset was 5,338,726 bytes; after integrating upstream Git changes, the verified packed asset is 5,338,654 bytes, with one copy in Git/full and zero in unrelated profiles. Native-only code splitting would need a separate behavior-qualified compiler change.

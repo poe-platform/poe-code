@@ -1,4 +1,5 @@
 import { createStoredZipArchive } from "@poe-code/office-package/zip-sync";
+import { docxDocumentPrefix, docxDocumentSuffix, docxMetadata } from "../packages/safe-bash-command-soffice/src/docx-parts.js";
 import { fileURLToPath } from "node:url";
 import { builtinModules } from "node:module";
 import { build } from "esbuild";
@@ -37,7 +38,7 @@ it.each(["sdk", "command", "cancel", "rtf-sdk", "rtf-command", "rtf-cancel", "od
       }});
       const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;largestAllocation=Math.max(largestAllocation,length);if(length>65536)throw new Error('Unbounded allocation');return Reflect.construct(target,args);}});
       const controller=new AbortController(),reason=new Error('cancelled');let length=0,largest=0,active=0,peak=0,cancelled=false;
-      const stdout={async write(bytes){active++;peak=Math.max(peak,active);try{await scheduler.wait(1);length+=bytes.length;largest=Math.max(largest,bytes.length);for(const byte of bytes)if(byte!==97&&byte!==10)throw new Error('Unexpected output');if(mode==='cancel')controller.abort(reason);}finally{active--;}}};
+      const stdout={async write(bytes){active++;peak=Math.max(peak,active);try{await scheduler.wait(1);largest=Math.max(largest,bytes.length);for(const byte of bytes){const expected=docx&&length<3?[239,187,191][length]:length===(docx?1100003:1100000)?10:97;if(byte!==expected)throw new Error('Unexpected output at '+length);length++;}if(mode==='cancel')controller.abort(reason);}finally{active--;}}};
       const stderr={async write(bytes){throw new Error(new TextDecoder().decode(bytes));}};
       let result;
       try{
@@ -53,7 +54,7 @@ it.each(["sdk", "command", "cancel", "rtf-sdk", "rtf-command", "rtf-cancel", "od
   try {
     const bucket = await runtime.getR2Bucket("PAGES");
     const source = mode.startsWith("rtf-") ? new TextEncoder().encode("{\\rtf1 " + "a".repeat(1100000) + "\\par }") : new Uint8Array(1100000).fill(97);
-    await bucket.put("input", mode.startsWith("docx-") ? createStoredZipArchive({ "word/document.xml": new TextEncoder().encode("<w:p><w:t>" + "a".repeat(1100000) + "</w:t></w:p>") }) : mode.startsWith("odt-") ? createStoredZipArchive({
+    await bucket.put("input", mode.startsWith("docx-") ? createStoredZipArchive({ ...Object.fromEntries(Object.entries(docxMetadata).map(([name, xml]) => [name, new TextEncoder().encode(xml)])), "word/document.xml": new TextEncoder().encode(docxDocumentPrefix + "<w:p><w:r><w:t>" + "a".repeat(1100000) + "</w:t></w:r></w:p>" + docxDocumentSuffix) }) : mode.startsWith("odt-") ? createStoredZipArchive({
       "content.xml": new TextEncoder().encode("<office><text:p>" + "a".repeat(1100000) + "</text:p></office>")
     }) : mode.startsWith("xlsx-") ? createStoredZipArchive({
       "xl/worksheets/sheet1.xml": new TextEncoder().encode('<worksheet><row><c t="s"><v>0</v></c></row></worksheet>'),
@@ -63,8 +64,9 @@ it.each(["sdk", "command", "cancel", "rtf-sdk", "rtf-command", "rtf-cancel", "od
     expect(response.status).toBe(200);
     const result = await response.json() as { result?: { exitCode: number }; cancelled: boolean; length: number; largest: number; peak: number; inputClosed: number; inputReads: number; largestInput: number; largestAllocation: number; events: { opened: number; closed: number; writes: number; reads: number; largestTransfer: number }; remaining: number; namespace: unknown[]; hostGlobals: string[] };
     expect(result.cancelled).toBe(mode.endsWith("cancel"));
-    if (mode.endsWith("cancel")) expect(result.length).toBeLessThan(1100001);
-    else { expect(result.result?.exitCode).toBe(0); expect(result.length).toBe(1100001); }
+    const expectedLength = mode.startsWith("docx-") ? 1100004 : 1100001; // DOCX includes the UTF-8 BOM.
+    if (mode.endsWith("cancel")) expect(result.length).toBeLessThan(expectedLength);
+    else { expect(result.result?.exitCode).toBe(0); expect(result.length).toBe(expectedLength); }
     expect(result.peak).toBe(1); expect(result.largest).toBeLessThanOrEqual(49152);
     expect(result.inputClosed).toBe(1); expect(result.inputReads).toBeGreaterThan(64);
     expect(result.largestInput).toBeLessThanOrEqual(16384); expect(result.largestAllocation).toBeLessThanOrEqual(65536);

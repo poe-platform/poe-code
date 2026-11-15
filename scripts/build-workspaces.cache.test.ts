@@ -1,4 +1,5 @@
 import { EventEmitter } from "node:events";
+import { readFileSync, readdirSync } from "node:fs";
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it, vi } from "vitest";
 import { buildWorkspaces, parseWorkspaceArguments } from "./build-workspaces.mjs";
@@ -28,6 +29,41 @@ function fixture() {
 }
 
 describe("workspace build caching", () => {
+  it.each(["axial-shading.js", "axial-shading.pdf"])("restores pdftoppm testing artifacts and invalidates edits to %s", async changedFile => {
+    const state = fixture();
+    const source = new URL("../packages/safe-bash-command-pdftoppm/", import.meta.url);
+    const manifest = JSON.parse(readFileSync(new URL("package.json", source), "utf8"));
+    const workspace = "/repo/packages/pdftoppm";
+    state.fileSystem.mkdirSync(workspace + "/src/testing", { recursive: true });
+    state.fileSystem.writeFileSync(workspace + "/package.json", JSON.stringify(manifest));
+    state.cacheFiles.push("packages/pdftoppm/package.json");
+    const artifacts = readdirSync(new URL("src/testing/", source));
+    for (const name of artifacts) {
+      state.fileSystem.writeFileSync(workspace + "/src/testing/" + name, readFileSync(new URL("src/testing/" + name, source)));
+      state.cacheFiles.push("packages/pdftoppm/src/testing/" + name);
+    }
+    const spawn = vi.fn((...args) => {
+      const child = state.spawn(...args);
+      state.fileSystem.mkdirSync(workspace + "/dist/testing", { recursive: true });
+      for (const name of artifacts) state.fileSystem.copyFileSync(workspace + "/src/testing/" + name, workspace + "/dist/testing/" + name);
+      return child;
+    });
+    const options = { ...state, spawn, workspace: manifest.name };
+    expect(await buildWorkspaces(state.root, options)).toMatchObject({ cacheHits: 0, cacheMisses: 1 });
+    state.fileSystem.rmSync(workspace + "/dist", { recursive: true });
+    expect(await buildWorkspaces(state.root, options)).toMatchObject({ cacheHits: 1, cacheMisses: 0 });
+    for (const name of artifacts) {
+      expect(state.fileSystem.readFileSync(workspace + "/dist/testing/" + name)).toEqual(state.fileSystem.readFileSync(workspace + "/src/testing/" + name));
+    }
+    state.fileSystem.appendFileSync(workspace + "/src/testing/" + changedFile, "\nchanged");
+    expect(await buildWorkspaces(state.root, options)).toMatchObject({ cacheHits: 0, cacheMisses: 1 });
+    expect(spawn).toHaveBeenCalledTimes(2);
+    manifest.scripts.build += " && node arbitrary.mjs";
+    state.fileSystem.writeFileSync(workspace + "/package.json", JSON.stringify(manifest));
+    expect(await buildWorkspaces(state.root, options)).toMatchObject({ cacheHits: 0, cacheMisses: 0 });
+    expect(spawn).toHaveBeenCalledTimes(3);
+  });
+
   it("reports owned process-group context without treating inspection refusal as success", async () => {
     const state = fixture();
     const refusal = Object.assign(new Error("inspection refused"), { code: "EPERM" });

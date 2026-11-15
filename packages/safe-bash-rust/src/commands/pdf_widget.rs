@@ -377,15 +377,13 @@ impl<'a> PageSource<'a> {
             .as_ref()
             .and_then(|v| v.get(b"W"))
             .or_else(|| old_items.get(2));
-        let border = if border_color.is_empty() {
-            0.
-        } else {
-            match border_value {
-                Some(v) => self.objects.resolve(v)?.number()?,
-                None => 1.,
-            }
-            .max(0.)
+        let border_width = match border_value {
+            Some(v) => self.objects.resolve(v)?.number()?,
+            None => 1.,
         };
+        if !border_width.is_finite() || border_width.abs() > 1e6 {
+            return None;
+        }
         let style = match bs.as_ref().and_then(|v| v.get(b"S")) {
             Some(v) => Some(self.objects.resolve(v)?),
             None => None,
@@ -405,7 +403,15 @@ impl<'a> PageSource<'a> {
             return None;
         }
         self.objects.tokens = self.objects.tokens.checked_sub(count as usize)?;
-        let padding = border + 1.;
+        let relief = style == b"/B" || style == b"/I";
+        let border = if relief {
+            border_width.max(0.).min(w / 4.).min(h / 4.)
+        } else if border_color.is_empty() {
+            0.
+        } else {
+            border_width.max(0.)
+        };
+        let padding = border * if relief { 2. } else { 1. } + 1.;
         let available = (w - 2. * padding).max(0.);
         if button && !push {
             size = (available.min(h - 2. * padding) * 0.9).max(0.1);
@@ -447,7 +453,7 @@ impl<'a> PageSource<'a> {
             }
             op(&mut self.objects, emit, matrix, b"f", &[])?;
         }
-        if border > 0. {
+        if border > 0. && !border_color.is_empty() {
             color(&mut self.objects, emit, matrix, &border_color, true)?;
             op(&mut self.objects, emit, matrix, b"w", &[border])?;
             if style == b"/D" {
@@ -506,6 +512,91 @@ impl<'a> PageSource<'a> {
                 )?;
             }
             op(&mut self.objects, emit, matrix, b"S", &[])?;
+        }
+        if border > 0. && relief {
+            // Match PDFium interactive-form shading, including its circular bevel profile.
+            let bg = if background.is_empty() {
+                &[1.][..]
+            } else {
+                background.as_slice()
+            };
+            let shades = if style == b"/I" {
+                [vec![0.5], vec![0.75]]
+            } else {
+                [
+                    vec![1.],
+                    bg.iter()
+                        .map(|v| if round { (v - 0.25).max(0.) } else { v / 2. })
+                        .collect(),
+                ]
+            };
+            let b = border;
+            for (side, shade) in shades.iter().enumerate() {
+                color(&mut self.objects, emit, matrix, shade, round)?;
+                if round {
+                    op(&mut self.objects, emit, matrix, b"w", &[b])?;
+                    let r = (w.min(h) / 2. - 1.5 * b).max(0.);
+                    let (cx, cy) = (x + w / 2., y + h / 2.);
+                    let start = std::f64::consts::FRAC_PI_4 + side as f64 * std::f64::consts::PI;
+                    op(
+                        &mut self.objects,
+                        emit,
+                        matrix,
+                        b"m",
+                        &[cx + r * start.cos(), cy + r * start.sin()],
+                    )?;
+                    for j in 0..2 {
+                        let a = start + j as f64 * std::f64::consts::FRAC_PI_2;
+                        let z = a + std::f64::consts::FRAC_PI_2;
+                        let k = 0.5523 * r;
+                        op(
+                            &mut self.objects,
+                            emit,
+                            matrix,
+                            b"c",
+                            &[
+                                cx + r * a.cos() - k * a.sin(),
+                                cy + r * a.sin() + k * a.cos(),
+                                cx + r * z.cos() + k * z.sin(),
+                                cy + r * z.sin() - k * z.cos(),
+                                cx + r * z.cos(),
+                                cy + r * z.sin(),
+                            ],
+                        )?;
+                    }
+                    op(&mut self.objects, emit, matrix, b"S", &[])?;
+                } else {
+                    let points = if side == 0 {
+                        [
+                            [b, b],
+                            [b, h - b],
+                            [w - b, h - b],
+                            [w - 2. * b, h - 2. * b],
+                            [2. * b, h - 2. * b],
+                            [2. * b, 2. * b],
+                        ]
+                    } else {
+                        [
+                            [b, b],
+                            [w - b, b],
+                            [w - b, h - b],
+                            [w - 2. * b, h - 2. * b],
+                            [w - 2. * b, 2. * b],
+                            [2. * b, 2. * b],
+                        ]
+                    };
+                    for (i, [px, py]) in points.iter().enumerate() {
+                        op(
+                            &mut self.objects,
+                            emit,
+                            matrix,
+                            if i == 0 { b"m" } else { b"l" },
+                            &[x + px, y + py],
+                        )?;
+                    }
+                    op(&mut self.objects, emit, matrix, b"f", &[])?;
+                }
+            }
         }
         if count > 0. && border > 0. && [b"/S".as_slice(), b"/D"].contains(&style) {
             for i in 1..count as usize {

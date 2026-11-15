@@ -140,6 +140,9 @@ fn annotation_pdf(annotation: &str) -> Vec<u8> {
 fn invalid_widgets_fail_before_replacing_output_and_can_be_hidden() {
     let cases = [
         "/Rect [1 2 3]".to_owned(),
+        "/MK << /BC [0] >> /BS << /S /B /W (bad) >>".into(),
+        "/MK << /BC [0] >> /BS << /S /I /W 1000001 >>".into(),
+        "/MK << /BC [0] >> /BS << /S /B /W -1000001 >>".into(),
         "/MK << /BG [1 2] >>".into(),
         "/Ff 16777216 /MaxLen 65537".into(),
         format!("/V ({})", "x".repeat(65537)),
@@ -221,6 +224,38 @@ fn malformed_buttons_preserve_existing_outputs() {
                     .exit_code,
                 0
             );
+        }
+    }
+}
+
+#[test]
+fn solid_dashed_and_underline_borders_remain_distinct() {
+    for command in ["pdftoppm", "pdftocairo"] {
+        for style in ["S", "D", "U"] {
+            let fs = MemoryVfs::new();
+            let pdf = annotation_pdf(&format!(
+                "/Subtype /Widget /FT /Tx /MK << /BG [.8 .85 .9] /BC [0] >> /BS << /S /{style} /W 3 /D [4 4] >>"
+            ));
+            fs.write_file("/input.pdf", &pdf).unwrap();
+            let args = ["-png", "-r", "72", "/input.pdf", "/page"].map(String::from);
+            let r =
+                try_run_archive_command(command, &args, "", "/", &Default::default(), &fs).unwrap();
+            assert_eq!(r.exit_code, 0, "{}", r.stderr);
+            let args = ["/page-1.png", "/decoded.ppm"].map(String::from);
+            let r = try_run_archive_command("convert", &args, "", "/", &Default::default(), &fs)
+                .unwrap();
+            assert_eq!(r.exit_code, 0);
+            let ppm = fs.read_file("/decoded.ppm").unwrap();
+            let pixels = ppm.strip_prefix(b"P6\n100 100\n255\n").unwrap();
+            let dark = (10..90).filter(|x| pixels[(100 + x) * 3] < 100).count();
+            match style {
+                "S" => assert_eq!(dark, 80),
+                "D" => assert!((20..60).contains(&dark)),
+                _ => {
+                    assert_eq!(dark, 0);
+                    assert_eq!(pixels[(98 * 100 + 50) * 3], 0);
+                }
+            }
         }
     }
 }

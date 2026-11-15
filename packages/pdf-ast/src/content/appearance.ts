@@ -200,14 +200,18 @@ function* widgetAppearance(annot: PdfCosDict, resources: PdfCosDict, allocate?: 
     }
   }
   const widthNode = bs ? yield* resolveNode(yield* field(bs, "W")) : undefined;
-  const border = borderColor.length ? Math.max(0, widthNode?.kind === "number" ? widthNode.value : oldValues[2] ?? 1) : 0;
+  if (widthNode && widthNode.kind !== "number") throw new PdfError("E_PARSE", "Invalid PDF widget border");
+  const borderWidth = widthNode?.kind === "number" ? widthNode.value : oldValues[2] ?? 1;
+  if (!Number.isFinite(borderWidth) || Math.abs(borderWidth) > 1e6) throw new PdfError("E_PARSE", "Invalid PDF widget border");
   const styleNode = bs ? yield* resolveNode(yield* field(bs, "S")) : undefined;
   const style = styleNode?.kind === "name" ? styleNode.decoded : !bs && oldDash ? "D" : "S";
+  const relief = style === "B" || style === "I";
+  const border = borderColor.length || relief ? Math.min(Math.max(0,borderWidth), relief ? Math.min(width,height)/4 : Infinity) : 0;
   const comb = kind.decoded === "Tx" && (flags & 16777216) !== 0 && !(flags & (4096|8192|1048576)) && maxNode?.kind === "number" && Number.isSafeInteger(maxNode.value) && maxNode.value > 0;
   const count = comb ? maxNode.value : 0;
   if (count > 65536) throw new PdfError("E_LIMIT", "PDF widget cell limit exceeded");
   allocate?.(count*128);
-  const padding = border + 1, available = Math.max(0, width - 2*padding);
+  const padding = border * (relief ? 2 : 1) + 1, available = Math.max(0, width - 2*padding);
   if (button && !push) size = Math.max(.1, Math.min(available, height-2*padding)*.9);
   else if (size <= 0) {
     const units = [...encodeWinAnsiBytes(text)].reduce((sum, c) => sum + advance(c), 0) / 1000;
@@ -244,7 +248,7 @@ function* widgetAppearance(annot: PdfCosDict, resources: PdfCosDict, allocate?: 
   state("cm",matrix);
   box(x, y, width, height, "n", "W");
   if (background.length) { paintColor(background, false); if(round) circle(Math.min(width,height)/2,"f"); else box(x,y,width,height,"f"); }
-  if (border) {
+  if (border && borderColor.length) {
     paintColor(borderColor, true); state("w", [border]);
     if (style === "D") {
       const dash = yield* numbers(bs ? yield* field(bs, "D") : oldDash);
@@ -254,6 +258,31 @@ function* widgetAppearance(annot: PdfCosDict, resources: PdfCosDict, allocate?: 
     if (round) circle((Math.min(width,height)-border)/2,"S");
     else if (style === "U") ops.push({kind: "path-op", segments: [{kind: "move", x, y: y+border/2}, {kind: "line", x:x+width, y:y+border/2}], paint: "S"});
     else box(x+border/2,y+border/2,Math.max(0,width-border),Math.max(0,height-border),"S");
+  }
+  if (border && relief) {
+    // PDFium's interactive forms use different bevel shading for circular controls.
+    const bg = background.length ? background : [1];
+    const shades = style === "I" ? [[.5],[.75]] : [[1],bg.map(v => round ? Math.max(0,v-.25) : v/2)];
+    allocate?.(4096);
+    const b = border;
+    for (let side=0;side<2;side++) {
+      paintColor(shades[side]!, round);
+      if (round) {
+        state("w",[b]);
+        const r=Math.max(0,Math.min(width,height)/2-1.5*b), cx=width/2, cy=height/2;
+        const start=Math.PI/4+side*Math.PI;
+        const segments: PdfPathSegment[]=[{kind:"move",x:cx+r*Math.cos(start),y:cy+r*Math.sin(start)}];
+        for(let j=0;j<2;j++) {
+          const a=start+j*Math.PI/2, z=a+Math.PI/2, k=.5523*r;
+          segments.push({kind:"cubic",x1:cx+r*Math.cos(a)-k*Math.sin(a),y1:cy+r*Math.sin(a)+k*Math.cos(a),x2:cx+r*Math.cos(z)+k*Math.sin(z),y2:cy+r*Math.sin(z)-k*Math.cos(z),x:cx+r*Math.cos(z),y:cy+r*Math.sin(z)});
+        }
+        ops.push({kind:"path-op",segments,paint:"S"});
+      } else {
+        const points=side===0 ? [[b,b],[b,height-b],[width-b,height-b],[width-2*b,height-2*b],[2*b,height-2*b],[2*b,2*b]]
+          : [[b,b],[width-b,b],[width-b,height-b],[width-2*b,height-2*b],[width-2*b,2*b],[2*b,2*b]];
+        ops.push({kind:"path-op",segments:[...points.map(([px,py],i): PdfPathSegment => ({kind:i===0 ? "move" : "line",x:px!,y:py!})),{kind:"close"}],paint:"f"});
+      }
+    }
   }
   if (comb && border && ["S","D"].includes(style)) {
     for(let i=1; i<count; i++) ops.push({kind:"path-op",segments:[{kind:"move",x:i*width/count,y:0},{kind:"line",x:i*width/count,y:height}],paint:"S"});

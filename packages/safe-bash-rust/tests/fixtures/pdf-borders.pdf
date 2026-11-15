@@ -1,0 +1,145 @@
+%PDF-1.7
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R /AcroForm 3 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Count 15 /Kids [ 6 0 R 8 0 R 10 0 R 12 0 R 14 0 R 16 0 R 18 0 R 20 0 R 22 0 R 24 0 R 26 0 R 28 0 R 30 0 R 32 0 R 34 0 R ] >>
+endobj
+3 0 obj
+<< /Fields [ 5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R 17 0 R 19 0 R 21 0 R 23 0 R 25 0 R 27 0 R 29 0 R 31 0 R 33 0 R ] /NeedAppearances true /DR << /Font << /Helv 4 0 R >> >> /DA (/Helv 12 Tf 0 g) >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Annot /Subtype /Widget /T (text-S) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.8 .85 .9] /BC [.1 .2 .4]  >> /BS << /W 3 /S /S >> /FT /Tx /V (Border sample) >>
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [5 0 R] >>
+endobj
+7 0 obj
+<< /Type /Annot /Subtype /Widget /T (text-B) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.8 .85 .9] /BC [.1 .2 .4]  >> /BS << /W 3 /S /B >> /FT /Tx /V (Border sample) >>
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [7 0 R] >>
+endobj
+9 0 obj
+<< /Type /Annot /Subtype /Widget /T (text-I) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.8 .85 .9] /BC [.1 .2 .4]  >> /BS << /W 3 /S /I >> /FT /Tx /V (Border sample) >>
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [9 0 R] >>
+endobj
+11 0 obj
+<< /Type /Annot /Subtype /Widget /T (choice-S) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.8 .85 .9] /BC [.1 .2 .4]  >> /BS << /W 3 /S /S >> /FT /Ch /Ff 131072 /Opt [(Red) (Green)] /V (Green) >>
+endobj
+12 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [11 0 R] >>
+endobj
+13 0 obj
+<< /Type /Annot /Subtype /Widget /T (choice-B) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.8 .85 .9] /BC [.1 .2 .4]  >> /BS << /W 3 /S /B >> /FT /Ch /Ff 131072 /Opt [(Red) (Green)] /V (Green) >>
+endobj
+14 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [13 0 R] >>
+endobj
+15 0 obj
+<< /Type /Annot /Subtype /Widget /T (choice-I) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.8 .85 .9] /BC [.1 .2 .4]  >> /BS << /W 3 /S /I >> /FT /Ch /Ff 131072 /Opt [(Red) (Green)] /V (Green) >>
+endobj
+16 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [15 0 R] >>
+endobj
+17 0 obj
+<< /Type /Annot /Subtype /Widget /T (checkbox-S) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.8 .85 .9] /BC [.1 .2 .4]  >> /BS << /W 3 /S /S >> /FT /Btn /V /Yes /AS /Yes >>
+endobj
+18 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [17 0 R] >>
+endobj
+19 0 obj
+<< /Type /Annot /Subtype /Widget /T (checkbox-B) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.8 .85 .9] /BC [.1 .2 .4]  >> /BS << /W 3 /S /B >> /FT /Btn /V /Yes /AS /Yes >>
+endobj
+20 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [19 0 R] >>
+endobj
+21 0 obj
+<< /Type /Annot /Subtype /Widget /T (checkbox-I) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.8 .85 .9] /BC [.1 .2 .4]  >> /BS << /W 3 /S /I >> /FT /Btn /V /Yes /AS /Yes >>
+endobj
+22 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [21 0 R] >>
+endobj
+23 0 obj
+<< /Type /Annot /Subtype /Widget /T (push-S) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.8 .85 .9] /BC [.1 .2 .4] /CA (OK) >> /BS << /W 3 /S /S >> /FT /Btn /Ff 65536 >>
+endobj
+24 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [23 0 R] >>
+endobj
+25 0 obj
+<< /Type /Annot /Subtype /Widget /T (push-B) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.8 .85 .9] /BC [.1 .2 .4] /CA (OK) >> /BS << /W 3 /S /B >> /FT /Btn /Ff 65536 >>
+endobj
+26 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [25 0 R] >>
+endobj
+27 0 obj
+<< /Type /Annot /Subtype /Widget /T (push-I) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.8 .85 .9] /BC [.1 .2 .4] /CA (OK) >> /BS << /W 3 /S /I >> /FT /Btn /Ff 65536 >>
+endobj
+28 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [27 0 R] >>
+endobj
+29 0 obj
+<< /Type /Annot /Subtype /Widget /T (radio-S) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.8 .85 .9] /BC [.1 .2 .4]  >> /BS << /W 3 /S /S >> /FT /Btn /Ff 32768 /V /Yes /AS /Yes >>
+endobj
+30 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [29 0 R] >>
+endobj
+31 0 obj
+<< /Type /Annot /Subtype /Widget /T (radio-B) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.8 .85 .9] /BC [.1 .2 .4]  >> /BS << /W 3 /S /B >> /FT /Btn /Ff 32768 /V /Yes /AS /Yes >>
+endobj
+32 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [31 0 R] >>
+endobj
+33 0 obj
+<< /Type /Annot /Subtype /Widget /T (radio-I) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.8 .85 .9] /BC [.1 .2 .4]  >> /BS << /W 3 /S /I >> /FT /Btn /Ff 32768 /V /Yes /AS /Yes >>
+endobj
+34 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [33 0 R] >>
+endobj
+xref
+0 35
+0000000000 65535 f 
+0000000009 00000 n 
+0000000074 00000 n 
+0000000231 00000 n 
+0000000444 00000 n 
+0000000541 00000 n 
+0000000737 00000 n 
+0000000841 00000 n 
+0000001037 00000 n 
+0000001141 00000 n 
+0000001337 00000 n 
+0000001442 00000 n 
+0000001665 00000 n 
+0000001771 00000 n 
+0000001994 00000 n 
+0000002100 00000 n 
+0000002323 00000 n 
+0000002429 00000 n 
+0000002629 00000 n 
+0000002735 00000 n 
+0000002935 00000 n 
+0000003041 00000 n 
+0000003241 00000 n 
+0000003347 00000 n 
+0000003544 00000 n 
+0000003650 00000 n 
+0000003847 00000 n 
+0000003953 00000 n 
+0000004150 00000 n 
+0000004256 00000 n 
+0000004463 00000 n 
+0000004569 00000 n 
+0000004776 00000 n 
+0000004882 00000 n 
+0000005089 00000 n 
+trailer
+<< /Size 35 /Root 1 0 R >>
+startxref
+5195
+%%EOF

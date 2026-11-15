@@ -29705,6 +29705,7 @@ fn write_workbook_to_file(
     cwd: &str,
     sheets: &[WorkbookSheet],
     sep: char,
+    raw: bool,
     fs: &dyn SafeBashFs,
 ) -> Result<(), String> {
     let full = resolve_posix_path(cwd, path);
@@ -29753,6 +29754,10 @@ fn write_workbook_to_file(
                 for j in 0..width {
                     if j>0 {out.push(actual_sep);}
                     if let Some(value)=row.and_then(|r|r.get(j)) {
+                        let number = if raw && first.delimited {
+                            value.trim().parse::<f64>().ok().filter(|n| n.is_finite()).map(format_ss_number)
+                        } else { None };
+                        let value = number.as_deref().unwrap_or(value);
                         let whitespace=|c:char| c.is_whitespace() && c!='\u{b}';
                         if value.contains([',',' ','\t','\n','"']) || value.starts_with(whitespace) || value.ends_with(whitespace) {
                             out.push('"');out.push_str(&value.replace('"',"\"\""));out.push('"');
@@ -29768,6 +29773,43 @@ fn write_workbook_to_file(
     }
 }
 
+fn ssconvert_export_option_pairs(text: &str) -> Result<Vec<(String, String)>, String> {
+    let mut chars = text.chars().peekable();
+    let whitespace = |c: &char| c.is_whitespace() && *c != '\u{b}';
+    let mut pairs = Vec::new();
+    while chars.peek().is_some() {
+        while chars.next_if(whitespace).is_some() {}
+        if chars.peek().is_none() { break; }
+        let mut pair = [String::new(), String::new()];
+        for (index, part) in pair.iter_mut().enumerate() {
+            if let Some(quote) = chars.next_if(|c| matches!(c, '\'' | '"')) {
+                loop {
+                    let c = chars.next().ok_or("ssconvert: Quoted string not terminated\n")?;
+                    if c == quote { break; }
+                    part.push(if c == '\\' {
+                        chars.next().ok_or("ssconvert: Quoted string not terminated\n")?
+                    } else { c });
+                }
+            } else {
+                while let Some(c) = chars.next_if(|c| if index == 0 {
+                    c.is_alphanumeric() || "-!_.,:;|/$%#@~".contains(*c)
+                } else { !whitespace(c) }) {
+                    part.push(c);
+                }
+            }
+            if index == 0 {
+                if part.is_empty() { return Err("ssconvert: Syntax error\n".into()); }
+                while chars.next_if(whitespace).is_some() {}
+                if chars.next() != Some('=') { return Err("ssconvert: Syntax error\n".into()); }
+                while chars.next_if(whitespace).is_some() {}
+            }
+        }
+        let [key, value] = pair;
+        pairs.push((key, value));
+    }
+    Ok(pairs)
+}
+
 fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     const SSCONVERT_HELP: &str = "Usage:\n  ssconvert [OPTION?] INFILE [OUTFILE]\n\nHelp Options:\n  -h, --help                         Show help options\n  --help-all                         Show all help options\n  --help-libspreadsheet              Show Gnumeric Options\n  --help-gtk                         Show GTK+ Options\n\nApplication Options:\n  --version                          Display program version\n  -v, --verbose                      Be somewhat more verbose during conversion\n  -E, --import-encoding=ENCODING     Optionally specify an encoding for imported content\n  -I, --import-type=ID               Optionally specify which importer to use\n  --list-importers                   List the available importers\n  -M, --merge-to=file                Merge listed files (all same format) to make this file\n  -T, --export-type=ID               Optionally specify which exporter to use\n  -O, --export-options=string        Detailed instructions for the chosen exporter\n  --list-exporters                   List the available exporters\n  -S, --export-file-per-sheet        Export a file for each sheet if the exporter only supports one sheet at a time\n  --export-graphs                    Export graphs\n  --list-image-formats               List the available image formats\n  --set                              Change the contents of a cell before writing --set A12=2\n  --recalc                           Recalculate all cells before writing the result\n  --display=DISPLAY                  X display to use\n\n";
     const SSCONVERT_HELP_ALL: &str = "Usage:\n  ssconvert [OPTION?] INFILE [OUTFILE]\n\nHelp Options:\n  -h, --help                         Show help options\n  --help-all                         Show all help options\n  --help-libspreadsheet              Show Gnumeric Options\n  --help-gtk                         Show GTK+ Options\n\nGnumeric Options\n  --libspreadsheet-version           Display Gnumeric's version\n  -L, --lib-dir=DIR                  Set the root library directory\n  -D, --data-dir=DIR                 Adjust the root data directory\n\nGTK+ Options\n  --class=CLASS                      Program class as used by the window manager\n  --name=NAME                        Program name as used by the window manager\n  --gtk-module=MODULES               Load additional GTK+ modules\n  --g-fatal-warnings                 Make all warnings fatal\n\nApplication Options:\n  --version                          Display program version\n  -v, --verbose                      Be somewhat more verbose during conversion\n  -E, --import-encoding=ENCODING     Optionally specify an encoding for imported content\n  -I, --import-type=ID               Optionally specify which importer to use\n  --list-importers                   List the available importers\n  -M, --merge-to=file                Merge listed files (all same format) to make this file\n  -T, --export-type=ID               Optionally specify which exporter to use\n  -O, --export-options=string        Detailed instructions for the chosen exporter\n  --list-exporters                   List the available exporters\n  -S, --export-file-per-sheet        Export a file for each sheet if the exporter only supports one sheet at a time\n  --export-graphs                    Export graphs\n  --list-image-formats               List the available image formats\n  --set                              Change the contents of a cell before writing --set A12=2\n  --recalc                           Recalculate all cells before writing the result\n  --display=DISPLAY                  X display to use\n\n";
@@ -29779,8 +29821,9 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
     let mut split_sheets = false;
     let mut merge_to: Option<String> = None;
     let mut export_type: Option<String> = None;
-    let mut export_options_val: Option<String> = None;
+    let mut export_options = Vec::new();
     let mut sep = ',';
+    let mut raw = false;
     let mut positional: Vec<String> = Vec::new();
     let mut options_active = true;
 
@@ -29944,7 +29987,7 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
                 );
             }
             let opts = &args[i + 1];
-            export_options_val = Some(opts.clone());
+            export_options.push(opts.clone());
             for part in opts.split_whitespace() {
                 if let Some(s) = part.strip_prefix("separator=") {
                     if let Some(ch) = s.chars().next() {
@@ -29954,7 +29997,7 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
             }
             i += 2;
         } else if let Some(opts) = a.strip_prefix("--export-options=").or_else(|| a.strip_prefix("-O")) {
-            export_options_val = Some(opts.to_string());
+            export_options.push(opts.to_string());
             for part in opts.split_whitespace() {
                 if let Some(s) = part.strip_prefix("separator=") {
                     if let Some(ch) = s.chars().next() {
@@ -30011,10 +30054,38 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
     if split_sheets && merge_to.is_some() {
         return err_out("--export-file-per-sheet and --merge-to are incompatible\n", 1);
     }
-    if let Some(ref eopt) = export_options_val {
+    if let Some(eopt) = export_options.last() {
         let q = eopt.trim().to_ascii_lowercase();
         if q == "help" || q == "?" || q == "list" {
             return ok_out(SSCONVERT_EXPORT_OPTIONS_HELP);
+        }
+    }
+
+    let exporter = export_type.as_deref().unwrap_or_else(|| {
+        let output = merge_to.as_ref().or_else(|| positional.get(1)).map(String::as_str).unwrap_or("");
+        if output.to_ascii_lowercase().ends_with(".csv") { "Gnumeric_stf:stf_csv" }
+        else if output.to_ascii_lowercase().ends_with(".txt") || output.to_ascii_lowercase().ends_with(".tsv") { "Gnumeric_stf:stf_assistant" }
+        else { "" }
+    });
+    if matches!(exporter, "Gnumeric_stf:stf_csv" | "Gnumeric_stf:stf_assistant") {
+        for options in &export_options {
+            let pairs = match ssconvert_export_option_pairs(options) {
+                Ok(pairs) => pairs,
+                Err(error) => return err_out(&error, 1),
+            };
+            for (key, value) in pairs {
+                match key.as_str() {
+                    "format" => match value.as_str() {
+                        "raw" | "GNM_STF_FORMAT_RAW" => raw = true,
+                        "automatic" | "preserve" | "GNM_STF_FORMAT_AUTO" | "GNM_STF_FORMAT_PRESERVE" => raw = false,
+                        _ => return err_out(&format!("ssconvert: Invalid value for option format: \"{value}\"\n"), 1),
+                    },
+                    "separator" => { if let Some(c) = value.chars().next() { sep = c; } }
+                    "eol" | "charset" | "locale" | "quote" | "transliterate-mode"
+                        | "quoting-mode" | "quoting-on-whitespace" | "sheet" | "active-sheet" => {},
+                    _ => return err_out(&format!("ssconvert: Invalid export option \"{key}\" for format {exporter}\n"), 1),
+                }
+            }
         }
     }
 
@@ -30036,7 +30107,7 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
                 Err(e) => return err_out(&e, 1),
             }
         }
-        if let Err(e) = write_workbook_to_file(&target_out, cwd, &all_sheets, sep, fs) {
+        if let Err(e) = write_workbook_to_file(&target_out, cwd, &all_sheets, sep, raw, fs) {
             return err_out(&e, 1);
         }
         return ok_out("");
@@ -30074,13 +30145,13 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
             } else {
                 format!("{outfile}.{idx}")
             };
-            if let Err(e) = write_workbook_to_file(&resolved_out, cwd, std::slice::from_ref(sh), sep, fs) {
+            if let Err(e) = write_workbook_to_file(&resolved_out, cwd, std::slice::from_ref(sh), sep, raw, fs) {
                 return err_out(&e, 1);
             }
         }
         return ok_out("");
     }
-    if let Err(e) = write_workbook_to_file(outfile, cwd, &sheets, sep, fs) {
+    if let Err(e) = write_workbook_to_file(outfile, cwd, &sheets, sep, raw, fs) {
         return err_out(&e, 1);
     }
     ok_out("")

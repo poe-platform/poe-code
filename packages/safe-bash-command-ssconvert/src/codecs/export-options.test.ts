@@ -61,6 +61,43 @@ it("plain CSV accepts common selection and configurable text options", async () 
   } finally { await f.engine.dispose(); }
 });
 
+it.each([
+  ["format=raw", 0, 'name,value\n"a,b",1.2\n', ""],
+  ['"format" = "raw"', 0, 'name,value\n"a,b",1.2\n', ""],
+  ["unknown=raw", 1, "keep", 'ssconvert: Invalid export option "unknown" for format Gnumeric_stf:stf_csv\n'],
+  ['format="raw"unknown=raw', 1, "keep", 'ssconvert: Invalid export option "unknown" for format Gnumeric_stf:stf_csv\n'],
+  ["format=bogus", 1, "keep", 'ssconvert: Invalid value for option format: "bogus"\n'],
+  ['format="raw', 1, "keep", "ssconvert: Quoted string not terminated\n"],
+  ["broken", 1, "keep", "ssconvert: Syntax error\n"]
+])("plain CSV command and SDK preserve exact filesystem effects for %s", async (option, exitCode, output, error) => {
+  const input = 'name,value\n"a,b",1.20\n';
+  const volume = Volume.fromJSON({ "/input.csv": input, "/output.csv": "keep" });
+  const engine = createEngine({ codecs: [],
+    environment: { env: {}, locale: "C", timezone: "UTC" },
+    filesystem: {
+      async read(uri) { return [new Uint8Array(volume.readFileSync(uri) as Uint8Array)]; },
+      async write(uri, bytes) { volume.writeFileSync(uri, bytes); }
+    }
+  });
+  const errors: string[] = [];
+  const operation = { signal: new AbortController().signal,
+    stdout: { async write(bytes: Uint8Array) { expect(bytes.byteLength).toBe(0); } },
+    stderr: { async write(bytes: Uint8Array) { errors.push(new TextDecoder().decode(bytes)); } } };
+  try {
+    const result = await runCommand(["-T", "Gnumeric_stf:stf_csv", "-O", option, "/input.csv", "/output.csv"], engine, operation);
+    expect(result.exitCode).toBe(exitCode);
+    expect(errors.join("")).toBe(error);
+    expect(volume.toJSON()).toEqual({ "/input.csv": input, "/output.csv": output });
+    volume.writeFileSync("/output.csv", "keep");
+    const sdk = engine.convert({ input: { kind: "resource", uri: "/input.csv" },
+      destination: { kind: "resource", uri: "/output.csv" }, exportType: "Gnumeric_stf:stf_csv",
+      exportOptions: [option] }, operation);
+    if (exitCode === 0) await expect(sdk).resolves.toMatchObject({ exitCode: 0, diagnostics: [] });
+    else await expect(sdk).rejects.toMatchObject({ code: "invalid-request", message: error.trimEnd() });
+    expect(volume.toJSON()).toEqual({ "/input.csv": input, "/output.csv": output });
+  } finally { await engine.dispose(); }
+});
+
 it("uses GOffice Unicode case folding for C-locale boolean names", async () => {
   const f = fixture("Gnumeric_stf:stf_assistant");
   try {

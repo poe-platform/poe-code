@@ -200,9 +200,12 @@ test("configurable text and plain CSV export use the SDK engine and injected byt
     const inferred = await shell.exec("ssconvert /input.csv /plain.csv");
     assert.equal(inferred.exitCode, 0, inferred.stderr); assert.equal(inferred.stderr, "");
     assert.equal(volume.readFileSync("/plain.csv", "utf8"), plain.stdout);
-    const rejected = await shell.exec("ssconvert -T Gnumeric_stf:stf_csv -O 'format=raw' /input.csv /keep");
+    const raw = await shell.exec("ssconvert -T Gnumeric_stf:stf_csv -O 'format=raw' /input.csv fd://1");
+    assert.equal(raw.exitCode, 0, raw.stderr); assert.equal(raw.stderr, "");
+    assert.deepEqual(raw.stdoutBytes, plain.stdoutBytes);
+    const rejected = await shell.exec("ssconvert -T Gnumeric_stf:stf_csv -O 'unknown=raw' /input.csv /keep");
     assert.equal(rejected.exitCode, 1);
-    assert.equal(rejected.stderr, 'ssconvert: Invalid export option "format" for format Gnumeric_stf:stf_csv\n');
+    assert.equal(rejected.stderr, 'ssconvert: Invalid export option "unknown" for format Gnumeric_stf:stf_csv\n');
     assert.equal(volume.readFileSync("/keep", "utf8"), expected);
     const importOption = await shell.exec("ssconvert --import-options=x /input.csv /keep");
     assert.equal(importOption.exitCode, 1);

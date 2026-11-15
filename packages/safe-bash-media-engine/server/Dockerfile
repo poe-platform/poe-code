@@ -9,7 +9,7 @@ COPY packages/safe-bash-media-engine/server/container-lock.json /app/container-l
 # Keep downloads and extraction in one layer so archives are never shipped.
 RUN node download.mjs \
  && mkdir -p /opt/ffmpeg \
- && tar -xJf /tmp/ffmpeg.tar.xz -C /opt/ffmpeg --strip-components=2 ffmpeg-n9.0.1-29-gad500d59cb-linux64-gpl-9.0/bin/ffmpeg ffmpeg-n9.0.1-29-gad500d59cb-linux64-gpl-9.0/bin/ffprobe \
+ && tar -xJf /tmp/ffmpeg.tar.xz -C /opt/ffmpeg --strip-components=2 ffmpeg-n9.0.2-39-g7adfbe40dc-linux64-gpl-9.0/bin/ffmpeg ffmpeg-n9.0.2-39-g7adfbe40dc-linux64-gpl-9.0/bin/ffprobe \
  && dpkg -i /tmp/squashfs-tools.deb \
  && unsquashfs -o 944632 -d /opt/imagemagick /tmp/magick.AppImage \
  && rm /tmp/ffmpeg.tar.xz /tmp/magick.AppImage /tmp/squashfs-tools.deb

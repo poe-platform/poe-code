@@ -5,10 +5,10 @@
   "baseDigestSource": "Docker Hub OCI index for node:24-bookworm, selected Linux amd64 manifest, 2026-09-14",
   "artifacts": [
     {
-      "url": "https://github.com/BtbN/FFmpeg-Builds/releases/download/autobuild-2026-09-14-13-17/ffmpeg-n9.0.1-29-gad500d59cb-linux64-gpl-9.0.tar.xz",
+      "url": "https://github.com/FFmpeg-Builds/FFmpeg-Builds/releases/download/autobuild-2026-10-31-12-59/ffmpeg-n9.0.2-39-g7adfbe40dc-linux64-gpl-9.0.tar.xz",
       "path": "/tmp/ffmpeg.tar.xz",
-      "bytes": 150158740,
-      "sha256": "f78852b0c4286d245a6bc989704ea03f8f7dcd8b66cd1ad55d190131d4f21bb9"
+      "bytes": 153175100,
+      "sha256": "73e29a56974ae5a651133a04584c7483b21afe941e17dc91d79814a758b608d3"
     },
     {
       "url": "https://github.com/ImageMagick/ImageMagick/releases/download/7.1.2-31/ImageMagick-7.1.2-31-gcc-x86_64.AppImage",
@@ -24,8 +24,8 @@
     }
   ],
   "executables": {
-    "ffmpeg": "693997243e25684ab5976522d97111f44dbc14cfb47f968c2e2283b8fe070a17",
-    "ffprobe": "91dae15342bcbd3b8b3935d0fa0299ae47c5b59ef9cbd80f9d34547adb10fc9d",
+    "ffmpeg": "384742b75419584d065bbf372613f9f7e8ccf22525b421c16a2ee679a78ee748",
+    "ffprobe": "ae9051af68f52e7ad5706b442577689c74c02da618ca1590caf1ac7199f2931c",
     "magick": "ebe8030aa93f0ef778c3d0cb773169b63e0342f31141901492a030968068399c"
   },
   "builtImageDigest": null,

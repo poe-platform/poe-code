@@ -25,3 +25,9 @@ test('pinned FFmpeg writes the original non-UTF8 output filename through execve'
  input.args.push(Array.from(output));
  const result=await execute(input);assert.deepEqual(result.outcome,{kind:'exited',exitCode:0});assert.ok((await stat(output)).size>160);
 });
+test('pinned ffprobe reports native stream metadata as JSON',async()=>{
+ const result=await execute(spec('/opt/ffmpeg/ffprobe',['-v','error','-f','lavfi','-i','sine=frequency=440:sample_rate=8000:duration=0.01','-show_entries','stream=codec_name,sample_rate,channels','-of','json']));
+ assert.deepEqual(result.outcome,{kind:'exited',exitCode:0});
+ assert.deepEqual(JSON.parse(Buffer.concat(result.chunks.get(2)).toString('utf8')).streams,[{codec_name:'pcm_s16le',sample_rate:'8000',channels:1}]);
+ assert.equal(Buffer.concat(result.chunks.get(3)).length,0);
+});

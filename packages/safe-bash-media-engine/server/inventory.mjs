@@ -31,9 +31,9 @@ const records={};for(const [name,query]of Object.entries(queries)){
 }
 const inventoryInput={
  identity:{imageDigest,os:process.platform,architecture:process.arch==='x64'?'x86_64':process.arch,
-  // The pinned container uses FFmpeg 9.0; the shipped frontend was derived from
+  // The pinned container uses FFmpeg n9.0.2-39-g7adfbe40dc; the shipped frontend was derived from
   // 9.0.1. Keep observed native identity separate; never relabel it as matching JS.
-  grammarRevision:'ffmpeg-9.0+imagemagick-7.1.2-31-unqualified',sourceRevision:'container-lock-v1',launcherRevision:launcher.argvProfile.revision,bridgeRevision:'unqualified',runtimeRequirements:[],runtimeEnvironment:{PATH:'/usr/local/bin:/usr/bin:/bin',HOME:'/scratch',LC_ALL:'C'},
+  grammarRevision:'ffmpeg-n9.0.2-39-g7adfbe40dc+imagemagick-7.1.2-31-unqualified',sourceRevision:'container-lock-v1',launcherRevision:launcher.argvProfile.revision,bridgeRevision:'unqualified',runtimeRequirements:[],runtimeEnvironment:{PATH:'/usr/local/bin:/usr/bin:/bin',HOME:'/scratch',LC_ALL:'C'},
   policyDifferences:['Container networking and devices explicitly denied.','All filesystem accesses are container-native; canonical live mediation is NOT qualified.','Configured delegates are inventoried; delegate execution and external dependencies are NOT qualified.','Fonts/profiles reflect packaged runtime assets; external host assets are absent.','Raw byte argv uses the pinned POSIX execve helper; canonical byte-path mapping is NOT qualified.']},
  frontendContract:{grammarRevision:[grammarRevision,imageMagickGrammarRevision].join('+'),sourceRevision:[nativeReference.id,imageMagickReference.id].join('+')},
  executablePaths:lock.executablePaths,

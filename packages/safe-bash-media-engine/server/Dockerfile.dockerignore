@@ -1,0 +1,25 @@
+# This recipe needs a different context from the repository's other images.
+*
+!packages/
+!packages/safe-bash-media-engine/
+!packages/safe-bash-media-engine/server/
+!packages/safe-bash-media-engine/server/**
+!packages/safe-bash-media-engine/dist/
+!packages/safe-bash-media-engine/dist/**
+!packages/safe-bash-media-engine/package.json
+!packages/remote-execution/
+!packages/remote-execution/dist/
+!packages/remote-execution/dist/**
+!packages/remote-execution/native/
+!packages/remote-execution/native/execve.c
+!packages/remote-execution/schemas/
+!packages/remote-execution/schemas/**
+!packages/remote-execution/package.json
+!packages/safe-fs/
+!packages/safe-fs/dist/
+!packages/safe-fs/dist/**
+!packages/safe-fs/package.json
+!node_modules/
+!node_modules/@noble/
+!node_modules/@noble/hashes/
+!node_modules/@noble/hashes/**

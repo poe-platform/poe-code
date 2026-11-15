@@ -145,6 +145,15 @@ passing cases. These variables do not configure the public media commands.
 Use `npm run test:unit --workspace=safe-bash-media-engine` and the workspace `lint`
 command for fast checks. `test:public-consumer`, `test:worker-imports`, `test:native`
 and `test:container` qualify their respective consumers or explicit native runs.
+
+The container pins the October 2026 month-end FFmpeg build. Upstream retains
+month-end builds for two years (daily builds last only 14 days); refresh this pin
+before October 2028 and repeat container qualification. Builds use the exact
+archive URL, length and SHA-256 plus both executable hashes, never `latest`.
+The on-demand **Qualify native media container** GitHub workflow runs the maintained
+container route and retains its disposable inventory in the job log. It does not
+admit a production image.
+
 Unit tests do not establish deployed provider compatibility. Complete native
 filesystem/process behavior, production images and each cloud provider require
 their own qualification. Partial effects survive failure; uncertain outcomes

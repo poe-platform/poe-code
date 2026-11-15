@@ -1,0 +1,25 @@
+name: Qualify native media container
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  qualify:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm ci --ignore-scripts
+      - name: Build the media workspace and its declared dependencies
+        run: npm run build:workspaces -- --workspace=safe-bash-media-engine
+      - name: Check TypeScript media contracts
+        run: npm run test:unit --workspace=safe-bash-media-engine
+      - name: Check Rust media contracts
+        run: cargo test --locked --manifest-path packages/safe-bash-rust/Cargo.toml commands::media::tests
+      - name: Acquire pinned assets, build and qualify the disposable container
+        run: npm run test:container --workspace=safe-bash-media-engine

@@ -1,6 +1,7 @@
+import { readJpegMetadata } from "@poe-code/image-ast";
 import { csvFormulaCell, calculateCsvFormulas } from "./csv-formulas.js";
 import { isCsvNumber } from "./csv-number.js";
-import { parseXml } from "@poe-code/safe-fs/xml";
+import { parseXml, type XmlElement } from "@poe-code/safe-fs/xml";
 import { xlsxDateText, xlsxDateSerial } from "./xlsx-dates.js";
 import { xlsxMetadata, xlsxDocumentPrefix, xlsxDocumentSuffix } from "./xlsx-parts.js";
 import { docxMetadata, docxDocumentPrefix, docxDocumentSuffix } from "./docx-parts.js";
@@ -304,48 +305,52 @@ function wrapTextLines(text: string, maxChars: number): string[] {
   return lines;
 }
 
-function parsePptxSlides(zipBytes: Uint8Array): Array<{ title: string; bullets: string[]; images: SlideImagePlacement[]; textBoxes: SlideTextBoxPlacement[]; tables: SlideTablePlacement[] }> {
-  const entries = readZipArchiveEntries(zipBytes);
-  let slideCx = 12192000;
-  let slideCy = 6858000;
-  const presBytes = entries.get("ppt/presentation.xml");
-  if (presBytes) {
-    const presXml = new TextDecoder().decode(presBytes);
-    const szMatch = /<p:sldSz\b[^>]*?\bcx="(\d+)"[^>]*?\bcy="(\d+)"/.exec(presXml);
-    if (szMatch) {
-      slideCx = Math.max(1, Number.parseInt(szMatch[1]!, 10));
-      slideCy = Math.max(1, Number.parseInt(szMatch[2]!, 10));
-    }
+function* pptxElements(root: XmlElement, name: string): Generator<XmlElement> {
+  const pending = [root];
+  while (pending.length) {
+    const element = pending.pop()!;
+    if (element.localName === name) yield element;
+    for (let index = element.children.length - 1; index >= 0; index--) pending.push(element.children[index]!);
   }
-
-  const slideKeys = [...entries.keys()]
-    .filter((k) => /^ppt\/slides\/slide\d+\.xml$/.test(k))
-    .sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
-
-  const slides: Array<{ title: string; bullets: string[]; images: SlideImagePlacement[]; textBoxes: SlideTextBoxPlacement[]; tables: SlideTablePlacement[] }> = [];
+}
+function pptxAttribute(element: XmlElement | undefined, name: string): string | undefined {
+  return element?.attributes.find(attribute => attribute.name === name || name.includes(":") && attribute.prefix !== undefined && attribute.localName === name.slice(name.indexOf(":") + 1))?.value;
+}
+function pptxXml(bytes: Uint8Array): XmlElement {
+  const text = new TextDecoder().decode(bytes);
+  // Older generated slide fragments omit the namespace declarations and root.
+  return parseXml(`<root xmlns:p="p" xmlns:a="a" xmlns:r="r" xmlns:n="n">${text.startsWith('<?xml') ? text.slice(text.indexOf('?>') + 2) : text}</root>`);
+}
+function parsePptxSlides(zipBytes: Uint8Array, pdf = false) {
+  const entries = readZipArchiveEntries(zipBytes);
+  const presentation = entries.get("ppt/presentation.xml");
+  const root = presentation ? pptxXml(presentation) : undefined;
+  const size = root ? [...pptxElements(root, "sldSz")][0] : undefined;
+  const slideCx = Number(pptxAttribute(size, "cx") ?? 12192000);
+  const slideCy = Number(pptxAttribute(size, "cy") ?? 6858000);
+  if (!Number.isFinite(slideCx) || !Number.isFinite(slideCy) || slideCx <= 0 || slideCy <= 0) throw new Error("Invalid PPTX slide size");
+  const relationships = (owner: string) => {
+    const targets = new Map<string, string>();
+    const slash = owner.lastIndexOf('/');
+    const bytes = entries.get(owner.slice(0, slash + 1) + '_rels/' + owner.slice(slash + 1) + '.rels');
+    if (bytes) for (const rel of pptxElements(pptxXml(bytes), 'Relationship')) {
+      const id = pptxAttribute(rel, 'Id'), target = pptxAttribute(rel, 'Target');
+      if (id && target && pptxAttribute(rel, 'TargetMode') !== 'External') targets.set(id, resolvePath('/' + owner.slice(0, slash), target).slice(1));
+    }
+    return targets;
+  };
+  const declared = root ? [...pptxElements(root, 'sldIdLst')][0] : undefined;
+  const targets = relationships('ppt/presentation.xml');
+  const slideKeys = declared ? [...pptxElements(declared, 'sldId')].map(slide => {
+    const target = targets.get(pptxAttribute(slide, 'r:id') ?? '');
+    if (!target || !entries.has(target)) throw new Error('Missing referenced PPTX slide');
+    return target;
+  }) : [...entries.keys()].filter(key => key.startsWith('ppt/slides/slide') && key.endsWith('.xml') && key.slice(16,-4).length > 0 && [...key.slice(16,-4)].every(char => char >= '0' && char <= '9')).sort((a,b) => a.localeCompare(b, undefined, {numeric:true}));
+  const slides: Array<{ title: string; bullets: string[]; images: SlideImagePlacement[]; textBoxes: SlideTextBoxPlacement[]; tables: SlideTablePlacement[]; pageWidth: number; pageHeight: number }> = [];
   for (const key of slideKeys) {
     const xml = new TextDecoder().decode(entries.get(key)!);
-    const relsKey = `ppt/slides/_rels/${key.slice("ppt/slides/".length)}.rels`;
-    const relTargets = new Map<string, string>();
-    const relsBytes = entries.get(relsKey);
-    if (relsBytes) {
-      const relsXml = new TextDecoder().decode(relsBytes);
-      for (const rel of relsXml.matchAll(/<Relationship\b([^>]*?)\/?>/g)) {
-        const attrs = rel[1] ?? "";
-        const idMatch = /\bId="([^"]+)"/.exec(attrs);
-        const targetMatch = /\bTarget="([^"]+)"/.exec(attrs);
-        if (idMatch?.[1] && targetMatch?.[1]) {
-          const rawTarget = targetMatch[1];
-          const normalized = rawTarget.startsWith("/")
-            ? rawTarget.slice(1)
-            : rawTarget.startsWith("../")
-              ? `ppt/${rawTarget.slice(3)}`
-              : `ppt/slides/${rawTarget}`;
-          relTargets.set(idMatch[1], normalized);
-        }
-      }
-    }
-
+    const slideRoot = pptxXml(entries.get(key)!);
+    const relTargets = relationships(key);
     const shapes: string[][] = [];
     const textBoxes: SlideTextBoxPlacement[] = [];
     let shapeIdx = 0;
@@ -382,23 +387,16 @@ function parsePptxSlides(zipBytes: Uint8Array): Array<{ title: string; bullets: 
     }
 
     const images: SlideImagePlacement[] = [];
-    for (const pic of xml.matchAll(/<((?:[A-Za-z0-9_-]+:)?pic)\b[\s\S]*?<\/\1>/g)) {
-      const embedMatch = /\b(?:[A-Za-z0-9_-]+:)?embed="([^"]+)"/.exec(pic[0]);
-      if (!embedMatch?.[1]) continue;
-      const mediaPath = relTargets.get(embedMatch[1]);
-      const mediaBytes = mediaPath ? entries.get(mediaPath) : undefined;
-      if (!mediaBytes) continue;
-      const offMatch = /<(?:[A-Za-z0-9_-]+:)?off\b[^>]*?\bx="(-?\d+)"[^>]*?\by="(-?\d+)"/.exec(pic[0]);
-      const extMatch = /<(?:[A-Za-z0-9_-]+:)?ext\b[^>]*?\bcx="(\d+)"[^>]*?\bcy="(\d+)"/.exec(pic[0]);
-      const offX = offMatch ? Number.parseInt(offMatch[1]!, 10) : Math.round(slideCx * 0.1);
-      const offY = offMatch ? Number.parseInt(offMatch[2]!, 10) : Math.round(slideCy * 0.2);
-      const extCx = extMatch ? Number.parseInt(extMatch[1]!, 10) : Math.round(slideCx * 0.8);
-      const extCy = extMatch ? Number.parseInt(extMatch[2]!, 10) : Math.round(slideCy * 0.6);
-      const width = Math.max(16, (extCx / slideCx) * 720);
-      const height = Math.max(16, (extCy / slideCy) * 405);
-      const x = Math.max(0, Math.min(720 - width, (offX / slideCx) * 720));
-      const y = Math.max(0, Math.min(340 - height, 405 - ((offY + extCy) / slideCy) * 405));
-      images.push({ bytes: mediaBytes, x, y, width, height });
+    for (const pic of pptxElements(slideRoot, 'pic')) {
+      const blip = [...pptxElements(pic, 'blip')][0];
+      const target = relTargets.get(pptxAttribute(blip, 'r:embed') ?? '');
+      const bytes = target ? entries.get(target) : undefined;
+      if (!bytes) throw new Error('Missing referenced PPTX image');
+      const off = [...pptxElements(pic, 'off')][0], ext = [...pptxElements(pic, 'ext')][0];
+      const x = Number(pptxAttribute(off, 'x')) / 12700, top = Number(pptxAttribute(off, 'y')) / 12700;
+      const width = Number(pptxAttribute(ext, 'cx')) / 12700, height = Number(pptxAttribute(ext, 'cy')) / 12700;
+      if (![x, top, width, height].every(Number.isFinite) || width <= 0 || height <= 0) throw new Error('Invalid PPTX picture placement');
+      images.push({bytes, x, y: slideCy / 12700 - top - height, width, height});
     }
 
     const tables: SlideTablePlacement[] = [];
@@ -433,9 +431,9 @@ function parsePptxSlides(zipBytes: Uint8Array): Array<{ title: string; bullets: 
       }
     }
 
-    const title = shapes[0]?.[0] ?? `Slide ${slides.length + 1}`;
+    const title = shapes[0]?.[0] ?? (pdf ? "" : `Slide ${slides.length + 1}`);
     const bullets = [...(shapes[0]?.slice(1) ?? []), ...shapes.slice(1).flat(), ...tableLines];
-    slides.push({ title, bullets, images, textBoxes, tables });
+    slides.push({ title, bullets, images, textBoxes, tables, pageWidth: slideCx / 12700, pageHeight: slideCy / 12700 });
   }
   return slides;
 }
@@ -567,37 +565,20 @@ function* renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Ge
   return doc.save();
 }
 
-function renderSlidesToPdf(slides: readonly { title: string; bullets: string[]; images?: readonly SlideImagePlacement[]; textBoxes?: readonly SlideTextBoxPlacement[]; tables?: readonly SlideTablePlacement[] }[]): Uint8Array {
+function renderSlidesToPdf(slides: readonly { title: string; bullets: string[]; images?: readonly SlideImagePlacement[]; textBoxes?: readonly SlideTextBoxPlacement[]; tables?: readonly SlideTablePlacement[]; pageWidth: number; pageHeight: number }[]): Uint8Array {
   const doc = PdfDocument.create();
   doc.setCreator("LibreOffice Impress (@poe-code/pdf-ast)");
 
   for (const slide of slides) {
-    const page = doc.addPage([720, 405]);
-    page.drawRect({
-      x: 0,
-      y: 345,
-      width: 720,
-      height: 60,
-      fill: rgb(0.12, 0.22, 0.38)
-    });
-    page.drawText(slide.title, {
-      x: 40,
-      y: 365,
-      size: 22,
-      font: "Helvetica-Bold",
-      color: rgb(1, 1, 1)
-    });
+    const page = doc.addPage([slide.pageWidth, slide.pageHeight]);
+    if (slide.title) page.drawText(slide.title, {x:40, y:slide.pageHeight - 40, size:22, font:"Helvetica-Bold"});
     for (const img of slide.images ?? []) {
-      try {
-        const isPng = img.bytes[0] === 0x89 && img.bytes[1] === 0x50;
-        const isJpg = img.bytes[0] === 0xff && img.bytes[1] === 0xd8;
-        if (isPng || isJpg) {
-          const handle = isPng ? doc.embedPng(img.bytes) : doc.embedJpg(img.bytes);
-          page.drawImage(handle, { x: img.x, y: img.y, width: img.width, height: img.height });
-        }
-      } catch {
-        // skip unsupported image stream
-      }
+      const isPng = img.bytes[0] === 0x89 && img.bytes[1] === 0x50;
+      const isJpg = img.bytes[0] === 0xff && img.bytes[1] === 0xd8;
+      if (!isPng && !isJpg) throw new Error("Unsupported PPTX image");
+      if (isJpg) readJpegMetadata(img.bytes);
+      const handle = isPng ? doc.embedPng(img.bytes) : doc.embedJpg(img.bytes);
+      page.drawImage(handle, { x: img.x, y: img.y, width: img.width, height: img.height });
     }
     let cursorY = 330;
     let prevBoxX: number | undefined;
@@ -1102,7 +1083,7 @@ function* runSofficeSteps(
           outBytes = new TextEncoder().encode(rows.map(row => row.join("\t")).join("\n") + "\n");
         }
       } else if (lowerIn.endsWith(".pptx")) {
-        const slides = parsePptxSlides(inputBytes);
+        const slides = parsePptxSlides(inputBytes, targetExt === "pdf");
         if (targetExt === "pdf") {
           outBytes = renderSlidesToPdf(slides);
         } else if (targetExt === "html" || targetExt === "docx") {

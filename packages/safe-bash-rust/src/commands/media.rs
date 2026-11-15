@@ -6018,6 +6018,12 @@ fn cmd_soffice(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcom
             rows_opt=Some(match office::delimited(&source,delim){Ok(rows)=>rows, Err(e)=>return err_out(e,1)});
         }
         match target_ext.as_str() {
+            "pdf" if input_ext == "pptx" => {
+                let Some(pdf) = pdf_reader::render_pptx(&bytes, filter_opts, fs.max_input_bytes()) else {
+                    return err_out("Error: conversion failed: invalid PPTX or resource limit exceeded\n", 1);
+                };
+                if fs.write_file(&dest, &pdf).is_err() { return err_out("Error: conversion failed: cannot write PDF\n", 1); }
+            }
             "pdf" if !matches!(input_ext,"pdf"|"pptx"|"odp"|"docx"|"odt"|"ods") => {
                 let Some(pdf) = pdf_reader::render_office(blocks, stem, filter_opts, fs.max_input_bytes()) else {
                     return err_out("Error: conversion failed: PDF exceeds resource limits\n", 1);
@@ -17718,6 +17724,63 @@ mod media_unit_tests {
             assert_eq!(result.exit_code, 0, "{}", result.stderr);
             let output = fs.read_file(&format!("/d.{ext}")).unwrap();
             assert_eq!(crate::commands::archive::sha256_bytes(&output).iter().map(|b|format!("{b:02x}")).collect::<String>(), expected);
+        }
+    }
+
+    #[test]
+    fn soffice_preserves_pptx_image_pages() {
+        for format in ["png","jpeg"] {
+            let fs = MemoryVfs::new();
+            let blue = png_pixels::Raster {width:1,height:1,alpha:false,gray:false,density:72,orientation:None,pixels:vec![[0,0,255,255]]};
+            let red = png_pixels::Raster {pixels:vec![[255,0,0,255]],..blue.clone()};
+            let blue=frame_output::encode(&blue,format,90.,72,1<<20).unwrap();
+            let red=frame_output::encode(&red,format,90.,72,1<<20).unwrap();
+            let presentation = br#"<p:presentation xmlns:p="p" xmlns:r="r"><p:sldIdLst><p:sldId id="2" r:id="blue"/><p:sldId id="1" r:id="red"/></p:sldIdLst><p:sldSz cx="9144000" cy="6858000"/></p:presentation>"#;
+            let slide = br#"<p:sld xmlns:p="p" xmlns:a="a" xmlns:r="r"><p:pic><a:blip r:embed="image"/><a:xfrm><a:off y="685800" x="914400"/><a:ext cy="1371600" cx="1828800"/></a:xfrm></p:pic></p:sld>"#;
+            let entries = vec![
+                ("ppt/presentation.xml",presentation.as_slice()),
+                ("ppt/_rels/presentation.xml.rels",br#"<Relationships><Relationship Id="blue" Target="slides/slide2.xml"/><Relationship Id="red" Target="slides/slide1.xml"/></Relationships>"#.as_slice()),
+                ("ppt/slides/slide1.xml",slide.as_slice()),("ppt/slides/slide2.xml",slide.as_slice()),("ppt/slides/slide3.xml",slide.as_slice()),
+                ("ppt/slides/_rels/slide1.xml.rels",br#"<Relationships><Relationship Id="image" Target="../media/red"/></Relationships>"#.as_slice()),
+                ("ppt/slides/_rels/slide2.xml.rels",br#"<Relationships><Relationship Id="image" Target="../media/blue"/></Relationships>"#.as_slice()),
+                ("ppt/media/blue",blue.as_slice()),("ppt/media/red",red.as_slice()),
+            ];
+            let input=crate::commands::structured::write_zip_stored(&entries);
+            fs.write_file("/deck.pptx",&input).unwrap();
+            for command in ["soffice","libreoffice"] {
+                let result=cmd_media_doc(command,&media_args(&["--convert-to","pdf","/deck.pptx"]),"","/",&fs);
+                assert_eq!(result.exit_code,0,"{}",result.stderr);
+                assert_eq!(fs.read_file("/deck.pptx").unwrap(),input);
+                let bytes=fs.read_file("/deck.pdf").unwrap();
+                let doc=pdf_reader::read(&bytes, "").expect("standards-compliant PDF").0;
+                assert_eq!(doc.pages.len(),2);
+                assert_eq!((doc.page_w,doc.page_h),(720.,540.));
+                assert!(doc.pages.iter().all(|page|page.text.is_empty()));
+                assert!(String::from_utf8_lossy(&bytes).contains("144 0 0 108 72 378 cm"));
+            }
+            let result=cmd_media_doc("pdftoppm",&media_args(&["-r","72","-png","/deck.pdf","/page"]),"","/",&fs);
+            assert_eq!(result.exit_code,0,"{}",result.stderr);
+            for (page,channel) in [(1,2),(2,0)] {
+                let raster=png_pixels::Raster::decode(&fs.read_file(&format!("/page-{page}.png")).unwrap(),4<<20).unwrap();
+                assert_eq!((raster.width,raster.height),(720,540));
+                assert!(raster.pixels[80*720+100][channel]>=250);
+                assert_eq!(raster.pixels[20*720+100],[255,255,255,255]);
+            }
+            let previous=fs.read_file("/deck.pdf").unwrap();
+            for missing in ["ppt/media/blue","ppt/slides/slide2.xml","ppt/slides/_rels/slide2.xml.rels"] {
+                let broken=crate::commands::structured::write_zip_stored(&entries.iter().copied().filter(|(name,_)|*name!=missing).collect::<Vec<_>>());
+                fs.write_file("/deck.pptx",&broken).unwrap();
+                let result=cmd_media_doc("soffice",&media_args(&["--convert-to","pdf","/deck.pptx"]),"","/",&fs);
+                assert_eq!(result.exit_code,1);
+                assert_eq!(fs.read_file("/deck.pdf").unwrap(),previous);
+            }
+            for (name,data) in [("ppt/slides/slide2.xml",b"<sld><pic></sld>".as_slice()),("ppt/media/blue",b"invalid image")] {
+                let broken=crate::commands::structured::write_zip_stored(&entries.iter().map(|&(key,value)|(key,if key==name {data} else {value})).collect::<Vec<_>>());
+                fs.write_file("/deck.pptx",&broken).unwrap();
+                let result=cmd_media_doc("soffice",&media_args(&["--convert-to","pdf","/deck.pptx"]),"","/",&fs);
+                assert_eq!(result.exit_code,1);
+                assert_eq!(fs.read_file("/deck.pdf").unwrap(),previous);
+            }
         }
     }
 

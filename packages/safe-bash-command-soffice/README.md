@@ -10,7 +10,7 @@ Headless LibreOffice (`soffice` / `libreoffice`) conversion command for `safe-ba
 | --- | --- | --- |
 | Writer -> PDF | `soffice --headless --convert-to pdf:writer_pdf_Export report.docx` | Renders DOCX/HTML/Markdown/TXT headings, paragraphs, lists, and tables into paginated PDFs. |
 | Calc -> PDF | `soffice --headless --convert-to pdf:calc_pdf_Export finance.xlsx` | Renders XLSX/CSV worksheets into grid-bordered tabular PDFs with shaded headers. |
-| Impress -> PDF | `soffice --headless --convert-to pdf:impress_pdf_Export deck.pptx` | Renders PPTX slides into landscape 16:9 widescreen PDFs. |
+| Impress -> PDF | `soffice --headless --convert-to pdf:impress_pdf_Export deck.pptx` | Preserves PPTX slide order, declared page dimensions, and PNG/JPEG picture placement without adding headers. |
 | Calc -> CSV (StarCalc) | `soffice --headless --convert-to "csv:Text - txt - csv (StarCalc):59,34,76,1" book.xlsx` | Exports XLSX/ODS worksheets to CSV with configurable field separator, quote character, and quoting. |
 | PDF -> DOCX / XLSX / CSV / HTML / PNG / TXT | `soffice --headless --convert-to docx document.pdf` | Converts PDFs into DOCX, XLSX, CSV, HTML, PNG, or TXT and supports `soffice --cat` / `libreoffice` alias. |
 
@@ -61,7 +61,7 @@ RTF-to-text/HTML/DOCX/PDF and OpenDocument-to-text/HTML/DOCX/PDF conversion, plu
 storage and publish output through guarded staging. Existing file identity, hard links,
 symlinks and permissions are preserved. Later input operands can reuse earlier generated
 outputs. Text PDF conversion retains word wrapping and page content in caller storage,
-including page-range and PDF-version filters. DOCX PDF images keep encoded media and decoded PNG pixels in caller storage, preserving JPEG colors and PNG transparency. PPTX PDF retains landscape slides, positioned text boxes, image placement and tables in caller storage. Large inputs require an external safe-fs backend; other conversion routes and
+including page-range and PDF-version filters. DOCX PDF images keep encoded media and decoded PNG pixels in caller storage, preserving JPEG colors and PNG transparency. PPTX PDF retains declared slide dimensions, positioned text boxes, images and tables in caller storage. Missing referenced slides or images and malformed conversions fail without replacing existing output. Large inputs require an external safe-fs backend; other conversion routes and
 filesystems without the required retained capabilities still use buffered adapters.
 
 For direct TypeScript conversion, use `await runSofficeCli(args, files, cwd,

@@ -1192,7 +1192,7 @@ fn flate_stream(dict: &str, data: &[u8]) -> Vec<u8> {
     body
 }
 
-struct PdfBitmap {
+pub(super) struct PdfBitmap {
     w: usize,
     h: usize,
     rgb: Vec<u8>,
@@ -1200,7 +1200,7 @@ struct PdfBitmap {
 }
 
 impl PdfBitmap {
-    fn new(pixels: &[[u8; 4]], w: usize, h: usize) -> Self {
+    pub(super) fn new(pixels: &[[u8; 4]], w: usize, h: usize) -> Self {
         let mask = if pixels.iter().any(|p| p[3] != 255) {
             zlib_compress(&pixels.iter().map(|p| p[3]).collect::<Vec<_>>())
         } else {
@@ -1219,7 +1219,7 @@ impl PdfBitmap {
             ),
         }
     }
-    fn write(&self, bodies: &mut Vec<Vec<u8>>) {
+    pub(super) fn write(&self, bodies: &mut Vec<Vec<u8>>) {
         let dict = |color| {
             format!(
                 "<<\n/Type /XObject\n/Subtype /Image\n/Width {}\n/Height {}\n/ColorSpace /Device{color}\n/BitsPerComponent 8\n",

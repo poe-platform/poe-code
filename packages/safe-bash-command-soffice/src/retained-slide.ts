@@ -1,3 +1,4 @@
+import { readJpegMetadataFromSource } from "@poe-code/image-ast";
 import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import { formatPdfNumber, cosString, encodeWinAnsiBytes, serializeCosNodeBytes } from "@poe-code/pdf-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -36,7 +37,7 @@ export class RetainedSlide {
   }
 }
 
-export async function renderRetainedSlide(pdf: RetainedPdf, storage: PagedStorage, slide: RetainedSlide, signal: AbortSignal): Promise<void> {
+export async function renderRetainedSlide(pdf: RetainedPdf, storage: PagedStorage, slide: RetainedSlide, signal: AbortSignal, pageHeight: number): Promise<void> {
   const encoder = new TextEncoder();
   async function* read(position: number, size: number) {
     for (let offset = 0; offset < size; offset += 16384) { signal.throwIfAborted(); yield new Uint8Array(await storage.read(position + offset, Math.min(16384, size - offset))); }
@@ -68,12 +69,15 @@ export async function renderRetainedSlide(pdf: RetainedPdf, storage: PagedStorag
     }while(first<words.count);
     return y;
   };
-  await pdf.append("q\n0.12 0.22 0.38 rg\n0 345 720 60 re\nf\nQ\n");
-  const [titlePosition,titleSize]=await slide.paragraphs.get(0);
-  await text(read(titlePosition!,titleSize!),40,365,22,true,"1 1 1");
+  if (slide.paragraphs.count) {
+    const [titlePosition,titleSize]=await slide.paragraphs.get(0);
+    await text(read(titlePosition!,titleSize!),40,pageHeight-40,22,true,"0 0 0");
+  }
   for(let index=0;index<slide.images.count;index++){
     const [position,size,x,y,width,height]=await slide.images.get(index), image=await retainPdfImage(storage,{position:position!,size:size!,width:width!,height:height!},signal);
-    if(image)await pdf.image(image,{x:x!,y:y!,width:width!,height:height!});
+    if(!image)throw new Error("Invalid PPTX image");
+    if(image.jpeg)await readJpegMetadataFromSource({size:size!,read:(offset,length)=>storage.read(position!+offset,length)},signal);
+    await pdf.image(image,{x:x!,y:y!,width:width!,height:height!});
   }
   let cursorY=330,previousX:number|undefined;
   if(slide.boxes.count){

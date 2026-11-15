@@ -175,7 +175,10 @@ pub(in super::super) fn render_office(
         kids.join(" ")
     )
     .into_bytes();
-    let mut pdf = write_objects(&bodies, limit)?;
+    apply_filters(write_objects(&bodies, limit)?, filter, kids.len(), limit)
+}
+
+pub(super) fn apply_filters(mut pdf: Vec<u8>, filter: Option<&str>, count: usize, limit: usize) -> Option<Vec<u8>> {
     if let Some(filter) = filter
         && filter.trim_start().starts_with('{')
         && let Ok(values) = parse_json_stream(filter)
@@ -202,8 +205,8 @@ pub(in super::super) fn render_office(
                 .ok()
                 .filter(|n| *n > 0)
                 .unwrap_or(a)
-                .min(kids.len());
-            if a <= b && b - a + 1 < kids.len() {
+                .min(count);
+            if a <= b && b - a + 1 < count {
                 let mut src = PageSource::open(&pdf,"").ok()?;
                 pdf = PageOutput::selected(&mut src, a - 1..b, limit)?;
             }

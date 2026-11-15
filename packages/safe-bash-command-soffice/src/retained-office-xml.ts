@@ -74,7 +74,7 @@ export class OfficeXml {
       const token = await this.token(index);
       if (token.kind === "attribute-name") name = await this.name(token.range);
       else if (token.kind === "attribute-value" && (insensitive ? name.toLowerCase() : name) === wanted) {
-        for await (const bytes of this.xml.read({ start: token.range.start - 1, length: 1 })) if (bytes[0] === 34) return token.range;
+        for await (const bytes of this.xml.read({ start: token.range.start - 1, length: 1 })) if (bytes[0] === 34 || bytes[0] === 39) return token.range;
       }
     }
     return undefined;

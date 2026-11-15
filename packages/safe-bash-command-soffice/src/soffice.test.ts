@@ -152,9 +152,9 @@ describe("safe-bash-command-soffice", () => {
     assert.equal(res.exitCode, 0);
     const pdfDoc = PdfDocument.load(files.get("/out/deck.pdf")!);
     assert.equal(pdfDoc.getPageCount(), 2);
-    // Landscape widescreen 720x405
-    assert.equal(pdfDoc.getPage(0).width, 720);
-    assert.equal(pdfDoc.getPage(0).height, 405);
+    // Declared widescreen dimensions in points
+    assert.equal(pdfDoc.getPage(0).width, 960);
+    assert.equal(pdfDoc.getPage(0).height, 540);
     assert.match(pdfDoc.getPage(0).extractText(), /Architecture Overview/);
     assert.match(pdfDoc.getPage(1).extractText(), /Performance Benchmarks/);
   });

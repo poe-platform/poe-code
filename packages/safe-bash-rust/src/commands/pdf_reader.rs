@@ -17,6 +17,10 @@ pub(super) use pdf_json_input::JsonDocument;
 mod pdf_copy;
 pub(super) use pdf_copy::{ImageRead, NativeImage, PageOutput, PageSource, RasterBackend, RasterOptions};
 
+#[path = "pdf_pptx.rs"]
+mod pdf_pptx;
+pub(super) use pdf_pptx::render_pptx;
+
 #[path = "pdf_office.rs"]
 mod pdf_office;
 pub(super) use pdf_office::render_office;

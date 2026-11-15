@@ -30309,6 +30309,12 @@ fn parse_pandoc_md_inlines(s: &str, definitions: Option<&MdqDefinitions>) -> Vec
         if definitions.is_some() && bytes[i] == b'\\' && bytes.get(i + 1).is_some_and(u8::is_ascii_punctuation) {
             cur.push(bytes[i + 1] as char); i += 2; continue;
         }
+        if definitions.is_some() && bytes[i] == b'&' {
+            if let Some(width) = mdq_decode_escape(&s[i..], &mut cur) {
+                i += width;
+                continue;
+            }
+        }
         while links.peek().is_some_and(|(range, _)| range.start < i) { links.next(); }
         if links.peek().is_some_and(|(range, _)| range.start == i) {
             let (range, MdqInlineAtom::Link { image, display, target, .. }) = links.next().unwrap() else { unreachable!() };

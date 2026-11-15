@@ -17091,3 +17091,5 @@ import "./pandoc-references.wasm.test.mjs";
 import "./pandoc-emphasis.wasm.test.mjs";
 
 import "./pandoc-code-spans.wasm.test.mjs";
+
+import "./pandoc-entities.wasm.test.mjs";

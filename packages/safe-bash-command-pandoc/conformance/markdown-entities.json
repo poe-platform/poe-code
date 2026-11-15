@@ -1,0 +1,362 @@
+[
+  {
+    "name": "entities",
+    "input": "Use &amp; &lt; &#65; &#x1F600;.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "&"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "<"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "A"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "😀."
+          }
+        ]
+      }
+    ],
+    "plain": "Use & < A 😀.\n",
+    "html": "<p>Use &amp; &lt; A 😀.</p>\n"
+  },
+  {
+    "name": "entityLiteral",
+    "input": "`&amp;` and \\&amp; and &madeup; and &#0;\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "&amp;"
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "and"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "&amp;"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "and"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "&madeup;"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "and"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "�"
+          }
+        ]
+      }
+    ],
+    "plain": "&amp; and &amp; and &madeup; and �\n",
+    "html": "<p><code>&amp;amp;</code> and &amp;amp; and &amp;madeup; and �</p>\n"
+  },
+  {
+    "name": "entityNonAscii",
+    "input": "&copy; &nbsp; &NotEqualTilde; &#128512;\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "©"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": " "
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "≂̸"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "😀"
+          }
+        ]
+      }
+    ],
+    "plain": "©   ≂̸ 😀\n",
+    "html": "<p>©   ≂̸ 😀</p>\n"
+  },
+  {
+    "name": "entityLink",
+    "input": "[a &amp; b](https://example.com/?x=1&amp;y=2 \"A &quot; B\")\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Link",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Str",
+                  "c": "&"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Str",
+                  "c": "b"
+                }
+              ],
+              [
+                "https://example.com/?x=1&y=2",
+                "A \" B"
+              ]
+            ]
+          }
+        ]
+      }
+    ],
+    "plain": "a & b\n",
+    "html": "<p><a href=\"https://example.com/?x=1&amp;y=2\" title=\"A &quot; B\">a &amp; b</a></p>\n"
+  },
+  {
+    "name": "replacement",
+    "input": "&#0; &#xD800; &#1114112; &#x110000;",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "�"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "�"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "�"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "�"
+          }
+        ]
+      }
+    ],
+    "plain": "� � � �\n",
+    "html": "<p>� � � �</p>\n"
+  },
+  {
+    "name": "single-pass",
+    "input": "&amp;lt; &#38;amp; &ast;literal&ast; &lt;b&gt;",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "&lt;"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "&amp;"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "*literal*"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "<b>"
+          }
+        ]
+      }
+    ],
+    "plain": "&lt; &amp; *literal* <b>\n",
+    "html": "<p>&amp;lt; &amp;amp; *literal* &lt;b&gt;</p>\n"
+  },
+  {
+    "name": "invalid",
+    "input": "&madeup; &AMP &#; &#x; &#12345678; &#x1234567;",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "&madeup;"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "&AMP"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "&#;"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "&#x;"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "&#12345678;"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "&#x1234567;"
+          }
+        ]
+      }
+    ],
+    "plain": "&madeup; &AMP &#; &#x; &#12345678; &#x1234567;\n",
+    "html": "<p>&amp;madeup; &amp;AMP &amp;#; &amp;#x; &amp;#12345678; &amp;#x1234567;</p>\n"
+  },
+  {
+    "name": "emphasis",
+    "input": "*a &amp; b*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "&"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "plain": "a & b\n",
+    "html": "<p><em>a &amp; b</em></p>\n"
+  }
+]

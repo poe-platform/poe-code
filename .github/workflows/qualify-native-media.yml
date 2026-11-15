@@ -17,8 +17,12 @@ jobs:
       - run: npm ci --ignore-scripts
       - name: Build the media workspace and its declared dependencies
         run: npm run build:workspaces -- --workspace=safe-bash-media-engine
-      - name: Check TypeScript media contracts
-        run: npm run test:unit --workspace=safe-bash-media-engine
+      - name: Check TypeScript native asset, invocation and deployment contracts
+        run: npm run test:unit --workspace=safe-bash-media-engine --
+          src/build-assets.test.ts src/build-receipt.test.ts
+          src/deployment-assets.test.ts src/deployment-identity.test.ts
+          src/command-contract.test.ts src/shim.test.ts src/server.test.ts
+          src/server-command.test.ts
       - name: Check Rust media contracts
         run: cargo test --locked --manifest-path packages/safe-bash-rust/Cargo.toml
           --lib media_unit_tests

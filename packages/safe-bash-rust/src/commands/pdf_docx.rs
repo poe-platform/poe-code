@@ -66,7 +66,35 @@ pub(in super::super) fn render_docx(
     let targets = relationships(&entries, "word/document.xml")?;
     let mut blocks = Vec::new();
     let mut retained = 0usize;
-    for paragraph in elements(&doc.nodes, "p") {
+    let mut pending: Vec<_> = doc.nodes.iter().rev().collect();
+    while let Some(node) = pending.pop() {
+        let xml::Node::Element(paragraph) = node else { continue };
+        match paragraph.tag.rsplit(':').next() {
+            Some("tbl") => {
+                let rows: Vec<_> = elements(&paragraph.children, "tr").into_iter().map(|row| {
+                    elements(&row.children, "tc").into_iter().map(|cell| {
+                        let mut text = String::new();
+                        for element in elements(&cell.children, "t") {
+                            for node in &element.children {
+                                if let xml::Node::Text(value, _) | xml::Node::Cdata(value) = node {
+                                    text.push_str(value);
+                                }
+                            }
+                        }
+                        text.trim().to_owned()
+                    }).collect()
+                }).collect();
+                if !rows.is_empty() {
+                    blocks.push(LayoutBlock::Table(rows));
+                }
+                continue;
+            }
+            Some("p") => {},
+            _ => {
+                pending.extend(paragraph.children.iter().rev());
+                continue;
+            }
+        }
         let style = elements(&paragraph.children, "pStyle").first()
             .and_then(|style| attr(style, "val")).unwrap_or("").to_lowercase();
         let size = elements(&paragraph.children, "sz").first()
@@ -182,6 +210,29 @@ pub(in super::super) fn render_docx(
 mod tests {
     use super::*;
     use super::super::PageSource;
+
+    #[test]
+    fn preserves_basic_table_grids() {
+        let paragraph = |text: &str| LayoutBlock::Text(text.into(), false, Vec::new());
+        let grid = vec![vec!["Name".into(), "Count".into()], vec!["Alpha".into(), "Seven".into()]];
+        let mut overflow = vec![vec!["Name".into(), "Count".into()]];
+        overflow.extend((1..=40).map(|i| vec![format!("Row {i}"), format!("Value {i}")]));
+        for (input, expected, pages) in [
+            (include_bytes!("../../../safe-bash-command-soffice/src/fixtures/tables/grid.docx").as_slice(),
+                vec![paragraph("Before table"), LayoutBlock::Table(grid), paragraph("After table")], 1),
+            (include_bytes!("../../../safe-bash-command-soffice/src/fixtures/tables/empty-cell.docx").as_slice(),
+                vec![LayoutBlock::Table(vec![vec!["Left".into(), "Middle".into(), "Right".into()], vec!["A".into(), "".into(), "C".into()]])], 1),
+            (include_bytes!("../../../safe-bash-command-soffice/src/fixtures/tables/overflow.docx").as_slice(),
+                vec![LayoutBlock::Table(overflow)], 2),
+            (include_bytes!("../../../safe-bash-command-soffice/src/fixtures/tables/plain.docx").as_slice(),
+                ["Before table", "Name", "Count", "Alpha", "Seven", "After table"].map(paragraph).into(), 1),
+        ] {
+            let bytes = render_docx(input, "doc", None, 1 << 20).unwrap();
+            assert_eq!(PageSource::open(&bytes, "").unwrap().len(), pages);
+            // Compare the entire PDF, including borders, font selection and pagination.
+            assert!(bytes == render_blocks(expected, "doc", None, 1 << 20, (612., 792.)).unwrap());
+        }
+    }
 
     #[test]
     fn preserves_empty_paragraphs() {

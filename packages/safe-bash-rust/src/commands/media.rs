@@ -17734,6 +17734,37 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn soffice_preserves_docx_line_breaks() {
+        for (separator, spacing) in [
+            ("<w:br/>", 15.), (r#"<w:br w:type="textWrapping"/>"#, 15.),
+            ("<w:cr/>", 15.), ("<w:br/><w:br/>", 30.),
+            ("<w:t> </w:t>", 0.), ("</w:r></w:p><w:p><w:r>", 20.),
+        ] {
+            for bottom in [false, true] {
+                let fs = MemoryVfs::new();
+                let prefix = "<w:p><w:r><w:t>Filler</w:t></w:r></w:p>".repeat(if bottom {32} else {0});
+                let xml = format!(r#"<w:document xmlns:w="w"><w:body>{prefix}<w:p><w:r><w:t>FIRST LINE</w:t>{separator}<w:t>SECOND LINE</w:t></w:r></w:p></w:body></w:document>"#);
+                let input = crate::commands::structured::write_zip_stored(&[("word/document.xml", xml.as_bytes())]);
+                fs.write_file("/doc.docx", &input).unwrap();
+                let result = cmd_media_doc("soffice", &media_args(&["--convert-to", "pdf", "/doc.docx"]), "", "/", &fs);
+                assert_eq!(result.exit_code, 0, "{}", result.stderr);
+                let bytes = fs.read_file("/doc.pdf").unwrap();
+                let mut source = pdf_reader::PageSource::open(&bytes, "").unwrap();
+                let second_page = bottom && spacing > 0.;
+                assert_eq!(source.len(), if second_page {2} else {1}, "{separator}, bottom={bottom}");
+                let first_lines = source.text_lines(1, None).unwrap();
+                let first = first_lines.iter().find(|line| line.text.contains("FIRST LINE")).unwrap();
+                let second_lines = source.text_lines(if second_page {2} else {1}, None).unwrap();
+                let second = second_lines.iter().find(|line| line.text.contains("SECOND LINE")).unwrap();
+                let first_y = if bottom {80.} else {720.};
+                let second_y = if second_page {720. - if spacing == 30. {15.} else {0.}} else {first_y - spacing};
+                assert!((second.bounds[1] - first.bounds[1] - (second_y - first_y)).abs() < 0.001, "{separator}, bottom={bottom}: {:?} {:?}", first.bounds, second.bounds);
+                assert_eq!(fs.read_file("/doc.docx").unwrap(), input);
+            }
+        }
+    }
+
+    #[test]
     fn soffice_preserves_docx_page_breaks_and_images() {
         for ((twips_w, twips_h, width, height), kind) in [
             (12240, 15840, 612., 792.), (11906, 16838, 595.3, 841.9), (15840, 12240, 792., 612.)

@@ -80,7 +80,7 @@ pub(in super::super) fn render_docx(
                     flush(&mut text, &mut blocks);
                     blocks.push(LayoutBlock::PageBreak(false));
                 }
-                "br" | "cr" => text.push(' '),
+                "br" | "cr" => text.push('\n'),
                 "drawing" | "pict" => {
                     flush(&mut text, &mut blocks);
                     let blips = elements(&element.children, "blip");

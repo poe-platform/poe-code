@@ -65,7 +65,15 @@ export async function retainTextPdf(storage: PagedStorage, text: RetainedTextBlo
     const scan = async (value: string) => {
       for (const character of value) {
         const bytes = encoder.encode(character).length;
-        if (!character.trim()) await finishWord();
+        if (!character.trim()) {
+          await finishWord();
+          if (character === "\n") {
+            // A zero-length word marks a forced line boundary, including blank lines.
+            await words.set(BigInt(count * 3), BigInt(position));
+            await words.set(BigInt(count * 3 + 1), 0n);
+            await words.set(BigInt(count * 3 + 2), 0n); count++;
+          }
+        }
         else { if (!wordBytes) start = position; wordBytes += bytes; wordUnits += character.length; }
         position += bytes;
       }
@@ -79,7 +87,7 @@ export async function retainTextPdf(storage: PagedStorage, text: RetainedTextBlo
       let end = first, units = 0;
       while (end < count) {
         const next = Number(await words.get(BigInt(end * 3 + 2)));
-        if (end > first && units + 1 + next > maximum) break;
+        if (next === 0 || (end > first && units + 1 + next > maximum)) break;
         units += (end > first ? 1 : 0) + next; end++;
       }
       if (y - (heading ? 26 : 16) < 54) await finishPage();
@@ -104,7 +112,7 @@ export async function retainTextPdf(storage: PagedStorage, text: RetainedTextBlo
         }
       }
       if (first === end) await pdf.append("() Tj\n");
-      await pdf.append("ET\nQ\n"); y -= heading ? 24 : 15; first = end;
+      await pdf.append("ET\nQ\n"); y -= heading ? 24 : 15; first = end < count && await words.get(BigInt(end * 3 + 2)) === 0n ? end + 1 : end;
       await yieldTurn(signal);
     } while (first < count);
     y -= heading ? 4 : 5;

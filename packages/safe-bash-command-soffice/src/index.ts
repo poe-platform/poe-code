@@ -148,7 +148,7 @@ function parseDocxBlocks(zipBytes: Uint8Array): { blocks: DocBlock[]; width: num
         if (run.localName === "t") text += run.text;
         else if (run.localName === "tab") text += "\t";
         else if (run.localName === "br" && attribute(run, "type") === "page") { flush(); blocks.push({kind: "pageBreak"}); }
-        else if (run.localName === "br" || run.localName === "cr") text += " ";
+        else if (run.localName === "br" || run.localName === "cr") text += "\n";
         else if (run.localName === "drawing" || run.localName === "pict") {
           flush();
           const blip = [...pptxElements(run, "blip")][0];

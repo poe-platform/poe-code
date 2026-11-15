@@ -83,41 +83,43 @@ pub(super) fn render_blocks(
                 let max = (content_width * if bold { 48. / 504. } else { 84. / 504. })
                     .floor()
                     .max(1.) as usize;
-                let mut words = t.split_whitespace().peekable();
-                loop {
-                    let mut line = words.next().unwrap_or("").to_string();
-                    let mut length = line.encode_utf16().count();
-                    while let Some(&w) = words.peek() {
-                        let n = w.encode_utf16().count();
-                        if length + 1 + n > max {
+                for segment in t.split('\n') {
+                    let mut words = segment.split_whitespace().peekable();
+                    loop {
+                        let mut line = words.next().unwrap_or("").to_string();
+                        let mut length = line.encode_utf16().count();
+                        while let Some(&w) = words.peek() {
+                            let n = w.encode_utf16().count();
+                            if length + 1 + n > max {
+                                break;
+                            }
+                            line.push(' ');
+                            line.push_str(w);
+                            length += 1 + n;
+                            words.next();
+                        }
+                        space(
+                            &mut pages,
+                            &mut y,
+                            &mut finished,
+                            if bold { 26. } else { 16. },
+                        )?;
+                        pages.last_mut()?.text(
+                            &line,
+                            54.,
+                            y,
+                            if bold { 18 } else { 11 },
+                            bold,
+                            if bold {
+                                "0.1 0.15 0.28"
+                            } else {
+                                "0.15 0.15 0.15"
+                            },
+                        );
+                        y -= if bold { 24. } else { 15. };
+                        if words.peek().is_none() {
                             break;
                         }
-                        line.push(' ');
-                        line.push_str(w);
-                        length += 1 + n;
-                        words.next();
-                    }
-                    space(
-                        &mut pages,
-                        &mut y,
-                        &mut finished,
-                        if bold { 26. } else { 16. },
-                    )?;
-                    pages.last_mut()?.text(
-                        &line,
-                        54.,
-                        y,
-                        if bold { 18 } else { 11 },
-                        bold,
-                        if bold {
-                            "0.1 0.15 0.28"
-                        } else {
-                            "0.15 0.15 0.15"
-                        },
-                    );
-                    y -= if bold { 24. } else { 15. };
-                    if words.peek().is_none() {
-                        break;
                     }
                 }
                 y -= if bold { 4. } else { 5. };

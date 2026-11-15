@@ -119,7 +119,7 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
       const name = await xml.name(run.name);
       let span: SofficeSnapshot | undefined;
       if (name === "t" && run.end !== run.open) span = await retainXmlText(storage, xml.xml.read(run.body), signal, false);
-      else if (name !== "t" && run.end === run.open) span = name === "tab" ? tab : await literal(" ");
+      else if (name !== "t" && run.end === run.open) span = name === "tab" ? tab : newline;
       if (!span) continue;
       if (preserveStyles) {
         while (owner && !owner.done && owner.value.end < run.first) owner = await owners.next();

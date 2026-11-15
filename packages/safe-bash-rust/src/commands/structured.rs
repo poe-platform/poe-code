@@ -32,6 +32,8 @@ mod pandoc_table;
 mod pandoc_list;
 #[cfg(test)]
 mod pandoc_reference_tests;
+#[cfg(test)]
+mod pandoc_code_tests;
 use mdq_writer::{Block as MdqLayout, Writer as MdqWriter};
 use jq_input::JqInputs;
 mod json_format;
@@ -30260,6 +30262,7 @@ fn parse_pandoc_md_inlines(s: &str, definitions: Option<&MdqDefinitions>) -> Vec
     let mut cur = String::new();
     let mut i = 0usize;
     let bytes = s.as_bytes();
+    let ticks = mdq_backtick_runs(bytes);
     let empty = MdqDefinitions::default();
     let defs = definitions.unwrap_or(&empty);
     let mut links = mdq_inline_atoms(defs, s, false).into_iter().filter(|(_, atom)|
@@ -30287,31 +30290,25 @@ fn parse_pandoc_md_inlines(s: &str, definitions: Option<&MdqDefinitions>) -> Vec
                 else { PandocInline::Link(PandocAttr::default(), children, target.url, target.title) });
             i = range.end; continue;
         }
-        if s[i..].starts_with("``") {
-            let rest = &s[i + 2..];
-            if let Some(end) = rest.find("``") {
-                if !cur.is_empty() {
-                    out.push(PandocInline::Text(std::mem::take(&mut cur)));
-                }
-                out.push(PandocInline::Code(PandocAttr::default(), rest[..end].replace('\n', " ")));
-                i += 2 + end + 2;
-                if s[i..].starts_with("\\ ") {
+        if bytes[i] == b'`' {
+            let (width, close) = mdq_code_delimiters(bytes, i, &ticks);
+            i += width;
+            if let Some(close) = close {
+                if !cur.is_empty() { out.push(PandocInline::Text(std::mem::take(&mut cur))); }
+                let content = s[i..close].replace('\n', " ");
+                let text = if content.starts_with(' ') && content.ends_with(' ') && content.bytes().any(|b| b != b' ') {
+                    &content[1..content.len() - 1]
+                } else { &content };
+                out.push(PandocInline::Code(PandocAttr::default(), text.to_owned()));
+                i = close + width;
+                if width == 2 && s[i..].starts_with("\\ ") {
                     out.push(PandocInline::Space);
                     i += 2;
                 }
-                continue;
+            } else {
+                cur.extend(std::iter::repeat_n('`', width));
             }
-        }
-        if bytes[i] == 0x60 {
-            let rest = &s[i + 1..];
-            if let Some(end) = rest.find('`') {
-                if !cur.is_empty() {
-                    out.push(PandocInline::Text(std::mem::take(&mut cur)));
-                }
-                out.push(PandocInline::Code(PandocAttr::default(), rest[..end].replace('\n', " ")));
-                i += 1 + end + 1;
-                continue;
-            }
+            continue;
         }
         if s[i..].starts_with("**") {
             let rest = &s[i + 2..];

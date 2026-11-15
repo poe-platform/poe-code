@@ -1,0 +1,765 @@
+[
+  {
+    "name": "single",
+    "source": "Use `x` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "x"
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use <code>x</code> now.</p>\n",
+    "plain": "Use x now.\n"
+  },
+  {
+    "name": "double",
+    "source": "Use ``a`b`` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a`b"
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use <code>a`b</code> now.</p>\n",
+    "plain": "Use a`b now.\n"
+  },
+  {
+    "name": "triple",
+    "source": "Use ```a`b``c``` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a`b``c"
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use <code>a`b``c</code> now.</p>\n",
+    "plain": "Use a`b``c now.\n"
+  },
+  {
+    "name": "long",
+    "source": "Use ``````a`````b`````` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a`````b"
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use <code>a`````b</code> now.</p>\n",
+    "plain": "Use a`````b now.\n"
+  },
+  {
+    "name": "interior longer",
+    "source": "Use ``a```b`` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a```b"
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use <code>a```b</code> now.</p>\n",
+    "plain": "Use a```b now.\n"
+  },
+  {
+    "name": "padding",
+    "source": "Use ` a ` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a"
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use <code>a</code> now.</p>\n",
+    "plain": "Use a now.\n"
+  },
+  {
+    "name": "multiple padding",
+    "source": "Use `  a  ` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              " a "
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use <code> a </code> now.</p>\n",
+    "plain": "Use  a  now.\n"
+  },
+  {
+    "name": "left padding",
+    "source": "Use ` a` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              " a"
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use <code> a</code> now.</p>\n",
+    "plain": "Use  a now.\n"
+  },
+  {
+    "name": "right padding",
+    "source": "Use `a ` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a "
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use <code>a </code> now.</p>\n",
+    "plain": "Use a  now.\n"
+  },
+  {
+    "name": "all spaces",
+    "source": "Use `   ` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "   "
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use <code>   </code> now.</p>\n",
+    "plain": "Use     now.\n"
+  },
+  {
+    "name": "newline",
+    "source": "Use ` a\nb ` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a b"
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use <code>a b</code> now.</p>\n",
+    "plain": "Use a b now.\n"
+  },
+  {
+    "name": "newline padding",
+    "source": "Use `\na\n` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a"
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use <code>a</code> now.</p>\n",
+    "plain": "Use a now.\n"
+  },
+  {
+    "name": "space newline",
+    "source": "Use ` \n` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "  "
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use <code>  </code> now.</p>\n",
+    "plain": "Use    now.\n"
+  },
+  {
+    "name": "literal characters",
+    "source": "Use `a &amp; \\b <c>` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a &amp; \\b <c>"
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use <code>a &amp;amp; \\b &lt;c&gt;</code> now.</p>\n",
+    "plain": "Use a &amp; \\b <c> now.\n"
+  },
+  {
+    "name": "unicode",
+    "source": "Use `` café `茶` `` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "café `茶`"
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use <code>café `茶`</code> now.</p>\n",
+    "plain": "Use café `茶` now.\n"
+  },
+  {
+    "name": "unmatched ``a`",
+    "source": "Use ``a` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "``a`"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use ``a` now.</p>\n",
+    "plain": "Use ``a` now.\n"
+  },
+  {
+    "name": "unmatched `a``",
+    "source": "Use `a`` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "`a``"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use `a`` now.</p>\n",
+    "plain": "Use `a`` now.\n"
+  },
+  {
+    "name": "unmatched ```a``",
+    "source": "Use ```a`` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "```a``"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use ```a`` now.</p>\n",
+    "plain": "Use ```a`` now.\n"
+  },
+  {
+    "name": "unmatched ````",
+    "source": "Use ```` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "````"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use ```` now.</p>\n",
+    "plain": "Use ```` now.\n"
+  },
+  {
+    "name": "unmatched ``a`b```",
+    "source": "Use ``a`b``` now.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Use"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "``a`b```"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "now."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Use ``a`b``` now.</p>\n",
+    "plain": "Use ``a`b``` now.\n"
+  },
+  {
+    "name": "fenced",
+    "source": "````\n```\ninside\n```\n````\n",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "```\ninside\n```"
+        ]
+      }
+    ],
+    "html": "<pre><code>```\ninside\n```</code></pre>\n",
+    "plain": "    ```\n    inside\n    ```\n"
+  },
+  {
+    "name": "indented",
+    "source": "    let x = 1;\n\n    let y = 2;\n",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "let x = 1;\n\nlet y = 2;"
+        ]
+      }
+    ],
+    "html": "<pre><code>let x = 1;\n\nlet y = 2;</code></pre>\n",
+    "plain": "    let x = 1;\n\n    let y = 2;\n"
+  }
+]

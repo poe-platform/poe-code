@@ -104,6 +104,7 @@ impl<'a> PageSource<'a> {
     pub(super) fn draw_widget(
         &mut self,
         annot: &Value<'a>,
+        scopes: &mut Vec<Resources<'a>>,
         emit: &mut impl FnMut(Draw<'_, '_>, &mut Objects<'a>) -> Option<()>,
     ) -> Option<bool> {
         if annot.get(b"Subtype").and_then(Value::word) != Some(b"/Widget") {
@@ -791,7 +792,10 @@ impl<'a> PageSource<'a> {
                             word: 0.,
                             hscale: 1.,
                         };
-                        self.draw_form(id, state, &mut vec![resources], None, emit)?;
+                        // Legacy Forms without Resources inherit the page resource context.
+                        scopes.push(resources);
+                        self.draw_form(id, state, scopes, None, emit)?;
+                        scopes.pop();
                         emit(Draw::EndForm, &mut self.objects)?;
                     }
                 }

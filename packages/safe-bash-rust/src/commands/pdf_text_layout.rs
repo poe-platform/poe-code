@@ -319,7 +319,7 @@ impl<'a> PageSource<'a> {
             let normal = ap.as_ref().and_then(|v| v.get(b"N"));
             let appearance = match normal { Some(v) => Some(self.objects.resolve(v)?), None => None };
             if appearance.as_ref().is_none_or(|v| v.word() == Some(b"null")) {
-                if !self.draw_widget(&annot, emit)? { pdf_markup::draw(&annot, &mut self.objects, emit)?; }
+                if !self.draw_widget(&annot, scopes, emit)? { pdf_markup::draw(&annot, &mut self.objects, emit)?; }
                 continue;
             }
             let appearance = appearance?;

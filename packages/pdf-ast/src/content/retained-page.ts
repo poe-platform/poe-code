@@ -1,7 +1,7 @@
 import { mergePdfResourceDictionaries, readPdfDictionaryValue } from "./stored-dictionary.js";
 import { StoredReferenceMembership } from "./stored-reference-membership.js";
 import { readStoredRecord } from "./stored-record.js";
-import { cosBool, cosArray, cosNumber, cosDict, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream } from "../ast.js";
+import { cosBool, cosArray, cosNumber, cosDict, type PdfDictEntry, type PdfCosDict, type PdfCosNode, type PdfCosRef, type PdfCosStream } from "../ast.js";
 import { decodePdfStreamChunks } from "../cos/filter-stream.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
 import type { PdfRetainedReader, PdfRetainedPage } from "../retained-reader.js";
@@ -52,6 +52,10 @@ export async function prepareRetainedPageContent(document: PdfRetainedReader, pa
         options.signal?.throwIfAborted();
         const request = step.value; let result: PdfAppearanceResult;
         if (request.kind === "resolve" || request.kind === "catalog") result = await resolve(request.kind === "catalog" ? document.crossReference.rootRef : request.node, request.kind === "resolve" ? request.arrayPathPrefix : undefined);
+        else if (request.kind === "dictionary-entry") {
+          const record = await readStoredRecord<PdfDictEntry>(request.entries.storage, request.position, options.signal);
+          result = cosArray([record.value.key, record.value.value, cosNumber(record.next)]);
+        }
         else if (request.kind === "dictionary-value") result = await readPdfDictionaryValue(request.dict, request.key, options.signal);
         else if (request.kind === "dictionary-merge") result = await mergePdfResourceDictionaries(request.destination, request.source, storage, options.signal);
         else if (request.kind === "array-reference") result = cosBool(await memberships.has(request.items, request.objectNumber));

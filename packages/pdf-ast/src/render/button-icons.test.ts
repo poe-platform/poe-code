@@ -179,9 +179,14 @@ it("rejects recursive icon Forms through the bounded renderer", () => {
   expect(() => page.renderToBitmap()).toThrow(/limit/i);
 });
 
-it.each([false, true])(
-  "retained icon controls preserve resources and source bytes (backed=%s)",
-  async (backed) => {
+it.each(["pdf-button-icons", "pdf-icon-resources-page", "pdf-icon-resources-tree", "pdf-icon-resources-override"].flatMap(
+  (fixture) => [false, true].map((backed) => ({ fixture, backed }))
+))(
+  "retained $fixture preserves resources and source bytes (backed=$backed)",
+  async ({ fixture, backed }) => {
+    const source = readFileSync(new URL(
+      `../../../safe-bash-rust/tests/fixtures/${fixture}.pdf`, import.meta.url
+    ));
     const { createMemoryFileSystem } = await import("@poe-code/safe-fs");
     const { PagedStorage } = await import("@poe-code/safe-fs/storage");
     const { PdfFileSource } = await import("../source.js");
@@ -234,7 +239,7 @@ it.each([false, true])(
         for await (const chunk of rendered.pixels) chunks.push(chunk);
         expect(Buffer.concat(chunks).equals(Buffer.from(expected.data)), `page ${++i}`).toBe(true);
       }
-      expect(i).toBe(25);
+      expect(i).toBe(fixture === "pdf-button-icons" ? 25 : 1);
       expect(Buffer.from(await fs.readFile("/input.pdf"))).toEqual(source);
     } finally {
       await doc.close();
@@ -265,4 +270,15 @@ it("rejects oversized raster resources inside an icon", () => {
   );
   dictSet(icon.dict, "Resources", cosDict({ XObject: cosDict({ Image: image }) }));
   expect(() => page.renderToBitmap()).toThrow();
+});
+
+it.each(["page", "tree", "override"])("renders legacy icon resources from %s", (mode) => {
+  const source = readFileSync(new URL(
+    `../../../safe-bash-rust/tests/fixtures/pdf-icon-resources-${mode}.pdf`, import.meta.url
+  ));
+  const before = Buffer.from(source);
+  const data = PdfDocument.load(source).getPage(0).renderToBitmap({ scale: 2 }).data;
+  expect(rgbCount(data, 255, 0, 0)).toBe(1600);
+  expect(rgbCount(data, 0, 0, 255)).toBe(1600);
+  expect(source).toEqual(before);
 });

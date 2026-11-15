@@ -1,11 +1,12 @@
 import { tokenizeCos } from "../cos/lexer.js";
 import { encodeWinAnsiBytes, STANDARD_14_FONTS, normalizeStandard14FontName } from "../fonts/standard14.js";
 import { PdfError } from "../errors.js";
+import { PdfDictionaryCursor, type PdfDictionaryEntryRequest } from "./dictionary-cursor.js";
 import { PdfArrayCursor } from "./array-cursor.js";
 import { cosArray, cosDict, cosName, cosNumber, cosString, decodePdfString, dictGet, dictSet, type PdfContentNode, type PdfPathSegment, type PdfCosArray, type PdfCosDict, type PdfCosNode, type PdfCosStream } from "../ast.js";
 import { optionalContentVisibilitySteps } from "./evaluator.js";
 
-export type PdfAppearanceRequest = { readonly kind: "dictionary-value"; readonly dict: PdfCosDict; readonly key: string } | { readonly kind: "dictionary-merge"; readonly destination: PdfCosDict; readonly source?: PdfCosDict } | { readonly kind: "resolve"; readonly node: PdfCosNode; readonly arrayPathPrefix?: readonly string[] }
+export type PdfAppearanceRequest = PdfDictionaryEntryRequest | { readonly kind: "dictionary-value"; readonly dict: PdfCosDict; readonly key: string } | { readonly kind: "dictionary-merge"; readonly destination: PdfCosDict; readonly source?: PdfCosDict } | { readonly kind: "resolve"; readonly node: PdfCosNode; readonly arrayPathPrefix?: readonly string[] }
   | { readonly kind: "array-reference"; readonly items: import("../ast.js").PdfStoredItems; readonly objectNumber: number }
   | { readonly kind: "array-item"; readonly items: import("../ast.js").PdfStoredItems; readonly position: number }
   | { readonly kind: "catalog" }
@@ -508,8 +509,10 @@ function* widgetAppearance(annot: PdfCosDict, resources: PdfCosDict, allocate?: 
 /** Prepare resources and emit one appearance at a time. Drivers own content
  * cursors; the program retains only the current annotation and its placement. */
 export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCosDict, evalResourcesDict: PdfCosDict, hideAnnotations = false, onAllocation?: (bytes: number) => void): AppearanceWork {
-  onAllocation?.(64 * pageRes.entries.length);
-  for (const entry of pageRes.entries) {
+  const entries = new PdfDictionaryCursor(pageRes);
+  for (let step = yield* entries.next(); !step.done; step = yield* entries.next()) {
+    const entry = step.value;
+    onAllocation?.(64);
     const sub = (yield* resolveDict(entry.value, ["Resources", entry.key.decoded]));
     if (sub) {
       onAllocation?.(64 + sub.entries.length * 64);

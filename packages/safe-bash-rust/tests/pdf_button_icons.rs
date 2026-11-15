@@ -305,3 +305,25 @@ fn aggregate_raster_limit_preserves_all_outputs() {
         }
     }
 }
+
+#[test]
+fn legacy_icons_inherit_page_resources_and_allow_form_overrides() {
+    for pdf in [
+        include_bytes!("fixtures/pdf-icon-resources-page.pdf").as_slice(),
+        include_bytes!("fixtures/pdf-icon-resources-tree.pdf").as_slice(),
+        include_bytes!("fixtures/pdf-icon-resources-override.pdf").as_slice(),
+    ] {
+        for command in ["pdftoppm", "pdftocairo"] {
+            let fs = MemoryVfs::new();
+            fs.write_file("/input.pdf", pdf).unwrap();
+            let args = ["-png", "-r", "144", "/input.pdf", "/page"].map(String::from);
+            let result = try_run_archive_command(command, &args, "", "/", &Default::default(), &fs).unwrap();
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            let p = pixels(&fs, "/page-1.png");
+            for color in [[255, 0, 0], [0, 0, 255]] {
+                assert_eq!(p.chunks_exact(3).filter(|v| *v == color).count(), 1600, "{command}");
+            }
+            assert_eq!(fs.read_file("/input.pdf").unwrap(), pdf);
+        }
+    }
+}

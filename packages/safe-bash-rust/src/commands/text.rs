@@ -7094,7 +7094,7 @@ fn apply_unified_diff(
                     None => Some(format!("{target}.rej")),
                 };
                 let hunk_word = if file_hunk_count <= 1 { "hunk" } else { "hunks" };
-                if !dry_run && let Some(ref rt) = rej_target {
+                if !dry_run && !opts.atomic && let Some(ref rt) = rej_target {
                     status_out.push_str(&format!(
                         "{file_failed_count} out of {} {hunk_word} FAILED -- saving rejects to file {rt}\n",
                         file_hunk_count.max(1),

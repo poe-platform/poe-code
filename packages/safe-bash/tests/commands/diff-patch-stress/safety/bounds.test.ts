@@ -1,5 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { Shell } from "../../../../src/shell/index.js";
+import { diffPatchCommands } from "../../../../src/commands/diff-patch/index.js";
 import type { DiffPatchOptions } from "../../../../src/commands/diff-patch/index.js";
 import { assertBytes, bytes, cwd, instrument, invoke, memory, replacement, snapshot } from "./helpers.js";
 
@@ -113,17 +115,31 @@ test("atomic extension bounded work-limit sweep covers preflight, partial-commit
   assert.deepEqual([...states].sort(), ["partial", "preflight", "success"]);
 });
 
-for (const input of [bytes("bad\0text\n"), new Uint8Array([0xff, 0xfe, 0x0a])]) {
-  test(`atomic extension binary later target ${Buffer.from(input).toString("hex")} cannot cause an earlier write`, async () => {
-    const backing = await memory({ first: "old\n", second: input });
-    const before = await snapshot(backing);
-    const observed = instrument(backing);
-    const result = await invoke(observed.fs, "patch", { args: ["--atomic"], input: replacement("first") + replacement("second") });
-    assert.equal(result.exitCode, 2);
-    assert.match(result.stderr, /binary input/u);
-    assert.deepEqual(observed.mutations(), []);
-    assert.deepEqual(await snapshot(backing), before);
-  });
+for (const input of [bytes("other\n"), bytes("bad\0text\n"), new Uint8Array([0xff, 0xfe, 0x0a])]) {
+  for (const existingReject of [false, true]) {
+    for (const first of [replacement("first"), "--- /dev/null\n+++ nested/new\n@@ -0,0 +1 @@\n+new\n"]) {
+      test(`atomic mismatch preserves filesystem: ${Buffer.from(input).toString("hex")}, reject ${existingReject}, ${first.split("\n")[0]}`, async () => {
+        const backing = await memory({ first: "old\n", "first.orig": "previous backup\n", second: input,
+          ...(existingReject ? { "second.rej": "keep previous rejects\n" } : {}),
+          change: first + replacement("second"),
+        });
+        const before = await snapshot(backing);
+        const observed = instrument(backing);
+        const result = await invoke(observed.fs, "patch", { args: ["--atomic", "-b"], input: first + replacement("second") });
+        assert.equal(result.exitCode, 1, result.stderr);
+        assert.match(result.stderr, /hunk.*(failed|match)/iu);
+        assert.deepEqual(observed.mutations(), []);
+        assert.deepEqual(await snapshot(backing), before);
+        const shell = new Shell({ fs: observed.fs, cwd }).use(diffPatchCommands());
+        try {
+          const integrated = await shell.exec("patch --atomic -b < change");
+          assert.equal(integrated.exitCode, 1, integrated.stderr);
+          assert.deepEqual(observed.mutations(), []);
+          assert.deepEqual(await snapshot(backing), before);
+        } finally { await shell.dispose(); }
+      });
+    }
+  }
 }
 
 test("provider path-length refusal prevents target reads and writes", async () => {

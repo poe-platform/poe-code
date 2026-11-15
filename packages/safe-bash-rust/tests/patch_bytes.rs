@@ -179,3 +179,27 @@ fn malformed_input_and_failed_publication_preserve_binary_target() {
     assert_ne!(result.exit_code, 0);
     assert_eq!(fs.read_file("/target").unwrap(), b"old\n\0\xff\n");
 }
+
+#[test]
+fn failed_atomic_preflight_preserves_all_files_and_directories() {
+    for input in [b"other\n".as_slice(), b"bad\0text\n", b"\xff\xfe\n"] {
+        for existing_reject in [false, true] {
+            for first in ["--- first\n+++ first\n@@ -1 +1 @@\n-old\n+new\n", "--- /dev/null\n+++ nested/new\n@@ -0,0 +1 @@\n+new\n"] {
+                let (mut sh, fs) = shell();
+                fs.write_file("/work/first", b"old\n").unwrap();
+                fs.write_file("/work/first.orig", b"previous backup\n").unwrap();
+                fs.write_file("/work/second", input).unwrap();
+                if existing_reject {
+                    fs.write_file("/work/second.rej", b"keep previous rejects\n").unwrap();
+                }
+                let patch = format!("{first}--- second\n+++ second\n@@ -1 +1 @@\n-old\n+new\n");
+                fs.write_file("/work/change", patch.as_bytes()).unwrap();
+                let before = fs.export_entries().unwrap();
+                let result = sh.exec("patch --atomic -b < change").unwrap();
+                assert_eq!(result.exit_code, 1, "{}", result.stderr);
+                assert_eq!(fs.export_entries().unwrap(), before);
+                assert!(!result.stdout.contains("saving rejects"));
+            }
+        }
+    }
+}

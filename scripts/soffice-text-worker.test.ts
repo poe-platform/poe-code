@@ -4,9 +4,10 @@ import { fileURLToPath } from "node:url";
 import { builtinModules } from "node:module";
 import { build } from "esbuild";
 import { Miniflare } from "miniflare";
-import { afterAll, beforeAll, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, expect, it } from "vitest";
 
 let runtime: Miniflare;
+let pending: ReturnType<Miniflare["dispatchFetch"]> | undefined;
 
 // Bundle and start workerd once; each request still owns its namespace and backing.
 beforeAll(async () => {
@@ -22,7 +23,9 @@ beforeAll(async () => {
   expect(Object.keys(bundle.metafile!.inputs).filter(path => path.includes("/src/"))).toEqual([]);
   runtime = new Miniflare({ modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], script: `
     const api=(()=>{const module={exports:{}};${bundle.outputFiles[0]!.text};return module.exports;})();
+    let activeRequest;
     export default {async fetch(request,env){
+      if(new URL(request.url).pathname==='/abort'){if(activeRequest)activeRequest.cancel=true;return new Response(null);}
       const variant=new URL(request.url).pathname.slice(1),docx=variant.startsWith('docx-'),rtf=variant.startsWith('rtf-'),odt=variant.startsWith('odt-'),xlsx=variant.startsWith('xlsx-'),mode=variant.split('-').at(-1),namespace=new api.MemoryFileSystem();await namespace.mkdir('/spill');
       const {fs:backing,events}=api.createR2PagedFixture(namespace,env.PAGES);
       let inputClosed=0,inputReads=0,largestInput=0,largestAllocation=0;
@@ -40,7 +43,10 @@ beforeAll(async () => {
         const value=Reflect.get(target,key,target);return typeof value==='function'?value.bind(target):value;
       }});
       const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;largestAllocation=Math.max(largestAllocation,length);if(length>65536)throw new Error('Unbounded allocation');return Reflect.construct(target,args);}});
-      const controller=new AbortController(),reason=new Error('cancelled');let length=0,largest=0,active=0,peak=0,cancelled=false;
+      const controller=new AbortController(),reason=new Error('cancelled'),operation={cancel:false};activeRequest=operation;
+      // Signal listeners must run in the request that owns the conversion.
+      const watch=(async()=>{while(activeRequest===operation){await scheduler.wait(10);if(operation.cancel){controller.abort(reason);return;}}})();
+      let length=0,largest=0,active=0,peak=0,cancelled=false;
       const stdout={async write(bytes){active++;peak=Math.max(peak,active);try{await scheduler.wait(1);largest=Math.max(largest,bytes.length);for(const byte of bytes){const expected=docx&&length<3?[239,187,191][length]:length===(docx?1100003:1100000)?10:97;if(byte!==expected)throw new Error('Unexpected output at '+length);length++;}if(mode==='cancel')controller.abort(reason);}finally{active--;}}};
       const stderr={async write(bytes){throw new Error(new TextDecoder().decode(bytes));}};
       let result;
@@ -48,7 +54,7 @@ beforeAll(async () => {
         const args=['--cat',docx?'/input.docx':rtf?'/input.rtf':odt?'/input.odt':xlsx?'/input.xlsx':'/input'];
         if(mode==='command')result=await api.soffice.createSofficeCommand().execute({command:'soffice',...api.createCommandArguments(args),cwd:'/spill',env:{},fs,signal:controller.signal,stdout,stderr,stdin:(async function*(){})()});
         else result=await api.soffice.runSofficeFileCli(args,{filesystem:fs,cwd:'/spill',signal:controller.signal,stdout,stderr});
-      }catch(error){if(mode!=='cancel'||error!==reason)throw error;cancelled=true;}finally{globalThis.Uint8Array=Native;}
+      }catch(error){if(!controller.signal.aborted||error!==controller.signal.reason)throw error;cancelled=true;}finally{globalThis.Uint8Array=Native;activeRequest=undefined;await watch;}
       await env.PAGES.delete('input');
       return Response.json({result,cancelled,length,largest,peak,inputClosed,inputReads,largestInput,largestAllocation,events,
         remaining:(await env.PAGES.list({limit:1})).objects.length,namespace:await namespace.readdir('/spill'),hostGlobals:[typeof process,typeof Buffer,typeof require]});
@@ -56,9 +62,21 @@ beforeAll(async () => {
   ` });
   await runtime.ready;
 });
+afterEach(async () => {
+  await runtime.dispatchFetch("https://soffice.test/abort");
+  const response = await pending?.catch(() => undefined);
+  if (response && !response.bodyUsed) await response.arrayBuffer();
+  pending = undefined;
+  const bucket = await runtime.getR2Bucket("PAGES");
+  for (;;) {
+    const page = await bucket.list({ limit: 100 });
+    if (!page.objects.length) break;
+    await bucket.delete(page.objects.map(object => object.key));
+  }
+});
 afterAll(async () => { await runtime?.dispose(); });
 
-it.each(["sdk", "command", "cancel", "rtf-sdk", "rtf-command", "rtf-cancel", "odt-sdk", "odt-command", "odt-cancel", "xlsx-sdk", "xlsx-command", "xlsx-cancel", "docx-sdk", "docx-command", "docx-cancel"])("streams Soffice text through external Worker backing (%s)", async mode => {
+it.for(["sdk", "command", "cancel", "rtf-sdk", "rtf-command", "rtf-cancel", "odt-sdk", "odt-command", "odt-cancel", "xlsx-sdk", "xlsx-command", "xlsx-cancel", "docx-sdk", "docx-command", "docx-cancel"])("streams Soffice text through external Worker backing (%s)", { timeout: 15000 }, async (mode, context) => {
   const bucket = await runtime.getR2Bucket("PAGES");
   expect((await bucket.list({ limit: 1 })).objects).toEqual([]);
   const source = mode.startsWith("rtf-") ? new TextEncoder().encode("{\\rtf1 " + "a".repeat(1100000) + "\\par }") : new Uint8Array(1100000).fill(97);
@@ -68,8 +86,9 @@ it.each(["sdk", "command", "cancel", "rtf-sdk", "rtf-command", "rtf-cancel", "od
     "xl/worksheets/sheet1.xml": new TextEncoder().encode('<worksheet><row><c t="s"><v>0</v></c></row></worksheet>'),
     "xl/sharedStrings.xml": new TextEncoder().encode("<sst><si><t>" + "a".repeat(1100000) + "</t></si></sst>")
   }) : source);
-  const response = await runtime.dispatchFetch("https://soffice.test/" + mode);
-  expect(response.status).toBe(200);
+  const response = await (pending = runtime.dispatchFetch("https://soffice.test/" + mode));
+  context.signal.throwIfAborted();
+  expect(response.status, response.status === 200 ? undefined : await response.clone().text()).toBe(200);
   const result = await response.json() as { result?: { exitCode: number }; cancelled: boolean; length: number; largest: number; peak: number; inputClosed: number; inputReads: number; largestInput: number; largestAllocation: number; events: { opened: number; closed: number; writes: number; reads: number; largestTransfer: number }; remaining: number; namespace: unknown[]; hostGlobals: string[] };
   expect(result.cancelled).toBe(mode.endsWith("cancel"));
   const expectedLength = mode.startsWith("docx-") ? 1100004 : 1100001; // DOCX includes the UTF-8 BOM.
@@ -83,4 +102,4 @@ it.each(["sdk", "command", "cancel", "rtf-sdk", "rtf-command", "rtf-cancel", "od
   expect(result.events.reads).toBeGreaterThan(0); expect(result.events.writes).toBeGreaterThan(0);
   expect(result.events.largestTransfer).toBeLessThanOrEqual(16384);
   expect(result.remaining).toBe(0); expect(result.namespace).toEqual([]); expect(result.hostGlobals).toEqual(["undefined", "undefined", "undefined"]);
-}, 15000);
+});

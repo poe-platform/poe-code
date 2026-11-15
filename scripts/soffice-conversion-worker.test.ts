@@ -2,11 +2,12 @@ import { docxDocumentPrefix, docxDocumentSuffix, docxMetadata } from "../package
 import { fileURLToPath } from "node:url";
 import { build } from "esbuild";
 import { Miniflare } from "miniflare";
-import { afterAll, beforeAll, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, expect, it } from "vitest";
 import { PdfDocument, encodePng, extractDocumentImages, type PdfContentNode } from "@poe-code/pdf-ast";
 import { createStoredZipArchive, readZipArchiveEntries } from "safe-bash-command-soffice";
 
 let runtime: Miniflare;
+let pending: ReturnType<Miniflare["dispatchFetch"]> | undefined;
 
 // Bundle and start workerd once; each request still owns its namespace and backing.
 beforeAll(async () => {
@@ -19,11 +20,32 @@ beforeAll(async () => {
   expect(Object.keys(bundle.metafile!.inputs).filter(path => path.includes("/src/") || path.startsWith("node:"))).toEqual([]);
   runtime = new Miniflare({ modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], script: `
     const api=(()=>{const module={exports:{}};${bundle.outputFiles[0]!.text};return module.exports;})();
+    let active,paused=false;
     export default {async fetch(request,env){
+      const url=new URL(request.url);
+      if(url.pathname==='/status')return Response.json({paused});
+      if(url.pathname==='/abort'){if(active)active.cancel=true;return new Response(null);}
+      if(url.pathname==='/download'){
+        const prefix=url.searchParams.get('prefix'),count=Number(url.searchParams.get('count'));let index=0;
+        return new Response(new ReadableStream({async pull(controller){
+          if(index===count){controller.close();return;}
+          const key=prefix+index++,object=await env.PAGES.get(key);
+          if(!object)throw new Error('Missing publication page');
+          const bytes=new Uint8Array(await object.arrayBuffer());
+          if(bytes.length>16384)throw new Error('Oversized publication page');
+          if(index%100===0||index===count){
+            const first=Math.floor((index-1)/100)*100;
+            await env.PAGES.delete(Array.from({length:index-first},(_,offset)=>prefix+(first+offset)));
+          }
+          controller.enqueue(bytes);
+        }}));
+      }
       const rawMode=new URL(request.url).pathname.slice(1),pptxInput=rawMode.startsWith('pptx-input-'),docxRich=pptxInput||rawMode.startsWith('docx-input-'),docxInput=docxRich||rawMode.startsWith('docx-text-'),textKind=rawMode.split('-')[0],csvInput=['csv','txt','md'].includes(textKind),mode=docxRich?rawMode.replace(pptxInput?'pptx-input-':'docx-input-','odt-'):docxInput?rawMode.replace('docx-text-','xlsx-'):csvInput?'xlsx-'+rawMode.slice(textKind.length+1):rawMode,copy=mode==='copy',xlsx=mode.startsWith('xlsx-'),xlsxHtml=mode.startsWith('xlsx-html-'),csv=mode.startsWith('xlsx-csv-'),rewrite=mode.startsWith('xlsx-rewrite-'),odt=mode.startsWith('odt-'),odtHtml=mode.startsWith('odt-html-'),plain=mode.includes('plain'),docx=mode.includes('docx'),pdf=mode.includes('pdf'),cancel=mode.endsWith('cancel'),namespace=new api.MemoryFileSystem();
       await namespace.mkdir('/spill');await namespace.mkdir('/out');
       const {fs:backing,events}=api.createR2PagedFixture(namespace,env.PAGES);
-      const controller=new AbortController(),reason=new Error('cancelled'),stages=new WeakMap();
+      const controller=new AbortController(),reason=new Error('cancelled'),stages=new WeakMap(),operation={cancel:false};active=operation;
+      // Abort in the owning request: workerd cannot dispatch native signal listeners across requests.
+      const watch=(async()=>{while(active===operation){await scheduler.wait(10);if(operation.cancel){controller.abort(reason);return;}}})();
       let published,created=0,removed=0,closed=0,largestWrite=0,inputClosed=0,largestAllocation=0;
       const fs=new Proxy(backing,{get(target,key){
         if(key==='readStream')return async function*(path,options){
@@ -32,6 +54,10 @@ beforeAll(async () => {
           try{for(let position=0;position<meta.size;position+=16384){
             options?.signal?.throwIfAborted();const object=await env.PAGES.get('input',{range:{offset:position,length:Math.min(16384,meta.size-position)},onlyIf:{etagMatches:meta.etag}});
             if(!object?.body)throw new Error('Source identity changed');yield new Uint8Array(await object.arrayBuffer());
+            if(rawMode==='rtf-interrupt'&&position>=1048576){
+              paused=true;while(!controller.signal.aborted)await scheduler.wait(1);
+              controller.signal.throwIfAborted();
+            }
           }}finally{inputClosed++;}
         };
         if(key==='createStagedFile')return async(...args)=>{
@@ -58,24 +84,70 @@ beforeAll(async () => {
       try{
         if(mode.endsWith('command'))result=await api.soffice.createSofficeCommand().execute({command:'soffice',...api.createCommandArguments(args),cwd:'/spill',env:{},fs,signal:controller.signal,stdout,stderr,stdin:(async function*(){})()});
         else result=await api.soffice.runSofficeFileCli(args,{filesystem:fs,cwd:'/spill',signal:controller.signal,stdout,stderr});
-      }catch(error){if(!cancel||error!==reason)throw error;cancelled=true;}finally{globalThis.Uint8Array=Native;}
-      let length=0,hash=2166136261;
-      if(published)for(let index=0;index<published.count;index++){
+      }catch(error){if(!controller.signal.aborted||error!==controller.signal.reason)throw error;cancelled=true;}finally{globalThis.Uint8Array=Native;active=undefined;paused=false;await watch;}
+      const binary=docx||pdf||rewrite;let length=binary&&published?published.size:0,hash=2166136261;
+      if(published&&!binary)for(let index=0;index<published.count;index++){
         const object=await env.PAGES.get(published.prefix+index),bytes=new Uint8Array(await object.arrayBuffer());
-        for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;length+=bytes.length;if(!docx&&!pdf&&!rewrite)await env.PAGES.delete(published.prefix+index);
+        for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;length+=bytes.length;
+        if((index+1)%100===0||index+1===published.count){
+          const first=Math.floor(index/100)*100;
+          await env.PAGES.delete(Array.from({length:index-first+1},(_,offset)=>published.prefix+(first+offset)));
+        }
       }
       const outputs=await namespace.readdir('/out');
       for(const entry of outputs)if((await namespace.stat('/out/'+entry.name)).size!==0)throw new Error('Resident output payload');
       await env.PAGES.delete('input');
-      return Response.json({publication:docx||pdf||rewrite?published:undefined,result,cancelled,length,hash,created,removed,closed,largestWrite,inputClosed,largestAllocation,events,
+      return Response.json({publication:binary&&published?{prefix:published.prefix,count:published.count}:undefined,result,cancelled,length,hash,created,removed,closed,largestWrite,inputClosed,largestAllocation,events,
         remaining:(await env.PAGES.list({limit:1})).objects.length,scratch:await namespace.readdir('/spill'),outputs,hostGlobals:[typeof process,typeof Buffer,typeof require]});
     }};
   ` });
   await runtime.ready;
 });
+afterEach(async () => {
+  // Vitest timeouts do not stop a fetch. Abort and drain it before reusing R2
+  // or disposing Miniflare, whose proxy waits for outstanding requests.
+  await runtime.dispatchFetch("https://soffice.test/abort");
+  const response = await pending?.catch(() => undefined);
+  if (response && !response.bodyUsed) await response.arrayBuffer();
+  pending = undefined;
+  const bucket = await runtime.getR2Bucket("PAGES");
+  for (;;) {
+    const page = await bucket.list({ limit: 100 });
+    if (!page.objects.length) break;
+    await bucket.delete(page.objects.map(object => object.key));
+  }
+});
 afterAll(async () => { await runtime?.dispose(); });
 
-it.each(["copy", "rtf-sdk", "rtf-command", "cancel", "docx-sdk", "docx-command", "docx-cancel", "plain-sdk", "plain-command", "plain-cancel", "docx-plain-sdk", "docx-plain-command", "pdf-sdk", "pdf-command", "pdf-cancel", "pdf-plain-sdk", "odt-sdk", "odt-command", "odt-cancel", "odt-html-sdk", "odt-html-command", "odt-html-cancel", "odt-docx-sdk", "odt-docx-command", "odt-docx-cancel", "odt-pdf-sdk", "odt-pdf-command", "odt-pdf-cancel", "xlsx-sdk", "xlsx-command", "xlsx-cancel", "xlsx-html-sdk", "xlsx-html-command", "xlsx-html-cancel", "xlsx-docx-sdk", "xlsx-docx-command", "xlsx-docx-cancel", "xlsx-pdf-sdk", "xlsx-pdf-command", "xlsx-pdf-cancel", "xlsx-csv-sdk", "xlsx-csv-command", "xlsx-csv-cancel", "xlsx-rewrite-sdk", "xlsx-rewrite-command", "xlsx-rewrite-cancel", "csv-text-sdk", "csv-text-command", "csv-text-cancel", "csv-html-sdk", "csv-html-command", "csv-html-cancel", "csv-docx-sdk", "csv-docx-command", "csv-docx-cancel", "csv-pdf-sdk", "csv-pdf-command", "csv-pdf-cancel", "csv-csv-sdk", "csv-csv-command", "csv-csv-cancel", "csv-rewrite-sdk", "csv-rewrite-command", "csv-rewrite-cancel", "txt-csv-sdk", "txt-csv-command", "txt-csv-cancel", "txt-rewrite-sdk", "txt-rewrite-command", "txt-rewrite-cancel", "md-csv-sdk", "md-csv-command", "md-csv-cancel", "md-rewrite-sdk", "md-rewrite-command", "md-rewrite-cancel", "docx-text-sdk", "docx-text-command", "docx-text-cancel", "docx-input-html-sdk", "docx-input-html-command", "docx-input-html-cancel", "docx-input-docx-sdk", "docx-input-docx-command", "docx-input-docx-cancel", "docx-input-pdf-sdk", "docx-input-pdf-command", "docx-input-pdf-cancel", "pptx-input-txt-sdk", "pptx-input-txt-command", "pptx-input-txt-cancel", "pptx-input-html-sdk", "pptx-input-html-command", "pptx-input-html-cancel", "pptx-input-docx-sdk", "pptx-input-docx-command", "pptx-input-docx-cancel", "pptx-input-pdf-sdk", "pptx-input-pdf-command", "pptx-input-pdf-cancel"])("publishes Soffice conversion through external Worker staging (%s)", async mode => {
+for (const leaveRunning of [true, false]) it(leaveRunning ? "drains an unfinished request before reusing the Worker" : "cleans backing after external cancellation", async context => {
+  const bucket = await runtime.getR2Bucket("PAGES");
+  expect((await bucket.list()).objects).toEqual([]);
+  await bucket.put("input", new TextEncoder().encode("{\\rtf1 " + "a".repeat(1100000) + "\\par }"));
+  pending = runtime.dispatchFetch("https://soffice.test/rtf-interrupt");
+  for (;;) {
+    const status = await runtime.dispatchFetch("https://soffice.test/status");
+    const state = await status.json() as { paused: boolean };
+    context.signal.throwIfAborted();
+    if (state.paused) break;
+    await new Promise(resolve => setTimeout(resolve, 1));
+  }
+  if (leaveRunning) return;
+  await runtime.dispatchFetch("https://soffice.test/abort");
+  const response = await pending;
+  expect(response.status, response.status === 200 ? undefined : await response.clone().text()).toBe(200);
+  const result = await response.json() as { cancelled: boolean; inputClosed: number; created: number; remaining: number; scratch: unknown[]; outputs: unknown[]; events: { opened: number; closed: number } };
+  expect(result.cancelled).toBe(true);
+  expect(result.inputClosed).toBe(1);
+  expect(result.created).toBe(0);
+  expect(result.events.opened).toBe(1);
+  expect(result.events.closed).toBe(result.events.opened);
+  expect(result.remaining).toBe(0);
+  expect(result.scratch).toEqual([]);
+  expect(result.outputs).toEqual([]);
+  expect((await bucket.list()).objects).toEqual([]);
+}, 20000);
+
+it.for(["copy", "rtf-sdk", "rtf-command", "cancel", "docx-sdk", "docx-command", "docx-cancel", "plain-sdk", "plain-command", "plain-cancel", "docx-plain-sdk", "docx-plain-command", "pdf-sdk", "pdf-command", "pdf-cancel", "pdf-plain-sdk", "odt-sdk", "odt-command", "odt-cancel", "odt-html-sdk", "odt-html-command", "odt-html-cancel", "odt-docx-sdk", "odt-docx-command", "odt-docx-cancel", "odt-pdf-sdk", "odt-pdf-command", "odt-pdf-cancel", "xlsx-sdk", "xlsx-command", "xlsx-cancel", "xlsx-html-sdk", "xlsx-html-command", "xlsx-html-cancel", "xlsx-docx-sdk", "xlsx-docx-command", "xlsx-docx-cancel", "xlsx-pdf-sdk", "xlsx-pdf-command", "xlsx-pdf-cancel", "xlsx-csv-sdk", "xlsx-csv-command", "xlsx-csv-cancel", "xlsx-rewrite-sdk", "xlsx-rewrite-command", "xlsx-rewrite-cancel", "csv-text-sdk", "csv-text-command", "csv-text-cancel", "csv-html-sdk", "csv-html-command", "csv-html-cancel", "csv-docx-sdk", "csv-docx-command", "csv-docx-cancel", "csv-pdf-sdk", "csv-pdf-command", "csv-pdf-cancel", "csv-csv-sdk", "csv-csv-command", "csv-csv-cancel", "csv-rewrite-sdk", "csv-rewrite-command", "csv-rewrite-cancel", "txt-csv-sdk", "txt-csv-command", "txt-csv-cancel", "txt-rewrite-sdk", "txt-rewrite-command", "txt-rewrite-cancel", "md-csv-sdk", "md-csv-command", "md-csv-cancel", "md-rewrite-sdk", "md-rewrite-command", "md-rewrite-cancel", "docx-text-sdk", "docx-text-command", "docx-text-cancel", "docx-input-html-sdk", "docx-input-html-command", "docx-input-html-cancel", "docx-input-docx-sdk", "docx-input-docx-command", "docx-input-docx-cancel", "docx-input-pdf-sdk", "docx-input-pdf-command", "docx-input-pdf-cancel", "pptx-input-txt-sdk", "pptx-input-txt-command", "pptx-input-txt-cancel", "pptx-input-html-sdk", "pptx-input-html-command", "pptx-input-html-cancel", "pptx-input-docx-sdk", "pptx-input-docx-command", "pptx-input-docx-cancel", "pptx-input-pdf-sdk", "pptx-input-pdf-command", "pptx-input-pdf-cancel"])("publishes Soffice conversion through external Worker staging (%s)", { timeout: 20000 }, async (mode, context) => {
   const pptxInput = mode.startsWith("pptx-input-"), docxRich = pptxInput || mode.startsWith("docx-input-"), docxInput = docxRich || mode.startsWith("docx-text-");
   if (docxRich) mode = mode.replace(pptxInput ? "pptx-input-" : "docx-input-", "odt-");
   else if (docxInput) mode = mode.replace("docx-text-", "xlsx-");
@@ -88,21 +160,19 @@ it.each(["copy", "rtf-sdk", "rtf-command", "cancel", "docx-sdk", "docx-command",
   const bucket = await runtime.getR2Bucket("PAGES");
   expect((await bucket.list({ limit: 1 })).objects).toEqual([]);
   await bucket.put("input", pptxInput ? createStoredZipArchive({"ppt/slides/slide1.xml": new TextEncoder().encode("<p:sp><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:r><a:t>" + payload + "</a:t></a:r></a:p></p:txBody></p:sp>" + (withImage ? '<p:pic><a:ext cx="304800" cy="304800"/><a:blip r:embed="pic"/></p:pic>' : "")), ...(media ? {"ppt/media/pic.png": media, "ppt/slides/_rels/slide1.xml.rels": new TextEncoder().encode('<Relationship Id="pic" Target="../media/pic.png"/>')} : {})}) : docxInput ? createStoredZipArchive({ ...Object.fromEntries(Object.entries(docxMetadata).map(([name, xml]) => [name, new TextEncoder().encode(xml)])), "word/document.xml": new TextEncoder().encode(docxDocumentPrefix + "<w:p>" + (docxRich ? '<w:pPr><w:pStyle w:val="' + payload + '"/></w:pPr>' : "") + "<w:r><w:t>" + payload + "</w:t></w:r></w:p>" + (withImage ? '<w:p><w:r><w:drawing><wp:extent cx="304800" cy="304800"/><a:blip r:embed="pic"/></w:drawing></w:r></w:p>' : "") + docxDocumentSuffix), ...(media ? {"word/media/pic.png": media, "word/_rels/document.xml.rels": new TextEncoder().encode('<Relationship Id="pic" Target="media/pic.png"/>')} : {}), ...(docxRich ? { "word/styles.xml": new TextEncoder().encode('<w:styles><w:style w:styleId="' + payload + '"><w:name w:val="Custom Section"/></w:style></w:styles>') } : {}) }) : csvInput ? new TextEncoder().encode(textKind === "md" ? "|" + payload + "|\n|-|\n" : '"' + payload + '"\r\n') : mode.startsWith("odt-") ? createStoredZipArchive({ "content.xml": new TextEncoder().encode(mode.startsWith("odt-pdf-") ? "<office><table:table><table:table-row><table:table-cell>" + payload + "</table:table-cell></table:table-row></table:table></office>" : "<office><text:" + (mode.startsWith("odt-html-") ? "h" : "p") + ">" + payload + "</text:" + (mode.startsWith("odt-html-") ? "h" : "p") + "></office>") }) : mode.startsWith("xlsx-") ? createStoredZipArchive({ "xl/worksheets/sheet1.xml": new TextEncoder().encode('<worksheet><row><c t="s"><v>0</v></c></row></worksheet>'), "xl/sharedStrings.xml": new TextEncoder().encode("<sst><si><t>" + payload + "</t></si></sst>") }) : new TextEncoder().encode(source));
-  const response = await runtime.dispatchFetch("https://soffice.test/" + (docxRich ? mode.replace("odt-", pptxInput ? "pptx-input-" : "docx-input-") : docxInput ? mode.replace("xlsx-", "docx-text-") : csvInput ? mode.replace("xlsx-", textKind + "-") : mode)); expect(response.status).toBe(200);
+  const response = await (pending = runtime.dispatchFetch("https://soffice.test/" + (docxRich ? mode.replace("odt-", pptxInput ? "pptx-input-" : "docx-input-") : docxInput ? mode.replace("xlsx-", "docx-text-") : csvInput ? mode.replace("xlsx-", textKind + "-") : mode))); context.signal.throwIfAborted(); expect(response.status).toBe(200);
   const result = await response.json() as { publication?: { prefix: string; count: number }; result?: { exitCode: number }; cancelled: boolean; length: number; hash: number; created: number; removed: number; closed: number; largestWrite: number; inputClosed: number; largestAllocation: number; events: { opened: number; closed: number; reads: number; writes: number; largestTransfer: number }; remaining: number; scratch: unknown[]; outputs: { name: string }[]; hostGlobals: string[] };
   expect(result.cancelled).toBe(mode.endsWith("cancel"));
   if (mode.endsWith("cancel")) { expect(result.outputs).toEqual([]); expect(result.length).toBe(0); }
   else if (mode.includes("docx") || mode.includes("pdf") || mode.startsWith("xlsx-rewrite-")) {
     expect(result.result?.exitCode).toBe(0);
     expect(result.outputs.map(entry => entry.name)).toEqual([mode.includes("pdf") ? "input.pdf" : mode.startsWith("xlsx-rewrite-") ? "input.xlsx" : "input.docx"]);
-    const parts: Uint8Array[] = [];
-    for (let index = 0; index < result.publication!.count; index++) {
-      const key = result.publication!.prefix + index;
-      parts.push(new Uint8Array(await (await bucket.get(key))!.arrayBuffer()));
-      await bucket.delete(key);
-    }
-    const archive = new Uint8Array(result.length); let offset = 0;
-    for (const part of parts) { archive.set(part, offset); offset += part.length; }
+    const download = await runtime.dispatchFetch("https://soffice.test/download?" + new URLSearchParams({
+      prefix: result.publication!.prefix, count: String(result.publication!.count)
+    }));
+    expect(download.status).toBe(200);
+    const archive = new Uint8Array(await download.arrayBuffer());
+    expect(archive.length).toBe(result.length);
     if (mode.includes("pdf")) {
       const document = PdfDocument.load(archive);
       expect(document.pageCount).toBe(1);
@@ -143,4 +213,4 @@ it.each(["copy", "rtf-sdk", "rtf-command", "cancel", "docx-sdk", "docx-command",
   expect(result.events.opened).toBe(pptxInput ? 2 : docxRich ? 3 : !csvInput && (mode.startsWith("xlsx-") || mode.startsWith("odt-")) ? 2 : 1); expect(result.events.closed).toBe(result.events.opened); expect(result.events.reads).toBeGreaterThan(0); expect(result.events.writes).toBeGreaterThan(0);
   expect(result.events.largestTransfer).toBeLessThanOrEqual(16384); expect(result.remaining).toBe(result.publication ? 1 : 0); expect(result.scratch).toEqual([]);
   expect(result.hostGlobals).toEqual(["undefined", "undefined", "undefined"]);
-}, 20000);
+});

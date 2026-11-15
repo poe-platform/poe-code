@@ -862,3 +862,42 @@ test("chmod, mktemp, truncate, and mkdir -m honor shell umask and symbolic modes
     await shell.dispose();
   }
 });
+
+for (const mask of [0o077, 0o027, 0o002]) {
+  test(`conditional file creation applies umask ${mask.toString(8)} without changing existing modes`, async () => {
+    const backing = createMemoryFileSystem();
+    const fs = creationFileSystem(backing, mask);
+    for (const append of [false, true]) {
+      const path = `/new-${append}`;
+      const options = { parent: await fs.stat("/"), expected: null, append };
+      const created = await fs.writeFileConditional!(path, Uint8Array.of(1), options);
+      assert.equal(created.mode & 0o777, 0o666 & ~mask);
+      assert.equal(Object.hasOwn(options, "mode"), false);
+      await backing.chmod(path, 0o640);
+      const expected = await fs.stat(path);
+      await fs.writeFileConditional!(path, Uint8Array.of(2), { parent: await fs.stat("/"), expected, append });
+      assert.equal((await backing.stat(path)).mode & 0o777, 0o640);
+      assert.deepEqual([...await backing.readFile(path)], append ? [1, 2] : [2]);
+      await assert.rejects(fs.writeFileConditional!(path, Uint8Array.of(3), { ...options, parent: await fs.stat("/") }), { code: "EAGAIN" });
+      assert.equal((await backing.stat(path)).mode & 0o777, 0o640);
+    }
+    await fs.writeFileConditional!("/explicit", Uint8Array.of(1), { parent: await fs.stat("/"), expected: null, mode: 0o644 });
+    assert.equal((await backing.stat("/explicit")).mode & 0o777, 0o644);
+  });
+}
+
+test("custom commands apply the shell umask to conditional creation on mounted filesystems", async () => {
+  const backing = createMemoryFileSystem();
+  const fs = createMountFileSystem({ root: createMemoryFileSystem(), mounts: { "/data": backing } });
+  const shell = new Shell({ fs }).use({ name: "conditional-writer", setup(host) {
+    host.commands.register({ name: "conditional-writer", async execute(context) {
+      await context.fs.writeFileConditional!("/data/new", Uint8Array.of(1), { expected: null, parent: await context.fs.stat("/data") });
+      return { exitCode: 0 };
+    } });
+  } });
+  try {
+    const result = await shell.exec("umask 077; conditional-writer");
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal((await backing.stat("/new")).mode & 0o777, 0o600);
+  } finally { await shell.dispose(); }
+});

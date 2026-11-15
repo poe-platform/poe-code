@@ -3191,6 +3191,49 @@ test("plugin directory creation and removal honor umask and share the execution 
   }
 });
 
+for (const runtime of ["TypeScript", "Rust"]) {
+  test(`${runtime} plugin conditional writes apply umask only when creating files`, {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
+    let shell, store;
+    if (runtime === "Rust") {
+      shell = new RustWasmBash({cwd:"/", forceNative:true});
+      store = shell.fs;
+    } else {
+      const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
+      store = new MemoryFileSystem();
+      shell = new Shell({fs:store, cwd:"/"});
+    }
+    shell.register({name:"conditional-write", async execute(ctx) {
+      const path = ctx.args[0], append = ctx.args[1] === "append";
+      let expected = null;
+      try { expected = await ctx.fs.stat(path); }
+      catch (error) { if (error.code !== "ENOENT") throw error; }
+      const settings = {expected, parent:await ctx.fs.stat("/"), append};
+      if (ctx.args[1] === "explicit") settings.mode = 0o644;
+      await ctx.fs.writeFileConditional(path, Uint8Array.of(7), settings);
+      assert.equal(Object.hasOwn(settings, "mode"), ctx.args[1] === "explicit");
+      return {exitCode:0};
+    }});
+    try {
+      for (const mask of [0o077, 0o027, 0o002]) {
+        for (const operation of ["replace", "append"]) {
+          const path = `/out-${mask}-${operation}`;
+          const result = await shell.exec(`umask ${mask.toString(8)}; conditional-write ${path} ${operation}`);
+          assert.deepEqual([result.exitCode,result.stderr], [0,""]);
+          assert.equal((await store.stat(path)).mode & 0o777, 0o666 & ~mask);
+          await store.chmod(path, 0o640);
+          const next = await shell.exec(`umask 077; conditional-write ${path} ${operation}`);
+          assert.deepEqual([next.exitCode,next.stderr], [0,""]);
+          assert.equal((await store.stat(path)).mode & 0o777, 0o640);
+          assert.deepEqual([...await store.readFile(path)], operation === "append" ? [7,7] : [7]);
+        }
+      }
+      const explicit = await shell.exec("umask 077; conditional-write /explicit explicit");
+      assert.deepEqual([explicit.exitCode,explicit.stderr], [0,""]);
+      assert.equal((await store.stat("/explicit")).mode & 0o777, 0o644);
+    } finally { await shell.dispose(); }
+  });
+}
+
 test("plugin writes share quotas, apply umask on creation, and stop after the handler", {skip: typeof WebAssembly.Suspending !== "function"}, async () => {
   const {Shell, MemoryFileSystem} = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({fs,cwd:"/"}), rust = new RustWasmBash({cwd:"/"});

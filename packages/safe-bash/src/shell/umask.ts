@@ -4,10 +4,10 @@ import { writeDiagnostic } from "../escaping.js";
 import { creationUmask, getRuntimeBackingFileSystem } from "../fs/creation-mask.js";
 
 import { dirname, FsError, type FileSystem, type FsOptions } from "../contracts/index.js";
-import { registerEntryView, tryResolveMemoryDevicePath, type OpenFileOptions, type StagedFileContent, type WriteFileOptions } from "@poe-code/safe-fs/runtime-core";
+import { registerEntryView, tryResolveMemoryDevicePath, type ConditionalWriteFileOptions, type OpenFileOptions, type StagedFileContent, type WriteFileOptions } from "@poe-code/safe-fs/runtime-core";
 
 const creationFileSystems = new WeakMap<FileSystem, Map<number, FileSystem>>();
-const creationKeys = new Set(["writeFile", "appendFile", "writeStream", "mkdir", "open", "createStagedFile"]);
+const creationKeys = new Set(["writeFile", "appendFile", "writeStream", "writeFileConditional", "mkdir", "open", "createStagedFile"]);
 
 /** Supply creation modes through the adapter; never change the process mask or chmod existing entries. */
 export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
@@ -31,11 +31,12 @@ export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
         ? method.bind(target)
         : (...args: unknown[]) => {
             try {
-              const index = key === "createStagedFile" ? 3 : key === "writeFile" || key === "appendFile" || key === "writeStream" ? 2 : 1;
-              const options = (args[index] ?? {}) as FsOptions & Partial<OpenFileOptions & WriteFileOptions> & { recursive?: boolean };
+              const index = key === "createStagedFile" ? 3 : key === "writeFile" || key === "appendFile" || key === "writeStream" || key === "writeFileConditional" ? 2 : 1;
+              const options = (args[index] ?? {}) as FsOptions & Partial<OpenFileOptions & WriteFileOptions & ConditionalWriteFileOptions> & { recursive?: boolean };
               options.signal?.throwIfAborted();
               if (key === "createStagedFile" && (args[2] as StagedFileContent).type === "symlink") return Reflect.apply(method, target, args);
               if (key === "open" && options.creation !== "ifMissing" && options.creation !== "exclusive") return Reflect.apply(method, target, args);
+              if (key === "writeFileConditional" && options.expected !== null) return Reflect.apply(method, target, args);
               if (options.mode !== undefined) {
                 return Reflect.apply(method, target, args);
               }
@@ -56,8 +57,8 @@ export function creationFileSystem(fs: FileSystem, mask: number): FileSystem {
               return Promise.reject(error);
             }
             return (async () => {
-              const index = key === "createStagedFile" ? 3 : key === "writeFile" || key === "appendFile" || key === "writeStream" ? 2 : 1;
-              const options = (args[index] ?? {}) as FsOptions & Partial<OpenFileOptions & WriteFileOptions> & { recursive?: boolean };
+              const index = key === "createStagedFile" ? 3 : key === "writeFile" || key === "appendFile" || key === "writeStream" || key === "writeFileConditional" ? 2 : 1;
+              const options = (args[index] ?? {}) as FsOptions & Partial<OpenFileOptions & WriteFileOptions & ConditionalWriteFileOptions> & { recursive?: boolean };
               let path = args[0] as string;
               if (key === "mkdir" && options.recursive === true) {
                 let statExisting;

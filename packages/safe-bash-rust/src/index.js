@@ -996,6 +996,9 @@ function bindHostCommands(shell, definitions, commandContract, validatePath, dia
             },
             async writeFileConditional(path, data, settings) {
               admitPath(path,settings);
+              if (settings?.expected === null && settings.mode === undefined) {
+                settings = {...settings, mode:creationMode};
+              }
               return route("writeFileConditional",path,[data,settings],false);
             },
             writeFile(path, data, settings) { return write("writeFile", path, data, settings); },

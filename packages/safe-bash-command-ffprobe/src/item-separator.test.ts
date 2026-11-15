@@ -9,7 +9,7 @@ import { probe } from "./probe.js";
 const bytes = encodeWav({ sampleRate: 8000, channels: [new Float64Array(80)] });
 
 for (const writer of ["compact", "csv"]) for (const key of ["s", "item_sep"]) {
-  for (const separator of ["", "ab", "é", ";"]) for (const explicit of [false, true]) {
+  for (const separator of ["", "ab", "||", "é", ";"]) for (const explicit of [false, true]) {
     it(`validates ${writer} ${key}=${JSON.stringify(separator)} through ${explicit ? "media" : "audio"}`, async () => {
       const fs = new MemoryFileSystem();
       await fs.writeFile("/input.wav", bytes);
@@ -42,7 +42,7 @@ for (const writer of ["compact", "csv"]) for (const key of ["s", "item_sep"]) {
     });
   }
 
-  it.each(["", "ab", "é"])(`rejects invalid ${writer} ${key} in the audio writer: %j`, separator => {
+  it.each(["", "ab", "||", "é"])(`rejects invalid ${writer} ${key} in the audio writer: %j`, separator => {
     expect(() => probe(bytes, ["-of", `${writer}:${key}=${separator}`, "-show_format", "input.wav"]))
       .toThrow("Item separator must be a single byte");
   });

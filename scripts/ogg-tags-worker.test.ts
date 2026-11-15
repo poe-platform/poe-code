@@ -8,13 +8,13 @@ const encoder=new TextEncoder();
 function comments(fields:string[],opus:boolean){const prefix=opus?encoder.encode('OpusTags'):Uint8Array.from([3,...encoder.encode('vorbis')]);const strings=fields.map(field=>encoder.encode(field));const bytes=new Uint8Array(prefix.length+8+strings.reduce((n,b)=>n+4+b.length,0)+(opus?0:1)),view=new DataView(bytes.buffer);bytes.set(prefix);view.setUint32(prefix.length+4,strings.length,true);let at=prefix.length+8;for(const text of strings){view.setUint32(at,text.length,true);at+=4;bytes.set(text,at);at+=text.length;}if(!opus)bytes[at]=1;return bytes;}
 function head(opus:boolean){const bytes=new Uint8Array(opus?19:30),view=new DataView(bytes.buffer);if(opus){bytes.set(encoder.encode('OpusHead'));bytes[8]=1;bytes[9]=2;view.setUint16(10,312,true);}else{bytes.set([1,...encoder.encode('vorbis')]);bytes[11]=2;view.setUint32(12,44100,true);bytes[29]=1;}return bytes;}
 const picture=new Uint8Array(100032);new DataView(picture.buffer).setUint32(28,100000);
-const fields=['title='+ 'é😀,"x"\n'.repeat(30000),'title=again','TITLE=upper','METADATA_BLOCK_PICTURE=!!!',...Array.from({length:1500},(_,i)=>'key'+i+'=value'+i)];
+const fields=['title='+ 'é😀,||"x"\n'.repeat(30000),'title=again','TITLE=upper','METADATA_BLOCK_PICTURE=!!!',...Array.from({length:1500},(_,i)=>'key'+i+'=value'+i)];
 const bytes=encodeOgg([true,false].flatMap((opus,i)=>[
   {data:head(opus),serial:i+1,granule:0n,bos:true,eos:false},
   {data:comments(opus?fields:['ARTIST=last','metadata_block_picture='+Buffer.from(picture).toString('base64')],opus),serial:i+1,granule:0n,bos:false,eos:false},
-  {data:Uint8Array.of(1),serial:i+1,granule:48000n,bos:false,eos:true}
+  {data:Uint8Array.of(1),serial:i+1,granule:opus?960n:48000n,bos:false,eos:true}
 ]));
-const writers=['json','default','flat','compact:s=||','csv:s=||'];
+const writers=['json','default','flat','compact:s=|','csv:s=|'];
 function fingerprint(text:string){const bytes=encoder.encode(text);let hash=2166136261;for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;return[bytes.length,hash];}
 const golden=Object.fromEntries(['retained','stdin','stream'].flatMap(route=>writers.map(writer=>[route+writer,fingerprint(probe(bytes,['-of',writer,'-show_streams','-show_format',route==='stdin'?'-':'/input.ogg']))])));
 let runtime:Miniflare;

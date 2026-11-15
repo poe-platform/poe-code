@@ -5389,6 +5389,9 @@ pub(super) fn cmd_ffprobe(args: &[String], mut stdin: super::CommandInput, cwd: 
         let mut parts = param.split('=');
         let k = parts.next().unwrap();
         if let Some(v) = parts.next() {
+            if matches!(writer.as_str(), "compact" | "csv") && matches!(k, "s" | "item_sep") && v.len() != 1 {
+                return ffprobe_err("Item separator must be a single byte");
+            }
             settings.insert(k, v);
             audio_options &= !matches!(k, "compact" | "c");
         } else {
@@ -13603,6 +13606,27 @@ mod media_unit_tests {
 
     fn media_args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn ffprobe_rejects_multibyte_item_separators() {
+        let fs = MemoryVfs::new();
+        let pcm = PcmAudio { sample_rate: 8000, channels: vec![vec![0.0; 80]] };
+        fs.write_file("/input.wav", &encode_wav_pcm(&pcm, 16, false).unwrap()).unwrap();
+        for writer in ["compact", "csv"] {
+            for key in ["s", "item_sep"] {
+                for separator in ["", "ab", "||", "é"] {
+                    for delimiter in [":", "="] {
+                        let format = format!("{writer}{delimiter}{key}={separator}");
+                        let args = media_args(&["-of", &format, "-show_format", "/input.wav"]);
+                        let result = cmd_media_doc("ffprobe", &args, "", "/", &fs);
+                        assert_eq!(result.exit_code, 1);
+                        assert_eq!(result.stdout, "");
+                        assert_eq!(result.stderr, "ffprobe: Item separator must be a single byte\n");
+                    }
+                }
+            }
+        }
     }
 
     #[test]

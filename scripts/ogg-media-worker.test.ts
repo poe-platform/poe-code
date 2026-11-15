@@ -1,27 +1,29 @@
 import { build } from "esbuild";
 import { Miniflare } from "miniflare";
 import { afterAll, beforeAll, expect, it } from "vitest";
+import { parseAudio } from "@poe-code/audio-ast";
 import { encodeOgg } from "../packages/audio-ast/src/ogg.js";
 import { formatFfprobeResult } from "../packages/safe-bash-command-ffprobe/src/media.js";
-import { oggAst, parseMp4, createSyntheticMp4 } from "@poe-code/mp4-ast";
+import { oggAst, probeOggStreamMetadata, parseMp4, createSyntheticMp4 } from "@poe-code/mp4-ast";
 
 const encoder=new TextEncoder();
 function comments(fields:string[],opus:boolean){const prefix=opus?encoder.encode('OpusTags'):Uint8Array.from([3,...encoder.encode('vorbis')]);const strings=fields.map(field=>encoder.encode(field));const bytes=new Uint8Array(prefix.length+8+strings.reduce((n,b)=>n+4+b.length,0)+(opus?0:1)),view=new DataView(bytes.buffer);bytes.set(prefix);view.setUint32(prefix.length+4,strings.length,true);let at=prefix.length+8;for(const text of strings){view.setUint32(at,text.length,true);at+=4;bytes.set(text,at);at+=text.length;}if(!opus)bytes[at]=1;return bytes;}
 function head(opus:boolean){const bytes=new Uint8Array(opus?19:30),view=new DataView(bytes.buffer);if(opus){bytes.set(encoder.encode('OpusHead'));bytes[8]=1;bytes[9]=2;view.setUint16(10,312,true);}else{bytes.set([1,...encoder.encode('vorbis')]);bytes[11]=2;view.setUint32(12,44100,true);bytes[29]=1;}return bytes;}
 const picture=new Uint8Array(100032);new DataView(picture.buffer).setUint32(28,100000);
-const fields=['title='+ 'é😀,"x"\n'.repeat(30000),'title=again','TITLE=upper','METADATA_BLOCK_PICTURE=!!!',...Array.from({length:1500},(_,i)=>'key'+i+'=value'+i)];
+const fields=['title='+ 'é😀,||"x"\n'.repeat(30000),'title=again','TITLE=upper','METADATA_BLOCK_PICTURE=!!!',...Array.from({length:1500},(_,i)=>'key'+i+'=value'+i)];
 const bytes=encodeOgg([true,false].flatMap((opus,i)=>[
   {data:head(opus),serial:i+1,granule:0n,bos:true,eos:false},
   {data:comments(opus?fields:['ARTIST=last','metadata_block_picture='+Buffer.from(picture).toString('base64')],opus),serial:i+1,granule:0n,bos:false,eos:false},
-  {data:Uint8Array.of(1),serial:i+1,granule:48000n,bos:false,eos:true}
+  {data:Uint8Array.of(1),serial:i+1,granule:opus?960n:48000n,bos:false,eos:true}
 ]));
-const writers=['json','default','flat','compact:s=||','csv:s=||'];
+const writers=['json','default','flat','compact:s=|','csv:s=|'];
 function fingerprint(text:string){const bytes=encoder.encode(text);let hash=2166136261;for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;return[bytes.length,hash];}
 const doc=parseMp4(createSyntheticMp4({includeAudio:true,frameCount:1})),track=doc.tracks.find(track=>track.type==='audio')!;
 const flac=oggAst().serialize({...doc,tracks:[{...track,decodedAudio:{sampleRate:48000,channels:1,channelData:[new Float32Array(600000)]}}]},{audioCodec:'flac'});
 const profiles=['ogg-explicit','ogg-records','flac','flac-explicit','flac-records'];
+// The bounded Ogg route reports stream metadata; full Opus demuxing is a separate contract.
 const golden=Object.fromEntries(profiles.flatMap(profile=>['retained','stdin','stream'].flatMap(route=>writers.map(writer=>{
-  const records=profile!=='flac';return [profile+route+writer,fingerprint(formatFfprobeResult(oggAst().probe(profile.startsWith('flac')?flac:bytes,{filename:route==='stdin'?'-':'/input.ogg',showPackets:records,showFrames:records}),{printFormat:writer,showStreams:true,showFormat:true,showPackets:records,showFrames:records,showChapters:false,showPrograms:false,countPackets:records,countFrames:records}))];
+  const records=profile!=='flac';return [profile+route+writer,fingerprint(formatFfprobeResult(profile.startsWith('flac')?oggAst().probe(flac,{filename:route==='stdin'?'-':'/input.ogg',showPackets:records,showFrames:records}):probeOggStreamMetadata(parseAudio(bytes).streams[0]!,bytes.length,{filename:route==='stdin'?'-':'/input.ogg',showPackets:records,showFrames:records}),{printFormat:writer,showStreams:true,showFormat:true,showPackets:records,showFrames:records,showChapters:false,showPrograms:false,countPackets:records,countFrames:records}))];
 }))));
 let runtime:Miniflare;
 beforeAll(async()=>{

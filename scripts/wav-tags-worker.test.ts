@@ -16,7 +16,7 @@ const padded = valueLength + valueLength % 2, size = prefix.length + padded + ta
 view.setUint32(4, size - 8, true); view.setUint32(plain.length + 4, 12 + padded + tail.length, true); view.setUint32(plain.length + 16, valueLength, true);
 const bytes = new Uint8Array(size); bytes.set(prefix); for (let i = 0; i < repeated; i++) bytes[prefix.length + i] = pattern[i % pattern.length]!;
 bytes.fill(32, prefix.length + repeated, prefix.length + repeated + 3); bytes.set(tail, prefix.length + padded);
-const writers = ["json", "default", "flat", "compact:s=||", "csv:s=||"];
+const writers = ["json", "default", "flat", "compact:s=|", "csv:s=|"];
 function fingerprint(text: string) { const bytes = new TextEncoder().encode(text); let hash = 2166136261; for (const byte of bytes) hash = Math.imul(hash ^ byte, 16777619) >>> 0; return [bytes.length, hash]; }
 const golden = Object.fromEntries(["retained", "stdin"].flatMap(route => writers.map(writer => [route + writer, fingerprint(probe(bytes, ["-of", writer, "-show_streams", "-show_format", "-show_entries", "stream_tags:format_tags", route === "stdin" ? "-" : "/input.wav"]))])));
 let runtime: Miniflare;

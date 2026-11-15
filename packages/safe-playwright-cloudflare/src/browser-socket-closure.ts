@@ -64,13 +64,18 @@ export function registerBrowserSocketClose(socket: WebSocket, alias = socket) {
 				{ cause: eof },
 			);
 			// A provider may drop TCP without a Close frame during shutdown.
-			// Require both physical closure and successful owned-session deletion.
 			if (
 				event.code === 1006 &&
 				event.isTrusted &&
 				socket.readyState === WebSocket.CLOSED &&
 				(closure!.ownerClosing || closure!.closing)
 			) {
+				// A deliberately closed client can detach while its owner stays alive
+				// for the next run. Owner shutdown still requires confirmed deletion.
+				if (closure!.closing && !closure!.ownerClosing) {
+					finish();
+					return;
+				}
 				eof = error;
 				eofDuringClose = true;
 				if (closure!.ownerTerminated !== undefined)

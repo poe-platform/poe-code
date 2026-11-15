@@ -1,0 +1,55 @@
+%PDF-1.7
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R /AcroForm 3 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Count 2 /Kids [8 0 R 10 0 R] >>
+endobj
+3 0 obj
+<< /Fields [7 0 R 9 0 R] /DR << /Font << /Helv 4 0 R >> >> /DA (/Helv 12 Tf 0 g) >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>
+endobj
+5 0 obj
+<< /Type /XObject /Subtype /Form /BBox [0 0 40 20] /Resources << >> /Length 23 >>
+stream
+1 0 0 rg 0 0 40 20 re f
+endstream
+endobj
+6 0 obj
+<< /Type /XObject /Subtype /Form /BBox [0 0 40] /Resources << >> /Length 23 >>
+stream
+0 0 1 rg 0 0 40 20 re f
+endstream
+endobj
+7 0 obj
+<< /Type /Annot /Subtype /Widget /FT /Btn /Ff 65536 /T (button1) /Rect [20 20 180 80] /MK << /I 5 0 R /TP 1 /BG [.9 .9 .9] >> >>
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [7 0 R] >>
+endobj
+9 0 obj
+<< /Type /Annot /Subtype /Widget /FT /Btn /Ff 65536 /T (button2) /Rect [20 20 180 80] /MK << /I 6 0 R /TP 1 /BG [.9 .9 .9] >> >>
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [9 0 R] >>
+endobj
+xref
+0 11
+0000000000 65535 f 
+0000000009 00000 n 
+0000000074 00000 n 
+0000000138 00000 n 
+0000000237 00000 n 
+0000000307 00000 n 
+0000000445 00000 n 
+0000000580 00000 n 
+0000000724 00000 n 
+0000000828 00000 n 
+0000000972 00000 n 
+trailer
+<< /Size 11 /Root 1 0 R >>
+startxref
+1077
+%%EOF

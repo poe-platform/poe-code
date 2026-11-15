@@ -10055,8 +10055,12 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
     let pfx_full = resolve_posix_path(cwd, pfx_rel);
     let digits = total.to_string().len();
     let mut stderr_progress = String::new();
+    let mut outputs = Vec::new();
+    let mut remaining = fs.shell_limits().max_output_bytes;
     for pno in &selected_pages {
         let Some(bytes) = render(*pno) else { return err_out("PDF raster limit or invalid content stream\n", 1); };
+        let Some(rest) = remaining.checked_sub(bytes.len()) else { return err_out("PDF raster output exceeds byte limit\n", 1); };
+        remaining = rest;
         let (rel_dst, dst) = if singlefile && !force_num {
             (format!("{pfx_rel}.{ext}"), format!("{pfx_full}.{ext}"))
         } else {
@@ -10068,6 +10072,9 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
                 format!("{pfx_full}{sep}{num_str}.{ext}"),
             )
         };
+        outputs.push((*pno, rel_dst, dst, bytes));
+    }
+    for (pno, rel_dst, dst, bytes) in outputs {
         if !fs.is_dir(&crate::vfs::dirname_posix_path(&dst)) || fs.write_file(&dst, &bytes).is_err() {
             let (code, message) = if is_cairo {
                 (2, format!("Error opening output file {rel_dst}\n"))

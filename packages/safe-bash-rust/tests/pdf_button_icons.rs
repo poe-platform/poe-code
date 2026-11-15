@@ -69,6 +69,40 @@ fn normal_icons_are_preserved() {
     check(false);
 }
 #[test]
+fn invalid_later_icons_preserve_all_outputs() {
+    for pdf in [
+        include_bytes!("fixtures/pdf-icons-bad-bbox.pdf").as_slice(),
+        include_bytes!("fixtures/pdf-icons-recursive.pdf").as_slice(),
+    ] {
+        for command in ["pdftoppm", "pdftocairo"] {
+            for existing in [false, true] {
+                let fs = MemoryVfs::new();
+                fs.write_file("/input.pdf", pdf).unwrap();
+                if existing {
+                    for page in 1..=2 {
+                        fs.write_file(&format!("/page-{page}.png"), b"KEEP")
+                            .unwrap();
+                    }
+                }
+                let args = ["-png", "-r", "144", "/input.pdf", "/page"].map(String::from);
+                let result =
+                    try_run_archive_command(command, &args, "", "/", &Default::default(), &fs)
+                        .unwrap();
+                assert_ne!(result.exit_code, 0, "{command} accepted invalid icon");
+                for page in 1..=2 {
+                    let output = fs.read_file(&format!("/page-{page}.png"));
+                    if existing {
+                        assert_eq!(output.unwrap(), b"KEEP", "{command} page {page}");
+                    } else {
+                        assert!(output.is_err(), "{command} published page {page}");
+                    }
+                }
+                assert_eq!(fs.read_file("/input.pdf").unwrap(), pdf);
+            }
+        }
+    }
+}
+#[test]
 fn caption_appearance_and_hidden_controls() {
     check(true);
 }
@@ -225,6 +259,49 @@ fn invalid_cyclic_and_oversized_icons_preserve_outputs() {
             assert_ne!(result.exit_code, 0, "accepted {mk} {geometry}");
             assert_eq!(fs.read_file("/out-1.png").unwrap(), b"sentinel");
             assert_eq!(fs.read_file("/input.pdf").unwrap(), pdf);
+        }
+    }
+}
+
+#[test]
+fn aggregate_raster_limit_preserves_all_outputs() {
+    use safe_bash_rust::{BackendMode, Shell, ShellLimits, ShellOptions};
+    use std::sync::Arc;
+    for command in ["pdftoppm", "pdftocairo"] {
+        let fs = MemoryVfs::new();
+        fs.write_file(
+            "/input.pdf",
+            include_bytes!("fixtures/pdf-button-icons.pdf"),
+        )
+        .unwrap();
+        let mut shell = Shell::new(
+            Arc::new(fs.clone()),
+            ShellOptions {
+                cwd: Some("/".into()),
+                mode: BackendMode::NativeOnly,
+                ..Default::default()
+            },
+        );
+        let invocation = format!("{command} -png -r 72 -f 1 -l 2 /input.pdf /page");
+        let result = shell.exec(&invocation).unwrap();
+        assert_eq!(result.exit_code, 0, "{}", result.stderr);
+        let total = fs.read_file("/page-01.png").unwrap().len()
+            + fs.read_file("/page-02.png").unwrap().len();
+        for page in 1..=2 {
+            fs.write_file(&format!("/page-{page:02}.png"), b"KEEP")
+                .unwrap();
+        }
+        shell.set_limits(ShellLimits {
+            max_output_bytes: total - 1,
+            ..Default::default()
+        });
+        let result = shell.exec(&invocation).unwrap();
+        assert_ne!(result.exit_code, 0);
+        for page in 1..=2 {
+            assert_eq!(
+                fs.read_file(&format!("/page-{page:02}.png")).unwrap(),
+                b"KEEP"
+            );
         }
     }
 }

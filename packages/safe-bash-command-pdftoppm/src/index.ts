@@ -93,6 +93,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
     const ext = format;
     const padWidth = Math.max(1, String(totalPages).length);
     const outChunks: Uint8Array[] = [];
+    const outputs = new Map<string, Uint8Array>();
     const progressLines: string[] = [];
     for (let p = firstPage; p <= endPage; p++) {
         yield;
@@ -207,7 +208,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
             const fileName = singleFile && !forceNum
                 ? `${prefix}.${ext}`
                 : `${prefix}${sep}${pageSuffix}.${ext}`;
-            files.set(fileName, renderedBytes);
+            outputs.set(fileName, renderedBytes);
             if (progress && !quiet) {
                 progressLines.push(`${p} ${endPage} ${fileName}`);
             }
@@ -218,6 +219,7 @@ function* runPdftoppmCliSteps(argv: readonly string[], files: Map<string, Uint8A
             try { const gc = (globalThis as { gc?: () => void }).gc!; gc(); gc(); } catch { /* Optional host GC hints must not interrupt page conversion. */ }
         }
     }
+    for (const [name, bytes] of outputs) files.set(name, bytes);
     const lines = [...warnings, ...progressLines];
     const stderrText = lines.length > 0 ? lines.join("\n") + "\n" : "";
     if (outChunks.length > 0) {

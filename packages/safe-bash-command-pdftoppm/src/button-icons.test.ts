@@ -16,7 +16,9 @@ import {
   createPdftoppmCommand,
   createPdftocairoCommand,
   runPdftoppmCli,
-  runPdftocairoCli
+  runPdftocairoCli,
+  runPdftoppmCliSync,
+  runPdftocairoCliSync
 } from "./index.js";
 
 const fixture = new Uint8Array(
@@ -124,6 +126,57 @@ for (const cairo of [false, true])
           ]);
         } else {
           expect(output, kind).toEqual(sentinel);
+        }
+      }
+    }
+  );
+
+for (const cairo of [false, true])
+  it.each([false, true])(
+    `preserves all outputs when a later icon is invalid (cairo=${cairo}, retained=%s)`,
+    async (retained) => {
+      for (const name of ["pdf-icons-bad-bbox.pdf", "pdf-icons-recursive.pdf"]) {
+        const input = new Uint8Array(
+          readFileSync(new URL(`../../safe-bash-rust/tests/fixtures/${name}`, import.meta.url))
+        );
+        const sentinel = new TextEncoder().encode("KEEP");
+        const argv = ["-png", "-r", "144", "input.pdf", "page"];
+        if (retained) {
+          const fs = createMemoryFileSystem();
+          await fs.mkdir("/scratch");
+          await fs.writeFile("/input.pdf", input);
+          for (const page of [1, 2]) await fs.writeFile(`/page-${page}.png`, sentinel);
+          const args = createCommandArguments(argv);
+          const command = cairo ? createPdftocairoCommand() : createPdftoppmCommand();
+          await expect(
+            command.execute({
+              command: command.name,
+              args: args.args,
+              argumentValues: args,
+              cwd: "/",
+              env: { TMPDIR: "/scratch" },
+              fs,
+              stdin: (async function* () {})(),
+              signal: new AbortController().signal,
+              stdout: { write: async () => {} },
+              stderr: { write: async () => {} }
+            })
+          ).rejects.toThrow();
+          for (const page of [1, 2])
+            expect(await fs.readFile(`/page-${page}.png`)).toEqual(sentinel);
+          expect(await fs.readFile("/input.pdf")).toEqual(input);
+          expect(await fs.readdir("/scratch")).toEqual([]);
+        } else {
+          const files = new Map([
+            ["input.pdf", input],
+            ["page-1.png", sentinel],
+            ["page-2.png", sentinel]
+          ]);
+          await expect((cairo ? runPdftocairoCli : runPdftoppmCli)(argv, files)).rejects.toThrow();
+          for (const page of [1, 2]) expect(files.get(`page-${page}.png`)).toEqual(sentinel);
+          expect(() => (cairo ? runPdftocairoCliSync : runPdftoppmCliSync)(argv, files)).toThrow();
+          for (const page of [1, 2]) expect(files.get(`page-${page}.png`)).toEqual(sentinel);
+          expect(files.get("input.pdf")).toEqual(input);
         }
       }
     }

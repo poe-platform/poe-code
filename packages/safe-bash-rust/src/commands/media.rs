@@ -17801,6 +17801,54 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn soffice_docx_picture_dimensions() {
+        let raster = png_pixels::Raster {width:1,height:1,alpha:false,gray:false,density:72,orientation:None,pixels:vec![[255,0,0,255]]};
+        let png = frame_output::encode(&raster,"png",90.,72,1<<20).unwrap();
+        for command in ["soffice", "libreoffice"] {
+            for (extent, expected) in [
+                (r#"cx="152400" cy="76200""#, Some((12., 6.))),
+                (r#"cx="6350" cy="3175""#, Some((0.5, 0.25))),
+                (r#"cx="1828800" cy="914400""#, Some((144., 72.))),
+                ("", Some((432., 226.8))),
+                (r#"cx="6350""#, Some((0.5, 226.8))),
+                (r#"cy="3175""#, Some((432., 0.25))),
+                (r#"cx="12801600" cy="6400800""#, Some((504., 252.))),
+            ].into_iter().map(|(extent, expected)| (extent.to_owned(), expected)).chain(
+                ["cx", "cy"].into_iter().flat_map(|name| ["0", "-1", "NaN", "Infinity", "bad", "", "0x100", "1.5", "1e309"].map(move |value| (format!(r#"{name}="{value}""#), None)))
+            ) {
+                let drawing = format!(r#"<w:r><w:drawing><wp:extent {extent}/><a:blip r:embed="image"/></w:drawing></w:r>"#);
+                let xml = format!(r#"<w:document xmlns:w="w" xmlns:wp="wp" xmlns:a="a" xmlns:r="r"><w:body><w:p><w:r><w:t>PAGE ONE</w:t></w:r>{drawing}<w:r><w:br w:type="page"/></w:r></w:p><w:p><w:r><w:t>PAGE TWO</w:t></w:r>{drawing}</w:p></w:body></w:document>"#);
+                let input = crate::commands::structured::write_zip_stored(&[
+                    ("word/document.xml", xml.as_bytes()),
+                    ("word/_rels/document.xml.rels", br#"<Relationships><Relationship Id="image" Target="media/image.png"/></Relationships>"#),
+                    ("word/media/image.png", &png),
+                ]);
+                let fs = MemoryVfs::new();
+                fs.write_file("/doc.docx", &input).unwrap();
+                fs.write_file("/doc.pdf", b"old").unwrap();
+                let result = cmd_media_doc(command, &media_args(&["--convert-to", "pdf", "/doc.docx"]), "", "/", &fs);
+                let bytes = fs.read_file("/doc.pdf").unwrap();
+                if let Some((width, height)) = expected {
+                    assert_eq!(result.exit_code, 0, "{}", result.stderr);
+                    let doc = pdf_reader::read(&bytes, "").unwrap().0;
+                    assert_eq!(doc.pages.len(), 2);
+                    assert!(doc.pages[0].text.contains("PAGE ONE"));
+                    assert!(doc.pages[1].text.contains("PAGE TWO"));
+                    let expanded = cmd_media_doc("pdftk", &media_args(&["/doc.pdf", "output", "/expanded.pdf", "uncompress"]), "", "/", &fs);
+                    assert_eq!(expanded.exit_code, 0, "{}", expanded.stderr);
+                    let content = fs.read_file("/expanded.pdf").unwrap();
+                    let matrix = format!("{width} 0 0 {height} 54 ");
+                    assert_eq!(String::from_utf8_lossy(&content).matches(&matrix).count(), 2, "{command}: {extent}");
+                } else {
+                    assert_eq!(result.exit_code, 1, "{command}: {extent}");
+                    assert_eq!(bytes, b"old");
+                }
+                assert_eq!(fs.read_file("/doc.docx").unwrap(), input);
+            }
+        }
+    }
+
+    #[test]
     fn soffice_docx_dimensions_control_automatic_layout() {
         for (width, height, height_pages, width_pages) in [(12240, 15840, 1, 2), (15840, 12240, 2, 1)] {
             for (paragraphs, text, pages) in [

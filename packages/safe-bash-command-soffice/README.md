@@ -19,7 +19,7 @@ for TXT, PDF, DOCX, and `--cat` output. Scripts, styles, and document metadata a
 Asynchronous DOCX conversion preserves bullet and decimal list markers in TXT and PDF,
 and emits nested HTML lists with their starting numbers. DOCX HTML exports preserve
 inline bold and italic text in paragraphs, headings, lists, and tables.
-DOCX PDF exports preserve inline bold and italic runs in paragraphs, headings, and lists, plus explicit page breaks, paragraph page-break-before settings, and embedded PNG/JPEG images in document order. Single-section DOCX exports honor explicit page width and height, with Letter defaults when absent. Invalid page dimensions or referenced images fail conversion without replacing an existing PDF.
+DOCX PDF exports preserve inline bold and italic runs in paragraphs, headings, and lists, plus explicit page breaks, paragraph page-break-before settings, and embedded PNG/JPEG images in document order. Single-section DOCX exports honor explicit page width and height, with Letter defaults when absent. Pictures retain their declared size, including fractional-point dimensions, with proportional fitting to the content width. Invalid page or picture dimensions and invalid referenced images fail conversion without replacing an existing PDF.
 DOCX TXT exports and `--cat` output include the UTF-8 BOM used by LibreOffice.
 Explicit `txt:Text` exports from HTML/HTM, ODT, RTF, TXT, and Markdown also include this signature.
 TXT and Markdown inputs also produce valid DOCX archives; CSV and XLSX inputs produce DOCX tables.

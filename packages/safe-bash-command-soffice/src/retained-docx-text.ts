@@ -1,3 +1,4 @@
+import { docxImageDimension } from "./docx-image-size.js";
 import { docxPageDimension } from "./docx-page-size.js";
 import { DocxNumbering } from "./retained-docx-numbering.js";
 import { OfficeXml, SpanMap, type OfficeElement } from "./retained-office-xml.js";
@@ -331,12 +332,19 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
               if (!media && documentBlocks) throw new Error("Missing referenced DOCX image");
               if (media && documentBlocks) {
                 let width = 432, height = 226.8;
-                for await (const extent of xml.elements(drawing.open + 1, drawing.end, ["extent", "ext"], true, true)) {
-                  const cx = await xml.attribute(extent, "cx"), cy = await xml.attribute(extent, "cy");
-                  if (!cx?.length || !cy?.length) continue;
-                  const number = async (range: XmlRange) => { let value = 0; for await (const bytes of xml.xml.read(range)) for (const byte of bytes) { if (byte < 48 || byte > 57) return undefined; value = value * 10 + byte - 48; } return value; };
-                  const x = await number(cx), y = await number(cy); if (x === undefined || y === undefined) continue;
-                  width = Math.max(24, x / 12700); height = Math.max(24, y / 12700); break;
+                extent: for (const name of ["extent", "ext"]) {
+                  for await (const extent of xml.elements(drawing.open + 1, drawing.end, [name], true, true)) {
+                    const dimension = async (name: string, fallback: number) => {
+                      const range = await xml.attribute(extent, name);
+                      if (!range) return fallback;
+                      if (range.length > 64) throw new Error("Invalid DOCX image dimension");
+                      let value = "";
+                      for await (const bytes of xml.xml.read(range)) value += new TextDecoder().decode(bytes);
+                      return docxImageDimension(value, fallback);
+                    };
+                    width = await dimension("cx", 432); height = await dimension("cy", 226.8);
+                    break extent;
+                  }
                 }
                 const contentWidth = Math.max(1, documentBlocks.pageSize.width - 108);
                 if (width > contentWidth) { height *= contentWidth / width; width = contentWidth; }

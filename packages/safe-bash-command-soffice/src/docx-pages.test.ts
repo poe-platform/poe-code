@@ -6,9 +6,9 @@ import { PdfDocument, encodePng } from "@poe-code/pdf-ast";
 import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createSofficeCommand, createLibreofficeCommand, createStoredZipArchive, runSofficeCliSync, runSofficeCli, runSofficeFileCli } from "./index.js";
 
-function document(kind: string, problem = "", pageSize = 'w:w="12240" w:h="15840"') {
+function document(kind: string, problem = "", pageSize = 'w:w="12240" w:h="15840"', extent = 'cx="1828800" cy="914400"') {
   const encode = (text: string) => new TextEncoder().encode(text);
-  const drawing = (id: string) => `<w:r><w:drawing><wp:extent cx="1828800" cy="914400"/><a:blip r:embed="${id}"/></w:drawing></w:r>`;
+  const drawing = (id: string) => `<w:r><w:drawing><wp:extent ${extent}/><a:blip r:embed="${id}"/></w:drawing></w:r>`;
   const first = '<w:r><w:t>PAGE ONE</w:t></w:r>' + drawing('red');
   const second = '<w:r><w:t>PAGE TWO</w:t></w:r>' + drawing('blue');
   const before = kind === 'before' ? '<w:pageBreakBefore/>' : kind.startsWith('false') ? `<w:pageBreakBefore w:val="${kind.slice(6)}"/>` : '';
@@ -37,6 +37,32 @@ function document(kind: string, problem = "", pageSize = 'w:w="12240" w:h="15840
   return createStoredZipArchive(entries);
 }
 for (const mode of ['sync','async','retained','command','libreoffice'] as const) {
+  for (const [extent, width, height] of [
+    ['cx="152400" cy="76200"', 12, 6],
+    ['cx="6350" cy="3175"', 0.5, 0.25],
+    ['cx="1828800" cy="914400"', 144, 72],
+    ['', 432, 226.8],
+    ['cx="6350"', 0.5, 226.8],
+    ['cy="3175"', 432, 0.25],
+    ['cx="12801600" cy="6400800"', 504, 252]
+  ] as const) it(`preserves DOCX picture dimensions (${mode}, ${extent})`, async () => {
+    const input = document('break', '', undefined, extent), files = new Map([['/doc.docx', input]]), fs = new MemoryFileSystem();
+    await fs.writeFile('/doc.docx', input);
+    const args = ['--convert-to', 'pdf', '/doc.docx'];
+    const result = mode === 'sync' ? runSofficeCliSync(args, files) : mode === 'async' ? await runSofficeCli(args, files) : mode === 'retained' ? await runSofficeFileCli(args, {filesystem: fs, stdout: {async write() {}}, stderr: {async write() {}}}) : await (mode === 'libreoffice' ? createLibreofficeCommand() : createSofficeCommand()).execute({command: mode === 'libreoffice' ? 'libreoffice' : 'soffice', cwd: '/', env: {}, fs, ...createCommandArguments(args), signal: new AbortController().signal, stdin: toByteSource(''), stdout: {async write() {}}, stderr: {async write() {}}});
+    assert.equal(result.exitCode, 0);
+    const pdf = PdfDocument.load(mode === 'sync' || mode === 'async' ? files.get('/doc.pdf')! : await fs.readFile('/doc.pdf'));
+    assert.equal(pdf.pageCount, 2);
+    for (let index = 0; index < 2; index++) {
+      const page = pdf.getPage(index);
+      assert.ok(page.extractText().includes(index === 0 ? 'PAGE ONE' : 'PAGE TWO'));
+      const images = page.evaluateDisplayList().images;
+      assert.equal(images.length, 1);
+      assert.ok(Math.abs(images[0]!.matrix[0] - width) < 0.00001);
+      assert.ok(Math.abs(Math.abs(images[0]!.matrix[3]) - height) < 0.00001);
+    }
+    assert.deepEqual((await fs.readdir('/')).map(entry => entry.name).sort(), mode === 'sync' || mode === 'async' ? ['doc.docx'] : ['doc.docx', 'doc.pdf']);
+  });
   for (const [pageSize, width, height] of [
     ['w:w="12240" w:h="15840"', 612, 792],
     ['w:w="11906" w:h="16838"', 595.3, 841.9],
@@ -86,8 +112,8 @@ for (const mode of ['sync','async','retained','command','libreoffice'] as const)
     for (let index = 0; index < pdf.pageCount; index++) assert.equal(pdf.getPage(index).height, expectedHeight);
   });
   for (const dimension of ['w', 'h'])
-  for (const problem of ['missing','invalid','jpeg','jpeg-tables','size:0','size:-1','size:NaN','size:Infinity','size:288001','size:bad','size:','size:0x100','size:1.5']) it(`rejects DOCX ${problem} image and preserves output (${mode}, ${dimension})`,async()=>{
-    const input=document('break',problem, problem.startsWith('size:') ? `w:${dimension}="${problem.slice(5)}"` : 'w:w="12240" w:h="15840"'), previous=Uint8Array.of(1,2,3), files=new Map([['/doc.docx',input],['/doc.pdf',previous]]),fs=new MemoryFileSystem();
+  for (const problem of ['missing','invalid','jpeg','jpeg-tables','size:0','size:-1','size:NaN','size:Infinity','size:288001','size:bad','size:','size:0x100','size:1.5', ...['0', '-1', 'NaN', 'Infinity', 'bad', '', '0x100', '1.5', '1e309'].map(value => 'extent:' + value)]) it(`rejects DOCX ${problem} image and preserves output (${mode}, ${dimension})`,async()=>{
+    const input=document('break',problem, problem.startsWith('size:') ? `w:${dimension}="${problem.slice(5)}"` : 'w:w="12240" w:h="15840"', problem.startsWith('extent:') ? `${dimension === 'w' ? 'cx' : 'cy'}="${problem.slice(7)}"` : undefined), previous=Uint8Array.of(1,2,3), files=new Map([['/doc.docx',input],['/doc.pdf',previous]]),fs=new MemoryFileSystem();
     await fs.writeFile('/doc.docx',input);await fs.writeFile('/doc.pdf',previous);
     const args=['--convert-to','pdf','/doc.docx'];
     const result=mode==='sync'?runSofficeCliSync(args,files):mode==='async'?await runSofficeCli(args,files):mode==='retained'?await runSofficeFileCli(args,{filesystem:fs,stdout:{async write(){}},stderr:{async write(){}}}):await (mode === 'libreoffice' ? createLibreofficeCommand() : createSofficeCommand()).execute({command:mode === 'libreoffice' ? 'libreoffice' : 'soffice',cwd:'/',env:{},fs,...createCommandArguments(args),signal:new AbortController().signal,stdin:toByteSource(''),stdout:{async write(){}},stderr:{async write(){}}});

@@ -1,3 +1,4 @@
+import { docxImageDimension } from "./docx-image-size.js";
 import { docxPageDimension } from "./docx-page-size.js";
 import { decodeJpegImage } from "@poe-code/image-ast";
 import { csvFormulaCell, calculateCsvFormulas } from "./csv-formulas.js";
@@ -156,8 +157,8 @@ function parseDocxBlocks(zipBytes: Uint8Array): { blocks: DocBlock[]; width: num
           const path = relTargets.get(id), imageBytes = path ? entries.get(path) : undefined;
           if (!imageBytes) throw new Error("Missing referenced DOCX image");
           const extent = [...pptxElements(run, "extent"), ...pptxElements(run, "ext")][0];
-          let width = Math.max(24, Number(extent && attribute(extent, "cx") || 5486400) / 12700);
-          let height = Math.max(24, Number(extent && attribute(extent, "cy") || 2880360) / 12700);
+          let width = docxImageDimension(extent && attribute(extent, "cx"), 432);
+          let height = docxImageDimension(extent && attribute(extent, "cy"), 226.8);
           if (width > contentWidth) { height *= contentWidth / width; width = contentWidth; }
           blocks.push({kind: "image", imageBytes, width, height});
         } else if (run.localName !== "pPr" && run.localName !== "rPr") runs.push(...[...run.children].reverse());

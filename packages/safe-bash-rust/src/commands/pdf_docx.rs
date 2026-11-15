@@ -102,10 +102,19 @@ pub(in super::super) fn render_docx(
                         .next();
                     let dimension = |name, default| -> Option<f64> {
                         let value = match extent.and_then(|e| attr(e, name)) {
-                            Some(v) => v.parse::<f64>().ok()? / 12700.,
+                            Some(v) => {
+                                if v.len() > 64 {
+                                    return None;
+                                }
+                                let v = v.trim();
+                                if v.is_empty() || !v.bytes().all(|byte| byte.is_ascii_digit()) {
+                                    return None;
+                                }
+                                v.parse::<f64>().ok()? / 12700.
+                            }
                             None => default,
                         };
-                        (value.is_finite() && value > 0.).then_some(value.max(24.))
+                        (value.is_finite() && value > 0.).then_some(value)
                     };
                     let mut width = dimension("cx", 432.)?;
                     let mut height = dimension("cy", 226.8)?;

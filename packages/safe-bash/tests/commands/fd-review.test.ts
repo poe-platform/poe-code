@@ -19,12 +19,18 @@ test('fd review: nested ignore overrides, directory pruning and explicit no-igno
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stdout, 'src/keep.tmp\n');
     // The documented Safe Bash profile includes hidden entries after two -u flags.
-    for (const flag of ['-uu', '--unrestricted --unrestricted']) {
+    for (const flag of ['-uu', '-u -u', '--unrestricted --unrestricted', '-u --unrestricted', '--unrestricted -u', '-uuu', '-H -u', '--no-hidden -uu']) {
       assert.equal((await shell.exec(`fd ${flag} -t f`)).stdout, '.hidden\n.ignore\nblocked/secret\nkeep.tmp\nsrc/.ignore\nsrc/keep.tmp\n', flag);
     }
-    for (const flag of ['-u', '--unrestricted']) {
+    for (const flag of ['-u', '--unrestricted', '-I', '--no-ignore', '--ignore -u', '-u --ignore -u', '-I -uu --no-hidden']) {
       assert.equal((await shell.exec(`fd ${flag} -t f`)).stdout, 'blocked/secret\nkeep.tmp\nsrc/keep.tmp\n', flag);
     }
+    for (const flag of ['-uu --no-hidden', '-uu --ignore']) {
+      assert.equal((await shell.exec(`fd ${flag} -t f`)).stdout, 'src/keep.tmp\n', flag);
+    }
+    assert.equal((await shell.exec('fd -H -uu --ignore -t f')).stdout, '.hidden\n.ignore\nsrc/.ignore\nsrc/keep.tmp\n');
+    assert.equal((await shell.exec('fd -uu -E blocked -t f')).stdout, '.hidden\n.ignore\nkeep.tmp\nsrc/.ignore\nsrc/keep.tmp\n');
+
   });
 });
 

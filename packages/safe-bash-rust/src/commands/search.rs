@@ -6122,7 +6122,7 @@ where
     let mut no_ignore_parent = false;
     let mut custom_ignore_files: Vec<String> = Vec::new();
     let mut require_git = true;
-    let mut unrestricted = false;
+    let mut unrestricted = 0usize;
     let mut follow = false;
     let mut full_path = false;
     let mut absolute_path = false;
@@ -6198,9 +6198,9 @@ where
                 "hidden" => show_hidden = true, "no-ignore" => respect_ignore = false,
                 "no-ignore-vcs" => no_ignore_vcs = true, "no-ignore-parent" => no_ignore_parent = true,
                 "require-git" => require_git = true, "no-require-git" => require_git = false,
-                "unrestricted" => unrestricted = true,
-                "no-hidden" => { show_hidden = false; unrestricted = false; }
-                "ignore" => { respect_ignore = true; unrestricted = false; }
+                "unrestricted" => unrestricted += 1,
+                "no-hidden" => { show_hidden = false; unrestricted = 0; }
+                "ignore" => { respect_ignore = true; unrestricted = 0; }
                 "follow" => follow = true, "prune" => prune = true,
                 "glob" => mode = FdMode::Glob, "fixed-strings" => mode = FdMode::Fixed,
                 "ignore-case" => case_override = Some(true), "case-sensitive" => case_override = Some(false),
@@ -6357,8 +6357,8 @@ where
         sizes,
         changed_within_ms,
         changed_before_ms,
-        show_hidden: show_hidden || unrestricted,
-        respect_ignore: respect_ignore && !unrestricted,
+        show_hidden: show_hidden || unrestricted >= 2,
+        respect_ignore: respect_ignore && unrestricted == 0,
         no_ignore_vcs,
         require_git,
         follow,
@@ -7655,6 +7655,36 @@ mod tests {
             let r = try_run_search_command("fd", &args(&[flags, "--ignore-file", "rules"]), "",
                 &mut "/work".to_owned(), &mut BTreeMap::new(), &fs, |_, _, _, _| unreachable!()).unwrap();
             assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, stdout, ""), "{flags}");
+        }
+    }
+
+    #[test]
+    fn fd_counted_unrestricted_profile() {
+        let fs = MemoryVfs::new();
+        for dir in ["/work/src", "/work/blocked"] { fs.mkdir_all(dir).unwrap(); }
+        for (path, data) in [
+            (".ignore", "*.tmp\nblocked/\n"), ("keep.tmp", ""),
+            ("src/.ignore", "!keep.tmp\n"), ("src/keep.tmp", ""),
+            ("blocked/secret", ""), (".hidden", ""),
+        ] { fs.write_file(&format!("/work/{path}"), data.as_bytes()).unwrap(); }
+        let visible = "blocked/secret\nkeep.tmp\nsrc/keep.tmp\n";
+        let all = ".hidden\n.ignore\nblocked/secret\nkeep.tmp\nsrc/.ignore\nsrc/keep.tmp\n";
+        for (flags, expected) in [
+            ("", "src/keep.tmp\n"), ("-u", visible), ("--unrestricted", visible),
+            ("-uu", all), ("-u -u", all), ("--unrestricted --unrestricted", all),
+            ("-u --unrestricted", all), ("--unrestricted -u", all), ("-uuu", all),
+            ("-H -u", all), ("-I", visible), ("--no-ignore", visible),
+            ("-uu --no-hidden", "src/keep.tmp\n"), ("-uu --ignore", "src/keep.tmp\n"),
+            ("-H -uu --ignore", ".hidden\n.ignore\nsrc/.ignore\nsrc/keep.tmp\n"),
+            ("-I -uu --no-hidden", visible), ("--no-hidden -uu", all),
+            ("--ignore -u", visible), ("-u --ignore -u", visible),
+            ("-uu -E blocked", ".hidden\n.ignore\nkeep.tmp\nsrc/.ignore\nsrc/keep.tmp\n"),
+        ] {
+            let mut opts: Vec<&str> = flags.split_whitespace().collect();
+            opts.extend(["-t", "f"]);
+            let r = try_run_search_command("fd", &args(&opts), "", &mut "/work".to_owned(),
+                &mut BTreeMap::new(), &fs, |_, _, _, _| unreachable!()).unwrap();
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, expected, ""), "{flags}");
         }
     }
 

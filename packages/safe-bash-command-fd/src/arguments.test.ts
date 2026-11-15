@@ -31,11 +31,21 @@ test("fd parses --path-separator, -C/--base-directory, and --strip-cwd-prefix", 
   assert.deepEqual(a.patterns, ["README"]);
 });
 
-test('one unrestricted option includes hidden and ignored entries', () => {
-  for (const argv of [['-u'], ['--unrestricted'], ['-uu'], ['-u', '-u']]) {
-    const a = parseFdArguments(argv);
-    assert.equal(a.ignore, false);
-    assert.equal(a.hidden, true);
+test('fd counts unrestricted flags and honors explicit controls', () => {
+  for (const [argv, hidden, ignore] of [
+    [['-u'], false, false], [['--unrestricted'], false, false],
+    [['-uu'], true, false], [['-u', '-u'], true, false],
+    [['--unrestricted', '--unrestricted'], true, false],
+    [['-u', '--unrestricted'], true, false], [['--unrestricted', '-u'], true, false],
+    [['-uuu'], true, false], [['-H', '-u'], true, false],
+    [['-I'], false, false], [['--no-ignore'], false, false],
+    [['-uu', '--no-hidden'], false, true], [['-uu', '--ignore'], false, true],
+    [['-H', '-uu', '--ignore'], true, true], [['-I', '-uu', '--no-hidden'], false, false],
+    [['--no-hidden', '-uu'], true, false], [['--ignore', '-u'], false, false],
+    [['-u', '--ignore', '-u'], false, false],
+  ] as const) {
+    const a = parseFdArguments([...argv]);
+    assert.deepEqual([a.hidden, a.ignore], [hidden, ignore], argv.join(' '));
   }
 });
 

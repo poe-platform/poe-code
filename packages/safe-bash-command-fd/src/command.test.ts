@@ -57,9 +57,9 @@ for (const [args, expected] of [
   [['-H', '-e', 'bashrc'], ''],
   [['-e', 'txt'], 'link.txt\nsub/file.txt\n'],
   [['-t', 'd', '-t', 'x'], 'exec.sh\nsub/\n'],
-  [['-u', '-F', '.bashrc'], '.bashrc\n'],
+  [['-u', '-F', '.bashrc'], ''],
   [['-uu', '-F', '.bashrc'], '.bashrc\n'],
-] as const) test(`fd parity: ${args.join(' ')}`, async () => {
+] as const) test(`fd search profile: ${args.join(' ')}`, async () => {
   const { createFdCommand } = await import('./index.js');
   const fs = new MemoryFileSystem();
   await fs.mkdir('/work/sub', { recursive: true });

@@ -82,9 +82,10 @@ export async function retainTextPdf(storage: PagedStorage, text: RetainedTextBlo
     await scan(decoder.decode()); await finishWord();
     const styles = text.styles?.(snapshot, block)[Symbol.asyncIterator]();
     let style = await styles?.next();
-    let first = 0;
+    let first = 0, end = 0;
     do {
-      let end = first, units = 0;
+      end = first;
+      let units = 0;
       while (end < count) {
         const next = Number(await words.get(BigInt(end * 3 + 2)));
         if (next === 0 || (end > first && units + 1 + next > maximum)) break;
@@ -114,7 +115,8 @@ export async function retainTextPdf(storage: PagedStorage, text: RetainedTextBlo
       if (first === end) await pdf.append("() Tj\n");
       await pdf.append("ET\nQ\n"); y -= heading ? 24 : 15; first = end < count && await words.get(BigInt(end * 3 + 2)) === 0n ? end + 1 : end;
       await yieldTurn(signal);
-    } while (first < count);
+      // A consumed boundary still starts a line, even at the end of the block.
+    } while (end < count);
     y -= heading ? 4 : 5;
   }
   await finishPage();

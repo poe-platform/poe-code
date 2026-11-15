@@ -22,6 +22,11 @@ for (const kind of ['png', 'jpeg', 'invalid'] as const) it(`retains DOCX PDF hea
   let stdout = '', stderr = '';
   const result = await runSofficeFileCli(args, {filesystem,stdout:{async write(bytes){stdout+=new TextDecoder().decode(bytes);}},stderr:{async write(bytes){stderr+=new TextDecoder().decode(bytes);}}});
   assert.deepEqual({...result,stdout,stderr},expected);
+  if (expected.exitCode !== 0) {
+    assert.equal(files.has('/input.pdf'), false);
+    await assert.rejects(fs.readFile('/input.pdf'), {code: 'ENOENT'});
+    return;
+  }
   const actual = PdfDocument.load(await fs.readFile('/input.pdf')), wanted = PdfDocument.load(files.get('/input.pdf')!);
   assert.equal(actual.extractText(),wanted.extractText());
   assert.deepEqual(actual.getMetadata(),wanted.getMetadata());

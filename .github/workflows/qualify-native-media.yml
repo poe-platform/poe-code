@@ -20,6 +20,7 @@ jobs:
       - name: Check TypeScript media contracts
         run: npm run test:unit --workspace=safe-bash-media-engine
       - name: Check Rust media contracts
-        run: cargo test --locked --manifest-path packages/safe-bash-rust/Cargo.toml commands::media::tests
+        run: cargo test --locked --manifest-path packages/safe-bash-rust/Cargo.toml
+          --lib media_unit_tests
       - name: Acquire pinned assets, build and qualify the disposable container
         run: npm run test:container --workspace=safe-bash-media-engine

@@ -195,3 +195,82 @@ fn preserves_explicit_unicode_advances_across_font_transitions() {
         assert_eq!(widths[0x80 - 32].number(), Some(556.));
     }
 }
+
+#[test]
+fn preserves_docx_heading_styles_and_layout() {
+    use super::super::pdf_docx::render_docx;
+    use super::{PageSource, pdf_text_layout::Draw};
+    for style in ["Normal", "Heading1", "Title", "Custom", "BodyCustom"] {
+        for bottom in [false, true] {
+            let heading = !matches!(style, "Normal" | "BodyCustom");
+            let prefix =
+                "<w:p><w:r><w:t>Filler</w:t></w:r></w:p>".repeat(if bottom { 32 } else { 0 });
+            let words = "word ".repeat(18);
+            let xml = format!(
+                r#"<w:document xmlns:w="w"><w:body>{prefix}<w:p><w:pPr><w:pStyle w:val="{style}"/></w:pPr><w:r><w:t>Start </w:t></w:r><w:r><w:rPr><w:i/></w:rPr><w:t>Italic </w:t></w:r><w:r><w:rPr><w:i w:val="0"/></w:rPr><w:t>Reset {words}</w:t><w:br/><w:t>Break</w:t></w:r></w:p><w:p><w:r><w:rPr><w:b/></w:rPr><w:t>Boldbody</w:t></w:r></w:p></w:body></w:document>"#
+            );
+            let styles = br#"<w:styles xmlns:w="w"><w:style w:styleId="Custom"><w:name w:val="Heading 2"/></w:style><w:style w:styleId="BodyCustom"><w:name w:val="Body Text"/></w:style></w:styles>"#;
+            let input = crate::commands::structured::write_zip_stored(&[
+                ("word/document.xml", xml.as_bytes()),
+                ("word/styles.xml", styles),
+            ]);
+            let bytes = render_docx(&input, "doc", None, 1 << 20).unwrap();
+            let mut pdf = PageSource::open(&bytes, "").unwrap();
+            assert_eq!(pdf.len(), if bottom { 2 } else { 1 });
+            let mut glyphs = Vec::new();
+            for index in 0..pdf.len() {
+                let page = pdf.objects.page_dict(pdf.pages[index], &pdf.tree).unwrap();
+                pdf.draw_page(&page, false, |event, _| {
+                    if let Draw::Glyph {
+                        code,
+                        family,
+                        size,
+                        baseline,
+                        ..
+                    } = event
+                    {
+                        glyphs.push((code, family.to_string(), size, baseline));
+                    }
+                    Some(())
+                })
+                .unwrap();
+            }
+            let start = glyphs.iter().find(|g| g.0 == u16::from(b'S')).unwrap();
+            let italic = glyphs.iter().find(|g| g.0 == u16::from(b'I')).unwrap();
+            let reset = glyphs.iter().find(|g| g.0 == u16::from(b'R')).unwrap();
+            let breaks: Vec<_> = glyphs.iter().filter(|g| g.0 == u16::from(b'B')).collect();
+            assert_eq!(start.2, if heading { 18. } else { 11. }, "{style}");
+            assert_eq!(
+                start.1,
+                if heading {
+                    "Helvetica-Bold"
+                } else {
+                    "Helvetica"
+                }
+            );
+            assert_eq!(
+                italic.1,
+                if heading {
+                    "Helvetica-BoldOblique"
+                } else {
+                    "Helvetica-Oblique"
+                }
+            );
+            assert_eq!(reset.1, start.1);
+            assert_eq!(breaks[1].2, 11.);
+            assert_eq!(breaks[1].1, "Helvetica-Bold");
+            assert_eq!(start.3, if bottom { 80. } else { 720. });
+            assert_eq!(
+                breaks[0].3,
+                if bottom {
+                    if heading { 672. } else { 705. }
+                } else if heading {
+                    648.
+                } else {
+                    690.
+                }
+            );
+            assert_eq!(breaks[1].3, breaks[0].3 - if heading { 28. } else { 20. });
+        }
+    }
+}

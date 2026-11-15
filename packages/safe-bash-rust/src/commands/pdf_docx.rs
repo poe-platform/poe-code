@@ -12,9 +12,9 @@ fn attr<'a>(element: &'a xml::Element, name: &str) -> Option<&'a str> {
         .find(|(key, _)| key.rsplit(':').next() == Some(name))
         .map(|(_, value)| value.as_str())
 }
-fn flush(text: &mut String, styles: &mut Vec<TextStyle>, blocks: &mut Vec<LayoutBlock>) {
+fn flush(text: &mut String, styles: &mut Vec<TextStyle>, blocks: &mut Vec<LayoutBlock>, heading: bool) {
     if !text.trim_matches(|c: char| c != '\n' && c.is_whitespace()).is_empty() {
-        blocks.push(LayoutBlock::Text(std::mem::take(text), false, std::mem::take(styles)));
+        blocks.push(LayoutBlock::Text(std::mem::take(text), heading, std::mem::take(styles)));
     }
     text.clear();
     styles.clear();
@@ -27,6 +27,22 @@ pub(in super::super) fn render_docx(
 ) -> Option<Vec<u8>> {
     let entries = archive(bytes, limit)?;
     let doc = document(&entries, "word/document.xml")?;
+    let mut heading_styles = std::collections::BTreeSet::from(["title".to_owned(), "subtitle".to_owned()]);
+    if let Some(styles) = document(&entries, "word/styles.xml") {
+        for style in elements(&styles.nodes, "style") {
+            let id = attr(style, "styleId").unwrap_or("").to_lowercase();
+            let name = elements(&style.children, "name").first()
+                .and_then(|name| attr(name, "val")).unwrap_or("").to_lowercase();
+            let size = elements(&style.children, "sz").first()
+                .and_then(|size| attr(size, "val")).and_then(|size| size.parse::<f64>().ok()).unwrap_or(0.);
+            if !id.is_empty() && id != "normal"
+                && (id.starts_with("heading") || id == "title" || name.starts_with("heading")
+                    || name.contains("section") || matches!(name.as_str(), "title" | "subtitle")
+                    || size >= 26. || size >= 24. && !elements(&style.children, "b").is_empty()) {
+                heading_styles.insert(id);
+            }
+        }
+    }
     let mut page_size = (612., 792.);
     if let Some(section) = elements(&doc.nodes, "sectPr").last()
         && let Some(xml::Node::Element(size)) = section.children.iter().find(|node| {
@@ -51,6 +67,11 @@ pub(in super::super) fn render_docx(
     let mut blocks = Vec::new();
     let mut retained = 0usize;
     for paragraph in elements(&doc.nodes, "p") {
+        let style = elements(&paragraph.children, "pStyle").first()
+            .and_then(|style| attr(style, "val")).unwrap_or("").to_lowercase();
+        let size = elements(&paragraph.children, "sz").first()
+            .and_then(|size| attr(size, "val")).and_then(|size| size.parse::<f64>().ok()).unwrap_or(0.);
+        let heading = style.starts_with("heading") || heading_styles.contains(&style) || size >= 28.;
         for properties in elements(&paragraph.children, "pPr") {
             for before in elements(&properties.children, "pageBreakBefore") {
                 if matches!(attr(before, "val"), None | Some("1" | "true" | "on")) {
@@ -99,12 +120,12 @@ pub(in super::super) fn render_docx(
                 }
                 "tab" => text.push('\t'),
                 "br" if attr(element, "type") == Some("page") => {
-                    flush(&mut text, &mut styles, &mut blocks);
+                    flush(&mut text, &mut styles, &mut blocks, heading);
                     blocks.push(LayoutBlock::PageBreak(false));
                 }
                 "br" | "cr" => text.push('\n'),
                 "drawing" | "pict" => {
-                    flush(&mut text, &mut styles, &mut blocks);
+                    flush(&mut text, &mut styles, &mut blocks, heading);
                     let blips = elements(&element.children, "blip");
                     let Some(blip) = blips.first() else {
                         continue;
@@ -149,9 +170,9 @@ pub(in super::super) fn render_docx(
                 _ => pending.extend(element.children.iter().rev().map(|node| (node, bold, italic))),
             }
         }
-        flush(&mut text, &mut styles, &mut blocks);
+        flush(&mut text, &mut styles, &mut blocks, heading);
         if blocks.len() == first_block {
-            blocks.push(LayoutBlock::Text(String::new(), false, Vec::new()));
+            blocks.push(LayoutBlock::Text(String::new(), heading, Vec::new()));
         }
     }
     render_blocks(blocks, title, filter, limit, page_size)

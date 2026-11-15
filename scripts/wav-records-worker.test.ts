@@ -1,7 +1,6 @@
 import { build } from "esbuild";
 import { Miniflare } from "miniflare";
 import { afterAll, beforeAll, expect, it } from "vitest";
-import { wavAst } from "@poe-code/mp4-ast";
 
 const payload = 1024 * 1024;
 function head() {
@@ -11,12 +10,23 @@ function head() {
   view.setUint32(24, 8000, true); view.setUint32(28, 16000, true); view.setUint16(32, 2, true); view.setUint16(34, 16, true); view.setUint32(40, payload, true); return bytes;
 }
 function fingerprint(bytes: Uint8Array) { let hash = 2166136261; for (const byte of bytes) hash = Math.imul(hash ^ byte, 16777619) >>> 0; return [bytes.length, hash]; }
-const bytes = new Uint8Array(payload + 44); bytes.set(head());
-const expected = wavAst().probe(bytes, { showPackets: true, showFrames: true });
-const records = expected.packets!.flatMap((packet, index) => [{ type: "packet", ...packet }, { type: "frame", ...expected.frames![index] }]);
+// Independently constructed PCM16 records: ffprobe 9.0.1 and
+// n9.0.2-57-gd838f9f9ae agree on 512-sample packets and interleaving.
+// Keep the existing pkt_duration aliases in their public field order.
+const records = Array.from({ length: payload / 1024 }, (_, index) => {
+  const pts = index * 512, time = (pts / 8000).toFixed(6), pos = String(44 + index * 1024);
+  return [
+    { type: "packet", codec_type: "audio", stream_index: 0, pts, pts_time: time,
+      dts: pts, dts_time: time, duration: 512, duration_time: "0.064000", size: "1024", pos, flags: "K__" },
+    { type: "frame", media_type: "audio", stream_index: 0, key_frame: 1, pts, pts_time: time,
+      pkt_dts: pts, pkt_dts_time: time, best_effort_timestamp: pts, best_effort_timestamp_time: time,
+      pkt_duration: 512, pkt_duration_time: "0.064000", duration: 512, duration_time: "0.064000",
+      pkt_size: "1024", pkt_pos: pos, sample_fmt: "s16", nb_samples: 512, channels: 1 }
+  ];
+}).flat();
 const golden = Object.fromEntries(["success", "compact"].map(mode => [mode, fingerprint(new TextEncoder().encode(mode === "compact"
   ? '{\n    "packets_and_frames": [\n' + records.map(row => '        { ' + Object.entries(row).filter(([, value]) => value !== undefined).map(([key, value]) => JSON.stringify(key) + ': ' + JSON.stringify(value)).join(', ') + ' }').join(',\n') + '\n    ]\n}\n'
-  : JSON.stringify({ packets_and_frames: records }, null, 2) + "\n"))]));
+  : JSON.stringify({ packets_and_frames: records }, null, 4) + "\n"))]));
 let runtime: Miniflare;
 beforeAll(async () => {
   const bundle = await build({ stdin: { resolveDir: process.cwd(), contents: `

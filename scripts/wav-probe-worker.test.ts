@@ -28,6 +28,6 @@ it('ffprobe does not decode WAV PCM channels in a Node-free Worker', async () =>
   const response=await runtime.dispatchFetch('http://worker/');expect(response.status).toBe(200);
   const result=await response.json() as {code:number;output:string;diagnostic:string;reads:number;nodeFree:boolean};
   expect(result.code,result.diagnostic).toBe(0);expect(result.reads).toBe(1);expect(result.nodeFree).toBe(true);
-  expect(JSON.parse(result.output)).toEqual({streams:[{sample_rate:'8000',channels:2,duration:'131.072000'}]});
+  expect(JSON.parse(result.output)).toEqual({programs:[],stream_groups:[],streams:[{sample_rate:'8000',channels:2,duration:'131.072000'}]});
  }finally{await runtime.dispose();}
 });

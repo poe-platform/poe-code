@@ -43,7 +43,7 @@ it("automatically probes a large WAV with the strict audio schema in a Node-free
     const actual = await response.json() as { result: { streams: { duration: number; samples: number }[] }; reads: number; largest: number; nodeFree: boolean; commandReads: number; closes: number; code: number; output: string; diagnostic: string };
     expect(actual.nodeFree).toBe(true); expect(actual.reads).toBe(4); expect(actual.largest).toBe(16);
     expect(actual.code, actual.diagnostic).toBe(0); expect(actual.commandReads).toBe(9); expect(actual.closes).toBe(1);
-    expect(JSON.parse(actual.output)).toEqual({ streams: [{ index: 0, codec_name: "pcm_s16le", codec_type: "audio", sample_rate: "8000", channels: 2, bits_per_sample: 16, duration: "16777.216000", bit_rate: "256000" }], format: { filename: "/input.wav", nb_streams: 1, format_name: "wav", duration: "16777.216000", size: String(512 * 1024 * 1024 + 44), bit_rate: "256000" } });
+    expect(JSON.parse(actual.output)).toEqual({ streams: [{ index: 0, codec_name: "pcm_s16le", codec_long_name: "PCM signed 16-bit little-endian", codec_type: "audio", sample_fmt: "s16", sample_rate: "8000", channels: 2, bits_per_sample: 16, time_base: "1/8000", duration_ts: 134217728, duration: "16777.216000", bit_rate: "256000" }], format: { filename: "/input.wav", nb_streams: 1, nb_programs: 0, nb_stream_groups: 0, format_name: "wav", format_long_name: "WAV / WAVE (Waveform Audio)", duration: "16777.216000", size: String(512 * 1024 * 1024 + 44), bit_rate: "256000", probe_score: 99 } });
     expect(actual.result.streams[0]).toMatchObject({ duration: 16777.216, samples: 134217728 });
   } finally { await runtime.dispose(); }
 });

@@ -66,7 +66,8 @@ for (const route of ["stdin", "file"]) for (const mode of ["success", "limit", "
     expect(result.nodeFree).toBe(true); expect(result.closed).toBe(true);
     if (mode === "success") {
       expect(result.code, result.diagnostic).toBe(0); expect(result.reads).toBe(2049); expect(result.admitted).toBe(32 * 1024 * 1024 + 44);
-      expect(JSON.parse(result.output)).toEqual({ streams: [{ duration: "1048.576000", nb_frames: "8192" }] });
+      // Native ffprobe 9.0.1 omits duration for non-seekable WAV stdin.
+      expect(JSON.parse(result.output)).toEqual({ programs: [], stream_groups: [], streams: [route === "stdin" ? {} : { duration: "1048.576000" }] });
     } else {
       expect(result.output).toBe("");
       if (mode === "limit") { expect(result.code).toBe(1); expect(result.reads).toBe(2); }

@@ -3,7 +3,7 @@ import { Miniflare } from "miniflare";
 import { afterAll, beforeAll, expect, it } from "vitest";
 
 const payload = 512 * 1024, size = payload + 44, duration = (payload / 16000).toFixed(6);
-const golden = (filename: string) => JSON.stringify({ streams: [{ index: 0, codec_name: "pcm_s16le", codec_type: "audio", sample_rate: "8000", channels: 1, bits_per_sample: 16, duration, bit_rate: "128000" }], format: { filename, nb_streams: 1, format_name: "wav", duration, size: String(size), bit_rate: String(Math.floor(size * 8 / Number(duration))) } }, null, 4) + "\n";
+const golden = (filename: string) => JSON.stringify({ streams: [{ index: 0, codec_name: "pcm_s16le", codec_long_name: "PCM signed 16-bit little-endian", codec_type: "audio", sample_fmt: "s16", sample_rate: "8000", channels: 1, bits_per_sample: 16, time_base: "1/8000", ...(filename === "-" ? {} : { duration_ts: payload / 2, duration }), bit_rate: "128000" }], format: { filename, nb_streams: 1, nb_programs: 0, nb_stream_groups: 0, format_name: "wav", format_long_name: "WAV / WAVE (Waveform Audio)", ...(filename === "-" ? {} : { duration, size: String(size) }), bit_rate: filename === "-" ? "128000" : String(Math.floor(size * 8 / Number(duration))), probe_score: 99 } }, null, 4) + "\n";
 let runtime: Miniflare;
 beforeAll(async () => {
   const bundle = await build({ stdin: { resolveDir: process.cwd(), contents: `

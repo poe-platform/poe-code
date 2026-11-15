@@ -40,10 +40,11 @@ it("probes a large WAV source with bounded reads in a Node-free Worker", async (
   try {
     const response = await runtime.dispatchFetch("http://worker/");
     expect(response.status).toBe(200);
-    const actual = await response.json() as { result: { streams: { duration: string; nb_frames: string }[] }; reads: number; largest: number; nodeFree: boolean; commandReads: number; closes: number; code: number; output: string; diagnostic: string };
+    const actual = await response.json() as { result: { streams: { duration: string; nb_frames?: string }[] }; reads: number; largest: number; nodeFree: boolean; commandReads: number; closes: number; code: number; output: string; diagnostic: string };
     expect(actual.nodeFree).toBe(true); expect(actual.reads).toBe(4); expect(actual.largest).toBe(16);
     expect(actual.code, actual.diagnostic).toBe(0); expect(actual.commandReads).toBe(4); expect(actual.closes).toBe(1);
-    expect(JSON.parse(actual.output)).toEqual({ streams: [{ duration: "16777.216000", nb_frames: "131072" }] });
-    expect(actual.result.streams[0]).toMatchObject({ duration: "16777.216000", nb_frames: "131072" });
+    expect(JSON.parse(actual.output)).toEqual({ programs: [], stream_groups: [], streams: [{ duration: "16777.216000" }] });
+    expect(actual.result.streams[0]).toMatchObject({ duration: "16777.216000" });
+    expect(actual.result.streams[0]).not.toHaveProperty("nb_frames");
   } finally { await runtime.dispose(); }
 });

@@ -1,6 +1,6 @@
 # safe-bash-rust
 
-Native Pandoc preserves paragraph boundaries between Markdown input files, including operands read from stdin. Use `--file-scope` to parse each input independently before combining its blocks; for example, separate list files stay separate lists. Failed input reads preserve the final destination.
+Native Pandoc preserves paragraph boundaries between Markdown input files, including operands read from stdin. Use `--file-scope` to parse each input independently before combining its blocks; for example, separate list files stay separate lists. Failed input reads preserve the final destination. Inline HTML tags and comments remain typed as `RawInline` in JSON; `-raw_html` keeps them literal. HTML output passes HTML raw nodes through by default (`--raw-content=escape|reject` overrides this); plain output rejects raw nodes unless an explicit `--raw-content=retain|escape` policy is selected. Markdown output preserves raw nodes with format attributes. `--strip-comments` removes HTML comments without changing code spans. Rejected conversions leave saved output unchanged.
 
 Markdown reference links and images resolve definitions across their document, including headings, lists, quotations and tables. Markdown readers use the last duplicate definition; GFM and CommonMark use the first. Code spans and fenced code preserve literal reference syntax. JSON, HTML and Markdown retain image references; plain text, RTF and DOCX retain their alternative text. These native writers do not fetch or embed image resources in RTF or DOCX.
 

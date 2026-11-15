@@ -24,6 +24,7 @@ impl Table {
         rows: Vec<Vec<String>>,
         align: Option<Vec<Option<Alignment>>>,
         definitions: Option<&MdqDefinitions>,
+        raw_html: bool,
     ) -> Self {
         let cols = (0..header.len())
             .map(|i| (align.as_ref().and_then(|v| v[i]), 0.))
@@ -33,7 +34,7 @@ impl Table {
                 .enumerate()
                 .map(|(column, text)| {
                     let nodes = if align.is_some() {
-                        parse_pandoc_md_inlines(&text, definitions)
+                        parse_pandoc_md_inlines(&text, definitions, raw_html)
                     } else {
                         let mut nodes = Vec::new();
                         for (i, word) in text.split(' ').enumerate() {

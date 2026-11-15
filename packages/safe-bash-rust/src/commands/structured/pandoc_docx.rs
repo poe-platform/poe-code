@@ -261,10 +261,10 @@ pub(super) fn read(data: &[u8], mut remaining: usize) -> Result<Vec<PandocBlock>
         let legacy = part("__pandoc_source.md")?.ok_or(INVALID)?;
         return parse_pandoc_markdown(
             std::str::from_utf8(&legacy).map_err(|_| INVALID)?,
-            false,
             PandocPipeTables::Markdown,
             0,
             pandoc_list::Tasks::Markdown,
+            true,
             true,
         )
         .ok_or(INVALID);
@@ -715,6 +715,7 @@ impl Writer {
                     self.inlines(children, properties)?;
                     self.inlines(&[PandocInline::Text("]".into())], properties)?;
                 }
+                PandocInline::Raw(..) => {},
                 PandocInline::Code(_, code) => {
                     write!(
                         self.document,

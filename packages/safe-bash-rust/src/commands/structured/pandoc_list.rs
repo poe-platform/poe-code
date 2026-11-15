@@ -142,6 +142,7 @@ pub(super) fn read(
     depth: usize,
     tasks: Tasks,
     defs: &MdqDefinitions,
+    raw_html: bool,
 ) -> Option<PandocBlock> {
     let mut items = Vec::new();
     let mut loose = false;
@@ -239,6 +240,7 @@ pub(super) fn read(
             depth + 1,
             tasks,
             defs,
+            raw_html,
         )?);
     }
     if !loose {

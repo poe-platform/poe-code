@@ -29,6 +29,26 @@ pub(in super::super) fn render_docx(
 ) -> Option<Vec<u8>> {
     let entries = archive(bytes, limit)?;
     let doc = document(&entries, "word/document.xml")?;
+    let mut page_size = (612., 792.);
+    if let Some(section) = elements(&doc.nodes, "sectPr").last()
+        && let Some(xml::Node::Element(size)) = section.children.iter().find(|node| {
+            matches!(node, xml::Node::Element(e) if e.tag.rsplit(':').next() == Some("pgSz"))
+        })
+    {
+        let dimension = |name, fallback| {
+            let points = match attr(size, name) {
+                Some(value) => {
+                    let value = value.trim();
+                    if value.is_empty() || !value.bytes().all(|byte| byte.is_ascii_digit()) { return None; }
+                    value.parse::<f64>().ok()? / 20.
+                },
+                None => fallback,
+            };
+            (points.is_finite() && points > 0. && points <= 14400.).then_some(points)
+        };
+        page_size = (dimension("w", 612.)?, dimension("h", 792.)?);
+    }
+    let content_width = (page_size.0 - 108.).max(1.);
     let targets = relationships(&entries, "word/document.xml")?;
     let mut blocks = Vec::new();
     let mut retained = 0usize;
@@ -89,9 +109,9 @@ pub(in super::super) fn render_docx(
                     };
                     let mut width = dimension("cx", 432.)?;
                     let mut height = dimension("cy", 226.8)?;
-                    if width > 504. {
-                        height *= 504. / width;
-                        width = 504.;
+                    if width > content_width {
+                        height *= content_width / width;
+                        width = content_width;
                     }
                     blocks.push(LayoutBlock::Image(raster, width, height));
                 }
@@ -100,5 +120,5 @@ pub(in super::super) fn render_docx(
         }
         flush(&mut text, &mut blocks);
     }
-    render_blocks(blocks, title, filter, limit)
+    render_blocks(blocks, title, filter, limit, page_size)
 }

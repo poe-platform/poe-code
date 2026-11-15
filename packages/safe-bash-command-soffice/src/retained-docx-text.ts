@@ -1,3 +1,4 @@
+import { docxPageDimension } from "./docx-page-size.js";
 import { DocxNumbering } from "./retained-docx-numbering.js";
 import { OfficeXml, SpanMap, type OfficeElement } from "./retained-office-xml.js";
 import type { RetainedOfficeBlocks } from "./retained-office-blocks.js";
@@ -181,6 +182,21 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
   let numberingXml: OfficeXml | undefined;
   let failed = true;
   try {
+    if (documentBlocks) {
+      for await (const section of xml.elements(0, xml.count, ["sectPr"])) {
+        for await (const size of xml.elements(section.open + 1, section.end, ["pgSz"], true)) {
+          const dimension = async (name: string, fallback: number) => {
+            const range = await xml.attribute(size, name);
+            if (!range) return fallback;
+            if (range.length > 64) throw new Error("Invalid DOCX page dimension");
+            let value = "";
+            for await (const bytes of xml.xml.read(range)) value += new TextDecoder().decode(bytes);
+            return docxPageDimension(value, fallback);
+          };
+          documentBlocks.pageSize = {width: await dimension("w", 612), height: await dimension("h", 792)};
+        }
+      }
+    }
     numberingXml = numbering ? await open(numbering) : undefined;
     const lists = numberingXml ? new DocxNumbering(numberingXml, storage, signal) : undefined;
     await lists?.retain();
@@ -322,7 +338,8 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
                   const x = await number(cx), y = await number(cy); if (x === undefined || y === undefined) continue;
                   width = Math.max(24, x / 12700); height = Math.max(24, y / 12700); break;
                 }
-                if (width > 504) { height *= 504 / width; width = 504; }
+                const contentWidth = Math.max(1, documentBlocks.pageSize.width - 108);
+                if (width > contentWidth) { height *= contentWidth / width; width = contentWidth; }
                 await documentBlocks.addImage(media, width, height);
               } else if (media) await addBlock({ position: 0, size: 0 }, false, true);
             }

@@ -4,6 +4,7 @@ import type { SofficeSnapshot } from "./retained-input.js";
 
 /** Document structure contains only scalar handles into the caller's backing. */
 export class RetainedOfficeBlocks implements RetainedTextBlocks {
+  pageSize = { width: 612, height: 792 };
   private readonly blocks: IntegerTable;
   private readonly rows: IntegerTable;
   private readonly cells: IntegerTable;

@@ -11,12 +11,14 @@ import type { RetainedSofficeContext } from "./retained-input.js";
 export async function retainTextPdf(storage: PagedStorage, text: RetainedTextBlocks, snapshot: RetainedTextSnapshot,
   title: string, context: RetainedSofficeContext, filterOptions?: string): Promise<{ size: number; read(): AsyncGenerator<Uint8Array> }> {
   const { signal } = context, encoder = new TextEncoder(), words = new IntegerTable(storage), pdf = new RetainedPdf(storage, context);
-  let y = 720;
-  const finishPage = async () => { await pdf.finishPage(); y = 720; };
+  const {width, height} = text.pageSize ?? {width: 612, height: 792};
+  const contentWidth = Math.max(1, width - 108);
+  let y = height - 72;
+  const finishPage = async () => { await pdf.finishPage(); y = height - 72; };
   for (let block = 0; block < snapshot.count; block++) {
     signal.throwIfAborted();
     const pageBreak = await text.pageBreak?.(snapshot, block);
-    if (pageBreak) { if (pageBreak === "always" || y !== 720) await finishPage(); continue; }
+    if (pageBreak) { if (pageBreak === "always" || y !== height - 72) await finishPage(); continue; }
     const image = await text.image?.(snapshot, block);
     if (image) {
       const retained = await retainPdfImage(storage, image, signal);
@@ -29,12 +31,12 @@ export async function retainTextPdf(storage: PagedStorage, text: RetainedTextBlo
     }
     const table = await text.table?.(snapshot, block);
     if (table) {
-      const width = 504 / table.columns;
+      const width = contentWidth / table.columns;
       for (let row = 0; row < table.rows; row++) {
         signal.throwIfAborted();
         if (y - 28 < 54) await finishPage();
         const bottom = y - 22;
-        await pdf.append(row === 0 ? `q\n0.92 0.94 0.97 rg\n0.5 0.55 0.62 RG\n0.75 w\n54 ${bottom} 504 22 re\nB\nQ\n` : `q\n0.7 0.72 0.75 RG\n0.5 w\n54 ${bottom} 504 22 re\nS\nQ\n`);
+        await pdf.append(row === 0 ? `q\n0.92 0.94 0.97 rg\n0.5 0.55 0.62 RG\n0.75 w\n54 ${bottom} ${contentWidth} 22 re\nB\nQ\n` : `q\n0.7 0.72 0.75 RG\n0.5 w\n54 ${bottom} ${contentWidth} 22 re\nS\nQ\n`);
         const cells = await table.cells(row);
         for (let cell = 0; cell < cells; cell++) {
           const x = 54 + cell * width;
@@ -53,7 +55,7 @@ export async function retainTextPdf(storage: PagedStorage, text: RetainedTextBlo
       }
       y -= 14; continue;
     }
-    const heading = await text.isHeading(snapshot, block), maximum = heading ? 48 : 84, decoder = new TextDecoder("utf-8", { ignoreBOM: true });
+    const heading = await text.isHeading(snapshot, block), maximum = Math.max(1, Math.floor(contentWidth * (heading ? 48 : 84) / 504)), decoder = new TextDecoder("utf-8", { ignoreBOM: true });
     let position = 0, start = 0, wordBytes = 0, wordUnits = 0, count = 0;
     const finishWord = async () => {
       if (!wordBytes) return;
@@ -108,5 +110,5 @@ export async function retainTextPdf(storage: PagedStorage, text: RetainedTextBlo
     y -= heading ? 4 : 5;
   }
   await finishPage();
-  return pdf.save({title, creator: "LibreOffice 24.8 (@poe-code/pdf-ast)", filterOptions});
+  return pdf.save({width, height, title, creator: "LibreOffice 24.8 (@poe-code/pdf-ast)", filterOptions});
 }

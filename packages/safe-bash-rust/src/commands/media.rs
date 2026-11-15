@@ -17735,7 +17735,9 @@ mod media_unit_tests {
 
     #[test]
     fn soffice_preserves_docx_page_breaks_and_images() {
-        for kind in ["break", "before", "inline", "none", "0", "false", "off"] {
+        for ((twips_w, twips_h, width, height), kind) in [
+            (12240, 15840, 612., 792.), (11906, 16838, 595.3, 841.9), (15840, 12240, 792., 612.)
+        ].into_iter().flat_map(|size| ["break", "before", "inline", "none", "0", "false", "off"].map(move |kind| (size, kind))) {
             let fs = MemoryVfs::new();
             let red = png_pixels::Raster {width:1,height:1,alpha:false,gray:false,density:72,orientation:None,pixels:vec![[255,0,0,255]]};
             let blue = png_pixels::Raster {pixels:vec![[0,0,255,255]],..red.clone()};
@@ -17746,17 +17748,21 @@ mod media_unit_tests {
             let second=format!("<w:r><w:t>PAGE TWO</w:t></w:r>{}",drawing("blue"));
             let before=if kind=="before" {"<w:pageBreakBefore/>".to_owned()} else {format!(r#"<w:pageBreakBefore w:val="{kind}"/>"#)};
             let body=if kind=="inline" {format!(r#"<w:p>{first}<w:r><w:br w:type="page"/><w:t>PAGE TWO</w:t></w:r>{}</w:p>"#,drawing("blue"))} else {format!("<w:p>{first}{}</w:p><w:p><w:pPr>{before}</w:pPr>{second}</w:p>",if kind=="break" {r#"<w:r><w:br w:type="page"/></w:r>"#} else {""})};
-            let xml=format!(r#"<w:document xmlns:w="w" xmlns:wp="wp" xmlns:a="a" xmlns:r="r"><w:body>{body}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/></w:sectPr></w:body></w:document>"#);
+            let xml=format!(r#"<w:document xmlns:w="w" xmlns:wp="wp" xmlns:a="a" xmlns:r="r"><w:body>{body}<w:sectPr><w:pgSz w:w="{twips_w}" w:h="{twips_h}" w:orient="landscape"/></w:sectPr></w:body></w:document>"#);
             let entries=vec![("word/document.xml",xml.as_bytes()),("word/_rels/document.xml.rels",br#"<Relationships><Relationship Id="red" Target="media/red.png"/><Relationship Id="blue" Target="media/blue.png"/></Relationships>"#.as_slice()),("word/media/red.png",red.as_slice()),("word/media/blue.png",blue.as_slice())];
             let input=crate::commands::structured::write_zip_stored(&entries);
             fs.write_file("/doc.docx",&input).unwrap();
+            let alias=cmd_media_doc("libreoffice",&media_args(&["--convert-to","pdf","/doc.docx"]),"","/",&fs);
+            assert_eq!(alias.exit_code,0,"{}",alias.stderr);
+            let alias_bytes=fs.read_file("/doc.pdf").unwrap();
             let result=cmd_media_doc("soffice",&media_args(&["--convert-to","pdf","/doc.docx"]),"","/",&fs);
             assert_eq!(result.exit_code,0,"{}",result.stderr);
             let bytes=fs.read_file("/doc.pdf").unwrap();
+            assert_eq!(bytes,alias_bytes);
             let doc=pdf_reader::read(&bytes, "").expect("real DOCX PDF").0;
             let split=matches!(kind,"break"|"before"|"inline");
             assert_eq!(doc.pages.len(),if split {2} else {1},"{kind}");
-            assert_eq!((doc.page_w,doc.page_h),(612.,792.));
+            assert_eq!((doc.page_w,doc.page_h),(width,height));
             for (index,page) in doc.pages.iter().enumerate() {
                 assert_eq!(page.text.contains("PAGE ONE"),!split || index==0);
                 assert_eq!(page.text.contains("PAGE TWO"),!split || index==1);
@@ -17790,6 +17796,70 @@ mod media_unit_tests {
                 let result=cmd_media_doc("soffice",&media_args(&["--convert-to","pdf","/doc.docx"]),"","/",&fs);
                 assert_eq!(result.exit_code,1);
                 assert_eq!(fs.read_file("/doc.pdf").unwrap(),bytes);
+            }
+        }
+    }
+
+    #[test]
+    fn soffice_docx_dimensions_control_automatic_layout() {
+        for (width, height, height_pages, width_pages) in [(12240, 15840, 1, 2), (15840, 12240, 2, 1)] {
+            for (paragraphs, text, pages) in [
+                (30, "row".to_owned(), height_pages),
+                (20, vec!["word"; 20].join(" "), width_pages),
+            ] {
+                let body = format!("<w:p><w:r><w:t>{text}</w:t></w:r></w:p>").repeat(paragraphs);
+                let xml = format!(
+                    r#"<w:document xmlns:w="w"><w:body>{body}<w:sectPr><w:pgSz w:w="{width}" w:h="{height}"/></w:sectPr></w:body></w:document>"#
+                );
+                let input = crate::commands::structured::write_zip_stored(&[(
+                    "word/document.xml",
+                    xml.as_bytes(),
+                )]);
+                let fs = MemoryVfs::new();
+                fs.write_file("/doc.docx", &input).unwrap();
+                let result = cmd_media_doc(
+                    "soffice",
+                    &media_args(&["--convert-to", "pdf", "/doc.docx"]),
+                    "",
+                    "/",
+                    &fs,
+                );
+                assert_eq!(result.exit_code, 0, "{}", result.stderr);
+                let bytes = fs.read_file("/doc.pdf").unwrap();
+                let doc = pdf_reader::read(&bytes, "").unwrap().0;
+                assert_eq!(doc.pages.len(), pages);
+            }
+        }
+    }
+
+    #[test]
+    fn soffice_docx_page_dimensions_validate_and_preserve_output() {
+        for command in ["soffice", "libreoffice"] {
+            for invalid in [
+                "0", "-1", "NaN", "Infinity", "288001", "bad", "", "0x100", "1.5",
+            ] {
+                for dimension in ["w", "h"] {
+                    let fs = MemoryVfs::new();
+                    let xml = format!(
+                        r#"<w:document xmlns:w="w"><w:body><w:p><w:r><w:t>text</w:t></w:r></w:p><w:sectPr><w:pgSz w:{dimension}="{invalid}"/></w:sectPr></w:body></w:document>"#
+                    );
+                    let input = crate::commands::structured::write_zip_stored(&[(
+                        "word/document.xml",
+                        xml.as_bytes(),
+                    )]);
+                    fs.write_file("/doc.docx", &input).unwrap();
+                    fs.write_file("/doc.pdf", b"old").unwrap();
+                    let result = cmd_media_doc(
+                        command,
+                        &media_args(&["--convert-to", "pdf", "/doc.docx"]),
+                        "",
+                        "/",
+                        &fs,
+                    );
+                    assert_eq!(result.exit_code, 1, "{command}: {dimension}={invalid}");
+                    assert_eq!(fs.read_file("/doc.pdf").unwrap(), b"old");
+                    assert_eq!(fs.read_file("/doc.docx").unwrap(), input);
+                }
             }
         }
     }

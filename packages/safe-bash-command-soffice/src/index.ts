@@ -1,3 +1,4 @@
+import { docxPageDimension } from "./docx-page-size.js";
 import { decodeJpegImage } from "@poe-code/image-ast";
 import { csvFormulaCell, calculateCsvFormulas } from "./csv-formulas.js";
 import { isCsvNumber } from "./csv-number.js";
@@ -66,10 +67,10 @@ function unescapeXml(str: string): string {
     .replace(/&amp;/g, "&");
 }
 
-function parseDocxBlocks(zipBytes: Uint8Array): DocBlock[] {
+function parseDocxBlocks(zipBytes: Uint8Array): { blocks: DocBlock[]; width: number; height: number } {
   const entries = readZipArchiveEntries(zipBytes);
   const docXmlBytes = entries.get("word/document.xml");
-  if (!docXmlBytes) return [];
+  if (!docXmlBytes) return { blocks: [], width: 612, height: 792 };
   const relTargets = new Map<string, string>();
   const relBytes = entries.get("word/_rels/document.xml.rels");
   if (relBytes) {
@@ -119,6 +120,11 @@ function parseDocxBlocks(zipBytes: Uint8Array): DocBlock[] {
   const source = new TextDecoder().decode(docXmlBytes);
   const root = parseXml(`<root xmlns:w="w" xmlns:wp="wp" xmlns:a="a" xmlns:r="r">${source.startsWith('<?xml') ? source.slice(source.indexOf('?>') + 2) : source}</root>`);
   const attribute = (element: XmlElement, name: string) => element.attributes.find(attr => attr.localName === name)?.value;
+  const section = [...pptxElements(root, "sectPr")].at(-1);
+  const size = section?.children.find(child => child.localName === "pgSz");
+  const width = docxPageDimension(size && attribute(size, "w"), 612);
+  const height = docxPageDimension(size && attribute(size, "h"), 792);
+  const contentWidth = Math.max(1, width - 108);
   const blocks: DocBlock[] = [];
   const pending = [...root.children].reverse();
   while (pending.length) {
@@ -152,14 +158,14 @@ function parseDocxBlocks(zipBytes: Uint8Array): DocBlock[] {
           const extent = [...pptxElements(run, "extent"), ...pptxElements(run, "ext")][0];
           let width = Math.max(24, Number(extent && attribute(extent, "cx") || 5486400) / 12700);
           let height = Math.max(24, Number(extent && attribute(extent, "cy") || 2880360) / 12700);
-          if (width > 504) { height *= 504 / width; width = 504; }
+          if (width > contentWidth) { height *= contentWidth / width; width = contentWidth; }
           blocks.push({kind: "image", imageBytes, width, height});
         } else if (run.localName !== "pPr" && run.localName !== "rPr") runs.push(...[...run.children].reverse());
       }
       flush();
     } else pending.push(...[...element.children].reverse());
   }
-  return blocks;
+  return { blocks, width, height };
 }
 
 function parseXlsxRows(zipBytes: Uint8Array, displayDates = false): string[][] {
@@ -417,18 +423,18 @@ function parsePptxSlides(zipBytes: Uint8Array, pdf = false) {
   return slides;
 }
 
-function* renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Generator<undefined, Uint8Array> {
+function* renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document", {width = 612, height = 792} = {}): Generator<undefined, Uint8Array> {
   const doc = PdfDocument.create();
   doc.setTitle(title);
   doc.setCreator("LibreOffice 24.8 (@poe-code/pdf-ast)");
 
-  let page = doc.addPage([612, 792]);
-  let y = 720;
+  let page = doc.addPage([width, height]);
+  let y = height - 72;
 
   const ensureSpace = (needed: number) => {
     if (y - needed < 54) {
-      page = doc.addPage([612, 792]);
-      y = 720;
+      page = doc.addPage([width, height]);
+      y = height - 72;
     }
   };
 
@@ -436,9 +442,9 @@ function* renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Ge
   for (const block of blocks) {
     if (++work % 32 === 0) yield undefined;
     if (block.kind === "pageBreak" || block.kind === "pageBreakBefore") {
-      if (block.kind === "pageBreak" || y !== 720) { page = doc.addPage([612, 792]); y = 720; }
+      if (block.kind === "pageBreak" || y !== height - 72) { page = doc.addPage([width, height]); y = height - 72; }
     } else if (block.kind === "heading") {
-      const lines = (block.text ?? "").split("\n").flatMap(line => wrapTextLines(line, 48));
+      const lines = (block.text ?? "").split("\n").flatMap(line => wrapTextLines(line, Math.max(1, Math.floor((width - 108) * 48 / 504))));
       for (const line of lines) {
         ensureSpace(26);
         page.drawText(line, {
@@ -452,7 +458,7 @@ function* renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Ge
       }
       y -= 4;
     } else if (block.kind === "paragraph") {
-      const lines = (block.text ?? "").split("\n").flatMap(line => block.preformatted ? [line] : wrapTextLines(line, 84));
+      const lines = (block.text ?? "").split("\n").flatMap(line => block.preformatted ? [line] : wrapTextLines(line, Math.max(1, Math.floor((width - 108) / 6))));
       for (const line of lines) {
         ensureSpace(16);
         page.drawText(line, {
@@ -467,7 +473,7 @@ function* renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Ge
       y -= 5;
     } else if (block.kind === "table" && block.rows) {
       const colCount = Math.max(1, ...block.rows.map((r) => r.length));
-      const tableWidth = 504;
+      const tableWidth = Math.max(1, width - 108);
       const colWidth = tableWidth / colCount;
       const rowHeight = 22;
 
@@ -948,7 +954,7 @@ function* runSofficeSteps(
         if (lower.endsWith(".pdf")) {
           chunks.push(PdfDocument.load(bytes).extractText());
         } else if (lower.endsWith(".docx")) {
-          chunks.push("\uFEFF" + parseDocxBlocks(bytes).map((b) => b.text ?? (b.rows?.map((r) => r.join("\t")).join("\n") ?? "")).join("\n"));
+          chunks.push("\uFEFF" + parseDocxBlocks(bytes).blocks.map((b) => b.text ?? (b.rows?.map((r) => r.join("\t")).join("\n") ?? "")).join("\n"));
         } else if ([".odt", ".ods", ".odp"].some(ext => lower.endsWith(ext))) {
           chunks.push(parseOdtBlocks(bytes).map((b) => b.text ?? (b.rows?.map((r) => r.join("\t")).join("\n") ?? "")).join("\n"));
         } else if (lower.endsWith(".xlsx")) {
@@ -1021,13 +1027,14 @@ function* runSofficeSteps(
       if (lowerIn.endsWith(".ods") && (targetExt === "csv" || targetExt === "xlsx")) {
         outBytes = (yield () => convertOds(inputBytes, targetExt, filterOpts, signal))!;
       } else if ([".docx", ".odt", ".ods", ".odp", ".rtf"].some(ext => lowerIn.endsWith(ext))) {
-        const blocks = lowerIn.endsWith(".docx")
-          ? parseDocxBlocks(inputBytes)
+        const docx = lowerIn.endsWith(".docx") ? parseDocxBlocks(inputBytes) : undefined;
+        const blocks = docx
+          ? docx.blocks
           : [".odt", ".ods", ".odp"].some(ext => lowerIn.endsWith(ext))
             ? parseOdtBlocks(inputBytes)
             : parseRtfBlocks(inputBytes);
         if (targetExt === "pdf") {
-          outBytes = yield* renderBlocksToPdf(blocks, stem);
+          outBytes = yield* renderBlocksToPdf(blocks, stem, docx);
         } else if (targetExt === "html") {
           outBytes = renderBlocksToHtml(blocks, stem);
         } else if (targetExt === "docx") {

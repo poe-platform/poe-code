@@ -1,13 +1,14 @@
 import { expect, it } from "vitest";
-import { PdfDocument, cosArray, cosDict, cosName, cosStream, dictDelete, dictGet, dictSet } from "@poe-code/pdf-ast";
+import { PdfDocument, cosArray, cosDict, cosName, cosNumber, cosStream, dictDelete, dictGet, dictSet } from "@poe-code/pdf-ast";
 import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createPdftkCommand, runPdftkCli } from "./index.js";
 
-it.each(["stamp", "multistamp", "background", "multibackground"].flatMap(operation => ["plain", "rotation", "stdin", "empty", "streams", "absent", "collisions", "unicode"].map(mode => ({ operation, mode }))))("streams $operation with $mode source", async ({ operation, mode }) => {
+it.each(["stamp", "multistamp", "background", "multibackground"].flatMap(operation => ["plain", "equal", "large", "shifted", "rotation", "rotation180", "rotation270", "stdin", "empty", "streams", "absent", "collisions", "unicode"].map(mode => ({ operation, mode }))))("streams $operation with $mode source", async ({ operation, mode }) => {
   const target = PdfDocument.create(), source = PdfDocument.create();
-  for (let i = 0; i < 3; i++) { const page = target.addPage([200, 300]); page.drawText(`Target ${i}`, { x: 10, y: 20 }); if (mode === "rotation") page.setRotation(90); }
-  if (mode !== "empty") for (let i = 0; i < 2; i++) source.addPage([100, 100]).drawText(`Stamp ${i}`, { x: 10, y: 20 });
+  for (let i = 0; i < 3; i++) { const page = target.addPage([200, 300]); page.drawText(`Target ${i}`, { x: 10, y: 20 }); if (mode.startsWith("rotation")) page.setRotation(mode === "rotation180" ? 180 : mode === "rotation270" ? 270 : 90); if (mode === "shifted") dictSet(page.dict, "MediaBox", cosArray([10, 20, 210, 320].map(n => cosNumber(n)))); }
+  if (mode !== "empty") for (let i = 0; i < 2; i++) source.addPage(mode === "equal" ? [200, 300] : mode === "large" ? [400, 400] : [100, 100]).drawText(`Stamp ${i}`, { x: 10, y: 20 });
+  if (mode === "shifted") for (const page of source.getPages()) dictSet(page.dict, "MediaBox", cosArray([20, 20, 120, 120].map(n => cosNumber(n))));
   if (mode === "absent") for (const page of source.getPages()) dictDelete(page.pageDict, "Contents");
   if (mode === "streams") for (const page of source.getPages()) {
     const existing = dictGet(page.pageDict, "Contents")!;

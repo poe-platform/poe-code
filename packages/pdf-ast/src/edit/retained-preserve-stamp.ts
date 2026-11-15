@@ -6,7 +6,6 @@ import { serializeCosNodeChunks } from "../cos/writer.js";
 import { PdfFileSource } from "../source.js";
 import type { RetainedContentEditor } from "./retained-content-edit.js";
 import { replaceRetainedPdfNames } from "./retained-name-map.js";
-import { retainedStampTransform } from "./retained-stamps.js";
 
 export async function preserveRetainedStamp(document: PdfRetainedDocument, source: PdfRetainedDocument, page: PdfRetainedPage, other: PdfRetainedPage,
   store: PdfMutableObjectStore, editor: RetainedContentEditor, storage: PdfIndexStorage, clone: (node: PdfCosNode) => Promise<PdfCosNode>, mode: "overlay" | "underlay", signal: AbortSignal): Promise<void> {
@@ -66,7 +65,7 @@ export async function preserveRetainedStamp(document: PdfRetainedDocument, sourc
     const before = resolvedPrevious?.value.kind === "array" && !resolvedPrevious.stream ? resolvedPrevious.value.items : previous ? [previous] : [];
     const encoder = new TextEncoder();
     async function* text(value: string) { yield encoder.encode(value); }
-    const openTarget = await stream(text("q\n")), openSource = await stream(text(retainedStampTransform(dstAttributes, srcAttributes))), close = await stream(text("\nQ\n"));
+    const openTarget = await stream(text("q\n")), openSource = await stream(text(pdftkStampTransform(dstAttributes, srcAttributes))), close = await stream(text("\nQ\n"));
     const marker = cosArray([]); dictSet(page.dict, "Contents", marker);
     async function* contentNodes(): AsyncGenerator<PdfCosNode> {
       for (const overlay of mode === "underlay" ? [true, false] : [false, true]) {
@@ -91,4 +90,22 @@ export async function preserveRetainedStamp(document: PdfRetainedDocument, sourc
 
   } catch (error) { failed = true; throw error; }
   finally { const results = await Promise.allSettled([renames.close(), additions.close()]); if (!failed) for (const result of results) if (result.status === "rejected") await Promise.reject(result.reason); }
+}
+
+// Match the PDFtk SDK: fit to the target, including enlargement, using page sizes.
+// Keep this separate from qpdf's origin-aware, shrink-only placement.
+function pdftkStampTransform(dst: { mediaBox: readonly [number, number, number, number]; rotation: number }, src: { mediaBox: readonly [number, number, number, number]; rotation: number }): string {
+  const dw = Math.abs(dst.mediaBox[2] - dst.mediaBox[0]), dh = Math.abs(dst.mediaBox[3] - dst.mediaBox[1]);
+  const sw = Math.abs(src.mediaBox[2] - src.mediaBox[0]), sh = Math.abs(src.mediaBox[3] - src.mediaBox[1]);
+  const rotation = ((dst.rotation - src.rotation) % 360 + 360) % 360;
+  if (sw === 0 || sh === 0 || (rotation === 0 && Math.abs(dw - sw) <= 0.5 && Math.abs(dh - sh) <= 0.5)) return "q\n";
+  const swapped = rotation === 90 || rotation === 270;
+  const width = swapped ? dh : dw, height = swapped ? dw : dh;
+  const scale = Math.min(width / sw, height / sh);
+  const x = (width - sw * scale) / 2, y = (height - sh * scale) / 2;
+  const matrix = rotation === 90 ? [0, scale, -scale, 0, dw - y, x]
+    : rotation === 180 ? [-scale, 0, 0, -scale, dw - x, dh - y]
+    : rotation === 270 ? [0, -scale, scale, 0, y, dh - x]
+    : [scale, 0, 0, scale, x, y];
+  return `q\n${matrix.map((n, i) => Number(n.toFixed(i < 4 ? 6 : 4))).join(" ")} cm\n`;
 }

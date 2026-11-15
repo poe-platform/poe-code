@@ -6,7 +6,7 @@ use super::super::{
     pdf_string,
     pdf_update::encode_name,
 };
-use super::{ObjectId, Objects, PageSource, PageTree, Value, attribute, geometry};
+use super::{ObjectId, Objects, PageSource, PageTree, Value, attribute, geometry, media_box};
 use std::collections::{BTreeMap, BTreeSet};
 
 const BAD: &str = "invalid PDF stamp";
@@ -114,7 +114,7 @@ impl Stamp<'_> {
     }
 }
 
-fn placement((dw, dh, dr): (f64, f64, f64), (sw, sh, sr): (f64, f64, f64)) -> String {
+fn pdftk_placement((dw, dh, dr): (f64, f64, f64), (sw, sh, sr): (f64, f64, f64)) -> String {
     let r = (dr - sr).rem_euclid(360.);
     if sw <= 0. || sh <= 0. || (r == 0. && (dw - sw).abs() <= 0.5 && (dh - sh).abs() <= 0.5) {
         return "q\n".into();
@@ -145,6 +145,44 @@ fn placement((dw, dh, dr): (f64, f64, f64), (sw, sh, sr): (f64, f64, f64)) -> St
         .collect::<Vec<_>>();
     format!("q\n{} cm\n", parts.join(" "))
 }
+// qpdf centers in MediaBox coordinates and never enlarges a smaller stamp.
+fn qpdf_placement(dst: [f64; 4], src: [f64; 4], rotation: f64) -> String {
+    let [dx0, dy0, dx1, dy1] = dst;
+    let [sx0, sy0, sx1, sy1] = src;
+    let (w, h) = ((sx1 - sx0).abs(), (sy1 - sy0).abs());
+    if w == 0. || h == 0. {
+        return "q\n".into();
+    }
+    let r = rotation.rem_euclid(360.);
+    let side = r == 90. || r == 270.;
+    let s = 1_f64
+        .min((dx1 - dx0).abs() / if side { h } else { w })
+        .min((dy1 - dy0).abs() / if side { w } else { h });
+    let a = if r == 180. {
+        -s
+    } else if side {
+        0.
+    } else {
+        s
+    };
+    let b = if r == 90. {
+        s
+    } else if r == 270. {
+        -s
+    } else {
+        0.
+    };
+    let (c, d) = (-b, a);
+    let (sx, sy) = ((sx0 + sx1) / 2., (sy0 + sy1) / 2.);
+    let tx = (dx0 + dx1) / 2. - a * sx - c * sy;
+    let ty = (dy0 + dy1) / 2. - b * sx - d * sy;
+    let parts = [a, b, c, d, tx, ty].map(|n| {
+        let n = format!("{n:.6}").parse::<f64>().unwrap();
+        if n == 0. { "0".into() } else { n.to_string() }
+    });
+    format!("q\n{} cm\n", parts.join(" "))
+}
+
 fn names(data: &[u8], rename: &BTreeMap<String, String>, limit: usize) -> Result<Vec<u8>, String> {
     let mut out = Vec::new();
     let mut i = 0;
@@ -400,6 +438,15 @@ impl PageSource<'_> {
                 geometry(dst, tree, &page),
                 geometry(src, &self.tree, &other),
             );
+            let place = if qpdf {
+                qpdf_placement(
+                    media_box(dst, tree, &page),
+                    media_box(src, &self.tree, &other),
+                    dst_size.2 - src_size.2,
+                )
+            } else {
+                pdftk_placement(dst_size, src_size)
+            };
             let existing = page.get(b"Resources").and_then(|v| dst.lookup_value(v));
             let (owner, mut res) = match existing {
                 Some((owner, Value::Dict(d))) => (
@@ -509,7 +556,6 @@ impl PageSource<'_> {
                 state
                     .content(dst, content, edit.bodies, &mut target)
                     .ok_or(BAD)?;
-                let place = placement(dst_size, src_size);
                 let mut bytes = Vec::new();
                 for draw_layer in [!overlay, overlay] {
                     bytes.extend_from_slice(if draw_layer { place.as_bytes() } else { b"q\n" });
@@ -554,7 +600,7 @@ impl PageSource<'_> {
                         None => vec![],
                     };
                     let open = edit.stream(b"q\n")?;
-                    let place = edit.stream(placement(dst_size, src_size).as_bytes())?;
+                    let place = edit.stream(place.as_bytes())?;
                     let close = edit.stream(b"\nQ\n")?;
                     let mut items = Vec::new();
                     for source_first in [!overlay, overlay] {

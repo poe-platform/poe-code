@@ -87,8 +87,8 @@ fn attribute<'a, 'p, T>(
         page = tree.get(&parent)?.as_ref()?;
     }
 }
-pub(super) fn geometry<'a>(o: &mut Objects<'a>, tree: &PageTree<'a>, v: &Value<'a>) -> (f64, f64, f64) {
-    let b = attribute(o, tree, v, b"MediaBox", |o, v| {
+pub(super) fn media_box<'a>(o: &mut Objects<'a>, tree: &PageTree<'a>, v: &Value<'a>) -> [f64; 4] {
+    attribute(o, tree, v, b"MediaBox", |o, v| {
         let Value::Array(a) = v else {
             return None;
         };
@@ -98,7 +98,15 @@ pub(super) fn geometry<'a>(o: &mut Objects<'a>, tree: &PageTree<'a>, v: &Value<'
         }
         Some(b)
     })
-    .unwrap_or([0., 0., 612., 792.]);
+    .unwrap_or([0., 0., 612., 792.])
+}
+
+pub(super) fn geometry<'a>(
+    o: &mut Objects<'a>,
+    tree: &PageTree<'a>,
+    v: &Value<'a>,
+) -> (f64, f64, f64) {
+    let b = media_box(o, tree, v);
     let rotation = attribute(o, tree, v, b"Rotate", |_, v| {
         Some(v.number().unwrap_or(0.).rem_euclid(360.))
     })

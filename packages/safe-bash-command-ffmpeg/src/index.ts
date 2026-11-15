@@ -8175,7 +8175,7 @@ function recodeSubtitles(doc: MediaDocument, charsetOptions: readonly [string, s
     // WHATWG maps ASCII and ISO-8859-1 to Windows-1252; iconv does not.
     const ascii = ["ASCII", "US-ASCII", "ANSI_X3.4-1968"].includes(name);
     const latin1 = ["LATIN1", "LATIN-1", "ISO-8859-1", "ISO8859-1"].includes(name);
-    let decoder: TextDecoder;
+    let decoder: InstanceType<typeof TextDecoder>;
     try { decoder = new TextDecoder(ascii || latin1 ? "utf-8" : charset, { fatal: true, ignoreBOM: true }); }
     catch { throw new Error(`Unable to open iconv context with input character encoding "${charset}"`); }
     const decodeErrors = [...(track.decodeErrors ?? [])];

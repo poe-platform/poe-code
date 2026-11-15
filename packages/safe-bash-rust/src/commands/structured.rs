@@ -35445,6 +35445,21 @@ mod tests {
     }
 
     #[test]
+    fn sqlite_import_positive_tail_and_negative_skip() {
+        let fs = MemoryVfs::new();
+        let input: String = (0..20000).map(|i| format!("\"é😀\",{i}\r\n")).collect();
+        fs.write_file("/input", input.as_bytes()).unwrap();
+        for skip in [0, 19499, -501] {
+            let script = format!("CREATE TABLE t(x,y);\n.import --csv --skip {skip} /input t\nSELECT * FROM t;");
+            let result = cmd_sqlite3(&args(&[":memory:", &script]), "", "/", &fs);
+            let expected: String = (skip.max(0)..20000).map(|i| format!("é😀|{i}\n")).collect();
+            assert_eq!(result.exit_code, 0, "skip {skip}: {}", result.stderr);
+            assert_eq!(result.stderr, "");
+            assert_eq!(result.stdout, expected, "skip {skip}");
+        }
+    }
+
+    #[test]
     fn sqlite_binary_format3_header_and_btree_roundtrip() {
         let vfs = MemoryVfs::new();
         vfs.mkdir_all("/db").unwrap();

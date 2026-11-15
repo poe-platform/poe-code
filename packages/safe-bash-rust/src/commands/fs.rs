@@ -7398,6 +7398,39 @@ mod tests {
     }
 
     #[test]
+    fn du_excludes_children_and_explicit_operands_before_lookup() {
+        let (mut shell, fs) = crate::Shell::with_memory_fs();
+        fs.mkdir_all("/tree/sub").unwrap();
+        fs.write_file("/tree/a", b"abc").unwrap();
+        fs.write_file("/tree/sub/b", b"12345").unwrap();
+        fs.write_file("/tree/b.skip", b"0123456789").unwrap();
+        shell.set_limits(crate::ShellLimits { max_filesystem_operations: 2, ..Default::default() });
+        let result = shell.exec("du -bc --exclude=sub --exclude=a --exclude='*.skip' tree").unwrap();
+        assert_eq!(result.exit_code, 0);
+        assert_eq!(result.stdout, "0\ttree\n0\ttotal\n");
+        assert_eq!(result.stderr, "");
+        shell.set_limits(crate::ShellLimits { max_filesystem_operations: 0, ..Default::default() });
+        let result = shell.exec("du -b --exclude=missing missing").unwrap();
+        assert_eq!(result.exit_code, 0);
+        assert_eq!(result.stdout, "");
+        assert_eq!(result.stderr, "");
+    }
+
+    #[test]
+    fn du_apparent_directories_are_zero_and_final_symlinks_use_own_length() {
+        let (mut shell, fs) = crate::Shell::with_memory_fs();
+        fs.mkdir_all("/tree/sub").unwrap();
+        fs.write_file("/tree/a", b"abc").unwrap();
+        fs.write_file("/tree/sub/b", b"12345").unwrap();
+        fs.symlink("tree", "/link").unwrap();
+        fs.symlink("absent", "/broken").unwrap();
+        let result = shell.exec("du -bc tree link broken").unwrap();
+        assert_eq!(result.exit_code, 0);
+        assert_eq!(result.stdout, "5\ttree/sub\n8\ttree\n4\tlink\n6\tbroken\n18\ttotal\n");
+        assert_eq!(result.stderr, "");
+    }
+
+    #[test]
     fn du_charges_one_operation_per_metadata_lookup_listing_and_exclusion_read() {
         let (mut shell, fs) = crate::Shell::with_memory_fs();
         fs.mkdir_all("/d").unwrap();

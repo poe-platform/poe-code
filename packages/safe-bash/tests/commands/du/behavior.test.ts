@@ -89,9 +89,17 @@ test("exclusions prune files, directories and explicit operands before metadata 
     assert.equal(result.stdout, "5\ttree/sub\n8\ttree\n");
   }
   const checked = trace(fs);
-  assert.equal((await shellRun(checked.fs, ["-bc", "--exclude=sub", "--exclude=a", "--exclude=*.skip", "tree"])).stdout, "0\ttree\n0\ttotal\n");
-  assert.ok(checked.calls.every(call => call.path === "/tree"));
-  assert.equal((await shellRun(fs, ["-b", "--exclude=missing", "missing"])).exitCode, 0);
+  const result = await shellRun(checked.fs, ["-bc", "--exclude=sub", "--exclude=a", "--exclude=*.skip", "tree"]);
+  assert.equal(result.exitCode, 0, result.stderr);
+  assert.equal(result.stdout, "0\ttree\n0\ttotal\n");
+  assert.deepEqual(checked.trackedDirectories, ["/"]);
+  assert.deepEqual(checked.calls.map(({ method, path }) => [method, path]), [["lstat", "/tree"], ["lstat", "/tree"], ["readdir", "/tree"]]);
+  const excluded = trace(fs);
+  const missing = await shellRun(excluded.fs, ["-b", "--exclude=missing", "missing"]);
+  assert.equal(missing.exitCode, 0, missing.stderr);
+  assert.equal(missing.stdout, "");
+  assert.deepEqual(excluded.trackedDirectories, ["/"]);
+  assert.deepEqual(excluded.calls, []);
 });
 
 test("exclusion files, separate directories and signed thresholds", async () => {
@@ -199,6 +207,7 @@ test("apparent directories contribute zero, final symlinks contribute their own 
   const result = await shellRun(checked.fs, ["-bc", "tree", "link", "broken"]);
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, "5\ttree/sub\n8\ttree\n4\tlink\n6\tbroken\n18\ttotal\n");
+  assert.deepEqual(checked.trackedDirectories, ["/"]);
   assert.ok(checked.calls.every(call => call.method === "lstat" || call.method === "readdir"));
   assert.ok(checked.calls.every(call => call.signal instanceof AbortSignal));
 });

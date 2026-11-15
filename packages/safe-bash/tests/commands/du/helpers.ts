@@ -20,12 +20,18 @@ export function metadata(fs: FileSystem, transform: (stat: FileStat, path: strin
   return wrapped(fs, { async lstat(path, options) { return transform(await fs.lstat(path, options), path); } });
 }
 
-export function trace(fs: FileSystem): { fs: FileSystem; calls: { method: string; path: string; signal?: AbortSignal }[] } {
+export function trace(fs: FileSystem): { fs: FileSystem; trackedDirectories: string[]; calls: { method: string; path: string; signal?: AbortSignal }[] } {
   const calls: { method: string; path: string; signal?: AbortSignal }[] = [];
-  return { calls, fs: new Proxy(fs, { get(target, property) {
+  const trackedDirectories: string[] = [];
+  return { calls, trackedDirectories, fs: new Proxy(fs, { get(target, property) {
     const value = Reflect.get(target, property);
     if (typeof value !== "function") return value;
     return (path: string, options?: { signal?: AbortSignal }) => {
+      // Shell CWD references are separate from du's metadata traversal.
+      if (property === "trackDirectory") {
+        trackedDirectories.push(path);
+        return value.call(target, path);
+      }
       calls.push({ method: String(property), path, ...(options?.signal ? { signal: options.signal } : {}) });
       if (property !== "lstat" && property !== "readdir") throw new Error(`forbidden command operation: ${String(property)}`);
       return value.call(target, path, options);

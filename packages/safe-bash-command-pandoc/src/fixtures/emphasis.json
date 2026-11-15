@@ -1,0 +1,534 @@
+[
+  {
+    "name": "escapedEmphasis",
+    "source": "Keep \\*these\\* and \\_these\\_ literal.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Keep"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "*these*"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "and"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "_these_"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "literal."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Keep *these* and _these_ literal.</p>\n",
+    "plain": "Keep *these* and _these_ literal.\n"
+  },
+  {
+    "name": "intrawordUnderscore",
+    "source": "Keep snake_case_names intact.\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Keep"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "snake_case_names"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "intact."
+          }
+        ]
+      }
+    ],
+    "html": "<p>Keep snake_case_names intact.</p>\n",
+    "plain": "Keep snake_case_names intact.\n"
+  },
+  {
+    "name": "nestedEmphasis",
+    "source": "**bold and *italic* text**\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "bold"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "and"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Emph",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "italic"
+                  }
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "text"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "html": "<p><strong>bold and <em>italic</em> text</strong></p>\n",
+    "plain": "bold and italic text\n"
+  },
+  {
+    "name": "tripleEmphasis",
+    "source": "***both***\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Strong",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "both"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "html": "<p><em><strong>both</strong></em></p>\n",
+    "plain": "both\n"
+  },
+  {
+    "name": "underscoreEmphasis",
+    "source": "__bold__ and _italic_ and ___both___\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "bold"
+              }
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "and"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "italic"
+              }
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "and"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Strong",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "both"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "html": "<p><strong>bold</strong> and <em>italic</em> and <em><strong>both</strong></em></p>\n",
+    "plain": "bold and italic and both\n"
+  },
+  {
+    "name": "outerItalic",
+    "source": "*outer **inner** end*\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "outer"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Strong",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "inner"
+                  }
+                ]
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "end"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "html": "<p><em>outer <strong>inner</strong> end</em></p>\n",
+    "plain": "outer inner end\n"
+  },
+  {
+    "name": "plainMultiplication",
+    "source": "2 * 3 * 4\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "2"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "*"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "3"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "*"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "4"
+          }
+        ]
+      }
+    ],
+    "html": "<p>2 * 3 * 4</p>\n",
+    "plain": "2 * 3 * 4\n"
+  },
+  {
+    "name": "escapedClosing",
+    "source": "**a\\**b**\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "*"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a*"
+              },
+              {
+                "t": "Emph",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "b"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "html": "<p>*<em>a*<em>b</em></em></p>\n",
+    "plain": "*a*b\n"
+  },
+  {
+    "name": "breaks",
+    "source": "*soft\nbreak* and **hard  \nbreak** and _slash\\\nbreak_\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "soft"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "break"
+              }
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "and"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "hard"
+              },
+              {
+                "t": "LineBreak"
+              },
+              {
+                "t": "Str",
+                "c": "break"
+              }
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "and"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "slash"
+              },
+              {
+                "t": "LineBreak"
+              },
+              {
+                "t": "Str",
+                "c": "break"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "html": "<p><em>soft\nbreak</em> and <strong>hard<br>break</strong> and <em>slash<br>break</em></p>\n",
+    "plain": "soft break and hard\nbreak and slash\nbreak\n"
+  },
+  {
+    "name": "codeAndLink",
+    "source": "***`a_*_b` [__label__](/a_*_b)***\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Strong",
+                "c": [
+                  {
+                    "t": "Code",
+                    "c": [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      "a_*_b"
+                    ]
+                  },
+                  {
+                    "t": "Space"
+                  },
+                  {
+                    "t": "Link",
+                    "c": [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      [
+                        {
+                          "t": "Strong",
+                          "c": [
+                            {
+                              "t": "Str",
+                              "c": "label"
+                            }
+                          ]
+                        }
+                      ],
+                      [
+                        "/a_*_b",
+                        ""
+                      ]
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "html": "<p><em><strong><code>a_*_b</code> <a href=\"/a_*_b\"><strong>label</strong></a></strong></em></p>\n",
+    "plain": "a_*_b label\n"
+  },
+  {
+    "name": "unmatchedOpening",
+    "source": "a***b**\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a*"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "html": "<p>a*<strong>b</strong></p>\n",
+    "plain": "a*b\n"
+  },
+  {
+    "name": "unmatchedClosing",
+    "source": "**c***d\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "c"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "*d"
+          }
+        ]
+      }
+    ],
+    "html": "<p><strong>c</strong>*d</p>\n",
+    "plain": "c*d\n"
+  }
+]

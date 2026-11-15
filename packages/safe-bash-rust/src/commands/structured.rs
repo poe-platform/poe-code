@@ -34,6 +34,8 @@ mod pandoc_list;
 mod pandoc_reference_tests;
 #[cfg(test)]
 mod pandoc_code_tests;
+#[cfg(test)]
+mod pandoc_emphasis_tests;
 use mdq_writer::{Block as MdqLayout, Writer as MdqWriter};
 use jq_input::JqInputs;
 mod json_format;
@@ -30265,9 +30267,35 @@ fn parse_pandoc_md_inlines(s: &str, definitions: Option<&MdqDefinitions>) -> Vec
     let ticks = mdq_backtick_runs(bytes);
     let empty = MdqDefinitions::default();
     let defs = definitions.unwrap_or(&empty);
-    let mut links = mdq_inline_atoms(defs, s, false).into_iter().filter(|(_, atom)|
+    let atoms = mdq_inline_atoms(defs, s, false);
+    let mut marks = mdq_emphasis::resolve(s, atoms.iter().map(|(range, _)| range));
+    let mut containers = Vec::new();
+    let mut links = atoms.into_iter().filter(|(_, atom)|
         matches!(atom, MdqInlineAtom::Link { target, .. } if target.auto.is_none())).peekable();
     while i < bytes.len() {
+        if let Some(run) = marks.remove(&i) {
+            if !run.closing.is_empty() && !cur.is_empty() {
+                out.push(PandocInline::Text(std::mem::take(&mut cur)));
+            }
+            for marker in run.closing {
+                let children = std::mem::take(&mut out);
+                out = containers.pop().expect("matched emphasis opener");
+                out.push(match marker {
+                    "**" => PandocInline::Strong(children),
+                    "~~" => PandocInline::Strikeout(children),
+                    _ => PandocInline::Emph(children),
+                });
+            }
+            cur.extend(std::iter::repeat_n(bytes[i] as char, run.remaining));
+            if !run.opening.is_empty() && !cur.is_empty() {
+                out.push(PandocInline::Text(std::mem::take(&mut cur)));
+            }
+            for _ in run.opening.into_iter().rev() {
+                containers.push(std::mem::take(&mut out));
+            }
+            i += run.width;
+            continue;
+        }
         if bytes[i] == b'\n' || bytes[i] == b'\\' && bytes.get(i + 1) == Some(&b'\n') {
             if !cur.is_empty() { out.push(PandocInline::Text(std::mem::take(&mut cur))); }
             let spaces = out.iter().rev().take_while(|node| matches!(node, PandocInline::Space)).count();
@@ -30309,39 +30337,6 @@ fn parse_pandoc_md_inlines(s: &str, definitions: Option<&MdqDefinitions>) -> Vec
                 cur.extend(std::iter::repeat_n('`', width));
             }
             continue;
-        }
-        if s[i..].starts_with("**") {
-            let rest = &s[i + 2..];
-            if let Some(end) = rest.find("**") {
-                if !cur.is_empty() {
-                    out.push(PandocInline::Text(std::mem::take(&mut cur)));
-                }
-                out.push(PandocInline::Strong(parse_pandoc_md_inlines(&rest[..end], definitions)));
-                i += 2 + end + 2;
-                continue;
-            }
-        }
-        if s[i..].starts_with("~~") {
-            let rest = &s[i + 2..];
-            if let Some(end) = rest.find("~~") {
-                if !cur.is_empty() {
-                    out.push(PandocInline::Text(std::mem::take(&mut cur)));
-                }
-                out.push(PandocInline::Strikeout(parse_pandoc_md_inlines(&rest[..end], definitions)));
-                i += 2 + end + 2;
-                continue;
-            }
-        }
-        if bytes[i] == b'*' {
-            let rest = &s[i + 1..];
-            if let Some(end) = rest.find('*') {
-                if !cur.is_empty() {
-                    out.push(PandocInline::Text(std::mem::take(&mut cur)));
-                }
-                out.push(PandocInline::Emph(parse_pandoc_md_inlines(&rest[..end], definitions)));
-                i += 1 + end + 1;
-                continue;
-            }
         }
         if bytes[i] == b' ' {
             if !cur.is_empty() { out.push(PandocInline::Text(std::mem::take(&mut cur))); }

@@ -6,9 +6,9 @@ use std::ops::Range;
 #[derive(Default)]
 pub(super) struct Marks {
     pub width: usize,
-    remaining: usize,
-    opening: Vec<&'static str>,
-    closing: Vec<&'static str>,
+    pub(super) remaining: usize,
+    pub(super) opening: Vec<&'static str>,
+    pub(super) closing: Vec<&'static str>,
 }
 
 impl Marks {

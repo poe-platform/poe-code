@@ -157,3 +157,43 @@ it("checks cancellation before queuing a wide retained subtree", async () => {
     });
   }, async () => {if (cancel) throw new Error("Cancelled traversal");})).rejects.toThrow("Cancelled traversal");
 });
+
+it("walks leaf values without spilling a separate leave continuation for each leaf", async () => {
+  const fs = new MemoryFileSystem(), storage = new PagedStorage({fs, cwd: "/", env: {}, signal: new AbortController().signal}, 1);
+  const ast = new RetainedRtfAst(storage, async () => {});
+  try {
+    const root = await ast.array();
+    for (let index = 0; index < 256; index++) await ast.push(root, await ast.value(index));
+    const extent = storage.allocate(0), seen: string[] = [];
+    await ast.walk(root, async (node, depth, leaving) => {seen.push(`${node.position}:${depth}:${leaving}`);});
+    expect(seen).toHaveLength(514);
+    expect(seen[0]).toBe(`${root.position}:0:false`);
+    expect(seen.at(-1)).toBe(`${root.position}:0:true`);
+    for (let index = 1; index < seen.length - 1; index += 2) expect(seen[index + 1]).toBe(seen[index]!.replace(":false", ":true"));
+    // Only the root's leave and the pending siblings need backed frames.
+    expect(storage.allocate(0) - extent).toBeLessThanOrEqual(256 * 32);
+  } finally {await storage.close();}
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+
+it("walks deep containers with one backed continuation per ancestor", async () => {
+  const fs = new MemoryFileSystem(), storage = new PagedStorage({fs, cwd: "/", env: {}, signal: new AbortController().signal}, 1);
+  const ast = new RetainedRtfAst(storage, async () => {});
+  try {
+    let root = await ast.value(null);
+    for (let depth = 0; depth < 2048; depth++) root = await ast.value([root]);
+    const extent = storage.allocate(0);
+    let entered = 0, left = 0;
+    await ast.walk(root, async (_node, depth, leaving) => {
+      if (leaving) expect(depth).toBe(2048 - left++);
+      else expect(depth).toBe(entered++);
+    });
+    expect(entered).toBe(2049); expect(left).toBe(entered);
+    expect(storage.allocate(0) - extent).toBe(2048 * 32);
+    const skipped: boolean[] = [];
+    await ast.walk(root, async (_node, depth, leaving) => {expect(depth).toBe(0); skipped.push(leaving); return false;});
+    expect(skipped).toEqual([false, true]);
+  } finally {await storage.close();}
+  expect(await fs.readdir("/")).toEqual([]);
+});

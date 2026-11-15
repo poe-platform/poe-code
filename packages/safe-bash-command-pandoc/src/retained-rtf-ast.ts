@@ -124,21 +124,34 @@ export class RetainedRtfAst {
   /** Preorder edits become visible to traversal. A visitor can skip children or
    * substitute an expansion root without retaining per-depth JS continuations. */
   async walk(root: RtfValue, visit: (value: RtfValue, depth: number, leaving: boolean) => Promise<void | false | {descend: RtfValue}>): Promise<void> {
-    let pending = await this.record([0, root.position, 0, 0]);
+    let pending = 0, current: number[] | undefined = [0, root.position, 0, 0];
     const push = async (position: number, depth: number, leaving: number) => {pending = await this.record([pending, position, depth, leaving]);};
-    while (pending) {
-      const [next, position, depth, leaving] = await this.fields(pending, 4); pending = next!;
+    while (current || pending) {
+      const [next, position, depth, leaving]: number[] = current ?? await this.fields(pending, 4); pending = next!; current = undefined;
       await this.cooperate(); const value = {position: position!};
       const action = await visit(value, depth!, !!leaving);
       if (leaving) continue;
+      if (action) {
+        await push(position!, depth!, 1);
+        current = [pending, action.descend.position, depth! + 1, 0]; continue;
+      }
+      // Inspect the node while its page is hot, before writing continuations.
+      // Leaves can retire immediately without a backed leave frame.
+      const fields: number[] = action === false ? [] : await this.fields(position!, 5);
+      if (!((fields[0] === 3 || fields[0] === 0 || fields[0] === 4) && fields[2])) {
+        await this.cooperate(); await visit(value, depth!, true); continue;
+      }
       await push(position!, depth!, 1);
-      if (action === false) continue;
-      if (action) {await push(action.descend.position, depth! + 1, 0); continue;}
-      const fields = await this.fields(position!, 5);
-      if (fields[0] === 3 && fields[2]) await push(fields[2], depth! + 1, 0);
-      else if (fields[0] === 0 || fields[0] === 4) {
-        let link = fields[2]!;
-        while (link) {await this.cooperate(); const [previous, , child] = await this.fields(link, 3); await push(child!, depth! + 1, 0); link = previous!;}
+      // The immediately visited child needs no backed entry frame either.
+      if (fields[0] === 3) current = [pending, fields[2]!, depth! + 1, 0];
+      else {
+        let link = fields[2]!, first = 0;
+        while (link) {
+          await this.cooperate(); const [previous, , child] = await this.fields(link, 3);
+          if (first) await push(first, depth! + 1, 0);
+          first = child!; link = previous!;
+        }
+        current = [pending, first, depth! + 1, 0];
       }
     }
   }

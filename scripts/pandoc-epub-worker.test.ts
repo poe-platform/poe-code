@@ -159,11 +159,16 @@ it.each(["sdk", "command"].flatMap(mode => ["plain", "html5"].map(to => ({mode, 
   try {
     const response = await runtime.dispatchFetch("https://epub.test/");
     expect(response.status, response.status === 200 ? undefined : await response.text()).toBe(200);
-    const result = await response.json() as {output: string; events: {opened: number; closed: number; largestTransfer: number}};
+    const result = await response.json() as {output: string; events: {opened: number; closed: number; reads: number; writes: number; largestTransfer: number}};
     expect(result).toMatchObject({errors: "", exitCode: 0, remaining: 0, namespace: []});
     expect(result.output).toContain("Book."); expect(result.output).toContain("External note.");
     if (to === "html5") expect(result.output).toContain('<html lang="fr" dir="rtl">');
-    if (mode === "sdk") expect(result.events.opened).toBeGreaterThan(0);
+    if (mode === "sdk") {
+      expect(result.events.opened).toBeGreaterThan(0);
+      // Bound backing work as well as time: faster hosts must still catch page thrashing.
+      expect(result.events.reads).toBeLessThanOrEqual(26000);
+      expect(result.events.writes).toBeLessThanOrEqual(10500);
+    }
     expect(result.events.closed).toBe(result.events.opened); expect(result.events.largestTransfer).toBeLessThanOrEqual(16384);
   } finally {await runtime.dispose();}
 }, 60000);

@@ -287,6 +287,174 @@ function* widgetAppearance(annot: PdfCosDict, resources: PdfCosDict, allocate?: 
   if (comb && border && ["S","D"].includes(style)) {
     for(let i=1; i<count; i++) ops.push({kind:"path-op",segments:[{kind:"move",x:i*width/count,y:0},{kind:"line",x:i*width/count,y:height}],paint:"S"});
   }
+  if (push && mk) {
+    const tpNode = yield* resolveNode(yield* field(mk, "TP"));
+    if (
+      tpNode &&
+      (tpNode.kind !== "number" ||
+        !Number.isInteger(tpNode.value) ||
+        tpNode.value < 0 ||
+        tpNode.value > 6)
+    )
+      throw new PdfError("E_PARSE", "Invalid PDF button layout");
+    const tp = tpNode?.kind === "number" ? tpNode.value : 0;
+    if (tp !== 0) {
+      const iconRef = yield* field(mk, "I");
+      const icon = yield* resolveNode(iconRef);
+      const fitNode = yield* resolveNode(yield* field(mk, "IF"));
+      if (fitNode && fitNode.kind !== "dict") throw new PdfError("E_PARSE", "Invalid PDF icon fit");
+      const fit = fitNode?.kind === "dict" ? fitNode : undefined;
+      const swNode = fit ? yield* resolveNode(yield* field(fit, "SW")) : undefined;
+      const scaleNode = fit ? yield* resolveNode(yield* field(fit, "S")) : undefined;
+      const fb = fit ? yield* resolveNode(yield* field(fit, "FB")) : undefined;
+      if (
+        (swNode && (swNode.kind !== "name" || !["A", "B", "S", "N"].includes(swNode.decoded))) ||
+        (scaleNode && (scaleNode.kind !== "name" || !["P", "A"].includes(scaleNode.decoded))) ||
+        (fb && fb.kind !== "boolean")
+      )
+        throw new PdfError("E_PARSE", "Invalid PDF icon fit");
+      const alignmentNode = fit ? yield* field(fit, "A") : undefined;
+      const alignment = alignmentNode ? yield* numbers(alignmentNode) : [0.5, 0.5];
+      if (alignment.length !== 2 || alignment.some((n) => n < 0 || n > 1))
+        throw new PdfError("E_PARSE", "Invalid PDF icon alignment");
+      const inset = fb?.kind === "boolean" && fb.value ? 0 : border * (relief ? 2 : 1);
+      let ix = inset,
+        iy = inset,
+        iw = Math.max(0, width - 2 * inset),
+        ih = Math.max(0, height - 2 * inset);
+      let tx = padding,
+        ty = padding,
+        tw = available,
+        th = Math.max(0, height - 2 * padding);
+      const captionWidth = [...encodeWinAnsiBytes(text)].reduce(
+        (sum, c) => sum + (advance(c) * size) / 1000,
+        0,
+      );
+      if (icon && text) {
+        if (tp === 2 || tp === 3) {
+          const reserve = Math.min(ih, size + 2);
+          ih -= reserve;
+          if (tp === 2) {
+            iy += reserve;
+            ty = inset;
+            th = reserve;
+          } else {
+            ty = height - inset - reserve;
+            th = reserve;
+          }
+        } else if (tp === 4 || tp === 5) {
+          const reserve = Math.min(iw, captionWidth + 2);
+          iw -= reserve;
+          if (tp === 4) {
+            tx = width - inset - reserve;
+            tw = reserve;
+          } else {
+            ix += reserve;
+            tx = inset;
+            tw = reserve;
+          }
+        }
+      }
+      if (icon) {
+        if (iconRef?.kind !== "ref" || icon.kind !== "stream")
+          throw new PdfError("E_PARSE", "Invalid PDF button icon");
+        const subtype = yield* resolveNode(yield* field(icon.dict, "Subtype"));
+        if (subtype?.kind !== "name" || subtype.decoded !== "Form")
+          throw new PdfError("E_PARSE", "Invalid PDF button icon");
+        const iconResources = yield* resolveNode(yield* field(icon.dict, "Resources"));
+        if (iconResources && iconResources.kind !== "dict")
+          throw new PdfError("E_PARSE", "Invalid PDF icon resources");
+        const bbox = yield* numbers(yield* field(icon.dict, "BBox"));
+        const matrixNode = yield* field(icon.dict, "Matrix");
+        const m = matrixNode ? yield* numbers(matrixNode) : [1, 0, 0, 1, 0, 0];
+        if (bbox.length !== 4 || m.length !== 6)
+          throw new PdfError("E_PARSE", "Invalid PDF icon geometry");
+        const corners = [
+          [bbox[0]!, bbox[1]!],
+          [bbox[2]!, bbox[1]!],
+          [bbox[0]!, bbox[3]!],
+          [bbox[2]!, bbox[3]!],
+        ].map(([xx, yy]) => [m[0]! * xx! + m[2]! * yy! + m[4]!, m[1]! * xx! + m[3]! * yy! + m[5]!]);
+        const minX = Math.min(...corners.map((p) => p[0]!)),
+          minY = Math.min(...corners.map((p) => p[1]!));
+        const bw = Math.max(...corners.map((p) => p[0]!)) - minX,
+          bh = Math.max(...corners.map((p) => p[1]!)) - minY;
+        if (![minX, minY, bw, bh].every(Number.isFinite))
+          throw new PdfError("E_PARSE", "Invalid PDF icon geometry");
+        if (bw > 0 && bh > 0 && iw > 0 && ih > 0) {
+          const sw = swNode?.kind === "name" ? swNode.decoded : "A";
+          let sx = iw / bw,
+            sy = ih / bh;
+          if (scaleNode?.kind !== "name" || scaleNode.decoded === "P") sx = sy = Math.min(sx, sy);
+          if (sw === "N") sx = sy = 1;
+          else if (sw === "B") {
+            sx = Math.min(1, sx);
+            sy = Math.min(1, sy);
+          } else if (sw === "S") {
+            sx = Math.max(1, sx);
+            sy = Math.max(1, sy);
+          }
+          const placement = [
+            sx,
+            0,
+            0,
+            sy,
+            ix + (iw - bw * sx) * alignment[0]! - minX * sx,
+            iy + (ih - bh * sy) * alignment[1]! - minY * sy,
+          ];
+          if (!placement.every(Number.isFinite))
+            throw new PdfError("E_PARSE", "Invalid PDF icon geometry");
+          let xobjects = yield* resolveDict(dictGet(resources, "XObject"));
+          if (!xobjects) xobjects = cosDict({});
+          let iconName = "WidgetIcon",
+            suffix = 0;
+          while (yield* field(xobjects, iconName)) {
+            if (++suffix > 65536) throw new PdfError("E_LIMIT", "PDF widget icon limit exceeded");
+            iconName = `WidgetIcon${suffix}`;
+          }
+          if (xobjects.storedEntries)
+            xobjects = (yield {
+              kind: "dictionary-merge",
+              destination: xobjects,
+              source: cosDict({ [iconName]: iconRef }),
+            }) as PdfCosDict;
+          else dictSet(xobjects, iconName, iconRef);
+          dictSet(resources, "XObject", xobjects);
+          allocate?.(2048);
+          ops.push({
+            kind: "graphics-group",
+            ops: [
+              {
+                kind: "path-op",
+                segments: [{ kind: "rect", x: ix, y: iy, width: iw, height: ih }],
+                paint: "n",
+                clip: "W",
+              },
+              { kind: "state-op", operator: "cm", operands: placement.map((n) => cosNumber(n)) },
+              { kind: "xobject", name: iconName },
+            ],
+          });
+        }
+      }
+      if (tp !== 1 && text && tw > 0 && th > 0) {
+        box(tx, ty, tw, th, "n", "W");
+        ops.push({ kind: "state-op", ...color });
+        ops.push({
+          kind: "text-object",
+          commands: [
+            { kind: "font", fontName: name, size },
+            {
+              kind: "move",
+              tx: tx + Math.max(0, (tw - captionWidth) / 2),
+              ty: ty + (th - size * 0.6) / 2,
+            },
+            { kind: "show-text", token: cosString(encodeWinAnsiBytes(text)) },
+          ],
+        });
+      }
+      return { kind: "graphics-group", ops };
+    }
+  }
   box(x+padding,y+padding,available,Math.max(0,height-2*padding),"n","W");
   ops.push({kind: "state-op", ...color});
   if (radio && text === "l") {
@@ -407,7 +575,7 @@ export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCo
           const apRes = (yield* resolveDict(dictGet(apN.dict, "Resources"), ["Resources"]));
           if (apRes) {
             for (const subKey of ["Font", "XObject", "ExtGState", "ColorSpace", "Pattern", "Shading"]) {
-              const srcSub = (yield* resolveDict(dictGet(apRes, subKey), ["Resources", subKey]));
+              const srcSub = (yield* resolveDict(yield* field(apRes, subKey), ["Resources", subKey]));
               if (!srcSub) continue;
               let dstSub = (yield* resolveDict(dictGet(evalResourcesDict, subKey), ["Resources", subKey]));
               if (!dstSub) {

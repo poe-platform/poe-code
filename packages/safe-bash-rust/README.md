@@ -92,11 +92,11 @@ They support alignment, multiline wrapping, automatic text sizing, comb cells,
 password masking, rotation, choice display labels and selected list rows.
 Checkbox and radio widgets without appearances preserve their own selected/Off
 state, custom marks, colors, borders and rotation; a shared field value does not
-select every sibling. Captioned push buttons use their normal caption and inherited
-text style. Button actions are never executed. Supplied appearances, including
+select every sibling. Push buttons render their normal Form icon and caption with
+inherited text style, all seven caption/icon layouts, scaling, alignment and
+clipping. Button actions are never executed. Supplied appearances, including
 empty streams, retain precedence. Synthesized text uses simple WinAnsi fonts;
-signatures, icon-only buttons, composite-font field values and beveled/inset
-borders still require supplied appearances.
+signatures and composite-font field values still require supplied appearances.
 Widget text is limited to 65,536 characters and choices to 4,096 entries.
 
 ### 1. Zero-Dependency Rust Shell with `MemoryVfs`

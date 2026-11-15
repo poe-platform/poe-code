@@ -2025,7 +2025,8 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                   ...(st.blendMode && st.blendMode !== "Normal" ? { blendMode: st.blendMode } : {}),
                   ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
                 }, patternMask, activeResources, activeFonts, depth);
-              } else if (sub === "Form" && depth < 8) {
+              } else if (sub === "Form") {
+                if (depth >= 8) throw new PdfError("E_LIMIT", "PDF Form nesting limit exceeded");
                 yield* paintForm(xobjNode, activeResources, activeFonts, depth, mcid, actualText);
               }
             }

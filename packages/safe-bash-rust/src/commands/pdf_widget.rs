@@ -1,5 +1,7 @@
 //! Static form widgets that have no normal appearance stream.
-use super::{Cursor, Draw, Font, Matrix, Objects, PageSource, Program, Resources, Value, concat};
+use super::{
+    Cursor, Draw, Font, Matrix, Objects, PageSource, Program, Resources, State, Value, concat,
+};
 use crate::commands::archive::pdf_reader::{pdf_render::win_ansi, pdf_string};
 use std::rc::Rc;
 
@@ -615,6 +617,212 @@ impl<'a> PageSource<'a> {
                     &[i as f64 * w / count, h],
                 )?;
                 op(&mut self.objects, emit, matrix, b"S", &[])?;
+            }
+        }
+        if push {
+            let tp = match mk.as_ref().and_then(|v| v.get(b"TP")) {
+                Some(v) => self.objects.resolve(v)?.number()?,
+                None => 0.,
+            };
+            if !tp.is_finite() || tp.fract() != 0. || !(0. ..=6.).contains(&tp) {
+                return None;
+            }
+            if tp != 0. {
+                let icon = mk.as_ref().and_then(|v| v.get(b"I"));
+                let fit = match mk.as_ref().and_then(|v| v.get(b"IF")) {
+                    Some(v) => {
+                        let v = self.objects.resolve(v)?;
+                        if !matches!(v, Value::Dict(_)) {
+                            return None;
+                        }
+                        Some(v)
+                    }
+                    None => None,
+                };
+                let sw = match fit.as_ref().and_then(|v| v.get(b"SW")) {
+                    Some(v) => self.objects.resolve(v)?,
+                    None => Value::Word(b"/A".as_slice().into()),
+                };
+                let scale = match fit.as_ref().and_then(|v| v.get(b"S")) {
+                    Some(v) => self.objects.resolve(v)?,
+                    None => Value::Word(b"/P".as_slice().into()),
+                };
+                let fb = match fit.as_ref().and_then(|v| v.get(b"FB")) {
+                    Some(v) => self.objects.resolve(v)?,
+                    None => Value::Word(b"false".as_slice().into()),
+                };
+                if !matches!(sw.word()?, b"/A" | b"/B" | b"/S" | b"/N")
+                    || !matches!(scale.word()?, b"/P" | b"/A")
+                    || !matches!(fb.word()?, b"true" | b"false")
+                {
+                    return None;
+                }
+                let alignment = match fit.as_ref().and_then(|v| v.get(b"A")) {
+                    Some(v) => numbers(&mut self.objects, Some(v))?,
+                    None => vec![0.5, 0.5],
+                };
+                if alignment.len() != 2 || alignment.iter().any(|v| !(0. ..=1.).contains(v)) {
+                    return None;
+                }
+                let inset = if fb.word() == Some(b"true") {
+                    0.
+                } else {
+                    border * if relief { 2. } else { 1. }
+                };
+                let (mut ix, mut iy, mut iw, mut ih) = (
+                    inset,
+                    inset,
+                    (w - 2. * inset).max(0.),
+                    (h - 2. * inset).max(0.),
+                );
+                let (mut tx, mut ty, mut tw, mut th) =
+                    (padding, padding, available, (h - 2. * padding).max(0.));
+                let caption_width = win_ansi(&text)
+                    .iter()
+                    .map(|c| font.advance((*c).into()) * size / 1000.)
+                    .sum::<f64>();
+                if icon.is_some() && !text.is_empty() {
+                    if tp == 2. || tp == 3. {
+                        let reserve = ih.min(size + 2.);
+                        ih -= reserve;
+                        if tp == 2. {
+                            iy += reserve;
+                            ty = inset;
+                            th = reserve;
+                        } else {
+                            ty = h - inset - reserve;
+                            th = reserve;
+                        }
+                    } else if tp == 4. || tp == 5. {
+                        let reserve = iw.min(caption_width + 2.);
+                        iw -= reserve;
+                        if tp == 4. {
+                            tx = w - inset - reserve;
+                            tw = reserve;
+                        } else {
+                            ix += reserve;
+                            tx = inset;
+                            tw = reserve;
+                        }
+                    }
+                }
+                if let Some(icon) = icon {
+                    let id = icon.reference()?;
+                    let (dict, _) = self.objects.object(id)?;
+                    if dict.get(b"Subtype")?.word() != Some(b"/Form") {
+                        return None;
+                    }
+                    if let Some(res) = dict.get(b"Resources") {
+                        if !matches!(self.objects.resolve(res)?, Value::Dict(_)) {
+                            return None;
+                        }
+                    }
+                    let bbox = numbers(&mut self.objects, dict.get(b"BBox"))?;
+                    let m = match dict.get(b"Matrix") {
+                        Some(v) => numbers(&mut self.objects, Some(v))?,
+                        None => vec![1., 0., 0., 1., 0., 0.],
+                    };
+                    if bbox.len() != 4 || m.len() != 6 {
+                        return None;
+                    }
+                    let corners = [
+                        (bbox[0], bbox[1]),
+                        (bbox[2], bbox[1]),
+                        (bbox[0], bbox[3]),
+                        (bbox[2], bbox[3]),
+                    ]
+                    .map(|(x, y)| [m[0] * x + m[2] * y + m[4], m[1] * x + m[3] * y + m[5]]);
+                    let min =
+                        [0, 1].map(|i| corners.iter().map(|p| p[i]).fold(f64::INFINITY, f64::min));
+                    let max = [0, 1].map(|i| {
+                        corners
+                            .iter()
+                            .map(|p| p[i])
+                            .fold(f64::NEG_INFINITY, f64::max)
+                    });
+                    let (bw, bh) = (max[0] - min[0], max[1] - min[1]);
+                    if ![min[0], min[1], bw, bh].iter().all(|v| v.is_finite()) {
+                        return None;
+                    }
+                    if bw > 0. && bh > 0. && iw > 0. && ih > 0. {
+                        let (mut sx, mut sy) = (iw / bw, ih / bh);
+                        if scale.word() == Some(b"/P") {
+                            sx = sx.min(sy);
+                            sy = sx;
+                        }
+                        match sw.word()? {
+                            b"/N" => {
+                                sx = 1.;
+                                sy = 1.;
+                            }
+                            b"/B" => {
+                                sx = sx.min(1.);
+                                sy = sy.min(1.);
+                            }
+                            b"/S" => {
+                                sx = sx.max(1.);
+                                sy = sy.max(1.);
+                            }
+                            _ => {}
+                        }
+                        let placement = [
+                            sx,
+                            0.,
+                            0.,
+                            sy,
+                            ix + (iw - bw * sx) * alignment[0] - min[0] * sx,
+                            iy + (ih - bh * sy) * alignment[1] - min[1] * sy,
+                        ];
+                        if placement.iter().any(|v| !v.is_finite()) {
+                            return None;
+                        }
+                        emit(
+                            Draw::BeginForm([ix, iy, ix + iw, iy + ih], matrix, None, None),
+                            &mut self.objects,
+                        )?;
+                        let state = State {
+                            ctm: concat(placement, matrix),
+                            mode: 0,
+                            font: None,
+                            size: 12.,
+                            leading: 0.,
+                            rise: 0.,
+                            spacing: 0.,
+                            word: 0.,
+                            hscale: 1.,
+                        };
+                        self.draw_form(id, state, &mut vec![resources], None, emit)?;
+                        emit(Draw::EndForm, &mut self.objects)?;
+                    }
+                }
+                if tp != 1. && !text.is_empty() && tw > 0. && th > 0. {
+                    op(&mut self.objects, emit, matrix, b"re", &[tx, ty, tw, th])?;
+                    op(&mut self.objects, emit, matrix, b"W", &[])?;
+                    op(&mut self.objects, emit, matrix, b"n", &[])?;
+                    color(&mut self.objects, emit, matrix, &ink, false)?;
+                    let mut at = tx + ((tw - caption_width) / 2.).max(0.);
+                    let y = ty + (th - size * 0.6) / 2.;
+                    for code in win_ansi(&text) {
+                        let advance = font.advance(code.into()) * size / 1000.;
+                        emit(
+                            Draw::Glyph {
+                                code: code.into(),
+                                family: &font.name,
+                                program: &font.program,
+                                bounds: [at, y - size * 0.2, at + advance, y + size * 0.8],
+                                baseline: y,
+                                size,
+                                matrix: concat([size, 0., 0., size, at, y], matrix),
+                                ctm: matrix,
+                                mode: 0,
+                            },
+                            &mut self.objects,
+                        )?;
+                        at += advance;
+                    }
+                }
+                emit(Draw::EndForm, &mut self.objects)?;
+                return Some(true);
             }
         }
         op(

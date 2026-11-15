@@ -1,9 +1,11 @@
+import { tokenizeCos } from "../cos/lexer.js";
+import { encodeWinAnsiBytes, STANDARD_14_FONTS, normalizeStandard14FontName } from "../fonts/standard14.js";
 import { PdfError } from "../errors.js";
 import { PdfArrayCursor } from "./array-cursor.js";
 import { cosArray, cosDict, cosName, cosNumber, cosString, decodePdfString, dictGet, dictSet, type PdfContentNode, type PdfPathSegment, type PdfCosArray, type PdfCosDict, type PdfCosNode, type PdfCosStream } from "../ast.js";
 import { optionalContentVisibilitySteps } from "./evaluator.js";
 
-export type PdfAppearanceRequest = { readonly kind: "dictionary-merge"; readonly destination: PdfCosDict; readonly source?: PdfCosDict } | { readonly kind: "resolve"; readonly node: PdfCosNode; readonly arrayPathPrefix?: readonly string[] }
+export type PdfAppearanceRequest = { readonly kind: "dictionary-value"; readonly dict: PdfCosDict; readonly key: string } | { readonly kind: "dictionary-merge"; readonly destination: PdfCosDict; readonly source?: PdfCosDict } | { readonly kind: "resolve"; readonly node: PdfCosNode; readonly arrayPathPrefix?: readonly string[] }
   | { readonly kind: "array-reference"; readonly items: import("../ast.js").PdfStoredItems; readonly objectNumber: number }
   | { readonly kind: "array-item"; readonly items: import("../ast.js").PdfStoredItems; readonly position: number }
   | { readonly kind: "catalog" }
@@ -36,6 +38,248 @@ function* visible(node: PdfCosNode | undefined): AppearanceWork<boolean> {
     return step.value;
   } finally { work.return(false); }
 }
+function* field(dict: PdfCosDict, key: string): AppearanceWork<PdfCosNode | undefined> {
+  if (!dict.storedEntries) return dictGet(dict, key);
+  const value = yield {kind: "dictionary-value", dict, key};
+  if (typeof value === "boolean") throw new TypeError("Expected a PDF dictionary value");
+  return value;
+}
+
+function* widgetAppearance(annot: PdfCosDict, resources: PdfCosDict, allocate?: (bytes: number) => void): AppearanceWork<PdfContentNode | undefined> {
+  function* inherited(key: string): AppearanceWork<PdfCosNode | undefined> {
+    let current: PdfCosDict | undefined = annot;
+    for (let depth = 0; current && depth < 128; depth++) {
+      const value = yield* resolveNode(yield* field(current, key));
+      if (value && value.kind !== "null") return value;
+      current = yield* resolveDict(yield* field(current, "Parent"));
+    }
+    if (current) throw new PdfError("E_LIMIT", "PDF widget parent depth limit exceeded");
+    return undefined;
+  }
+  const kind = yield* inherited("FT");
+  if (kind?.kind !== "name" || !["Tx", "Ch"].includes(kind.decoded)) return undefined;
+  function* numbers(node: PdfCosNode | undefined): AppearanceWork<number[]> {
+    const value = yield* resolveArray(node);
+    if (!value) return [];
+    const cursor = new PdfArrayCursor(value), out: number[] = [];
+    for (let step = yield* cursor.next(); !step.done; step = yield* cursor.next()) {
+      if (out.length >= 256) throw new PdfError("E_LIMIT", "PDF widget numeric array limit exceeded");
+      const number = yield* resolveNode(step.value);
+      if (number?.kind !== "number" || !Number.isFinite(number.value)) throw new PdfError("E_PARSE", "Invalid PDF widget geometry");
+      out.push(number.value);
+    }
+    allocate?.(out.length * 8);
+    return out;
+  }
+  const rect = yield* numbers(dictGet(annot, "Rect"));
+  if (rect.length !== 4) throw new PdfError("E_PARSE", "Invalid PDF widget rectangle");
+  const rx = Math.min(rect[0]!, rect[2]!), ry = Math.min(rect[1]!, rect[3]!);
+  const rw = Math.abs(rect[2]! - rect[0]!), rh = Math.abs(rect[3]! - rect[1]!);
+  const mk = yield* resolveDict(dictGet(annot, "MK"));
+  const rotationNode = mk ? yield* resolveNode(yield* field(mk, "R")) : undefined;
+  const rotation = rotationNode?.kind === "number" ? ((rotationNode.value % 360) + 360) % 360 : 0;
+  if (![0,90,180,270].includes(rotation) || !Number.isFinite(rw+rh+rx+ry)) throw new PdfError("E_PARSE", "Invalid PDF widget geometry");
+  const matrix = rotation === 90 ? [0,1,-1,0,rx+rw,ry] : rotation === 180 ? [-1,0,0,-1,rx+rw,ry+rh] : rotation === 270 ? [0,-1,1,0,rx,ry+rh] : [1,0,0,1,rx,ry];
+  const x=0, y=0, width = rotation % 180 ? rh : rw, height = rotation % 180 ? rw : rh;
+  if (!width || !height) return {kind: "graphics-group", ops: []};
+  const catalogValue = yield {kind: "catalog"};
+  const catalog = typeof catalogValue === "object" && catalogValue?.kind === "dict" ? catalogValue : undefined;
+  const form = catalog ? yield* resolveDict(yield* field(catalog, "AcroForm")) : undefined;
+  const formResources = form ? yield* resolveDict(yield* field(form, "DR")) : undefined;
+  const formFonts = formResources ? yield* resolveDict(yield* field(formResources, "Font")) : undefined;
+  const daValue = (yield* inherited("DA")) ?? (form ? yield* resolveNode(yield* field(form, "DA")) : undefined);
+  const da = daValue?.kind === "string" ? decodePdfString(daValue) : "/Helv 12 Tf 0 g";
+  if (da.length > 65536) throw new PdfError("E_LIMIT", "PDF widget appearance limit exceeded");
+  allocate?.(da.length * 32);
+  const tokens = tokenizeCos(new TextEncoder().encode(da));
+  let sourceName = "Helv", size = 12;
+  let color: {operator: string; operands: PdfCosNode[]} = {operator: "g", operands: [cosNumber(0)]};
+  for (let i = 0; i < tokens.length; i++) {
+    const token = tokens[i]!;
+    if (token.kind !== "keyword") continue;
+    if (token.value === "Tf" && i >= 2) {
+      const name = tokens[i-2]!, value = tokens[i-1]!;
+      if (name.kind === "name") sourceName = name.decoded;
+      if (value.kind === "number" && Number.isFinite(value.value)) size = value.value;
+    }
+    const count = token.value === "g" ? 1 : token.value === "rg" ? 3 : token.value === "k" ? 4 : 0;
+    if (count && i >= count) {
+      const values = tokens.slice(i-count, i);
+      if (values.every(n => n.kind === "number" && Number.isFinite(n.value))) color = {operator: token.value, operands: values.map(n => cosNumber(n.kind === "number" ? n.value : 0))};
+    }
+  }
+  let font = formFonts ? yield* field(formFonts, sourceName) : undefined;
+  let fontDict = yield* resolveDict(font);
+  const aliases: Record<string, string> = {Helv: "Helvetica", HeBo: "Helvetica-Bold", HeOb: "Helvetica-Oblique", HeBI: "Helvetica-BoldOblique", Cour: "Courier", CoBo: "Courier-Bold", TiRo: "Times-Roman", TiBo: "Times-Bold", TiIt: "Times-Italic"};
+  const base = fontDict ? yield* resolveNode(yield* field(fontDict, "BaseFont")) : undefined;
+  const baseName = base?.kind === "name" ? base.decoded : aliases[sourceName] ?? sourceName;
+  if (!fontDict) {
+    fontDict = cosDict({Type: cosName("Font"), Subtype: cosName("Type1"), BaseFont: cosName(baseName), Encoding: cosName("WinAnsiEncoding")});
+    font = fontDict;
+  }
+  const metrics = STANDARD_14_FONTS[normalizeStandard14FontName(baseName)];
+  const widths = yield* numbers(yield* field(fontDict, "Widths"));
+  const first = yield* resolveNode(yield* field(fontDict, "FirstChar"));
+  const firstCode = first?.kind === "number" ? first.value : 0;
+  const advance = (code: number) => widths[code-firstCode] ?? metrics.widthsByCode[code] ?? metrics.defaultWidth;
+  const flagsNode = yield* inherited("Ff"), alignNode = yield* inherited("Q"), maxNode = yield* inherited("MaxLen");
+  const flags = flagsNode?.kind === "number" ? flagsNode.value | 0 : 0;
+  const align = alignNode?.kind === "number" ? alignNode.value : 0;
+  let characters = 0;
+  const string = (node: PdfCosNode | undefined) => {
+    const text = node?.kind === "string" ? decodePdfString(node) : node?.kind === "name" && node.decoded !== "Off" ? node.decoded : "";
+    characters += text.length;
+    if (characters > 65536) throw new PdfError("E_LIMIT", "PDF widget text limit exceeded");
+    allocate?.(text.length*32);
+    return text;
+  };
+  const value = yield* inherited("V"), values: string[] = [];
+  if (value?.kind === "array") {
+    const cursor = new PdfArrayCursor(value);
+    for (let step=yield* cursor.next(); !step.done; step=yield* cursor.next()) {
+      if (values.length >= 4096) throw new PdfError("E_LIMIT", "PDF widget choice limit exceeded");
+      values.push(string(yield* resolveNode(step.value)));
+    }
+  } else values.push(string(value));
+  let text = values[0] ?? "";
+  const choices: {text: string; selected: boolean}[] = [];
+  const list = kind.decoded === "Ch" && !(flags & 131072);
+  if (kind.decoded === "Ch") {
+    const options = yield* inherited("Opt");
+    const selected = yield* numbers(yield* inherited("I"));
+    if (options?.kind === "array") {
+      const cursor = new PdfArrayCursor(options);
+      for (let step=yield* cursor.next(); !step.done; step=yield* cursor.next()) {
+        if (choices.length >= 4096) throw new PdfError("E_LIMIT", "PDF widget choice limit exceeded");
+        const option = yield* resolveNode(step.value);
+        let exported: string, label: string;
+        if (option?.kind === "array") {
+          const pair = new PdfArrayCursor(option), first=yield* pair.next(), second=yield* pair.next();
+          exported=string(first.done ? undefined : yield* resolveNode(first.value));
+          label=second.done ? exported : string(yield* resolveNode(second.value));
+        } else exported=label=string(option);
+        if (values[0] === exported) text=label;
+        choices.push({text:label,selected:selected.length ? selected.includes(choices.length) : values.includes(exported)});
+      }
+    }
+  }
+  allocate?.(2048+choices.length*64);
+  if (kind.decoded === "Tx" && flags & 8192) text = "*".repeat(text.length);
+  const multiline = kind.decoded === "Tx" && (flags & 4096) !== 0;
+  text = text.replace(/\r\n?/g, "\n");
+  if (!multiline) text = text.replace(/\n/g, " ");
+  const background = yield* numbers(mk ? yield* field(mk, "BG") : undefined);
+  const borderColor = yield* numbers(mk ? yield* field(mk, "BC") : undefined);
+  const bs = yield* resolveDict(dictGet(annot, "BS"));
+  const oldBorder = yield* resolveArray(dictGet(annot, "Border"));
+  const oldValues: number[] = []; let oldDash: PdfCosNode | undefined;
+  if (oldBorder) {
+    const cursor=new PdfArrayCursor(oldBorder);
+    for (let i=0; i<4; i++) {
+      const step=yield* cursor.next(); if(step.done) break;
+      if(i===3) oldDash=step.value;
+      else {
+        const value=yield* resolveNode(step.value);
+        if(value?.kind!=="number" || !Number.isFinite(value.value)) throw new PdfError("E_PARSE", "Invalid PDF widget border");
+        oldValues.push(value.value);
+      }
+    }
+  }
+  const widthNode = bs ? yield* resolveNode(yield* field(bs, "W")) : undefined;
+  const border = borderColor.length ? Math.max(0, widthNode?.kind === "number" ? widthNode.value : oldValues[2] ?? 1) : 0;
+  const styleNode = bs ? yield* resolveNode(yield* field(bs, "S")) : undefined;
+  const style = styleNode?.kind === "name" ? styleNode.decoded : !bs && oldDash ? "D" : "S";
+  const comb = kind.decoded === "Tx" && (flags & 16777216) !== 0 && !(flags & (4096|8192|1048576)) && maxNode?.kind === "number" && Number.isSafeInteger(maxNode.value) && maxNode.value > 0;
+  const count = comb ? maxNode.value : 0;
+  if (count > 65536) throw new PdfError("E_LIMIT", "PDF widget cell limit exceeded");
+  allocate?.(count*128);
+  const padding = border + 1, available = Math.max(0, width - 2*padding);
+  if (size <= 0) {
+    const units = [...encodeWinAnsiBytes(text)].reduce((sum, c) => sum + advance(c), 0) / 1000;
+    size = Math.max(.1, Math.min(12, (height-2*padding)/1.2, !multiline && units ? available/units : 12));
+  }
+  if (!Number.isFinite(size) || size > 1e6 || !Number.isFinite(border)) throw new PdfError("E_PARSE", "Invalid PDF widget size");
+  let fonts = yield* resolveDict(dictGet(resources, "Font"));
+  if (!fonts) fonts = cosDict({});
+  let name = "WidgetFont", suffix = 0;
+  while (yield* field(fonts, name)) {
+    if (++suffix > 65536) throw new PdfError("E_LIMIT", "PDF widget font limit exceeded");
+    name = `WidgetFont${suffix}`;
+  }
+  if (fonts.storedEntries) fonts = (yield {kind: "dictionary-merge", destination: fonts, source: cosDict({[name]: font!})}) as PdfCosDict;
+  else dictSet(fonts, name, font!);
+  dictSet(resources, "Font", fonts);
+  const ops: PdfContentNode[] = [];
+  const state = (operator: string, values: number[]) => ops.push({kind: "state-op", operator, operands: values.map(n => cosNumber(n))});
+  const paintColor = (values: number[], stroke: boolean) => {
+    if (!values.length) return;
+    const op = values.length === 1 ? "g" : values.length === 3 ? "rg" : values.length === 4 ? "k" : undefined;
+    if (!op) throw new PdfError("E_PARSE", "Invalid PDF widget color");
+    state(stroke ? op.toUpperCase() : op, values);
+  };
+  const box = (xx: number, yy: number, w: number, h: number, paint: "f" | "S" | "n", clip?: "W") => ops.push({kind: "path-op", segments: [{kind: "rect", x: xx, y: yy, width: w, height: h}], paint, ...(clip ? {clip} : {})});
+  state("cm",matrix);
+  box(x, y, width, height, "n", "W");
+  if (background.length) { paintColor(background, false); box(x,y,width,height,"f"); }
+  if (border) {
+    paintColor(borderColor, true); state("w", [border]);
+    if (style === "D") {
+      const dash = yield* numbers(bs ? yield* field(bs, "D") : oldDash);
+      if (dash.some(n => n < 0) || (dash.length && dash.every(n => n === 0))) throw new PdfError("E_PARSE", "Invalid PDF widget dash");
+      ops.push({kind: "state-op", operator: "d", operands: [cosArray((dash.length ? dash : [3]).map(n => cosNumber(n))), cosNumber(0)]});
+    }
+    if (style === "U") ops.push({kind: "path-op", segments: [{kind: "move", x, y: y+border/2}, {kind: "line", x:x+width, y:y+border/2}], paint: "S"});
+    else box(x+border/2,y+border/2,Math.max(0,width-border),Math.max(0,height-border),"S");
+  }
+  if (comb && border && ["S","D"].includes(style)) {
+    for(let i=1; i<count; i++) ops.push({kind:"path-op",segments:[{kind:"move",x:i*width/count,y:0},{kind:"line",x:i*width/count,y:height}],paint:"S"});
+  }
+  box(x+padding,y+padding,available,Math.max(0,height-2*padding),"n","W");
+  ops.push({kind: "state-op", ...color});
+  if (list) {
+    const topNode=yield* inherited("TI"), top=topNode?.kind==="number" ? Math.max(0,Math.floor(topNode.value)) : 0;
+    const leading=size*1.2;
+    for(let i=top; i<choices.length && (i-top)*leading<height-2*padding; i++) {
+      const item=choices[i]!, bottom=height-padding-(i-top+1)*leading;
+      if(item.selected) { paintColor([0,.2,113/255],false); box(padding,bottom,available,leading,"f"); paintColor([1],false); }
+      else ops.push({kind:"state-op",...color});
+      ops.push({kind:"text-object",commands:[{kind:"font",fontName:name,size},{kind:"move",tx:padding,ty:height-padding-size*.8-(i-top)*leading},{kind:"show-text",token:cosString(encodeWinAnsiBytes(item.text))}]});
+    }
+    return {kind:"graphics-group",ops};
+  }
+  const bytes = encodeWinAnsiBytes(text), lines: Uint8Array[] = [];
+  // Keep newlines before encoding: WinAnsi has no newline glyph.
+  for (const paragraph of text.split("\n")) {
+    let remaining = encodeWinAnsiBytes(paragraph);
+    while (multiline && remaining.length) {
+      let end = 0, lastSpace = -1, used = 0;
+      for (; end < remaining.length; end++) {
+        const next = advance(remaining[end]!) * size / 1000;
+        if (end && used + next > available) break;
+        used += next; if (remaining[end] === 32) lastSpace = end;
+      }
+      if (end === remaining.length) break;
+      if (lastSpace > 0) end = lastSpace;
+      lines.push(remaining.slice(0, end));
+      remaining = remaining.subarray(end + (remaining[end] === 32 ? 1 : 0));
+    }
+    lines.push(remaining);
+  }
+  const baseline = y + (multiline ? height-padding-size*.8 : (height-size*.6)/2);
+  if (comb) {
+    const cell = width/count, unused=count-Math.min(count,bytes.length), offset=align===2 ? unused : align===1 ? Math.floor(unused/2) : 0;
+    for (let i = 0; i < Math.min(count, bytes.length); i++) {
+      const code = bytes[i]!;
+      ops.push({kind:"text-object",commands:[{kind:"font",fontName:name,size},{kind:"move",tx:x+(i+offset)*cell+(cell-advance(code)*size/1000)/2,ty:baseline},{kind:"show-text",token:cosString(Uint8Array.of(code))}]});
+    }
+  } else for (let i = 0; i < lines.length; i++) {
+    const line = lines[i]!, length = [...line].reduce((sum,c) => sum+advance(c)*size/1000,0);
+    const left = align === 1 ? (width-length)/2 : align === 2 ? width-padding-length : padding;
+    ops.push({kind:"text-object",commands:[{kind:"font",fontName:name,size},{kind:"move",tx:x+Math.max(padding,left),ty:baseline-i*size*1.2},{kind:"show-text",token:cosString(line)}]});
+  }
+  return {kind:"graphics-group",ops};
+}
+
 /** Prepare resources and emit one appearance at a time. Drivers own content
  * cursors; the program retains only the current annotation and its placement. */
 export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCosDict, evalResourcesDict: PdfCosDict, hideAnnotations = false, onAllocation?: (bytes: number) => void): AppearanceWork {
@@ -72,11 +316,16 @@ export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCo
       if (!(yield* visible(dictGet(annotDict, "OC")))) continue;
 
       const rectArr = (yield* resolveArray(dictGet(annotDict, "Rect")));
+      const rectItems: PdfCosNode[]=[];
+      if(rectArr) {
+        const cursor=new PdfArrayCursor(rectArr);
+        for(let i=0;i<4;i++) {const step=yield* cursor.next();if(step.done)break;rectItems.push(step.value);}
+      }
       let rx0 = 50;
       let ry0 = 700;
-      if (rectArr && rectArr.items.length >= 2) {
-        const r0 = (yield* resolveNode(rectArr.items[0]));
-        const r1 = (yield* resolveNode(rectArr.items[1]));
+      if (rectItems.length >= 2) {
+        const r0 = (yield* resolveNode(rectItems[0]));
+        const r1 = (yield* resolveNode(rectItems[1]));
         if (r0?.kind === "number") rx0 = r0.value;
         if (r1?.kind === "number") ry0 = r1.value;
       }
@@ -94,10 +343,10 @@ export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCo
         apN = (yield* resolveNode(dictGet(apN, vNode.decoded)));
       }
       if (apN?.kind === "stream") {
+        renderedApStream = true;
         const hasContent = yield { kind: "appearance-content", stream: apN };
         if (hasContent === true) {
           onAllocation?.(2048);
-          renderedApStream = true;
           const apRes = (yield* resolveDict(dictGet(apN.dict, "Resources"), ["Resources"]));
           if (apRes) {
             for (const subKey of ["Font", "XObject", "ExtGState", "ColorSpace", "Pattern", "Shading"]) {
@@ -123,8 +372,8 @@ export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCo
             }
           }
 
-          const r2Node = rectArr && rectArr.items[2] ? (yield* resolveNode(rectArr.items[2])) : undefined;
-          const r3Node = rectArr && rectArr.items[3] ? (yield* resolveNode(rectArr.items[3])) : undefined;
+          const r2Node = rectItems[2] ? (yield* resolveNode(rectItems[2])) : undefined;
+          const r3Node = rectItems[3] ? (yield* resolveNode(rectItems[3])) : undefined;
           const rectW = r2Node?.kind === "number" ? Math.max(1, Math.abs(r2Node.value - rx0)) : 20;
           const rectH = r3Node?.kind === "number" ? Math.max(1, Math.abs(r3Node.value - ry0)) : 20;
           if (r2Node?.kind === "number") rx0 = Math.min(rx0, r2Node.value);
@@ -209,6 +458,8 @@ export function* preparePageAppearanceSteps(pageDict: PdfCosDict, pageRes: PdfCo
         (subNode?.kind === "name" && subNode.decoded === "Widget") ||
         Boolean(dictGet(annotDict, "FT") || dictGet(annotDict, "T") || parentDict);
       if (!isWidget || renderedApStream) continue;
+      const widget = yield* widgetAppearance(annotDict, evalResourcesDict, onAllocation);
+      if (widget) { yield {kind: "appearance", nodes: [widget]}; continue; }
 
       let valText = "";
       if (vNode?.kind === "string") { onAllocation?.(vNode.bytes.length * 2); valText = decodePdfString(vNode); }

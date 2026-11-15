@@ -86,7 +86,13 @@ Square, Circle and Ink annotations render from their dictionary geometry,
 colors, border widths/dashes and opacity; highlights use Multiply blending.
 Generated geometry is bounded to 65,536 coordinate values/segments per annotation.
 Malformed or excessive geometry fails before replacing the page output.
-Other annotation types still require a supplied appearance.
+Text and choice widgets without normal appearances render their inherited
+values, default fonts and colors, background and solid/dashed/underline borders.
+They support alignment, multiline wrapping, automatic text sizing, comb cells,
+password masking, rotation, choice display labels and selected list rows.
+Synthesized text uses simple WinAnsi fonts; buttons, signatures, composite-font
+field values and beveled/inset borders still require supplied appearances.
+Widget text is limited to 65,536 characters and choices to 4,096 entries.
 
 ### 1. Zero-Dependency Rust Shell with `MemoryVfs`
 

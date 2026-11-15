@@ -11,6 +11,8 @@ use super::{ID, Matrix, concat};
 mod pdf_soft_mask;
 #[path = "pdf_markup.rs"]
 mod pdf_markup;
+#[path = "pdf_widget.rs"]
+mod pdf_widget;
 use super::Objects;
 pub(super) use pdf_soft_mask::SoftMask;
 fn shift(m: &mut Matrix, x: f64, y: f64) {
@@ -313,12 +315,15 @@ impl<'a> PageSource<'a> {
                 None => 0,
             };
             if flags & (2 | 32) != 0 { continue; }
-            let Some(ap) = annot.get(b"AP") else { pdf_markup::draw(&annot, &mut self.objects, emit)?; continue; };
-            let ap = self.objects.resolve(ap)?;
-            let Some(normal) = ap.get(b"N") else { pdf_markup::draw(&annot, &mut self.objects, emit)?; continue; };
-            let mut id = normal.reference();
-            let appearance = self.objects.resolve(normal)?;
-            if appearance.word() == Some(b"null") { pdf_markup::draw(&annot, &mut self.objects, emit)?; continue; }
+            let ap = match annot.get(b"AP") { Some(v) => Some(self.objects.resolve(v)?), None => None };
+            let normal = ap.as_ref().and_then(|v| v.get(b"N"));
+            let appearance = match normal { Some(v) => Some(self.objects.resolve(v)?), None => None };
+            if appearance.as_ref().is_none_or(|v| v.word() == Some(b"null")) {
+                if !self.draw_widget(&annot, emit)? { pdf_markup::draw(&annot, &mut self.objects, emit)?; }
+                continue;
+            }
+            let appearance = appearance?;
+            let mut id = normal?.reference();
             // Appearance state names, including Off, select an ordinary stream.
             if appearance.get(b"BBox").is_none() {
                 let Some(state) = annot.get(b"AS") else { continue; };

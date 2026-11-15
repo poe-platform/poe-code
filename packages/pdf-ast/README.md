@@ -202,7 +202,7 @@ visits page dictionaries in inheritance order with the same cancellation, depth
 limits and owned scratch cleanup; returning early releases its traversal index.
 
 `page.evaluateSteps(storage, options)` pulls complete retained-page paint
-operations, including annotation appearances and widget fallback text.
+operations, including annotation appearances and form widgets.
 Appearance states include `Off`; appearances use normalized rectangles and clip
 to their transformed bounding boxes. Page content has its own graphics-state
 scope, so its final transform or clip cannot hide or move subsequent appearances.
@@ -210,8 +210,14 @@ When `/AP /N` is absent or null, Highlight, Underline, StrikeOut, Squiggly,
 Square, Circle and Ink annotations render from their geometry, colors, border
 widths/dashes and opacity. Highlights use Multiply blending. Generated geometry
 is limited to 65,536 coordinate values/segments per annotation; malformed or
-excessive geometry fails explicitly. Other annotation types still need supplied
-appearances (apart from the existing widget-text fallback).
+excessive geometry fails explicitly.
+Text and choice widgets without normal appearances render their inherited
+values, default fonts and colors, background and solid/dashed/underline borders.
+They support alignment, multiline wrapping, automatic text sizing, comb cells,
+password masking, rotation, choice display labels and selected list rows.
+Synthesized text uses simple WinAnsi fonts; buttons, signatures, composite-font
+field values and beveled/inset borders still require supplied appearances.
+Widget text is limited to 65,536 characters and choices to 4,096 entries.
 `hideAnnotations` matches the buffered page option. A resource prepass preserves
 fonts and other resources supplied by later appearances; each prepass cursor
 closes before the next annotation, then appearance events stream on demand.

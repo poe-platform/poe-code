@@ -1,0 +1,73 @@
+%PDF-1.7
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R /AcroForm 3 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Count 6 /Kids [ 6 0 R 8 0 R 10 0 R 12 0 R 14 0 R 16 0 R ] >>
+endobj
+3 0 obj
+<< /Fields [ 5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R ] /NeedAppearances true /DR << /Font << /Helv 4 0 R >> >> /DA (/Helv 12 Tf 0 g) >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Annot /Subtype /Widget /T (text) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.9 .95 1] /BC [.1 .2 .4] >> /BS << /W 1 /S /S >> /FT /Tx /V (Ada Lovelace) >>
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [5 0 R] >>
+endobj
+7 0 obj
+<< /Type /Annot /Subtype /Widget /T (text-centered) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.9 .95 1] /BC [.1 .2 .4] >> /BS << /W 1 /S /S >> /FT /Tx /Q 1 /V (Centered value) >>
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [7 0 R] >>
+endobj
+9 0 obj
+<< /Type /Annot /Subtype /Widget /T (text-right) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.9 .95 1] /BC [.1 .2 .4] >> /BS << /W 1 /S /S >> /FT /Tx /Q 2 /V (Right aligned) >>
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [9 0 R] >>
+endobj
+11 0 obj
+<< /Type /Annot /Subtype /Widget /T (text-multiline) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.9 .95 1] /BC [.1 .2 .4] >> /BS << /W 1 /S /S >> /FT /Tx /Ff 4096 /V (First line\nSecond line) >>
+endobj
+12 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [11 0 R] >>
+endobj
+13 0 obj
+<< /Type /Annot /Subtype /Widget /T (choice) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.9 .95 1] /BC [.1 .2 .4] >> /BS << /W 1 /S /S >> /FT /Ch /Ff 131072 /Opt [(Red) (Green) (Blue)] /V (Green) >>
+endobj
+14 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [13 0 R] >>
+endobj
+15 0 obj
+<< /Type /Annot /Subtype /Widget /T (text-hidden) /Rect [20 20 180 80] /DA (/Helv 12 Tf 0 g) /MK << /BG [.9 .95 1] /BC [.1 .2 .4] >> /BS << /W 1 /S /S >> /FT /Tx /V (Hidden value) /F 2 >>
+endobj
+16 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [15 0 R] >>
+endobj
+xref
+0 17
+0000000000 65535 f 
+0000000009 00000 n 
+0000000074 00000 n 
+0000000167 00000 n 
+0000000317 00000 n 
+0000000414 00000 n 
+0000000605 00000 n 
+0000000709 00000 n 
+0000000916 00000 n 
+0000001020 00000 n 
+0000001223 00000 n 
+0000001328 00000 n 
+0000001550 00000 n 
+0000001656 00000 n 
+0000001882 00000 n 
+0000001988 00000 n 
+0000002192 00000 n 
+trailer
+<< /Size 17 /Root 1 0 R >>
+startxref
+2298
+%%EOF

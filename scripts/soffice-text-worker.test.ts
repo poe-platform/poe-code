@@ -4,9 +4,12 @@ import { fileURLToPath } from "node:url";
 import { builtinModules } from "node:module";
 import { build } from "esbuild";
 import { Miniflare } from "miniflare";
-import { expect, it } from "vitest";
+import { afterAll, beforeAll, expect, it } from "vitest";
 
-it.each(["sdk", "command", "cancel", "rtf-sdk", "rtf-command", "rtf-cancel", "odt-sdk", "odt-command", "odt-cancel", "xlsx-sdk", "xlsx-command", "xlsx-cancel", "docx-sdk", "docx-command", "docx-cancel"])("streams Soffice text through external Worker backing (%s)", async mode => {
+let runtime: Miniflare;
+
+// Bundle and start workerd once; each request still owns its namespace and backing.
+beforeAll(async () => {
   const builtins = new Set(builtinModules.flatMap(name => [name, `node:${name}`]));
   const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: `
     export * as soffice from "safe-bash-command-soffice";
@@ -17,7 +20,7 @@ it.each(["sdk", "command", "cancel", "rtf-sdk", "rtf-command", "rtf-cancel", "od
     plugins: [{ name: "reject-node-builtins", setup(builder) { builder.onResolve({ filter: /.*/ }, args =>
       builtins.has(args.path) || args.path.startsWith("node:") ? { errors: [{ text: "Forbidden Node import: " + args.path }] } : undefined); } }] });
   expect(Object.keys(bundle.metafile!.inputs).filter(path => path.includes("/src/"))).toEqual([]);
-  const runtime = new Miniflare({ modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], script: `
+  runtime = new Miniflare({ modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], script: `
     const api=(()=>{const module={exports:{}};${bundle.outputFiles[0]!.text};return module.exports;})();
     export default {async fetch(request,env){
       const variant=new URL(request.url).pathname.slice(1),docx=variant.startsWith('docx-'),rtf=variant.startsWith('rtf-'),odt=variant.startsWith('odt-'),xlsx=variant.startsWith('xlsx-'),mode=variant.split('-').at(-1),namespace=new api.MemoryFileSystem();await namespace.mkdir('/spill');
@@ -51,29 +54,33 @@ it.each(["sdk", "command", "cancel", "rtf-sdk", "rtf-command", "rtf-cancel", "od
         remaining:(await env.PAGES.list({limit:1})).objects.length,namespace:await namespace.readdir('/spill'),hostGlobals:[typeof process,typeof Buffer,typeof require]});
     }};
   ` });
-  try {
-    const bucket = await runtime.getR2Bucket("PAGES");
-    const source = mode.startsWith("rtf-") ? new TextEncoder().encode("{\\rtf1 " + "a".repeat(1100000) + "\\par }") : new Uint8Array(1100000).fill(97);
-    await bucket.put("input", mode.startsWith("docx-") ? createStoredZipArchive({ ...Object.fromEntries(Object.entries(docxMetadata).map(([name, xml]) => [name, new TextEncoder().encode(xml)])), "word/document.xml": new TextEncoder().encode(docxDocumentPrefix + "<w:p><w:r><w:t>" + "a".repeat(1100000) + "</w:t></w:r></w:p>" + docxDocumentSuffix) }) : mode.startsWith("odt-") ? createStoredZipArchive({
-      "content.xml": new TextEncoder().encode("<office><text:p>" + "a".repeat(1100000) + "</text:p></office>")
-    }) : mode.startsWith("xlsx-") ? createStoredZipArchive({
-      "xl/worksheets/sheet1.xml": new TextEncoder().encode('<worksheet><row><c t="s"><v>0</v></c></row></worksheet>'),
-      "xl/sharedStrings.xml": new TextEncoder().encode("<sst><si><t>" + "a".repeat(1100000) + "</t></si></sst>")
-    }) : source);
-    const response = await runtime.dispatchFetch("https://soffice.test/" + mode);
-    expect(response.status).toBe(200);
-    const result = await response.json() as { result?: { exitCode: number }; cancelled: boolean; length: number; largest: number; peak: number; inputClosed: number; inputReads: number; largestInput: number; largestAllocation: number; events: { opened: number; closed: number; writes: number; reads: number; largestTransfer: number }; remaining: number; namespace: unknown[]; hostGlobals: string[] };
-    expect(result.cancelled).toBe(mode.endsWith("cancel"));
-    const expectedLength = mode.startsWith("docx-") ? 1100004 : 1100001; // DOCX includes the UTF-8 BOM.
-    if (mode.endsWith("cancel")) expect(result.length).toBeLessThan(expectedLength);
-    else { expect(result.result?.exitCode).toBe(0); expect(result.length).toBe(expectedLength); }
-    expect(result.peak).toBe(1); expect(result.largest).toBeLessThanOrEqual(49152);
-    expect(result.inputClosed).toBe(1); expect(result.inputReads).toBeGreaterThan(64);
-    expect(result.largestInput).toBeLessThanOrEqual(16384); expect(result.largestAllocation).toBeLessThanOrEqual(65536);
-    // The small XLSX worksheet fits its bounded cache; only shared strings spill.
-    expect(result.events.opened).toBe(mode.startsWith("docx-") || mode.startsWith("xlsx-") || mode.startsWith("odt-") ? 2 : 1); expect(result.events.closed).toBe(result.events.opened);
-    expect(result.events.reads).toBeGreaterThan(0); expect(result.events.writes).toBeGreaterThan(0);
-    expect(result.events.largestTransfer).toBeLessThanOrEqual(16384);
-    expect(result.remaining).toBe(0); expect(result.namespace).toEqual([]); expect(result.hostGlobals).toEqual(["undefined", "undefined", "undefined"]);
-  } finally { await runtime.dispose(); }
+  await runtime.ready;
+});
+afterAll(async () => { await runtime?.dispose(); });
+
+it.each(["sdk", "command", "cancel", "rtf-sdk", "rtf-command", "rtf-cancel", "odt-sdk", "odt-command", "odt-cancel", "xlsx-sdk", "xlsx-command", "xlsx-cancel", "docx-sdk", "docx-command", "docx-cancel"])("streams Soffice text through external Worker backing (%s)", async mode => {
+  const bucket = await runtime.getR2Bucket("PAGES");
+  expect((await bucket.list({ limit: 1 })).objects).toEqual([]);
+  const source = mode.startsWith("rtf-") ? new TextEncoder().encode("{\\rtf1 " + "a".repeat(1100000) + "\\par }") : new Uint8Array(1100000).fill(97);
+  await bucket.put("input", mode.startsWith("docx-") ? createStoredZipArchive({ ...Object.fromEntries(Object.entries(docxMetadata).map(([name, xml]) => [name, new TextEncoder().encode(xml)])), "word/document.xml": new TextEncoder().encode(docxDocumentPrefix + "<w:p><w:r><w:t>" + "a".repeat(1100000) + "</w:t></w:r></w:p>" + docxDocumentSuffix) }) : mode.startsWith("odt-") ? createStoredZipArchive({
+    "content.xml": new TextEncoder().encode("<office><text:p>" + "a".repeat(1100000) + "</text:p></office>")
+  }) : mode.startsWith("xlsx-") ? createStoredZipArchive({
+    "xl/worksheets/sheet1.xml": new TextEncoder().encode('<worksheet><row><c t="s"><v>0</v></c></row></worksheet>'),
+    "xl/sharedStrings.xml": new TextEncoder().encode("<sst><si><t>" + "a".repeat(1100000) + "</t></si></sst>")
+  }) : source);
+  const response = await runtime.dispatchFetch("https://soffice.test/" + mode);
+  expect(response.status).toBe(200);
+  const result = await response.json() as { result?: { exitCode: number }; cancelled: boolean; length: number; largest: number; peak: number; inputClosed: number; inputReads: number; largestInput: number; largestAllocation: number; events: { opened: number; closed: number; writes: number; reads: number; largestTransfer: number }; remaining: number; namespace: unknown[]; hostGlobals: string[] };
+  expect(result.cancelled).toBe(mode.endsWith("cancel"));
+  const expectedLength = mode.startsWith("docx-") ? 1100004 : 1100001; // DOCX includes the UTF-8 BOM.
+  if (mode.endsWith("cancel")) expect(result.length).toBeLessThan(expectedLength);
+  else { expect(result.result?.exitCode).toBe(0); expect(result.length).toBe(expectedLength); }
+  expect(result.peak).toBe(1); expect(result.largest).toBeLessThanOrEqual(49152);
+  expect(result.inputClosed).toBe(1); expect(result.inputReads).toBeGreaterThan(64);
+  expect(result.largestInput).toBeLessThanOrEqual(16384); expect(result.largestAllocation).toBeLessThanOrEqual(65536);
+  // The small XLSX worksheet fits its bounded cache; only shared strings spill.
+  expect(result.events.opened).toBe(mode.startsWith("docx-") || mode.startsWith("xlsx-") || mode.startsWith("odt-") ? 2 : 1); expect(result.events.closed).toBe(result.events.opened);
+  expect(result.events.reads).toBeGreaterThan(0); expect(result.events.writes).toBeGreaterThan(0);
+  expect(result.events.largestTransfer).toBeLessThanOrEqual(16384);
+  expect(result.remaining).toBe(0); expect(result.namespace).toEqual([]); expect(result.hostGlobals).toEqual(["undefined", "undefined", "undefined"]);
 }, 15000);

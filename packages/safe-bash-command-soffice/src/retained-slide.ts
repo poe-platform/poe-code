@@ -1,4 +1,4 @@
-import { readJpegMetadataFromSource } from "@poe-code/image-ast";
+import { decodeJpegToStorage } from "@poe-code/image-ast";
 import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import { formatPdfNumber, cosString, encodeWinAnsiBytes, serializeCosNodeBytes } from "@poe-code/pdf-ast";
 import { yieldTurn } from "safe-bash-contracts/yield";
@@ -76,7 +76,7 @@ export async function renderRetainedSlide(pdf: RetainedPdf, storage: PagedStorag
   for(let index=0;index<slide.images.count;index++){
     const [position,size,x,y,width,height]=await slide.images.get(index), image=await retainPdfImage(storage,{position:position!,size:size!,width:width!,height:height!},signal);
     if(!image)throw new Error("Invalid PPTX image");
-    if(image.jpeg)await readJpegMetadataFromSource({size:size!,read:(offset,length)=>storage.read(position!+offset,length)},signal);
+    if(image.jpeg)await decodeJpegToStorage({size:size!,read:(offset,length)=>storage.read(position!+offset,length)},storage,signal);
     await pdf.image(image,{x:x!,y:y!,width:width!,height:height!});
   }
   let cursorY=330,previousX:number|undefined;

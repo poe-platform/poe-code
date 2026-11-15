@@ -28,6 +28,18 @@ function deck(problem = '', format = 'png', full = false) {
   if (problem === 'missing relationship') delete entries['ppt/slides/_rels/slide2.xml.rels'];
   if (problem === 'malformed XML') entries['ppt/slides/slide2.xml'] = encode('<p:sld xmlns:p="p"><p:pic></p:sld>');
   if (problem === 'malformed JPEG') entries['ppt/media/2.png'] = Uint8Array.of(255,216,255,217);
+  if (problem === 'missing JPEG tables') {
+    const bytes = encodeJpegImage({format: "jpeg", space: "srgb", channels: 4, depth: "uchar", density: 72, hasAlpha: false, width: 1, height: 1, data: Uint8Array.of(255, 0, 0, 255)});
+    const parts = [bytes.subarray(0, 2)];
+    let offset = 2;
+    while (bytes[offset + 1] !== 0xda) {
+      const end = offset + 2 + bytes[offset + 2]! * 256 + bytes[offset + 3]!;
+      if (bytes[offset + 1] !== 0xdb) parts.push(bytes.subarray(offset, end));
+      offset = end;
+    }
+    parts.push(bytes.subarray(offset));
+    entries['ppt/media/1.png'] = Uint8Array.from(parts.flatMap(part => [...part]));
+  }
   if (problem === 'malformed image') entries['ppt/media/2.png'] = Uint8Array.of(137, 80, 78, 71);
   if (format === 'jpeg') for (const [key, value] of Object.entries(entries)) {
     if (!key.endsWith('.xml') && !key.endsWith('.rels')) continue;
@@ -57,7 +69,7 @@ for (const mode of ['sync', 'async', 'retained', 'soffice', 'libreoffice'] as co
       assert.deepEqual(page.renderToPng({scale: 0.5}), reference.renderToPng({scale: 0.5}));
     }
   });
-  for (const problem of ['missing image', 'missing slide', 'missing relationship', 'malformed XML', 'malformed image', 'malformed JPEG']) it(`rejects ${problem} without replacing output (${mode})`, async () => {
+  for (const problem of ['missing image', 'missing slide', 'missing relationship', 'malformed XML', 'malformed image', 'malformed JPEG', 'missing JPEG tables']) it(`rejects ${problem} without replacing output (${mode})`, async () => {
     const input = deck(problem), previous = Uint8Array.of(1, 2, 3), files = new Map([['/deck.pptx', input], ['/deck.pdf', previous]]), args = ['--convert-to', 'pdf', '/deck.pptx'];
     const fs = new MemoryFileSystem(); await fs.writeFile('/deck.pptx', input); await fs.writeFile('/deck.pdf', previous);
     const result = mode === 'sync' ? runSofficeCliSync(args, files) : mode === 'async' ? await runSofficeCli(args, files) : mode === 'retained' ? await runSofficeFileCli(args, {filesystem: fs, stdout: {async write() {}}, stderr: {async write() {}}}) : await (mode === 'soffice' ? createSofficeCommand() : createLibreofficeCommand()).execute({command: mode, cwd: '/', env: {}, fs, ...createCommandArguments(args), signal: new AbortController().signal, stdin: toByteSource(''), stdout: {async write() {}}, stderr: {async write() {}}});

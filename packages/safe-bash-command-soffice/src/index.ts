@@ -1,4 +1,4 @@
-import { readJpegMetadata } from "@poe-code/image-ast";
+import { decodeJpegImage } from "@poe-code/image-ast";
 import { csvFormulaCell, calculateCsvFormulas } from "./csv-formulas.js";
 import { isCsvNumber } from "./csv-number.js";
 import { parseXml, type XmlElement } from "@poe-code/safe-fs/xml";
@@ -576,7 +576,7 @@ function renderSlidesToPdf(slides: readonly { title: string; bullets: string[]; 
       const isPng = img.bytes[0] === 0x89 && img.bytes[1] === 0x50;
       const isJpg = img.bytes[0] === 0xff && img.bytes[1] === 0xd8;
       if (!isPng && !isJpg) throw new Error("Unsupported PPTX image");
-      if (isJpg) readJpegMetadata(img.bytes);
+      if (isJpg) decodeJpegImage(img.bytes);
       const handle = isPng ? doc.embedPng(img.bytes) : doc.embedJpg(img.bytes);
       page.drawImage(handle, { x: img.x, y: img.y, width: img.width, height: img.height });
     }

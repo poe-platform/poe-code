@@ -17774,6 +17774,28 @@ mod media_unit_tests {
                 assert_eq!(result.exit_code,1);
                 assert_eq!(fs.read_file("/deck.pdf").unwrap(),previous);
             }
+            if format == "jpeg" {
+                let mut without_tables = red[..2].to_vec();
+                let mut offset = 2;
+                while red[offset + 1] != 0xda {
+                    let end = offset + 2 + usize::from(u16::from_be_bytes([red[offset + 2], red[offset + 3]]));
+                    if red[offset + 1] != 0xdb {
+                        without_tables.extend_from_slice(&red[offset..end]);
+                    }
+                    offset = end;
+                }
+                without_tables.extend_from_slice(&red[offset..]);
+                let broken = crate::commands::structured::write_zip_stored(&entries.iter().map(|&(key, value)|
+                    (key, if key == "ppt/media/red" { without_tables.as_slice() } else { value })
+                ).collect::<Vec<_>>());
+                fs.write_file("/deck.pptx", &broken).unwrap();
+                for command in ["soffice", "libreoffice"] {
+                    let result = cmd_media_doc(command, &media_args(&["--convert-to", "pdf", "/deck.pptx"]), "", "/", &fs);
+                    assert_eq!(result.exit_code, 1, "{}", result.stderr);
+                    assert_eq!(fs.read_file("/deck.pdf").unwrap(), previous);
+                    assert_eq!(fs.read_file("/deck.pptx").unwrap(), broken);
+                }
+            }
             for (name,data) in [("ppt/slides/slide2.xml",b"<sld><pic></sld>".as_slice()),("ppt/media/blue",b"invalid image")] {
                 let broken=crate::commands::structured::write_zip_stored(&entries.iter().map(|&(key,value)|(key,if key==name {data} else {value})).collect::<Vec<_>>());
                 fs.write_file("/deck.pptx",&broken).unwrap();

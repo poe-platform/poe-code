@@ -42,6 +42,6 @@ it.each([[2,3], [3,3], [4,3], [2.9,3], [2,.5], [100,100], [140,140], [141,140], 
 it("charges Poisson series work to the host budget", () => {
   const reason = new Error("budget exhausted");
   expect(() => distributionValue("pois", "p", 4, [3], true, false, {
-    tick() { throw reason; }
+    tick(): void { throw reason; }
   } as FunctionHost)).toThrow(reason);
 });

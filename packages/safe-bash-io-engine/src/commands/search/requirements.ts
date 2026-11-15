@@ -53,7 +53,10 @@ export async function assertPathRequirements(
   }
   for (const path of new Set(paths)) {
     try {
-      const capabilities = await context.fs.capabilitiesFor(pathOf(context, path), { signal: context.signal });
+      const capabilities = await context.fs.capabilitiesFor(pathOf(context, path), {
+        signal: context.signal,
+        stagingAncestry: requirements.some(requirement => modes.includes(requirement.id) && requirement.capabilities.includes("atomicStagingAncestry")),
+      });
       assertCommandRequirements(context, requirements, modes, capabilities);
     } catch (error) {
       context.signal.throwIfAborted();

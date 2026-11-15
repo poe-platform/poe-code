@@ -257,7 +257,7 @@ function bindExternalFs(shell,fs,options) {
           result=encoder.encode(root);return;
         }
         if(op==="inspectExtraction" || op==="inspectMoveDestination" || op==="inspectRm"){
-          const caps=await fs.capabilitiesFor?.(path,op==="inspectRm"?settings:{...settings,create:true,...(op==="inspectMoveDestination" && {stagingAncestry:true})}) ?? fs.capabilities;
+          const caps=await fs.capabilitiesFor?.(path,op==="inspectRm"?settings:{...settings,create:true,stagingAncestry:true}) ?? fs.capabilities;
           const ancestors=[];
           for(let end=0;end>=0;end=path.indexOf("/",end+1)){
             const dir=path.slice(0,end)||"/",stat=await fs.lstat(dir,settings);

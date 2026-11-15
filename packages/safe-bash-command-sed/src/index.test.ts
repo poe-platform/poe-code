@@ -1,10 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { createMemoryFileSystem } from "@poe-code/safe-fs";
+import { createMemoryFileSystem, createMountFileSystem, createReadOnlyFileSystem, type FileSystem } from "@poe-code/safe-fs";
 import { createCommandArguments, toByteSource, type CommandDefinition } from "safe-bash-contracts";
 import { createSedCommand, createSedCommands, sedCommands } from "./index.js";
 
-async function run(command: CommandDefinition, args: string[], input = "", fs = createMemoryFileSystem(), env: Record<string, string> = {}) {
+async function run(command: CommandDefinition, args: string[], input = "", fs: FileSystem = createMemoryFileSystem(), env: Record<string, string> = {}) {
   const values = createCommandArguments(args);
   let stdout = "", stderr = "";
   const result = await command.execute({
@@ -15,6 +15,72 @@ async function run(command: CommandDefinition, args: string[], input = "", fs = 
     signal: new AbortController().signal,
   });
   return { ...result, stdout, stderr };
+}
+
+for (const suffix of ["", ".bak", ".new"]) {
+  for (const fallback of [false, true]) {
+    test(`standalone sed edits a nested mount with suffix '${suffix}' and fallback ${fallback}`, async () => {
+      const backing = createMemoryFileSystem();
+      await backing.writeFile("/file", Buffer.from("old\n"), { mode: 0o640 });
+      if (!fallback) await backing.link("/file", "/peer");
+      if (suffix === ".bak") await backing.writeFile("/file.bak", Buffer.from("previous\n"), { mode: 0o600 });
+      const root = createMemoryFileSystem();
+      await root.mkdir("/private/tmp", { recursive: true });
+      const mounted = createMountFileSystem({ root, mounts: { "/private/tmp/project": backing } });
+      const fs = fallback ? new Proxy(mounted, { get(target, property) {
+        if (property === "publishStagedFileSet") return undefined;
+        const member: unknown = Reflect.get(target, property, target);
+        return typeof member === "function" ? member.bind(target) : member;
+      } }) : mounted;
+      const result = await run(createSedCommand(), [`-i${suffix}`, "s/old/new/", "/private/tmp/project/file"], "", fs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      assert.equal(Buffer.from(await backing.readFile("/file")).toString(), "new\n");
+      assert.equal((await backing.stat("/file")).mode & 0o7777, 0o640);
+      if (suffix) {
+        assert.equal(Buffer.from(await backing.readFile("/file" + suffix)).toString(), "old\n");
+        assert.equal((await backing.stat("/file" + suffix)).mode & 0o7777, 0o640);
+      }
+      if (!fallback) assert.equal(Buffer.from(await backing.readFile("/peer")).toString(), "old\n");
+      assert.deepEqual((await backing.readdir("/")).map(entry => entry.name).sort(), ["file", ...(suffix ? ["file" + suffix] : []), ...(!fallback ? ["peer"] : [])]);
+    });
+  }
+}
+
+for (const refusal of ["synthetic ancestry", "read-only", "replaced ancestor", "cancellation"] as const) {
+  for (const suffix of ["", ".bak"]) test(`standalone mounted sed preserves data on ${refusal}, suffix '${suffix}'`, async () => {
+    const backing = createMemoryFileSystem(), root = createMemoryFileSystem();
+    await backing.writeFile("/file", Buffer.from("old\n"));
+    await backing.writeFile("/file.bak", Buffer.from("previous\n"));
+    if (refusal !== "synthetic ancestry") await root.mkdir("/private/tmp", { recursive: true });
+    const mounted = createMountFileSystem({ root, mounts: { "/private/tmp/project": refusal === "read-only" ? createReadOnlyFileSystem(backing) : backing } });
+    const controller = new AbortController();
+    let staged = false;
+    const fs = new Proxy(mounted, { get(target, property) {
+      if (property === "createStagedFile") return async (...args: Parameters<NonNullable<FileSystem["createStagedFile"]>>) => {
+        const receipt = await target.createStagedFile(...args);
+        staged = true;
+        if (refusal === "replaced ancestor") {
+          await root.rename("/private", "/held");
+          await root.mkdir("/private/tmp", { recursive: true });
+        }
+        if (refusal === "cancellation") controller.abort(new Error("cancel edit"));
+        return receipt;
+      };
+      const member: unknown = Reflect.get(target, property, target);
+      return typeof member === "function" ? member.bind(target) : member;
+    } });
+    const values = createCommandArguments([`-i${suffix}`, "s/old/new/", "/private/tmp/project/file"]);
+    const invocation = createSedCommand().execute({
+      command: "sed", args: values.args, argumentValues: values, cwd: "/", env: {}, fs,
+      stdin: toByteSource(""), stdout: { async write() {} }, stderr: { async write() {} }, signal: controller.signal,
+    });
+    if (refusal === "cancellation") await assert.rejects(async () => invocation, error => error === controller.signal.reason);
+    else assert.notEqual((await invocation).exitCode, 0);
+    assert.equal(staged, refusal === "replaced ancestor" || refusal === "cancellation");
+    assert.equal(Buffer.from(await backing.readFile("/file")).toString(), "old\n");
+    assert.equal(Buffer.from(await backing.readFile("/file.bak")).toString(), "previous\n");
+    assert.deepEqual((await backing.readdir("/")).map(entry => entry.name).sort(), ["file", "file.bak"]);
+  });
 }
 
 test("standalone sed works with only portable filesystem and command contracts", async () => {

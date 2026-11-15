@@ -26,7 +26,7 @@ export async function prepareInPlace(context: CommandContext, files: readonly st
     // redundant separators and '.' so ordinary './file' operands still work.
     const operand = virtualPath(context, file);
     const path = "/" + operand.split("/").filter(part => part && part !== ".").join("/");
-    const capabilities = await fs.capabilitiesFor?.(path, { signal: context.signal }) ?? fs.capabilities;
+    const capabilities = await fs.capabilitiesFor?.(path, { signal: context.signal, stagingAncestry: true }) ?? fs.capabilities;
     if (capabilities.atomicFileMutation !== true || capabilities.retainedRead !== true) {
       throw new FsError("ENOTSUP", { path, message: "in-place editing requires retained reads and atomic conditional writes" });
     }
@@ -41,7 +41,7 @@ export async function prepareInPlace(context: CommandContext, files: readonly st
       catch (error) { if (!(error instanceof FsError) || error.code !== "ENOENT") throw error; }
       if (backup && backup.type !== "file" && backup.type !== "directory") throw new FsError("ENOTSUP", { path: path + suffix, message: "in-place backups require regular files" });
       if (backup && compareCopyIdentity(original, backup) === "same") throw new FsError("EINVAL", { path, message: "backup aliases the edited file" });
-      const caps = await fs.capabilitiesFor?.(path + suffix, { signal: context.signal, create: !backup }) ?? fs.capabilities;
+      const caps = await fs.capabilitiesFor?.(path + suffix, { signal: context.signal, create: !backup, stagingAncestry: true }) ?? fs.capabilities;
       moveBackup = capabilities.atomicStagedFileBackup === true && caps.atomicStagedFileBackup === true && !!fs.publishStagedFileSet;
       if (!moveBackup && ((original.nlink ?? 1) > 1 || (backup?.nlink ?? 1) > 1) && backup?.type !== "directory") {
         throw new FsError("ENOTSUP", { path, message: "preserving hard links in backups requires atomic backup publication" });

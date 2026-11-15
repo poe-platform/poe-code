@@ -22,6 +22,8 @@ const profiles = {
   real: { retainedReads: true, patchPublication: true, sedInPlaceError: sedConditionalWriteError },
   s3: { retainedReads: false, patchPublication: false, sedInPlaceError: sedRetainedReadError },
   webdav: { retainedReads: false, patchPublication: false, sedInPlaceError: sedRetainedReadError },
+  // This fixture mounts the real adapter at /work. It cannot validate staging
+  // ancestry, unlike the memory-backed mounts covered by standalone sed and CLI tests.
   mount: { retainedReads: true, patchPublication: true, sedInPlaceError: "sed: ENOTSUP: Replace edited files while preserving their hard links (-i) requires unavailable filesystem capabilities: atomicStagingAncestry, sed\n" },
   overlay: { retainedReads: true, patchPublication: true, sedInPlaceError: null },
 };

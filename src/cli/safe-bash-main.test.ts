@@ -4,6 +4,22 @@ import { MemoryFileSystem } from "@poe-platform/safe-bash";
 import { parseSafeBashCliArgs, runSafeBashCli } from "./safe-bash-main.js";
 
 describe("safe-bash CLI and workspace backend", () => {
+  it.each(["/private/tmp/project", "/tmp/project"])("supports sed backups through the temporary mount alias %s", async workspaceRoot => {
+    const workspaceBackend = new MemoryFileSystem();
+    await workspaceBackend.writeFile("/value.txt", new TextEncoder().encode("before\n"), { mode: 0o640 });
+    await workspaceBackend.writeFile("/value.txt.bak", new TextEncoder().encode("previous\n"), { mode: 0o600 });
+    const output: Uint8Array[] = [];
+    const errors: Uint8Array[] = [];
+    const status = await runSafeBashCli(["-c", "sed -i.bak 's/before/after/' value.txt && sed -i 's/after/done/' value.txt && cat value.txt value.txt.bak"], {
+      workspaceRoot, cwd: workspaceRoot, workspaceBackend, homeDir: "/Users/test",
+      stdout: bytes => { output.push(bytes); }, stderr: bytes => { errors.push(bytes); }
+    });
+    expect(Buffer.concat(errors).toString()).toBe("");
+    expect(status).toBe(0);
+    expect(Buffer.concat(output).toString()).toBe("done\nbefore\n");
+    expect((await workspaceBackend.stat("/value.txt.bak")).mode & 0o7777).toBe(0o640);
+    expect((await workspaceBackend.readdir("/")).map(entry => entry.name).sort()).toEqual(["value.txt", "value.txt.bak"]);
+  });
   it("persists writes through both macOS temporary-directory aliases across invocations", async () => {
     const workspaceBackend = new MemoryFileSystem();
     for (const workspaceRoot of ["/private/tmp/project", "/tmp/project"]) {

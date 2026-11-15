@@ -8,6 +8,72 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+for (const mountPath of ["/private/tmp/project", "/tmp/project"]) {
+for (const suffix of ["", ".bak", ".new"]) test(`native Rust sed edits host mount ${mountPath} with suffix '${suffix}'`, {skip: !WebAssembly.Suspending}, async () => {
+  const {createMemoryFileSystem, createMountFileSystem} = await import("@poe-code/safe-fs");
+  const backing = createMemoryFileSystem();
+  await backing.writeFile("/file", Buffer.from("old\n"), {mode:0o640});
+  await backing.link("/file", "/peer");
+  if (suffix === ".bak") await backing.writeFile("/file.bak", Buffer.from("previous\n"), {mode:0o600});
+  const root = createMemoryFileSystem();
+  await root.mkdir("/private/tmp", {recursive:true});
+  await root.mkdir("/tmp");
+  const fs = createMountFileSystem({root, mounts:{"/private/tmp/project":backing, "/tmp/project":backing}});
+  const bash = new RustWasmBash({cwd:mountPath, forceNative:true});
+  const reader = await backing.openReadFile("/file");
+  try {
+    const result = await bash.exec(`sed -i${suffix} s/old/new/ file`, {fs});
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(Buffer.from(await backing.readFile("/file")).toString(), "new\n");
+    assert.equal((await backing.stat("/file")).mode & 0o7777, 0o640);
+    assert.equal(Buffer.from(await reader.read(0, 4)).toString(), "old\n");
+    assert.equal(Buffer.from(await backing.readFile("/peer")).toString(), "old\n");
+    if (suffix) {
+      assert.equal((await backing.stat("/file" + suffix)).ino, (await reader.stat()).ino);
+      assert.equal((await backing.stat("/file" + suffix)).mode & 0o7777, 0o640);
+    }
+    assert.deepEqual((await backing.readdir("/")).map(entry => entry.name).sort(), ["file", ...(suffix ? ["file" + suffix] : []), "peer"]);
+  } finally { await reader.close(); await bash.dispose(); }
+});
+}
+
+for (const refusal of ["synthetic ancestry", "read-only", "replaced ancestor", "cancellation"]) {
+  for (const suffix of ["", ".bak"]) test(`native Rust mounted sed preserves data on ${refusal}, suffix '${suffix}'`, {skip: !WebAssembly.Suspending}, async () => {
+    const {createMemoryFileSystem, createMountFileSystem, createReadOnlyFileSystem} = await import("@poe-code/safe-fs");
+    const backing = createMemoryFileSystem(), root = createMemoryFileSystem();
+    await backing.writeFile("/file", Buffer.from("old\n"));
+    await backing.writeFile("/file.bak", Buffer.from("previous\n"));
+    if (refusal !== "synthetic ancestry") await root.mkdir("/private/tmp", {recursive:true});
+    const mounted = createMountFileSystem({root, mounts:{"/private/tmp/project":refusal === "read-only" ? createReadOnlyFileSystem(backing) : backing}});
+    const controller = new AbortController();
+    let staged = false;
+    const fs = new Proxy(mounted, {get(target, property) {
+      if (property === "createStagedFile") return async (...args) => {
+        const receipt = await target.createStagedFile(...args);
+        staged = true;
+        if (refusal === "replaced ancestor") {
+          await root.rename("/private", "/held");
+          await root.mkdir("/private/tmp", {recursive:true});
+        }
+        if (refusal === "cancellation") controller.abort(new Error("cancel edit"));
+        return receipt;
+      };
+      const member = Reflect.get(target, property, target);
+      return typeof member === "function" ? member.bind(target) : member;
+    }});
+    const bash = new RustWasmBash({cwd:"/private/tmp/project", forceNative:true});
+    try {
+      const invocation = bash.exec(`sed -i${suffix} s/old/new/ file`, {fs, signal:controller.signal});
+      if (refusal === "cancellation") await assert.rejects(invocation, error => error === controller.signal.reason);
+      else assert.notEqual((await invocation).exitCode, 0);
+      assert.equal(staged, refusal === "replaced ancestor" || refusal === "cancellation");
+      assert.equal(Buffer.from(await backing.readFile("/file")).toString(), "old\n");
+      assert.equal(Buffer.from(await backing.readFile("/file.bak")).toString(), "previous\n");
+      assert.deepEqual((await backing.readdir("/")).map(entry => entry.name).sort(), ["file", "file.bak"]);
+    } finally { await bash.dispose(); }
+  });
+}
+
 test("cancellable Rust sleep waits only for an executed command", {skip: !WebAssembly.Suspending}, async () => {
   const bash = new RustWasmBash();
   const controller = new AbortController();

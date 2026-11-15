@@ -26,6 +26,7 @@ mod mdq_order;
 use mdq_links::{Definitions as MdqDefinitions, References as MdqReferences, Target as MdqTarget};
 mod mdq_writer;
 mod pandoc_docx;
+mod pandoc_epub;
 mod pandoc_plain_table;
 mod pandoc_table;
 mod pandoc_list;
@@ -31962,7 +31963,11 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 Ok(blocks) => Some(blocks),
                 Err((status, message)) => return err_out(message, status),
             },
-            "odt" | "epub" | "epub3" => {
+            "epub" | "epub3" => match pandoc_epub::read(&raw_bytes, fs.shell_limits().max_input_bytes) {
+                Ok(blocks) => Some(blocks),
+                Err((status, message)) => return err_out(message, status),
+            },
+            "odt" => {
                 let entries = read_office_archive(&raw_bytes);
                 if let Some(md_bytes) = entries.get("__pandoc_source.md") {
                     parse_pandoc_markdown(&String::from_utf8_lossy(md_bytes), false, PandocPipeTables::Markdown, 0, pandoc_list::Tasks::Markdown, true)

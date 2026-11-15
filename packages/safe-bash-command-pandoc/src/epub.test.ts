@@ -310,3 +310,37 @@ it.each(["%2f", "%5c", "%00", "%7f", "%3a", "%zz", "%2e%2e/%2e%2e/%2e%2e/secret"
   parts["Book/Text/one.xhtml"] = xhtml(`<p><a href="${"unused/../".repeat(64)}${suffix}">bad</a></p>`);
   await expect(read(parts)).rejects.toMatchObject({code: "E_PARSE", format: "epub"});
 });
+
+it("reads nested standard spine order despite reversed ZIP order and a private Markdown hint", async () => {
+  const parts = entries();
+  parts["Book/Text/one.xhtml"] = xhtml("<p>FIRST CHAPTER</p>");
+  parts["Book/Text/two.xhtml"] = xhtml("<p>SECOND CHAPTER</p>");
+  parts["__pandoc_source.md"] = "WRONG PRIVATE HINT";
+  const bytes = await archive(Object.fromEntries(Object.entries(parts).reverse()));
+  const result = await convert([{bytes}], {from: "epub", to: "plain"}, {});
+  expect(result).toMatchObject({kind: "text", text: "FIRST CHAPTER\n\nSECOND CHAPTER\n"});
+});
+
+it.each(["archive", "container", "package", "chapter", "missing chapter", "duplicate id", "duplicate path", "duplicate spine", "depth", "expanded bytes"])(
+  "preserves an existing destination for invalid EPUB %s", async kind => {
+    const parts = entries();
+    if (kind === "container") parts["META-INF/container.xml"] = "<broken>";
+    if (kind === "package") parts["Book/package.opf"] = "<broken>";
+    if (kind === "chapter") parts["Book/Text/two.xhtml"] = "<broken>";
+    if (kind === "missing chapter") delete parts["Book/Text/two.xhtml"];
+    if (kind === "duplicate id") parts["Book/package.opf"] = parts["Book/package.opf"]!.replace('id="two"', 'id="one"');
+    if (kind === "duplicate path") parts["Book/package.opf"] = parts["Book/package.opf"]!.replace('Text/two.xhtml', 'Text/../Text/one.xhtml');
+    if (kind === "duplicate spine") parts["Book/package.opf"] = parts["Book/package.opf"]!.replace('idref="two"', 'idref="one"');
+    if (kind === "depth") parts["Book/Text/two.xhtml"] = xhtml("<div>".repeat(300) + "leaf" + "</div>".repeat(300));
+    const bytes = kind === "archive" ? encode("not an EPUB archive") : await archive(parts);
+    const volume = Volume.fromJSON({"/out.txt": "KEEP"});
+    const result = await createStandalonePandocCommand({limits: {depth: 64, ...(kind === "expanded bytes" ? {expandedBytes: 100} : {})}}).execute({
+      args: ["-f", "epub", "-t", "plain", "-o", "/out.txt"], stdin: [bytes],
+      signal: new AbortController().signal,
+      writeFile: async (path, data) => {volume.writeFileSync(path, data);},
+      stdout: {write: async () => {}}, stderr: {write: async () => {}}
+    });
+    expect(result.exitCode).not.toBe(0);
+    expect(volume.readFileSync("/out.txt", "utf8")).toBe("KEEP");
+  }
+);

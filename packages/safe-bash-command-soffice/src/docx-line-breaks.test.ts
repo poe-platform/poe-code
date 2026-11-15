@@ -28,3 +28,26 @@ for (const bottom of [false, true]) it(`preserves DOCX line positions (${mode}, 
   assert.deepEqual(mode === "command" ? await fs.readFile("/doc.docx") : files.get("/doc.docx"), input);
   assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), mode === "command" ? ["doc.docx", "doc.pdf"] : ["doc.docx"]);
 });
+
+for (const mode of ["sync", "async", "command"] as const)
+for (const [separator, lines] of [["<w:br/>", 1], ['<w:br w:type="textWrapping"/>', 1], ["<w:cr/>", 1], ["<w:br/><w:br/>", 2], ["", 0]] as const)
+for (const bottom of [false, true]) it(`preserves leading DOCX breaks (${mode}, ${separator}, bottom=${bottom})`, async () => {
+  const prefix = '<w:p><w:r><w:t>Filler</w:t></w:r></w:p>'.repeat(bottom ? 32 : 0);
+  const input = createStoredZipArchive({"word/document.xml": new TextEncoder().encode(`<w:document xmlns:w="w"><w:body>${prefix}<w:p>
+    <w:r>
+      ${separator}<w:t>FIRST LINE</w:t>
+    </w:r>
+  </w:p></w:body></w:document>`)});
+  const files = new Map([["/doc.docx", input]]), fs = new MemoryFileSystem();
+  await fs.writeFile("/doc.docx", input);
+  const args = ["--convert-to", "pdf", "/doc.docx"];
+  const result = mode === "sync" ? runSofficeCliSync(args, files) : mode === "async" ? await runSofficeCli(args, files) : await createSofficeCommand().execute({command: "soffice", cwd: "/", env: {}, fs, ...createCommandArguments(args), signal: new AbortController().signal, stdin: toByteSource(""), stdout: {async write() {}}, stderr: {async write() {}}});
+  assert.equal(result.exitCode, 0);
+  const pdf = PdfDocument.load(mode === "command" ? await fs.readFile("/doc.pdf") : files.get("/doc.pdf")!);
+  assert.equal(pdf.pageCount, bottom && lines > 0 ? 2 : 1);
+  const glyph = pdf.getPage(pdf.pageCount - 1).evaluateDisplayList().glyphs.find(glyph => glyph.unicode === "L");
+  assert.ok(glyph);
+  assert.equal(glyph.baselineY, bottom ? (lines ? 720 - (lines - 1) * 15 : 80) : 720 - lines * 15);
+  assert.deepEqual(mode === "command" ? await fs.readFile("/doc.docx") : files.get("/doc.docx"), input);
+  assert.deepEqual((await fs.readdir("/")).map(entry => entry.name).sort(), mode === "command" ? ["doc.docx", "doc.pdf"] : ["doc.docx"]);
+});

@@ -141,7 +141,7 @@ function parseDocxBlocks(zipBytes: Uint8Array): { blocks: DocBlock[]; width: num
       const before = element.children.find(child => child.localName === "pPr")?.children.find(child => child.localName === "pageBreakBefore");
       if (before && [undefined, "1", "true", "on"].includes(attribute(before, "val"))) blocks.push({kind: "pageBreakBefore"});
       let text = "";
-      const flush = () => { if (text.trim()) blocks.push({kind, text: text.trim()}); text = ""; };
+      const flush = () => { const value = text.split("\n").map(line => line.trim()).join("\n"); if (value) blocks.push({kind, text: value}); text = ""; };
       const runs = [...element.children].reverse();
       while (runs.length) {
         const run = runs.pop()!;

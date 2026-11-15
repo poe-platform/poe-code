@@ -13,9 +13,10 @@ fn attr<'a>(element: &'a xml::Element, name: &str) -> Option<&'a str> {
         .map(|(_, value)| value.as_str())
 }
 fn flush(text: &mut String, blocks: &mut Vec<LayoutBlock>) {
-    if !text.trim().is_empty() {
+    let value = text.trim_matches(|c: char| c != '\n' && c.is_whitespace());
+    if !value.is_empty() {
         blocks.push(LayoutBlock::Office(Block::Text(
-            text.trim().to_owned(),
+            value.to_owned(),
             false,
         )));
     }

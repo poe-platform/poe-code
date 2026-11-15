@@ -139,7 +139,7 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
     const joined = await runs.finish(), decoder = new TextDecoder("utf-8", { ignoreBOM: true });
     if (!trim) return joined;
     let first = -1, last = 0, offset = 0;
-    const inspect = (text: string) => { for (const char of text) { const point = char.codePointAt(0)!, size = point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4; if (char.trim()) { if (first < 0) first = offset; last = offset + size; } offset += size; } };
+    const inspect = (text: string) => { for (const char of text) { const point = char.codePointAt(0)!, size = point < 128 ? 1 : point < 2048 ? 2 : point < 65536 ? 3 : 4; if (char === "\n" || char.trim()) { if (first < 0) first = offset; last = offset + size; } offset += size; } };
     for await (const bytes of read(joined)) inspect(decoder.decode(bytes, { stream: true })); inspect(decoder.decode());
     return { position: joined.position + Math.max(0, first), size: first < 0 ? 0 : last - first, trim: Math.max(0, first), ...(preserveStyles ? {styles: await styles.finish()} : {}) };
   };

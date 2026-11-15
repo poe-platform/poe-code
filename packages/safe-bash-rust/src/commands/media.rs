@@ -17765,6 +17765,43 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn soffice_preserves_leading_docx_line_breaks() {
+        for (separator, lines) in [
+            ("<w:br/>", 1), (r#"<w:br w:type="textWrapping"/>"#, 1),
+            ("<w:cr/>", 1), ("<w:br/><w:br/>", 2), ("", 0),
+        ] {
+            for bottom in [false, true] {
+                let fs = MemoryVfs::new();
+                let prefix = "<w:p><w:r><w:t>Filler</w:t></w:r></w:p>".repeat(if bottom {32} else {0});
+                let xml = format!(r#"<w:document xmlns:w="w"><w:body>{prefix}<w:p>
+                    <w:r>{separator}<w:t>FIRST LINE</w:t></w:r>
+                </w:p></w:body></w:document>"#);
+                let input = crate::commands::structured::write_zip_stored(&[("word/document.xml", xml.as_bytes())]);
+                fs.write_file("/doc.docx", &input).unwrap();
+                let result = cmd_media_doc("soffice", &media_args(&["--convert-to", "pdf", "/doc.docx"]), "", "/", &fs);
+                assert_eq!(result.exit_code, 0, "{}", result.stderr);
+                let bytes = fs.read_file("/doc.pdf").unwrap();
+                let mut source = pdf_reader::PageSource::open(&bytes, "").unwrap();
+                let page = if bottom && lines > 0 {2} else {1};
+                assert_eq!(source.len(), page, "{separator}, bottom={bottom}");
+                let text = source.text_lines(page, None).unwrap();
+                let first = text.iter().find(|line| line.text.contains("FIRST LINE")).unwrap();
+                let y = if bottom {if lines > 0 {720. - f64::from(lines - 1) * 15.} else {80.}} else {720. - f64::from(lines) * 15.};
+                // Text bounds include the font descent; compare against the no-break baseline.
+                let control_fs = MemoryVfs::new();
+                control_fs.write_file("/control.docx", &crate::commands::structured::write_zip_stored(&[("word/document.xml", br#"<w:document xmlns:w="w"><w:body><w:p><w:r><w:t>FIRST LINE</w:t></w:r></w:p></w:body></w:document>"#)])).unwrap();
+                let result = cmd_media_doc("soffice", &media_args(&["--convert-to", "pdf", "/control.docx"]), "", "/", &control_fs);
+                assert_eq!(result.exit_code, 0, "{}", result.stderr);
+                let control = control_fs.read_file("/control.pdf").unwrap();
+                let mut control = pdf_reader::PageSource::open(&control, "").unwrap();
+                let control = control.text_lines(1, None).unwrap();
+                assert!((first.bounds[1] - control[0].bounds[1] - (y - 720.)).abs() < 0.001, "{separator}, bottom={bottom}");
+                assert_eq!(fs.read_file("/doc.docx").unwrap(), input);
+            }
+        }
+    }
+
+    #[test]
     fn soffice_preserves_docx_page_breaks_and_images() {
         for ((twips_w, twips_h, width, height), kind) in [
             (12240, 15840, 612., 792.), (11906, 16838, 595.3, 841.9), (15840, 12240, 792., 612.)

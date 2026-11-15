@@ -1,6 +1,6 @@
-use super::super::{office::Block, png_pixels::Raster};
+use super::super::png_pixels::Raster;
 use super::{
-    pdf_office::{LayoutBlock, render_blocks},
+    pdf_office::{LayoutBlock, TextStyle, render_blocks},
     pdf_pptx::{archive, document, elements, relationships},
 };
 use crate::commands::structured::xml;
@@ -12,15 +12,12 @@ fn attr<'a>(element: &'a xml::Element, name: &str) -> Option<&'a str> {
         .find(|(key, _)| key.rsplit(':').next() == Some(name))
         .map(|(_, value)| value.as_str())
 }
-fn flush(text: &mut String, blocks: &mut Vec<LayoutBlock>) {
-    let value = text.trim_matches(|c: char| c != '\n' && c.is_whitespace());
-    if !value.is_empty() {
-        blocks.push(LayoutBlock::Office(Block::Text(
-            value.to_owned(),
-            false,
-        )));
+fn flush(text: &mut String, styles: &mut Vec<TextStyle>, blocks: &mut Vec<LayoutBlock>) {
+    if !text.trim_matches(|c: char| c != '\n' && c.is_whitespace()).is_empty() {
+        blocks.push(LayoutBlock::Text(std::mem::take(text), false, std::mem::take(styles)));
     }
     text.clear();
+    styles.clear();
 }
 pub(in super::super) fn render_docx(
     bytes: &[u8],
@@ -63,28 +60,51 @@ pub(in super::super) fn render_docx(
         }
         let first_block = blocks.len();
         let mut text = String::new();
-        let mut pending: Vec<_> = paragraph.children.iter().rev().collect();
-        while let Some(node) = pending.pop() {
+        let mut styles = Vec::new();
+        let mut pending: Vec<_> = paragraph.children.iter().rev().map(|node| (node, false, false)).collect();
+        while let Some((node, mut bold, mut italic)) = pending.pop() {
             let xml::Node::Element(element) = node else {
                 continue;
             };
+            if element.tag.rsplit(':').next() == Some("r") {
+                bold = false;
+                italic = false;
+                for properties in &element.children {
+                    if let xml::Node::Element(properties) = properties
+                        && properties.tag.rsplit(':').next() == Some("rPr") {
+                        for property in &properties.children {
+                            if let xml::Node::Element(property) = property {
+                                let enabled = matches!(attr(property, "val"), None | Some("1" | "true" | "on"));
+                                match property.tag.rsplit(':').next() {
+                                    Some("b") => bold = enabled,
+                                    Some("i") => italic = enabled,
+                                    _ => {},
+                                }
+                            }
+                        }
+                    }
+                }
+            }
             match element.tag.rsplit(':').next()? {
                 "pPr" | "rPr" => {}
                 "t" => {
                     for node in &element.children {
                         if let xml::Node::Text(value, _) | xml::Node::Cdata(value) = node {
+                            if bold || italic {
+                                styles.push(TextStyle { start: text.len(), end: text.len() + value.len(), bold, italic });
+                            }
                             text.push_str(value);
                         }
                     }
                 }
                 "tab" => text.push('\t'),
                 "br" if attr(element, "type") == Some("page") => {
-                    flush(&mut text, &mut blocks);
+                    flush(&mut text, &mut styles, &mut blocks);
                     blocks.push(LayoutBlock::PageBreak(false));
                 }
                 "br" | "cr" => text.push('\n'),
                 "drawing" | "pict" => {
-                    flush(&mut text, &mut blocks);
+                    flush(&mut text, &mut styles, &mut blocks);
                     let blips = elements(&element.children, "blip");
                     let Some(blip) = blips.first() else {
                         continue;
@@ -126,12 +146,12 @@ pub(in super::super) fn render_docx(
                     }
                     blocks.push(LayoutBlock::Image(raster, width, height));
                 }
-                _ => pending.extend(element.children.iter().rev()),
+                _ => pending.extend(element.children.iter().rev().map(|node| (node, bold, italic))),
             }
         }
-        flush(&mut text, &mut blocks);
+        flush(&mut text, &mut styles, &mut blocks);
         if blocks.len() == first_block {
-            blocks.push(LayoutBlock::Office(Block::Text(String::new(), false)));
+            blocks.push(LayoutBlock::Text(String::new(), false, Vec::new()));
         }
     }
     render_blocks(blocks, title, filter, limit, page_size)

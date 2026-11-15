@@ -14,28 +14,46 @@ use std::io::Write;
 #[derive(Default)]
 struct Page {
     stream: Vec<u8>,
-    fonts: Vec<bool>,
+    fonts: Vec<&'static str>,
     images: Vec<(super::super::png_pixels::Raster, f64, f64, f64)>,
 }
 impl Page {
-    fn text(&mut self, s: &str, x: f64, y: f64, size: u8, bold: bool, rgb: &str) {
-        let font = self
-            .fonts
-            .iter()
-            .position(|&b| b == bold)
-            .unwrap_or_else(|| {
-                self.fonts.push(bold);
-                self.fonts.len() - 1
-            })
-            + 1;
-        writeln!(
-            self.stream,
-            "q\n{rgb} rg\nBT\n/F{font} {size} Tf\n1 0 0 1 {} {y} Tm",
-            super::super::svg_format_num(x, 6)
-        )
-        .unwrap();
-        literal(&win_ansi(s), &mut self.stream);
-        self.stream.extend_from_slice(b" Tj\nET\nQ\n");
+    fn text(&mut self, runs: &[(&str, &'static str)], x: f64, y: f64, size: u8, rgb: &str) {
+        writeln!(self.stream, "q\n{rgb} rg\nBT").unwrap();
+        let mut first = true;
+        let mut runs = runs.iter().peekable();
+        while let Some(&(text, name)) = runs.next() {
+            let mut text = text.to_owned();
+            while let Some(&&(next, font)) = runs.peek() {
+                if font != name {
+                    break;
+                }
+                text.push_str(next);
+                runs.next();
+            }
+            let font = self
+                .fonts
+                .iter()
+                .position(|&font| font == name)
+                .unwrap_or_else(|| {
+                    self.fonts.push(name);
+                    self.fonts.len() - 1
+                })
+                + 1;
+            writeln!(self.stream, "/F{font} {size} Tf").unwrap();
+            if first {
+                writeln!(
+                    self.stream,
+                    "1 0 0 1 {} {y} Tm",
+                    super::super::svg_format_num(x, 6)
+                )
+                .unwrap();
+                first = false;
+            }
+            literal(&win_ansi(&text), &mut self.stream);
+            self.stream.extend_from_slice(b" Tj\n");
+        }
+        self.stream.extend_from_slice(b"ET\nQ\n");
     }
 }
 pub(in super::super) fn render_office(
@@ -45,7 +63,13 @@ pub(in super::super) fn render_office(
     limit: usize,
 ) -> Option<Vec<u8>> {
     render_blocks(
-        blocks.into_iter().map(LayoutBlock::Office).collect(),
+        blocks
+            .into_iter()
+            .map(|block| match block {
+                Block::Text(text, heading) => LayoutBlock::Text(text, heading, Vec::new()),
+                Block::Table(rows) => LayoutBlock::Table(rows),
+            })
+            .collect(),
         title,
         filter,
         limit,
@@ -53,8 +77,15 @@ pub(in super::super) fn render_office(
     )
 }
 
+pub(super) struct TextStyle {
+    pub start: usize,
+    pub end: usize,
+    pub bold: bool,
+    pub italic: bool,
+}
 pub(super) enum LayoutBlock {
-    Office(Block),
+    Text(String, bool, Vec<TextStyle>),
+    Table(Vec<Vec<String>>),
     Image(super::super::png_pixels::Raster, f64, f64),
     PageBreak(bool),
 }
@@ -79,22 +110,23 @@ pub(super) fn render_blocks(
     };
     for block in blocks {
         match block {
-            LayoutBlock::Office(Block::Text(t, bold)) => {
-                let max = (content_width * if bold { 48. / 504. } else { 84. / 504. })
+            LayoutBlock::Text(t, heading, styles) => {
+                let mut style_index = 0;
+                let max = (content_width * if heading { 48. / 504. } else { 84. / 504. })
                     .floor()
                     .max(1.) as usize;
                 for segment in t.split('\n') {
                     let mut words = segment.split_whitespace().peekable();
                     loop {
-                        let mut line = words.next().unwrap_or("").to_string();
-                        let mut length = line.encode_utf16().count();
+                        let first = words.next().unwrap_or("");
+                        let mut line = vec![first];
+                        let mut length = first.encode_utf16().count();
                         while let Some(&w) = words.peek() {
                             let n = w.encode_utf16().count();
                             if length + 1 + n > max {
                                 break;
                             }
-                            line.push(' ');
-                            line.push_str(w);
+                            line.push(w);
                             length += 1 + n;
                             words.next();
                         }
@@ -102,29 +134,70 @@ pub(super) fn render_blocks(
                             &mut pages,
                             &mut y,
                             &mut finished,
-                            if bold { 26. } else { 16. },
+                            if heading { 26. } else { 16. },
                         )?;
+                        let mut runs = Vec::new();
+                        let mut font = if heading {
+                            "Helvetica-Bold"
+                        } else {
+                            "Helvetica"
+                        };
+                        for (index, word) in line.iter().enumerate() {
+                            if index > 0 {
+                                runs.push((" ", font));
+                            }
+                            if word.is_empty() {
+                                runs.push(("", font));
+                                continue;
+                            }
+                            let mut offset = word.as_ptr() as usize - t.as_ptr() as usize;
+                            let limit = offset + word.len();
+                            while offset < limit {
+                                while styles
+                                    .get(style_index)
+                                    .is_some_and(|style| style.end <= offset)
+                                {
+                                    style_index += 1;
+                                }
+                                let style = styles.get(style_index);
+                                let active = style.filter(|style| style.start <= offset);
+                                let end = limit.min(active.map_or_else(
+                                    || style.map_or(limit, |style| style.start),
+                                    |style| style.end,
+                                ));
+                                font = match (
+                                    heading || active.is_some_and(|style| style.bold),
+                                    active.is_some_and(|style| style.italic),
+                                ) {
+                                    (true, true) => "Helvetica-BoldOblique",
+                                    (true, false) => "Helvetica-Bold",
+                                    (false, true) => "Helvetica-Oblique",
+                                    (false, false) => "Helvetica",
+                                };
+                                runs.push((&t[offset..end], font));
+                                offset = end;
+                            }
+                        }
                         pages.last_mut()?.text(
-                            &line,
+                            &runs,
                             54.,
                             y,
-                            if bold { 18 } else { 11 },
-                            bold,
-                            if bold {
+                            if heading { 18 } else { 11 },
+                            if heading {
                                 "0.1 0.15 0.28"
                             } else {
                                 "0.15 0.15 0.15"
                             },
                         );
-                        y -= if bold { 24. } else { 15. };
+                        y -= if heading { 24. } else { 15. };
                         if words.peek().is_none() {
                             break;
                         }
                     }
                 }
-                y -= if bold { 4. } else { 5. };
+                y -= if heading { 4. } else { 5. };
             }
-            LayoutBlock::Office(Block::Table(rows)) => {
+            LayoutBlock::Table(rows) => {
                 let width =
                     content_width / rows.iter().map(Vec::len).max().unwrap_or(1).max(1) as f64;
                 for (i, row) in rows.into_iter().enumerate() {
@@ -151,7 +224,20 @@ pub(super) fn render_blocks(
                             writeln!(page.stream, "q\n{stroke}\n{n} {bottom} m\n{n} {y} l\nS\nQ")
                                 .ok()?;
                         }
-                        page.text(&c, x + 6., bottom + 6., 10, i == 0, "0 0 0");
+                        page.text(
+                            &[(
+                                &c,
+                                if i == 0 {
+                                    "Helvetica-Bold"
+                                } else {
+                                    "Helvetica"
+                                },
+                            )],
+                            x + 6.,
+                            bottom + 6.,
+                            10,
+                            "0 0 0",
+                        );
                     }
                     y = bottom;
                 }
@@ -233,8 +319,7 @@ pub(super) fn render_blocks(
             format!("/XObject << {resources} >>\n")
         };
         bodies.push(format!("<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [ 0 0 {width} {height} ]\n/Resources <<\n/Font <<\n{fonts}>>\n{resources}>>\n/Contents {content} 0 R\n>>").into_bytes());
-        for bold in page.fonts {
-            let font = if bold { "Helvetica-Bold" } else { "Helvetica" };
+        for font in page.fonts {
             bodies.push(format!("<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /{font}\n/Encoding /WinAnsiEncoding\n>>").into_bytes());
         }
     }

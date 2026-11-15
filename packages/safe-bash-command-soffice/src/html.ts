@@ -6,6 +6,7 @@ export interface DocBlock {
   kind: "heading" | "paragraph" | "table" | "image" | "pageBreak" | "pageBreakBefore";
   text?: string;
   preformatted?: boolean;
+  styles?: { start: number; end: number; bold: boolean; italic: boolean }[];
   rows?: string[][];
   imageBytes?: Uint8Array;
   width?: number;

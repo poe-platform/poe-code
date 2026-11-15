@@ -36,6 +36,10 @@ mod pdf_blend;
 mod pdf_raster;
 pub(in crate::commands::archive) use pdf_raster::{RasterBackend, RasterOptions};
 
+#[cfg(test)]
+#[path = "pdf_docx_inline_tests.rs"]
+mod pdf_docx_inline_tests;
+
 type Matrix = [f64; 6];
 const ID: Matrix = [1., 0., 0., 1., 0., 0.];
 fn concat([a, b, c, d, e, f]: Matrix, n: Matrix) -> Matrix {

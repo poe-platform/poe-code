@@ -142,11 +142,29 @@ function parseDocxBlocks(zipBytes: Uint8Array, pdf: boolean): { blocks: DocBlock
       if (before && [undefined, "1", "true", "on"].includes(attribute(before, "val"))) blocks.push({kind: "pageBreakBefore"});
       const firstBlock = blocks.length;
       let text = "";
-      const flush = () => { const value = text.split("\n").map(line => line.trim()).join("\n"); if (value) blocks.push({kind, text: value}); text = ""; };
-      const runs = [...element.children].reverse();
+      let styles: NonNullable<DocBlock["styles"]> = [];
+      const flush = () => {
+        const value = text.split("\n").map(line => line.trim()).join("\n");
+        if (value) blocks.push(pdf && styles.length ? {kind, text, styles} : {kind, text: value});
+        text = ""; styles = [];
+      };
+      const runs = [...element.children].reverse().map(run => ({run, bold: false, italic: false}));
       while (runs.length) {
-        const run = runs.pop()!;
-        if (run.localName === "t") text += run.text;
+        const current = runs.pop()!;
+        const {run} = current;
+        let {bold, italic} = current;
+        if (run.localName === "r") {
+          bold = false; italic = false;
+          for (const property of run.children.find(child => child.localName === "rPr")?.children ?? []) {
+            const enabled = [undefined, "1", "true", "on"].includes(attribute(property, "val"));
+            if (property.localName === "b") bold = enabled;
+            if (property.localName === "i") italic = enabled;
+          }
+        }
+        if (run.localName === "t") {
+          if (pdf && (bold || italic)) styles.push({start: text.length, end: text.length + run.text.length, bold, italic});
+          text += run.text;
+        }
         else if (run.localName === "tab") text += "\t";
         else if (run.localName === "br" && attribute(run, "type") === "page") { flush(); blocks.push({kind: "pageBreak"}); }
         else if (run.localName === "br" || run.localName === "cr") text += "\n";
@@ -162,7 +180,7 @@ function parseDocxBlocks(zipBytes: Uint8Array, pdf: boolean): { blocks: DocBlock
           let height = docxImageDimension(extent && attribute(extent, "cy"), 226.8);
           if (width > contentWidth) { height *= contentWidth / width; width = contentWidth; }
           blocks.push({kind: "image", imageBytes, width, height});
-        } else if (run.localName !== "pPr" && run.localName !== "rPr") runs.push(...[...run.children].reverse());
+        } else if (run.localName !== "pPr" && run.localName !== "rPr") runs.push(...[...run.children].reverse().map(run => ({run, bold, italic})));
       }
       flush();
       if (pdf && blocks.length === firstBlock) blocks.push({kind, text: ""});
@@ -446,34 +464,39 @@ function* renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document", {wi
     if (++work % 32 === 0) yield undefined;
     if (block.kind === "pageBreak" || block.kind === "pageBreakBefore") {
       if (block.kind === "pageBreak" || y !== height - 72) { page = doc.addPage([width, height]); y = height - 72; }
-    } else if (block.kind === "heading") {
-      const lines = (block.text ?? "").split("\n").flatMap(line => wrapTextLines(line, Math.max(1, Math.floor((width - 108) * 48 / 504))));
+    } else if (block.kind === "heading" || block.kind === "paragraph") {
+      const heading = block.kind === "heading", size = heading ? 18 : 11;
+      const text = block.text ?? "", styles = block.styles ?? [];
+      const lines = text.split("\n").flatMap(line => block.preformatted ? [line] : wrapTextLines(line, Math.max(1, Math.floor((width - 108) * (heading ? 48 : 84) / 504))));
+      const color = heading ? rgb(0.1, 0.15, 0.28) : rgb(0.15, 0.15, 0.15);
+      let offset = 0, styleIndex = 0;
       for (const line of lines) {
-        ensureSpace(26);
-        page.drawText(line, {
-          x: 54,
-          y,
-          size: 18,
-          font: "Helvetica-Bold",
-          color: rgb(0.1, 0.15, 0.28)
-        });
-        y -= 24;
+        ensureSpace(heading ? 26 : 16);
+        let font = doc.embedStandardFont(heading ? "Helvetica-Bold" : block.preformatted ? "Courier" : "Helvetica");
+        if (!styles.length) page.drawText(line, {x: 54, y, size, font, color});
+        else {
+          let x = 54;
+          for (const [index, word] of line.split(" ").entries()) {
+            if (index) { page.drawText(" ", {x, y, size, font, color}); x += font.widthOfTextAtSize(" ", size); }
+            offset = text.indexOf(word, offset);
+            const limit = offset + word.length;
+            while (offset < limit) {
+              while (styles[styleIndex] && styles[styleIndex]!.end <= offset) styleIndex++;
+              const style = styles[styleIndex];
+              const active = style && style.start <= offset ? style : undefined;
+              const end = Math.min(limit, active ? active.end : style?.start ?? limit);
+              const bold = heading || active?.bold, italic = active?.italic;
+              font = doc.embedStandardFont(bold ? italic ? "Helvetica-BoldOblique" : "Helvetica-Bold" : italic ? "Helvetica-Oblique" : "Helvetica");
+              const part = text.slice(offset, end);
+              page.drawText(part, {x, y, size, font, color});
+              x += font.widthOfTextAtSize(part, size);
+              offset = end;
+            }
+          }
+        }
+        y -= heading ? 24 : 15;
       }
-      y -= 4;
-    } else if (block.kind === "paragraph") {
-      const lines = (block.text ?? "").split("\n").flatMap(line => block.preformatted ? [line] : wrapTextLines(line, Math.max(1, Math.floor((width - 108) / 6))));
-      for (const line of lines) {
-        ensureSpace(16);
-        page.drawText(line, {
-          x: 54,
-          y,
-          size: 11,
-          font: block.preformatted ? "Courier" : "Helvetica",
-          color: rgb(0.15, 0.15, 0.15)
-        });
-        y -= 15;
-      }
-      y -= 5;
+      y -= heading ? 4 : 5;
     } else if (block.kind === "table" && block.rows) {
       const colCount = Math.max(1, ...block.rows.map((r) => r.length));
       const tableWidth = Math.max(1, width - 108);

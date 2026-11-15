@@ -58,8 +58,11 @@ test("timeout legacy invocation forwards cancellation, omits carrier metadata an
       assert.equal(command, "capture");
       assert.deepEqual(selected, ["before"]);
       assert.ok(Object.isFrozen(selected));
-      assert.deepEqual(options, { signal: context.signal, stdin, stdout, stderr });
+      assert.deepEqual(options, { externalInvocation: true, signal: context.signal, stdin, stdout, stderr });
       assert.equal(options?.signal, context.signal);
+      assert.equal(options?.stdin, stdin);
+      assert.equal(options?.stdout, stdout);
+      assert.equal(options?.stderr, stderr);
       return { exitCode: 7 };
     },
   };

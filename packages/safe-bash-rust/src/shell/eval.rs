@@ -5724,6 +5724,9 @@ impl<'a> EvalState<'a> {
                     Ok(BuiltinOutcome { stdout: String::new(), stderr: format!("env: {target}: command not found\n"), exit_code: 127 })
                 } else {
                     if mode == DispatchMode::EnvShebang { sub_eval.functions.clear(); }
+                    else if effective_cmd == "timeout" {
+                        sub_eval.functions.retain(|name, _| sub_eval.exported_functions.contains(name));
+                    }
                     sub_eval.dispatch_words(sub_words, sub_stdin, DispatchMode::External)
                 };
                 sub_eval.budget.leave_substitution();

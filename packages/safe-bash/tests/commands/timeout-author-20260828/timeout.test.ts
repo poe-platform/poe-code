@@ -152,8 +152,12 @@ test("zero disables deadline resources and transparently forwards literal invoca
   assert.deepEqual(observed, {
     command: "child",
     args: ["--signal", "x"],
-    options: { signal: capture.context.signal, stdin, stdinIsDefault: false, stdout, stderr },
+    options: { externalInvocation: true, signal: capture.context.signal, stdin, stdinIsDefault: false, stdout, stderr },
   });
+  assert.equal(observed?.options?.signal, capture.context.signal);
+  assert.equal(observed?.options?.stdin, stdin);
+  assert.equal(observed?.options?.stdout, stdout);
+  assert.equal(observed?.options?.stderr, stderr);
 });
 
 test("present malformed invoke never falls back and absent invoke uses standalone fallback", async () => {
@@ -311,6 +315,27 @@ test("actual Shell registry invocation preserves literal argv and child status",
     await shell.dispose();
   }
 });
+
+for (const duration of ["0", "1s"]) {
+  for (const entry of [
+    { script: `myfn() { printf intercepted; }; timeout ${duration} myfn`, exitCode: 127, stdout: "" },
+    { script: `echo() { printf intercepted; }; timeout ${duration} echo expected`, exitCode: 0, stdout: "expected\n" },
+    { script: `timeout ${duration} sh -c 'exit 7'`, exitCode: 7, stdout: "" },
+    { script: `echo() { printf intercepted; }; timeout ${duration} echo expected; echo`, exitCode: 0, stdout: "expected\nintercepted" },
+    { script: `myfn() { printf exported; }; export -f myfn; timeout ${duration} sh -c myfn`, exitCode: 0, stdout: "exported" },
+  ]) test(`timeout external dispatch through actual Shell: ${entry.script}`, async () => {
+    const shell = new Shell({ fs: createMemoryFileSystem(), commands: new CommandRegistry(createAgentCommands()) });
+    try {
+      const result = await shell.exec(entry.script);
+      assert.equal(result.exitCode, entry.exitCode, result.stderr);
+      assert.equal(result.stdout, entry.stdout);
+      if (entry.exitCode === 127) assert.ok(result.stderr.includes("myfn: command not found"), result.stderr);
+      else assert.equal(result.stderr, "");
+    } finally {
+      await shell.dispose();
+    }
+  });
+}
 
 test("public aggregate includes timeout and the other approved commands", () => {
   const names = createAgentCommands().map(command => command.name);

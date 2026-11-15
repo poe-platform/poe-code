@@ -191,3 +191,36 @@ fn name_valued_text_fields_keep_their_visible_value() {
         fs.read_file("/string-1.png").unwrap()
     );
 }
+
+#[test]
+fn malformed_buttons_preserve_existing_outputs() {
+    let cases = [
+        "/Rect [1 2 3]".to_owned(),
+        "/MK << /BG [1 2] >>".into(),
+        "/MK << /R 13 >>".into(),
+        "/MK << /BC [0] >> /BS << /S /D /D [-1] >>".into(),
+        "/Parent 4 0 R".into(),
+        format!("/MK << /CA ({}) >>", "x".repeat(65537)),
+    ];
+    for command in ["pdftoppm", "pdftocairo"] {
+        for extra in &cases {
+            let pdf = annotation_pdf(&format!("/Subtype /Widget /FT /Btn /Ff 65536 {extra}"));
+            let fs = MemoryVfs::new();
+            fs.write_file("/input.pdf", &pdf).unwrap();
+            fs.write_file("/out-1.png", b"sentinel").unwrap();
+            let args = ["-png", "-r", "72", "/input.pdf", "/out"].map(String::from);
+            let result =
+                try_run_archive_command(command, &args, "", "/", &Default::default(), &fs).unwrap();
+            assert_ne!(result.exit_code, 0, "accepted malformed button");
+            assert_eq!(fs.read_file("/out-1.png").unwrap(), b"sentinel");
+            assert_eq!(fs.read_file("/input.pdf").unwrap(), pdf);
+            let args = [vec!["-hide-annotations".into()], args.to_vec()].concat();
+            assert_eq!(
+                try_run_archive_command(command, &args, "", "/", &Default::default(), &fs)
+                    .unwrap()
+                    .exit_code,
+                0
+            );
+        }
+    }
+}

@@ -1,0 +1,73 @@
+%PDF-1.7
+1 0 obj
+<< /Type /Catalog /Pages 2 0 R /AcroForm 3 0 R >>
+endobj
+2 0 obj
+<< /Type /Pages /Count 6 /Kids [6 0 R 8 0 R 10 0 R 12 0 R 14 0 R 16 0 R] >>
+endobj
+3 0 obj
+<< /Fields [5 0 R 7 0 R 9 0 R 11 0 R 13 0 R 15 0 R] /NeedAppearances true /DR << /Font << /Helv 4 0 R >> >> >>
+endobj
+4 0 obj
+<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica /Encoding /WinAnsiEncoding >>
+endobj
+5 0 obj
+<< /Type /Annot /Subtype /Widget /FT /Btn /T (checkbox-on) /Rect [20 20 60 60] /DA (/Helv 12 Tf 0 g) /MK << /BG [.9 .95 1] /BC [.1 .2 .4] /CA (4) >> /BS << /W 1 /S /S >> /V /Yes /AS /Yes >>
+endobj
+6 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [5 0 R] >>
+endobj
+7 0 obj
+<< /Type /Annot /Subtype /Widget /FT /Btn /T (checkbox-off) /Rect [20 20 60 60] /DA (/Helv 12 Tf 0 g) /MK << /BG [.9 .95 1] /BC [.1 .2 .4] /CA (4) >> /BS << /W 1 /S /S >> /V /Off /AS /Off >>
+endobj
+8 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [7 0 R] >>
+endobj
+9 0 obj
+<< /Type /Annot /Subtype /Widget /FT /Btn /T (radio-on) /Rect [20 20 60 60] /DA (/Helv 12 Tf 0 g) /MK << /BG [.9 .95 1] /BC [.1 .2 .4] /CA (l) >> /BS << /W 1 /S /S >> /Ff 32768 /V /Yes /AS /Yes >>
+endobj
+10 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [9 0 R] >>
+endobj
+11 0 obj
+<< /Type /Annot /Subtype /Widget /FT /Btn /T (radio-off) /Rect [20 20 60 60] /DA (/Helv 12 Tf 0 g) /MK << /BG [.9 .95 1] /BC [.1 .2 .4] /CA (l) >> /BS << /W 1 /S /S >> /Ff 32768 /V /Off /AS /Off >>
+endobj
+12 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [11 0 R] >>
+endobj
+13 0 obj
+<< /Type /Annot /Subtype /Widget /FT /Btn /T (push-caption) /Rect [20 20 180 60] /DA (/Helv 12 Tf 0 g) /MK << /BG [.9 .95 1] /BC [.1 .2 .4] /CA (Continue) >> /BS << /W 1 /S /S >> /Ff 65536 >>
+endobj
+14 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [13 0 R] >>
+endobj
+15 0 obj
+<< /Type /Annot /Subtype /Widget /FT /Btn /T (checkbox-hidden) /Rect [20 20 60 60] /DA (/Helv 12 Tf 0 g) /MK << /BG [.9 .95 1] /BC [.1 .2 .4] /CA (4) >> /BS << /W 1 /S /S >> /V /Yes /AS /Yes /F 2 >>
+endobj
+16 0 obj
+<< /Type /Page /Parent 2 0 R /MediaBox [0 0 200 100] /Resources << >> /Annots [15 0 R] >>
+endobj
+xref
+0 17
+0000000000 65535 f 
+0000000009 00000 n 
+0000000074 00000 n 
+0000000165 00000 n 
+0000000291 00000 n 
+0000000388 00000 n 
+0000000593 00000 n 
+0000000697 00000 n 
+0000000903 00000 n 
+0000001007 00000 n 
+0000001219 00000 n 
+0000001324 00000 n 
+0000001538 00000 n 
+0000001644 00000 n 
+0000001852 00000 n 
+0000001958 00000 n 
+0000002173 00000 n 
+trailer
+<< /Size 17 /Root 1 0 R >>
+startxref
+2279
+%%EOF

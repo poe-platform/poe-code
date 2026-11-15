@@ -21,94 +21,102 @@ import {
   runPdftocairoCli,
   runPdftocairoCliSync
 } from "./index.js";
-const pdf = new Uint8Array(
+const textWidgets = new Uint8Array(
   readFileSync(
     new URL("../../safe-bash-rust/tests/fixtures/pdf-widgets-extended.pdf", import.meta.url)
   )
 );
-for (const run of [runPdftoppmCli, runPdftoppmCliSync, runPdftocairoCli, runPdftocairoCliSync])
-  it(`${run.name} renders and hides form widgets`, async () => {
-    const doc = PdfDocument.load(pdf);
-    for (const hide of [false, true]) {
-      const files = new Map([["input.pdf", pdf]]);
-      const result = await run(
-        [...(hide ? ["-hide-annotations"] : []), "-png", "-r", "72", "input.pdf", "page"],
-        files
-      );
-      expect(result.exitCode, result.stderr).toBe(0);
-      const outputs = [...files.entries()]
-        .filter(([name]) => name.startsWith("page-"))
-        .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }));
-      expect(outputs).toHaveLength(20);
-      for (const [i, [, bytes]] of outputs.entries())
-        expect(
-          Buffer.from(decodePng(bytes).data).equals(
-            Buffer.from(
-              doc
-                .getPage(i)
-                .renderToBitmap({
+const buttons = new Uint8Array(
+  readFileSync(
+    new URL("../../safe-bash-rust/tests/fixtures/pdf-buttons-extended.pdf", import.meta.url)
+  )
+);
+for (const { kind, bytes: pdf, count, first, last } of [
+  { kind: "text/choice", bytes: textWidgets, count: 20, first: 8, last: 10 },
+  { kind: "button", bytes: buttons, count: 30, first: 19, last: 20 }
+]) {
+  for (const run of [runPdftoppmCli, runPdftoppmCliSync, runPdftocairoCli, runPdftocairoCliSync])
+    it(`${run.name} renders and hides ${kind} widgets`, async () => {
+      const doc = PdfDocument.load(pdf);
+      for (const hide of [false, true]) {
+        const files = new Map([["input.pdf", pdf]]);
+        const result = await run(
+          [...(hide ? ["-hide-annotations"] : []), "-png", "-r", "72", "input.pdf", "page"],
+          files
+        );
+        expect(result.exitCode, result.stderr).toBe(0);
+        const outputs = [...files.entries()]
+          .filter(([name]) => name.startsWith("page-"))
+          .sort(([a], [b]) => a.localeCompare(b, undefined, { numeric: true }));
+        expect(outputs).toHaveLength(count);
+        for (const [i, [, bytes]] of outputs.entries())
+          expect(
+            Buffer.from(decodePng(bytes).data).equals(
+              Buffer.from(
+                doc.getPage(i).renderToBitmap({
                   scale: 1,
                   hideAnnotations: hide,
                   cairoSolidColors: run.name.includes("cairo")
                 }).data
-            )
-          ),
-          `page ${i + 1}`
-        ).toBe(true);
-      expect(Buffer.from(files.get("input.pdf")!).equals(Buffer.from(pdf))).toBe(true);
-    }
-  });
-for (const command of ["pdftoppm", "pdftocairo"] as const)
-  it(`${command} retains widget resources through the VFS command`, async () => {
-    const fs = createMemoryFileSystem();
-    await fs.mkdir("/scratch");
-    await fs.writeFile("/input.pdf", pdf);
-    const run = command === "pdftoppm" ? createPdftoppmCommand() : createPdftocairoCommand();
-    const args = createCommandArguments([
-      "-png",
-      "-r",
-      "72",
-      "-f",
-      "8",
-      "-l",
-      "10",
-      "input.pdf",
-      "page"
-    ]);
-    let stderr = "";
-    const result = await run.execute({
-      command,
-      args: args.args,
-      argumentValues: args,
-      cwd: "/",
-      env: { TMPDIR: "/scratch" },
-      fs,
-      stdin: (async function* () {})(),
-      signal: new AbortController().signal,
-      stdout: { write: async () => {} },
-      stderr: {
-        write: async (s) => {
-          stderr += s;
-        }
+              )
+            ),
+            `page ${i + 1}`
+          ).toBe(true);
+        expect(Buffer.from(files.get("input.pdf")!).equals(Buffer.from(pdf))).toBe(true);
       }
     });
-    expect(result.exitCode, stderr).toBe(0);
-    const reference = new Map([["input.pdf", pdf]]);
-    await (command === "pdftoppm" ? runPdftoppmCliSync : runPdftocairoCliSync)(
-      ["-png", "-r", "72", "-f", "8", "-l", "10", "input.pdf", "page"],
-      reference
-    );
-    for (const [name, bytes] of reference)
-      if (name.startsWith("page-"))
-        expect(
-          Buffer.from(decodePng(await fs.readFile(`/${name}`)).data).equals(
-            Buffer.from(decodePng(bytes).data)
-          ),
-          name
-        ).toBe(true);
-    expect(Buffer.from(await fs.readFile("/input.pdf")).equals(Buffer.from(pdf))).toBe(true);
-    expect(await fs.readdir("/scratch")).toEqual([]);
-  });
+  for (const command of ["pdftoppm", "pdftocairo"] as const)
+    it(`${command} retains ${kind} resources through the VFS command`, async () => {
+      const fs = createMemoryFileSystem();
+      await fs.mkdir("/scratch");
+      await fs.writeFile("/input.pdf", pdf);
+      const run = command === "pdftoppm" ? createPdftoppmCommand() : createPdftocairoCommand();
+      const args = createCommandArguments([
+        "-png",
+        "-r",
+        "72",
+        "-f",
+        String(first),
+        "-l",
+        String(last),
+        "input.pdf",
+        "page"
+      ]);
+      let stderr = "";
+      const result = await run.execute({
+        command,
+        args: args.args,
+        argumentValues: args,
+        cwd: "/",
+        env: { TMPDIR: "/scratch" },
+        fs,
+        stdin: (async function* () {})(),
+        signal: new AbortController().signal,
+        stdout: { write: async () => {} },
+        stderr: {
+          write: async (s) => {
+            stderr += s;
+          }
+        }
+      });
+      expect(result.exitCode, stderr).toBe(0);
+      const reference = new Map([["input.pdf", pdf]]);
+      await (command === "pdftoppm" ? runPdftoppmCliSync : runPdftocairoCliSync)(
+        ["-png", "-r", "72", "-f", String(first), "-l", String(last), "input.pdf", "page"],
+        reference
+      );
+      for (const [name, bytes] of reference)
+        if (name.startsWith("page-"))
+          expect(
+            Buffer.from(decodePng(await fs.readFile(`/${name}`)).data).equals(
+              Buffer.from(decodePng(bytes).data)
+            ),
+            name
+          ).toBe(true);
+      expect(Buffer.from(await fs.readFile("/input.pdf")).equals(Buffer.from(pdf))).toBe(true);
+      expect(await fs.readdir("/scratch")).toEqual([]);
+    });
+}
 it("rejects invalid widget geometry, cyclic inheritance and excessive content before writing", async () => {
   const numbers = (a: number[]) => cosArray(a.map((n) => cosNumber(n)));
   const cases = [
@@ -117,7 +125,9 @@ it("rejects invalid widget geometry, cyclic inheritance and excessive content be
     { Ff: cosNumber(16777216), MaxLen: cosNumber(65537) },
     { V: cosString("x".repeat(65537)) },
     { MK: cosDict({ BC: numbers([0]) }), BS: cosDict({ S: cosName("D"), D: numbers([-1]) }) },
-    { cycle: true }
+    { cycle: true },
+    { FT: cosName("Btn"), Ff: cosNumber(65536), MK: cosDict({ CA: cosString("x".repeat(65537)) }) },
+    { FT: cosName("Btn"), MK: cosDict({ R: cosNumber(13) }) }
   ];
   for (const { cycle, ...extra } of cases) {
     const doc = PdfDocument.create(),

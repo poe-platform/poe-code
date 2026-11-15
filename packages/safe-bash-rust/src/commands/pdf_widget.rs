@@ -1,4 +1,4 @@
-//! Static text/choice widgets that have no normal appearance stream.
+//! Static form widgets that have no normal appearance stream.
 use super::{Cursor, Draw, Font, Matrix, Objects, PageSource, Program, Resources, Value, concat};
 use crate::commands::archive::pdf_reader::{pdf_render::win_ansi, pdf_string};
 use std::rc::Rc;
@@ -77,6 +77,27 @@ fn color<'a>(
     };
     op(objects, emit, matrix, name, values)
 }
+fn circle<'a>(
+    objects: &mut Objects<'a>,
+    emit: &mut impl FnMut(Draw<'_, '_>, &mut Objects<'a>) -> Option<()>,
+    matrix: Matrix,
+    cx: f64,
+    cy: f64,
+    radius: f64,
+) -> Option<()> {
+    let r = radius.max(0.);
+    let k = r * 0.5523;
+    op(objects, emit, matrix, b"m", &[cx, cy + r])?;
+    for values in [
+        [cx + k, cy + r, cx + r, cy + k, cx + r, cy],
+        [cx + r, cy - k, cx + k, cy - r, cx, cy - r],
+        [cx - k, cy - r, cx - r, cy - k, cx - r, cy],
+        [cx - r, cy + k, cx - k, cy + r, cx, cy + r],
+    ] {
+        op(objects, emit, matrix, b"c", &values)?;
+    }
+    Some(())
+}
 impl<'a> PageSource<'a> {
     pub(super) fn draw_widget(
         &mut self,
@@ -87,9 +108,25 @@ impl<'a> PageSource<'a> {
             return Some(false);
         }
         let kind = inherited(&mut self.objects, annot, b"FT")?;
-        let Some(kind @ (b"/Tx" | b"/Ch")) = kind.as_ref().and_then(Value::word) else {
+        let Some(kind @ (b"/Tx" | b"/Ch" | b"/Btn")) = kind.as_ref().and_then(Value::word) else {
             return Some(false);
         };
+        let flags = inherited(&mut self.objects, annot, b"Ff")?
+            .as_ref()
+            .and_then(Value::number)
+            .unwrap_or(0.) as i32;
+        let button = kind == b"/Btn";
+        let push = button && flags & 65536 != 0;
+        let radio = button && !push && flags & 32768 != 0;
+        let state = match (button, annot.get(b"AS")) {
+            (true, Some(v)) => Some(self.objects.resolve(v)?),
+            _ => None,
+        };
+        // Appearance state belongs to this widget; a parent value can select a sibling.
+        let checked = state
+            .as_ref()
+            .and_then(Value::word)
+            .is_some_and(|v| v.starts_with(b"/") && v != b"/Off");
         let rect = numbers(&mut self.objects, annot.get(b"Rect"))?;
         if rect.len() != 4 {
             return None;
@@ -188,39 +225,43 @@ impl<'a> PageSource<'a> {
             }
             previous.push(value);
         }
-        let font = resources
-            .fonts
-            .get(name.as_bytes())
-            .cloned()
-            .unwrap_or_else(|| {
-                let family = match name.as_str() {
-                    "Helv" => "Helvetica",
-                    "HeBo" => "Helvetica-Bold",
-                    "HeOb" => "Helvetica-Oblique",
-                    "HeBI" => "Helvetica-BoldOblique",
-                    "Cour" => "Courier",
-                    "CoBo" => "Courier-Bold",
-                    "TiRo" => "Times-Roman",
-                    "TiBo" => "Times-Bold",
-                    "TiIt" => "Times-Italic",
-                    other => other,
-                };
-                Rc::new(Font {
-                    program: Program::Standard,
-                    name: Rc::from(family),
-                    start: 0,
-                    widths: vec![],
-                    cid_widths: None,
-                })
-            });
-        let flags = inherited(&mut self.objects, annot, b"Ff")?
-            .as_ref()
-            .and_then(Value::number)
-            .unwrap_or(0.) as i32;
-        let align = inherited(&mut self.objects, annot, b"Q")?
-            .as_ref()
-            .and_then(Value::number)
-            .unwrap_or(0.);
+        if button && !push {
+            name = "ZapfDingbats".into();
+        }
+        let font = if button && !push {
+            None
+        } else {
+            resources.fonts.get(name.as_bytes()).cloned()
+        }
+        .unwrap_or_else(|| {
+            let family = match name.as_str() {
+                "Helv" => "Helvetica",
+                "HeBo" => "Helvetica-Bold",
+                "HeOb" => "Helvetica-Oblique",
+                "HeBI" => "Helvetica-BoldOblique",
+                "Cour" => "Courier",
+                "CoBo" => "Courier-Bold",
+                "TiRo" => "Times-Roman",
+                "TiBo" => "Times-Bold",
+                "TiIt" => "Times-Italic",
+                other => other,
+            };
+            Rc::new(Font {
+                program: Program::Standard,
+                name: Rc::from(family),
+                start: 0,
+                widths: vec![],
+                cid_widths: None,
+            })
+        });
+        let align = if button {
+            1.
+        } else {
+            inherited(&mut self.objects, annot, b"Q")?
+                .as_ref()
+                .and_then(Value::number)
+                .unwrap_or(0.)
+        };
         let max_len = inherited(&mut self.objects, annot, b"MaxLen")?
             .as_ref()
             .and_then(Value::number);
@@ -249,6 +290,26 @@ impl<'a> PageSource<'a> {
             values.push(string(value.as_ref())?);
         }
         let mut text = values.first().cloned().unwrap_or_default();
+        let mut round = radio;
+        if button {
+            let caption = match mk.as_ref().and_then(|v| v.get(b"CA")) {
+                Some(v) => string(Some(&self.objects.resolve(v)?))?,
+                None => String::new(),
+            };
+            let mark = caption
+                .chars()
+                .next()
+                .filter(|v| "48Hlnu".contains(*v))
+                .unwrap_or(if radio { 'l' } else { '4' });
+            round = radio && mark == 'l';
+            text = if push {
+                caption
+            } else if checked {
+                mark.to_string()
+            } else {
+                String::new()
+            };
+        }
         let list = kind == b"/Ch" && flags & 131072 == 0;
         let mut choices = Vec::<(String, bool)>::new();
         if kind == b"/Ch" {
@@ -346,7 +407,9 @@ impl<'a> PageSource<'a> {
         self.objects.tokens = self.objects.tokens.checked_sub(count as usize)?;
         let padding = border + 1.;
         let available = (w - 2. * padding).max(0.);
-        if size <= 0. {
+        if button && !push {
+            size = (available.min(h - 2. * padding) * 0.9).max(0.1);
+        } else if size <= 0. {
             let units = win_ansi(&text)
                 .into_iter()
                 .map(|c| font.advance(c.into()))
@@ -370,7 +433,18 @@ impl<'a> PageSource<'a> {
         )?;
         if !background.is_empty() {
             color(&mut self.objects, emit, matrix, &background, false)?;
-            op(&mut self.objects, emit, matrix, b"re", &[x, y, w, h])?;
+            if round {
+                circle(
+                    &mut self.objects,
+                    emit,
+                    matrix,
+                    w / 2.,
+                    h / 2.,
+                    w.min(h) / 2.,
+                )?;
+            } else {
+                op(&mut self.objects, emit, matrix, b"re", &[x, y, w, h])?;
+            }
             op(&mut self.objects, emit, matrix, b"f", &[])?;
         }
         if border > 0. {
@@ -399,7 +473,16 @@ impl<'a> PageSource<'a> {
                 ];
                 emit(Draw::Operator(b"d", &values, matrix), &mut self.objects)?;
             }
-            if style == b"/U" {
+            if round {
+                circle(
+                    &mut self.objects,
+                    emit,
+                    matrix,
+                    w / 2.,
+                    h / 2.,
+                    (w.min(h) - border) / 2.,
+                )?;
+            } else if style == b"/U" {
                 op(&mut self.objects, emit, matrix, b"m", &[x, y + border / 2.])?;
                 op(
                     &mut self.objects,
@@ -458,6 +541,19 @@ impl<'a> PageSource<'a> {
         op(&mut self.objects, emit, matrix, b"W", &[])?;
         op(&mut self.objects, emit, matrix, b"n", &[])?;
         color(&mut self.objects, emit, matrix, &ink, false)?;
+        if radio && text == "l" {
+            circle(
+                &mut self.objects,
+                emit,
+                matrix,
+                w / 2.,
+                h / 2.,
+                available.min(h - 2. * padding).max(0.) / 4.,
+            )?;
+            op(&mut self.objects, emit, matrix, b"f", &[])?;
+            emit(Draw::EndForm, &mut self.objects)?;
+            return Some(true);
+        }
         let mut lines = Vec::new();
         let top = inherited(&mut self.objects, annot, b"TI")?
             .as_ref()

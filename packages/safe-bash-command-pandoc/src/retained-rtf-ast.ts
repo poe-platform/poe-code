@@ -124,37 +124,41 @@ export class RetainedRtfAst {
   /** Preorder edits become visible to traversal. A visitor can skip children or
    * substitute an expansion root without retaining per-depth JS continuations. */
   async walk(root: RtfValue, visit: (value: RtfValue, depth: number, leaving: boolean) => Promise<void | false | {descend: RtfValue}>): Promise<void> {
-    let pending = 0, current: number[] | undefined = [0, root.position, 0, 0];
-    const push = async (position: number, depth: number, leaving: number) => {pending = await this.record([pending, position, depth, leaving]);};
-    while (current || pending) {
-      const [next, position, depth, leaving]: number[] = current ?? await this.fields(pending, 4); pending = next!; current = undefined;
-      await this.cooperate(); const value = {position: position!};
-      const action = await visit(value, depth!, !!leaving);
-      if (leaving) continue;
-      if (action) {
-        await push(position!, depth!, 1);
-        current = [pending, action.descend.position, depth! + 1, 0]; continue;
+    // Keep only the immediate parent's cursor resident. Older ancestors spill;
+    // siblings already have next links and need no duplicate worklist records.
+    let pending = 0, parent: number[] | undefined, value = root, depth = 0;
+    for (;;) {
+      await this.cooperate();
+      const action = await visit(value, depth, false);
+      const fields = action === undefined ? await this.fields(value.position, 5) : [];
+      let child: RtfValue | undefined, next = 0;
+      if (action) child = action.descend;
+      else if (fields[0] === 3 && fields[2]) child = {position: fields[2]};
+      else if ((fields[0] === 0 || fields[0] === 4) && fields[1]) {
+        const link = await this.fields(fields[1], 3);
+        child = {position: link[2]!}; next = link[1]!;
       }
-      // Inspect the node while its page is hot, before writing continuations.
-      // Leaves can retire immediately without a backed leave frame.
-      const fields: number[] = action === false ? [] : await this.fields(position!, 5);
-      if (!((fields[0] === 3 || fields[0] === 0 || fields[0] === 4) && fields[2])) {
-        await this.cooperate(); await visit(value, depth!, true); continue;
+      if (child) {
+        if (parent) pending = await this.record(parent);
+        parent = [pending, value.position, depth, next];
+        value = child; depth++; continue;
       }
-      await push(position!, depth!, 1);
-      // The immediately visited child needs no backed entry frame either.
-      if (fields[0] === 3) current = [pending, fields[2]!, depth! + 1, 0];
-      else {
-        let link = fields[2]!, first = 0;
-        while (link) {
-          await this.cooperate(); const [previous, , child] = await this.fields(link, 3);
-          if (first) await push(first, depth! + 1, 0);
-          first = child!; link = previous!;
+      await this.cooperate(); await visit(value, depth, true);
+      for (;;) {
+        if (!parent) return;
+        if (parent[3]) {
+          await this.cooperate();
+          const link = await this.fields(parent[3], 3);
+          value = {position: link[2]!}; depth = parent[2]! + 1; parent[3] = link[1]!;
+          break;
         }
-        current = [pending, first, depth! + 1, 0];
+        await this.cooperate(); await visit({position: parent[1]!}, parent[2]!, true);
+        pending = parent[0]!;
+        parent = pending ? await this.fields(pending, 4) : undefined;
       }
     }
   }
+
   /** Independent mutable copy, including text chains, using backed copy jobs. */
   async clone(root: RtfValue): Promise<RtfValue> {
     let pending = 0;
@@ -178,16 +182,17 @@ export class RetainedRtfAst {
    * this store also receives traversal frames during serialization. The optional
    * string observer transfers parser identities to their wire positions. */
   async write(value: RtfValue, target: BackedJson, onString?: (value: RtfValue, position: number) => Promise<void>): Promise<void> {
-    let frame = 0;
+    let frame: number[] | undefined;
     const begin = async (value: RtfValue) => {
       await this.cooperate();
       const fields = await this.fields(value.position, 5), kind = fields[0]!;
+      const parent = kind === 0 || kind === 3 || kind === 4 ? (frame ? await this.record(frame) : 0) : 0;
       if (kind === 0 || kind === 4) {
-        await target.begin(kind === 0 ? "array" : "object"); frame = await this.record([frame, fields[1]!, kind === 4 ? 2 : 0]);
+        await target.begin(kind === 0 ? "array" : "object"); frame = [parent, fields[1]!, kind === 4 ? 2 : 0];
       } else if (kind === 3) {
         await target.begin("object"); await target.key("t"); await target.value(tags[fields[1]!]!);
         if (fields[2]) await target.key("c");
-        frame = await this.record([frame, fields[2]!, 1]);
+        frame = [parent, fields[2]!, 1];
       } else if (kind === 1) {
         const position = await target.begin("string");
         await onString?.(value, position);
@@ -198,19 +203,19 @@ export class RetainedRtfAst {
     await begin(value);
     while (frame) {
       await this.cooperate();
-      const [parent, cursor, tag] = await this.fields(frame, 3);
-      if (!cursor) {await target.end(); frame = parent!;}
-      else if (tag === 1) {await this.put(frame + 8, [0]); await begin({position: cursor});}
+      const [parent, cursor, tag]: number[] = frame;
+      if (!cursor) {await target.end(); frame = parent ? await this.fields(parent, 3) : undefined;}
+      else if (tag === 1) {frame[1] = 0; await begin({position: cursor});}
       else if (tag === 2) {
         const child = await this.fields(cursor, 3), pair = {position: child[2]!};
         if (await this.count(pair) !== 2) throw new Error("Retained object entry requires a key/value pair");
         const key = (await this.edge(pair))!, value = (await this.edge(pair, true))!;
         await target.begin("key"); for await (const text of this.text.chunks(await this.range(key))) await target.text(text); await target.end();
-        await this.put(frame + 8, [child[1]!]); await begin(value);
+        frame[1] = child[1]!; await begin(value);
       }
       else {
         const child = await this.fields(cursor, 3);
-        await this.put(frame + 8, [child[1]!]); await begin({position: child[2]!});
+        frame[1] = child[1]!; await begin({position: child[2]!});
       }
     }
   }

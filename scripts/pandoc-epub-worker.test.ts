@@ -166,8 +166,8 @@ it.each(["sdk", "command"].flatMap(mode => ["plain", "html5"].map(to => ({mode, 
     if (mode === "sdk") {
       expect(result.events.opened).toBeGreaterThan(0);
       // Bound backing work as well as time: faster hosts must still catch page thrashing.
-      expect(result.events.reads).toBeLessThanOrEqual(26000);
-      expect(result.events.writes).toBeLessThanOrEqual(10500);
+      expect(result.events.reads).toBeLessThanOrEqual(19500);
+      expect(result.events.writes).toBeLessThanOrEqual(7300);
     }
     expect(result.events.closed).toBe(result.events.opened); expect(result.events.largestTransfer).toBeLessThanOrEqual(16384);
   } finally {await runtime.dispose();}

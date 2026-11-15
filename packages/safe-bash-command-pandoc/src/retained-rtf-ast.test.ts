@@ -170,8 +170,8 @@ it("walks leaf values without spilling a separate leave continuation for each le
     expect(seen[0]).toBe(`${root.position}:0:false`);
     expect(seen.at(-1)).toBe(`${root.position}:0:true`);
     for (let index = 1; index < seen.length - 1; index += 2) expect(seen[index + 1]).toBe(seen[index]!.replace(":false", ":true"));
-    // Only the root's leave and the pending siblings need backed frames.
-    expect(storage.allocate(0) - extent).toBeLessThanOrEqual(256 * 32);
+    // The immediate parent cursor is resident; leaf siblings use their own links.
+    expect(storage.allocate(0)).toBe(extent);
   } finally {await storage.close();}
   expect(await fs.readdir("/")).toEqual([]);
 });
@@ -190,10 +190,70 @@ it("walks deep containers with one backed continuation per ancestor", async () =
       else expect(depth).toBe(entered++);
     });
     expect(entered).toBe(2049); expect(left).toBe(entered);
-    expect(storage.allocate(0) - extent).toBe(2048 * 32);
+    expect(storage.allocate(0) - extent).toBe(2047 * 32);
     const skipped: boolean[] = [];
     await ast.walk(root, async (_node, depth, leaving) => {expect(depth).toBe(0); skipped.push(leaving); return false;});
     expect(skipped).toEqual([false, true]);
   } finally {await storage.close();}
   expect(await fs.readdir("/")).toEqual([]);
+});
+
+it("walks wide leaf collections without writing sibling continuations to backing pages", async () => {
+  const fs = new MemoryFileSystem(), open = fs.open.bind(fs);
+  let reads = 0, writes = 0;
+  vi.spyOn(fs, "open").mockImplementation(async (...args) => {
+    const handle = await open(...args), read = handle.read.bind(handle), write = handle.write.bind(handle);
+    vi.spyOn(handle, "read").mockImplementation(async (...args) => {reads++; return read(...args);});
+    vi.spyOn(handle, "write").mockImplementation(async (...args) => {writes++; return write(...args);});
+    return handle;
+  });
+  const storage = new PagedStorage({fs, cwd: "/", env: {}, signal: new AbortController().signal}, 1);
+  const ast = new RetainedRtfAst(storage, async () => {});
+  try {
+    const root = await ast.array();
+    for (let index = 0; index < 512; index++) await ast.push(root, await ast.value(index));
+    reads = 0; writes = 0;
+    const extent = storage.allocate(0);
+    let entered = 0, left = 0;
+    await ast.walk(root, async (_node, depth, leaving) => {
+      expect(depth).toBe(entered === 0 || left === 512 ? 0 : 1);
+      if (leaving) left++; else entered++;
+    });
+    expect(entered).toBe(513); expect(left).toBe(513);
+    expect(storage.allocate(0)).toBe(extent);
+    expect(reads).toBeLessThanOrEqual(8);
+    expect(writes).toBeLessThanOrEqual(2);
+    const target = new PagedStorage({fs: new MemoryFileSystem(), cwd: "/", env: {}, signal: new AbortController().signal}, 1);
+    try {
+      reads = 0; writes = 0;
+      const output = new BackedJson(target, async () => {});
+      await ast.write(root, output);
+      expect(await json(output)).toEqual(Array.from({length: 512}, (_, index) => index));
+      expect(storage.allocate(0)).toBe(extent);
+      expect(reads).toBeLessThanOrEqual(8);
+      expect(writes).toBeLessThanOrEqual(2);
+    } finally {await target.close();}
+  } finally {await storage.close();}
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it("resumes sibling cursors after nested walks, shared subtrees and preorder edits", async () => {
+  await fixture(async ast => {
+    const shared = await ast.value(["shared"]), edited = await ast.value(["old"]);
+    const skipped = await ast.value(["hidden"]), root = await ast.value([shared, edited, shared, skipped]);
+    const seen: string[] = [];
+    await ast.walk(root, async (node, depth, leaving) => {
+      if (leaving) return;
+      if (node.position === edited.position) {
+        await ast.walk(shared, async (_node, _depth, leaving) => {if (!leaving) seen.push("nested");});
+        await ast.set(edited, 0, await ast.value("new"));
+      }
+      if (node.position === skipped.position) return false;
+      if (await ast.kind(node) === "string") {
+        let text = ""; for await (const chunk of ast.text.chunks(await ast.range(node))) text += chunk;
+        seen.push(`${depth}:${text}`);
+      }
+    });
+    expect(seen).toEqual(["2:shared", "nested", "nested", "2:new", "2:shared"]);
+  });
 });

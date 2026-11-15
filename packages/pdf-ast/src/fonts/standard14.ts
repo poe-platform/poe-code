@@ -1,5 +1,5 @@
 import { getMetrics, WinAnsiEncoding, SymbolSetEncoding, ZapfDingbatsEncoding } from "../vendor/pdfjs-fonts.mjs";
-import { dictGet, type PdfCosArray, type PdfCosDict, type PdfCosNode } from "../ast.js";
+import { cosArray, cosDict, cosName, cosNumber, dictGet, type PdfCosArray, type PdfCosDict, type PdfCosNode } from "../ast.js";
 
 export type Standard14FontName =
   | "Helvetica"
@@ -311,6 +311,20 @@ export const STANDARD_14_FONTS: Readonly<Record<Standard14FontName, Standard14Fo
   Symbol: { name: "Symbol", ascender: 693, descender: -216, capHeight: 693, defaultWidth: 500, widthsByCode: standardWidths("Symbol") },
   ZapfDingbats: { name: "ZapfDingbats", ascender: 690, descender: -143, capHeight: 690, defaultWidth: 600, widthsByCode: standardWidths("ZapfDingbats") },
 };
+
+/** Keep substitute fonts on our layout advances (Helvetica Euro is 556, not PDFium's fallback 667). */
+export function createStandard14FontDict(name: Standard14FontName): PdfCosDict {
+  const metrics = STANDARD_14_FONTS[name];
+  return cosDict({
+    Type: cosName("Font"),
+    Subtype: cosName("Type1"),
+    BaseFont: cosName(name),
+    Encoding: cosName("WinAnsiEncoding"),
+    FirstChar: cosNumber(32),
+    LastChar: cosNumber(255),
+    Widths: cosArray(Array.from({length: 224}, (_, index) => cosNumber(metrics.widthsByCode[index + 32] ?? metrics.defaultWidth))),
+  });
+}
 
 function stripSubsetPrefix(name: string): string {
   if (name.length >= 8 && name[6] === "+") {

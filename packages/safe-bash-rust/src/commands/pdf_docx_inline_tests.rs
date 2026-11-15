@@ -72,7 +72,10 @@ fn preserves_inline_fonts_and_layout() {
                 })
                 .unwrap();
             }
-            let joined: Vec<_> = b"BoldItalicBoth".iter().map(|&code| u16::from(code)).collect();
+            let joined: Vec<_> = b"BoldItalicBoth"
+                .iter()
+                .map(|&code| u16::from(code))
+                .collect();
             assert!(codes.windows(joined.len()).any(|window| window == joined));
             let mut expected = Vec::new();
             for _ in 0..if overflow { 31 } else { 0 } {
@@ -109,5 +112,86 @@ fn preserves_inline_fonts_and_layout() {
             assert!(body.iter().any(|glyph| glyph.2 != body[0].2));
             assert_eq!(body.last().unwrap().2, if overflow { 590. } else { 555. });
         }
+    }
+}
+
+#[test]
+fn preserves_explicit_unicode_advances_across_font_transitions() {
+    use super::super::{pdf_docx::render_docx, pdf_render::win_ansi};
+    use super::{PageSource, Value, pdf_text_layout::Draw};
+    let runs = [
+        ("", "café € ", "Helvetica", 54.),
+        ("<w:b/>", "naïve ", "Helvetica-Bold", 87.022),
+        ("<w:i/>", "€ café ", "Helvetica-Oblique", 118.207),
+        ("<w:b/><w:i/>", "élève", "Helvetica-BoldOblique", 151.229),
+        ("", " END", "Helvetica", 178.751),
+    ];
+    let paragraph = runs
+        .iter()
+        .map(|(properties, text, _, _)| {
+            format!(
+                r#"<w:r><w:rPr>{properties}</w:rPr><w:t xml:space="preserve">{text}</w:t></w:r>"#
+            )
+        })
+        .collect::<String>();
+    let xml =
+        format!(r#"<w:document xmlns:w="w"><w:body><w:p>{paragraph}</w:p></w:body></w:document>"#);
+    let input =
+        crate::commands::structured::write_zip_stored(&[("word/document.xml", xml.as_bytes())]);
+    let bytes = render_docx(&input, "doc", None, 1 << 20).unwrap();
+    let mut pdf = PageSource::open(&bytes, "").unwrap();
+    assert_eq!(pdf.len(), 1);
+    let page = pdf.objects.page_dict(pdf.pages[0], &pdf.tree).unwrap();
+    let mut glyphs = Vec::new();
+    pdf.draw_page(&page, false, |event, _| {
+        if let Draw::Glyph {
+            code,
+            family,
+            size,
+            matrix,
+            ..
+        } = event
+        {
+            assert_eq!(size, 11.);
+            glyphs.push((code, family.to_string(), matrix[4]));
+        }
+        Some(())
+    })
+    .unwrap();
+    let mut offset = 0;
+    for (_, text, font, x) in runs {
+        let codes = win_ansi(text);
+        assert!((glyphs[offset].2 - x).abs() < 0.00001);
+        for (glyph, code) in glyphs[offset..].iter().zip(&codes) {
+            assert_eq!(glyph.0, u16::from(*code));
+            if *code != 32 {
+                assert_eq!(glyph.1, font);
+            }
+        }
+        offset += codes.len();
+    }
+    assert_eq!(glyphs.len(), offset);
+    let resources = pdf
+        .objects
+        .resolve(page.get(b"Resources").unwrap())
+        .unwrap();
+    let Value::Dict(fonts) = pdf
+        .objects
+        .resolve(resources.get(b"Font").unwrap())
+        .unwrap()
+    else {
+        panic!("missing fonts")
+    };
+    assert_eq!(fonts.len(), 4);
+    for (_, reference) in fonts {
+        let font = pdf.objects.resolve(&reference).unwrap();
+        assert_eq!(font.get(b"FirstChar").and_then(Value::number), Some(32.));
+        assert_eq!(font.get(b"LastChar").and_then(Value::number), Some(255.));
+        let Value::Array(widths) = pdf.objects.resolve(font.get(b"Widths").unwrap()).unwrap()
+        else {
+            panic!("missing widths")
+        };
+        assert_eq!(widths.len(), 224);
+        assert_eq!(widths[0x80 - 32].number(), Some(556.));
     }
 }

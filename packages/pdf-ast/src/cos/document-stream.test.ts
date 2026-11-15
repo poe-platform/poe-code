@@ -25,12 +25,12 @@ describe("streamed PDF document output", () => {
     expect(chunks.every(chunk => chunk.length <= 7 && chunk.buffer.byteLength <= 7)).toBe(true);
     const actual = concatByteArrays(chunks);
     expect(actual).toEqual(expected);
-    // Ordinary output preserves the pre-streaming bytes; linearized output uses real hints.
+    // Golden output includes explicit Standard 14 widths; linearized output uses real hints.
     const hashes = {
-      standard: "3141473a2d7e7cce05d0f9e18d864e71c0ab342ef18cb79adab50c4b792297b9",
-      generated: "84b99aaa3aa5873d007f45e6da4db5e2292b73fb603c7cf4ac1ac17face230d8",
-      normalized: "5208b946282dac16fd539af92647472bf819c1248e7dccdb31c6361d23029226",
-      linearized: "357f850e02fde2d324894a80d0a57ef170a9bc23e3e37e0b3730bea39b277a27",
+      standard: "203122b3e7eb5b0df674b7ad8f3cc78c3251fd09e4ae46663ee45f9037e0600d",
+      generated: "1226b646e11b3e09ca540c74ee1ce9aaaad2c7000f09211531d9508ed640a9ee",
+      normalized: "9f70c6e9f9a843ab24e5a953ea93bbd1ea48d1e0878d006127e3eca0ca40f9ce",
+      linearized: "d907b66fc40f6385acb06dc16d441348b1a4f92ccfe5b52a4bf78402038069ca",
     };
     const kind = mode.linearize ? "linearized" : mode.normalizeContent ? "normalized" : mode.objectStreams ? "generated" : "standard";
     expect(createHash("sha256").update(actual).digest("hex")).toBe(hashes[kind]);

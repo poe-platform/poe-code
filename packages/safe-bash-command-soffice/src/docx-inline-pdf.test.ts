@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { it } from "node:test";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
-import { PdfDocument, encodePng } from "@poe-code/pdf-ast";
+import { PdfDocument, encodePng, dictGet } from "@poe-code/pdf-ast";
 import { createCommandArguments, toByteSource } from "safe-bash-contracts";
 import { createSofficeCommand, createStoredZipArchive, runSofficeCli, runSofficeCliSync } from "./index.js";
 
@@ -78,4 +78,46 @@ it(`preserves DOCX inline fonts around ${boundary} boundaries (${mode})`, async 
     ...Array.from("After", char => [char, "Helvetica-Oblique", 11, boundary === "page" ? 720 : 616])
   ]);
   assert.equal(pages.flatMap(page => page.images).length, boundary === "image" ? 1 : 0);
+});
+
+for (const mode of ["sync", "async", "command"] as const)
+it(`preserves explicit Unicode advances across DOCX font transitions (${mode})`, async () => {
+  const runs = [
+    ["", "café € ", "Helvetica", 54],
+    ["<w:b/>", "naïve ", "Helvetica-Bold", 87.022],
+    ["<w:i/>", "€ café ", "Helvetica-Oblique", 118.207],
+    ["<w:b/><w:i/>", "élève", "Helvetica-BoldOblique", 151.229],
+    ["", " END", "Helvetica", 178.751]
+  ] as const;
+  const paragraph = runs.map(([properties, text]) => `<w:r><w:rPr>${properties}</w:rPr><w:t xml:space="preserve">${text}</w:t></w:r>`).join("");
+  const input = createStoredZipArchive({"word/document.xml": new TextEncoder().encode(`<w:document xmlns:w="w"><w:body><w:p>${paragraph}</w:p></w:body></w:document>`)});
+  const files = new Map([["/doc.docx", input]]), fs = new MemoryFileSystem();
+  await fs.writeFile("/doc.docx", input);
+  const args = ["--convert-to", "pdf", "/doc.docx"];
+  const result = mode === "sync" ? runSofficeCliSync(args, files) : mode === "async" ? await runSofficeCli(args, files)
+    : await createSofficeCommand().execute({command: "soffice", cwd: "/", env: {}, fs, ...createCommandArguments(args), signal: new AbortController().signal,
+      stdin: toByteSource(""), stdout: {async write() {}}, stderr: {async write() {}}});
+  assert.equal(result.exitCode, 0);
+  const pdf = PdfDocument.load(mode === "command" ? await fs.readFile("/doc.pdf") : files.get("/doc.pdf")!);
+  assert.equal(pdf.pageCount, 1);
+  const page = pdf.getPage(0), glyphs = page.evaluateDisplayList().glyphs;
+  assert.equal(glyphs.map(glyph => glyph.unicode).join(""), runs.map(run => run[1]).join(""));
+  let offset = 0;
+  for (const [, text, name, x] of runs) {
+    assert.ok(Math.abs(glyphs[offset]!.matrix[4] - x) < 0.00001);
+    assert.ok(glyphs.slice(offset, offset + text.length).every(glyph => (!glyph.unicode.trim() || glyph.fontName === name) && glyph.fontSize === 11));
+    offset += text.length;
+  }
+  const fonts = pdf.cos.resolveDict(dictGet(page.getResourcesDict(), "Font"))!;
+  for (const entry of fonts.entries) {
+    const font = pdf.cos.resolveDict(entry.value)!;
+    for (const [key, value] of [["FirstChar", 32], ["LastChar", 255]] as const) {
+      const node = dictGet(font, key);
+      assert.equal(node?.kind === "number" && node.value, value);
+    }
+    const widths = pdf.cos.resolveArray(dictGet(font, "Widths"))!;
+    assert.equal(widths.items.length, 224);
+    const euro = widths.items[0x80 - 32];
+    assert.equal(euro?.kind === "number" && euro.value, 556);
+  }
 });

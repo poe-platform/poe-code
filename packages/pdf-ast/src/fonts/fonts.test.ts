@@ -261,3 +261,22 @@ it("uses logarithmic reads for ordered TrueType character ranges", () => {
   finally { spy.mockRestore(); }
   expect(glyph).toBe(1024); expect(reads).toBeLessThan(40);
 });
+
+it.each(["Helvetica", "Helvetica-Bold", "Helvetica-Oblique", "Helvetica-BoldOblique"] as const)(
+  "serializes %s advances so PDF readers agree with measured Unicode widths", async name => {
+    const { PdfDocument } = await import("../index.js");
+    const doc = PdfDocument.create(), page = doc.addPage();
+    const font = doc.embedStandardFont(name);
+    page.drawText("café € naïve élève", {font, size: 11, x: 54, y: 720});
+    expect(font.widthOfTextAtSize("€", 11)).toBeCloseTo(6.116, 6);
+    const loaded = PdfDocument.load(doc.save());
+    const resources = loaded.cos.resolveDict(dictGet(loaded.getPage(0).getResourcesDict(), "Font"))!;
+    const definition = loaded.cos.resolveDict(resources.entries[0]!.value)!;
+    expect(dictGet(definition, "FirstChar")).toMatchObject({kind: "number", value: 32});
+    expect(dictGet(definition, "LastChar")).toMatchObject({kind: "number", value: 255});
+    const widths = loaded.cos.resolveArray(dictGet(definition, "Widths"))!;
+    expect(widths.items).toHaveLength(224);
+    expect(widths.items[0x80 - 32]).toMatchObject({kind: "number", value: 556});
+    expect(widths.items[0xe9 - 32]).toMatchObject({kind: "number", value: 556});
+  }
+);

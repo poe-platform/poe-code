@@ -1,5 +1,5 @@
 import { resolvePath } from "@poe-code/safe-fs/core";
-import { encodeWinAnsiChar, encodeWinAnsiBytes, serializeCosNodeBytes, cosArray, formatPdfNumber, cosDict, cosName, cosNumber, cosRef, cosString, serializeRetainedCosDocumentChunks, type PdfRetainedOutputObject, type PdfSerializedOutputObject } from "@poe-code/pdf-ast";
+import { createStandard14FontDict, encodeWinAnsiChar, encodeWinAnsiBytes, serializeCosNodeBytes, cosArray, formatPdfNumber, cosDict, cosName, cosNumber, cosRef, cosString, serializeRetainedCosDocumentChunks, type PdfRetainedOutputObject, type PdfSerializedOutputObject } from "@poe-code/pdf-ast";
 import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
 import type { RetainedSofficeContext } from "./retained-input.js";
 import type { retainPdfImage } from "./retained-pdf-image.js";
@@ -137,7 +137,7 @@ export class RetainedPdf {
     yield object(1, cosDict({ Type: cosName("Catalog"), Pages: cosRef(2) }));
     yield { objectNumber: 2, generationNumber: 0, body: { length: kidsLength, chunks: kids() } };
     yield object(3, cosDict({ Producer: cosString("@poe-code/pdf-ast"), ...(!copied ? { ...(title === undefined ? {} : {Title: cosString(title)}), Creator: cosString(creator) } : {}) }));
-    for (const [index, name] of ["Helvetica", "Helvetica-Bold"].entries()) yield object(4 + index, cosDict({ Type: cosName("Font"), Subtype: cosName("Type1"), BaseFont: cosName(name), Encoding: cosName("WinAnsiEncoding") }));
+    for (const [index, name] of (["Helvetica", "Helvetica-Bold"] as const).entries()) yield object(4 + index, createStandard14FontDict(name));
     for (let index = 0; index < outputPages; index++) {
       const first = Number(await pageImages.get(BigInt((firstPage + index) * 2))), count = Number(await pageImages.get(BigInt((firstPage + index) * 2 + 1)));
       async function* pageBody() {
@@ -159,8 +159,8 @@ export class RetainedPdf {
       yield {...object(number, cosDict({...common, ColorSpace: cosName(components === 1 ? "DeviceGray" : components === 4 ? "DeviceCMYK" : "DeviceRGB"), ...(jpeg ? {Filter: cosName("DCTDecode")} : {}), ...(alpha ? {SMask: cosRef(number + 1)} : {})})), stream: {length: size, chunks: read(position, size)}};
       if (alpha) yield {...object(number + 1, cosDict({...common, ColorSpace: cosName("DeviceGray")})), stream: {length: width * height, chunks: read(alpha, width * height)}};
     }
-    for (const [index, name] of ["Helvetica-Oblique", "Helvetica-BoldOblique"].entries())
-      yield object(italicFont + index, cosDict({Type: cosName("Font"), Subtype: cosName("Type1"), BaseFont: cosName(name), Encoding: cosName("WinAnsiEncoding")}));
+    for (const [index, name] of (["Helvetica-Oblique", "Helvetica-BoldOblique"] as const).entries())
+      yield object(italicFont + index, createStandard14FontDict(name));
     if (unicode) {
       yield object(unicodeFont, cosDict({Type: cosName("Font"), Subtype: cosName("Type0"), BaseFont: cosName("HeiseiMin-W3"), Encoding: cosName("UniJIS-UTF16-H"), DescendantFonts: cosArray([cosRef(unicodeFont + 1)]), ToUnicode: cosRef(unicodeFont + 3)}));
       yield object(unicodeFont + 1, cosDict({Type: cosName("Font"), Subtype: cosName("CIDFontType0"), BaseFont: cosName("HeiseiMin-W3"), CIDSystemInfo: cosDict({Registry: cosString("Adobe"), Ordering: cosString("Japan1"), Supplement: cosNumber(6)}), FontDescriptor: cosRef(unicodeFont + 2), DW: cosNumber(1000)}));

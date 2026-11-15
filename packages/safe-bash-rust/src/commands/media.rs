@@ -18104,7 +18104,7 @@ mod media_unit_tests {
         assert_eq!(result.exit_code, 0, "{}", result.stderr);
         let bytes = fs.read_file("/page.pdf").unwrap();
         assert_eq!(crate::commands::archive::sha256_bytes(&bytes).iter().map(|b| format!("{b:02x}")).collect::<String>(),
-                   "035035a4cc7f3bed1d8cca27139e7f1f7712abb2879c24976818b4808fed53db");
+                   "a262442fbd3d727c8f1e685e65f1a6f30d43654764e20c3341473ad797565705");
     }
 
     #[test]

@@ -320,7 +320,13 @@ pub(super) fn render_blocks(
         };
         bodies.push(format!("<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [ 0 0 {width} {height} ]\n/Resources <<\n/Font <<\n{fonts}>>\n{resources}>>\n/Contents {content} 0 R\n>>").into_bytes());
         for font in page.fonts {
-            bodies.push(format!("<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /{font}\n/Encoding /WinAnsiEncoding\n>>").into_bytes());
+            // Helvetica oblique variants share their upright advance widths.
+            let widths = super::pdf_copy::WIDTHS[usize::from(font.contains("Bold"))][32..]
+                .iter()
+                .map(u16::to_string)
+                .collect::<Vec<_>>()
+                .join(" ");
+            bodies.push(format!("<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /{font}\n/Encoding /WinAnsiEncoding\n/FirstChar 32\n/LastChar 255\n/Widths [ {widths} ]\n>>").into_bytes());
         }
     }
     bodies[1] = format!(

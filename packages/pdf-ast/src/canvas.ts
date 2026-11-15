@@ -31,6 +31,7 @@ import { redactPageContentAst, type RedactOptions } from "./edit/redact.js";
 import { extractTablesFromDisplayList } from "./extract/tables.js";
 import { extractPageFromDisplayList, formatExtractedPageText, type ExtractTextOptions } from "./extract/text.js";
 import {
+  createStandard14FontDict,
   encodeWinAnsiBytes,
   measureStandard14TextWidth,
   type Standard14FontName,
@@ -362,14 +363,7 @@ export class PdfPage {
     while (dictGet(fontDict, key)) {
       key = `F${this.fontResourceCounter++}`;
     }
-    const fRef = this.cosDoc.allocateObject(
-      cosDict({
-        Type: cosName("Font"),
-        Subtype: cosName("Type1"),
-        BaseFont: cosName(fontName),
-        Encoding: cosName("WinAnsiEncoding"),
-      })
-    );
+    const fRef = this.cosDoc.allocateObject(createStandard14FontDict(fontName));
     dictSet(fontDict, key, fRef);
     return key;
   }

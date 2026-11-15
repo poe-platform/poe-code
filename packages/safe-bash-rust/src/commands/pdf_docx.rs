@@ -70,7 +70,8 @@ pub(in super::super) fn render_docx(
     while let Some(node) = pending.pop() {
         let xml::Node::Element(paragraph) = node else { continue };
         match paragraph.tag.rsplit(':').next() {
-            Some("tbl") => {
+            Some("tbl") if elements(&paragraph.children, "drawing").is_empty()
+                && elements(&paragraph.children, "pict").is_empty() => {
                 let rows: Vec<_> = elements(&paragraph.children, "tr").into_iter().map(|row| {
                     elements(&row.children, "tc").into_iter().map(|cell| {
                         let mut text = String::new();

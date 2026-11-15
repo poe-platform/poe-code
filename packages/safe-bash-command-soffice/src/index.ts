@@ -130,7 +130,7 @@ function parseDocxBlocks(zipBytes: Uint8Array, pdf: boolean): { blocks: DocBlock
   const pending = [...root.children].reverse();
   while (pending.length) {
     const element = pending.pop()!;
-    if (element.localName === "tbl") {
+    if (element.localName === "tbl" && !(pdf && ([...pptxElements(element, "drawing")].length || [...pptxElements(element, "pict")].length))) {
       const rows = [...pptxElements(element, "tr")].map(row => [...pptxElements(row, "tc")].map(cell => [...pptxElements(cell, "t")].map(text => text.text).join("").trim()));
       if (rows.length) blocks.push({kind: "table", rows});
     } else if (element.localName === "p") {

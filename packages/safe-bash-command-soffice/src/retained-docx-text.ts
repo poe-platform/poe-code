@@ -234,7 +234,20 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
       return await fontSize(xml, block, true) >= 28;
     };
     if (markup) await output.add(await literal(html ? `<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>${escapeHtmlText(markup.title)}</title></head><body>\n` : docxDocumentPrefix));
-    for await (const block of xml.elements(0, xml.count, ["p", "tbl"], !!documentBlocks)) {
+    async function* blocks() {
+      for await (const block of xml.elements(0, xml.count, ["p", "tbl"], !!documentBlocks)) {
+        let pictures = false;
+        if (documentBlocks && await xml.name(block.name) === "tbl") {
+          for await (const ignoredDrawing of xml.elements(block.open + 1, block.end, ["drawing", "pict"], true)) {
+            pictures = true; break;
+          }
+        }
+        // Image-bearing tables use the paragraph renderer to preserve content order.
+        if (pictures) yield* xml.elements(block.open + 1, block.end, ["p"], true);
+        else yield block;
+      }
+    }
+    for await (const block of blocks()) {
       if (await xml.name(block.name) === "tbl") {
         await closeLists();
         const table = new RetainedSpans(storage, signal); let rows = 0;

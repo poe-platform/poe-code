@@ -17906,6 +17906,52 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn soffice_docx_table_pictures_preserve_content_and_atomic_failure() {
+        let raster = png_pixels::Raster {width:1,height:1,alpha:false,gray:false,density:72,orientation:None,pixels:vec![[255,0,0,255]]};
+        for picture in ["png", "jpeg", "missing", "corrupt"] {
+            let image = if picture == "corrupt" { b"bad image".to_vec() }
+                else { frame_output::encode(&raster, if picture == "jpeg" { "jpeg" } else { "png" }, 90., 72, 1 << 20).unwrap() };
+            let paragraph = r#"<w:p><w:r><w:t>Before</w:t></w:r><w:r><w:drawing><wp:extent cx="1828800" cy="914400"/><a:blip r:embed="pic"/></w:drawing></w:r><w:r><w:t>After</w:t></w:r></w:p>"#;
+            let next = "<w:p><w:r><w:t>Next cell</w:t></w:r></w:p>";
+            let body = format!("<w:tbl><w:tr><w:tc>{paragraph}</w:tc><w:tc>{next}</w:tc></w:tr></w:tbl>");
+            let package = |body: &str| {
+                let xml = format!(r#"<w:document xmlns:w="w" xmlns:wp="wp" xmlns:a="a" xmlns:r="r"><w:body>{body}</w:body></w:document>"#);
+                let mut entries = vec![("word/document.xml", xml.as_bytes()),
+                    ("word/_rels/document.xml.rels", br#"<Relationships><Relationship Id="pic" Target="media/image"/></Relationships>"#.as_slice())];
+                if picture != "missing" { entries.push(("word/media/image", image.as_slice())); }
+                crate::commands::structured::write_zip_stored(&entries)
+            };
+            let input = package(&body);
+            let fs = MemoryVfs::new();
+            fs.write_file("/doc.docx", &input).unwrap();
+            fs.write_file("/doc.pdf", b"old").unwrap();
+            let original_entries = fs.read_dir("/").unwrap();
+            let result = cmd_media_doc("soffice", &media_args(&["--convert-to", "pdf", "/doc.docx"]), "", "/", &fs);
+            let valid = matches!(picture, "png" | "jpeg");
+            assert_eq!(result.exit_code, if valid { 0 } else { 1 }, "{picture}: {}", result.stderr);
+            let output = fs.read_file("/doc.pdf").unwrap();
+            assert_eq!(fs.read_file("/doc.docx").unwrap(), input);
+            assert_eq!(fs.read_dir("/").unwrap(), original_entries);
+            if valid {
+                // The accepted table baseline is the existing ordered paragraph renderer.
+                fs.write_file("/doc.docx", &package(&format!("{paragraph}{next}"))).unwrap();
+                let result = cmd_media_doc("soffice", &media_args(&["--convert-to", "pdf", "/doc.docx"]), "", "/", &fs);
+                assert_eq!(result.exit_code, 0, "{}", result.stderr);
+                assert_eq!(output, fs.read_file("/doc.pdf").unwrap());
+                fs.write_file("/doc.docx", &input).unwrap();
+                let result = cmd_media_doc("pdftoppm", &media_args(&["-r", "72", "-png", "/doc.pdf", "/page"]), "", "/", &fs);
+                assert_eq!(result.exit_code, 0, "{}", result.stderr);
+                let raster = png_pixels::Raster::decode(&fs.read_file("/page-1.png").unwrap(), 4 << 20).unwrap();
+                let red = raster.pixels.iter().filter(|pixel| pixel[0] > 240 && pixel[1] < 10 && pixel[2] < 10).count();
+                assert!((144 * 72..=145 * 73).contains(&red));
+            } else {
+                assert_eq!(output, b"old");
+            }
+            assert_eq!(fs.read_file("/doc.docx").unwrap(), input);
+        }
+    }
+
+    #[test]
     fn soffice_docx_picture_dimensions() {
         let raster = png_pixels::Raster {width:1,height:1,alpha:false,gray:false,density:72,orientation:None,pixels:vec![[255,0,0,255]]};
         let png = frame_output::encode(&raster,"png",90.,72,1<<20).unwrap();

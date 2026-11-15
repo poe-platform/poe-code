@@ -56,13 +56,13 @@ test("readonly wrapper permits pure table composition without mutations", async 
 });
 
 for (const captured of [false, true]) {
-  for (const [option, left, right, expected, exitCode] of [
-    ["--hea", "k A\nk B\nq C\n", "k X\nk Y\np Z\n", "k A X\nk B Y\n", 0],
-    ["--ignore", "A left\n", "a right\n", "A left right\n", 0],
-    ["--check", "b\na\n", "b\na\n", "", 1],
-    ["--nocheck", "b\na\n", "b\na\n", "b\na\n", 0],
-    ["--nochi", "a\n", "a\n", "", 1],
-    ["--he", "a\n", "a\n", "", 1],
+  for (const [option, left, right, expected, exitCode, stderr] of [
+    ["--hea", "k A\nk B\nq C\n", "k X\nk Y\np Z\n", "k A X\nk B Y\n", 0, ""],
+    ["--ignore", "A left\n", "a right\n", "A left right\n", 0, ""],
+    ["--check", "b\na\n", "b\na\n", "", 1, "join: /left:2: is not sorted: a\n"],
+    ["--nocheck", "b\na\n", "b\na\n", "b\na\n", 0, ""],
+    ["--nochi", "a\n", "a\n", "", 1, "join: unrecognized option '--nochi'\nTry 'join --help' for more information.\n"],
+    ["--he", "a\n", "a\n", "", 1, "join: option '--he' is ambiguous; possibilities: '--header' '--help'\nTry 'join --help' for more information.\n"],
   ] as const) {
     test(`join long-option prefix ${option} ${captured ? "in command substitution" : "directly"}`, async () => {
       const fs = createMemoryFileSystem();
@@ -74,8 +74,7 @@ for (const captured of [false, true]) {
         const result = await shell.exec(captured ? `value=$(${command}); status=$?; printf '%s' "$value"; exit "$status"` : command);
         assert.equal(result.exitCode, exitCode, result.stderr);
         assert.equal(result.stdout, captured ? expected.trimEnd() : expected);
-        if (exitCode === 0) assert.equal(result.stderr, "");
-        else assert.ok(result.stderr.includes(option === "--check" ? "/left:2: is not sorted: a" : `unsupported option ${option}`), result.stderr);
+        assert.equal(result.stderr, stderr);
       } finally { await shell.dispose(); }
     });
   }
@@ -100,5 +99,5 @@ test("file byte streams preserve literal relative and symbolic VFS paths", async
 test("directory input fails without treating it as an empty file", async () => {
   const fs = createMemoryFileSystem(); await fs.mkdir("/work"); await fs.mkdir("/work/directory");
   const result = await runTable(fixture("comm", ["directory", "right"], { right: "a\n" }), {}, { fs });
-  assert.equal(result.exitCode, 1); assert.match(result.stderr, /EISDIR/u); assert.equal(result.stdoutHex, "");
+  assert.equal(result.exitCode, 1); assert.equal(result.stderr, "comm: directory: Is a directory\n"); assert.equal(result.stdoutHex, "");
 });

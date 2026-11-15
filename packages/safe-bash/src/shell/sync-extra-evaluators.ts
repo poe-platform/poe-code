@@ -11194,7 +11194,7 @@ const syncExtraRuntimeMethods = {
           }
         } else if (w0Plain === "export") {
           let allOk = true;
-          const actions: Array<{ name: string; nextVal: string | undefined; hasAssign: boolean }> = [];
+          const actions: Array<{ name: string; nextVal: string | undefined; hasAssign: boolean; lastArg: string }> = [];
           for (let ei = 1; ei < command.words.length; ei++) {
             const we = command.words[ei]!;
             const assign = !getArrayAssignment(we) ? this.assignment(we) : undefined;
@@ -11204,10 +11204,12 @@ const syncExtraRuntimeMethods = {
               break;
             }
             let nextVal: string | undefined;
+            let lastArg = targetName;
             if (assign) {
               try {
                 const fv = this.fastValueWord(assign.value, rawState, io, false, false, false, rawState.braceexpand !== false, 0, diagnosticLine);
                 if (typeof fv === "string") {
+                  lastArg = `${targetName}${assign.append ? "+=" : "="}${fv}`;
                   let baseVal = (this._syncArithRawWriteOnly && this._syncArithTouched?.has(targetName)) ? (rawState.variables[targetName] ?? "") : (monitor.values.get(targetName, rawState.variables[targetName] ?? "") ?? rawState.variables[targetName] ?? "");
                   for (let pi = actions.length - 1; pi >= 0; pi--) {
                     if (actions[pi]!.name === targetName && actions[pi]!.hasAssign) {
@@ -11227,7 +11229,7 @@ const syncExtraRuntimeMethods = {
             } else {
               nextVal = rawState.variables[targetName];
             }
-            actions.push({ name: targetName, nextVal, hasAssign: Boolean(assign) });
+            actions.push({ name: targetName, nextVal, hasAssign: Boolean(assign), lastArg });
           }
           if (allOk && actions.length > 0) {
             if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
@@ -11241,7 +11243,7 @@ const syncExtraRuntimeMethods = {
                 } else monitor.publishStringVariable(act.name, act.nextVal);
               }
               monitor.proxy.exported.add(act.name);
-              lastArg = act.hasAssign ? `${act.name}=${act.nextVal!}` : act.name;
+              lastArg = act.lastArg;
             }
             const restEpoch = monitor.chargeInternal(syncRestorationCharge, syncRestorationTickets).epoch;
             this.budget.tick();
@@ -11405,7 +11407,7 @@ const syncExtraRuntimeMethods = {
                 break;
               }
             }
-            parsedLocals.push({ name: assignment.name, val: fastAssigned, append: assignment.append, lastArg: `${assignment.name}=${fastAssigned}` });
+            parsedLocals.push({ name: assignment.name, val: fastAssigned, append: assignment.append, lastArg: `${assignment.name}${assignment.append ? "+=" : "="}${fastAssigned}` });
           } else if ( wArg.plain && /^[a-zA-Z_][a-zA-Z0-9_]*$/.test(wArg.plain) && !rawState.variableAttributes?.get(wArg.plain)?.includes("n") && wArg.plain !== "OPTIND" && wArg.plain !== "PIPESTATUS" && !rawState.readonlyVariables?.has(wArg.plain) && !store?.get(wArg.plain)) {
             parsedLocals.push({ name: wArg.plain, val: undefined, append: false, lastArg: wArg.plain });
           } else {
@@ -11482,7 +11484,7 @@ const syncExtraRuntimeMethods = {
                 this.syncGetopts(rawState);
               }
               if (rawState.allexport) monitor.proxy.exported.add(item.name);
-              rawState.lastArgument = `${item.name}=${finalVal}`;
+              rawState.lastArgument = item.lastArg;
               if (isNamerefDecl) {
                 rawState.variableAttributes ??= new Map();
                 rawState.variableAttributes.set(item.name, "n");

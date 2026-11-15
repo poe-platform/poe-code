@@ -6,6 +6,15 @@ import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 import { basicCommands } from "../../src/commands/basic.js";
 
 const cases: [string, string, (string | undefined)?][] = [];
+for (const builtin of ['declare', 'typeset', 'export']) {
+  for (const [name, body] of [
+    ['ordinary', `x=foo; ${builtin} x+="$suffix"`],
+    ['word loop', `for i in 1 2; do x=foo; ${builtin} x+="$suffix"; done`],
+    ['arithmetic loop', `for ((i=0;i<2;i++)); do x=foo; ${builtin} x+="$suffix"; done`],
+  ]) {
+    cases.push([`${name}: ${builtin} expanded append argument`, `suffix='bar baz'; ${body}; printf '[%s][%s]\\n' "$x" "$_"`, '[foobar baz][x+=bar baz]\n']);
+  }
+}
 for (const header of ['for i in 1 2', 'for ((i=0;i<2;i++))']) {
   for (const builtin of ['local', 'declare', 'typeset']) {
     cases.push([`${header}: ${builtin} self reference`, `x=outer; f() { ${header}; do ${builtin} x="$x"; done; echo "in:$x"; }; f; echo "out:$x"`]);

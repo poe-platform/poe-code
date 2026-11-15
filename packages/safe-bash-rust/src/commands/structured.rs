@@ -30161,6 +30161,8 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
 #[derive(Clone, Debug)]
 enum PandocInline {
     Space,
+    SoftBreak,
+    LineBreak,
     Text(String),
     Strong(Vec<PandocInline>),
     Emph(Vec<PandocInline>),
@@ -30240,7 +30242,8 @@ fn inlines_plain_text(inlines: &[PandocInline]) -> String {
     let mut out = String::new();
     for inl in inlines {
         match inl {
-            PandocInline::Space => out.push(' '),
+            PandocInline::Space | PandocInline::SoftBreak => out.push(' '),
+            PandocInline::LineBreak => out.push('\n'),
             PandocInline::Text(s) | PandocInline::Code(_, s) => out.push_str(s),
             PandocInline::Image(_, c, _, _) => out.push_str(&format!("[{}]", inlines_plain_text(c))),
             PandocInline::Strong(c)
@@ -30262,6 +30265,16 @@ fn parse_pandoc_md_inlines(s: &str, definitions: Option<&MdqDefinitions>) -> Vec
     let mut links = mdq_inline_atoms(defs, s, false).into_iter().filter(|(_, atom)|
         matches!(atom, MdqInlineAtom::Link { target, .. } if target.auto.is_none())).peekable();
     while i < bytes.len() {
+        if bytes[i] == b'\n' || bytes[i] == b'\\' && bytes.get(i + 1) == Some(&b'\n') {
+            if !cur.is_empty() { out.push(PandocInline::Text(std::mem::take(&mut cur))); }
+            let spaces = out.iter().rev().take_while(|node| matches!(node, PandocInline::Space)).count();
+            out.truncate(out.len() - spaces);
+            let hard = bytes[i] == b'\\' || spaces >= 2;
+            out.push(if hard { PandocInline::LineBreak } else { PandocInline::SoftBreak });
+            i += if bytes[i] == b'\\' { 2 } else { 1 };
+            while bytes.get(i).is_some_and(|b| matches!(b, b' ' | b'\t')) { i += 1; }
+            continue;
+        }
         if definitions.is_some() && bytes[i] == b'\\' && bytes.get(i + 1).is_some_and(u8::is_ascii_punctuation) {
             cur.push(bytes[i + 1] as char); i += 2; continue;
         }
@@ -30280,7 +30293,7 @@ fn parse_pandoc_md_inlines(s: &str, definitions: Option<&MdqDefinitions>) -> Vec
                 if !cur.is_empty() {
                     out.push(PandocInline::Text(std::mem::take(&mut cur)));
                 }
-                out.push(PandocInline::Code(PandocAttr::default(), rest[..end].to_string()));
+                out.push(PandocInline::Code(PandocAttr::default(), rest[..end].replace('\n', " ")));
                 i += 2 + end + 2;
                 if s[i..].starts_with("\\ ") {
                     out.push(PandocInline::Space);
@@ -30295,7 +30308,7 @@ fn parse_pandoc_md_inlines(s: &str, definitions: Option<&MdqDefinitions>) -> Vec
                 if !cur.is_empty() {
                     out.push(PandocInline::Text(std::mem::take(&mut cur)));
                 }
-                out.push(PandocInline::Code(PandocAttr::default(), rest[..end].to_string()));
+                out.push(PandocInline::Code(PandocAttr::default(), rest[..end].replace('\n', " ")));
                 i += 1 + end + 1;
                 continue;
             }
@@ -30487,7 +30500,7 @@ fn parse_pandoc_markdown_with_defs(input: &str, pipe_tables: PandocPipeTables, d
         if trimmed.starts_with("> ") || trimmed == ">" {
             let mut q_lines = Vec::new();
             while i < lines.len() {
-                let lt = lines[i].trim();
+                let lt = lines[i].trim_start();
                 if let Some(rest) = lt.strip_prefix("> ") {
                     q_lines.push(rest);
                     i += 1;
@@ -30508,7 +30521,7 @@ fn parse_pandoc_markdown_with_defs(input: &str, pipe_tables: PandocPipeTables, d
             blocks.push(pandoc_list::read(&lines, &mut i, (marker, start), pipe_tables, depth, tasks, defs)?);
             continue;
         }
-        let mut p_lines = vec![trimmed];
+        let mut p_lines = vec![line.trim_start()];
         i += 1;
         while i < lines.len() {
             let lt = lines[i].trim();
@@ -30521,13 +30534,13 @@ fn parse_pandoc_markdown_with_defs(input: &str, pipe_tables: PandocPipeTables, d
             {
                 break;
             }
-            p_lines.push(lt);
+            p_lines.push(lines[i].trim_start());
             i += 1;
         }
         let paragraph = p_lines.join("\n");
         let mut text = paragraph.as_str();
         while let Some((_, _, used)) = mdq_links::definition(text) { text = &text[used..]; }
-        if !text.is_empty() { blocks.push(PandocBlock::Para(parse_pandoc_md_inlines(&text.replace('\n', " "), Some(defs)))); }
+        if !text.is_empty() { blocks.push(PandocBlock::Para(parse_pandoc_md_inlines(text.trim_end(), Some(defs)))); }
     }
     Some(blocks)
 }
@@ -30733,6 +30746,8 @@ fn pandoc_inlines_to_json(inlines: &[PandocInline]) -> JVal {
     for inl in inlines {
         match inl {
             PandocInline::Space => arr.push(JVal::Object(vec![("t".into(), JVal::Str("Space".into()))])),
+            PandocInline::SoftBreak => arr.push(JVal::Object(vec![("t".into(), JVal::Str("SoftBreak".into()))])),
+            PandocInline::LineBreak => arr.push(JVal::Object(vec![("t".into(), JVal::Str("LineBreak".into()))])),
             PandocInline::Text(s) => arr.push(JVal::Object(vec![
                 ("t".into(), JVal::Str("Str".into())), ("c".into(), JVal::Str(s.clone())),
             ])),
@@ -30845,6 +30860,8 @@ fn parse_pandoc_json_inlines(val: &JVal) -> Vec<PandocInline> {
                     }
                 }
                 "Space" => out.push(PandocInline::Space),
+                "SoftBreak" => out.push(PandocInline::SoftBreak),
+                "LineBreak" => out.push(PandocInline::LineBreak),
                 _ => {
                     let Some(c) = jval_obj_get(m, "c") else { continue };
                     match t {
@@ -30962,6 +30979,8 @@ fn render_pandoc_inlines_html(inlines: &[PandocInline], ascii: bool) -> String {
     for inl in inlines {
         match inl {
             PandocInline::Space => out.push(' '),
+            PandocInline::SoftBreak => out.push('\n'),
+            PandocInline::LineBreak => out.push_str("<br>"),
             PandocInline::Text(s) => out.push_str(&html_escape_pandoc(s, ascii)),
             PandocInline::Strong(c) => {
                 out.push_str("<strong>");
@@ -31176,7 +31195,9 @@ fn render_pandoc_inlines_md(inlines: &[PandocInline], bracket_links: bool) -> St
     for inl in inlines {
         match inl {
             PandocInline::Space => out.push(' '),
-            PandocInline::Text(s) => out.push_str(s),
+            PandocInline::SoftBreak => out.push('\n'),
+            PandocInline::LineBreak => out.push_str("\\\n"),
+            PandocInline::Text(s) => out.push_str(&s.replace('\\', "\\\\")),
             PandocInline::Strong(c) => out.push_str(&format!("**{}**", render_pandoc_inlines_md(c, bracket_links))),
             PandocInline::Emph(c) => out.push_str(&format!("*{}*", render_pandoc_inlines_md(c, bracket_links))),
             PandocInline::Strikeout(c) => out.push_str(&format!("~~{}~~", render_pandoc_inlines_md(c, bracket_links))),
@@ -31339,6 +31360,8 @@ fn render_pandoc_inlines_latex(inlines: &[PandocInline]) -> String {
     for inl in inlines {
         match inl {
             PandocInline::Space => out.push(' '),
+            PandocInline::SoftBreak => out.push('\n'),
+            PandocInline::LineBreak => out.push_str("\\\\\n"),
             PandocInline::Text(s) => out.push_str(s),
             PandocInline::Strong(c) => out.push_str(&format!("\\textbf{{{}}}", render_pandoc_inlines_latex(c))),
             PandocInline::Emph(c) => out.push_str(&format!("\\emph{{{}}}", render_pandoc_inlines_latex(c))),
@@ -31380,7 +31403,8 @@ fn render_pandoc_inlines_rtf(inlines: &[PandocInline]) -> String {
     let mut out = String::new();
     for inl in inlines {
         match inl {
-            PandocInline::Space => out.push(' '),
+            PandocInline::Space | PandocInline::SoftBreak => out.push(' '),
+            PandocInline::LineBreak => out.push_str("\\line "),
             PandocInline::Text(s) | PandocInline::Code(_, s) => out.push_str(s),
             PandocInline::Strong(c) => out.push_str(&format!("{{\\b {}}}", render_pandoc_inlines_rtf(c))),
             PandocInline::Emph(c) => out.push_str(&format!("{{\\i {}}}", render_pandoc_inlines_rtf(c))),
@@ -35793,6 +35817,49 @@ mod tests {
         assert_eq!(run("json", "json", &attributed), attributed);
         assert_eq!(run("json", "plain", wire), run("commonmark", "plain", source));
         assert_eq!(run("commonmark", "html", "    a\n    b\n"), "<pre><code>a\nb</code></pre>\n");
+    }
+
+    #[test]
+    fn pandoc_markdown_break_nodes() {
+        let vfs = MemoryVfs::new();
+        for (source, kind) in [("First  \nSecond\n", "LineBreak"), ("First\\\nSecond\n", "LineBreak"), ("First\nSecond\n", "SoftBreak"), ("First   \r\nSecond\r\n", "LineBreak")] {
+            let result = cmd_pandoc(&args(&["-f", "markdown", "-t", "json"]), source, "/", &vfs);
+            assert_eq!(result.exit_code, 0);
+            assert!(result.stdout.contains(&format!(r#"{{"t":"Str","c":"First"}},{{"t":"{kind}"}},{{"t":"Str","c":"Second"}}"#)), "{}", result.stdout);
+            let run = |to| cmd_pandoc(&args(&["-f", "json", "-t", to]), &result.stdout, "/", &vfs).stdout;
+            assert_eq!(run("json"), result.stdout);
+            assert_eq!(run("html"), if kind == "LineBreak" { "<p>First<br>Second</p>\n" } else { "<p>First\nSecond</p>\n" });
+            assert_eq!(run("plain"), if kind == "LineBreak" { "First\nSecond\n" } else { "First Second\n" });
+            assert_eq!(run("markdown"), if kind == "LineBreak" { "First\\\nSecond\n" } else { "First\nSecond\n" });
+        }
+    }
+
+    #[test]
+    fn pandoc_breaks_in_containers_and_literals() {
+        let vfs = MemoryVfs::new();
+        let run = |source| cmd_pandoc(&args(&["-f", "markdown", "-t", "json"]), source, "/", &vfs).stdout;
+        let inlines = r#"[{"t":"Emph","c":[{"t":"Str","c":"First"},{"t":"LineBreak"},{"t":"Str","c":"Second"},{"t":"SoftBreak"},{"t":"Str","c":"Third"}]}]"#;
+        assert!(run("*First  \nSecond\nThird*\n").contains(&format!(r#""blocks":[{{"t":"Para","c":{inlines}}}]"#)));
+        assert!(run("> - *First  \n>   Second\n>   Third*\n").contains(&format!(r#""blocks":[{{"t":"BlockQuote","c":[{{"t":"BulletList","c":[[{{"t":"Plain","c":{inlines}}}]]}}]}}]"#)));
+        assert!(run("First  \n\nSecond\\\n").contains(r#""blocks":[{"t":"Para","c":[{"t":"Str","c":"First"}]},{"t":"Para","c":[{"t":"Str","c":"Second\\"}]}]"#));
+        assert!(run("First\\\\\nSecond\n").contains(r#"[{"t":"Str","c":"First\\"},{"t":"SoftBreak"},{"t":"Str","c":"Second"}]"#));
+        let escaped = "First\\\\\nSecond\n";
+        let markdown = cmd_pandoc(&args(&["-f", "markdown", "-t", "markdown"]), escaped, "/", &vfs).stdout;
+        assert_eq!(run(&markdown), run(escaped));
+        assert!(run("\\\n\\\nFirst\\\n").contains(r#"[{"t":"LineBreak"},{"t":"LineBreak"},{"t":"Str","c":"First\\"}]"#));
+        assert!(run("`First  \nSecond`\n").contains(r#"{"t":"Code","c":[["",[],[]],"First   Second"]}"#));
+        assert!(run("```\nFirst  \nSecond\\\n```\n").contains(r#"{"t":"CodeBlock","c":[["",[],[]],"First  \nSecond\\"]}"#));
+    }
+
+    #[test]
+    fn pandoc_json_break_positions() {
+        let wire = concat!(r#"{"pandoc-api-version":[1,23,1,2],"meta":{},"blocks":[{"t":"Para","c":[{"t":"LineBreak"},{"t":"LineBreak"},{"t":"Str","c":"x"},{"t":"SoftBreak"}]}]}"#, "\n");
+        let vfs = MemoryVfs::new();
+        let run = |to| cmd_pandoc(&args(&["-f", "json", "-t", to]), wire, "/", &vfs).stdout;
+        assert_eq!(run("json"), wire);
+        assert_eq!(run("html"), "<p><br><br>x\n</p>\n");
+        assert_eq!(run("plain"), "\n\nx \n");
+        assert_eq!(run("markdown"), "\\\n\\\nx\n\n");
     }
 
     #[test]

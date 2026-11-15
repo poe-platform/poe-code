@@ -722,7 +722,10 @@ impl Writer {
                         super::xml_escape_text(code)
                     )?;
                 }
-                PandocInline::Text(_) | PandocInline::Space => {
+                PandocInline::LineBreak => {
+                    write!(self.document, "<w:r><w:rPr>{properties}</w:rPr><w:br/></w:r>")?;
+                }
+                PandocInline::Text(_) | PandocInline::Space | PandocInline::SoftBreak => {
                     self.document.write_str("<w:r>")?;
                     if !properties.is_empty() {
                         write!(self.document, "<w:rPr>{properties}</w:rPr>")?;

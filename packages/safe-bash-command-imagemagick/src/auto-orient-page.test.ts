@@ -1,4 +1,4 @@
-import { spawnSync } from "node:child_process";
+import { execFileSync } from "node:child_process";
 import { expect, it } from "vitest";
 import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
@@ -12,9 +12,8 @@ for (const mode of ["buffered", "retained", "command"]) {
         { raw: { width: 3, height: 2, channels: 3 } });
       const input = await (orientation ? image.withMetadata({ orientation }) : image).jpeg({ quality: 100 }).toBuffer();
       const options = [...(page ? ["-repage", page] : []), "-auto-orient"];
-      const native = spawnSync("magick", ["jpeg:-", ...options, "png:-"], { input });
-      expect(native.status, native.stderr.toString()).toBe(0);
-      const expected = decodeImage(native.stdout);
+      const native = execFileSync(process.env.IMAGEMAGICK_TEST_BINARY ?? "magick", ["jpeg:-", ...options, "png:-"], { input });
+      const expected = decodeImage(native);
       const fs = new MemoryFileSystem(), files = new Map([["/input.jpg", input]]);
       await fs.writeFile("/input.jpg", input);
       const args = ["/input.jpg", ...options, "/output.png"];

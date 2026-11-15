@@ -55,7 +55,6 @@
     "opencode-poe-auth",
     "poe-oauth",
     "safe-bash-command-csvkit",
-    "safe-bash-command-imagemagick",
     "safe-bash-command-mcp",
     "safe-bash-command-pdfimages",
     "safe-bash-command-pdftk",

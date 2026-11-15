@@ -1,0 +1,33 @@
+name: Set up ImageMagick oracle
+description: Extract the checksum-pinned native media ImageMagick distribution for fresh reference tests
+runs:
+  using: composite
+  steps:
+    - name: Install SquashFS tools
+      shell: bash
+      run: |
+        sudo apt-get update
+        sudo apt-get install --yes squashfs-tools
+    - name: Verify and extract ImageMagick
+      shell: bash
+      run: |
+        set -euo pipefail
+        oracle_root="$GITHUB_WORKSPACE/out/imagemagick-oracle"
+        mkdir -p "$oracle_root"
+        node --input-type=module <<'JS'
+        import { createHash } from 'node:crypto';
+        import { readFileSync, writeFileSync } from 'node:fs';
+        const lock = JSON.parse(readFileSync('packages/safe-bash-media-engine/server/container-lock.json', 'utf8'));
+        const artifact = lock.artifacts.find(item => item.path.endsWith('/magick.AppImage'));
+        const response = await fetch(artifact.url);
+        if (!response.ok) throw new Error(`ImageMagick oracle download failed: ${response.status} ${response.statusText}`);
+        const bytes = Buffer.from(await response.arrayBuffer());
+        if (bytes.length !== artifact.bytes || createHash('sha256').update(bytes).digest('hex') !== artifact.sha256) {
+          throw new Error('ImageMagick oracle digest/length mismatch');
+        }
+        writeFileSync('out/imagemagick-oracle/magick.AppImage', bytes);
+        JS
+        # Offset of the SquashFS payload in the pinned native media AppImage.
+        unsquashfs -quiet -o 944632 -d "$oracle_root/app" "$oracle_root/magick.AppImage"
+        "$oracle_root/app/AppRun" -version
+        echo "IMAGEMAGICK_TEST_BINARY=$oracle_root/app/AppRun" >> "$GITHUB_ENV"

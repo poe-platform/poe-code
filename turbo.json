@@ -712,6 +712,9 @@
       "dependsOn": [
         "build"
       ]
+    },
+    "safe-bash-command-imagemagick#test:unit": {
+      "cache": false
     }
   }
 }

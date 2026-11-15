@@ -228,6 +228,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes zsh
           test -x /bin/zsh
+      - uses: ./.github/actions/setup-imagemagick-oracle
       - name: Identify cache runtime
         run: node -e 'console.log("POE_CI_RUNTIME=" + JSON.stringify({versions:process.versions,platform:process.platform,arch:process.arch,image:process.env.ImageOS,imageVersion:process.env.ImageVersion}))' >> "$GITHUB_ENV"
       - name: Restore eligible unit task cache

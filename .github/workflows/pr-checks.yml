@@ -49,6 +49,7 @@ jobs:
           sudo apt-get update
           sudo apt-get install --yes zsh
           test -x /bin/zsh
+      - uses: ./.github/actions/setup-imagemagick-oracle
       - name: Run workspace unit stages serially
         # Each stage has its own workers; overlapping stages oversubscribe runner CPUs.
         run: npm test -- --concurrency=1 --exclude-workspace=@poe-platform/safe-bash

@@ -68,7 +68,9 @@ describe("opt-in CI unit groups", () => {
     const fresh = createWorkspaceTestPlan(process.cwd(), { ciGroup: "fresh" });
     expect(cached.buildStages).toEqual([]);
     expect(fresh.buildStages).toEqual([]);
-    expect(cached.testStages.length).toBeGreaterThanOrEqual(80);
+    const all = createWorkspaceTestPlan(process.cwd());
+    expect([...cached.testStages, ...fresh.testStages].map(stage => stage.id).sort())
+      .toEqual(all.testStages.filter(stage => stage.name !== "@poe-platform/safe-bash").map(stage => stage.id).sort());
   });
 
   it("parses only explicit CI groups without forwarded test options", () => {

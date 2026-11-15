@@ -51,7 +51,7 @@ for (const backend of writableAdapters) {
         ["jq -c '.names' config.json", '["alpha","beta"]\n'],
         ["sha256sum payload.bin", `${digest}  payload.bin\n`],
         ["set -o pipefail; gzip -c payload.bin | gzip -dc", profile.retainedReads ? payload : "", profile.retainedReads ? 0 : 1,
-          profile.retainedReads ? "" : "gzip: ENOTSUP: named input requires retained VFS reads with stable scoped identities '/work/payload.bin'\ngzip: unexpected end of file\n"],
+          profile.retainedReads ? "" : "gzip: ENOTSUP: named input requires retained VFS reads with stable scoped identities '/work/payload.bin'\ngzip: stdin: unexpected end of file\n"],
         ["diff -q old.txt target.txt", "", profile.retainedReads ? 0 : 2,
           profile.retainedReads ? "" : diffReadError],
         ["patch --dry-run -i change.diff", undefined, profile.retainedReads ? 0 : 2,

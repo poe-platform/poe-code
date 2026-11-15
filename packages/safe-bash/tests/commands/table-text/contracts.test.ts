@@ -283,11 +283,49 @@ for (const [args, files, expected] of [
 }
 
 test("join rejects auto mixed with explicit output formats in either order", async () => {
-  for (const args of [["-o", "auto", "-o", "1.1"], ["-o", "1.1", "-o", "auto"]]) {
+  for (const args of [
+    ["-o", "auto", "-o", "1.1"], ["-o", "1.1", "-o", "auto"],
+    ["-oauto", "-o1.1"], ["-o1.1", "-oauto"],
+    ["-oauto", "-o", "1.1"], ["-o1.1", "-o", "auto"],
+    ["-o", "auto", "-o1.1"], ["-o", "1.1", "-oauto"],
+  ]) {
     const result = await runTable(fixture("join", [...args, "left", "right"], { left: "a x\n", right: "a y\n" }));
     assert.equal(result.exitCode, 1);
     assert.match(result.stderr, /conflicting output format specifications/u);
     assert.equal(result.stdoutHex, "");
+  }
+});
+
+for (const [args, expected] of [
+  [["-o", "auto"], "a one two\n"],
+  [["-oauto", "-o", "auto"], "a one two\n"],
+  [["-o", "2.2,1.2"], "two one\n"],
+  [["-o2.2", "-o", "1.2"], "two one\n"],
+] as const) {
+  test(`join preserves output formats: ${args.join(" ")}`, async () => {
+    const result = await runTable(fixture("join", [...args, "left", "right"], { left: "a one\n", right: "a two\n" }));
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdoutHex, Buffer.from(expected).toString("hex"));
+  });
+}
+
+test("join rejects conflicting formats before opening files or consuming stdin", async () => {
+  let reads = 0;
+  const fs = proxyFs(createMemoryFileSystem(), {
+    async stat() { reads++; throw new Error("unexpected file stat"); },
+    async readFile() { reads++; throw new Error("unexpected file read"); },
+    async open() { reads++; throw new Error("unexpected file open"); },
+  });
+  const stdin: ByteSource = { [Symbol.asyncIterator]() { reads++; throw new Error("unexpected stdin read"); } };
+  for (const args of [["-oauto", "-o1.1"], ["-o1.1", "-oauto"]]) {
+    for (const files of [["missing-left", "missing-right"], ["-", "missing-right"], ["left", "right"]]) {
+      const result = await runTable(fixture("join", ["--header", ...files, ...args], { left: "a one\n", right: "a two\n" }), {}, { fs, stdin });
+      assert.equal(result.exitCode, 1);
+      assert.equal(result.stderr, "join: conflicting output format specifications\n");
+      assert.equal(result.stdoutHex, "");
+      assert.equal(reads, 0);
+    }
   }
 });
 

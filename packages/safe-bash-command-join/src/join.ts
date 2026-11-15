@@ -90,9 +90,11 @@ function parse(context: CommandContext, budget: Budget, utf8: boolean): Options 
       options.whole = bytes.length === 0;
     } else if (flag === "o") {
       if (value === "auto") {
+        if (Array.isArray(options.format)) throw new PublicDiagnostic("conflicting output format specifications");
         options.format ??= "auto";
         return;
       }
+      if (options.format === "auto") throw new PublicDiagnostic("conflicting output format specifications");
       // UTF-8 locale blanks exclude non-breaking spaces and vertical whitespace.
       const separators = utf8 ? ", \t\u1680\u2000\u2001\u2002\u2003\u2004\u2005\u2006\u2008\u2009\u200a\u205f\u3000" : ", \t";
       const values: string[] = [];

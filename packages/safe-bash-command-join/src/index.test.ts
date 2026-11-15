@@ -97,14 +97,26 @@ for (const delimiter of ["|", ":"]) {
  }
 }
 
+for (const args of [
+ ["-o", "auto", "-o", "0"],
+ ["-o", "0", "-o", "auto"],
+ ["-oauto", "-o1.2", "-oauto", "-o2.2", "-oauto"],
+]) {
+ test(`join rejects mixed output formats: ${args.join(" ")}`, async () => {
+  const result = await run([...args, "left", "right"], { "/left": "a L1\n", "/right": "a R1\n" });
+  assert.equal(result.exitCode, 1);
+  assert.equal(result.stdout, "");
+  assert.equal(result.stderr, "join: conflicting output format specifications\n");
+ });
+}
+
 for (const { args, expected } of [
- { args: ["-o", "auto", "-o", "0"], expected: "a\na\na\na\n" },
- { args: ["-o", "0", "-o", "auto"], expected: "a\na\na\na\n" },
+ { args: ["-o", "0"], expected: "a\na\na\na\n" },
  { args: ["-o", "auto"], expected: "a L1 R1\na L1 R2\na L2 R1\na L2 R2\n" },
  { args: ["-o", "auto", "-o", "auto"], expected: "a L1 R1\na L1 R2\na L2 R1\na L2 R2\n" },
- { args: ["-oauto", "-o1.2", "-oauto", "-o2.2", "-oauto"], expected: "L1 R1\nL1 R2\nL2 R1\nL2 R2\n" },
+ { args: ["-o1.2", "-o2.2"], expected: "L1 R1\nL1 R2\nL2 R1\nL2 R2\n" },
 ]) {
- test(`join gives explicit output fields precedence over auto: ${args.join(" ")}`, async () => {
+ test(`join preserves automatic and explicit output fields: ${args.join(" ")}`, async () => {
   const result = await run([...args, "left", "right"], {
    "/left": "a L1\na L2\nc L3\n",
    "/right": "a R1\na R2\nb R3\n",
@@ -623,6 +635,8 @@ for (const [args, diagnostic] of [
  [["-1", "1", "-1", "2"], "incompatible join fields 0, 1"],
  [["-2", "1", "-j", "2"], "incompatible join fields 0, 1"],
  [["-e", "x", "-e", "y"], "conflicting empty-field replacement strings"],
+ [["-o", "auto", "-o", "1.1"], "conflicting output format specifications"],
+ [["-o1.1", "-oauto"], "conflicting output format specifications"],
 ] satisfies [string[], string][]) {
  test(`join reports conflicting settings before missing operands: ${args.join(" ")}`, async () => {
   const result = await run(args, {}, { LC_ALL: "C" });

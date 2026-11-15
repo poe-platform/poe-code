@@ -6018,6 +6018,12 @@ fn cmd_soffice(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcom
             rows_opt=Some(match office::delimited(&source,delim){Ok(rows)=>rows, Err(e)=>return err_out(e,1)});
         }
         match target_ext.as_str() {
+            "pdf" if input_ext == "docx" => {
+                let Some(pdf) = pdf_reader::render_docx(&bytes, stem, filter_opts, fs.max_input_bytes()) else {
+                    return err_out("Error: conversion failed: invalid DOCX or resource limit exceeded\n", 1);
+                };
+                if fs.write_file(&dest, &pdf).is_err() { return err_out("Error: conversion failed: cannot write PDF\n", 1); }
+            }
             "pdf" if input_ext == "pptx" => {
                 let Some(pdf) = pdf_reader::render_pptx(&bytes, filter_opts, fs.max_input_bytes()) else {
                     return err_out("Error: conversion failed: invalid PPTX or resource limit exceeded\n", 1);
@@ -17724,6 +17730,67 @@ mod media_unit_tests {
             assert_eq!(result.exit_code, 0, "{}", result.stderr);
             let output = fs.read_file(&format!("/d.{ext}")).unwrap();
             assert_eq!(crate::commands::archive::sha256_bytes(&output).iter().map(|b|format!("{b:02x}")).collect::<String>(), expected);
+        }
+    }
+
+    #[test]
+    fn soffice_preserves_docx_page_breaks_and_images() {
+        for kind in ["break", "before", "inline", "none", "0", "false", "off"] {
+            let fs = MemoryVfs::new();
+            let red = png_pixels::Raster {width:1,height:1,alpha:false,gray:false,density:72,orientation:None,pixels:vec![[255,0,0,255]]};
+            let blue = png_pixels::Raster {pixels:vec![[0,0,255,255]],..red.clone()};
+            let red=frame_output::encode(&red,"png",90.,72,1<<20).unwrap();
+            let blue=frame_output::encode(&blue,"png",90.,72,1<<20).unwrap();
+            let drawing=|id|format!(r#"<w:r><w:drawing><wp:extent cx="1828800" cy="914400"/><a:blip r:embed="{id}"/></w:drawing></w:r>"#);
+            let first=format!("<w:r><w:t>PAGE ONE</w:t></w:r>{}",drawing("red"));
+            let second=format!("<w:r><w:t>PAGE TWO</w:t></w:r>{}",drawing("blue"));
+            let before=if kind=="before" {"<w:pageBreakBefore/>".to_owned()} else {format!(r#"<w:pageBreakBefore w:val="{kind}"/>"#)};
+            let body=if kind=="inline" {format!(r#"<w:p>{first}<w:r><w:br w:type="page"/><w:t>PAGE TWO</w:t></w:r>{}</w:p>"#,drawing("blue"))} else {format!("<w:p>{first}{}</w:p><w:p><w:pPr>{before}</w:pPr>{second}</w:p>",if kind=="break" {r#"<w:r><w:br w:type="page"/></w:r>"#} else {""})};
+            let xml=format!(r#"<w:document xmlns:w="w" xmlns:wp="wp" xmlns:a="a" xmlns:r="r"><w:body>{body}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/></w:sectPr></w:body></w:document>"#);
+            let entries=vec![("word/document.xml",xml.as_bytes()),("word/_rels/document.xml.rels",br#"<Relationships><Relationship Id="red" Target="media/red.png"/><Relationship Id="blue" Target="media/blue.png"/></Relationships>"#.as_slice()),("word/media/red.png",red.as_slice()),("word/media/blue.png",blue.as_slice())];
+            let input=crate::commands::structured::write_zip_stored(&entries);
+            fs.write_file("/doc.docx",&input).unwrap();
+            let result=cmd_media_doc("soffice",&media_args(&["--convert-to","pdf","/doc.docx"]),"","/",&fs);
+            assert_eq!(result.exit_code,0,"{}",result.stderr);
+            let bytes=fs.read_file("/doc.pdf").unwrap();
+            let doc=pdf_reader::read(&bytes, "").expect("real DOCX PDF").0;
+            let split=matches!(kind,"break"|"before"|"inline");
+            assert_eq!(doc.pages.len(),if split {2} else {1},"{kind}");
+            assert_eq!((doc.page_w,doc.page_h),(612.,792.));
+            for (index,page) in doc.pages.iter().enumerate() {
+                assert_eq!(page.text.contains("PAGE ONE"),!split || index==0);
+                assert_eq!(page.text.contains("PAGE TWO"),!split || index==1);
+            }
+            let result=cmd_media_doc("pdftoppm",&media_args(&["-r","72","-png","/doc.pdf","/page"]),"","/",&fs);
+            assert_eq!(result.exit_code,0,"{}",result.stderr);
+            for page in 1..=doc.pages.len() {
+                let raster=png_pixels::Raster::decode(&fs.read_file(&format!("/page-{page}.png")).unwrap(),4<<20).unwrap();
+                for (color, expected) in [([255,0,0,255],!split || page==1),([0,0,255,255],!split || page==2)] {
+                    let count=raster.pixels.iter().filter(|&&pixel|pixel==color).count();
+                    assert!(if expected {(10368..=10585).contains(&count)} else {count==0},"{kind}: {color:?}: {count}");
+                }
+            }
+            let limited = MemoryVfs::with_limits(crate::vfs::MemoryVfsLimits {max_total_bytes:input.len()+3,..Default::default()});
+            limited.write_file("/doc.docx",&input).unwrap();
+            limited.write_file("/doc.pdf",b"old").unwrap();
+            let result=cmd_media_doc("soffice",&media_args(&["--convert-to","pdf","/doc.docx"]),"","/",&limited);
+            assert_eq!(result.exit_code,1);
+            assert!(result.stderr.contains("cannot write PDF"));
+            assert_eq!(limited.read_file("/doc.pdf").unwrap(),b"old");
+            let missing=crate::commands::structured::write_zip_stored(&entries.iter().copied().filter(|(name,_)|*name!="word/media/blue.png").collect::<Vec<_>>());
+            fs.write_file("/doc.docx",&missing).unwrap();
+            let result=cmd_media_doc("soffice",&media_args(&["--convert-to","pdf","/doc.docx"]),"","/",&fs);
+            assert_eq!(result.exit_code,1);
+            assert_eq!(fs.read_file("/doc.pdf").unwrap(),bytes);
+            fs.write_file("/doc.docx",&input).unwrap();
+            assert_eq!(fs.read_file("/doc.docx").unwrap(),input);
+            for broken in [b"bad image".as_slice(),b"\xff\xd8\xff\xd9"] {
+                let input=crate::commands::structured::write_zip_stored(&entries.iter().map(|&(key,value)|(key,if key=="word/media/blue.png" {broken} else {value})).collect::<Vec<_>>());
+                fs.write_file("/doc.docx",&input).unwrap();
+                let result=cmd_media_doc("soffice",&media_args(&["--convert-to","pdf","/doc.docx"]),"","/",&fs);
+                assert_eq!(result.exit_code,1);
+                assert_eq!(fs.read_file("/doc.pdf").unwrap(),bytes);
+            }
         }
     }
 

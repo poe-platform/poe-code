@@ -2,6 +2,7 @@
 export interface RetainedTextSnapshot { readonly firstPage: number; readonly firstBlock: number; readonly count: number }
 
 export interface RetainedTextBlocks {
+  pageBreak?(snapshot: RetainedTextSnapshot, index: number): Promise<"always" | "before" | undefined>;
   styles?(snapshot: RetainedTextSnapshot, index: number): AsyncIterable<{ start: number; length: number; bold: boolean; italic: boolean }>;
   image?(snapshot: RetainedTextSnapshot, index: number): Promise<RetainedImage | undefined>;
   table?(snapshot: RetainedTextSnapshot, index: number): Promise<RetainedTable | undefined>;

@@ -21,6 +21,10 @@ pub(super) use pdf_copy::{ImageRead, NativeImage, PageOutput, PageSource, Raster
 mod pdf_pptx;
 pub(super) use pdf_pptx::render_pptx;
 
+#[path = "pdf_docx.rs"]
+mod pdf_docx;
+pub(super) use pdf_docx::render_docx;
+
 #[path = "pdf_office.rs"]
 mod pdf_office;
 pub(super) use pdf_office::render_office;

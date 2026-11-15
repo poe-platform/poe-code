@@ -247,50 +247,85 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
           else await addBlock(await table.finish());
         }
       } else {
-        const value = await text(block, !!documentBlocks), list = await lists?.next(xml, block);
-        if (html && list) {
-          await closeLists(list.level);
-          const current = htmlLists.at(-1);
-          if (current?.level === list.level && (current.id !== list.id || current.ordered !== list.ordered)) await closeLists(list.level - 1);
-          if (htmlLists.at(-1)?.level === list.level) await output.add(await literal("</li>\n"));
-          else {
-            await output.add(await literal(list.ordered ? `<ol start="${list.number}">\n` : "<ul>\n"));
-            htmlLists.push(list);
-          }
-          await output.add(await literal(list.ordered ? `<li value="${list.number}">` : "<li>"));
-          await output.add(await inlineHtml(block));
-        } else {
-          await closeLists();
-          if (value.size || list) {
-            const marked = list?.marker ? await retain((async function* () { yield encoder.encode(list.marker + " "); yield* read(value); })()) : value;
-            if (documentBlocks) await documentBlocks.paragraph(marked, await heading(block), value.styles, (list?.marker ? encoder.encode(list.marker + " ").length : 0) - (value.trim ?? 0));
-            else await addBlock(marked, await heading(block), false, block);
-          }
+        const paragraphHeading = await heading(block);
+        const paragraphList = await lists?.next(xml, block);
+        if (documentBlocks) {
+          for await (const properties of xml.elements(block.open + 1, block.end, ["pPr"]))
+            for await (const before of xml.elements(properties.open + 1, properties.end, ["pageBreakBefore"], true)) {
+              const value = await xml.attribute(before, "val");
+              let setting = "";
+              if (value && value.length <= 5) for await (const bytes of xml.xml.read(value)) setting += new TextDecoder().decode(bytes);
+              if (!value || ["1", "true", "on"].includes(setting)) await documentBlocks.addPageBreak(true);
+            }
         }
-        for await (const drawing of xml.elements(block.open + 1, block.end, ["drawing", "pict"])) {
-          let reference: XmlRange | undefined;
-          for (let index = drawing.first; index < drawing.end; index++) {
-            const token = await xml.token(index);
-            if (token.kind === "attribute-name" && await xml.name(token.range) === "embed") {
-              const value = await xml.token(index + 1);
-              if (value.kind === "attribute-value") for await (const bytes of xml.xml.read({ start: value.range.start - 1, length: 1 })) if (bytes[0] === 34) reference = value.range;
-              if (reference) break;
+        async function* segments() {
+          if (!documentBlocks) { yield {element: block, pageBreak: false}; return; }
+          let first = block.open;
+          for await (const item of xml.elements(block.open + 1, block.end, ["drawing", "pict", "br"], true)) {
+            const name = await xml.name(item.name);
+            if (name === "br") {
+              const type = await xml.attribute(item, "type");
+              let value = "";
+              if (type?.length === 4) for await (const bytes of xml.xml.read(type)) value += new TextDecoder().decode(bytes);
+              if (value !== "page") continue;
+            }
+            if (item.first > first + 1) yield {element: {...block, open: first, end: item.first}, pageBreak: false};
+            yield {element: {...block, open: item.first - 1, end: item.end + 1}, pageBreak: name === "br"};
+            first = item.end;
+          }
+          if (first < block.end) yield {element: {...block, open: first}, pageBreak: false};
+        }
+        let firstSegment = true;
+        for await (const segment of segments()) {
+          if (segment.pageBreak) { await documentBlocks!.addPageBreak(); continue; }
+          const element = segment.element;
+          const value = await text(element, !!documentBlocks), list = firstSegment ? paragraphList : undefined;
+          firstSegment = false;
+          if (html && list) {
+            await closeLists(list.level);
+            const current = htmlLists.at(-1);
+            if (current?.level === list.level && (current.id !== list.id || current.ordered !== list.ordered)) await closeLists(list.level - 1);
+            if (htmlLists.at(-1)?.level === list.level) await output.add(await literal("</li>\n"));
+            else {
+              await output.add(await literal(list.ordered ? `<ol start="${list.number}">\n` : "<ul>\n"));
+              htmlLists.push(list);
+            }
+            await output.add(await literal(list.ordered ? `<li value="${list.number}">` : "<li>"));
+            await output.add(await inlineHtml(block));
+          } else {
+            await closeLists();
+            if (value.size || list) {
+              const marked = list?.marker ? await retain((async function* () { yield encoder.encode(list.marker + " "); yield* read(value); })()) : value;
+              if (documentBlocks) await documentBlocks.paragraph(marked, paragraphHeading, value.styles, (list?.marker ? encoder.encode(list.marker + " ").length : 0) - (value.trim ?? 0));
+              else await addBlock(marked, await heading(block), false, block);
             }
           }
-          if (reference) {
-            const target = await relationships.get(await retain(xml.xml.read(reference))), media = target ? await names.get(target) : undefined;
-            if (media && documentBlocks) {
-              let width = 432, height = 226.8;
-              for await (const extent of xml.elements(drawing.open + 1, drawing.end, ["extent", "ext"], true, true)) {
-                const cx = await xml.attribute(extent, "cx"), cy = await xml.attribute(extent, "cy");
-                if (!cx?.length || !cy?.length) continue;
-                const number = async (range: XmlRange) => { let value = 0; for await (const bytes of xml.xml.read(range)) for (const byte of bytes) { if (byte < 48 || byte > 57) return undefined; value = value * 10 + byte - 48; } return value; };
-                const x = await number(cx), y = await number(cy); if (x === undefined || y === undefined) continue;
-                width = Math.max(24, x / 12700); height = Math.max(24, y / 12700); break;
+          for await (const drawing of xml.elements(element.open + 1, element.end, ["drawing", "pict"])) {
+            let reference: XmlRange | undefined;
+            for (let index = drawing.first; index < drawing.end; index++) {
+              const token = await xml.token(index);
+              if (token.kind === "attribute-name" && await xml.name(token.range) === "embed") {
+                const value = await xml.token(index + 1);
+                if (value.kind === "attribute-value") reference = value.range;
+                if (reference) break;
               }
-              if (width > 504) { height *= 504 / width; width = 504; }
-              await documentBlocks.addImage(media, width, height);
-            } else if (media) await addBlock({ position: 0, size: 0 }, false, true);
+            }
+            if (reference) {
+              const target = await relationships.get(await retain(xml.xml.read(reference))), media = target ? await names.get(target) : undefined;
+              if (!media && documentBlocks) throw new Error("Missing referenced DOCX image");
+              if (media && documentBlocks) {
+                let width = 432, height = 226.8;
+                for await (const extent of xml.elements(drawing.open + 1, drawing.end, ["extent", "ext"], true, true)) {
+                  const cx = await xml.attribute(extent, "cx"), cy = await xml.attribute(extent, "cy");
+                  if (!cx?.length || !cy?.length) continue;
+                  const number = async (range: XmlRange) => { let value = 0; for await (const bytes of xml.xml.read(range)) for (const byte of bytes) { if (byte < 48 || byte > 57) return undefined; value = value * 10 + byte - 48; } return value; };
+                  const x = await number(cx), y = await number(cy); if (x === undefined || y === undefined) continue;
+                  width = Math.max(24, x / 12700); height = Math.max(24, y / 12700); break;
+                }
+                if (width > 504) { height *= 504 / width; width = 504; }
+                await documentBlocks.addImage(media, width, height);
+              } else if (media) await addBlock({ position: 0, size: 0 }, false, true);
+            }
           }
         }
       }

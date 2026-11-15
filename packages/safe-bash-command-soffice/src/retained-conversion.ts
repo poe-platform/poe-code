@@ -71,12 +71,18 @@ export async function tryRetainedTextConversion(args: { readonly inputs: readonl
           messages.length = 0; break;
         }
         if (format === "docx" || document) {
-          const archive = document ? await retainTextPdf(storage, document, document.snapshot(), stem, context, nextColon < 0 ? undefined : convertSpec.slice(nextColon + 1)) : await retainOfficeXml(storage, (async function* () {
+          let archive;
+          try { archive = document ? await retainTextPdf(storage, document, document.snapshot(), stem, context, nextColon < 0 ? undefined : convertSpec.slice(nextColon + 1)) : await retainOfficeXml(storage, (async function* () {
             for (let offset = 0; offset < text.size; offset += 16384) {
               signal.throwIfAborted();
               yield new Uint8Array(await storage.read(text.position + offset, Math.min(16384, text.size - offset)));
             }
-          })(), signal);
+          })(), signal); }
+          catch (error) {
+            signal.throwIfAborted();
+            stderr = `Error: conversion failed: ${error instanceof Error ? error.message : String(error)}\n`;
+            messages.length = 0; break;
+          }
           const position = storage.allocate(archive.size);
           let written = 0;
           for await (const bytes of archive.read()) {

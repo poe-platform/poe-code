@@ -1,3 +1,4 @@
+import { decodeJpegToStorage } from "@poe-code/image-ast";
 import { RetainedPdf } from "./retained-pdf-storage.js";
 import { retainPdfImage } from "./retained-pdf-image.js";
 import { IntegerTable, type PagedStorage } from "@poe-code/safe-fs/storage";
@@ -14,14 +15,16 @@ export async function retainTextPdf(storage: PagedStorage, text: RetainedTextBlo
   const finishPage = async () => { await pdf.finishPage(); y = 720; };
   for (let block = 0; block < snapshot.count; block++) {
     signal.throwIfAborted();
+    const pageBreak = await text.pageBreak?.(snapshot, block);
+    if (pageBreak) { if (pageBreak === "always" || y !== 720) await finishPage(); continue; }
     const image = await text.image?.(snapshot, block);
     if (image) {
       const retained = await retainPdfImage(storage, image, signal);
-      if (retained) {
-        if (y - (image.height + 12) < 54) await finishPage();
-        await pdf.image(retained, {x: 54, y: y - image.height, width: image.width, height: image.height});
-        y -= image.height + 12;
-      }
+      if (!retained) throw new Error("Invalid referenced DOCX image");
+      if (retained.jpeg) await decodeJpegToStorage({size: image.size, read: (offset, length) => storage.read(image.position + offset, length)}, storage, signal);
+      if (y - (image.height + 12) < 54) await finishPage();
+      await pdf.image(retained, {x: 54, y: y - image.height, width: image.width, height: image.height});
+      y -= image.height + 12;
       continue;
     }
     const table = await text.table?.(snapshot, block);

@@ -15,6 +15,7 @@ use std::io::Write;
 struct Page {
     stream: Vec<u8>,
     fonts: Vec<bool>,
+    images: Vec<(super::super::png_pixels::Raster, f64, f64, i32)>,
 }
 impl Page {
     fn text(&mut self, s: &str, x: f64, y: i32, size: u8, bold: bool, rgb: &str) {
@@ -43,20 +44,29 @@ pub(in super::super) fn render_office(
     filter: Option<&str>,
     limit: usize,
 ) -> Option<Vec<u8>> {
+    render_blocks(blocks.into_iter().map(LayoutBlock::Office).collect(), title, filter, limit)
+}
+
+pub(super) enum LayoutBlock {
+    Office(Block),
+    Image(super::super::png_pixels::Raster, f64, f64),
+    PageBreak(bool),
+}
+pub(super) fn render_blocks(blocks: Vec<LayoutBlock>, title: &str, filter: Option<&str>, limit: usize) -> Option<Vec<u8>> {
     let mut pages = vec![Page::default()];
     let mut y = 720;
     let mut finished = 0usize;
-    let mut space = |pages: &mut Vec<Page>, y: &mut i32, needed| -> Option<()> {
+    let space = |pages: &mut Vec<Page>, y: &mut i32, finished: &mut usize, needed| -> Option<()> {
         if *y - needed < 54 {
-            finished = finished.checked_add(pages.last()?.stream.len())?;
+            *finished = finished.checked_add(pages.last()?.stream.len())?;
             pages.push(Page::default());
             *y = 720;
         }
-        (finished + pages.last()?.stream.len() <= limit).then_some(())
+        (*finished + pages.last()?.stream.len() <= limit).then_some(())
     };
     for block in blocks {
         match block {
-            Block::Text(t, bold) => {
+            LayoutBlock::Office(Block::Text(t, bold)) => {
                 let max = if bold { 48 } else { 84 };
                 let mut words = t.split_whitespace().peekable();
                 loop {
@@ -72,7 +82,7 @@ pub(in super::super) fn render_office(
                         length += 1 + n;
                         words.next();
                     }
-                    space(&mut pages, &mut y, if bold { 26 } else { 16 })?;
+                    space(&mut pages, &mut y, &mut finished, if bold { 26 } else { 16 })?;
                     pages.last_mut()?.text(
                         &line,
                         54.,
@@ -92,10 +102,10 @@ pub(in super::super) fn render_office(
                 }
                 y -= if bold { 4 } else { 5 };
             }
-            Block::Table(rows) => {
+            LayoutBlock::Office(Block::Table(rows)) => {
                 let width = 504. / rows.iter().map(Vec::len).max().unwrap_or(1).max(1) as f64;
                 for (i, row) in rows.into_iter().enumerate() {
-                    space(&mut pages, &mut y, 28)?;
+                    space(&mut pages, &mut y, &mut finished, 28)?;
                     let page = pages.last_mut()?;
                     let bottom = y - 22;
                     let stroke = "0.7 0.72 0.75 RG\n0.5 w";
@@ -119,6 +129,19 @@ pub(in super::super) fn render_office(
                     y = bottom;
                 }
                 y -= 14;
+            }
+            LayoutBlock::PageBreak(before) => {
+                if !before || y != 720 {
+                    finished = finished.checked_add(pages.last()?.stream.len())?;
+                    if finished > limit { return None; }
+                    pages.push(Page::default());
+                    y = 720;
+                }
+            }
+            LayoutBlock::Image(image, width, height) => {
+                space(&mut pages, &mut y, &mut finished, (height + 12.).ceil() as i32)?;
+                pages.last_mut()?.images.push((image, width, height, y));
+                y -= (height + 12.).ceil() as i32;
             }
         }
     }
@@ -144,6 +167,12 @@ pub(in super::super) fn render_office(
     ];
     let mut kids = Vec::new();
     for mut page in pages {
+        let mut resources = String::new();
+        for (index, (image, width, height, y)) in page.images.into_iter().enumerate() {
+            super::pdf_render::PdfBitmap::new(&image.pixels, image.width, image.height).write(&mut bodies);
+            resources.push_str(&format!("/Im{index} {} 0 R ", bodies.len()));
+            writeln!(page.stream, "q\n{width} 0 0 {height} 54 {} cm\n/Im{index} Do\nQ", y as f64 - height).ok()?;
+        }
         page.stream.pop();
         let stream = zlib_compress(&page.stream);
         let content = bodies.len() + 1;
@@ -163,7 +192,8 @@ pub(in super::super) fn render_office(
             .enumerate()
             .map(|(i, _)| format!("/F{} {} 0 R\n", i + 1, id + i + 1))
             .collect::<String>();
-        bodies.push(format!("<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [ 0 0 612 792 ]\n/Resources <<\n/Font <<\n{fonts}>>\n>>\n/Contents {content} 0 R\n>>").into_bytes());
+        let resources = if resources.is_empty() { String::new() } else { format!("/XObject << {resources} >>\n") };
+        bodies.push(format!("<<\n/Type /Page\n/Parent 2 0 R\n/MediaBox [ 0 0 612 792 ]\n/Resources <<\n/Font <<\n{fonts}>>\n{resources}>>\n/Contents {content} 0 R\n>>").into_bytes());
         for bold in page.fonts {
             let font = if bold { "Helvetica-Bold" } else { "Helvetica" };
             bodies.push(format!("<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /{font}\n/Encoding /WinAnsiEncoding\n>>").into_bytes());

@@ -2,7 +2,7 @@ use super::{pdf_copy::write_objects, pdf_render::PdfBitmap};
 use crate::commands::{codecs, structured::xml};
 use std::{borrow::Cow, collections::BTreeMap, io::Write};
 
-fn elements<'a>(nodes: &'a [xml::Node], name: &str) -> Vec<&'a xml::Element> {
+pub(super) fn elements<'a>(nodes: &'a [xml::Node], name: &str) -> Vec<&'a xml::Element> {
     let mut pending: Vec<_> = nodes.iter().rev().collect();
     let mut found = Vec::new();
     while let Some(node) = pending.pop() {
@@ -26,10 +26,10 @@ fn number(element: &xml::Element, name: &str) -> Option<f64> {
     let value = attr(element, name)?.parse::<f64>().ok()?;
     value.is_finite().then_some(value / 12700.)
 }
-fn document(entries: &BTreeMap<String, Vec<u8>>, name: &str) -> Option<xml::Document> {
+pub(super) fn document(entries: &BTreeMap<String, Vec<u8>>, name: &str) -> Option<xml::Document> {
     xml::parse(std::str::from_utf8(entries.get(name)?).ok()?, None, None).ok()
 }
-fn relationships(
+pub(super) fn relationships(
     entries: &BTreeMap<String, Vec<u8>>,
     owner: &str,
 ) -> Option<BTreeMap<String, String>> {
@@ -58,20 +58,7 @@ pub(in super::super) fn render_pptx(
     filter: Option<&str>,
     limit: usize,
 ) -> Option<Vec<u8>> {
-    let (members, _) =
-        codecs::zip_directory(bytes.len(), |range| Ok(Cow::Borrowed(&bytes[range]))).ok()?;
-    let mut entries = BTreeMap::new();
-    let mut remaining = limit;
-    for member in members {
-        remaining = remaining.checked_sub(member.size)?;
-        let data = member
-            .decode(Cow::Borrowed(&bytes[member.payload.clone()]), None)
-            .ok()?
-            .into_owned();
-        if entries.insert(member.name, data).is_some() {
-            return None;
-        }
-    }
+    let entries = archive(bytes, limit)?;
     let presentation = document(&entries, "ppt/presentation.xml")?;
     let sizes = elements(&presentation.nodes, "sldSz");
     let size = *sizes.first()?;
@@ -188,4 +175,22 @@ pub(in super::super) fn render_pptx(
     .into_bytes();
     let pdf = write_objects(&bodies, limit)?;
     super::pdf_office::apply_filters(pdf, filter, kids.len(), limit)
+}
+
+pub(super) fn archive(bytes: &[u8], limit: usize) -> Option<BTreeMap<String, Vec<u8>>> {
+    let (members, _) =
+        codecs::zip_directory(bytes.len(), |range| Ok(Cow::Borrowed(&bytes[range]))).ok()?;
+    let mut entries = BTreeMap::new();
+    let mut remaining = limit;
+    for member in members {
+        remaining = remaining.checked_sub(member.size)?;
+        let data = member
+            .decode(Cow::Borrowed(&bytes[member.payload.clone()]), None)
+            .ok()?
+            .into_owned();
+        if entries.insert(member.name, data).is_some() {
+            return None;
+        }
+    }
+    Some(entries)
 }

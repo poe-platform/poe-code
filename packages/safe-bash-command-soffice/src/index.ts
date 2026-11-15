@@ -116,69 +116,48 @@ function parseDocxBlocks(zipBytes: Uint8Array): DocBlock[] {
       }
     }
   }
-  const xml = new TextDecoder()
-    .decode(docXmlBytes)
-    .replace(/<(?:[A-Za-z0-9_-]+:)?tab\b[^/>]*\/>/g, "<w:t>\t</w:t>")
-    .replace(/<(?:[A-Za-z0-9_-]+:)?(?:br|cr)\b[^/>]*\/>/g, "<w:t> </w:t>");
-
+  const source = new TextDecoder().decode(docXmlBytes);
+  const root = parseXml(`<root xmlns:w="w" xmlns:wp="wp" xmlns:a="a" xmlns:r="r">${source.startsWith('<?xml') ? source.slice(source.indexOf('?>') + 2) : source}</root>`);
+  const attribute = (element: XmlElement, name: string) => element.attributes.find(attr => attr.localName === name)?.value;
   const blocks: DocBlock[] = [];
-  const tokenRe = /<((?:[A-Za-z0-9_-]+:)?(?:tbl|p))\b[\s\S]*?<\/\1>/g;
-  let m: RegExpExecArray | null;
-  while ((m = tokenRe.exec(xml)) !== null) {
-    const chunk = m[0];
-    const tagLocal = (m[1] ?? "").split(":").pop();
-    if (tagLocal === "tbl") {
-      const rows: string[][] = [];
-      const rowRe = /<((?:[A-Za-z0-9_-]+:)?tr)\b[\s\S]*?<\/\1>/g;
-      let rm: RegExpExecArray | null;
-      while ((rm = rowRe.exec(chunk)) !== null) {
-        const cells: string[] = [];
-        const cellRe = /<((?:[A-Za-z0-9_-]+:)?tc)\b[\s\S]*?<\/\1>/g;
-        let cm: RegExpExecArray | null;
-        while ((cm = cellRe.exec(rm[0])) !== null) {
-          const texts = [...cm[0].matchAll(/<((?:[A-Za-z0-9_-]+:)?t)(?:\s[^>]*)?>([\s\S]*?)<\/\1>/g)].map((t) =>
-            unescapeXml(t[2] ?? "")
-          );
-          cells.push(texts.join("").trim());
-        }
-        if (cells.length > 0) rows.push(cells);
+  const pending = [...root.children].reverse();
+  while (pending.length) {
+    const element = pending.pop()!;
+    if (element.localName === "tbl") {
+      const rows = [...pptxElements(element, "tr")].map(row => [...pptxElements(row, "tc")].map(cell => [...pptxElements(cell, "t")].map(text => text.text).join("").trim()));
+      if (rows.length) blocks.push({kind: "table", rows});
+    } else if (element.localName === "p") {
+      const style = [...pptxElements(element, "pStyle")][0];
+      const size = [...pptxElements(element, "sz")][0];
+      const styleName = style ? (attribute(style, "val") ?? "").toLowerCase() : "";
+      const kind = styleName.startsWith("heading") || headingStyleIds.has(styleName) || Number(size && attribute(size, "val")) >= 28 ? "heading" : "paragraph";
+      const before = element.children.find(child => child.localName === "pPr")?.children.find(child => child.localName === "pageBreakBefore");
+      if (before && [undefined, "1", "true", "on"].includes(attribute(before, "val"))) blocks.push({kind: "pageBreakBefore"});
+      let text = "";
+      const flush = () => { if (text.trim()) blocks.push({kind, text: text.trim()}); text = ""; };
+      const runs = [...element.children].reverse();
+      while (runs.length) {
+        const run = runs.pop()!;
+        if (run.localName === "t") text += run.text;
+        else if (run.localName === "tab") text += "\t";
+        else if (run.localName === "br" && attribute(run, "type") === "page") { flush(); blocks.push({kind: "pageBreak"}); }
+        else if (run.localName === "br" || run.localName === "cr") text += " ";
+        else if (run.localName === "drawing" || run.localName === "pict") {
+          flush();
+          const blip = [...pptxElements(run, "blip")][0];
+          const id = blip && attribute(blip, "embed");
+          if (!id) continue;
+          const path = relTargets.get(id), imageBytes = path ? entries.get(path) : undefined;
+          if (!imageBytes) throw new Error("Missing referenced DOCX image");
+          const extent = [...pptxElements(run, "extent"), ...pptxElements(run, "ext")][0];
+          let width = Math.max(24, Number(extent && attribute(extent, "cx") || 5486400) / 12700);
+          let height = Math.max(24, Number(extent && attribute(extent, "cy") || 2880360) / 12700);
+          if (width > 504) { height *= 504 / width; width = 504; }
+          blocks.push({kind: "image", imageBytes, width, height});
+        } else if (run.localName !== "pPr" && run.localName !== "rPr") runs.push(...[...run.children].reverse());
       }
-      if (rows.length > 0) blocks.push({ kind: "table", rows });
-    } else {
-      const styleMatch = /<(?:[A-Za-z0-9_-]+:)?pStyle\b[^>]*?\b(?:[A-Za-z0-9_-]+:)?val="([^"]+)"/i.exec(chunk);
-      const styleVal = (styleMatch?.[1] ?? "").toLowerCase();
-      const szMatch = /<(?:[A-Za-z0-9_-]+:)?sz\b[^>]*?\b(?:[A-Za-z0-9_-]+:)?val="(\d+)"/i.exec(chunk);
-      const szHalfPt = szMatch ? Number.parseInt(szMatch[1]!, 10) : 0;
-      const isHeading =
-        styleVal.startsWith("heading") ||
-        headingStyleIds.has(styleVal) ||
-        szHalfPt >= 28;
-      const texts = [...chunk.matchAll(/<((?:[A-Za-z0-9_-]+:)?t)(?:\s[^>]*)?>([\s\S]*?)<\/\1>/g)].map((t) =>
-        unescapeXml(t[2] ?? "")
-      );
-      const line = texts.join("").trim();
-      if (line.length > 0) {
-        blocks.push({ kind: isHeading ? "heading" : "paragraph", text: line });
-      }
-      for (const drw of chunk.matchAll(/<((?:[A-Za-z0-9_-]+:)?(?:drawing|pict))\b[\s\S]*?<\/\1>/g)) {
-        const embedMatch = /\b(?:[A-Za-z0-9_-]+:)?embed="([^"]+)"/.exec(drw[0]);
-        if (!embedMatch?.[1]) continue;
-        const mediaPath = relTargets.get(embedMatch[1]);
-        const mediaBytes = mediaPath ? entries.get(mediaPath) : undefined;
-        if (!mediaBytes) continue;
-        const extMatch = /<(?:[A-Za-z0-9_-]+:)?(?:extent|ext)\b[^>]*?\bcx="(\d+)"[^>]*?\bcy="(\d+)"/.exec(drw[0]);
-        const cxEmu = extMatch ? Number.parseInt(extMatch[1]!, 10) : 5486400;
-        const cyEmu = extMatch ? Number.parseInt(extMatch[2]!, 10) : 2880360;
-        let width = Math.max(24, cxEmu / 12700);
-        let height = Math.max(24, cyEmu / 12700);
-        const maxWidth = 504;
-        if (width > maxWidth) {
-          height = height * (maxWidth / width);
-          width = maxWidth;
-        }
-        blocks.push({ kind: "image", imageBytes: mediaBytes, width, height });
-      }
-    }
+      flush();
+    } else pending.push(...[...element.children].reverse());
   }
   return blocks;
 }
@@ -456,7 +435,9 @@ function* renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Ge
   let work = 0;
   for (const block of blocks) {
     if (++work % 32 === 0) yield undefined;
-    if (block.kind === "heading") {
+    if (block.kind === "pageBreak" || block.kind === "pageBreakBefore") {
+      if (block.kind === "pageBreak" || y !== 720) { page = doc.addPage([612, 792]); y = 720; }
+    } else if (block.kind === "heading") {
       const lines = (block.text ?? "").split("\n").flatMap(line => wrapTextLines(line, 48));
       for (const line of lines) {
         ensureSpace(26);
@@ -542,23 +523,19 @@ function* renderBlocksToPdf(blocks: readonly DocBlock[], title = "Document"): Ge
       const b = block.imageBytes;
       const isPng = b.length > 8 && b[0] === 0x89 && b[1] === 0x50 && b[2] === 0x4e && b[3] === 0x47;
       const isJpg = b.length > 3 && b[0] === 0xff && b[1] === 0xd8;
-      if (isPng || isJpg) {
-        try {
-          const embedded = isPng ? doc.embedPng(b) : doc.embedJpg(b);
-          const w = block.width ?? 400;
-          const h = block.height ?? 210;
-          ensureSpace(h + 12);
-          page.drawImage(embedded, {
-            x: 54,
-            y: y - h,
-            width: w,
-            height: h
-          });
-          y -= h + 12;
-        } catch {
-          // ignore malformed embedded images
-        }
-      }
+      if (!isPng && !isJpg) throw new Error("Unsupported DOCX image");
+      if (isJpg) decodeJpegImage(b);
+      const embedded = isPng ? doc.embedPng(b) : doc.embedJpg(b);
+      const w = block.width ?? 400;
+      const h = block.height ?? 210;
+      ensureSpace(h + 12);
+      page.drawImage(embedded, {
+        x: 54,
+        y: y - h,
+        width: w,
+        height: h
+      });
+      y -= h + 12;
     }
   }
 

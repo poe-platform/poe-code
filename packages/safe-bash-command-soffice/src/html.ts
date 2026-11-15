@@ -3,7 +3,7 @@ import { parse, type DefaultTreeAdapterMap } from "parse5";
 type Node = DefaultTreeAdapterMap["node"];
 
 export interface DocBlock {
-  kind: "heading" | "paragraph" | "table" | "image";
+  kind: "heading" | "paragraph" | "table" | "image" | "pageBreak" | "pageBreakBefore";
   text?: string;
   preformatted?: boolean;
   rows?: string[][];

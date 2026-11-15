@@ -38,6 +38,11 @@ export class RetainedOfficeBlocks implements RetainedTextBlocks {
       yield {start: view.getFloat64(0) + shift, length: view.getFloat64(8), bold: !!view.getFloat64(16), italic: !!view.getFloat64(24)};
     }
   }
+  async addPageBreak(before = false): Promise<void> { await this.record(before ? 5 : 4, 0, 0, 0); }
+  async pageBreak(snapshot: RetainedTextSnapshot, index: number): Promise<"always" | "before" | undefined> {
+    const kind = await this.blocks.get(BigInt((snapshot.firstBlock + index) * 4));
+    return kind === 4n ? "always" : kind === 5n ? "before" : undefined;
+  }
   async addImage(span: SofficeSnapshot, width: number, height: number): Promise<void> {
     const pointer = this.storage.allocate(32), bytes = new Uint8Array(32), view = new DataView(bytes.buffer);
     for (const [index, value] of [span.position, span.size, width, height].entries()) view.setFloat64(index * 8, value);

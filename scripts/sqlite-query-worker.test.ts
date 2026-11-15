@@ -1,3 +1,4 @@
+import {DatabaseSync} from 'node:sqlite';
 import {fileURLToPath} from 'node:url';
 import {build} from 'esbuild';
 import {Miniflare} from 'miniflare';
@@ -8,7 +9,7 @@ const golden: Record<string, readonly [number, number]> = {
 "csv": [2918586,4187520573],
 "column": [5270004,988697626],
 "line": [2748596,4109106070],
-"json": [2918598,529947478],
+"json": [8161483,4284939339],
 "tabs": [2748581,945851176],
 "html": [4788638,2495109542],
 "markdown": [5270020,995266080],
@@ -16,7 +17,7 @@ const golden: Record<string, readonly [number, number]> = {
 "table": [7650030,2563778560],
 "quote": [3967165,1464045126],
 "ascii": [2748581,2617875244],
-"insert": [3967215,3442980184],
+"insert": [3967229,1178045184],
 };
 
 it.each([...Object.keys(golden),'limit','cancel','pipe'])('streams SQLite query formatting through external Worker backing (%s)',async mode=>{
@@ -47,6 +48,29 @@ it.each([...Object.keys(golden),'limit','cancel','pipe'])('streams SQLite query 
   expect(result.nodeFree).toBe(true);if(mode!=='cancel')expect(result.events.opened).toBeGreaterThan(0);expect(result.events.closed).toBe(result.events.opened);expect(result.remaining).toBe(0);
   expect(result.largestWrite).toBeLessThanOrEqual(16384);expect(result.events.largestTransfer).toBeLessThanOrEqual(16384);expect(result.largestAllocation).toBeLessThanOrEqual(65536);
   if(golden[mode]){
+   if(mode==='json'||mode==='insert'){
+    // Independent byte construction, never the formatter under test.
+    // Qualified against the SQLite 3.50.4 shell: extra identifier quoting
+    // and escaping every BLOB byte preserve SQL/JSON semantics. Headers add
+    // ("x") to each INSERT; the keyword table name also needs quotes.
+    const text="é😀'\"<&".repeat(170000),blob=new Uint8Array(1048577).fill(65);
+    const expected=mode==='json'
+     ? '[{"x":'+JSON.stringify(text)+'},\n{"x":"'+'\\u0041'.repeat(blob.length)+'"}]\n'
+     : 'INSERT INTO "table"("x") VALUES(\''+"é😀''\"<&".repeat(170000)+"');\n"+
+       'INSERT INTO "table"("x") VALUES(X\''+'41'.repeat(blob.length)+"');\n";
+    if(mode==='json')expect(JSON.parse(expected)).toEqual([{x:text},{x:'A'.repeat(blob.length)}]);
+    else{
+     const db=new DatabaseSync(':memory:');
+     try{
+      db.exec('CREATE TABLE "table"(x);'+expected);
+      expect(db.prepare('SELECT typeof(x) AS type,x FROM "table" ORDER BY rowid').all())
+       .toEqual([{type:'text',x:text},{type:'blob',x:blob}]);
+     }finally{db.close();}
+    }
+    const bytes=new TextEncoder().encode(expected);
+    let hash=2166136261;for(const byte of bytes)hash=Math.imul(hash^byte,16777619)>>>0;
+    expect([bytes.length,hash]).toEqual(golden[mode]);
+   }
    expect(result.code).toBe(0);expect(result.total).toBe(golden[mode]![0]);expect(result.hash).toBe(golden[mode]![1]);
   }else if(mode==='cancel'){expect(result.cancelled).toBe(true);expect(result.total).toBe(0);}
   else{expect(result.code).toBe(1);expect(result.diagnostic).toContain(mode==='limit'?'maxOutputBytes':'stopped');if(mode==='limit')expect(result.total).toBe(0);}

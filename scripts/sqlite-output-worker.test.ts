@@ -1,3 +1,4 @@
+import {DatabaseSync} from 'node:sqlite';
 import {fileURLToPath} from 'node:url';
 import {build} from 'esbuild';
 import {Miniflare} from 'miniflare';
@@ -32,7 +33,15 @@ it.each(['dump','limit','cancel','pipe'])('streams SQLite dumps through external
   expect(result.largestWrite).toBeLessThanOrEqual(16384);expect(result.events.largestTransfer).toBeLessThanOrEqual(16384);expect(result.largestAllocation).toBeLessThanOrEqual(65536);
   if(mode==='dump'){
    const blob=Uint8Array.from({length:1048577},(_,i)=>i%251);
-   const expected=new TextEncoder().encode("PRAGMA foreign_keys=OFF;\nBEGIN TRANSACTION;\nCREATE TABLE t(x);\nINSERT INTO t VALUES('"+"é😀''".repeat(170000)+"');\nINSERT INTO t VALUES(X'"+Buffer.from(blob).toString('hex').toUpperCase()+"');\nCOMMIT;\n");
+   const expected=new TextEncoder().encode("PRAGMA foreign_keys=OFF;\nBEGIN TRANSACTION;\nCREATE TABLE t(x);\nINSERT INTO \"t\" VALUES('"+"é😀''".repeat(170000)+"');\nINSERT INTO \"t\" VALUES(X'"+Buffer.from(blob).toString('hex')+"');\nCOMMIT;\n");
+   // Qualified against SQLite 3.50.4: quote the table identifier and use
+   // lowercase BLOB hex like the shell. Replay checks both storage classes.
+   const db=new DatabaseSync(':memory:');
+   try{
+    db.exec(new TextDecoder().decode(expected));
+    const rows=db.prepare('SELECT typeof(x) AS type,x FROM t ORDER BY rowid').all();
+    expect(rows).toEqual([{type:'text',x:"é😀'".repeat(170000)},{type:'blob',x:blob}]);
+   }finally{db.close();}
    let hash=2166136261;for(const byte of expected)hash=Math.imul(hash^byte,16777619)>>>0;
    expect(result.code).toBe(0);expect(result.total).toBe(expected.length);expect(result.hash).toBe(hash);
   }else if(mode==='cancel')expect(result.cancelled).toBe(true);

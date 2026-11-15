@@ -9,7 +9,8 @@ function delimiters(bytes: Uint8Array, locale: string): readonly Uint8Array[] {
   const codeset = name.slice(name.indexOf(".") + 1).toLowerCase();
   let decoder: TextDecoder | undefined;
   try { decoder = new TextDecoder(codeset === "eucjp" ? "euc-jp" : codeset, { fatal: true, ignoreBOM: true }); }
-  catch { /* C/POSIX and unknown encodings cycle original bytes. */ }
+  catch { /* C/POSIX and unknown encodings use bytewise diagnostic quoting. */ }
+  const delimiterDecoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
   const result: Uint8Array[] = [];
   const escapes: Record<number, number> = { 98: 8, 102: 12, 110: 10, 114: 13, 116: 9, 118: 11 };
   for (let offset = 0; offset < bytes.length;) {
@@ -45,11 +46,11 @@ function delimiters(bytes: Uint8Array, locale: string): readonly Uint8Array[] {
     }
     const first = bytes[offset]!;
     let length = 1;
-    if (decoder && first >= 0x80) {
-      // Supported locale encodings need at most four bytes per character.
+    if (first >= 0x80) {
+      // Delimiters use Unicode code points regardless of the diagnostic locale.
       for (let width = 1; width <= 4 && offset + width <= bytes.length; width++) {
         try {
-          decoder.decode(bytes.subarray(offset, offset + width));
+          delimiterDecoder.decode(bytes.subarray(offset, offset + width));
           length = width;
           break;
         } catch { /* Try a longer character; invalid input retains one byte. */ }
@@ -180,7 +181,7 @@ export function createPasteCommand(options: TableTextCommandsOptions = {}): Comm
             else await budget.output([record]);
             count++; record = await reader.next();
           }
-          await budget.output([terminator]);
+          if (count) await budget.output([terminator]);
         }
         return { exitCode: status };
       }

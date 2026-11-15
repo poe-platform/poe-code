@@ -68,7 +68,7 @@ function unescapeXml(str: string): string {
     .replace(/&amp;/g, "&");
 }
 
-function parseDocxBlocks(zipBytes: Uint8Array): { blocks: DocBlock[]; width: number; height: number } {
+function parseDocxBlocks(zipBytes: Uint8Array, pdf: boolean): { blocks: DocBlock[]; width: number; height: number } {
   const entries = readZipArchiveEntries(zipBytes);
   const docXmlBytes = entries.get("word/document.xml");
   if (!docXmlBytes) return { blocks: [], width: 612, height: 792 };
@@ -140,6 +140,7 @@ function parseDocxBlocks(zipBytes: Uint8Array): { blocks: DocBlock[]; width: num
       const kind = styleName.startsWith("heading") || headingStyleIds.has(styleName) || Number(size && attribute(size, "val")) >= 28 ? "heading" : "paragraph";
       const before = element.children.find(child => child.localName === "pPr")?.children.find(child => child.localName === "pageBreakBefore");
       if (before && [undefined, "1", "true", "on"].includes(attribute(before, "val"))) blocks.push({kind: "pageBreakBefore"});
+      const firstBlock = blocks.length;
       let text = "";
       const flush = () => { const value = text.split("\n").map(line => line.trim()).join("\n"); if (value) blocks.push({kind, text: value}); text = ""; };
       const runs = [...element.children].reverse();
@@ -164,6 +165,7 @@ function parseDocxBlocks(zipBytes: Uint8Array): { blocks: DocBlock[]; width: num
         } else if (run.localName !== "pPr" && run.localName !== "rPr") runs.push(...[...run.children].reverse());
       }
       flush();
+      if (pdf && blocks.length === firstBlock) blocks.push({kind, text: ""});
     } else pending.push(...[...element.children].reverse());
   }
   return { blocks, width, height };
@@ -955,7 +957,7 @@ function* runSofficeSteps(
         if (lower.endsWith(".pdf")) {
           chunks.push(PdfDocument.load(bytes).extractText());
         } else if (lower.endsWith(".docx")) {
-          chunks.push("\uFEFF" + parseDocxBlocks(bytes).blocks.map((b) => b.text ?? (b.rows?.map((r) => r.join("\t")).join("\n") ?? "")).join("\n"));
+          chunks.push("\uFEFF" + parseDocxBlocks(bytes, false).blocks.map((b) => b.text ?? (b.rows?.map((r) => r.join("\t")).join("\n") ?? "")).join("\n"));
         } else if ([".odt", ".ods", ".odp"].some(ext => lower.endsWith(ext))) {
           chunks.push(parseOdtBlocks(bytes).map((b) => b.text ?? (b.rows?.map((r) => r.join("\t")).join("\n") ?? "")).join("\n"));
         } else if (lower.endsWith(".xlsx")) {
@@ -1028,7 +1030,7 @@ function* runSofficeSteps(
       if (lowerIn.endsWith(".ods") && (targetExt === "csv" || targetExt === "xlsx")) {
         outBytes = (yield () => convertOds(inputBytes, targetExt, filterOpts, signal))!;
       } else if ([".docx", ".odt", ".ods", ".odp", ".rtf"].some(ext => lowerIn.endsWith(ext))) {
-        const docx = lowerIn.endsWith(".docx") ? parseDocxBlocks(inputBytes) : undefined;
+        const docx = lowerIn.endsWith(".docx") ? parseDocxBlocks(inputBytes, targetExt === "pdf") : undefined;
         const blocks = docx
           ? docx.blocks
           : [".odt", ".ods", ".odp"].some(ext => lowerIn.endsWith(ext))

@@ -61,6 +61,7 @@ pub(in super::super) fn render_docx(
                 }
             }
         }
+        let first_block = blocks.len();
         let mut text = String::new();
         let mut pending: Vec<_> = paragraph.children.iter().rev().collect();
         while let Some(node) = pending.pop() {
@@ -129,6 +130,55 @@ pub(in super::super) fn render_docx(
             }
         }
         flush(&mut text, &mut blocks);
+        if blocks.len() == first_block {
+            blocks.push(LayoutBlock::Office(Block::Text(String::new(), false)));
+        }
     }
     render_blocks(blocks, title, filter, limit, page_size)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use super::super::PageSource;
+
+    #[test]
+    fn preserves_empty_paragraphs() {
+        let paragraph = |text| format!("<w:p><w:r><w:t>{text}</w:t></w:r></w:p>");
+        for (blank, count) in [
+            ("<w:p/>", 1), ("<w:p></w:p>", 1), ("<w:p><w:r/></w:p>", 1),
+            ("<w:p><w:r><w:t></w:t></w:r></w:p>", 1),
+            (r#"<w:p><w:r><w:t xml:space="preserve"> </w:t></w:r></w:p>"#, 1),
+            ("<w:p/><w:p/>", 2),
+        ] {
+            for placement in ["middle", "leading", "overflow", "trailing"] {
+                let body = match placement {
+                    "middle" => paragraph("FIRST") + blank + &paragraph("SECOND"),
+                    "leading" => blank.to_owned() + &paragraph("SECOND"),
+                    "overflow" => paragraph("Filler").repeat(31) + &paragraph("FIRST") + blank + &paragraph("SECOND"),
+                    _ => paragraph("Filler").repeat(32) + &paragraph("FIRST") + blank,
+                };
+                let convert = |body| {
+                    let xml = format!(r#"<w:document xmlns:w="w"><w:body>{body}</w:body></w:document>"#);
+                    let input = crate::commands::structured::write_zip_stored(&[("word/document.xml", xml.as_bytes())]);
+                    render_docx(&input, "doc", None, 1 << 20).unwrap()
+                };
+                let bytes = convert(body);
+                let mut pdf = PageSource::open(&bytes, "").unwrap();
+                let pages = if placement == "overflow" || placement == "trailing" { 2 } else { 1 };
+                assert_eq!(pdf.len(), pages, "{blank}, {placement}");
+                let lines = pdf.text_lines(pages, None).unwrap();
+                if placement == "trailing" {
+                    assert!(lines.iter().all(|line| line.text.is_empty()));
+                } else {
+                    let second = lines.iter().find(|line| line.text.contains("SECOND")).unwrap();
+                    let control = convert(paragraph("SECOND"));
+                    let mut control = PageSource::open(&control, "").unwrap();
+                    let control = control.text_lines(1, None).unwrap();
+                    let offset = match placement { "middle" => -20 * (count + 1), "leading" => -20 * count, _ => -20 * (count - 1) };
+                    assert!((second.bounds[1] - control[0].bounds[1] - f64::from(offset)).abs() < 0.001, "{blank}, {placement}");
+                }
+            }
+        }
+    }
 }

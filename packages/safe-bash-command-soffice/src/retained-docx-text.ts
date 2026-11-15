@@ -234,7 +234,7 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
       return await fontSize(xml, block, true) >= 28;
     };
     if (markup) await output.add(await literal(html ? `<!DOCTYPE html>\n<html><head><meta charset="utf-8"><title>${escapeHtmlText(markup.title)}</title></head><body>\n` : docxDocumentPrefix));
-    for await (const block of xml.elements(0, xml.count, ["p", "tbl"])) {
+    for await (const block of xml.elements(0, xml.count, ["p", "tbl"], !!documentBlocks)) {
       if (await xml.name(block.name) === "tbl") {
         await closeLists();
         const table = new RetainedSpans(storage, signal); let rows = 0;
@@ -275,6 +275,7 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
               if (!value || ["1", "true", "on"].includes(setting)) await documentBlocks.addPageBreak(true);
             }
         }
+        const firstBlock = documentBlocks?.snapshot().count;
         async function* segments() {
           if (!documentBlocks) { yield {element: block, pageBreak: false}; return; }
           let first = block.open;
@@ -353,6 +354,8 @@ export async function retainDocxText(storage: PagedStorage, source: SofficeSnaps
             }
           }
         }
+        if (documentBlocks && documentBlocks.snapshot().count === firstBlock)
+          await documentBlocks.paragraph({position: 0, size: 0}, paragraphHeading);
       }
     }
     await closeLists();

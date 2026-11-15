@@ -18,7 +18,7 @@ for (const middleware of [false, true]) {
     [`printf '%s\\n' 'echo "$#"' | bash --noprofile --norc -s -- one`, "1\n"],
     [`printf '%s\\n' 'echo "$@"' | bash --noprofile --norc -s -- one`, "one\n"],
     [`bash -c 'echo "$0"' label one`, "label\n"],
-  ]) {
+  ] as const) {
     test(`piped interpreter positional parameters: ${source}, middleware=${middleware}`, async context => {
       const errors: unknown[] = [];
       const shell = new Shell({ fs: new MemoryFileSystem(), onInternalError: error => { errors.push(error); } }).use(standardCommands());
@@ -78,7 +78,7 @@ test("discarded inherited OLDPWD stays exported but absent from command environm
 test("inherited OLDPWD validation preserves filesystem cancellation", async (context) => {
   const fs = new MemoryFileSystem();
   const controller = new AbortController();
-  const reason = new FsError("ENOENT", "cancelled");
+  const reason = new FsError("ENOENT", { message: "cancelled" });
   const stat = fs.stat.bind(fs);
   fs.stat = async (path, options) => {
     if (path === "/old") {

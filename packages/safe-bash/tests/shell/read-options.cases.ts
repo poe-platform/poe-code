@@ -27,7 +27,7 @@ for (const [options, input, value, rest, tail, status] of [
       const bytes = new TextEncoder().encode(input);
       await fs.writeFile("/record", bytes);
       const stdin = streamed ? { async *[Symbol.asyncIterator]() { for (const byte of bytes) yield Uint8Array.of(byte); } } : undefined;
-      const result = await shell.exec(`{ IFS= read ${options} value; rc=$?; IFS= read -r rest; args "$rc" "$value" "$rest"; pass; }${streamed ? "" : " < /record"}`, { stdin, env: { LC_ALL: "C" } });
+      const result = await shell.exec(`{ IFS= read ${options} value; rc=$?; IFS= read -r rest; args "$rc" "$value" "$rest"; pass; }${streamed ? "" : " < /record"}`, { ...(stdin && { stdin }), env: { LC_ALL: "C" } });
       assert.equal(result.stdout, JSON.stringify([status, value, rest]) + tail);
       assert.equal(result.stderr, "");
       assert.equal(result.exitCode, 0);

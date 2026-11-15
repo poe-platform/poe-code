@@ -19,7 +19,7 @@ const cases = [
 
 for (const limits of [undefined, { maxExpansionBytes: 1048576, maxExpansionFields: 1024 }]) {
   for (const [label, source] of cases) test(`command_not_found_handle: ${label} (${limits ? "bounded" : "default"})`, async context => {
-    const shell = new Shell({ fs: new MemoryFileSystem(), limits }).use(standardCommands());
+    const shell = new Shell({ fs: new MemoryFileSystem(), ...(limits && { limits }) }).use(standardCommands());
     context.after(() => shell.dispose());
     const native = spawnSync("/bin/bash", ["--noprofile", "--norc", "-c", source], { env: { LC_ALL: "C", PATH: "/usr/bin:/bin" } });
     assert.equal(native.error, undefined);

@@ -62,7 +62,7 @@ test("printf accepts decimal C floating syntax and preserves signed zero", async
       assert.equal(result.stderr, "");
     }
     for (const operand of ["", ".", "+"]) assert.equal(parsePrintfFloat(operand), undefined);
-    for (const [operand, expected] of [["1e", "1"], ["1e+", "1"], ["1.2.3", "1.2"], ["1junk", "1"]]) {
+    for (const [operand, expected] of [["1e", "1"], ["1e+", "1"], ["1.2.3", "1.2"], ["1junk", "1"]] as const) {
       const result = await shell.exec(`printf %g '${operand}'`);
       assert.equal(result.stdout, expected);
       assert.equal(result.exitCode, 1);

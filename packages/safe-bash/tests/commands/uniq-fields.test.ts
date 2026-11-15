@@ -129,7 +129,7 @@ for (const [name, env, unicode] of [
         assert.equal(result.stderr, "");
         assert.deepEqual(result.stdoutBytes, Buffer.from(expected), `${option} ${source}`);
       }
-      const shell = new Shell({ fs, cwd: "/work", env }).use({ setup({ commands }) {
+      const shell = new Shell({ fs, cwd: "/work", env }).use({ name: "text", setup({ commands }) {
         for (const command of textCommands()) commands.register(command);
       } });
       try {

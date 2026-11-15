@@ -398,7 +398,7 @@ for (const bounded of [false, true]) {
     ["ab:", "-a", "0|unset|unset", ""],
     [":ab:", "-x", "0|x|x", ""],
     [":ab:", "-b", "0|b|b", ""],
-  ]) {
+  ] as const) {
     test(`getopts OPTARG nameref with ${spec} ${args} (${bounded ? "bounded" : "unlimited"})`, async () => {
       const { shell } = runtimeSetup(bounded ? { limits: { maxExpansionBytes: 4096 } } : {});
       try {

@@ -21,7 +21,7 @@ for (const extensions of [[], [arraysExtension()]]) {
         [`${declaration} x; g() { ${declaration} x; report; }; g`, "f", "unset"],
         [`${declaration} x+=suffix`, "x=temp f", "tempsuffix"],
         [`${declaration} x+=suffix`, "f", "suffix"],
-      ]) {
+      ] as const) {
         test(`local prefix (arrays=${extensions.length}, allexport=${allexport}): ${body}; ${call}`, async t => {
           const { shell, commands } = setup({ extensions });
           for (const command of basicCommands()) commands.register(command);

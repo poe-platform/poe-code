@@ -78,7 +78,7 @@ echo "$SHELLOPTS|$BASHOPTS"`);
     assert.equal(result.stderr, "");
     assert.equal(result.stdout, "allexport:braceexpand:errexit:hashall:noclobber:noglob:nounset:pipefail:zeta|alpha:checkhash:dotglob:expand_aliases:extglob:failglob:globskipdots:globstar:inherit_errexit:lastpipe:nocaseglob:nocasematch:nullglob:patsub_replacement:sourcepath:varredir_close:xpg_echo\nallexport:errexit:hashall:noclobber:noglob:nounset:pipefail|checkhash:dotglob:expand_aliases:extglob:failglob:globstar:inherit_errexit:lastpipe:nocaseglob:nocasematch:nullglob:patsub_replacement:sourcepath:varredir_close:xpg_echo\n");
     const noexec = await shell.exec("set -n", { onState() {} });
-    assert.equal(noexec.state?.variables.SHELLOPTS, "braceexpand:hashall:noexec:zeta");
+    assert.equal(noexec.state?.variables?.SHELLOPTS, "braceexpand:hashall:noexec:zeta");
   } finally { await shell.dispose(); }
 });
 

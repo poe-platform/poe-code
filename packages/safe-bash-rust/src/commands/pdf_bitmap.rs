@@ -498,6 +498,11 @@ impl Image {
                 let index = (lo + (hi - lo) * f64::from(p[0]) / max).round().clamp(0., (palette.len() - 1) as f64) as usize;
                 *p = palette[index];
             }
+        } else if jbig2 && stencil && mono_extract {
+            // Match raw stencil extraction: preserve mask bits independently of Decode.
+            for pixel in &mut pixels {
+                for channel in &mut pixel[..3] { *channel = !*channel; }
+            }
         } else if (!mono_extract || jbig2) && !pixels.is_empty() {
             if let Some(v) = dict.get(b"Decode") {
                 let Value::Array(ranges) = objects.filter_value(v.clone())? else {

@@ -1015,7 +1015,9 @@ export function *decodeXObjectImageToRgbaSteps(
     if (maskResolvedJpg?.kind === "stream") {
       (yield* applyExplicitMaskStreamToRgbaSteps(doc, maskResolvedJpg, rgba, width, height, activeRes));
     }
-    if (fillColor && fillColor.alpha < 1) {
+    if (isMask && fillColor) {
+      yield* applyStencilFillColorSteps(rgba, width, height, fillColor);
+    } else if (fillColor && fillColor.alpha < 1) {
       for (let p = 0; p < width * height; p++) {
     if (++work % 16384 === 0) yield;
         rgba[p * 4 + 3] = Math.round(rgba[p * 4 + 3]! * fillColor.alpha);

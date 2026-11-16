@@ -279,7 +279,7 @@ export class PdfRetainedDecodedImage {
           for (let x = 0; x < width; x++) {
             if (x > 0 && x % 16384 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); signal?.throwIfAborted(); }
             const at = x * 4, fill = options.fillColor;
-            if (!native && stencil && fill) {
+            if (stencil && fill) {
               if (row[at] === 0) { row[at] = Math.max(0, Math.min(255, Math.round(fill.r * 255))); row[at + 1] = Math.max(0, Math.min(255, Math.round(fill.g * 255))); row[at + 2] = Math.max(0, Math.min(255, Math.round(fill.b * 255))); row[at + 3] = Math.max(0, Math.min(255, Math.round(fill.alpha * 255))); } else row[at + 3] = 0;
             } else {
               if (bounds) {

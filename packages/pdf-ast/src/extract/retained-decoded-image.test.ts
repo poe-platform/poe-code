@@ -282,3 +282,31 @@ it.each([[1, 0], [0.25, 0.75]])("maps wrapped JBIG2 global-symbol samples with D
     expect(await collect(image.rows())).toEqual(independent);
   } finally { await image.close(); await f.close(); }
 });
+
+for (const name of ["jbig2-generic-stream.bin", "jbig2-mmr-stream.bin", "jbig2-symbols.0000"]) {
+  for (const inverted of [false, true]) it(`paints ${name} stencils with caller alpha once (inverted=${inverted})`, async () => {
+    const { decodeJbig2ToRgba } = await import("./images.js");
+    const bytes = fixture(name), globals = name.includes("symbols") ? fixture("jbig2-symbols.sym") : undefined;
+    const gray = decodeJbig2ToRgba(bytes, 64, 32, globals);
+    const raw = new Uint8Array(256);
+    for (let p = 0; p < 2048; p++) if (gray[p * 4]) raw[p >> 3]! |= 128 >> (p % 8);
+    const dict = cosDict({ Width: cosNumber(64), Height: cosNumber(32), BitsPerComponent: cosNumber(1), ImageMask: { kind: "boolean", value: true }, Decode: cosArray([cosNumber(inverted ? 1 : 0), cosNumber(inverted ? 0 : 1)]) });
+    const doc = PdfDocument.create();
+    const fillColor = { r: 0.9, g: 0.2, b: 0.3, alpha: 0.5 };
+    const expected = decodeXObjectImageToRgba(doc.cos, cosStream(dict, raw), undefined, fillColor).rgba;
+    expect(expected.some((value, i) => i % 4 === 3 && value === 128)).toBe(true);
+    expect(expected.some((value, i) => i % 4 === 3 && value === 0)).toBe(true);
+    dictSet(dict, "Filter", cosName("JBIG2Decode"));
+    if (globals) dictSet(dict, "DecodeParms", cosDict({ JBIG2Globals: cosStream(globals) }));
+    expect(decodeXObjectImageToRgba(doc.cos, cosStream(dict, bytes), undefined, fillColor).rgba).toEqual(expected);
+    const f = await open(bytes, dict, (document, entries) => {
+      if (globals) dictSet(entries, "DecodeParms", cosDict({ JBIG2Globals: document.cos.allocateObject(cosStream(globals)) }));
+    });
+    const image = await PdfRetainedDecodedImage.open(f.document, f.image, f.storage, { fillColor });
+    try {
+      expect(await collect(image.nativeContents())).toEqual(bytes);
+      if (globals) expect(await collect(image.nativeContents("globals"))).toEqual(globals);
+      expect(await collect(image.rows())).toEqual(expected);
+    } finally { await image.close(); await f.close(); }
+  });
+}

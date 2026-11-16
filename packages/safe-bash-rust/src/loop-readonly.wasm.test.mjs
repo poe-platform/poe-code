@@ -41,6 +41,13 @@ const cases = [
     0
   ]
 ];
+for (const name of ["SHELLOPTS", "BASHOPTS"]) {
+  cases.push(
+    [`for ${name} in bad; do echo BAD; done; echo AFTER`, "AFTER\n", `shell: line 1: ${name}: readonly variable\n`, 0],
+    [`for i in 1 2; do ${name}=bad; done; echo AFTER`, "", `shell: line 1: ${name}: readonly variable\n`, 1],
+    [`for i in 1 2; do ((${name}=1)); done; echo AFTER`, "AFTER\n", `shell: line 1: ${name}: readonly variable\n`.repeat(2), 0]
+  );
+}
 for (const runtime of ["TypeScript", "Rust"]) for (const [source, stdout, stderr, exitCode] of cases) {
   test(`${runtime} loop readonly behavior: ${source}`, {skip: !WebAssembly.Suspending}, async () => {
     const {Shell, createMemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");

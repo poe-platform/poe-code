@@ -604,6 +604,12 @@ impl<'a> EvalState<'a> {
             env.insert("OPTERR".to_string(), "1".to_string());
             env.insert("\0unexported__OPTERR".to_string(), "1".to_string());
         }
+        for name in ["SHELLOPTS", "BASHOPTS"] {
+            let attributes = env.entry(format!("\0attr__{name}")).or_default();
+            if !attributes.contains('r') {
+                attributes.push('r');
+            }
+        }
         let errexit = env.get("\0set_errexit").map(|v| v == "1").unwrap_or(false);
         let nounset = env.get("\0set_nounset").map(|v| v == "1").unwrap_or(false);
         let pipefail = env.get("\0set_pipefail").map(|v| v == "1").unwrap_or(false);

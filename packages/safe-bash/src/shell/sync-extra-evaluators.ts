@@ -4069,12 +4069,16 @@ const syncExtraRuntimeMethods = {
     }
   },
   canSyncArithmeticOperands(this: any, tree: ArithmeticProgram["tree"], state: State, line?: number, depth = 0): boolean {
-    if (!tree || depth > 128 || hasNonNamerefAttributes(state) || state.readonlyVariables?.size) return false;
+    if (!tree || depth > 128 || hasNonNamerefAttributes(state)) return false;
+    for (const name of state.readonlyVariables ?? []) {
+      if (name !== "SHELLOPTS" && name !== "BASHOPTS") return false;
+    }
     switch (tree.kind) {
       case "invalid-write": return false;
       case "literal": return true;
       case "name": {
         const effName = resolveSyncNameref(state, tree.name);
+        if (state.readonlyVariables?.has(effName)) return false;
         if (effName === "OPTIND" || effName === "PIPESTATUS" || effName === "RANDOM" || effName === "SECONDS") return false;
         const monitor = stateMonitor(state);
         if (monitor?.hasOverlay(effName) || monitor?.store?.watches.has(effName)) return false;
@@ -14506,11 +14510,14 @@ const syncExtraRuntimeMethods = {
       elem0 = existing?.values.get(0);
       if (!existing || !elem0) return undefined;
     }
-    if ( (syncReadInputText === undefined && io.stdout !== devNullSyncSink && command.redirects.length !== 0) || pipeline.negate || !canMutatePipeStatus || rawState.errexit || rawState.nounset || rawState.readonlyVariables?.size || rawState.extensions?.checkpoints.length || hasYieldCheckpoint(this.signal)) {
+    if ( (syncReadInputText === undefined && io.stdout !== devNullSyncSink && command.redirects.length !== 0) || pipeline.negate || !canMutatePipeStatus || rawState.errexit || rawState.nounset || rawState.extensions?.checkpoints.length || hasYieldCheckpoint(this.signal)) {
       return undefined;
     }
+    for (const name of rawState.readonlyVariables ?? []) {
+      if (name !== "SHELLOPTS" && name !== "BASHOPTS") return undefined;
+    }
     if (command.kind === "for") {
-      if (rawState.variableAttributes?.get(command.name) || monitor.hasOverlay(command.name) || hasUnpreparedLocal(rawState, command.name)) return undefined;
+      if (rawState.readonlyVariables?.has(command.name) || rawState.variableAttributes?.get(command.name) || monitor.hasOverlay(command.name) || hasUnpreparedLocal(rawState, command.name)) return undefined;
       const cachedPlan = (command as { _cachedForPlan?: {
         fastReady?: boolean;
         intSteps: (IntLoopStep | undefined)[];
@@ -16676,17 +16683,20 @@ const syncExtraRuntimeMethods = {
     return args[args.length - 1] ?? cmdName;
   },
   writeSyncRedirectStep( step: SyncLoopStep, encoded: Uint8Array, append: boolean, mode: number, rawState: State, io: IO, ): void {
-    if (this.budget.bytes + encoded.byteLength > this.budget.maxOutputBytesSmi && encoded.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes) this.budget.fail("maxOutputBytes");
+    const exceedsOutput = this.budget.bytes + encoded.byteLength > this.budget.maxOutputBytesSmi && encoded.byteLength > this.budget.limits.maxOutputBytes - this.budget.bytes;
+    // Opening the redirect creates or truncates its target before a write fails.
     // The memory fast writer may retain its input; the encoder scratch is reused.
-    encoded = encoded.slice();
+    encoded = exceedsOutput ? new Uint8Array() : encoded.slice();
     if (step.targetDirPrefix !== undefined && step.targetNamePrefix !== undefined) {
       const fileName = this.evalSyncRedirectSuffix(step.targetWord!, step.targetDirPrefix, step.targetNamePrefix, rawState, io);
-      if (!fileName.includes("/") && fileName !== "." && fileName !== ".." && tryWriteMemoryFileInDirSync(this.backingFs, step.targetDirPrefix, fileName, encoded, append, mode, this.commandSignal)) return;
-      tryWriteMemoryFileSync(this.backingFs, normalizePath(step.targetDirPrefix + fileName, rawState.cwd), encoded, append, mode, this.commandSignal);
-      return;
+      if (fileName.includes("/") || fileName === "." || fileName === ".." || !tryWriteMemoryFileInDirSync(this.backingFs, step.targetDirPrefix, fileName, encoded, append, mode, this.commandSignal)) {
+        tryWriteMemoryFileSync(this.backingFs, normalizePath(step.targetDirPrefix + fileName, rawState.cwd), encoded, append, mode, this.commandSignal);
+      }
+    } else {
+      const targetVal = this.evalSyncRedirectWord(step.targetWord!, rawState, io);
+      tryWriteMemoryFileSync(this.backingFs, targetVal, encoded, append, mode, this.commandSignal);
     }
-    const targetVal = this.evalSyncRedirectWord(step.targetWord!, rawState, io);
-    tryWriteMemoryFileSync(this.backingFs, targetVal, encoded, append, mode, this.commandSignal);
+    if (exceedsOutput) this.budget.fail("maxOutputBytes");
   },
   runSyncArithForFallback( e0: ArithmeticProgram, e1: ArithmeticProgram, e2: ArithmeticProgram, inductionName: string, isSimpleLiteralAsc: boolean, startVal: number, limitVal: number, isLe: boolean, hasDeferredSteps: boolean, deferredMask: number, bodyAssignments: readonly SyncLoopStep[], rawState: State, io: IO, monitor: NonNullable<ReturnType<typeof stateMonitor>>, touched: Set<string>, mode: number, diagnosticLine: number, ): SyncLoopProgress & { lastInductionVal: string | undefined } {
     let enteredBody = false;

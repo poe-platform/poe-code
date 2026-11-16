@@ -93,6 +93,25 @@ test("quoted case patterns use synchronous loop steps", async () => {
   }
 });
 
+for (const name of ["SHELLOPTS", "BASHOPTS"]) {
+  for (const [source, stdout, status, diagnostics] of [
+    [`for ${name} in bad; do echo BAD; done; echo AFTER`, "AFTER\n", 0, 1],
+    [`for i in 1 2; do ${name}=bad; done; echo AFTER`, "", 1, 1],
+    [`for i in 1 2; do ((${name}=1)); done; echo AFTER`, "AFTER\n", 0, 2],
+  ] as const) {
+    test(`loop admission preserves readonly option variable: ${source}`, async () => {
+      const shell = new Shell({ fs: new MemoryFileSystem() });
+      for (const command of basicCommands()) shell.commands.register(command);
+      try {
+        const result = await shell.exec(source);
+        assert.equal(result.stdout, stdout);
+        assert.equal(result.exitCode, status);
+        assert.equal(result.stderr, `shell: line 1: ${name}: readonly variable\n`.repeat(diagnostics));
+      } finally { await shell.dispose(); }
+    });
+  }
+}
+
 test("unquoted numeric operands preserve IFS changes", async () => {
   const source = 'j=0; while [ $j -lt 2 ]; do IFS=1; ((j+=1)); done; echo "$j"';
   const native = spawnSync("bash", ["--noprofile", "--norc", "-c", source], { encoding: "utf8" });

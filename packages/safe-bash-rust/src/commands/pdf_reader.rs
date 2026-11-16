@@ -15,7 +15,7 @@ mod pdf_json_input;
 pub(super) use pdf_json_input::JsonDocument;
 #[path = "pdf_copy.rs"]
 mod pdf_copy;
-pub(super) use pdf_copy::{ImageRead, NativeImage, PageOutput, PageSource, RasterBackend, RasterOptions};
+pub(super) use pdf_copy::{CairoPdfLayout, ImageRead, NativeImage, PageOutput, PageSource, RasterBackend, RasterOptions};
 
 #[path = "pdf_pptx.rs"]
 mod pdf_pptx;
@@ -1018,18 +1018,17 @@ fn read_pages<'a>(bytes: &[u8], objects: &mut Objects<'a>, trailer: Value<'a>) -
                     rot: rotation,
                     ..Default::default()
                 };
-                match node.get(b"Contents") {
-                    Some(Value::Ref(r)) => page.text = objects.stream_text(*r)?,
-                    Some(Value::Array(streams)) => {
-                        for s in streams {
-                            if !page.text.is_empty() {
-                                page.text.push('\n');
+                if let Some(contents) = node.get(b"Contents") {
+                    match objects.resolve(contents)? {
+                        Value::Array(streams) => {
+                            for s in streams {
+                                if !page.text.is_empty() { page.text.push('\n'); }
+                                page.text.push_str(&objects.stream_text(s.reference()?)?);
                             }
-                            page.text.push_str(&objects.stream_text(s.reference()?)?);
                         }
+                        Value::Dict(_) => page.text = objects.stream_text(contents.reference()?)?,
+                        _ => return None,
                     }
-                    None => {}
-                    _ => return None,
                 }
                 let (w, h) = (media[2] - media[0], media[3] - media[1]);
                 if doc.pages.is_empty() {

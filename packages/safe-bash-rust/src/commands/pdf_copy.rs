@@ -26,6 +26,9 @@ mod pdf_inspect;
 #[path = "pdf_text_layout.rs"]
 mod pdf_text_layout;
 pub(super) use pdf_text_layout::widths::WIDTHS;
+#[path = "pdf_cairo_pdf.rs"]
+mod pdf_cairo_pdf;
+pub(in super::super) use pdf_cairo_pdf::CairoPdfLayout;
 
 #[path = "pdf_bitmap.rs"]
 mod pdf_bitmap;
@@ -511,7 +514,7 @@ impl PageOutput {
             Some(i) => i..i.checked_add(1)?,
             None => 0..source.len(),
         };
-        self.copy_pages(source, selection, single_page.is_none(), |_| None, None)
+        self.copy_pages(source, selection, single_page.is_none(), |_| None, None, None)
     }
 
     // Office's PageRange creates a new document, with fresh metadata.
@@ -522,7 +525,7 @@ impl PageOutput {
     ) -> Option<Vec<u8>> {
         let mut doc = Self::new(limit);
         doc.bodies[2] = b"<<\n/Producer (@poe-code/pdf-ast)\n>>".to_vec();
-        doc.copy_pages(source, pages, false, |_| None, None)?;
+        doc.copy_pages(source, pages, false, |_| None, None, None)?;
         doc.finish()
     }
 
@@ -595,7 +598,7 @@ impl PageOutput {
             let mut seen = BTreeSet::new();
             if batch.is_none() {
                 output
-                    .copy_pages(source, indices.iter().copied(), false, |_| None, Some(&mut seen))
+                    .copy_pages(source, indices.iter().copied(), false, |_| None, Some(&mut seen), None)
                     .ok_or("could not copy selected PDF pages")?;
             } else {
                 groups.push((identity, indices.into_iter(), seen));
@@ -617,6 +620,7 @@ impl PageOutput {
                             false,
                             |_| None,
                             Some(seen),
+                            None,
                         )
                         .ok_or("could not copy selected PDF pages")?;
                     indices.nth(n - 1);
@@ -641,7 +645,7 @@ impl PageOutput {
     ) -> Option<Vec<u8>> {
         let mut output = Self::new(limit);
         output.set_info(source, &[b"Title", b"Author", b"Subject", b"Keywords"])?;
-        output.copy_pages(source, pages, false, |i| rotations.get(i).copied().flatten().map(CopyRotation::Before), None)?;
+        output.copy_pages(source, pages, false, |i| rotations.get(i).copied().flatten().map(CopyRotation::Before), None, None)?;
         output.finish()
     }
 
@@ -694,6 +698,7 @@ impl PageOutput {
                     false,
                     |_| rotation.map(CopyRotation::After),
                     Some(seen),
+                    None,
                 )
                 .ok_or(INVALID)?;
             let id = *output.pages.last().ok_or(INVALID)?;
@@ -758,6 +763,7 @@ impl PageOutput {
         whole_document: bool,
         rotation: impl Fn(usize) -> Option<CopyRotation>,
         mut materialized: Option<&mut BTreeSet<usize>>,
+        cairo: Option<CairoPdfLayout>,
     ) -> Option<()> {
         let page_offset = self.pages.len();
         let mut ids = BTreeMap::new();
@@ -798,6 +804,7 @@ impl PageOutput {
             tree: &source.tree,
             ids,
             output: self,
+            cairo,
         };
         if copy.output.bodies[2].is_empty() {
             let mut body = Vec::new();
@@ -964,6 +971,7 @@ struct Copy<'c, 'a> {
     tree: &'c BTreeMap<ObjectId, Option<Value<'a>>>,
     ids: BTreeMap<ObjectId, usize>,
     output: &'c mut PageOutput,
+    cairo: Option<CairoPdfLayout>,
 }
 
 impl<'a> Copy<'_, 'a> {
@@ -1211,6 +1219,9 @@ impl<'a> Copy<'_, 'a> {
         entries.push((b"Parent".into(), Value::Word(b"2 0 R".as_slice().into())));
         if let Some(CopyRotation::After(rotation)) = rotation {
             set(&mut entries,b"Rotate",rotation.word(angle));
+        }
+        if let Some(layout) = self.cairo {
+            self.cairo_page(&mut entries, [x, y, right, top], angle.rem_euclid(360.), layout)?;
         }
         Some(Value::Dict(entries))
     }

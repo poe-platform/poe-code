@@ -9534,8 +9534,8 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
     let mut scale_to: Option<i64> = None;
     let mut scale_to_x: Option<i64> = None;
     let mut scale_to_y: Option<i64> = None;
-    let mut crop_x = 0.;
-    let mut crop_y = 0.;
+    let mut crop_x = 0_f64;
+    let mut crop_y = 0_f64;
     let mut cropbox = false;
     let mut hide_annotations = false;
     let mut transparent = false;
@@ -9544,6 +9544,11 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
     let mut color_mode = "rgb";
     let mut crop_w: Option<f64> = None;
     let mut crop_h: Option<f64> = None;
+    let mut paper = [0.; 2];
+    let mut custom_paper = [false; 2];
+    let mut named_paper = false;
+    let mut original_sizes = false;
+    let mut has_crop = false;
     let mut pw_opt: Option<String> = None;
     let mut pos: Vec<String> = Vec::new();
     let mut i = 0usize;
@@ -9727,14 +9732,17 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
                 i += 1;
             }
             "-W" => {
+                has_crop = true;
                 crop_w = args[i + 1].parse::<f64>().ok();
                 i += 1;
             }
             "-H" => {
+                has_crop = true;
                 crop_h = args[i + 1].parse::<f64>().ok();
                 i += 1;
             }
             "-sz" => {
+                has_crop = true;
                 if let Ok(v) = args[i + 1].parse::<f64>() {
                     crop_w = Some(v);
                     crop_h = Some(v);
@@ -9794,6 +9802,7 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
                 i += 1;
             }
             "-x" | "-y" => {
+                has_crop = true;
                 let v = args[i+1].parse().unwrap_or(0.);
                 if arg == "-x" {crop_x = v;} else {crop_y = v;}
                 i += 1;
@@ -9805,7 +9814,29 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
                 }
                 i += 1;
             }
-            "-paper" | "-paperw" | "-paperh" | "-icc"
+            "-paper" if is_cairo => {
+                named_paper = true;
+                paper = match args[i + 1].as_str() {
+                    "letter" => [612., 792.],
+                    "legal" => [612., 1008.],
+                    "A3" => [842., 1191.],
+                    "A4" => [595., 842.],
+                    "match" => [0., 0.],
+                    _ => return err_out("Invalid paper size\n", 99),
+                };
+                i += 1;
+            }
+            "-paperw" | "-paperh" if is_cairo => {
+                let axis = usize::from(arg == "-paperh");
+                custom_paper[axis] = true;
+                let raw = args[i + 1].trim_start();
+                let unsigned = raw.strip_prefix(['+', '-']).unwrap_or(raw);
+                let digits = unsigned.bytes().take_while(u8::is_ascii_digit).count();
+                paper[axis] = raw[..raw.len() - unsigned.len() + digits].parse::<f64>().unwrap_or(0.).max(1.);
+                i += 1;
+            }
+            "-origpagesizes" if is_cairo => original_sizes = true,
+            "-icc"
             | "-freetype" | "-defaultgray" | "-defaultrgb" | "-defaultcmyk" => {
                 i += 1;
             }
@@ -9833,6 +9864,14 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
             }
         }
         i += 1;
+    }
+    if is_cairo {
+        if original_sizes && named_paper {
+            return err_out("Error: -origpagesizes and -paper may not be used together.\n", 99);
+        }
+        if custom_paper[0] != custom_paper[1] {
+            return err_out("Error: both -paperw and -paperh must be specified.\n", 99);
+        }
     }
     // Poppler applies -r only when at least one axis still has the default DPI.
     if dpi != 0. && (dpi_x == 150. || dpi_y == 150.) {
@@ -9945,14 +9984,25 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
             return ok_out("");
         }
         if fmt == "PDF" {
-            let mut sub = doc.clone();
-            sub.pages = doc.pages[(first_p - 1)..end_p].to_vec();
-            let ser = sub.serialize();
+            let mut source = match pdf_reader::PageSource::open(&b, supplied) {
+                Ok(source) => source,
+                Err(error) => return err_out(if quiet { "" } else { error }, 1),
+            };
+            let selected = (first_p - 1..end_p).filter(|i| !(odd_only && i % 2 == 1 || even_only && i % 2 == 0));
+            let layout = pdf_reader::CairoPdfLayout {
+                paper: (!original_sizes && paper[0] > 0. && paper[1] > 0.).then_some(paper),
+                crop: has_crop.then_some([crop_x.max(0.), crop_y.max(0.), crop_w.unwrap_or(0.).max(0.), crop_h.unwrap_or(0.).max(0.)]),
+            };
+            let Some(ser) = pdf_reader::PageOutput::cairo(&mut source, selected, layout, fs.shell_limits().max_output_bytes) else {
+                return err_out("PDF output byte limit or invalid object graph\n", 1);
+            };
             if pfx == "-" {
                 return ok_out(&crate::vfs::bytes_to_stream_string(&ser));
             }
             let dst = resolve_posix_path(cwd, &dst_rel);
-            let _ = fs.write_file(&dst, &ser);
+            if !fs.is_dir(&crate::vfs::dirname_posix_path(&dst)) || fs.write_file(&dst, &ser).is_err() {
+                return err_out(&format!("Error opening output file {dst_rel}\n"), 2);
+            }
             return ok_out("");
         }
     }
@@ -17656,6 +17706,42 @@ mod media_unit_tests {
         assert_eq!(keys, ["Title", "Subject", "Producer", "Zebra", "Alpha"]);
         assert!(dump.stdout.contains("PdfID0: f123\nPdfID1: cdef\n"));
         assert!(dump.stdout.contains("PageMediaDimensions: 300.25 400.5\n"));
+    }
+
+    #[test]
+    fn pdftocairo_copies_pdf_resources_and_applies_paper_geometry() {
+        let stream = "1 0 0 rg 30 30 200 200 re f BT /F1 12 Tf 50 100 Td (PAPER) Tj ET";
+        let content = format!("<< /Length {} >>\nstream\n{stream}\nendstream", stream.len());
+        let input = classic_pdf(&[
+            "<< /Type /Catalog /Pages 2 0 R >>",
+            "<< /Type /Pages /Count 1 /Kids [3 0 R] /MediaBox [30 30 230 230] /Resources << /Font << /F1 5 0 R >> >> >>",
+            "<< /Type /Page /Parent 2 0 R /Contents 4 0 R >>", &content,
+            "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+        ], "");
+        let fs = MemoryVfs::new();
+        fs.write_file("/in.pdf", input.as_bytes()).unwrap();
+        for (flags, size) in [(vec![], 200.), (vec!["-paperw", "300", "-paperh", "300"], 300.), (vec!["-W", "100", "-H", "100"], 200.)] {
+            let mut args = media_args(&["-pdf"]);
+            args.extend(media_args(&flags));
+            args.extend(media_args(&["/in.pdf", "-"]));
+            let result = cmd_media_doc("pdftocairo", &args, "", "/", &fs);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            let bytes = crate::vfs::stream_string_to_bytes(&result.stdout);
+            let (doc, _) = pdf_reader::read(&bytes, "").expect("valid PDF object graph");
+            assert_eq!((doc.page_w, doc.page_h), (size, size));
+            assert!(String::from_utf8_lossy(&bytes).contains("/Helvetica"));
+            fs.write_file("/out.pdf", &bytes).unwrap();
+            let raster = cmd_media_doc("pdftocairo", &media_args(&["-png", "-singlefile", "-r", "72", "/out.pdf", "/page"]), "", "/", &fs);
+            assert_eq!(raster.exit_code, 0, "{}", raster.stderr);
+            let image = png_pixels::Raster::decode(&fs.read_file("/page.png").unwrap(), 1 << 20).unwrap();
+            assert!(image.pixels.iter().any(|p| p[..3] == [255, 0, 0]));
+        }
+        for flags in [vec!["-paperw", "300"], vec!["-paper", "a4"], vec!["-paper", "A4", "-origpagesizes"]] {
+            fs.write_file("/out.pdf", b"keep").unwrap();
+            let mut args = media_args(&["-pdf"]); args.extend(media_args(&flags)); args.extend(media_args(&["/in.pdf", "/out.pdf"]));
+            assert_eq!(cmd_media_doc("pdftocairo", &args, "", "/", &fs).exit_code, 99);
+            assert_eq!(fs.read_file("/out.pdf").unwrap(), b"keep");
+        }
     }
 
     #[test]

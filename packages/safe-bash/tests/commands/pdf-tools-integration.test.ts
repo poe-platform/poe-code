@@ -1460,7 +1460,8 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
 
     const res = await shell.exec(
       "pdftocairo -svg /work/book.pdf /work/cover.svg && " +
-      "pdftocairo -pdf -f 2 -l 2 -W 180 -H 120 /work/book.pdf /work/p2.pdf && " +
+      "pdftocairo -pdf -f 2 -l 2 -paperw 120 -paperh 180 /work/book.pdf /work/p2.pdf && " +
+      "pdftocairo -pdf -f 2 -l 2 -W 180 -H 120 /work/book.pdf /work/cropped.pdf && " +
       "pdftocairo -eps -f 1 -l 1 /work/book.pdf /work/p1.eps && " +
       "pdftk /work/book.pdf dump_data_utf8 && " +
       "pdftohtml -xml -stdout /work/book.pdf"
@@ -1472,7 +1473,11 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
     const epsBytes = await vfs.readFile("/work/p1.eps");
     assert.ok(new TextDecoder().decode(epsBytes).includes("%!PS-Adobe-3.0 EPSF-3.0"));
     const p2Doc = PdfDocument.load(await vfs.readFile("/work/p2.pdf"));
-    assert.equal(p2Doc.getPage(0).getSize().width, 180);
+    assert.equal(p2Doc.getPageCount(), 1);
+    assert.deepEqual(p2Doc.getPage(0).getSize(), { width: 180, height: 120 });
+    const cropped = PdfDocument.load(await vfs.readFile("/work/cropped.pdf"));
+    assert.equal(cropped.getPageCount(), 1);
+    assert.deepEqual(cropped.getPage(0).getSize(), { width: 300, height: 200 });
   });
 
   it("executes multi-filter /DecodeParms in pdfimages -all -print-filenames, pdftocairo default output stem, pdftk PageLabelPrefix entities, and pdftohtml HTML bold/italic styling in VFS Shell", async () => {

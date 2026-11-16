@@ -19,7 +19,7 @@ for i in 1 2; do echo before:$i; ${pipeline}; echo item:$i; done; echo end`);
         assert.equal(result.stdout, inCaller
           ? control === "break" ? "before:1\nend\n" : "before:1\nbefore:2\nend\n"
           : "before:1\nstage\nitem:1\nbefore:2\nstage\nitem:2\nend\n");
-        assert.equal(result.stderr, inCaller ? "" : `${control}: only meaningful in a loop\n`.repeat(2));
+        assert.equal(result.stderr, inCaller ? "" : `shell: line 2: ${control}: only meaningful in a \`for', \`while', or \`until' loop\n`.repeat(2));
       });
     }
 

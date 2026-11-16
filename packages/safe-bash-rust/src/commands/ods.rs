@@ -379,6 +379,7 @@ pub(super) fn read(
             }
         }
         sheets.push(WorkbookSheet {
+            active: sheets.is_empty(),
             delimited: false,
             name: sname,
             rows,

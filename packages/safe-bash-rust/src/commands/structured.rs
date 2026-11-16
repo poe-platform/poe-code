@@ -1,4 +1,10 @@
 mod csvkit_calendar;
+#[cfg(test)]
+mod xlsx_rows_tests;
+#[cfg(test)]
+mod xlsx_import_tests;
+mod xlsx_xml;
+mod sheet_name_fold;
 mod csvkit_cell;
 mod csvkit_decimal;
 mod csvkit_duration;
@@ -9946,36 +9952,6 @@ fn xlsx_col_ref_to_idx(cell_ref: &str) -> Option<usize> {
     Some(idx - 1)
 }
 
-fn extract_all_t_text(xml_fragment: &str) -> String {
-    let mut out = String::new();
-    let mut rest = xml_fragment;
-    while let Some(pos) = rest.find("<t") {
-        let after = &rest[pos + 2..];
-        let Some(first_ch) = after.chars().next() else {
-            break;
-        };
-        if first_ch != '>' && !first_ch.is_ascii_whitespace() {
-            rest = after;
-            continue;
-        }
-        let Some(gt) = after.find('>') else {
-            break;
-        };
-        if after[..gt].ends_with('/') {
-            rest = &after[gt + 1..];
-            continue;
-        }
-        let content_start = &after[gt + 1..];
-        if let Some(end_t) = content_start.find("</t>") {
-            out.push_str(&unescape_xml_basic(&content_start[..end_t]));
-            rest = &content_start[end_t + 4..];
-        } else {
-            break;
-        }
-    }
-    out
-}
-
 fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut format_opt: Option<String> = None;
     let mut schema_path: Option<String> = None;
@@ -10097,183 +10073,20 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             Ok(b) => b,
             Err(e) => return err_out(&e, 1),
         };
-        let entries = read_office_archive(&raw_bytes);
-        let wb_xml = entries
-            .get("xl/workbook.xml")
-            .map(|b| String::from_utf8_lossy(b).into_owned())
-            .unwrap_or_default();
-        let mut sheets: Vec<(String, String)> = Vec::new();
-        let mut scan = wb_xml.as_str();
-        while let Some(pos) = scan.find("<sheet ") {
-            let after = &scan[pos..];
-            let Some(end) = after.find('>') else {
-                break;
-            };
-            let tag = &after[..=end];
-            if let Some(sname) = extract_xml_attr(tag, "name") {
-                let rid = extract_xml_attr(tag, "r:id")
-                    .or_else(|| extract_xml_attr(tag, "id"))
-                    .unwrap_or_default();
-                sheets.push((sname, rid));
-            }
-            scan = &after[end + 1..];
-        }
+        let sheets = match read_xlsx_all_sheets(&raw_bytes, "Sheet1", ["False", "True"], fs.max_input_bytes()) {
+            Ok(sheets) => sheets,
+            Err(error) => return err_out(&format!("in2csv: {error}\n"), 1),
+        };
         if names_only {
-            let mut out = String::new();
-            for (sname, _) in sheets {
-                out.push_str(&sname);
-                out.push('\n');
-            }
-            return ok_out(&out);
+            return ok_out(&sheets.iter().map(|sheet| format!("{}\n", sheet.name)).collect::<String>());
         }
-        let rels_xml = entries
-            .get("xl/_rels/workbook.xml.rels")
-            .map(|b| String::from_utf8_lossy(b).into_owned())
-            .unwrap_or_default();
-        let mut rels_map: BTreeMap<String, String> = BTreeMap::new();
-        let mut rscan = rels_xml.as_str();
-        while let Some(pos) = rscan.find("<Relationship ") {
-            let after = &rscan[pos..];
-            let Some(end) = after.find('>') else {
-                break;
-            };
-            let tag = &after[..=end];
-            if let (Some(id), Some(target)) = (
-                extract_xml_attr(tag, "Id"),
-                extract_xml_attr(tag, "Target"),
-            ) {
-                rels_map.insert(id, target);
-            }
-            rscan = &after[end + 1..];
-        }
-
-        let sst_xml = entries
-            .get("xl/sharedStrings.xml")
-            .map(|b| String::from_utf8_lossy(b).into_owned())
-            .unwrap_or_default();
-        let mut shared_strings: Vec<String> = Vec::new();
-        let mut sscan = sst_xml.as_str();
-        while let Some(pos) = sscan.find("<si") {
-            let after = &sscan[pos..];
-            if let Some(end_si) = after.find("</si>") {
-                let si_block = &after[..end_si];
-                shared_strings.push(extract_all_t_text(si_block));
-                sscan = &after[end_si + 5..];
-            } else {
-                break;
-            }
-        }
-
-        let chosen_rid = if let Some(ref target_name) = sheet_name {
-            sheets
-                .iter()
-                .find(|(n, _)| n == target_name)
-                .map(|(_, rid)| rid.clone())
-                .or_else(|| {
-                    target_name
-                        .parse::<usize>()
-                        .ok()
-                        .and_then(|idx| sheets.get(idx).map(|(_, rid)| rid.clone()))
-                })
-                .unwrap_or_default()
-        } else {
-            sheets.first().map(|(_, rid)| rid.clone()).unwrap_or_default()
-        };
-        let ws_target = rels_map
-            .get(&chosen_rid)
-            .cloned()
-            .unwrap_or_else(|| "worksheets/sheet1.xml".to_string());
-        let ws_path = if let Some(stripped) = ws_target.strip_prefix('/') {
-            stripped.to_string()
-        } else if ws_target.starts_with("xl/") {
-            ws_target
-        } else {
-            format!("xl/{ws_target}")
-        };
-        let ws_xml = entries
-            .get(&ws_path)
-            .map(|b| String::from_utf8_lossy(b).into_owned())
-            .unwrap_or_default();
-
-        let mut parsed_rows: Vec<Vec<String>> = Vec::new();
-        let mut max_cols = 0usize;
-        let mut wscan = ws_xml.as_str();
-        while let Some(rpos) = wscan.find("<row") {
-            let rafter = &wscan[rpos..];
-            let Some(rend) = rafter.find("</row>") else {
-                break;
-            };
-            let row_block = &rafter[..rend];
-            let mut row_cells: BTreeMap<usize, String> = BTreeMap::new();
-            let mut next_col = 0usize;
-            let mut cscan = row_block;
-            while let Some(cpos) = cscan.find("<c") {
-                let cafter = &cscan[cpos..];
-                let Some(first_ch) = cafter[2..].chars().next() else {
-                    break;
-                };
-                if first_ch != '>' && first_ch != '/' && !first_ch.is_ascii_whitespace() {
-                    cscan = &cafter[2..];
-                    continue;
-                }
-                let Some(tag_end) = cafter.find('>') else {
-                    break;
-                };
-                let c_open_tag = &cafter[..=tag_end];
-                let col_idx = extract_xml_attr(c_open_tag, "r")
-                    .and_then(|r| xlsx_col_ref_to_idx(&r))
-                    .unwrap_or(next_col);
-                next_col = col_idx + 1;
-                let cell_type = extract_xml_attr(c_open_tag, "t").unwrap_or_default();
-                let mut cell_val = String::new();
-                if c_open_tag.ends_with("/>") {
-                    cscan = &cafter[tag_end + 1..];
-                } else if let Some(cend) = cafter.find("</c>") {
-                    let c_inner = &cafter[tag_end + 1..cend];
-                    if cell_type == "inlineStr" {
-                        cell_val = extract_all_t_text(c_inner);
-                    } else if let Some(vpos) = c_inner.find("<v>") {
-                        let vafter = &c_inner[vpos + 3..];
-                        if let Some(vend) = vafter.find("</v>") {
-                            let raw_v = unescape_xml_basic(&vafter[..vend]);
-                            if cell_type == "s" {
-                                if let Ok(sidx) = raw_v.trim().parse::<usize>() {
-                                    cell_val =
-                                        shared_strings.get(sidx).cloned().unwrap_or_default();
-                                }
-                            } else if cell_type == "b" {
-                                cell_val = if raw_v.trim() == "1" {
-                                    "True".to_string()
-                                } else {
-                                    "False".to_string()
-                                };
-                            } else {
-                                cell_val = raw_v;
-                            }
-                        }
-                    }
-                    cscan = &cafter[cend + 4..];
-                } else {
-                    break;
-                }
-                row_cells.insert(col_idx, cell_val);
-                max_cols = max_cols.max(col_idx + 1);
-            }
-            let mut row_vec = vec![String::new(); max_cols];
-            for (ci, cv) in row_cells {
-                if ci >= row_vec.len() {
-                    row_vec.resize(ci + 1, String::new());
-                }
-                row_vec[ci] = cv;
-            }
-            parsed_rows.push(row_vec);
-            wscan = &rafter[rend + 6..];
-        }
-        for r in &mut parsed_rows {
-            if r.len() < max_cols {
-                r.resize(max_cols, String::new());
-            }
-        }
+        let chosen = if let Some(ref name) = sheet_name {
+            sheets.iter().position(|sheet| &sheet.name == name)
+                .or_else(|| name.parse::<usize>().ok().filter(|&i| i < sheets.len()))
+        } else { Some(0) };
+        let Some(chosen) = chosen else { return err_out("in2csv: Unknown sheet\n", 1); };
+        let mut parsed_rows = sheets.into_iter().nth(chosen).map(|sheet| sheet.rows).unwrap_or_default();
+        let max_cols = parsed_rows.first().map_or(0, Vec::len);
         if skip_lines > 0 && skip_lines <= parsed_rows.len() {
             parsed_rows.drain(0..skip_lines);
         }
@@ -29162,6 +28975,7 @@ pub(super) fn write_zip_stored(entries: &[(&str, &[u8])]) -> Vec<u8> {
 
 #[derive(Clone, Debug)]
 struct WorkbookSheet {
+    active: bool,
     delimited: bool,
     name: String,
     rows: Vec<Vec<String>>,
@@ -29179,149 +28993,98 @@ pub(super) fn xlsx_idx_to_col_ref(mut idx: usize) -> String {
     chars.into_iter().rev().collect()
 }
 
-fn parse_xlsx_worksheet_xml(ws_xml: &str, shared_strings: &[String]) -> Vec<Vec<String>> {
-    let mut parsed_rows: Vec<Vec<String>> = Vec::new();
-    let mut max_cols = 0usize;
-    let mut wscan = ws_xml;
-    while let Some(rpos) = wscan.find("<row") {
-        let rafter = &wscan[rpos..];
-        let Some(rend) = rafter.find("</row>") else {
-            break;
-        };
-        let row_block = &rafter[..rend];
-        let mut row_cells: BTreeMap<usize, String> = BTreeMap::new();
-        let mut next_col = 0usize;
-        let mut cscan = row_block;
-        while let Some(cpos) = cscan.find("<c") {
-            let cafter = &cscan[cpos..];
-            let Some(first_ch) = cafter[2..].chars().next() else {
-                break;
+fn parse_xlsx_worksheet_xml(ws_xml: &str, shared_strings: &[String], boolean_text: [&str; 2], remaining: &mut usize) -> Result<Vec<Vec<String>>, String> {
+    use xlsx_xml::{attr, children, text};
+    let invalid = "invalid XLSX worksheet or coordinate";
+    let limit = "XLSX worksheet exceeds input limit";
+    let root = xlsx_xml::root(ws_xml, "worksheet")?;
+    let mut cells = BTreeMap::new();
+    let (mut next_row, mut height, mut width) = (0usize, 0usize, 0usize);
+    for data in children(&root, "sheetData") {
+        for row in children(data, "row") {
+            let row_index = match attr(row, "r") {
+                Some(value) => value.trim().parse::<usize>().ok().and_then(|n| n.checked_sub(1)).ok_or(invalid)?,
+                None => next_row,
             };
-            if first_ch != '>' && first_ch != '/' && !first_ch.is_ascii_whitespace() {
-                cscan = &cafter[2..];
-                continue;
-            }
-            let Some(tag_end) = cafter.find('>') else {
-                break;
-            };
-            let c_open_tag = &cafter[..=tag_end];
-            let col_idx = extract_xml_attr(c_open_tag, "r")
-                .and_then(|r| xlsx_col_ref_to_idx(&r))
-                .unwrap_or(next_col);
-            next_col = col_idx + 1;
-            let cell_type = extract_xml_attr(c_open_tag, "t").unwrap_or_default();
-            let mut cell_val = String::new();
-            if c_open_tag.ends_with("/>") {
-                cscan = &cafter[tag_end + 1..];
-            } else if let Some(cend) = cafter.find("</c>") {
-                let c_inner = &cafter[tag_end + 1..cend];
-                if cell_type == "inlineStr" {
-                    cell_val = extract_all_t_text(c_inner);
-                } else if let Some(vpos) = c_inner.find("<v>") {
-                    let vafter = &c_inner[vpos + 3..];
-                    if let Some(vend) = vafter.find("</v>") {
-                        let raw_v = unescape_xml_basic(&vafter[..vend]);
-                        if cell_type == "s" {
-                            if let Ok(sidx) = raw_v.trim().parse::<usize>() {
-                                cell_val = shared_strings.get(sidx).cloned().unwrap_or_default();
-                            }
-                        } else if cell_type == "b" {
-                            cell_val = if raw_v.trim() == "1" {
-                                "True".to_string()
-                            } else {
-                                "False".to_string()
-                            };
-                        } else {
-                            cell_val = raw_v;
-                        }
+            if row_index >= 1_048_576 { return Err(invalid.into()); }
+            next_row = row_index + 1;
+            let mut next_column = 0;
+            for cell in children(row, "c") {
+                let (r, c) = match attr(cell, "r") {
+                    Some(address) => parse_cell_coord(address).ok_or(invalid)?,
+                    None => (row_index, next_column),
+                };
+                if r >= 1_048_576 || c >= 16_384 { return Err(invalid.into()); }
+                next_column = c + 1;
+                height = height.max(r + 1);
+                width = width.max(c + 1);
+                // The grid is dense for downstream converters. Admit its storage
+                // before allocating gaps, including a distant cell in a tiny ZIP.
+                let storage = height.checked_mul(width).and_then(|n| n.checked_mul(std::mem::size_of::<String>()))
+                    .and_then(|n| height.checked_mul(std::mem::size_of::<Vec<String>>()).and_then(|rows| n.checked_add(rows)))
+                    .ok_or(limit)?;
+                if storage > *remaining { return Err(limit.into()); }
+                let kind = attr(cell, "t").unwrap_or("");
+                let value = if kind == "inlineStr" {
+                    children(cell, "is").flat_map(|value| {
+                        children(value, "t").chain(children(value, "r").flat_map(|run| children(run, "t")))
+                    }).map(text).collect()
+                } else if let Some(value) = children(cell, "v").next() {
+                    let value = text(value);
+                    match kind {
+                        "s" => value.trim().parse::<usize>().ok().and_then(|i| shared_strings.get(i)).cloned().unwrap_or_default(),
+                        "b" => boolean_text[usize::from(value.trim() == "1")].into(),
+                        _ => value,
                     }
-                } else if let Some(fpos) = c_inner.find("<f>") {
-                    let fafter = &c_inner[fpos + 3..];
-                    if let Some(fend) = fafter.find("</f>") {
-                        cell_val = format!("={}", unescape_xml_basic(&fafter[..fend]));
-                    }
-                }
-                cscan = &cafter[cend + 4..];
-            } else {
-                break;
+                } else if let Some(formula) = children(cell, "f").next() {
+                    format!("={}", text(formula))
+                } else { String::new() };
+                // Repeated coordinates retain the last cell, like the TS reader.
+                let old = cells.get(&(r, c)).map_or(0, |v: &String| v.len());
+                *remaining = remaining.checked_add(old).and_then(|n| n.checked_sub(value.len())).ok_or(limit)?;
+                if storage > *remaining { return Err(limit.into()); }
+                cells.insert((r, c), value);
             }
-            row_cells.insert(col_idx, cell_val);
-            if col_idx + 1 > max_cols {
-                max_cols = col_idx + 1;
-            }
-        }
-        let mut rvec = vec![String::new(); max_cols];
-        for (cidx, val) in row_cells {
-            if cidx < rvec.len() {
-                rvec[cidx] = val;
-            }
-        }
-        parsed_rows.push(rvec);
-        wscan = &rafter[rend + 6..];
-    }
-    for r in &mut parsed_rows {
-        while r.len() < max_cols {
-            r.push(String::new());
         }
     }
-    parsed_rows
+    let storage = height * (width * std::mem::size_of::<String>() + std::mem::size_of::<Vec<String>>());
+    *remaining = remaining.checked_sub(storage).ok_or(limit)?;
+    let mut rows = vec![vec![String::new(); width]; height];
+    for ((r, c), value) in cells { rows[r][c] = value; }
+    Ok(rows)
 }
 
-fn read_xlsx_all_sheets(bytes: &[u8], fallback_name: &str) -> Vec<WorkbookSheet> {
+fn read_xlsx_all_sheets(bytes: &[u8], fallback_name: &str, boolean_text: [&str; 2], mut remaining: usize) -> Result<Vec<WorkbookSheet>, String> {
     let entries = read_office_archive(bytes);
     let wb_xml = entries
         .get("xl/workbook.xml")
         .map(|b| String::from_utf8_lossy(b).into_owned())
         .unwrap_or_default();
-    let mut sheet_meta: Vec<(String, String)> = Vec::new();
-    let mut scan = wb_xml.as_str();
-    while let Some(pos) = scan.find("<sheet ") {
-        let after = &scan[pos..];
-        let Some(end) = after.find('>') else {
-            break;
-        };
-        let tag = &after[..=end];
-        if let Some(sname) = extract_xml_attr(tag, "name") {
-            let rid = extract_xml_attr(tag, "r:id")
-                .or_else(|| extract_xml_attr(tag, "id"))
-                .unwrap_or_default();
-            sheet_meta.push((sname, rid));
+    use xlsx_xml::{attr, children, text};
+    let workbook = xlsx_xml::root(&wb_xml, "workbook")?;
+    let active = children(&workbook, "bookViews").flat_map(|views| children(views, "workbookView"))
+        .next().and_then(|view| attr(view, "activeTab")).and_then(|value| value.parse::<usize>().ok()).unwrap_or(0);
+    let mut sheet_meta: Vec<(String, String)> = children(&workbook, "sheets")
+        .flat_map(|sheets| children(sheets, "sheet"))
+        .filter_map(|sheet| Some((attr(sheet, "name")?.to_owned(),
+            attr(sheet, "r:id").or_else(|| attr(sheet, "id")).unwrap_or("").to_owned())))
+        .collect();
+    let mut rels_map = BTreeMap::new();
+    if let Some(bytes) = entries.get("xl/_rels/workbook.xml.rels") {
+        let relationships = xlsx_xml::root(std::str::from_utf8(bytes).map_err(|_| "invalid XLSX XML encoding")?, "Relationships")?;
+        for relationship in children(&relationships, "Relationship") {
+            if let (Some(id), Some(target)) = (attr(relationship, "Id"), attr(relationship, "Target")) {
+                rels_map.insert(id.to_owned(), target.to_owned());
+            }
         }
-        scan = &after[end + 1..];
     }
-    let rels_xml = entries
-        .get("xl/_rels/workbook.xml.rels")
-        .map(|b| String::from_utf8_lossy(b).into_owned())
-        .unwrap_or_default();
-    let mut rels_map: BTreeMap<String, String> = BTreeMap::new();
-    let mut rscan = rels_xml.as_str();
-    while let Some(pos) = rscan.find("<Relationship ") {
-        let after = &rscan[pos..];
-        let Some(end) = after.find('>') else {
-            break;
-        };
-        let tag = &after[..=end];
-        if let (Some(id), Some(target)) = (
-            extract_xml_attr(tag, "Id"),
-            extract_xml_attr(tag, "Target"),
-        ) {
-            rels_map.insert(id, target);
-        }
-        rscan = &after[end + 1..];
-    }
-    let sst_xml = entries
-        .get("xl/sharedStrings.xml")
-        .map(|b| String::from_utf8_lossy(b).into_owned())
-        .unwrap_or_default();
-    let mut shared_strings: Vec<String> = Vec::new();
-    let mut sscan = sst_xml.as_str();
-    while let Some(pos) = sscan.find("<si") {
-        let after = &sscan[pos..];
-        if let Some(end_si) = after.find("</si>") {
-            shared_strings.push(extract_all_t_text(&after[..end_si]));
-            sscan = &after[end_si + 5..];
-        } else {
-            break;
+    let mut shared_strings = Vec::new();
+    if let Some(bytes) = entries.get("xl/sharedStrings.xml") {
+        let shared = xlsx_xml::root(std::str::from_utf8(bytes).map_err(|_| "invalid XLSX XML encoding")?, "sst")?;
+        for value in children(&shared, "si") {
+            let value: String = children(value, "t").chain(children(value, "r").flat_map(|run| children(run, "t"))).map(text).collect();
+            remaining = remaining.checked_sub(value.len() + std::mem::size_of::<String>()).ok_or("XLSX shared strings exceed input limit")?;
+            shared_strings.push(value);
         }
     }
     if sheet_meta.is_empty() {
@@ -29332,7 +29095,7 @@ fn read_xlsx_all_sheets(bytes: &[u8], fallback_name: &str) -> Vec<WorkbookSheet>
         let ws_target = rels_map
             .get(&rid)
             .cloned()
-            .unwrap_or_else(|| format!("worksheets/sheet{}.xml", idx + 1));
+            .ok_or("missing XLSX worksheet relationship")?;
         let ws_path = if let Some(stripped) = ws_target.strip_prefix('/') {
             stripped.to_string()
         } else if ws_target.starts_with("xl/") {
@@ -29345,12 +29108,13 @@ fn read_xlsx_all_sheets(bytes: &[u8], fallback_name: &str) -> Vec<WorkbookSheet>
             .map(|b| String::from_utf8_lossy(b).into_owned())
             .unwrap_or_default();
         out.push(WorkbookSheet {
+            active: idx == active,
             delimited: false,
             name: sname,
-            rows: parse_xlsx_worksheet_xml(&ws_xml, &shared_strings),
+            rows: parse_xlsx_worksheet_xml(&ws_xml, &shared_strings, boolean_text, &mut remaining)?,
         });
     }
-    out
+    Ok(out)
 }
 
 fn xml_escape_text(s: &str) -> String {
@@ -29696,11 +29460,12 @@ fn load_workbook_from_file(path: &str, cwd: &str, fs: &dyn SafeBashFs) -> Result
     let fname = path.rsplit('/').next().unwrap_or(path);
     let lower = fname.to_ascii_lowercase();
     if lower.ends_with(".xlsx") {
-        Ok(read_xlsx_all_sheets(&bytes, fname))
+        read_xlsx_all_sheets(&bytes, fname, ["FALSE", "TRUE"], fs.max_input_bytes())
     } else if lower.ends_with(".ods") {
         ods::read(&bytes, fname, fs.max_input_bytes()).ok_or_else(|| "ssconvert: ODS workbook exceeds input limit\n".into())
     } else {
         Ok(vec![WorkbookSheet {
+            active: true,
             delimited: true,
             name: fname.to_string(),
             rows: workbook_text_rows(&String::from_utf8_lossy(&bytes),lower.ends_with(".csv")),
@@ -29752,7 +29517,7 @@ fn write_workbook_to_file(
             sep
         };
         let mut out = String::new();
-        if let Some(first) = sheets.first() {
+        for first in sheets {
             let width = first.rows.iter().filter_map(|r| r.iter().rposition(|v| !v.is_empty())).max().map_or(1, |j| j+1);
             let height = first.rows.iter().rposition(|r| r.iter().any(|v| !v.is_empty())).map_or(1, |i| i+1);
             let limit = fs.max_input_bytes();
@@ -29830,6 +29595,7 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
     let mut merge_to: Option<String> = None;
     let mut export_type: Option<String> = None;
     let mut export_options = Vec::new();
+    let mut sheet_options = Vec::new();
     let mut sep = ',';
     let mut raw = false;
     let mut positional: Vec<String> = Vec::new();
@@ -30089,8 +29855,9 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
                         _ => return err_out(&format!("ssconvert: Invalid value for option format: \"{value}\"\n"), 1),
                     },
                     "separator" => { if let Some(c) = value.chars().next() { sep = c; } }
+                    "sheet" | "active-sheet" => sheet_options.push((key, value)),
                     "eol" | "charset" | "locale" | "quote" | "transliterate-mode"
-                        | "quoting-mode" | "quoting-on-whitespace" | "sheet" | "active-sheet" => {},
+                        | "quoting-mode" | "quoting-on-whitespace" => {},
                     _ => return err_out(&format!("ssconvert: Invalid export option \"{key}\" for format {exporter}\n"), 1),
                 }
             }
@@ -30098,6 +29865,10 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
     }
 
     if let Some(target_out) = merge_to {
+        // The merge destination is initially empty, as in the TS engine.
+        if let Some((_, value)) = sheet_options.first() {
+            return err_out(&format!("ssconvert: Unknown sheet \"{value}\"\n"), 1);
+        }
         if positional.len() < 2 {
             return err_out("Usage: ssconvert [OPTION...] INFILE [OUTFILE]\n", 1);
         }
@@ -30115,6 +29886,7 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
                 Err(e) => return err_out(&e, 1),
             }
         }
+        if exporter == "Gnumeric_stf:stf_csv" { all_sheets.truncate(1); }
         if let Err(e) = write_workbook_to_file(&target_out, cwd, &all_sheets, sep, raw, fs) {
             return err_out(&e, 1);
         }
@@ -30139,6 +29911,40 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
         Ok(s) => s,
         Err(e) => return err_out(&e, 1),
     };
+    if !sheet_options.is_empty() {
+        let mut selected = Vec::new();
+        let mut remaining = fs.max_input_bytes();
+        for (key, value) in &sheet_options {
+            let sheet = if key == "active-sheet" {
+                sheets.iter().find(|sheet| sheet.active).or_else(|| sheets.first())
+            } else {
+                let name = sheet_name_fold::fold(value);
+                sheets.iter().find(|sheet| sheet_name_fold::fold(&sheet.name) == name)
+            };
+            let Some(sheet) = sheet else {
+                return err_out(&format!("ssconvert: Unknown sheet \"{value}\"\n"), 1);
+            };
+            let storage = sheet.rows.iter().fold(sheet.name.len(), |total, row| {
+                row.iter().fold(total.saturating_add(std::mem::size_of::<Vec<String>>()), |total, cell| {
+                    total.saturating_add(std::mem::size_of::<String>()).saturating_add(cell.len())
+                })
+            });
+            let Some(budget) = remaining.checked_sub(storage) else {
+                return err_out("ssconvert: selected sheets exceed input limit\n", 1);
+            };
+            remaining = budget;
+            selected.push(sheet.clone());
+        }
+        if !split_sheets && exporter == "Gnumeric_stf:stf_csv" && selected.len() != 1 {
+            return err_out("Selected exporter (Gnumeric_stf:stf_csv) can only export one sheet at a time.\n", 1);
+        }
+        sheets = selected;
+    } else if !split_sheets && exporter == "Gnumeric_stf:stf_csv" && !sheets.is_empty() {
+        let active = sheets.iter().position(|sheet| sheet.active).unwrap_or(0);
+        let sheet = sheets.remove(active);
+        sheets.clear();
+        sheets.push(sheet);
+    }
     if recalc && !matches!(outfile.rsplit_once('.').map(|(_, ext)| ext.to_ascii_lowercase()).as_deref(), Some("xlsx" | "ods")) {
         for sh in &mut sheets {
             recalc_workbook_sheet(sh);
@@ -31994,7 +31800,10 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                     .first()
                     .map(|f| f.rsplit('/').next().unwrap_or(f.as_str()))
                     .unwrap_or("Sheet1");
-                let sheets = read_xlsx_all_sheets(&raw_bytes, fname);
+                let sheets = match read_xlsx_all_sheets(&raw_bytes, fname, ["false", "true"], fs.max_input_bytes()) {
+                    Ok(sheets) => sheets,
+                    Err(error) => return err_out(&format!("pandoc: {error}\n"), 1),
+                };
                 let mut b = Vec::new();
                 for sh in sheets {
                     b.push(PandocBlock::Header(

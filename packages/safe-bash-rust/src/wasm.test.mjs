@@ -15828,7 +15828,7 @@ test("xmllint reads redirected stdin only for the operand that requests it", asy
     }
     await rs.fs.writeFile("/invalid", Uint8Array.of(255, 65));
     const invalid = await rs.exec("{ xmllint --noout; cat; } </invalid");
-    assert.deepEqual([invalid.exitCode, invalid.stdout, invalid.stderr], [0, "", "xmllint: XML input must be UTF-8\n"]);
+    assert.deepEqual([invalid.exitCode, invalid.stdout, invalid.stderr], [0, "", "xmllint: XML input must be valid UTF-8\n"]);
     await assert.rejects(rs.exec("xmllint --noout doc - <big", options), /maxInputBytes/);
   } finally { rs.dispose(); }
 });
@@ -15873,7 +15873,7 @@ test("xmllint charges named input in read order and prevalidates recovery input"
     assert.equal(invalid.stderr, "xmllint: Invalid XML: multiple root elements\n");
     await assert.rejects(rs.exec("xmllint --recover --noout f", options), /maxInputBytes/);
     const recover = await rs.exec("xmllint --recover --noout f");
-    assert.equal(recover.stderr, "xmllint: XML input must be UTF-8\n");
+    assert.equal(recover.stderr, "xmllint: XML input must be valid UTF-8\n");
   } finally { rs.dispose(); }
 });
 

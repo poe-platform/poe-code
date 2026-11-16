@@ -1,12 +1,12 @@
 import { bytesFrom } from "safe-bash-byte-engine";
 import { publicDiagnosticMessage } from "safe-bash-contracts/diagnostics";
 import { quoteShellOperand, writeDiagnostic } from "safe-bash-contracts/escaping";
-import { FsError, isFsError, collectBytes, getCommandArguments, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
+import { FsError, isFsError, collectBytes, getCommandArguments, writeBytes, type ByteSource, type CommandContext, type CommandDefinition } from "safe-bash-contracts";
 import { Budget, Cursor, interruptible } from "./io.js";
 import { Names } from "./names.js";
 import { Outputs } from "./outputs.js";
 import { parseArguments, settings, type SplitArguments, type SplitLimits } from "./options.js";
-import { gnuInformation, gnuInformationSync } from "safe-bash-io-engine/gnu-information";
+import { gnuInformationSync } from "safe-bash-io-engine/gnu-information";
 import { builtInDirectContextExecutors, syncCommandEvaluators } from "safe-bash-io-engine/internal";
 
 async function* segment(cursor: Cursor, args: SplitArguments): AsyncGenerator<Uint8Array> {
@@ -64,7 +64,7 @@ function chunkBoundary(length: number, count: number, index: number): number {
 async function run(context: CommandContext, limits: SplitLimits): Promise<void> {
   const args = parseArguments(context.args, limits, getCommandArguments(context));
   if ("information" in args) {
-    await gnuInformation("split", { ...context, args: [`--${args.information}`] });
+    await writeBytes(context.stdout, bytesFrom(gnuInformationSync("split", [`--${args.information}`])!), context.signal);
     return;
   }
   const controller = new AbortController();

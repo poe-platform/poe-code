@@ -1,4 +1,4 @@
-import { FsError, createOutputOperation, type CommandDefinition, type DirectoryEntry, type FileStat, type OutputOperation } from "safe-bash-contracts";
+import { FsError, createOutputOperation, type CommandContext, type CommandDefinition, type DirectoryEntry, type FileStat, type OutputOperation } from "safe-bash-contracts";
 import { pathOf } from "safe-bash-io-engine/internal";
 import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 import { parse, helpText, type Arguments } from "./arguments.js";
@@ -185,7 +185,7 @@ export function createDuCommand(options: DuCommandsOptions = {}): CommandDefinit
   const limits = settings(options);
   return { name: "du", description: "Bounded provider allocation or explicit apparent-size usage", async execute(context) {
     let operation: OutputOperation | undefined;
-    const work = { ...context, get signal() { return operation?.signal ?? context.signal; }, get stdout() { return operation?.output ?? context.stdout; } };
+    const work: CommandContext = Object.create(context, Object.getOwnPropertyDescriptors({ get signal() { return operation?.signal ?? context.signal; }, get stdout() { return operation?.output ?? context.stdout; } }));
     const budget = new Budget(work, limits, context);
     context.registerCleanup?.(budget.close);
     try {

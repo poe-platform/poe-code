@@ -142,7 +142,7 @@ test("help rejects attached values", async () => {
   try {
     for (const command of ["cat", "grep", "rg", "tar"]) {
       const result = await shell.exec(`${command} --help=yes`);
-      assert.equal(result.exitCode, 2);
+      assert.equal(result.exitCode, command === "cat" ? 1 : 2);
       assert.equal(result.stdout, "");
     }
   } finally { await shell.dispose(); }

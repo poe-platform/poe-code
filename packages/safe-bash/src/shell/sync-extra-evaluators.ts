@@ -3017,7 +3017,14 @@ export class FastShellCommandContext {
   declare command: string;
   declare args: readonly string[];
   declare private _env: Record<string, string> | undefined;
-  declare cwd: string;
+  declare private _cwd: string | undefined;
+  get cwd(): string {
+    const self = this._self ?? this;
+    return self._cwd ??= self._state.cwd;
+  }
+  set cwd(value: string) {
+    (this._self ?? this)._cwd = value;
+  }
   declare private _rawSignal: AbortSignal;
   declare private _nativeSignal: AbortSignal | undefined;
   get signal(): AbortSignal {
@@ -3071,7 +3078,7 @@ export class FastShellCommandContext {
     this.args = args;
     this._argumentValues = argumentValues;
     this._env = env;
-    this.cwd = state.cwd;
+    this._cwd = undefined;
     this.signal = runtime.commandSignal;
     this.onInternalError = runtime.budget.onInternalError;
     this.argv0 = io.argv0;
@@ -3080,6 +3087,9 @@ export class FastShellCommandContext {
     this.diagnosticLine = io.diagnosticLine;
     this.scriptName = io.scriptName;
     if (directContext) {
+      Object.defineProperty(this, "cwd", {
+        ...Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, "cwd"), enumerable: true,
+      });
       Object.defineProperty(this, "signal", {
         ...Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, "signal"), enumerable: true,
       });
@@ -3114,7 +3124,7 @@ export class FastShellCommandContext {
     this.descriptors = io.descriptors;
     this.command = name;
     this.args = args;
-    this.cwd = state.cwd;
+    this._cwd = undefined;
     this.signal = signal;
     this.onInternalError = runtime.budget.onInternalError;
     this.argv0 = io.argv0;
@@ -3230,6 +3240,7 @@ export class FastShellCommandContext {
   }
   get fs(): FileSystem {
     const self = this._self ?? this;
+    void self.cwd;
     return self._contextFs ??= self._runtime.getContextFsForFast(self._state.umask ?? 0o022, self._getScopedSignal());
   }
   set fs(replacement: FileSystem) {
@@ -3308,7 +3319,7 @@ export function isFastDirectCommand(name: string, words: readonly Word[]): boole
   }
   return true;
 }
-const fastShellCommandAccessors = ["xpgEcho", "signal", "env", "fs", "commandDiscovery", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues", "stdinInput", "stdoutFile"].map( key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const, );
+const fastShellCommandAccessors = ["xpgEcho", "signal", "env", "cwd", "fs", "commandDiscovery", "shellPredicates", "inputBudget", "executionScope", "registerCleanup", "invoke", "argumentValues", "stdinInput", "stdoutFile"].map( key => [key, Object.getOwnPropertyDescriptor(FastShellCommandContext.prototype, key)!] as const, );
 
 const syncExtraRuntimeMethods = {
   setSyncPipeStatusCell(this: any, existing: any, status: string): void {

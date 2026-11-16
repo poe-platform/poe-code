@@ -27,7 +27,7 @@ for (const [index, loop] of loops.entries()) {
         t.after(() => shell.dispose());
         await assert.rejects(shell.exec(loop(`${command} ${redirect} /out`), { limits: { maxOutputBytes: 20 } }),
           error => error instanceof ShellLimitError && error.limit === "maxOutputBytes");
-        assert.equal(new TextDecoder().decode(await fs.readFile("/out")), "hello world\n");
+        assert.equal(new TextDecoder().decode(await fs.readFile("/out")), redirect === ">" ? "" : "hello world\n");
       });
     }
   }

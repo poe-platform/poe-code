@@ -1,3 +1,4 @@
+import "./jbig2-truncation.wasm.test.mjs";
 import "./pdf-json-sections.wasm.test.mjs";
 import "./jbig2-decode.wasm.test.mjs";
 import "./gnu-information.wasm.test.mjs";

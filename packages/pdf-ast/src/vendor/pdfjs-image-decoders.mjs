@@ -3376,7 +3376,8 @@ function* decodeHalftoneRegion(mmr, patterns, template, regionWidth, regionHeigh
   }
   return regionBitmap;
 }
-function* readSegmentHeader(data, start, onAllocation, stored) {
+function* readSegmentHeader(data, start, end, onAllocation, stored) {
+  if (start + 6 > end || end > data.length) throw new Jbig2Error("truncated segment header");
   onAllocation?.(4096);
   const segmentHeader = {};
   segmentHeader.number = (yield* jbigReadUint(data, start, 4));
@@ -3394,9 +3395,11 @@ function* readSegmentHeader(data, start, onAllocation, stored) {
   const retainBits = [referredFlags & 31];
   let position = start + 6;
   if (referredToCount === 7) {
+    if (position + 3 > end) throw new Jbig2Error("truncated segment header");
     referredToCount = (yield* jbigReadUint(data, position - 1, 4)) & 0x1fffffff;
     position += 3;
     const bytes = Math.ceil((referredToCount + 1) / 8);
+    if (position + bytes > end) throw new Jbig2Error("truncated segment header");
     if (stored) position += bytes; // Retention flags are not consumed by this visitor.
     else {
       onAllocation?.(bytes * 16);
@@ -3413,9 +3416,9 @@ function* readSegmentHeader(data, start, onAllocation, stored) {
   } else if (segmentHeader.number <= 65536) {
     referredToSegmentNumberSize = 2;
   }
-  if (!stored) onAllocation?.(referredToCount * 16);
   const referencesEnd = position + referredToCount * referredToSegmentNumberSize;
-  if (referencesEnd + (pageAssociationFieldSize ? 4 : 1) + 4 > data.length) throw new Jbig2Error("truncated segment header");
+  if (referencesEnd + (pageAssociationFieldSize ? 4 : 1) + 4 > end) throw new Jbig2Error("truncated segment header");
+  if (!stored) onAllocation?.(referredToCount * 16);
   const referredTo = stored ? new JbigSourceList(data, position, referredToCount, referredToSegmentNumberSize) : [];
   let i, ii;
   for (i = 0; !stored && i < referredToCount; i++) {
@@ -3442,6 +3445,7 @@ function* readSegmentHeader(data, start, onAllocation, stored) {
   position += 4;
   if (segmentHeader.length === 0xffffffff) {
     if (segmentType === 38) {
+      if (position + RegionSegmentInformationFieldLength + 1 > end) throw new Jbig2Error("truncated segment payload");
       const genericRegionInfo = (yield* readRegionSegmentInformation(data, position));
       const genericRegionSegmentFlags = (yield {source: data, position: position + RegionSegmentInformationFieldLength});
       const genericRegionMmr = !!(genericRegionSegmentFlags & 1);
@@ -3455,13 +3459,13 @@ function* readSegmentHeader(data, start, onAllocation, stored) {
       searchPattern[3] = genericRegionInfo.height >> 16 & 0xff;
       searchPattern[4] = genericRegionInfo.height >> 8 & 0xff;
       searchPattern[5] = genericRegionInfo.height & 0xff;
-      for (i = position, ii = data.length; i < ii; i++) {
+      for (i = position, ii = end - searchPatternLength; i <= ii; i++) {
         let j = 0;
         while (j < searchPatternLength && searchPattern[j] === (yield {source: data, position: i + j})) {
           j++;
         }
         if (j === searchPatternLength) {
-          segmentHeader.length = i + searchPatternLength;
+          segmentHeader.length = i + searchPatternLength - position;
           break;
         }
       }
@@ -3479,7 +3483,7 @@ function* readSegments(header, data, start, end, onAllocation) {
   const segments = [];
   let position = start;
   while (position < end) {
-    const segmentHeader = (yield* readSegmentHeader(data, position, onAllocation));
+    const segmentHeader = (yield* readSegmentHeader(data, position, end, onAllocation));
     position = segmentHeader.headerEnd;
     const segment = {
       header: segmentHeader,
@@ -3488,6 +3492,7 @@ function* readSegments(header, data, start, end, onAllocation) {
     if (!header.randomAccess) {
       segment.start = position;
       position += segmentHeader.length;
+      if (position > end) throw new Jbig2Error("truncated segment payload");
       segment.end = position;
     }
     segments.push(segment);
@@ -3499,6 +3504,7 @@ function* readSegments(header, data, start, end, onAllocation) {
     for (let i = 0, ii = segments.length; i < ii; i++) {
       segments[i].start = position;
       position += segments[i].header.length;
+      if (position > end) throw new Jbig2Error("truncated segment payload");
       segments[i].end = position;
     }
   }
@@ -3728,7 +3734,7 @@ function* processStoredSegments(fileHeader, data, start, end, visitor) {
   if (fileHeader.randomAccess) {
     while (payload < end) {
       currentBytes = 0;
-      const header = yield* readSegmentHeader(data, payload, admit, true);
+      const header = yield* readSegmentHeader(data, payload, end, admit, true);
       payload = header.headerEnd;
       if (header.type === 51) break;
     }
@@ -3736,9 +3742,10 @@ function* processStoredSegments(fileHeader, data, start, end, visitor) {
   const headersEnd = fileHeader.randomAccess ? payload : end;
   while (start < headersEnd) {
     currentBytes = 0;
-    const header = yield* readSegmentHeader(data, start, admit, true);
+    const header = yield* readSegmentHeader(data, start, headersEnd, admit, true);
     const position = fileHeader.randomAccess ? payload : header.headerEnd;
     const segmentEnd = position + header.length;
+    if (segmentEnd > end) throw new Jbig2Error("truncated segment payload");
     yield* processSegment({header, data, start: position, end: segmentEnd}, visitor);
     start = fileHeader.randomAccess ? header.headerEnd : segmentEnd;
     payload = segmentEnd;

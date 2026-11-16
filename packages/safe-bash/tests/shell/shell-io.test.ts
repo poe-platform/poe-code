@@ -55,7 +55,7 @@ test("ancestor renames retain cwd independently of logical PWD and reused paths"
   assert.equal(result.exitCode, 0);
 });
 
-test("a host rename and repeated moves preserve a symlink-entered cwd", async () => {
+for (const prefix of ["", "command ", "builtin command "]) test(`a host rename and repeated moves preserve a symlink-entered cwd: ${prefix}`, async () => {
   const fs = new MemoryFileSystem();
   const shell = new Shell({ fs }).use(standardCommands());
   shell.commands.register({ name: "host-move", async execute() {
@@ -67,7 +67,7 @@ test("a host rename and repeated moves preserve a symlink-entered cwd", async ()
     mkdir /active
     ln -s /active /alias
     cd /alias
-    host-move
+    ${prefix}host-move
     echo retained > marker
     cat < marker
     cat /final/marker

@@ -15,9 +15,9 @@ for (const runtime of ["TypeScript", "Rust"]) {
     }});
     const shell = runtime === "TypeScript" ? new Shell({fs}).use(agentCommands()) : new RustWasmBash({cwd: "/", forceNative: true});
     try {
-      for (const flag of ["--help", "--version"]) {
+      for (const prefix of ["", "command ", "command -p -- ", "builtin command ", "command command ", "X=y command "]) for (const flag of ["--help", "--version"]) {
         const stdin = (async function* () {assert.fail("information read stdin"); yield new Uint8Array();})();
-        const result = await shell.exec(`${command} ${flag} -- /missing`, {fs, stdin});
+        const result = await shell.exec(`${prefix}${command} ${flag} -- /missing`, {fs, stdin});
         assert.equal(result.exitCode, 0, result.stderr);
         assert.equal(result.stderr, "");
         assert.match(result.stdout, flag === "--help" ? /^Usage: / : /safe-bash/);
@@ -37,20 +37,20 @@ for (const runtime of ["TypeScript", "Rust"]) {
     }});
     const shell = runtime === "TypeScript" ? new Shell({fs}).use(agentCommands()) : new RustWasmBash({cwd: "/", forceNative: true});
     try {
-      for (const source of ["head -n 2 --help /missing", "head --lines=2 --version /missing", "split -l 2 --help /missing", "du -a --version /missing", "X=y head --help"]) {
+      for (const prefix of ["", "command ", "builtin command "]) for (const source of ["head -n 2 --help /missing", "head --lines=2 --version /missing", "split -l 2 --help /missing", "du -a --version /missing", "head --help"]) {
         const stdin = (async function* () {assert.fail("information read stdin"); yield new Uint8Array();})();
-        const result = await shell.exec(source, {fs, stdin});
+        const result = await shell.exec(`${prefix}${source}`, {fs, stdin});
         assert.equal(result.exitCode, 0, `${source}: ${result.stderr}`);
         assert.deepEqual(calls, [], source);
       }
-      for (const source of ["head -n --help", "head --unknown --help", "cat --help=yes"]) {
-        const result = await shell.exec(source, {fs});
+      for (const prefix of ["", "command "]) for (const source of ["head -n --help", "head --unknown --help", "cat --help=yes"]) {
+        const result = await shell.exec(`${prefix}${source}`, {fs});
         assert.notEqual(result.exitCode, 0, source);
         assert.equal(result.stdout, "");
       }
       calls.length = 0;
-      for (const source of ["head -- --help", "cat /missing", "mkdir /new"]) {
-        try { assert.notEqual((await shell.exec(source, {fs})).exitCode, 0, source); }
+      for (const prefix of ["", "command "]) for (const source of ["head -- --help", "cat /missing", "mkdir /new"]) {
+        try { assert.notEqual((await shell.exec(`${prefix}${source}`, {fs})).exitCode, 0, source); }
         catch (error) { assert.match(String(error), /unavailable filesystem/); }
       }
       assert.ok(calls.length > 0, "ordinary operations must still access the filesystem");

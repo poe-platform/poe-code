@@ -6382,6 +6382,13 @@ export class Runtime {
     }
     let builtinFailure: { error: unknown; diagnostic: string } | undefined;
     const hasMiddleware = this.middleware.length > 0;
+    // Built-in dispatchers can defer cwd until an operation needs it. Custom
+    // commands must pin its identity before a captured host fs can rename it.
+    const deferDirectory = !hasMiddleware && !state.externalInvocation
+      && (name === "command" || name === "builtin")
+      && !state.extensions?.builtins.has(name)
+      && this.firstInternalDiscovery(name, state, bypassFunctions) === "builtin";
+    let contextCwd = deferDirectory ? undefined : state.cwd;
     const env = exportedEnvironment(state);
     const initialEnv = hasMiddleware ? { ...env } : env;
     const runtimeFrame: RuntimeOutcomeFrame = {};
@@ -6420,7 +6427,8 @@ export class Runtime {
         if (totalBytes > this.budget.limits.maxInputBytes) this.budget.fail("maxInputBytes");
       }, });
     const context: ShellCommandContext = {
-      ...publicIO, ...{ xpgEcho: !!state.xpg_echo, shellStartedAt: state.shellStartedAt ??= Date.now() }, command: name, args: argumentValues.args, ...(allStrings ? {} : { argumentValues }), env, cwd: state.cwd,
+      ...publicIO, ...{ xpgEcho: !!state.xpg_echo, shellStartedAt: state.shellStartedAt ??= Date.now() }, command: name, args: argumentValues.args, ...(allStrings ? {} : { argumentValues }), env,
+      get cwd() { return contextCwd ??= state.cwd; }, set cwd(value: string) { contextCwd = value; },
       commandDiscovery: {
         defaultPath: state.variables.PATH ?? (state.pathUnset ? undefined : defaultCommandPath),
         isExecutable: path => this.virtualExecutable(path) !== undefined,
@@ -6471,7 +6479,7 @@ export class Runtime {
           if (io[valueScope] !== undefined) context[valueScope] = io[valueScope];
         }};
       const previous = hasMiddleware ? new Map<string, SavedVariable & { overlay: string | undefined }>() : undefined;
-      const cwd = state.cwd;
+      const cwd = hasMiddleware ? state.cwd : "";
       const logicalCwd = state.logicalCwd;
       const directoryStackCwdPublication = state.directoryStackCwdPublication;
       let cwdRestoration: Restoration | undefined;
@@ -6912,6 +6920,9 @@ export class Runtime {
     return undefined;
   }
   async discoveryBuiltin(context: CommandContext, state: State, io: IO, assignments: Map<string, SavedVariable>, inheritedDefaultPath = false): Promise<number> {
+    // Only middleware can replace this dispatcher's IO. Forward its overrides
+    // when present; otherwise retain the original IO without reading cwd/fs.
+    const forwardedIO = this.middleware.length ? { ...io, ...context } : io;
     const args = [...context.args];
     const command = context.command === "command";
     const builtin = context.command === "builtin";
@@ -6924,7 +6935,7 @@ export class Runtime {
     while (args[0]?.startsWith("-") && args[0] !== "-") {
       const option = args.shift()!;
       if (option === "--") break;
-      if (builtin) { await this.diagnostic({ ...io, ...context }, `builtin: ${option}: invalid option`); return 2; }
+      if (builtin) { await this.diagnostic(forwardedIO, `builtin: ${option}: invalid option`); return 2; }
       for (const flag of option.slice(1)) {
         if (command && (flag === "v" || flag === "V")) { discover = true; mode = flag === "v" ? "name" : "describe"; } else if (command && flag === "p") defaultPath = true;
         else if (!command && flag === "a") all = true;
@@ -6932,7 +6943,7 @@ export class Runtime {
         else if (!command && flag === "t") mode = "kind";
         else if (!command && (flag === "p" || flag === "P")) { mode = "path"; if (flag === "P") forcePath = true; } else {
           if (command) {
-            await this.diagnostic({ ...io, ...context }, `command: -${flag}: invalid option`);
+            await this.diagnostic(forwardedIO, `command: -${flag}: invalid option`);
             await writeDiagnostic(context.stderr, "command: usage: command [-pVv] command [arg ...]\n");
           } else await writeDiagnostic(context.stderr, `${context.command}: ${option}: unsupported option\n`);
           return 2;
@@ -6945,7 +6956,7 @@ export class Runtime {
       if (target === undefined) return 0;
       const targetValue = getCommandArguments(context).values[targetIndex]!;
       if (builtin && !shellBuiltinNames.has(target) && !state.extensions?.builtins.has(target)) {
-        await this.diagnostic({ ...io, ...context }, concatShellValues(["builtin: ", targetValue, ": not a shell builtin"], io[valueScope]));
+        await this.diagnostic(forwardedIO, concatShellValues(["builtin: ", targetValue, ": not a shell builtin"], io[valueScope]));
         return 1;
       }
       this.budget.tick();
@@ -6953,7 +6964,7 @@ export class Runtime {
       const restoration = stateMonitor(state)?.restoration(true);
       try { state.depth++; }
       catch (error) { restoration?.close(); throw error; }
-      try { return await this.dispatch(targetValue, args, state, { ...io, ...context }, assignments, true, getCommandArguments(context).values.slice(context.args.length - args.length), undefined, command && (defaultPath || inheritedDefaultPath), builtin); }
+      try { return await this.dispatch(targetValue, args, state, forwardedIO, assignments, true, getCommandArguments(context).values.slice(context.args.length - args.length), undefined, command && (defaultPath || inheritedDefaultPath), builtin); }
       finally {
         const restore = () => { state.depth--; };
         if (restoration) restoration.apply(restore);

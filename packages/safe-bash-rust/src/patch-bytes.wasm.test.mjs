@@ -5,6 +5,26 @@ import { createRustWasmBash } from "./index.js";
 const bytes = text => new Uint8Array(Buffer.from(text, "latin1"));
 const replacement = "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n";
 
+for (const runtime of ["TypeScript", "Rust"]) test(`${runtime} patch preserves a non-UTF-8 mismatched line`, async () => {
+  const {Shell, createMemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const fs = createMemoryFileSystem();
+  const shell = runtime === "TypeScript" ? new Shell({fs}).use(agentCommands())
+    : await createRustWasmBash({fs, forceNative: true, cwd: "/"});
+  const original = bytes("old\xff\n");
+  try {
+    await fs.writeFile("/target", original);
+    await fs.writeFile("/change", bytes(replacement));
+    const result = await shell.exec("patch -i change");
+    assert.equal(result.exitCode, 1);
+    assert.equal(result.stderr, "");
+    assert.equal(result.stdout, "patching file target\nHunk #1 FAILED at 1.\n1 out of 1 hunk FAILED -- saving rejects to file target.rej\n");
+    assert.deepEqual(await fs.readFile("/target"), original);
+    assert.deepEqual(await fs.readFile("/target.orig"), original);
+    assert.deepEqual(await fs.readFile("/target.rej"), bytes(replacement));
+    if (runtime === "Rust") assert.equal(shell._companion, null);
+  } finally {await shell.dispose();}
+});
+
 test("native Wasm patch preserves arbitrary target bytes through files and stdin", async () => {
   const bash = await createRustWasmBash({ forceNative: true, cwd: "/" });
   try {

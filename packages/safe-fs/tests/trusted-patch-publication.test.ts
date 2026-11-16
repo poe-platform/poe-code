@@ -197,14 +197,17 @@ for (const mounted of [false, true]) for (const piped of [false, true]) {
 }
 
 
-test("trusted patch refuses invalid UTF-8 without changing original bytes", async () => {
+test("trusted patch preserves unmatched non-UTF-8 target bytes and records the reject", async () => {
   const { fs, shell } = await fixture(false);
   const original = new Uint8Array([111, 108, 100, 255, 10]);
   await fs.writeFile("/work/target", original);
   try {
     const result = await shell.exec("patch -i change", { cwd: "/work" });
-    expect(result.exitCode).toBe(2);
-    expect(result.stderr).toContain("invalid UTF-8");
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toBe("");
+    expect(result.stdout).toBe("patching file target\nHunk #1 FAILED at 1.\n1 out of 1 hunk FAILED -- saving rejects to file target.rej\n");
     expect(await fs.readFile("/work/target")).toEqual(original);
+    expect(await fs.readFile("/work/target.orig")).toEqual(original);
+    expect(new TextDecoder().decode(await fs.readFile("/work/target.rej"))).toBe("--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n");
   } finally { await shell.dispose(); }
 });

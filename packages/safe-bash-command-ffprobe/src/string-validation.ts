@@ -87,7 +87,7 @@ export class StringValidation {
   }
   async accepts(...values: Text[]): Promise<boolean> {
     if (this.mode !== "fail") return true;
-    for (const value of values) for await (const part of typeof value === "string" ? [value] : value()) {
+    for (const value of values) for await (const part of this.text(value)) {
       for (const character of part) {
         const code = character.codePointAt(0)!;
         if (code >= 0xdc80 && code <= 0xdcff) { this.failed = true; return false; }
@@ -105,6 +105,21 @@ export class StringValidation {
     return output;
   }
   async *text(value: Text): AsyncGenerator<string> {
-    for await (const part of typeof value === "string" ? [value] : value()) yield this.replace(part);
+    const source = typeof value === "string" ? [value] : value();
+    const iterator = Symbol.asyncIterator in source ? source[Symbol.asyncIterator]() : source[Symbol.iterator]();
+    let ended = false, failed = false;
+    try {
+      for (;;) {
+        const next = await iterator.next();
+        if (next.done) { ended = true; break; }
+        yield this.replace(next.value);
+      }
+    } catch (error) { failed = true; throw error; }
+    finally {
+      if (!ended) {
+        if (failed) { try { await iterator.return?.(); } catch { /* Preserve the read failure. */ } }
+        else await iterator.return?.();
+      }
+    }
   }
 }

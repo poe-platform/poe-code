@@ -4,6 +4,9 @@ Inspect audio and video, including NUT PCM audio and RGB/BGR video packets, with
 `@poe-platform/safe-bash/commands/ffprobe` or
 `poe-code/safe-bash/commands/ffprobe`.
 
+Streaming metadata sources close on read failure or early return, including
+string-validation preflight. A cleanup failure does not replace the original read error.
+
 ```sh
 ffprobe -v quiet -of json -show_format -show_streams recording.wav
 ffprobe -show_entries stream=sample_rate,channels:format=duration -of csv recording.wav

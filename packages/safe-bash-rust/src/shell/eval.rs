@@ -16062,6 +16062,26 @@ mod tests {
     }
 
     #[test]
+    fn ffprobe_retires_failed_input_and_preserves_read_error() {
+        struct Input(std::rc::Rc<std::cell::Cell<usize>>);
+        impl Iterator for Input {
+            type Item = Result<Vec<u8>, String>;
+            fn next(&mut self) -> Option<Self::Item> { Some(Err("probe source failed".into())) }
+        }
+        impl Drop for Input {
+            fn drop(&mut self) { self.0.set(self.0.get() + 1); }
+        }
+        let (mut shell, _) = crate::shell::Shell::with_memory_fs();
+        let closed = std::rc::Rc::new(std::cell::Cell::new(0));
+        let result = shell.exec_with_stream("ffprobe -v error -show_format -", Input(closed.clone())).unwrap();
+        assert_eq!(result.exit_code, 1);
+        assert_eq!(result.stdout, "");
+        assert_eq!(result.stderr, "ffprobe: probe source failed\n");
+        assert_eq!(closed.get(), 1);
+        assert_eq!(shell.exec("printf recovered").unwrap().stdout, "recovered");
+    }
+
+    #[test]
     fn empty_chunks_do_not_end_stdin_and_a_producer_error_retires_it() {
         let fs = crate::vfs::MemoryVfs::new();
         let commands = BTreeMap::new();

@@ -583,7 +583,30 @@ test("ZIP -X and -X- repeated-hour updates preserve untouched members and absolu
       const untouched = (await readZipArchive(original, limits, signal)).entries[0]!;
       assert.deepEqual(restored.entries[0], untouched);
       const updated = restored.entries[1]!;
-      assert.equal(updated.centralExtra!.length, option === "-X" ? 0 : 9);
+      const fields = new Map<number, Uint8Array>();
+      const metadata = updated.centralExtra!;
+      const view = new DataView(metadata.buffer, metadata.byteOffset, metadata.byteLength);
+      for (let offset = 0; offset < metadata.length;) {
+        const id = view.getUint16(offset, true);
+        const length = view.getUint16(offset + 2, true);
+        assert.equal(fields.has(id), false);
+        assert.ok(offset + 4 + length <= metadata.length);
+        fields.set(id, metadata.slice(offset + 4, offset + 4 + length));
+        offset += 4 + length;
+      }
+      assert.deepEqual([...fields.keys()], option === "-X" ? [] : [0x5455, 0x7875]);
+      if (option === "-X-") {
+        const timestamp = fields.get(0x5455)!;
+        assert.equal(timestamp.length, 5);
+        assert.equal(timestamp[0], 1);
+        assert.equal(new DataView(timestamp.buffer).getInt32(1, true) * 1000, instant);
+        const owner = fields.get(0x7875)!;
+        assert.equal(owner.length, 11);
+        assert.deepEqual([owner[0], owner[1], owner[6]], [1, 4, 4]);
+        const source = await fs.stat("/work/fold");
+        assert.equal(new DataView(owner.buffer).getUint32(2, true), source.uid);
+        assert.equal(new DataView(owner.buffer).getUint32(7, true), source.gid);
+      }
       assert.equal(updated.modified.getTime(), option === "-X" ? Date.parse("2024-11-03T06:30:02Z") : instant);
       assert.deepEqual(await collectBytes(decodeZipEntry(updated, limits, signal), collectOptions), text.encode("fold"));
     }

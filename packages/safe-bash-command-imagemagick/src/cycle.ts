@@ -8,12 +8,12 @@ import type { MaskChannels } from "./write-mask.js";
 export interface CyclePalette { indexedColorSamples?: readonly (readonly number[])[] }
 
 /** Rotate palette colors using bounded chunks in either raster backend. */
-export function* cyclePixelSteps(image: Pick<RgbaImage, "width" | "height" | "indexedColors" | "pngPalette" | "depth" | "hasAlpha" | "isPalette" | "hueSamples"> & CyclePalette & { storedHueSamples?: number | undefined; inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined }, amount: number, channels?: MaskChannels, writeMask = false, dither: false | "riemersma" | "floydsteinberg" = "riemersma", diffusionAmount = 1): Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined> {
+export function* cyclePixelSteps(image: Pick<RgbaImage, "width" | "height" | "indexedColors" | "pngPalette" | "depth" | "hasAlpha" | "isPalette" | "hueSamples"> & CyclePalette & { storedHueSamples?: number | undefined; inactiveAlpha?: boolean | undefined; alphaBlend?: boolean | undefined; region?: Region | undefined }, amount: number, channels?: MaskChannels, writeMask = false, dither: false | "riemersma" | "floydsteinberg" = "riemersma", diffusionAmount = 1, colormap?: number[][]): Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined> {
     if (!Number.isSafeInteger(amount)) throw new Error("cycle requires an integer");
     const palette = image.isPalette !== false && image.indexedColors ? [...image.indexedColors] : [];
     const png = image.isPalette !== false ? image.pngPalette?.bytes : undefined;
     if (!palette.length && png) for (let i = 0; i < png.length; i += 3) palette.push((image.pngPalette?.transparency?.[i / 3] ?? 255) * 16777216 + png[i]! * 65536 + png[i + 1]! * 256 + png[i + 2]!);
-    if (!palette.length) return yield* quantizePixelSteps(image.width * image.height * 4, 256, false, 5, image.hasAlpha || image.inactiveAlpha === true, true, { amount, width: image.width, region: image.region, writeMask, alphaActive: image.hasAlpha && image.alphaBlend !== false, channels }, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined);
+    if (!palette.length) return yield* quantizePixelSteps(image.width * image.height * 4, 256, false, 5, image.hasAlpha || image.inactiveAlpha === true, true, { amount, width: image.width, region: image.region, writeMask, alphaActive: image.hasAlpha && image.alphaBlend !== false, channels }, dither ? { width: image.width, height: image.height, method: dither, diffusionAmount } : undefined, false, undefined, undefined, undefined, colormap);
     const indices = new Map(palette.map((color, index) => [color, index]));
     const shift = ((amount % palette.length) + palette.length) % palette.length;
     const length = image.width * image.height * 4;
@@ -33,7 +33,8 @@ export function* cyclePixelSteps(image: Pick<RgbaImage, "width" | "height" | "in
         }
     }
     const highDepth = image.depth === "ushort";
-    const samples = highDepth ? palette.map((color, index) => image.indexedColorSamples?.[index] ? Uint16Array.from(image.indexedColorSamples[index]!, value => Math.round(value * 257)) : Uint16Array.of(((color >>> 16) & 255) * 257, ((color >>> 8) & 255) * 257, (color & 255) * 257, (color >>> 24) * 257)) : [];
+    const clamp = (value: number) => Math.max(0, Math.min(255, value));
+    const samples = highDepth ? palette.map((color, index) => image.indexedColorSamples?.[index] ? Uint16Array.from(image.indexedColorSamples[index]!, value => Math.round(clamp(value) * 257)) : Uint16Array.of(((color >>> 16) & 255) * 257, ((color >>> 8) & 255) * 257, (color & 255) * 257, (color >>> 24) * 257)) : [];
     if (highDepth && !image.indexedColorSamples) for (let position = 0; position < length; position += 4096) {
         yield;
         const size = Math.min(4096, length - position);
@@ -76,7 +77,7 @@ export function* cyclePixelSteps(image: Pick<RgbaImage, "width" | "height" | "in
             if (evaluated) {
                 const samples = image.indexedColorSamples![target];
                 // Other operators may have replaced or adjusted this palette entry.
-                const packed = samples && Math.round(samples[3]!) * 16777216 + Math.round(samples[0]!) * 65536 + Math.round(samples[1]!) * 256 + Math.round(samples[2]!);
+                const packed = samples && Math.round(clamp(samples[3]!)) * 16777216 + Math.round(clamp(samples[0]!)) * 65536 + Math.round(clamp(samples[1]!)) * 256 + Math.round(clamp(samples[2]!));
                 evaluated.set(samples && packed === color ? samples : [color >>> 16 & 255, color >>> 8 & 255, color & 255, color >>> 24], i);
             }
             data[i] = color >>> 16; data[i + 1] = color >>> 8; data[i + 2] = color; data[i + 3] = color >>> 24;

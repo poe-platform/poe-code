@@ -54,7 +54,7 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
     if (!Number.isSafeInteger(requested) || requested < 1) throw new Error("colors must be a positive integer");
     const clamp = (value: number) => Math.max(0, Math.min(255, value));
     // Keep fractional palette means alongside byte output for later arithmetic and deeper output.
-    const round = (value: number) => highDepth ? Math.round(value * 257) / 257 : Math.fround(value * 257) / 257;
+    const round = (value: number) => highDepth && !cycle ? Math.round(value * 257) / 257 : Math.fround(value * 257) / 257;
     let grayscaleInput = true;
     function* readPixels(position: number, length: number): Generator<ConvolveRequest, Float64Array, Uint8Array | undefined> {
         // Direct-color cycling must read fractional operator results before the byte raster.
@@ -463,8 +463,8 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
             if (cycle) data[3] = 255;
             if (retainIndices) yield { kind: "write", pngIndices: true, position: position / 4, data: Uint8Array.of(index) };
             yield* writeWorkingPixels(position, data);
-            if (evaluate || cycle?.region || cycle?.writeMask) yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
-            yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(data, value => Math.round(value * 257)).buffer) : Uint8Array.from(data, Math.round) };
+            if (evaluate || cycle) yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
+            yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(data, value => Math.round(clamp(value) * 257)).buffer) : Uint8Array.from(data, value => Math.round(clamp(value))) };
         }
     } else for (let position = 0; position < length; position += chunkSize) {
         yield;
@@ -487,13 +487,13 @@ export function* quantizePixelSteps(length: number, requested: number, grayscale
         }
         if (pixelIndices) yield { kind: "write", pngIndices: true, position: position / 4, data: pixelIndices };
         yield* writeWorkingPixels(position, data);
-        if (!highDepth || cycle?.region || cycle?.writeMask) yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
-        yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(data, value => Math.round(value * 257)).buffer) : Uint8Array.from(data, Math.round) };
+        if (!highDepth || cycle) yield { kind: "write", evaluate: true, position, data: new Uint8Array(data.buffer) };
+        yield { kind: "write", highDepth, position, data: highDepth ? new Uint8Array(Uint16Array.from(data, value => Math.round(clamp(value) * 257)).buffer) : Uint8Array.from(data, value => Math.round(clamp(value))) };
     }
     if (working === "cmyk") for (const color of palette) for (let c = 0; c < 3; c++) color[c] = 255 - color[c]!;
     if (grayscale === "bilevel") for (const color of palette) color.fill(color[0]! >= bilevelThreshold ? 255 : 0, 0, 3);
     if (cycle) for (const color of palette) color[3] = 255;
     // Later palette cycling needs the same fractional samples as the quantized raster.
     if (colormap) for (const color of palette) colormap.push(color);
-    return palette.map(color => Math.round(color[3]!) * 16777216 + Math.round(color[0]!) * 65536 + Math.round(color[1]!) * 256 + Math.round(color[2]!));
+    return palette.map(color => Math.round(clamp(color[3]!)) * 16777216 + Math.round(clamp(color[0]!)) * 65536 + Math.round(clamp(color[1]!)) * 256 + Math.round(clamp(color[2]!)));
 }

@@ -4,7 +4,7 @@ import {PdfDocument} from "../document.js";
 import {PdfRetainedDocument} from "../retained-document.js";
 import {PdfFileSource} from "../source.js";
 import {cosArray,cosBool,cosDict,cosName,cosNumber,cosStream,dictSet} from "../ast.js";
-import {renderDisplayListToSvg,renderRetainedPageToSvg} from "./raster.js";
+import {decodePng,renderDisplayListToSvg,renderRetainedPageToSvg} from "./raster.js";
 for(const rotation of [0,90,180,270])for(const options of [{scale:0.7},{dpiX:90,dpiY:47,useCropBox:true},{scale:1,transparent:true,cropRect:{x:3,y:2,width:13,height:11}}])it(`streams full SVG rotation=${rotation} ${JSON.stringify(options)}`,async()=>{
  const doc=PdfDocument.create(),page=doc.addPage([37,29]);dictSet(page.pageDict,"MediaBox",cosArray([-5,-7,32,22].map(n=>cosNumber(n))));dictSet(page.pageDict,"CropBox",cosArray([0,0,28,18].map(n=>cosNumber(n))));dictSet(page.pageDict,"Rotate",cosNumber(rotation));page.setRawContentStream("q 0 0 25 20 re W n [0 4] 1 d 1 J 2 w 0 0 m 20 15 l S Q");page.drawText("<&",{x:1,y:9,size:8});
  const expected=renderDisplayListToSvg(page.evaluateDisplayList(),options),fs=createMemoryFileSystem();await fs.mkdir("/scratch");await fs.writeFile("/input",doc.save());const source=await PdfFileSource.open(fs,"/input"),storage={fs,directory:"/scratch"},retained=await PdfRetainedDocument.open(source,storage);
@@ -53,3 +53,26 @@ async function checkSvg(doc:PdfDocument,options:Parameters<typeof renderRetained
 for(const count of [1024,4096])it(`streams ${count} generated paints with bounded owned chunks and backpressure`,async()=>{let pulls=0,closed=0;const operation={kind:"path" as const,value:{segments:[{kind:"rect" as const,x:1,y:1,width:2,height:2}],strokeWidth:1,fillColor:{r:1,g:0,b:0}}},page={async attributes(){return {mediaBox:[0,0,10,10],cropBox:[0,0,10,10],rotation:0};},async *evaluateSteps(){try{for(let i=0;i<count;i++){pulls++;yield {operation};}}finally{closed++;}}} as unknown as import('../retained-document.js').PdfRetainedPage,fs=createMemoryFileSystem();await fs.mkdir('/scratch');let bytes=0;for await(const chunk of renderRetainedPageToSvg(page,{fs,directory:'/scratch'},{chunkBytes:64})){expect(chunk.buffer.byteLength).toBeLessThanOrEqual(64);const before=pulls;await Promise.resolve();expect(pulls).toBe(before);bytes+=chunk.length;}expect(bytes).toBeGreaterThan(count*50);expect(pulls).toBe(count*2);expect(closed).toBe(2);expect(await fs.readdir('/scratch')).toEqual([]);});
 it('enforces operation admission and timer cancellation during preflight',async()=>{let closed=0,pulls=0;const page={async attributes(){return {mediaBox:[0,0,10,10],cropBox:[0,0,10,10],rotation:0};},async *evaluateSteps(){try{for(let i=0;i<100000;i++){pulls++;yield {operation:{kind:'path',value:{segments:[],strokeWidth:1}}};}}finally{closed++;}}} as unknown as import('../retained-document.js').PdfRetainedPage,fs=createMemoryFileSystem();await fs.mkdir('/scratch');const storage={fs,directory:'/scratch'};await expect(renderRetainedPageToSvg(page,storage,{maxOperations:0}).next()).rejects.toMatchObject({code:'E_LIMIT'});expect(pulls).toBe(1);const controller=new AbortController(),reason=new Error('cancel preflight'),timer=setTimeout(()=>controller.abort(reason),0);try{await expect(renderRetainedPageToSvg(page,storage,{signal:controller.signal}).next()).rejects.toBe(reason);}finally{clearTimeout(timer);}expect(pulls).toBeLessThan(100000);expect(closed).toBe(2);expect(await fs.readdir('/scratch')).toEqual([]);});
 it('enforces total output limits and cleans evaluation backing on consumer return',async()=>{const doc=PdfDocument.create();doc.addPage([20,20]).drawText('Cleanup',{x:1,y:5,size:5});const fs=createMemoryFileSystem();await fs.mkdir('/scratch');await fs.writeFile('/input',doc.save());const storage={fs,directory:'/scratch'},source=await PdfFileSource.open(fs,'/input'),document=await PdfRetainedDocument.open(source,storage);try{const page=(await document.pages().next()).value!,before=await fs.readdir('/scratch');let length=0;for await(const chunk of renderRetainedPageToSvg(page,storage,{chunkBytes:32}))length+=chunk.length;let bounded=0;for await(const chunk of renderRetainedPageToSvg(page,storage,{maxOutputBytes:length,chunkBytes:32}))bounded+=chunk.length;expect(bounded).toBe(length);await expect(async()=>{for await(const ignored of renderRetainedPageToSvg(page,storage,{maxOutputBytes:length-1,chunkBytes:32}))void ignored;}).rejects.toMatchObject({code:'E_LIMIT'});const stream=renderRetainedPageToSvg(page,storage,{chunkBytes:32});for(let i=0;i<15;i++)await stream.next();await stream.return();expect(await fs.readdir('/scratch')).toEqual(before);}finally{await document.close();await source.close();}expect(await fs.readdir('/scratch')).toEqual([]);});
+
+for (const chunkBytes of [undefined, 37]) it(`streams a large backdrop composite with chunkBytes=${chunkBytes}`, async () => {
+  const {doc, page} = maskedGroup({mask: false, alpha: 0.5});
+  dictSet(page.pageDict, "MediaBox", numbers([0, 0, 200, 200]));
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/scratch");
+  await fs.writeFile("/input", doc.save());
+  const storage = {fs, directory: "/scratch"}, source = await PdfFileSource.open(fs, "/input");
+  const retained = await PdfRetainedDocument.open(source, storage);
+  try {
+    const first = (await retained.pages().next()).value!, chunks: Uint8Array[] = [];
+    for await (const chunk of renderRetainedPageToSvg(first, storage, {dpi: 150, ...(chunkBytes ? {chunkBytes} : {})})) {
+      expect(chunk.length).toBeLessThanOrEqual(chunkBytes ?? 16384);
+      chunks.push(chunk);
+    }
+    const actual = new TextDecoder().decode(Buffer.concat(chunks));
+    const expected = renderDisplayListToSvg(page.evaluateDisplayList(), {dpi: 150});
+    const pixels = (svg: string) => decodePng(Buffer.from(svg.split("base64,")[1]!.split('"')[0]!, "base64"));
+    expect(pixels(actual)).toEqual(pixels(expected));
+    expect(actual.split("base64,")[0]).toBe(expected.split("base64,")[0]);
+  } finally { await retained.close(); await source.close(); }
+  expect(await fs.readdir("/scratch")).toEqual([]);
+});

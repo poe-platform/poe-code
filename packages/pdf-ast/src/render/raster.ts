@@ -2306,7 +2306,7 @@ export async function* renderRetainedPageToSvg(page:PdfRetainedPage,storage:PdfI
       try{
         pixels=await PdfFileSource.fromStream(shared.fs,shared.directory,image.pixels,{chunkBytes,cacheBytes:chunkBytes,...(signal?{signal}:{})});
         yield* text(`<svg xmlns="http://www.w3.org/2000/svg" width="${options.dimensionUnit === "pt" ? `${frame.pointWidth}pt` : image.width}" height="${options.dimensionUnit === "pt" ? `${frame.pointHeight}pt` : image.height}" viewBox="0 0 ${image.width} ${image.height}">`);
-        for await(const bytes of encodeSvgImageChunks({name:"PageComposite",width:image.width,height:image.height,storedRgba:{position:0,storage:{allocate(){throw Error("Read-only composite pixels");},async write(){throw Error("Read-only composite pixels");},read:(position,length)=>pixels!.read(position,length,signal)}},matrix:[image.width,0,0,image.height,0,0],colorSpace:"DeviceRGB",bitsPerComponent:8},image.height,shared,options))yield* emit(bytes);
+        for await(const bytes of encodeSvgImageChunks({name:"PageComposite",width:image.width,height:image.height,storedRgba:{position:0,storage:{allocate(){throw Error("Read-only composite pixels");},async write(){throw Error("Read-only composite pixels");},read:(position,length)=>pixels!.read(position,length,signal)}},matrix:[image.width,0,0,image.height,0,0],colorSpace:"DeviceRGB",bitsPerComponent:8},image.height,shared,{...options,chunkBytes}))yield* emit(bytes);
         yield* text('</svg>\n');
       }catch(error){pixelFailed=true;throw error;}finally{try{await pixels?.close();}catch(error){if(!pixelFailed)await Promise.reject(error);}}
       return;

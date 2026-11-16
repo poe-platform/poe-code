@@ -3557,12 +3557,13 @@ pub(super) struct ZipRecord<'a> {
     sizes: (usize,usize),
 }
 pub(super) type ZipRecords<'a> = std::collections::BTreeMap<String,ZipRecord<'a>>;
+pub(super) type ZipOwners = std::collections::BTreeMap<String,(u32,u32)>;
 
 pub fn serialize_zip_archive(entries: &[crate::commands::archive::TarEntry]) -> Vec<u8> {
-    encode_zip_members(entries, (0,0), &[], false, (false,None,false), &ZipRecords::new(), |_,_,_,_| true)
+    encode_zip_members(entries, (0,0), &[], false, (false,None,false), (&ZipRecords::new(),&ZipOwners::new()), |_,_,_,_| true)
 }
 
-pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry], (compression,level): (u16,u8), store_suffixes: &[&str], document: bool, (descriptors,zip64,strip_extra): (bool,Option<bool>,bool), retained: &ZipRecords<'_>, mut report: impl FnMut(&crate::commands::archive::TarEntry,u16,usize,usize)->bool) -> Vec<u8> {
+pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry], (compression,level): (u16,u8), store_suffixes: &[&str], document: bool, (descriptors,zip64,strip_extra): (bool,Option<bool>,bool), (retained,owners): (&ZipRecords<'_>,&ZipOwners), mut report: impl FnMut(&crate::commands::archive::TarEntry,u16,usize,usize)->bool) -> Vec<u8> {
     let mut out = Vec::new();
     let mut central = Vec::new();
     let mut comment = Vec::new();
@@ -3653,11 +3654,17 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         let crc = crc32_ieee(payload);
         let sz = payload.len() as u32;
         let (dos_date, dos_time) = unix_to_dos_datetime(e.mtime as u64);
-        let mut extra = [0u8; 9];
+        let mut extra = vec![0u8; 9];
         extra[0..2].copy_from_slice(&0x5455u16.to_le_bytes());
         extra[2..4].copy_from_slice(&5u16.to_le_bytes());
         extra[4] = 1;
         extra[5..9].copy_from_slice(&(e.mtime as u64 as i32).to_le_bytes());
+        if let Some((uid,gid)) = owners.get(&e.name) {
+            extra.extend_from_slice(&[0x75,0x78,11,0,1,4]);
+            extra.extend_from_slice(&uid.to_le_bytes());
+            extra.push(4);
+            extra.extend_from_slice(&gid.to_le_bytes());
+        }
 
         let extra=if stdin_member || strip_extra {&[][..]} else {&extra[..]};
         let local_offset = out.len() as u32;

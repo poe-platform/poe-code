@@ -6466,13 +6466,13 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
             let exc_ok = !excludes.iter().any(|p| zip_matches_pattern(p, &e.name));
             op_ok && inc_ok && exc_ok
         });
-        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,(false,zip64,strip_extra),&retained,|_,_,_,_| true), &sources);
+        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,(false,zip64,strip_extra),(&retained,&Default::default()),|_,_,_,_| true), &sources);
     }
     if delete_mode {
         entries.retain(|e| {
             e.typeflag == ZIP_COMMENT_TYPE || !operands.iter().any(|t| zip_matches_pattern(t, &e.name))
         });
-        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,(false,zip64,strip_extra),&retained,|_,_,_,_| true), &sources);
+        return publish(crate::commands::codecs::encode_zip_members(&entries,(0,0),&[],false,(false,zip64,strip_extra),(&retained,&Default::default()),|_,_,_,_| true), &sources);
     }
     let timed = update_mode || freshen_mode;
     let mut notices = String::new();
@@ -6492,6 +6492,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
     // Keep the original source spelling separate from the name stored in the ZIP.
     let mut members: BTreeMap<_,_> = entries.iter().enumerate().filter(|(_,e)| e.typeflag != ZIP_COMMENT_TYPE)
         .map(|(index,e)| (e.name.clone(), (index,None::<String>,Some(e.mtime)))).collect();
+    let mut owners = BTreeMap::new();
     while let Some((t,stored_name)) = targets.pop_front() {
         let mut raw_entries = Vec::new();
         let visit = if t == "-" && !stored_name {
@@ -6604,6 +6605,9 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
             }
             *selected = Some(source);
             retained.remove(&e.name);
+            if let Some((_,stat)) = &file && let Some(owner) = stat.uid.zip(stat.gid) {
+                owners.insert(e.name.clone(), owner);
+            }
             if e.typeflag == b'0' {
                 e.content = if let Some((path,stat))=&file {
                     match zip_read_file(fs,path,stat) { Ok(bytes) => bytes, Err(e) => return err_out(&format!("zip: {e}\n"),2) }
@@ -6688,7 +6692,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
     };
     let descriptor=descriptors || stdout_archive && !seekable_stdout;
     let mut store_failed=false;
-    let out_bytes = crate::commands::codecs::encode_zip_members(&entries,(compression,level), &suffixes, false, (descriptor,zip64,strip_extra), &retained,
+    let out_bytes = crate::commands::codecs::encode_zip_members(&entries,(compression,level), &suffixes, false, (descriptor,zip64,strip_extra), (&retained,&owners),
         |entry,method,size,stored| {
             store_failed=descriptor && method==0 && entry.typeflag==crate::commands::codecs::ZIP_STDIN_TYPE && entry.mode & 0o170000==0o010000;
             if quiet { return !store_failed; }

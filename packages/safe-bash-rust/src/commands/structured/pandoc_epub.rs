@@ -292,7 +292,7 @@ mod tests {
             &[],
             false,
             (false, None, false),
-            &ZipRecords::new(),
+            (&ZipRecords::new(), &Default::default()),
             |_, _, _, _| true,
         );
         assert!(compressed.len() < 4096);

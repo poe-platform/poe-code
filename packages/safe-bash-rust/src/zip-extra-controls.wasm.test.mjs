@@ -37,6 +37,60 @@ function entries(input) {
   return result;
 }
 
+for (const runtime of ["TypeScript", "Rust"]) for (const owner of [{uid: 0, gid: 0}, {uid: 501, gid: 20}, {}, {uid: 501}, {gid: 20}]) {
+  for (const options of ["", "-X", "-X -X-"]) test(`${runtime} ZIP source owner ${JSON.stringify(owner)} ${options}`, {skip: !WebAssembly.Suspending}, async () => {
+    const {Shell, createMemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+    const memory = createMemoryFileSystem();
+    await memory.writeFile("/source", Buffer.from("original"));
+    const withOwner = stat => {
+      const value = {...stat};
+      delete value.uid; delete value.gid;
+      return {...value, ...owner};
+    };
+    const fs = new Proxy(memory, {get(target, property) {
+      if (property === "stat" || property === "lstat") return async (...args) => {
+        const stat = await target[property](...args);
+        return args[0] === "/source" ? withOwner(stat) : stat;
+      };
+      if (property === "openReadFile") return async (...args) => {
+        const handle = await target.openReadFile(...args);
+        return args[0] !== "/source" ? handle : new Proxy(handle, {get(reader, key) {
+          if (key === "stat") return async (...options) => withOwner(await reader.stat(...options));
+          const member = Reflect.get(reader, key, reader);
+          return typeof member === "function" ? member.bind(reader) : member;
+        }});
+      };
+      const value = Reflect.get(target, property, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    }});
+    const shell = runtime === "TypeScript" ? new Shell({fs}).use(agentCommands())
+      : new RustWasmBash({fs, cwd: "/", forceNative: true});
+    try {
+      for (const payload of ["original", "replacement"]) {
+        await memory.writeFile("/source", Buffer.from(payload));
+        const result = await shell.exec(`zip -q ${options} sample.zip source`);
+        assert.equal(result.exitCode, 0, result.stdout + result.stderr);
+        const [entry] = entries(await memory.readFile("/sample.zip"));
+        for (const record of [entry.local, entry.central]) {
+          const ids = record.get(0x7875);
+          if (options === "-X" || owner.uid === undefined || owner.gid === undefined) assert.equal(ids, undefined);
+          else {
+            assert.ok(ids);
+            assert.equal(ids.length, 11);
+            assert.deepEqual([ids[0], ids[1], ids[6]], [1, 4, 4]);
+            assert.equal(ids.readUInt32LE(2), owner.uid);
+            assert.equal(ids.readUInt32LE(7), owner.gid);
+          }
+        }
+        const restored = await shell.exec("unzip -p sample.zip source");
+        assert.equal(restored.exitCode, 0, restored.stderr);
+        assert.equal(restored.stdout, payload);
+      }
+      if (runtime === "Rust") assert.equal(shell._companion, null);
+    } finally {await shell.dispose();}
+  });
+}
+
 for (const runtime of ["TypeScript", "Rust"]) for (const [options, stripped] of [
   ["-X", true], ["-X-", false], ["-X -X-", false], ["-X- -X", true], ["-qX-", false], ["-X -fz", true],
 ]) test(`${runtime} zip extra controls ${options}`, {skip: !WebAssembly.Suspending}, async () => {

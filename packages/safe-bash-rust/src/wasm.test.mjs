@@ -1,5 +1,6 @@
 import "./jbig2-truncation.wasm.test.mjs";
 import "./xargs-quoting.wasm.test.mjs";
+import "./empty-path-discovery.wasm.test.mjs";
 import "./pdf-json-sections.wasm.test.mjs";
 import "./jbig2-decode.wasm.test.mjs";
 import "./pdf-jbig2-stencil.wasm.test.mjs";

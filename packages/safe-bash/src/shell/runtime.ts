@@ -6807,7 +6807,7 @@ export class Runtime {
           }
           const target = cached?.path ?? (await this.searchPaths(context.command, state, false, false, defaultPath))[0];
           if (target !== undefined) {
-            if (!defaultPath && state.hashall !== false) {
+            if (!defaultPath && state.hashall !== false && state.variables.PATH !== "") {
               const entry = cached ?? { path: target, hits: 0 };
               entry.hits++;
               (state.hashedCommands ??= new Map()).set(context.command, entry);

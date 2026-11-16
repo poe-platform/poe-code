@@ -8756,7 +8756,7 @@ fn cmd_pdffonts(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
     } else if has_text {
         // Older internally generated documents have no PDF resource dictionaries.
         if show_subst {
-            out.push_str("Helvetica                                 6  0 Nimbus Sans                          /usr/share/fonts/type1/urw-base35/NimbusSans.t1\n");
+            out.push_str(&format!("Helvetica                                 6  0 {:<36} [unresolved]\n", "[unresolved]"));
         } else if show_loc || show_loc_ps {
             let loc = if show_loc_ps { "Substitute (Helvetica)" } else { "Substitute" };
             out.push_str(&format!("Helvetica                            Type 1            WinAnsi          no  no  no       6  0 {loc}\n"));
@@ -16550,7 +16550,7 @@ mod media_unit_tests {
         ]);
         let subst = cmd_media_doc("pdffonts", &media_args(&["-subst", "in.pdf"]), "", "/", &fs);
         assert_eq!(subst.stdout.lines().count(), 3);
-        assert!(subst.stdout.ends_with("/NimbusMonoPS.t1\n"));
+        assert_eq!(subst.stdout.lines().nth(2).unwrap(), format!("{:<36} {:>6} {:>2} {:<36} [unresolved]", "Courier", 6, 0, "[unresolved]"));
     }
 
     #[test]

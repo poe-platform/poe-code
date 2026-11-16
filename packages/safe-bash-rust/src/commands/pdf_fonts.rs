@@ -100,23 +100,10 @@ impl<'a> FontTable<'_, 'a> {
         let obj = id.map_or_else(|| "   [none]".into(), |(n, g)| format!("{n:>6} {g:>2}"));
         if self.substitute {
             if !embedded {
-                let sub = if font.starts_with("Helvetica") || font.starts_with("Arial") {
-                    "Nimbus Sans"
-                } else if font.starts_with("Times") {
-                    "Nimbus Roman"
-                } else if font.starts_with("Courier") {
-                    "Nimbus Mono PS"
-                } else if font == "Symbol" {
-                    "Standard Symbols PS"
-                } else if font == "ZapfDingbats" {
-                    "D050000L"
-                } else {
-                    &font
-                };
                 writeln!(
                     self.rows,
-                    "{font:<36.36} {obj} {sub:<36.36} /usr/share/fonts/type1/urw-base35/{}.t1",
-                    sub.replace(' ', "")
+                    "{font:<36.36} {obj} {:<36} [unresolved]",
+                    "[unresolved]"
                 )
                 .ok()?;
             }

@@ -1411,7 +1411,7 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
     );
     assert.equal(res.exitCode, 0);
     assert.ok(res.stdout.includes("Updated VFS Title From JSON"));
-    assert.ok(res.stdout.includes("Nimbus Sans"));
+    assert.match(res.stdout, /Helvetica\s+\d+\s+0\s+\[unresolved\]\s+\[unresolved\]/);
     assert.ok(res.stdout.includes("JSON VFS Pipeline Text"));
   });
 

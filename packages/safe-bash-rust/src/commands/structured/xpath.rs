@@ -219,9 +219,6 @@ fn query<'a>(
                 c.i += 1;
                 c.skip();
             }
-            if matches!(test, AxisTest::Attribute(_) | AxisTest::Text) && c.byte() == b'/' {
-                return Err(c.error());
-            }
             steps.push(Step {
                 descendant,
                 test,

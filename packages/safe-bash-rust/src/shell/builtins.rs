@@ -399,38 +399,41 @@ fn builtin_cd(
     let (resolved, printed_from_cdpath) = if let Some(sel) = selected {
         sel
     } else {
-        let raw = if probe_target.starts_with('/') {
-            probe_target.to_string()
-        } else if cwd == "/" {
-            format!("/{probe_target}")
-        } else {
-            format!("{cwd}/{probe_target}")
-        };
-        if !physical && let Err(reason) = check_logical_parents(&raw) {
-            return BuiltinOutcome {
-                stdout: String::new(),
-                stderr: format!("{invoked}: {target}: {reason}\n"),
-                exit_code: 1,
-            };
-        }
-        let cand = if physical {
-            resolve_physical_path(cwd, probe_target, fs)
-        } else {
-            resolve_posix_path(cwd, probe_target)
-        };
-        if !fs.is_dir(&cand) {
-            let reason = if fs.exists(&cand) {
-                "Not a directory"
+        let lookup = |path: &str| -> Result<String, &'static str> {
+            let path = if path.is_empty() { "." } else { path };
+            let raw = if path.starts_with('/') {
+                path.to_string()
+            } else if cwd == "/" {
+                format!("/{path}")
             } else {
-                "No such file or directory"
+                format!("{cwd}/{path}")
             };
-            return BuiltinOutcome {
+            if !physical { check_logical_parents(&raw)?; }
+            let candidate = if physical {
+                resolve_physical_path(cwd, path, fs)
+            } else {
+                resolve_posix_path(cwd, path)
+            };
+            if fs.is_dir(&candidate) { Ok(candidate) }
+            else { Err(if fs.exists(&candidate) { "Not a directory" } else { "No such file or directory" }) }
+        };
+        let mut result = lookup(probe_target).map(|path| (path, None));
+        if result.is_err()
+            && env.get("\0shopt_cdable_vars").is_some_and(|v| v == "1")
+            && target.as_bytes().first().is_some_and(|b| b.is_ascii_alphabetic() || *b == b'_')
+            && target.bytes().all(|b| b.is_ascii_alphanumeric() || b == b'_')
+            && let Some(value) = env.get(resolve_nameref_base(&target, env))
+        {
+            result = lookup(value).map(|path| (path, Some(value.clone())));
+        }
+        match result {
+            Ok(selected) => selected,
+            Err(reason) => return BuiltinOutcome {
                 stdout: String::new(),
                 stderr: format!("{invoked}: {target}: {reason}\n"),
                 exit_code: 1,
-            };
+            },
         }
-        (cand, None)
     };
 
     if env

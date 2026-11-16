@@ -17653,6 +17653,30 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn pdftotext_groups_rotated_words_inside_shifted_media_box() {
+        for matrix in ["1 0 0 1", "0 1 -1 0", "-1 0 0 -1", "0 -1 1 0"] {
+            let stream = format!("q {matrix} 0 0 cm BT /F1 10 Tf 0 0 Td (FIRST WORD) Tj 0 -12 Td (SECOND LINE) Tj 0 132 Td (OUTSIDE) Tj ET Q");
+            let contents = format!("<< /Length {} >>\nstream\n{stream}\nendstream", stream.len());
+            let pdf = classic_pdf(&[
+                "<< /Type /Catalog /Pages 2 0 R >>",
+                "<< /Type /Pages /Kids [3 0 R] /Count 1 /MediaBox [-100 -100 100 100] /Rotate 90 /Resources << /Font << /F1 5 0 R >> >> >>",
+                "<< /Type /Page /Parent 2 0 R /Contents 4 0 R >>", &contents,
+                "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+            ], "");
+            let fs = MemoryVfs::new();
+            fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+            for flags in [vec![], vec!["-raw"]] {
+                let mut args = media_args(&flags);
+                args.extend(media_args(&["/in.pdf", "-"]));
+                let result = cmd_media_doc("pdftotext", &args, "", "/", &fs);
+                assert_eq!(result.exit_code, 0, "{}", result.stderr);
+                let separator = if !flags.is_empty() || matrix == "1 0 0 1" {"\n"} else {"\n\n"};
+                assert_eq!(result.stdout.trim(), format!("FIRST WORD{separator}SECOND LINE"), "{matrix} {flags:?}");
+            }
+        }
+    }
+
+    #[test]
     fn pdftotext_formats_each_page_including_empty_pages() {
         let vfs = MemoryVfs::new();
         let mut doc = PdfDoc::new();

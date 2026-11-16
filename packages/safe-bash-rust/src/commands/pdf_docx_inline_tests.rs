@@ -58,14 +58,14 @@ fn preserves_inline_fonts_and_layout() {
                         code,
                         family,
                         size,
-                        baseline,
+                        matrix,
                         ..
                     } = event
                     {
                         assert_eq!(size, 11.);
                         codes.push(code);
                         if code != 32 {
-                            glyphs.push((code, family.to_string(), baseline));
+                            glyphs.push((code, family.to_string(), matrix[5]));
                         }
                     }
                     Some(())
@@ -225,11 +225,11 @@ fn preserves_docx_heading_styles_and_layout() {
                         code,
                         family,
                         size,
-                        baseline,
+                        matrix,
                         ..
                     } = event
                     {
-                        glyphs.push((code, family.to_string(), size, baseline));
+                        glyphs.push((code, family.to_string(), size, matrix[5]));
                     }
                     Some(())
                 })

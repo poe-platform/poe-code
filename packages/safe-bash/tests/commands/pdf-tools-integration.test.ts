@@ -1248,7 +1248,7 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
 
     const stampDoc = PdfDocument.create();
     const sp = stampDoc.addPage({ width: 100, height: 200 });
-    sp.drawText("ROTATED-STAMP", { x: 20, y: 100, size: 12 });
+    sp.drawText("ROTATED-STAMP", { x: 20, y: 100, size: 9 });
 
     const vfs = createMemoryFileSystem();
     await vfs.mkdir("/work", { recursive: true });

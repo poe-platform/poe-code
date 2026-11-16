@@ -25,6 +25,8 @@ pub(in crate::commands::archive) struct TextLine {
     pub size: f64,
     pub bounds: [f64; 4],
     baseline: f64,
+    direction: [f64; 2],
+    along: [f64; 2],
 }
 pub(super) enum Program {
     Standard,
@@ -104,7 +106,6 @@ pub(super) enum Draw<'a, 'b> {
         family: &'a Rc<str>,
         program: &'a Program,
         bounds: [f64; 4],
-        baseline: f64,
         size: f64,
         matrix: Matrix,
         ctm: Matrix,
@@ -612,7 +613,6 @@ impl<'a> PageSource<'a> {
                                         program: &font.program,
                                         size,
                                         bounds: [x, y - size * 0.2, right, y + size * 0.8],
-                                        baseline: y,
                                         matrix,
                                         ctm: st.ctm,
                                         mode: st.mode,
@@ -647,7 +647,7 @@ impl<'a> PageSource<'a> {
                 2
             }
         };
-        if spacing.is_some() && lines.len() > 2 {
+        if spacing.is_some() && lines.len() > 2 && lines.iter().all(|l| l.direction == [1., 0.]) {
             let mut present = [false; 3];
             for line in &lines {
                 present[column(line)] = true;
@@ -673,9 +673,11 @@ impl<'a> PageSource<'a> {
                 let gap = prev.baseline - line.baseline;
                 if !(paragraph(prev)
                     && paragraph(line)
+                    && (spacing.is_none() || prev.direction == [1., 0.])
+                    && prev.direction[0] * line.direction[0] + prev.direction[1] * line.direction[1] > 0.85
                     && gap > 0.
                     && gap <= prev.size * 1.9
-                    && (line.bounds[0] - prev.bounds[0]).abs() < prev.size * 5.)
+                    && (line.along[0] - prev.along[0]).abs() < prev.size * 5.)
                 {
                     out.push_str("\n\n");
                 } else if rejoin
@@ -704,6 +706,7 @@ impl<'a> PageSource<'a> {
         let page = self
             .objects
             .page_dict(*self.pages.get(pno.checked_sub(1)?)?, &self.tree)?;
+        let media = super::media_box(&mut self.objects, &self.tree, &page);
         let mut runs: Vec<TextLine> = vec![];
         let mut space = false;
         let mut forms = Vec::new();
@@ -724,28 +727,58 @@ impl<'a> PageSource<'a> {
                 family,
                 size,
                 bounds,
-                baseline: y,
+                matrix,
                 ..
             } = event
             {
                 // CID glyph IDs are not Unicode; extraction needs a ToUnicode CMap.
                 if matches!(program, Program::CidTrueType { .. }) { return None; }
                 let b = u8::try_from(code).ok()?;
+                // Group along the text axis, independently of the page's /Rotate.
+                let scale = matrix[0].hypot(matrix[1]);
+                if scale == 0. { return Some(()); }
+                let [ux, uy] = [matrix[0] / scale, matrix[1] / scale];
+                let [px, py] = [matrix[4], matrix[5]];
+                let advance = bounds[2] - bounds[0];
+                let [ex, ey] = [px + ux * advance, py + uy * advance];
+                // Match the baseline-intersection test used by TypeScript extraction.
+                if px.max(ex) < media[0].min(media[2]) || px.min(ex) > media[0].max(media[2])
+                    || py.max(ey) < media[1].min(media[3]) || py.min(ey) > media[1].max(media[3]) {
+                    return Some(());
+                }
                 if matches!(b, b' ' | b'\t') {
                     space = true;
                     return Some(());
                 }
-                let [x, bottom, right, top] = bounds;
+                let x = px * ux + py * uy;
+                let y = -px * uy + py * ux;
+                let y = if y == 0. {0.} else {y};
+                let right = x + advance;
+                // Keep page-space bounds for HTML and other layout consumers.
+                let corners = [
+                    [px + uy * size * 0.2, py - ux * size * 0.2],
+                    [px - uy * size * 0.8, py + ux * size * 0.8],
+                    [ex + uy * size * 0.2, ey - ux * size * 0.2],
+                    [ex - uy * size * 0.8, ey + ux * size * 0.8],
+                ];
+                let bounds = [
+                    corners.iter().map(|p| p[0]).fold(f64::INFINITY, f64::min),
+                    corners.iter().map(|p| p[1]).fold(f64::INFINITY, f64::min),
+                    corners.iter().map(|p| p[0]).fold(f64::NEG_INFINITY, f64::max),
+                    corners.iter().map(|p| p[1]).fold(f64::NEG_INFINITY, f64::max),
+                ];
                 if let Some(run) = runs.last_mut()
+                    && run.direction[0] * ux + run.direction[1] * uy > 0.85
                     && (run.baseline - y).abs() < 1e-6
-                    && x >= run.bounds[0]
-                    && x - run.bounds[2] <= size * 0.22
+                    && x >= run.along[0]
+                    && x - run.along[1] <= size * 0.22
                     && !space
                 {
                     run.text.push_str(&text(&[b]));
-                    run.bounds[2] = run.bounds[2].max(right);
-                    run.bounds[1] = run.bounds[1].min(bottom);
-                    run.bounds[3] = run.bounds[3].max(top);
+                    run.along[1] = run.along[1].max(right);
+                    for i in 0..4 {
+                        run.bounds[i] = if i < 2 {run.bounds[i].min(bounds[i])} else {run.bounds[i].max(bounds[i])};
+                    }
                 } else {
                     if runs.len() >= 100_000 {
                         return None;
@@ -754,8 +787,10 @@ impl<'a> PageSource<'a> {
                         text: text(&[b]),
                         family: Rc::clone(family),
                         size,
-                        bounds: [x, bottom, right, top],
+                        bounds,
                         baseline: y,
+                        direction: [ux, uy],
+                        along: [x, right],
                     });
                 }
                 space = false;
@@ -764,21 +799,22 @@ impl<'a> PageSource<'a> {
         })?;
         if spacing.is_some() {
             runs.sort_by(|a, b| {
-                b.baseline
-                    .total_cmp(&a.baseline)
-                    .then(a.bounds[0].total_cmp(&b.bounds[0]))
+                b.baseline.total_cmp(&a.baseline).then(a.along[0].total_cmp(&b.along[0]))
             });
         }
         let mut lines: Vec<TextLine> = vec![];
         for run in runs {
             if let Some(last) = lines.last_mut()
+                && run.direction[0] * last.direction[0] + run.direction[1] * last.direction[1] > 0.85
                 && (run.baseline - last.baseline).abs() <= run.size.max(last.size) * 0.45
                 && spacing.is_none_or(|s| {
-                    run.bounds[0] - last.bounds[2] <= run.size.max(last.size) * 4. * (s / 0.7)
+                    run.along[0] - last.along[1] <= run.size.max(last.size) * 4. * (s / 0.7)
                 })
             {
                 last.text.push(' ');
                 last.text.push_str(&run.text);
+                last.along[0] = last.along[0].min(run.along[0]);
+                last.along[1] = last.along[1].max(run.along[1]);
                 for i in 0..4 {
                     last.bounds[i] = if i < 2 {
                         run.bounds[i].min(last.bounds[i])

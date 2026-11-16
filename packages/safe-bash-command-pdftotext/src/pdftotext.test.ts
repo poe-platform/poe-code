@@ -47,6 +47,24 @@ function buildThreePageTestPdf(encrypt = false): Uint8Array {
 }
 
 describe("safe-bash-command-pdftotext", () => {
+  it("groups quarter-turned words and clips baselines outside a shifted MediaBox", () => {
+    for (const matrix of ["1 0 0 1", "0 1 -1 0", "-1 0 0 -1", "0 -1 1 0"]) {
+      const doc = PdfDocument.create();
+      const page = doc.addPage([200, 200]);
+      dictSet(page.pageDict, "MediaBox", cosArray([-100, -100, 100, 100].map(n => cosNumber(n))));
+      page.setRotation(90);
+      const font = doc.cos.allocateObject(cosDict({Type: cosName("Font"), Subtype: cosName("Type1"), BaseFont: cosName("Helvetica")}));
+      dictSet(page.pageDict, "Resources", cosDict({Font: cosDict({F1: font})}));
+      page.setRawContentStream(`q ${matrix} 0 0 cm BT /F1 10 Tf 0 0 Td (FIRST WORD) Tj 0 -12 Td (SECOND LINE) Tj 0 132 Td (OUTSIDE) Tj ET Q`);
+      for (const args of [[], ["-raw"]]) {
+        const result = extractPdfToTextBytes(doc.save(), args);
+        assert.equal(result.exitCode, 0);
+        const separator = args.length || matrix === "1 0 0 1" ? "\n" : "\n\n";
+        assert.equal(result.output.trim(), `FIRST WORD${separator}SECOND LINE`, `${matrix} ${args}`);
+      }
+    }
+  });
+
   it("extracts logical reading order with dehyphenation and page form feeds", () => {
     const pdf = buildThreePageTestPdf();
     const res = extractPdfToTextBytes(pdf, []);

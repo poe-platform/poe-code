@@ -17157,3 +17157,5 @@ import "./unzip-selection.wasm.test.mjs";
 import "./awk-nonfinite.wasm.test.mjs";
 import "./xlsx-skip.wasm.test.mjs";
 import "./pdf-font-substitution.wasm.test.mjs";
+
+import "./pdf-cairo-svg.wasm.test.mjs";

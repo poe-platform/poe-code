@@ -9959,23 +9959,6 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
         } else {
             format!("{pfx}.{ext}")
         };
-        if fmt == "SVG" {
-            let txt = doc.pages.get(first_p - 1).map(|p| p.text.clone()).unwrap_or_default();
-            let svg = format!(
-                "<svg xmlns=\"http://www.w3.org/2000/svg\" width=\"{}\" height=\"{}\" viewBox=\"0 0 {} {}\"><text x=\"20\" y=\"40\">{}</text></svg>\n",
-                doc.page_w as i64,
-                doc.page_h as i64,
-                doc.page_w as i64,
-                doc.page_h as i64,
-                html_escape_str(&txt)
-            );
-            if pfx == "-" {
-                return ok_out(&svg);
-            }
-            let dst = resolve_posix_path(cwd, &dst_rel);
-            let _ = fs.write_file(&dst, svg.as_bytes());
-            return ok_out("");
-        }
         if fmt == "PDF" {
             let mut source = match pdf_reader::PageSource::open(&b, supplied) {
                 Ok(source) => source,
@@ -10054,6 +10037,7 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
         (w as u32, h as u32)
     };
 
+    if is_cairo && fmt == "SVG" { singlefile = true; }
     let mut selected_pages: Vec<usize> = Vec::new();
     for pno in first_p..=end_p {
         if odd_only && pno % 2 == 0 {
@@ -10075,7 +10059,7 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
         scale_before_rotation,
         scale: [scale_to.unwrap_or(0), scale_to_x.unwrap_or(0), scale_to_y.unwrap_or(0)],
         crop: [crop_x,crop_y,crop_w.unwrap_or(0.),crop_h.unwrap_or(0.)], cropbox, hide_annotations,
-        limit: if matches!(fmt, "PS" | "EPS") { fs.max_input_bytes().min(fs.shell_limits().max_output_bytes) } else { fs.max_input_bytes() },
+        limit: if matches!(fmt, "PS" | "EPS" | "SVG") { fs.max_input_bytes().min(fs.shell_limits().max_output_bytes) } else { fs.max_input_bytes() },
     };
     let mut source = if is_legacy_pdf(&b) {
         None
@@ -10086,8 +10070,8 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
         }
     };
     let mut render = |pno| {
-        if let Some(source) = source.as_mut() { return source.raster(pno, &options); }
-        if matches!(fmt, "JPEG" | "TIFF" | "PS" | "EPS") { return None; }
+        if let Some(source) = source.as_mut() { return if fmt == "SVG" { source.svg(pno, &options) } else { source.raster(pno, &options) }; }
+        if matches!(fmt, "JPEG" | "TIFF" | "PS" | "EPS" | "SVG") { return None; }
         let (w, h) = compute_dims(pno);
         Some(write_image_bytes(&ImageMeta {
             fmt: fmt.to_string(), w, h,
@@ -10095,6 +10079,21 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
             exif: BTreeMap::new(),
         }))
     };
+    if is_cairo && fmt == "SVG" {
+        let Some(pno) = selected_pages.first() else { return ok_out(""); };
+        let Some(output) = render(*pno) else { return err_out("PDF SVG limit or invalid content stream\n", 1); };
+        let stem = if src_arg.to_ascii_lowercase().ends_with(".pdf") { &src_arg[..src_arg.len()-4] } else { src_arg };
+        let default_output = if src_arg == "-" { "-".to_string() } else { format!("{stem}.svg") };
+        let target = prefix_arg.unwrap_or(&default_output);
+        if target == "-" { return ok_out(&crate::vfs::bytes_to_stream_string(&output)); }
+        let stem = if target.to_ascii_lowercase().ends_with(".svg") { &target[..target.len()-4] } else { target };
+        let target = format!("{stem}.svg");
+        let dst = resolve_posix_path(cwd, &target);
+        if !fs.is_dir(&crate::vfs::dirname_posix_path(&dst)) || fs.write_file(&dst, &output).is_err() {
+            return err_out(&format!("Error opening output file {target}\n"), 2);
+        }
+        return ok_out("");
+    }
     if matches!(fmt, "PS" | "EPS") {
         let first = selected_pages.first().copied().unwrap_or(1);
         let (mut width, mut height, _) = doc.page_media.get(&first).copied().unwrap_or((doc.page_w, doc.page_h, None));

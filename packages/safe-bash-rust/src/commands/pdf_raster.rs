@@ -1,3 +1,5 @@
+#[path = "pdf_svg_output.rs"]
+mod pdf_svg_output;
 use super::pdf_blend::BlendMode;
 // Map PDF page coordinates (points from the bottom left) into output pixels before rasterizing.
 use super::pdf_text_layout::Draw;

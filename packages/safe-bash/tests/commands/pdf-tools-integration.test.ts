@@ -659,7 +659,12 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
     assert.match(txtRes.stdout, /VisibleMainText/);
     assert.match(txtRes.stdout, /FlattenedAPBadge/);
     assert.doesNotMatch(txtRes.stdout, /DiagonalDraftStamp/);
-    assert.doesNotMatch(txtRes.stdout, /CroppedHeaderBleed/);
+    assert.match(txtRes.stdout, /CroppedHeaderBleed/);
+
+    const bboxRes = await shell.exec("pdftotext -nodiag -cropbox -bbox /work/flat.pdf -");
+    assert.equal(bboxRes.exitCode, 0);
+    assert.match(bboxRes.stdout, /<page width="200.000000" height="120.000000">/);
+    assert.doesNotMatch(bboxRes.stdout, /CroppedHeaderBleed/);
 
     const xmlRes = await shell.exec("pdftohtml -xml -stdout -zoom 2 /work/flat.pdf");
     assert.equal(xmlRes.exitCode, 0);

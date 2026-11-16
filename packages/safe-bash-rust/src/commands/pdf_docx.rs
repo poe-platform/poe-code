@@ -260,14 +260,14 @@ mod tests {
                 let mut pdf = PageSource::open(&bytes, "").unwrap();
                 let pages = if placement == "overflow" || placement == "trailing" { 2 } else { 1 };
                 assert_eq!(pdf.len(), pages, "{blank}, {placement}");
-                let lines = pdf.text_lines(pages, None).unwrap();
+                let lines = pdf.text_lines(pages, None, false).unwrap();
                 if placement == "trailing" {
                     assert!(lines.iter().all(|line| line.text.is_empty()));
                 } else {
                     let second = lines.iter().find(|line| line.text.contains("SECOND")).unwrap();
                     let control = convert(paragraph("SECOND"));
                     let mut control = PageSource::open(&control, "").unwrap();
-                    let control = control.text_lines(1, None).unwrap();
+                    let control = control.text_lines(1, None, false).unwrap();
                     let offset = match placement { "middle" => -20 * (count + 1), "leading" => -20 * count, _ => -20 * (count - 1) };
                     assert!((second.bounds[1] - control[0].bounds[1] - f64::from(offset)).abs() < 0.001, "{blank}, {placement}");
                 }

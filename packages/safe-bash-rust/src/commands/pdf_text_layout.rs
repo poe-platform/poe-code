@@ -635,8 +635,9 @@ impl<'a> PageSource<'a> {
         spacing: Option<f64>,
         page_width: f64,
         rejoin: bool,
+        discard_diagonal: bool,
     ) -> Option<String> {
-        let mut lines = self.text_lines(pno, spacing)?;
+        let mut lines = self.text_lines(pno, spacing, discard_diagonal)?;
         let midpoint = page_width * 0.5;
         let column = |line: &TextLine| {
             if line.bounds[2] <= midpoint + 18. {
@@ -702,6 +703,7 @@ impl<'a> PageSource<'a> {
         &mut self,
         pno: usize,
         spacing: Option<f64>,
+        discard_diagonal: bool,
     ) -> Option<Vec<TextLine>> {
         let page = self
             .objects
@@ -738,6 +740,9 @@ impl<'a> PageSource<'a> {
                 let scale = matrix[0].hypot(matrix[1]);
                 if scale == 0. { return Some(()); }
                 let [ux, uy] = [matrix[0] / scale, matrix[1] / scale];
+                if discard_diagonal && ux.abs() > 0.1 && uy.abs() > 0.1 {
+                    return Some(());
+                }
                 let [px, py] = [matrix[4], matrix[5]];
                 let advance = bounds[2] - bounds[0];
                 let [ex, ey] = [px + ux * advance, py + uy * advance];

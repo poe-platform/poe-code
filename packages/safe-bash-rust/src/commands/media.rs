@@ -8780,6 +8780,7 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
     let mut urls_mode = false;
     let mut layout = false;
     let mut raw = false;
+    let mut nodiag = false;
     let mut page_break = true;
     let mut eol_mode = "unix";
     let mut invalid_eol_warn = false;
@@ -8930,7 +8931,8 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                 page_break = false;
                 i += 1;
             }
-            "-nodiag" | "-cropbox" | "-clip" => {
+            "-nodiag" => { nodiag = true; i += 1; }
+            "-cropbox" | "-clip" => {
                 i += 1;
             }
             _ if a.starts_with('-') && a != "-" => {
@@ -9100,14 +9102,15 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
         }
     } else {
         let mut plain = String::new();
-        let mut source = (urls_mode || raw || !layout).then(||pdf_reader::PageSource::open(&raw_bytes,password).ok()).flatten();
+        let mut source = (urls_mode || raw || !layout || nodiag).then(||pdf_reader::PageSource::open(&raw_bytes,password).ok()).flatten();
         for (pno, pg) in &selected_pages {
-            let mut t = if layout && !raw {
+            let mut t = if layout && !raw && !nodiag {
                 pg.text.replace("\n\n", "\n")
             } else {
                 let width = doc.page_media.get(pno).map_or(doc.page_w, |m|m.0).abs();
-                source.as_mut().and_then(|s| s.plain_text(*pno,(!raw).then_some(colspacing),width,!raw && rejoin)).unwrap_or_else(|| pg.text.clone())
+                source.as_mut().and_then(|s| s.plain_text(*pno,(!raw).then_some(colspacing),width,!raw && rejoin,nodiag)).unwrap_or_else(|| pg.text.clone())
             };
+            if layout && !raw && nodiag { t = t.replace("\n\n", "\n"); }
             if urls_mode {
                 let mut extra = Vec::new();
                 let links;
@@ -9378,7 +9381,7 @@ fn cmd_pdftohtml(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                 }
             }
         }
-        if let Some(layout) = source.as_mut().and_then(|s| s.text_lines(pno,Some(0.7))) {
+        if let Some(layout) = source.as_mut().and_then(|s| s.text_lines(pno,Some(0.7),false)) {
             let links = source.as_mut().and_then(|s| s.page_links(pno, fs.shell_limits().max_input_bytes)).ok_or("PDF link limit exceeded\n")?;
             let height = dimensions(pno).1;
             let mut font_ids = BTreeMap::from([(fonts[0].clone(), 0)]);
@@ -17829,6 +17832,32 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn pdftotext_nodiag_filters_before_grouping_and_keeps_axis_text() {
+        for (matrix, keep) in [
+            ("1 0 0 1", true), ("0 1 -1 0", true), ("-1 0 0 -1", true), ("0 -1 1 0", true),
+            ("0.9950879358 0.099 -0.099 0.9950879358", true),
+            ("0.994886425 0.101 -0.101 0.994886425", false),
+            ("0.7071 0.7071 -0.7071 0.7071", false),
+        ] {
+            let stream = format!("BT /F1 10 Tf {matrix} 150 150 Tm (AXIS) Tj ET");
+            let contents = format!("<< /Length {} >>\nstream\n{stream}\nendstream", stream.len());
+            let pdf = classic_pdf(&[
+                "<< /Type /Catalog /Pages 2 0 R >>",
+                "<< /Type /Pages /Kids [3 0 R] /Count 1 /MediaBox [0 0 300 300] /Resources << /Font << /F1 5 0 R >> >> >>",
+                "<< /Type /Page /Parent 2 0 R /Contents 4 0 R >>", &contents,
+                "<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>",
+            ], "");
+            let fs = MemoryVfs::new(); fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+            for mode in [vec![], vec!["-raw"], vec!["-layout"]] {
+                let mut args = media_args(&mode); args.extend(media_args(&["-nodiag", "/in.pdf", "-"]));
+                let result = cmd_media_doc("pdftotext", &args, "", "/", &fs);
+                assert_eq!(result.exit_code, 0, "{}", result.stderr);
+                assert_eq!(result.stdout.trim(), if keep {"AXIS"} else {""}, "{matrix} {mode:?}");
+            }
+        }
+    }
+
+    #[test]
     fn pdftotext_formats_each_page_including_empty_pages() {
         let vfs = MemoryVfs::new();
         let mut doc = PdfDoc::new();
@@ -17928,9 +17957,9 @@ mod media_unit_tests {
                 let mut source = pdf_reader::PageSource::open(&bytes, "").unwrap();
                 let second_page = bottom && spacing > 0.;
                 assert_eq!(source.len(), if second_page {2} else {1}, "{separator}, bottom={bottom}");
-                let first_lines = source.text_lines(1, None).unwrap();
+                let first_lines = source.text_lines(1, None, false).unwrap();
                 let first = first_lines.iter().find(|line| line.text.contains("FIRST LINE")).unwrap();
-                let second_lines = source.text_lines(if second_page {2} else {1}, None).unwrap();
+                let second_lines = source.text_lines(if second_page {2} else {1}, None, false).unwrap();
                 let second = second_lines.iter().find(|line| line.text.contains("SECOND LINE")).unwrap();
                 let first_y = if bottom {80.} else {720.};
                 let second_y = if second_page {720. - if spacing == 30. {15.} else {0.}} else {first_y - spacing};
@@ -17960,7 +17989,7 @@ mod media_unit_tests {
                 let mut source = pdf_reader::PageSource::open(&bytes, "").unwrap();
                 let page = if bottom && lines > 0 {2} else {1};
                 assert_eq!(source.len(), page, "{separator}, bottom={bottom}");
-                let text = source.text_lines(page, None).unwrap();
+                let text = source.text_lines(page, None, false).unwrap();
                 let first = text.iter().find(|line| line.text.contains("FIRST LINE")).unwrap();
                 let y = if bottom {if lines > 0 {720. - f64::from(lines - 1) * 15.} else {80.}} else {720. - f64::from(lines) * 15.};
                 // Text bounds include the font descent; compare against the no-break baseline.
@@ -17970,7 +17999,7 @@ mod media_unit_tests {
                 assert_eq!(result.exit_code, 0, "{}", result.stderr);
                 let control = control_fs.read_file("/control.pdf").unwrap();
                 let mut control = pdf_reader::PageSource::open(&control, "").unwrap();
-                let control = control.text_lines(1, None).unwrap();
+                let control = control.text_lines(1, None, false).unwrap();
                 assert!((first.bounds[1] - control[0].bounds[1] - (y - 720.)).abs() < 0.001, "{separator}, bottom={bottom}");
                 assert_eq!(fs.read_file("/doc.docx").unwrap(), input);
             }
@@ -17997,7 +18026,7 @@ mod media_unit_tests {
                 let mut source = pdf_reader::PageSource::open(&bytes, "").unwrap();
                 let page = if bottom {2} else {1};
                 assert_eq!(source.len(), page, "{separator}, bottom={bottom}");
-                let text = source.text_lines(page, None).unwrap();
+                let text = source.text_lines(page, None, false).unwrap();
                 let first = text.iter().find(|line| line.text.contains("SECOND LINE")).unwrap();
                 let y = if bottom {if lines > 0 {700. - f64::from(lines - 1) * 15.} else {720.}} else {700. - f64::from(lines) * 15.};
                 // Text bounds include the font descent; compare against the no-break baseline.
@@ -18007,7 +18036,7 @@ mod media_unit_tests {
                 assert_eq!(result.exit_code, 0, "{}", result.stderr);
                 let control = control_fs.read_file("/control.pdf").unwrap();
                 let mut control = pdf_reader::PageSource::open(&control, "").unwrap();
-                let control = control.text_lines(1, None).unwrap();
+                let control = control.text_lines(1, None, false).unwrap();
                 assert!((first.bounds[1] - control[0].bounds[1] - (y - 720.)).abs() < 0.001, "{separator}, bottom={bottom}");
                 assert_eq!(fs.read_file("/doc.docx").unwrap(), input);
             }

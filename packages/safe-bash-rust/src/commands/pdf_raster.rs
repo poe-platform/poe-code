@@ -904,6 +904,45 @@ pub(super) fn encode(w: usize, h: usize, pixels: &[[u8; 4]], format: &str, mode:
         if bilevel || format == "PNG8" { 0 } else if rgb { 2 } else { 6 }, dpi, &raw))
 }
 
+fn postscript_page(w: usize, h: usize, pixels: &[[u8; 4]], dpi: [f64; 2], eps: bool, limit: usize) -> Option<Vec<u8>> {
+    let size = format!("{} {}", w as f64 * 72. / dpi[0], h as f64 * 72. / dpi[1]);
+    let device = if eps { String::new() } else { format!("<< /PageSize [{size}] >> setpagedevice\n") };
+    let header = format!("{device}gsave\n{size} scale\n{w} {h} 8 [{w} 0 0 -{h} 0 {h}]\n{{currentfile 3 string readhexstring pop}} false 3 colorimage\n");
+    let end = b"\ngrestore\nshowpage\n";
+    let length = pixels.len().checked_mul(6)?.checked_add(header.len())?.checked_add(end.len())?;
+    if length > limit { return None; }
+    let mut out = Vec::with_capacity(length);
+    out.extend_from_slice(header.as_bytes());
+    const HEX: &[u8] = b"0123456789abcdef";
+    for pixel in pixels {
+        for &channel in &pixel[..3] {
+            out.push(HEX[usize::from(channel >> 4)]);
+            out.push(HEX[usize::from(channel & 15)]);
+        }
+    }
+    out.extend_from_slice(end);
+    Some(out)
+}
+
+#[cfg(test)]
+mod postscript_tests {
+    use super::postscript_page;
+
+    #[test]
+    fn rgb_payload_and_page_size_fit_the_exact_output_budget() {
+        for eps in [false, true] {
+            let pixels = [[240, 120, 40, 255], [0, 1, 2, 255]];
+            let bytes = postscript_page(2, 1, &pixels, [144., 72.], eps, 4096).unwrap();
+            let text = std::str::from_utf8(&bytes).unwrap();
+            assert!(text.contains("1 1 scale\n2 1 8 [2 0 0 -1 0 1]"));
+            assert_eq!(text.contains("setpagedevice"), !eps);
+            assert!(text.ends_with("f07828000102\ngrestore\nshowpage\n"));
+            assert_eq!(postscript_page(2, 1, &pixels, [144., 72.], eps, bytes.len()).unwrap(), bytes);
+            assert!(postscript_page(2, 1, &pixels, [144., 72.], eps, bytes.len() - 1).is_none());
+        }
+    }
+}
+
 pub(super) fn encode_png(w: usize, h: usize, depth: u8, color: u8, dpi: Option<[f64; 2]>, raw: &[u8]) -> Vec<u8> {
     let mut out = b"\x89PNG\r\n\x1a\n".to_vec();
     let mut ihdr = [0; 13];
@@ -1398,6 +1437,9 @@ impl PageSource<'_> {
                 width: w, height: h, pixels: &pixels, quality,
                 dpi: dpi.map(|v| v as u16), gray,
             }, opt.limit).ok();
+        }
+        if matches!(opt.format, "PS" | "EPS") {
+            return postscript_page(w, h, &pixels, dpi, opt.format == "EPS", opt.limit);
         }
         encode(w, h, &pixels, opt.format, opt.color, (opt.format == "PNG").then_some(dpi))
     }

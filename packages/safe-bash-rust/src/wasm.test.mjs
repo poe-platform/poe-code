@@ -1,5 +1,6 @@
 import "./pdf-json-sections.wasm.test.mjs";
 import "./gnu-information.wasm.test.mjs";
+import "./pdf-postscript.wasm.test.mjs";
 import "./pdf-header-offset.wasm.test.mjs";
 import "./pdf-path-clipping.test.mjs";
 import "./pdf-text-stroke.wasm.test.mjs";

@@ -9974,18 +9974,6 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
             let _ = fs.write_file(&dst, svg.as_bytes());
             return ok_out("");
         }
-        if fmt == "EPS" || fmt == "PS" {
-            let eps = format!(
-                "%!PS-Adobe-3.0 EPSF-3.0\n%%BoundingBox: 0 0 {} {}\n%%EndComments\n",
-                doc.page_w as i64, doc.page_h as i64
-            );
-            if pfx == "-" {
-                return ok_out(&eps);
-            }
-            let dst = resolve_posix_path(cwd, &dst_rel);
-            let _ = fs.write_file(&dst, eps.as_bytes());
-            return ok_out("");
-        }
         if fmt == "PDF" {
             let mut source = match pdf_reader::PageSource::open(&b, supplied) {
                 Ok(source) => source,
@@ -10073,18 +10061,19 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
             continue;
         }
         selected_pages.push(pno);
-        if singlefile {
+        if singlefile && !matches!(fmt, "PS" | "EPS") {
             break;
         }
     }
     let options = pdf_reader::RasterOptions {
-        backend: if is_cairo { pdf_reader::RasterBackend::Cairo } else { pdf_reader::RasterBackend::Splash },
+        backend: if is_cairo && !matches!(fmt, "PS" | "EPS") { pdf_reader::RasterBackend::Cairo } else { pdf_reader::RasterBackend::Splash },
         tiff: (fmt == "TIFF").then_some((&tiff_compression, !is_cairo)),
         jpeg: (fmt == "JPEG").then_some((jpeg_quality, is_cairo && color_mode == "gray")),
         format: fmt, color: color_mode, transparent, antialias, text_aa, dpi: [dpi_x,dpi_y],
         scale_before_rotation,
         scale: [scale_to.unwrap_or(0), scale_to_x.unwrap_or(0), scale_to_y.unwrap_or(0)],
-        crop: [crop_x,crop_y,crop_w.unwrap_or(0.),crop_h.unwrap_or(0.)], cropbox, hide_annotations, limit: fs.max_input_bytes(),
+        crop: [crop_x,crop_y,crop_w.unwrap_or(0.),crop_h.unwrap_or(0.)], cropbox, hide_annotations,
+        limit: if matches!(fmt, "PS" | "EPS") { fs.max_input_bytes().min(fs.shell_limits().max_output_bytes) } else { fs.max_input_bytes() },
     };
     let mut source = if is_legacy_pdf(&b) {
         None
@@ -10096,7 +10085,7 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
     };
     let mut render = |pno| {
         if let Some(source) = source.as_mut() { return source.raster(pno, &options); }
-        if matches!(fmt, "JPEG" | "TIFF") { return None; }
+        if matches!(fmt, "JPEG" | "TIFF" | "PS" | "EPS") { return None; }
         let (w, h) = compute_dims(pno);
         Some(write_image_bytes(&ImageMeta {
             fmt: fmt.to_string(), w, h,
@@ -10104,6 +10093,40 @@ fn cmd_pdftoppm(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn Saf
             exif: BTreeMap::new(),
         }))
     };
+    if matches!(fmt, "PS" | "EPS") {
+        let first = selected_pages.first().copied().unwrap_or(1);
+        let (mut width, mut height, _) = doc.page_media.get(&first).copied().unwrap_or((doc.page_w, doc.page_h, None));
+        if doc.pages.get(first - 1).is_some_and(|page| matches!(page.rot, 90 | 270)) {
+            std::mem::swap(&mut width, &mut height);
+        }
+        let width = crop_w.filter(|w| *w > 0.).unwrap_or(width.round());
+        let height = crop_h.filter(|h| *h > 0.).unwrap_or(height.round());
+        let magic = if fmt == "EPS" { "%!PS-Adobe-3.0 EPSF-3.0" } else { "%!PS-Adobe-3.0" };
+        let mut output = format!("{magic}\n%%Creator: @poe-code/pdf-ast (pdftocairo 24.08.0)\n%%BoundingBox: 0 0 {width} {height}\n%%Pages: {}\n%%EndComments\n", selected_pages.len()).into_bytes();
+        let trailer = b"%%Trailer\n%%EOF\n";
+        let limit = fs.shell_limits().max_output_bytes;
+        if output.len().saturating_add(trailer.len()) > limit { return err_out("PostScript output exceeds byte limit\n", 1); }
+        for (index, pno) in selected_pages.iter().enumerate() {
+            let ordinal = index + 1;
+            let header = format!("%%Page: {ordinal} {ordinal}\n");
+            let Some(page) = render(*pno) else { return err_out("PDF raster limit or invalid content stream\n", 1); };
+            let additional = header.len().saturating_add(page.len()).saturating_add(trailer.len());
+            if additional > limit.saturating_sub(output.len()) { return err_out("PostScript output exceeds byte limit\n", 1); }
+            output.extend_from_slice(header.as_bytes());
+            output.extend_from_slice(&page);
+        }
+        output.extend_from_slice(trailer);
+        let stem = if src_arg.to_ascii_lowercase().ends_with(".pdf") { &src_arg[..src_arg.len() - 4] } else { src_arg };
+        let default_output = if src_arg == "-" { "-".to_string() } else { format!("{stem}.{ext}") };
+        let target = prefix_arg.unwrap_or(&default_output);
+        if target == "-" { return ok_out(&crate::vfs::bytes_to_stream_string(&output)); }
+        let target = if target.to_ascii_lowercase().ends_with(&format!(".{ext}")) { target.to_string() } else { format!("{target}.{ext}") };
+        let dst = resolve_posix_path(cwd, &target);
+        if !fs.is_dir(&crate::vfs::dirname_posix_path(&dst)) || fs.write_file(&dst, &output).is_err() {
+            return err_out(&format!("Error opening output file {target}\n"), 2);
+        }
+        return ok_out("");
+    }
     if prefix_arg.is_none() || prefix_arg == Some("-") {
         let mut bytes = Vec::new();
         let mut status = ok_out("");

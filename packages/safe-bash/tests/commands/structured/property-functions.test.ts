@@ -41,10 +41,11 @@ for (const entry of cases) test(`jq property/functions: ${entry.filter} on ${ent
 });
 
 test('startswith and endswith retain type errors', async () => {
-  for (const filter of ['123 | startswith("1")', '"123" | endswith(3)']) {
+  for (const [filter, name] of [['123 | startswith("1")', 'startswith'], ['"123" | endswith(3)', 'endswith']] as const) {
     const result = await run(['-c', filter]);
     assert.equal(result.exitCode, 5);
-    assert.ok(result.stderr.includes('requires strings'));
+    assert.equal(result.stdout, '');
+    assert.equal(result.stderr, `jq: error (at <stdin>:0): ${name}() requires string inputs\n`);
   }
 });
 

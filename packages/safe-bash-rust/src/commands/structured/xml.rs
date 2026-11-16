@@ -800,7 +800,7 @@ impl Escaping {
             match c {
                 '&' => out.push_str("&amp;"),
                 '<' => out.push_str("&lt;"),
-                '>' => out.push_str("&gt;"),
+                '>' if !attr || !matches!(self, Self::Canonical) => out.push_str("&gt;"),
                 '"' if attr => out.push_str("&quot;"),
                 '\r' | '\t' | '\n' if attr || c == '\r' => {
                     if matches!(self, Self::Canonical) {

@@ -15556,10 +15556,14 @@ test("xmllint processes each operand and reads stdin only once", async () => {
 test("xmllint writes the requested document encoding and keeps XPath and canonical output UTF-8", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
-  const rs = new RustWasmBash({ cwd: "/" });
+  const rs = new RustWasmBash({ cwd: "/", forceNative: true });
   try {
     for (const store of [fs, rs.fs]) {
       await store.writeFile("/doc", Buffer.from('<r a="é&#9;&#10;&#13;&gt;">界🌱\uE080&#13;</r>'));
+    }
+    for (const sh of [js, rs]) {
+      const canonical = await sh.exec("xmllint --c14n --encode ASCII doc");
+      assert.deepEqual([canonical.exitCode, canonical.stdout, canonical.stderr], [0, '<r a="é&#x9;&#xA;&#xD;>">界🌱\uE080&#xD;</r>', ""]);
     }
     for (const args of ["", "--encode UTF8", "--encode latin1", "--encode UTF16", "--encode UTF-16BE",
       "--encode ASCII", "--encode cp437", "--encode UTF-16LE -o result", "--xpath '//r' --encode UTF16",
@@ -15569,6 +15573,7 @@ test("xmllint writes the requested document encoding and keeps XPath and canonic
       assert.deepEqual([b.exitCode, b.stdoutBytes, b.stderr], [a.exitCode, a.stdoutBytes, a.stderr], cmd);
     }
     assert.deepEqual(Buffer.from(await rs.fs.readFile("/result")), Buffer.from(await fs.readFile("/result")));
+    assert.equal(rs._companion, null);
   } finally { rs.dispose(); }
 });
 

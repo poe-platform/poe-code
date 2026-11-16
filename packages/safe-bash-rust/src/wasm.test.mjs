@@ -15855,7 +15855,7 @@ test("xmllint preserves XML tokens, namespace scope and text nodes across decode
         const pad = "a".repeat(4096 - Buffer.byteLength(prefix) - split);
         await rs.fs.writeFile("/f", prefix + pad + fragment + suffix);
         const result = await rs.exec("xmllint --c14n f");
-        const canonical = new Map([["\r\n", "\n"], ["<![CDATA[<]]>", "&lt;"], ['<p:x a=">"/>', '<p:x a="&gt;"></p:x>']]);
+        const canonical = new Map([["\r\n", "\n"], ["<![CDATA[<]]>", "&lt;"], ['<p:x a=">"/>', '<p:x a=">"></p:x>']]);
         assert.equal(result.exitCode, 0, result.stderr);
         assert.equal(result.stdout, prefix + pad + (canonical.get(fragment) ?? fragment) + suffix);
       }

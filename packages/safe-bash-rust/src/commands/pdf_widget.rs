@@ -250,6 +250,8 @@ impl<'a> PageSource<'a> {
                 other => other,
             };
             Rc::new(Font {
+                metrics: [-0.2, 0.8],
+                extractable: false,
                 program: Program::Standard,
                 name: Rc::from(family),
                 start: 0,
@@ -814,6 +816,7 @@ impl<'a> PageSource<'a> {
                                 family: &font.name,
                                 program: &font.program,
                                 bounds: [at, y - size * 0.2, at + advance, y + size * 0.8],
+                                text_bounds: None,
                                 size,
                                 matrix: concat([size, 0., 0., size, at, y], matrix),
                                 ctm: matrix,
@@ -971,6 +974,7 @@ impl<'a> PageSource<'a> {
                         family: &font.name,
                         program: &font.program,
                         bounds: [at, y - size * 0.2, at + advance, y + size * 0.8],
+                        text_bounds: None,
                         size,
                         matrix: concat([size, 0., 0., size, at, y], matrix),
                         ctm: matrix,

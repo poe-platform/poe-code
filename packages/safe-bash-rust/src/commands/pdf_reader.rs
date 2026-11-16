@@ -15,7 +15,7 @@ mod pdf_json_input;
 pub(super) use pdf_json_input::JsonDocument;
 #[path = "pdf_copy.rs"]
 mod pdf_copy;
-pub(super) use pdf_copy::{CairoPdfLayout, ImageRead, NativeImage, PageOutput, PageSource, RasterBackend, RasterOptions};
+pub(super) use pdf_copy::{CairoPdfLayout, TextOptions, ImageRead, NativeImage, PageOutput, PageSource, RasterBackend, RasterOptions};
 
 #[path = "pdf_pptx.rs"]
 mod pdf_pptx;

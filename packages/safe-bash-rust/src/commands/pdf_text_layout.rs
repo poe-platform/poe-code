@@ -35,6 +35,8 @@ pub(super) enum Program {
     Unsupported,
 }
 struct Font {
+    metrics: [f64; 2],
+    extractable: bool,
     program: Program,
     name: Rc<str>,
     start: usize,
@@ -106,6 +108,7 @@ pub(super) enum Draw<'a, 'b> {
         family: &'a Rc<str>,
         program: &'a Program,
         bounds: [f64; 4],
+        text_bounds: Option<[f64; 4]>,
         size: f64,
         matrix: Matrix,
         ctm: Matrix,
@@ -143,6 +146,8 @@ impl<'a> Resources<'a> {
                     .unwrap_or(&key);
                 if dict.get(b"Subtype").and_then(Value::word) == Some(b"/Type0") {
                     let mut font = Font {
+                        metrics: [-0.207, 0.718],
+                        extractable: false,
                         program: Program::Unsupported,
                         name: Rc::from(String::from_utf8_lossy(family).as_ref()),
                         start: 0,
@@ -231,10 +236,28 @@ impl<'a> Resources<'a> {
                 } else {
                     Program::Standard
                 };
+                let mut metrics = match family {
+                    b"Times-Roman" | b"Times-Bold" | b"Times-Italic" | b"Times-BoldItalic" => [-0.217, 0.683],
+                    b"Courier" | b"Courier-Bold" | b"Courier-Oblique" | b"Courier-BoldOblique" => [-0.157, 0.629],
+                    b"Symbol" => [-0.216, 0.693], b"ZapfDingbats" => [-0.143, 0.690],
+                    _ => [-0.207, 0.718],
+                };
+                for (i, key) in [b"Descent".as_slice(), b"Ascent"].into_iter().enumerate() {
+                    if let Some(value) = descriptor.as_ref().and_then(|d| d.get(key)).and_then(|v| objects.resolve(v)).and_then(|v| v.number())
+                        && value.is_finite() && value != 0. {
+                        metrics[i] = value.abs()/1000. * if i == 0 {-1.}else{1.};
+                    }
+                }
+                let encoding = dict.get(b"Encoding").and_then(|v| objects.resolve(v));
+                let extractable = dict.get(b"ToUnicode").is_none()
+                    && encoding.as_ref().is_none_or(|v| v.word() == Some(b"/WinAnsiEncoding"))
+                    && !matches!(family, b"Symbol" | b"ZapfDingbats");
                 let name = Rc::from(String::from_utf8_lossy(family).as_ref());
                 self.fonts.insert(
                     key,
                     Rc::new(Font {
+                        metrics,
+                        extractable,
                         program,
                         name,
                         start,
@@ -411,6 +434,8 @@ impl<'a> PageSource<'a> {
         emit: &mut impl FnMut(Draw<'_, '_>, &mut super::Objects<'a>) -> Option<()>,
     ) -> Option<()> {
         let default_font = Font {
+            metrics: [-0.207, 0.718],
+            extractable: true,
             program: Program::Standard,
             name: Rc::from("Helvetica"),
             start: 0,
@@ -613,6 +638,7 @@ impl<'a> PageSource<'a> {
                                         program: &font.program,
                                         size,
                                         bounds: [x, y - size * 0.2, right, y + size * 0.8],
+                                        text_bounds: (font.extractable && !composite).then_some([matrix[4], matrix[5] + size * font.metrics[0], matrix[4] + scale * (advance * st.hscale).abs().max(advance), matrix[5] + size * font.metrics[1]]),
                                         matrix,
                                         ctm: st.ctm,
                                         mode: st.mode,

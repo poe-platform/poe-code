@@ -25,6 +25,9 @@ mod pdf_annots;
 mod pdf_inspect;
 #[path = "pdf_text_layout.rs"]
 mod pdf_text_layout;
+#[path = "pdf_text_spatial.rs"]
+mod pdf_text_spatial;
+pub(in super::super) use pdf_text_spatial::TextOptions;
 pub(super) use pdf_text_layout::widths::WIDTHS;
 #[path = "pdf_cairo_pdf.rs"]
 mod pdf_cairo_pdf;

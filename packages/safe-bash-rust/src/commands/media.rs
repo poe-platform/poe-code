@@ -8783,6 +8783,9 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
     let mut layout = false;
     let mut raw = false;
     let mut nodiag = false;
+    let mut resolution = 72.;
+    let mut crop = [None; 4];
+    let mut cropbox = false;
     let mut page_break = true;
     let mut eol_mode = "unix";
     let mut invalid_eol_warn = false;
@@ -8832,15 +8835,17 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                 i += 2;
             }
             "-r" => {
-                if i + 1 >= args.len() || args[i + 1].parse::<f64>().map(|v| v <= 0.0).unwrap_or(true) {
+                if i + 1 >= args.len() || args[i + 1].parse::<f64>().map(|v| !v.is_finite() || v <= 0.0).unwrap_or(true) {
                     return err_out("Invalid -r resolution\n", 99);
                 }
+                resolution = args[i+1].parse().unwrap();
                 i += 2;
             }
             "-x" | "-y" | "-W" | "-H" => {
-                if i + 1 >= args.len() || args[i + 1].parse::<f64>().is_err() {
+                if i + 1 >= args.len() || args[i + 1].parse::<f64>().map_or(true, |v| !v.is_finite()) {
                     return err_out(&format!("Command Line Error: Invalid numeric argument for {a}\n"), 99);
                 }
+                crop[match a {"-x"=>0,"-y"=>1,"-W"=>2,_=>3}] = args[i+1].parse().ok();
                 i += 2;
             }
             "-upw" | "-opw" if i + 1 < args.len() => { password = &args[i+1]; i += 2; }
@@ -8934,7 +8939,8 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                 i += 1;
             }
             "-nodiag" => { nodiag = true; i += 1; }
-            "-cropbox" | "-clip" => {
+            "-cropbox" => { cropbox = true; i += 1; }
+            "-clip" => {
                 i += 1;
             }
             _ if a.starts_with('-') && a != "-" => {
@@ -9010,9 +9016,11 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
         };
         return err_out(&msg, 1);
     }
+    let needs_geometry = bbox_mode || tsv_mode || crop.iter().any(Option::is_some);
     let doc = match pdf_reader::read(&raw_bytes,password) {
         Ok((doc,_)) => doc,
         Err(pdf_reader::PASSWORD) => return err_out(if quiet {""} else {"Command Line Error: Incorrect password\n"},1),
+        Err(e) if needs_geometry => return err_out(if quiet {""} else {e},1),
         Err(_) => PdfDoc::parse(&raw_bytes),
     };
     let page_count = doc.pages.len().max(1);
@@ -9035,23 +9043,19 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
             selected_pages.push((pno, pg));
         }
     }
+    let text_options = pdf_reader::TextOptions {resolution,crop,cropbox,spatial:bbox_mode||tsv_mode,raw,layout,colspacing,nodiag,limit:fs.max_input_bytes()};
+    let mut geometry_source = if needs_geometry {
+        match pdf_reader::PageSource::open(&raw_bytes,password) {Ok(source)=>Some(source),Err(e)=>return err_out(if quiet {""}else{e},1)}
+    }else{None};
+    let extra_meta = ["Subject","Creator","Producer"].iter().filter_map(|name|doc.info.iter().find(|(key,_)|key==name).filter(|(_,value)|!value.is_empty()).map(|(_,value)|format!("<meta name=\"{name}\" content=\"{}\"/>\n",html_escape_str(value)))).collect::<String>();
+    let mut empty_words = false;
     let mut rendered = if bbox_mode {
         let mut pages_xml = String::new();
-        for (_pno, pg) in &selected_pages {
-            pages_xml.push_str(&format!("  <page width=\"{:.6}\" height=\"{:.6}\">\n", doc.page_w, doc.page_h));
-            if bbox_layout {
-                pages_xml.push_str("    <flow>\n      <block xMin=\"0.000000\" yMin=\"0.000000\" xMax=\"100.000000\" yMax=\"20.000000\">\n        <line xMin=\"0.000000\" yMin=\"0.000000\" xMax=\"100.000000\" yMax=\"20.000000\">\n");
-            }
-            for w in pg.text.split_whitespace() {
-                pages_xml.push_str(&format!(
-                    "          <word xMin=\"0.000000\" yMin=\"0.000000\" xMax=\"50.000000\" yMax=\"12.000000\">{}</word>\n",
-                    html_escape_str(w)
-                ));
-            }
-            if bbox_layout {
-                pages_xml.push_str("        </line>\n      </block>\n    </flow>\n");
-            }
-            pages_xml.push_str("  </page>\n");
+        for (pno, _) in &selected_pages {
+            let Some(page) = geometry_source.as_mut().and_then(|s|s.spatial_text(*pno,&text_options)) else {return err_out(if quiet {""}else{"PDF text geometry limit or unsupported font encoding\n"},1);};
+            empty_words |= page.empty() && !bbox_layout;
+            pages_xml.push_str(&page.bbox(bbox_layout,resolution));
+            if pages_xml.len() > fs.shell_limits().max_output_bytes {return err_out("PDF text output limit exceeded\n",1);}
         }
         let author_meta = if doc.author.is_empty() {
             String::new()
@@ -9059,34 +9063,17 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
             format!("<meta name=\"Author\" content=\"{}\"/>\n", html_escape_str(&doc.author))
         };
         format!(
-            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<title>{}</title>\n{author_meta}</head>\n<body>\n<doc>\n{pages_xml}</doc>\n</body>\n</html>\n",
+            "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<title>{}</title>\n{author_meta}{extra_meta}</head>\n<body>\n<doc>\n{pages_xml}</doc>\n</body>\n</html>\n",
             html_escape_str(&doc.title)
         )
     } else if tsv_mode {
         let mut tsv = String::from(
             "level\tpage_num\tpar_num\tblock_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n",
         );
-        for (pno, pg) in &selected_pages {
-            tsv.push_str(&format!(
-                "1\t{pno}\t0\t0\t0\t0\t0.000000\t0.000000\t{:.6}\t{:.6}\t-1\t###PAGE###\n",
-                doc.page_w, doc.page_h
-            ));
-            let non_empty_lines: Vec<&str> = pg.text.lines().map(|l| l.trim()).filter(|l| !l.is_empty()).collect();
-            if !non_empty_lines.is_empty() {
-                tsv.push_str(&format!(
-                    "3\t{pno}\t0\t0\t0\t0\t0.000000\t0.000000\t100.000000\t20.000000\t-1\t###FLOW###\n"
-                ));
-                for (lidx, line_str) in non_empty_lines.iter().enumerate() {
-                    tsv.push_str(&format!(
-                        "4\t{pno}\t0\t0\t{lidx}\t0\t0.000000\t0.000000\t100.000000\t20.000000\t-1\t###LINE###\n"
-                    ));
-                    for (widx, w) in line_str.split_whitespace().enumerate() {
-                        tsv.push_str(&format!(
-                            "5\t{pno}\t0\t0\t{lidx}\t{widx}\t0.00\t0.00\t50.00\t12.00\t100\t{w}\n"
-                        ));
-                    }
-                }
-            }
+        for (pno, _) in &selected_pages {
+            let Some(page) = geometry_source.as_mut().and_then(|s|s.spatial_text(*pno,&text_options)) else {return err_out(if quiet {""}else{"PDF text geometry limit or unsupported font encoding\n"},1);};
+            tsv.push_str(&page.tsv(*pno,raw,resolution));
+            if tsv.len() > fs.shell_limits().max_output_bytes {return err_out("PDF text output limit exceeded\n",1);}
         }
         if htmlmeta {
             let author_meta = if doc.author.is_empty() {
@@ -9095,7 +9082,7 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                 format!("<meta name=\"Author\" content=\"{}\"/>\n", html_escape_str(&doc.author))
             };
             format!(
-                "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<title>{}</title>\n{author_meta}</head>\n<body>\n<pre>\n{}</pre>\n</body>\n</html>\n",
+                "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<title>{}</title>\n{author_meta}{extra_meta}</head>\n<body>\n<pre>\n{}</pre>\n</body>\n</html>\n",
                 html_escape_str(&doc.title),
                 html_escape_str(&tsv)
             )
@@ -9106,7 +9093,10 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
         let mut plain = String::new();
         let mut source = (urls_mode || raw || !layout || nodiag).then(||pdf_reader::PageSource::open(&raw_bytes,password).ok()).flatten();
         for (pno, pg) in &selected_pages {
-            let mut t = if layout && !raw && !nodiag {
+            let mut t = if let Some(source) = &mut geometry_source {
+                let Some(page) = source.spatial_text(*pno,&text_options) else {return err_out(if quiet {""}else{"PDF text geometry limit or unsupported font encoding\n"},1);};
+                page.plain(raw,layout,!raw&&rejoin)
+            } else if layout && !raw && !nodiag {
                 pg.text.replace("\n\n", "\n")
             } else {
                 let width = doc.page_media.get(pno).map_or(doc.page_w, |m|m.0).abs();
@@ -9159,7 +9149,7 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                 format!("<meta name=\"Author\" content=\"{}\"/>\n", html_escape_str(&doc.author))
             };
             format!(
-                "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<title>{}</title>\n{author_meta}</head>\n<body>\n<pre>\n{}</pre>\n</body>\n</html>\n",
+                "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\" \"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\"><html xmlns=\"http://www.w3.org/1999/xhtml\">\n<head>\n<title>{}</title>\n{author_meta}{extra_meta}</head>\n<body>\n<pre>\n{}</pre>\n</body>\n</html>\n",
                 html_escape_str(&doc.title),
                 html_escape_str(&plain)
             )
@@ -9189,18 +9179,19 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
     } else {
         "-".to_string()
     };
+    let diagnostics = format!("{warn_prefix}{}",if empty_words&&!quiet {"no word list\n"}else{""});
     if out_target == "-" {
         BuiltinOutcome {
             stdout: rendered,
-            stderr: warn_prefix.to_string(),
+            stderr: diagnostics,
             exit_code: 0,
         }
     } else {
         let dst = resolve_posix_path(cwd, &out_target);
-        let _ = fs.write_file(&dst, rendered.as_bytes());
+        if !fs.is_dir(&crate::vfs::dirname_posix_path(&dst)) || fs.write_file(&dst, rendered.as_bytes()).is_err() {return err_out(if quiet {""}else{"Error opening output file\n"},2);}
         BuiltinOutcome {
             stdout: String::new(),
-            stderr: warn_prefix.to_string(),
+            stderr: diagnostics,
             exit_code: 0,
         }
     }

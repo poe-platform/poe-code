@@ -5192,7 +5192,8 @@ export class Runtime {
         catch (error) {
           this.rethrowArithmeticControl(error);
           if (io.execution) io.execution.arithmeticDiagnostic = true;
-          await this.diagnostic(io, `((: ${message(error, this.budget.onInternalError)}`);
+          const detail = message(error, this.budget.onInternalError);
+          await this.diagnostic(io, error instanceof PublicDiagnostic && detail.endsWith(": readonly variable") ? detail : `((: ${detail}`);
           status = 1;
         }
       } else if (command.kind === "subshell") {
@@ -5333,7 +5334,8 @@ export class Runtime {
             try { return await this.expandedArithmeticValue(program, state, io); }
             catch (error) {
               this.rethrowArithmeticControl(error);
-              await this.diagnostic(io, `((: ${message(error, this.budget.onInternalError)}`);
+              const detail = message(error, this.budget.onInternalError);
+              await this.diagnostic(io, error instanceof PublicDiagnostic && detail.endsWith(": readonly variable") ? detail : `((: ${detail}`);
               return undefined;
             }};
           const evaluateSyncNonZero = (program: ArithmeticProgram | undefined): boolean | Promise<bigint | undefined> => {
@@ -5344,7 +5346,8 @@ export class Runtime {
               catch (error) {
                 if (error instanceof ArrayFailure) this.budget.parsing.restore(snap); else {
                   this.rethrowArithmeticControl(error);
-                  return this.diagnostic(io, `((: ${message(error, this.budget.onInternalError)}`).then(() => undefined);
+                  const detail = message(error, this.budget.onInternalError);
+                  return this.diagnostic(io, error instanceof PublicDiagnostic && detail.endsWith(": readonly variable") ? detail : `((: ${detail}`).then(() => undefined);
                 }
               }
             }

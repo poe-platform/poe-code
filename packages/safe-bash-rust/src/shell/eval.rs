@@ -2352,7 +2352,7 @@ impl<'a> EvalState<'a> {
                     if let Err(e) = self.assign_variable(var, &val, false) {
                         match e {
                             EvalError::Syntax(msg) if msg.contains("readonly variable") => {
-                                stderr.push_str(&format!("{msg}\n"));
+                                stderr.push_str(&format!("{}{msg}\n", self.diag_prefix()));
                                 code = 1;
                                 break;
                             }
@@ -2646,7 +2646,8 @@ impl<'a> EvalState<'a> {
                             self.restore_redirects(saved_fds, saved_in);
                             return Err(EvalError::Syntax(nu.to_string()));
                         }
-                        stderr.push_str(&format!("{}((: {e}\n", self.diag_prefix()));
+                        let context = if e.ends_with(": readonly variable") { "" } else { "((: " };
+                        stderr.push_str(&format!("{}{context}{e}\n", self.diag_prefix()));
                         let mut out = BuiltinOutcome {
                             stdout,
                             stderr,
@@ -2678,7 +2679,8 @@ impl<'a> EvalState<'a> {
                                     self.restore_redirects(saved_fds, saved_in);
                                     return Err(EvalError::Syntax(nu.to_string()));
                                 }
-                                stderr.push_str(&format!("{}((: {e}\n", self.diag_prefix()));
+                                let context = if e.ends_with(": readonly variable") { "" } else { "((: " };
+                                stderr.push_str(&format!("{}{context}{e}\n", self.diag_prefix()));
                                 code = 1;
                                 break;
                             }
@@ -2712,7 +2714,8 @@ impl<'a> EvalState<'a> {
                                 self.restore_redirects(saved_fds, saved_in);
                                 return Err(EvalError::Syntax(nu.to_string()));
                             }
-                            stderr.push_str(&format!("{}((: {e}\n", self.diag_prefix()));
+                            let context = if e.ends_with(": readonly variable") { "" } else { "((: " };
+                            stderr.push_str(&format!("{}{context}{e}\n", self.diag_prefix()));
                             code = 1;
                             break;
                         }
@@ -2972,9 +2975,10 @@ impl<'a> EvalState<'a> {
                             return Err(EvalError::Syntax(nu.to_string()));
                         }
                         self.env.insert("\0arith_diag".to_string(), "1".to_string());
+                        let context = if e.ends_with(": readonly variable") { "" } else { "((: " };
                         let mut diag_out = BuiltinOutcome {
                             stdout: String::new(),
-                            stderr: format!("{}((: {e}\n", self.diag_prefix()),
+                            stderr: format!("{}{context}{e}\n", self.diag_prefix()),
                             exit_code: 1,
                         };
                         self.route_outcome(&mut diag_out);

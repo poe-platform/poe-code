@@ -19,7 +19,7 @@ interface CutRange { start: number; end: number }
 // GNU cut reserves UINTMAX_MAX for open-ended ranges.
 const CUT_UINTMAX_MAX = 18446744073709551615n;
 
-async function cutRanges(list: string, work: SortWork): Promise<CutRange[]> {
+async function cutRanges(list: string, mode: string, work: SortWork): Promise<CutRange[]> {
   const ranges: CutRange[] = [];
   let tokenStart = 0;
   let dash = -1;
@@ -49,6 +49,8 @@ async function cutRanges(list: string, work: SortWork): Promise<CutRange[]> {
       start = 0n;
       end = 0n;
       invalid = false;
+    } else if (character === "-" && dash >= 0) {
+      throw new PublicDiagnostic(`invalid ${mode === "f" ? "field" : "byte or character"} range\nTry 'cut --help' for more information.`);
     } else if (character === "-" && dash < 0) {
       dash = index;
     } else {
@@ -279,7 +281,7 @@ async function executeCutGeneral(context: CommandContext): Promise<{ exitCode: n
       const byteSelection = mode === "b" || (mode === "c" && (locale === "C" || locale === "POSIX"));
       if (mode !== "f" && (parsed.flags.has("d") || parsed.flags.has("s"))) throw new UsageError("delimiter options require field mode");
       const work = new SortWork(context.signal);
-      const ranges = await cutRanges(value(parsed, mode)!, work);
+      const ranges = await cutRanges(value(parsed, mode)!, mode, work);
       const complement = parsed.flags.has("complement");
       const delimiter = value(parsed, "d") ?? "\t";
       if (delimiter.length !== 0 && delimiter.length !== (delimiter.codePointAt(0)! > 0xffff ? 2 : 1)) throw new UsageError("delimiter must be a single character");

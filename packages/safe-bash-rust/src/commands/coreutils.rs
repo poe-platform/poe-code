@@ -2288,7 +2288,7 @@ struct CutRange {
     end: usize,
 }
 
-fn parse_cut_ranges(list: &str) -> Result<Vec<CutRange>, (String, i32)> {
+fn parse_cut_ranges(list: &str, mode: char) -> Result<Vec<CutRange>, (String, i32)> {
     let bytes = list.as_bytes();
     let mut ranges: Vec<CutRange> = Vec::new();
     let mut token_start = 0usize;
@@ -2341,6 +2341,9 @@ fn parse_cut_ranges(list: &str) -> Result<Vec<CutRange>, (String, i32)> {
             start = 0;
             end = 0;
             invalid = false;
+        } else if ch == Some(b'-') && dash.is_some() {
+            let kind = if mode == 'f' { "field" } else { "byte or character" };
+            return Err((format!("cut: invalid {kind} range\nTry 'cut --help' for more information.\n"), 1));
         } else if ch == Some(b'-') && dash.is_none() {
             dash = Some(index);
         } else if let Some(b) = ch {
@@ -2500,7 +2503,7 @@ fn cmd_cut(
         return err_out("cut: delimiter options require field mode\n", 2);
     }
 
-    let ranges = match parse_cut_ranges(&list_spec) {
+    let ranges = match parse_cut_ranges(&list_spec, active_mode) {
         Ok(r) => r,
         Err((msg, code)) => return err_out(&msg, code),
     };

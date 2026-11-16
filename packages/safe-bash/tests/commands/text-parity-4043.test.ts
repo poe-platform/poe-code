@@ -46,9 +46,9 @@ for (const spec of ["1,2-3-4", "2-3-4", "1,2--3"]) {
     const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...createStandardCommands(), ...createStreamFormatCommands()]) });
     try {
       const result = await shell.exec(`printf 'a\\tb\\tc\\n' | cut -f${spec}`);
-      assert.equal(result.exitCode, 2);
+      assert.equal(result.exitCode, 1);
       assert.equal(result.stdout, "");
-      assert.match(result.stderr, /invalid range/);
+      assert.equal(result.stderr, "cut: invalid field range\nTry 'cut --help' for more information.\n");
     } finally { await shell.dispose(); }
   });
 }
@@ -62,11 +62,12 @@ test("cut sync stdin rejects a multi-dash item after a valid field", async () =>
     return { done: false, value: bytes };
   };
   const stdin = {
-    tryReadAllSync: () => bytes,
+    tryReadAllSync: () => { assert.fail("invalid range must not read stdin"); },
     [Symbol.asyncIterator]: () => ({ next: async () => next(), tryNextSync: next }),
   };
   const result = await run("cut", ["-f1,2-3-4"], { stdin, commands: createStandardCommands() });
-  assert.equal(result.exitCode, 2);
+  assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
-  assert.match(result.stderr, /invalid range/);
+  assert.equal(result.stderr, "cut: invalid field range\nTry 'cut --help' for more information.\n");
+  assert.equal(consumed, false);
 });

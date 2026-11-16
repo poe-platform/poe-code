@@ -122,9 +122,6 @@ impl Image {
             Some(b"/DCTDecode" | b"/DCT")
         );
         let jbig2 = last.as_ref().and_then(Value::word) == Some(b"/JBIG2Decode");
-        if jbig2 && !matches!(mode, ImageRead::List | ImageRead::Extract {jbig2: true, ..}) {
-            return Some(None);
-        }
         if !fax && !jpeg && !jbig2 {
             for filter in &filters {
                 if !matches!(
@@ -202,6 +199,7 @@ impl Image {
         if !matches!(bits, 1 | 2 | 4 | 8 | 16)
             || fax && (bits != 1 || components != 1)
             || jpeg && bits != 8
+            || jbig2 && (bits != 1 || components != 1)
         {
             return Some(None);
         }
@@ -242,7 +240,29 @@ impl Image {
             if data.len().checked_add(globals.as_ref().map_or(0, Vec::len))? > limit {
                 return None;
             }
-            native = Some(NativeImage::Jbig2(data.into_owned(), globals));
+            if matches!(mode, ImageRead::Extract { jbig2: true, .. }) {
+                native = Some(NativeImage::Jbig2(data.into_owned(), globals));
+            } else {
+                if count > limit / 4 { return None; }
+                let page = hayro_jbig2::Image::new_embedded(&data, globals.as_deref()).ok()?;
+                if (page.width() as usize, page.height() as usize) != (width, height) { return None; }
+                struct Pixels(Vec<[u8; 4]>);
+                impl hayro_jbig2::Decoder for Pixels {
+                    fn push_pixel(&mut self, black: bool) {
+                        let v = if black { 0 } else { 255 };
+                        self.0.push([v, v, v, 255]);
+                    }
+                    fn push_pixel_chunk(&mut self, black: bool, count: u32) {
+                        let v = if black { 0 } else { 255 };
+                        self.0.resize(self.0.len() + count as usize * 8, [v, v, v, 255]);
+                    }
+                    fn next_line(&mut self) {}
+                }
+                let mut output = Pixels(Vec::with_capacity(count));
+                page.decode(&mut output).ok()?;
+                if output.0.len() != count { return None; }
+                pixels = output.0;
+            }
         } else if fax && mode != ImageRead::List {
             let outer = match objects.filter_value(dict.get(b"Filter")?.clone())? {
                 Value::Array(mut a) => {
@@ -478,7 +498,7 @@ impl Image {
                 let index = (lo + (hi - lo) * f64::from(p[0]) / max).round().clamp(0., (palette.len() - 1) as f64) as usize;
                 *p = palette[index];
             }
-        } else if !mono_extract && !pixels.is_empty() {
+        } else if (!mono_extract || jbig2) && !pixels.is_empty() {
             if let Some(v) = dict.get(b"Decode") {
                 let Value::Array(ranges) = objects.filter_value(v.clone())? else {
                     return None;
@@ -710,7 +730,7 @@ impl Image {
             };
         }
         let color = match (self.bits, self.components) {
-            (1, 1) => "mono",
+            (1, 1) if !self.jbig2 || self.pixels.iter().all(|p| matches!(p[0], 0 | 255)) => "mono",
             (_, 1) => "gray",
             (_, 4) => "cmyk",
             _ => "rgb",

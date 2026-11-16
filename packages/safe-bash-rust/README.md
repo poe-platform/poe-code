@@ -6,7 +6,7 @@ Markdown reference links and images resolve definitions across their document, i
 
 Run virtualized shell commands in native Rust or WebAssembly (`wasm32-unknown-unknown`), with a TypeScript bridge on native hosts for document and media tools and `ls` long listings (`-l`, `-g`, `-o`, `-n`). Native-only mode rejects these long listings instead of silently omitting file metadata; ordinary filename listings remain native.
 
-`safe-bash-rust` provides a zero-dependency Rust `Shell`, `PoeAgentShellHost`, and WebAssembly runtime (`createRustWasmBash`) with built-in POSIX/Bash grammar, virtual filesystems (`MemoryVfs`, `OverlayVfs`, `MountVfs`, `RealVfs`), resource budgets (`ShellLimits`), and native implementations of `rg`, `find`, `xargs`, `sed`, `awk`, `jq`, `yq`, `xan`, `csvcut`/`csvgrep`/`csvsort`, `sqlite3`, `tar`, `gzip`/`zstd`/`xz`/`bzip2`/`zip`, `sha256sum`, `xxd`, `od`, and `dd`. Document and media commands, including `pandoc`, use the TypeScript safe-bash bridge in hybrid mode. Native-only and WebAssembly execution use the Rust document and media commands. PDF rasterization applies nonzero and even-odd path clipping to fills, strokes, text, and images, including saved graphics states and Forms. Axial gradients support DeviceGray/RGB/CMYK and exponential functions, transforms, Extend flags, and clipping; unsupported or malformed shading fails without replacing the output. It supports Standard 14 fonts and embedded simple TrueType fonts with WinAnsi encoding and horizontal Identity-H CIDFontType2 fonts with identity or explicit CID-to-glyph maps and CID widths, including filled and stroked text with transformed line widths and dash patterns; unsupported font programs fail without replacing the output. Python, LibreOffice, and rsvg-convert still require the host bridge.
+`safe-bash-rust` provides a Rust `Shell`, `PoeAgentShellHost`, and WebAssembly runtime (`createRustWasmBash`) with built-in POSIX/Bash grammar, virtual filesystems (`MemoryVfs`, `OverlayVfs`, `MountVfs`, `RealVfs`), resource budgets (`ShellLimits`), and native implementations of `rg`, `find`, `xargs`, `sed`, `awk`, `jq`, `yq`, `xan`, `csvcut`/`csvgrep`/`csvsort`, `sqlite3`, `tar`, `gzip`/`zstd`/`xz`/`bzip2`/`zip`, `sha256sum`, `xxd`, `od`, and `dd`. Document and media commands, including `pandoc`, use the TypeScript safe-bash bridge in hybrid mode. Native-only and WebAssembly execution use the Rust document and media commands. PDF rasterization applies nonzero and even-odd path clipping to fills, strokes, text, and images, including saved graphics states and Forms. Axial gradients support DeviceGray/RGB/CMYK and exponential functions, transforms, Extend flags, and clipping; unsupported or malformed shading fails without replacing the output. It supports Standard 14 fonts and embedded simple TrueType fonts with WinAnsi encoding and horizontal Identity-H CIDFontType2 fonts with identity or explicit CID-to-glyph maps and CID widths, including filled and stroked text with transformed line widths and dash patterns; unsupported font programs fail without replacing the output. Python, LibreOffice, and rsvg-convert still require the host bridge.
 
 Native `qpdf --json=1` and `--json=2` honor `--json-key` selection, including repeated keys. Page summaries include content references, inherited images, page labels and outline destinations. Version 1 exposes `objects` and `objectinfo`; version 2 keeps its object graph under `qpdf`. Selecting page metadata does not export unselected streams. Encrypted-document, form and attachment JSON metadata remain limited.
 
@@ -17,7 +17,7 @@ For trusted Python in native hybrid mode, install Pyodide 314.0.6 and set the ho
 | Capability | Description |
 | --- | --- |
 | `Shell` | Stateful virtual shell (`cwd`, `env`, `SafeBashFs`) using native Rust by default; select `BackendMode::Hybrid` or `TypeScriptOnly` explicitly for the Node bridge |
-| `createRustWasmBash` | Node.js, browser and Cloudflare Workers loader for the zero-dependency WebAssembly (`wasm32-unknown-unknown`) shell |
+| `createRustWasmBash` | Node.js, browser and Cloudflare Workers loader for the WebAssembly (`wasm32-unknown-unknown`) shell |
 | `MemoryVfs` / `OverlayVfs` / `MountVfs` | In-memory VFS with quota limits, Copy-on-Write overlays, and path-routed virtual mounts (`/dev`) |
 | `ShellLimits` | Bounded loop iterations, command count, recursion depth, output bytes, and filesystem operations |
 | `PoeAgentShellHost` | Drop-in `poe-agent-rust` shell host with `read`/`edit` policy checks, 128 KiB UTF-16 tail retention, and background handles (`run_in_background`, `read_background`, `kill_background`) |
@@ -60,6 +60,12 @@ TypeScript renderer, including graphics-state save/restore. Zero ink is white;
 process black (`0 0 0 1`) is RGB `(44,46,53)`. Device-dependent profiles can differ:
 red (`0 1 1 0`) is `(255,46,23)` here and `(238,29,35)` in the PDFium reference.
 See [the PDF.js license](./LICENSE.PDFJS).
+
+Embedded JBIG2 images support generic arithmetic/MMR regions and global symbol
+dictionaries through [Hayro](./LICENSE.HAYRO). Rendering and decoded PNG/PBM
+extraction apply PDF Decode values before masks; encoded JBIG2 extraction keeps
+the original page and global streams. Fractional Decode values retain grayscale
+levels in PNG output.
 
 PDF raster output applies the standard `/BM` blend modes to paths, text, images,
 and shading, including constant opacity and saved graphics state. Invalid or

@@ -64,6 +64,6 @@ test("basename extra operands preserve substitution failure status", async () =>
     const result = await execute(source);
     assert.equal(result.exitCode, 1);
     assert.equal(result.stdout, "");
-    assert.equal(result.stderr, "basename: extra operand '.txt'\n".repeat(source.startsWith("for ") ? 2 : 1));
+    assert.equal(result.stderr, "basename: extra operand '.txt'\nTry 'basename --help' for more information.\n".repeat(source.startsWith("for ") ? 2 : 1));
   }
 });

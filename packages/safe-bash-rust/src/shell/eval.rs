@@ -4433,7 +4433,7 @@ impl<'a> EvalState<'a> {
 
         if !bypass_functions && let Some(func_body) = self.functions.get(cmd).cloned() {
             self.budget.enter_recursion().map_err(EvalError::Budget)?;
-            let prev_loop_depth = self.loop_depth;
+            let prev_loop_depth = std::mem::replace(&mut self.loop_depth, 0);
             let prev_args = std::mem::replace(&mut self.pos_args, args.to_vec());
             let prev_pos_ver = self.pos_args_version;
             let caller_frame = self.capture_caller_frame(cmd);
@@ -4644,7 +4644,7 @@ impl<'a> EvalState<'a> {
                 if self.loop_depth == 0 {
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("{cmd}: only meaningful in a loop\n"),
+                        stderr: format!("{}{cmd}: only meaningful in a `for', `while', or `until' loop\n", self.diag_prefix()),
                         exit_code: 0,
                     });
                 }

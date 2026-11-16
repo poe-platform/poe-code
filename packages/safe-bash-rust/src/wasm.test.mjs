@@ -17173,3 +17173,5 @@ import "./arithmetic-discard.wasm.test.mjs";
 import "./physical-mode.wasm.test.mjs";
 
 import "./local-options.wasm.test.mjs";
+
+import "./function-loop-boundary.wasm.test.mjs";

@@ -34,7 +34,8 @@ for (const mode of ["plain", "arrays", "middleware"]) {
         }
         const result = await shell.exec(source);
         assert.equal(result.stdout, expected);
-        assert.equal(result.stderr, `${command}: only meaningful in a loop\n`.repeat(diagnostics));
+        const origin = name === "source inside function" ? "/control" : "shell";
+        assert.equal(result.stderr, `${origin}: line 1: ${command}: only meaningful in a \`for', \`while', or \`until' loop\n`.repeat(diagnostics));
         assert.equal(result.exitCode, 0);
       });
     }

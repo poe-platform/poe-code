@@ -1086,3 +1086,31 @@ test("readonly indexed conditional arithmetic failure and downstream diagnostics
   assert.deepEqual(nativeBytes, Buffer.concat([nativeFirst, downstream]));
   assert.deepEqual(virtualBytes, nativeBytes);
 });
+
+const readonlyReaderIsolation = [
+  {"name": "previous-unit-function", "source": "readonly -a values=(one)\nf() { readonly -a values=(two); printf skipped; }\nf; printf skipped\nprintf \"after=%s:%s\" \"$?\" \"$values\"", "stdin": "", "stdout": "after=1:one", "stderr": "shell: line 2: f: values: readonly variable\n", "exitCode": 0},
+  {"name": "substitution-eval", "source": "readonly -a values=(one); text=$(eval 'readonly -a values=(two); printf skipped\nprintf \"inner=%s;\" \"$?\"'; printf outer); printf '<%s>' \"$text\"", "stdin": "", "stdout": "<>", "stderr": "shell: line 2: eval: values: readonly variable\n", "exitCode": 0},
+  {"name": "same-line", "source": "readonly -a values=(one); readonly -a values=(two); printf skipped", "stdin": "", "stdout": "", "stderr": "shell: line 1: values: readonly variable\n", "exitCode": 1},
+  {"name": "scalar-control", "source": "readonly value=one; readonly value=two; printf \"after=%s:%s\" \"$?\" \"$value\"", "stdin": "", "stdout": "after=1:one", "stderr": "shell: line 1: value: readonly variable\n", "exitCode": 0},
+  {"name": "scalar-errexit-control", "source": "set -e; readonly value=one; readonly value=two; printf skipped\nprintf skipped", "stdin": "", "stdout": "", "stderr": "shell: line 1: value: readonly variable\n", "exitCode": 1},
+  {"name": "explicit-exit-control", "source": "exit 7; printf skipped\nprintf skipped", "stdin": "", "stdout": "", "stderr": "", "exitCode": 7},
+  {"name": "readonly-append", "source": "readonly -a values=(one); readonly -a values+=(two); printf skipped\nprintf \"after=%s:%s\" \"$?\" \"$values\"", "stdin": "", "stdout": "after=1:one", "stderr": "shell: line 1: values: readonly variable\n", "exitCode": 0},
+  {"name": "substitution-source", "source": "text=$(source /dev/stdin; printf outer); printf \"<%s>\" \"$text\"", "stdin": "readonly -a values=(one); readonly -a values=(two); printf skipped\nprintf inner", "stdout": "<>", "stderr": "/dev/stdin: line 1: values: readonly variable\n", "exitCode": 0},
+  {"name": "substitution-child-script", "source": "text=$(bash /dev/stdin; printf outer); printf \"<%s>\" \"$text\"", "stdin": "readonly -a values=(one); readonly -a values=(two); printf skipped\nprintf inner", "stdout": "<innerouter>", "stderr": "/dev/stdin: line 1: values: readonly variable\n", "exitCode": 0},
+  {"name": "subshell-variable-control", "source": "BASH_SUBSHELL=9; readonly -a values=(one); readonly -a values=(two); printf skipped\nprintf after", "stdin": "", "stdout": "after", "stderr": "shell: line 1: values: readonly variable\n", "exitCode": 0},
+  {"name": "substitution-variable-control", "source": "readonly -a values=(one); text=$(BASH_SUBSHELL=0; eval 'readonly -a values=(two); printf skipped\nprintf inner'; printf outer); printf '<%s>' \"$text\"", "stdin": "", "stdout": "<>", "stderr": "shell: line 2: eval: values: readonly variable\n", "exitCode": 0},
+];
+for (const entry of readonlyReaderIsolation) {
+  test(`readonly indexed primary 5.3 reader isolation: ${entry.name}`, async context => {
+    const fs = createMemoryFileSystem();
+    if (entry.stdin) {
+      await fs.mkdir("/dev");
+      await fs.writeFile("/dev/stdin", Buffer.from(entry.stdin));
+    }
+    const shell = new Shell({ fs, extensions: [arraysExtension()] });
+    context.after(() => shell.dispose());
+    for (const command of basicCommands()) shell.register(command);
+    const result = await shell.exec(entry.source, { stdin: entry.stdin, env: { LC_ALL: "C" } });
+    assert.deepEqual([result.stdout, result.stderr, result.exitCode], [entry.stdout, entry.stderr, entry.exitCode]);
+  });
+}

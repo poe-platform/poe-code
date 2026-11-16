@@ -17165,3 +17165,5 @@ import "./pdf-font-substitution.wasm.test.mjs";
 import "./pdf-cairo-svg.wasm.test.mjs";
 
 import "./pdf-text-geometry.wasm.test.mjs";
+
+import "./readonly-discard.wasm.test.mjs";

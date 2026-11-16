@@ -919,6 +919,7 @@ export const invokedValues = new WeakMap<WordPart, ShellValue>();
 export const functionDiagnostics = new WeakMap<Command, Readonly<{ offset: number; lines?: ReadonlyMap<Command, number> }>>();
 const childIdentities = new WeakMap<object, number>();
 export interface State extends DynamicVariableState {
+  subshellEnvironment?: boolean;
   variableAttributes?: Map<string, string>;
   namerefVariables?: Set<string> | undefined;
   umask?: number;
@@ -4557,6 +4558,7 @@ export class Runtime {
       child.extensions = forkExtensions(state.extensions, "subshell");
       child.isolated = true;
       child.commandString = false;
+      child.subshellEnvironment = true;
       child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
       child.depth++;
       const allocation = this.budget.values.scope();
@@ -4714,6 +4716,7 @@ export class Runtime {
                   : (tryCloneStateSync(state) ?? await cloneState(state, this.signal));
                 preparedChild = inCurrentShell ? undefined : child;
                 if (!inCurrentShell) {
+                  child.subshellEnvironment = true;
                   child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
                   (child as { _subshellInLoop?: boolean })._subshellInLoop = false;
                 }
@@ -5204,6 +5207,7 @@ export class Runtime {
           child.extensions = forkExtensions(state.extensions, "subshell");
           child.isolated = true;
           child.commandString = false;
+          child.subshellEnvironment = true;
           child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
           child.loopDepth = 0;
           // Bash parenthesized groups stop inherited loop control, unlike command substitutions.
@@ -5533,7 +5537,7 @@ export class Runtime {
       if (error instanceof FailglobFailure) throw completedExit(1, state.errexit ? "exit" : "discard");
       if (error instanceof ExpansionFailure || error instanceof BraceExpansionFailure) throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
       if (error instanceof FatalCommandFailure) throw completedExit(error.status);
-      if (error instanceof DiscardCommandFailure) throw completedExit(error.status, "discard");
+      if (error instanceof DiscardCommandFailure) throw completedExit(error.status, state.subshellEnvironment ? "exit" : "discard");
       const status = outputTracker.outputStatus ?? (error instanceof CommandFailure ? error.status : 1);
       if (command.kind !== "simple" && command.kind !== "subshell" && command.kind !== "arithmetic" && command.kind !== "conditional") await this.errexit(status, state, io);
       return { status, diagnosticFailure };
@@ -9366,7 +9370,7 @@ export class Runtime {
           const original = declarationValues[declarationOffset + declarationIndex]!;
           return typeof original === "string" ? match[2]! : shellValueFromBytes(shellValueBytes(original, context[valueScope]).subarray(name.length + (append ? 2 : 1)), context[valueScope]);};
         if (state.readonlyVariables?.has(name) && (match[2] !== undefined || localDeclaration)) {
-          const provenance = readonlySyntax && (command === "readonly" || command === "local" && indexedLocal) ? `${command}: ` : "";
+          const provenance = readonlySyntax && (command === "readonly" && indexedReadonly || command === "local" && indexedLocal) ? `${command}: ` : "";
           await this.diagnostic(context, `${provenance}${name}: readonly variable`); status = 1; continue;
         }
         if (command === "readonly" && readonlySyntax && (indexedReadonly || match[2]?.startsWith("("))) {
@@ -10310,6 +10314,7 @@ export class Runtime {
         const child = await cloneState(state, this.signal);
         child.isolated = true;
         child.commandString = false;
+        child.subshellEnvironment = true;
         child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
         child.extensions = forkExtensions(state.extensions, "substitution");
         if (state.profile !== "sh") child.errexit = false;
@@ -10349,6 +10354,7 @@ export class Runtime {
         const child = await cloneState(state, this.signal);
         child.isolated = true;
         child.commandString = false;
+        child.subshellEnvironment = true;
         child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
         child.extensions = forkExtensions(state.extensions, "substitution");
         if (state.profile !== "sh") child.errexit = false;
@@ -10387,6 +10393,7 @@ export class Runtime {
       const child = await cloneState(state, this.signal);
       child.isolated = true;
       child.commandString = false;
+      child.subshellEnvironment = true;
       child.variables.BASH_SUBSHELL = String(Number(state.variables.BASH_SUBSHELL ?? 0) + 1);
       child.extensions = forkExtensions(state.extensions, "substitution");
       if (state.profile !== "sh" && !state.inherit_errexit) child.errexit = false;

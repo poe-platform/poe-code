@@ -53,7 +53,7 @@ pub(crate) trait CommandCaller {
 }
 
 pub(crate) enum MiddlewareFlow {
-    Exit {status:i32, explicit:bool, previous:Option<i32>},
+    Exit {status:i32, explicit:bool, discard:bool, previous:Option<i32>},
     Return {status:i32, previous:Option<i32>},
     Break {levels:usize, status:i32},
     Continue {levels:usize, status:i32},
@@ -70,7 +70,7 @@ impl CommandCaller for DispatchFrame<'_,'_> {
     fn take_flow(&mut self, status:i32, previous:Option<i32>) -> Option<MiddlewareFlow> {
         let state = &mut self.state;
         if let Some(status) = state.exit_requested.take() {
-            Some(MiddlewareFlow::Exit {status, explicit:std::mem::take(&mut state.explicit_exit),previous})
+            Some(MiddlewareFlow::Exit {status, explicit:std::mem::take(&mut state.explicit_exit),discard:std::mem::take(&mut state.discard_requested),previous})
         } else if let Some(status) = state.return_requested.take() {
             Some(MiddlewareFlow::Return {status,previous})
         } else if state.break_count != 0 {
@@ -81,7 +81,7 @@ impl CommandCaller for DispatchFrame<'_,'_> {
     }
     fn restore_flow(&mut self, flow:&MiddlewareFlow) {
         match *flow {
-            MiddlewareFlow::Exit {status,explicit,..} => { self.state.exit_requested=Some(status); self.state.explicit_exit=explicit; },
+            MiddlewareFlow::Exit {status,explicit,discard,..} => { self.state.exit_requested=Some(status); self.state.explicit_exit=explicit; self.state.discard_requested=discard; },
             MiddlewareFlow::Return {status,..} => self.state.return_requested=Some(status),
             MiddlewareFlow::Break {levels,..} => self.state.break_count=levels,
             MiddlewareFlow::Continue {levels,..} => self.state.continue_count=levels,
@@ -571,6 +571,9 @@ pub struct EvalState<'a> {
     pub pending_stdout: String,
     pub pending_stderr: String,
     pub exit_requested: Option<i32>,
+    // Unwind the current parsed input unit, then resume at its reader.
+    pub discard_requested: bool,
+    subshell_environment: bool,
     pub return_requested: Option<i32>,
     pub break_count: usize,
     pub continue_count: usize,
@@ -691,6 +694,8 @@ impl<'a> EvalState<'a> {
             pending_stdout: String::new(),
             pending_stderr: String::new(),
             exit_requested: None,
+            discard_requested: false,
+            subshell_environment: false,
             return_requested: None,
             break_count: 0,
             continue_count: 0,
@@ -849,6 +854,8 @@ impl<'a> EvalState<'a> {
             pending_stdout: String::new(),
             pending_stderr: String::new(),
             exit_requested: None,
+            discard_requested: false,
+            subshell_environment: true,
             return_requested: None,
             break_count: 0,
             continue_count: 0,
@@ -1070,7 +1077,8 @@ impl<'a> EvalState<'a> {
         script_text: &str,
         stdin: &mut String,
     ) -> Result<BuiltinOutcome, EvalError> {
-        let needs_unit_loop = !self.active_alias_map().is_empty()
+        let needs_unit_loop = script_text.contains('\n')
+            || !self.active_alias_map().is_empty()
             || script_text.contains("alias")
             || script_text.contains("shopt")
             || (script_text.contains("$'")
@@ -1095,7 +1103,11 @@ impl<'a> EvalState<'a> {
                             exit_code: 0,
                         });
                     }
-                    return self.eval_script(&ast, stdin);
+                    let out = self.eval_script(&ast, stdin)?;
+                    if std::mem::take(&mut self.discard_requested) {
+                        self.exit_requested = None;
+                    }
+                    return Ok(out);
                 }
                 Err(syn_err) if !script_text.contains('\n') => {
                     return Err(EvalError::Syntax(syn_err));
@@ -1180,6 +1192,10 @@ impl<'a> EvalState<'a> {
                 stderr.push_str(&unit_out.stderr);
                 last_code = unit_out.exit_code;
                 executed = true;
+            }
+            if std::mem::take(&mut self.discard_requested) {
+                self.exit_requested = None;
+                continue;
             }
             if self.exit_requested.is_some()
                 || self.return_requested.is_some()
@@ -4501,6 +4517,7 @@ impl<'a> EvalState<'a> {
             if let Ok(ref mut o) = out
                 && self.exit_requested.is_some()
                 && !self.explicit_exit
+                && !self.discard_requested
             {
                 self.run_exit_trap_if_needed(o);
             }
@@ -5742,6 +5759,8 @@ impl<'a> EvalState<'a> {
                     pending_stdout: String::new(),
                     pending_stderr: String::new(),
                     exit_requested: None,
+                    discard_requested: false,
+                    subshell_environment: false,
                     return_requested: None,
                     break_count: 0,
                     continue_count: 0,
@@ -6622,6 +6641,7 @@ impl<'a> EvalState<'a> {
         sub.source_depth = 0;
         sub.func_stack.clear();
         sub.sync_funcname();
+        sub.subshell_environment = false;
         sub.env.remove("BASH_SUBSHELL");
         sub.env.remove("\0unexported__BASH_SUBSHELL");
         sub.env.remove("!");
@@ -6787,6 +6807,10 @@ impl<'a> EvalState<'a> {
                 unit_start_line += unit_buf.matches('\n').count();
                 unit_buf.clear();
 
+                if std::mem::take(&mut self.discard_requested) {
+                    self.exit_requested = None;
+                    continue;
+                }
                 if self.exit_requested.is_some()
                     || self.return_requested.is_some()
                     || self.break_count > 0
@@ -7122,6 +7146,7 @@ impl<'a> EvalState<'a> {
         sub.current_line = 1;
         sub.func_stack.clear();
         sub.sync_funcname();
+        sub.subshell_environment = false;
         sub.env.remove("BASH_SUBSHELL");
         sub.env.remove("\0unexported__BASH_SUBSHELL");
         sub.env.remove("!");
@@ -8337,7 +8362,29 @@ impl<'a> EvalState<'a> {
                 .is_some_and(|a| a.contains('r'))
                 && (val_opt.is_some() || is_local)
             {
-                decl_stderr.push_str(&format!("{}{cmd}: {base_name}: readonly variable\n", self.diag_prefix()));
+                if val_opt.as_deref().is_some_and(|value| value.starts_with("\0__ARRAY_LITERAL__(")) {
+                    let context = if self.local_scopes.iter().any(|scope| scope.contains_key(&base_name)) {
+                        None
+                    } else if self.syntax_contexts.last().is_some_and(|(name, _, _)| name.ends_with(": eval")) {
+                        Some("eval")
+                    } else if self.source_depth == 0 {
+                        self.func_stack.first().map(String::as_str)
+                    } else {
+                        None
+                    };
+                    decl_stderr.push_str(&self.diag_prefix());
+                    if let Some(context) = context {
+                        decl_stderr.push_str(context);
+                        decl_stderr.push_str(": ");
+                    }
+                    decl_stderr.push_str(&format!("{base_name}: readonly variable\n"));
+                    self.exit_requested = Some(1);
+                    self.discard_requested = !self.subshell_environment;
+                    decl_status = 1;
+                    break;
+                }
+                let provenance = if cmd == "readonly" && !enabled.contains(&'a') { String::new() } else { format!("{cmd}: ") };
+                decl_stderr.push_str(&format!("{}{provenance}{base_name}: readonly variable\n", self.diag_prefix()));
                 decl_status = 1;
                 continue;
             }
@@ -12635,7 +12682,8 @@ impl<'a> EvalState<'a> {
         }
         let mut sub_in = self.in_fds.remove(&0).unwrap_or_default().take();
         let mut sub = self.make_child(&mut sub_cwd, &mut sub_env);
-        sub.callback_line_offset = self.current_line.saturating_sub(1);
+        // Bash reads through the closing substitution before executing its body.
+        sub.callback_line_offset = self.current_line.saturating_sub(1) + cmd_str.matches('\n').count();
         sub.forwarded_output = Rc::default();
         sub.in_cmdsub_file_shortcut = is_cmdsub_file_shortcut(cmd_str);
         let inherit_errexit = self

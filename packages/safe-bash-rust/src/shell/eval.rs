@@ -4658,7 +4658,7 @@ impl<'a> EvalState<'a> {
                         Err(_) => {
                             return Ok(BuiltinOutcome {
                                 stdout: String::new(),
-                                stderr: format!("shift: {s}: numeric argument required\n"),
+                                stderr: format!("{}shift: {s}: numeric argument required\n", self.diag_prefix()),
                                 exit_code: 2,
                             });
                         }
@@ -4666,10 +4666,18 @@ impl<'a> EvalState<'a> {
                 } else {
                     1
                 };
-                if args.len() - offset > 1 || n_signed < 0 {
+                if args.len() - offset > 1 {
+                    self.exit_requested = Some(1);
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: String::new(),
+                        stderr: format!("{}shift: too many arguments\n", self.diag_prefix()),
+                        exit_code: 1,
+                    });
+                }
+                if n_signed < 0 {
+                    return Ok(BuiltinOutcome {
+                        stdout: String::new(),
+                        stderr: format!("{}shift: {}: shift count out of range\n", self.diag_prefix(), args[offset]),
                         exit_code: 1,
                     });
                 }
@@ -4684,7 +4692,12 @@ impl<'a> EvalState<'a> {
                 } else {
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: String::new(),
+                        stderr: if self.get_shopt_enabled("shift_verbose", false) {
+                            let operand = args.get(offset).map(|s| format!("{s}: ")).unwrap_or_default();
+                            format!("{}shift: {operand}shift count out of range\n", self.diag_prefix())
+                        } else {
+                            String::new()
+                        },
                         exit_code: 1,
                     });
                 }
@@ -7639,6 +7652,7 @@ impl<'a> EvalState<'a> {
             "nocaseglob",
             "nocasematch",
             "nullglob",
+            "shift_verbose",
             "xpg_echo",
             "extdebug",
         ];

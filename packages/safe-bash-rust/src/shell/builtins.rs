@@ -1609,6 +1609,11 @@ pub fn builtin_printf(args: &[String], env: &mut BTreeMap<String, String>) -> Bu
         }
         if base != "FUNCNAME" {
             let truncated = out.split('\0').next().unwrap_or("").to_string();
+            if resolved.contains('[') && !env.contains_key(&format!("\0keys__{base}"))
+                && let Some(scalar) = env.get(base).cloned()
+            {
+                env.insert(format!("{base}[0]"), scalar);
+            }
             env.insert(resolved.clone(), truncated);
             if let Some((base, _)) = resolved.split_once('[') {
                 sync_array_metadata(base, env);

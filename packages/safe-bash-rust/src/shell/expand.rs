@@ -1769,6 +1769,12 @@ pub fn expand_parameter_expr(
             {
                 keys.push("0".to_string());
             }
+            if iv_var.ends_with("[*]") && env.get("\0in_dquote").is_some_and(|v| v == "1") {
+                let separator = env.get("IFS")
+                    .map(|s| s.chars().next().map(|c| c.to_string()).unwrap_or_default())
+                    .unwrap_or_else(|| " ".to_string());
+                return Ok(keys.join(&separator));
+            }
             return Ok(keys.join(" "));
         }
         if !iv_var.is_empty() && !iv_var.contains('[') && (iv_tail == "*" || iv_tail == "@") {

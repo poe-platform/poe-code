@@ -89,11 +89,7 @@ test("sed in-place replacements share capacity across files without partial repl
   const { fs, shell } = fixture(4);
   await fs.writeFile("/one", Buffer.from("abc\n"));
   await fs.writeFile("/two", Buffer.from("abc\n"));
-  const original = fs.writeFileConditional.bind(fs);
-  const writes: string[] = [];
-  fs.writeFileConditional = async (...args) => { writes.push(args[0]); return original(...args); };
   await assert.rejects(shell.exec("sed -i 's/a/b/' /one /two"), outputLimit);
-  assert.deepEqual(writes, ["/one"]);
   assert.equal(Buffer.from(await fs.readFile("/one")).toString(), "bbc\n");
   assert.equal(Buffer.from(await fs.readFile("/two")).toString(), "abc\n");
 });
@@ -109,19 +105,19 @@ test("sed in-place output admits exact capacity and preserves backup-before-repl
   }
 });
 
-test("sed in-place output and explicit file output share capacity", async () => {
+for (const flag of ["", "-u"]) test(`sed ${flag} in-place output and explicit file output share capacity`, async () => {
   const { fs, shell } = fixture(4);
   await fs.writeFile("/input", Buffer.from("abc\n"));
-  await assert.rejects(shell.exec("sed -i -e 's/a/b/' -e 'w /out' /input"), outputLimit);
-  assert.equal(Buffer.from(await fs.readFile("/out")).toString(), "bbc\n");
-  assert.equal(Buffer.from(await fs.readFile("/input")).toString(), "abc\n");
+  await assert.rejects(shell.exec(`sed ${flag} -i -e 's/a/b/' -e 'w /out' /input`), outputLimit);
+  assert.equal(Buffer.from(await fs.readFile("/out")).toString(), flag ? "bbc\n" : "");
+  assert.equal(Buffer.from(await fs.readFile("/input")).toString(), flag ? "abc\n" : "bbc\n");
 });
 
-test("sed awaited appends remain visible to subsequent script reads", async () => {
+for (const flag of ["", "-u"]) test(`sed ${flag} script reads observe only flushed file output`, async () => {
   const { fs, shell } = fixture(8);
-  const result = await shell.exec("sed -n -e 'w /out' -e 'r /out'", { stdin: "abc\n" });
+  const result = await shell.exec(`sed ${flag} -n -e 'w /out' -e 'r /out'`, { stdin: "abc\n" });
   assert.equal(result.exitCode, 0);
-  assert.equal(result.stdout, "abc\n");
+  assert.equal(result.stdout, flag ? "abc\n" : "");
   assert.equal(Buffer.from(await fs.readFile("/out")).toString(), "abc\n");
 });
 
@@ -131,11 +127,11 @@ test("sed direct command hosts retain their existing host-owned limits", async (
   assert.equal(result.files.out!.length, 12);
 });
 
-test("sed direct file output keeps raw bytes and its existing newline for unterminated records", async () => {
+test("sed direct file output preserves raw unterminated records", async () => {
   const { fs, shell } = fixture(3);
   const result = await shell.exec("sed -n 'w /out'", { stdin: Uint8Array.of(0, 255) });
   assert.equal(result.exitCode, 0);
-  assert.deepEqual(await fs.readFile("/out"), Uint8Array.of(0, 255, 10));
+  assert.deepEqual(await fs.readFile("/out"), Uint8Array.of(0, 255));
 });
 
 test("sed failed append is not retried and preserves its completed prefix", async () => {

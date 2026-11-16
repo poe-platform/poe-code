@@ -17177,3 +17177,5 @@ import "./local-options.wasm.test.mjs";
 import "./function-loop-boundary.wasm.test.mjs";
 
 import "./declared-ifs.wasm.test.mjs";
+
+import "./sed-output-order.wasm.test.mjs";

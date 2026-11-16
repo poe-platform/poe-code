@@ -36,6 +36,7 @@ interface OutputState {
   stdoutUnterminated: boolean;
   readonly files: Map<string, SedFile>;
   readonly unbuffered: boolean;
+  flushStdout?: () => Promise<void> | undefined;
 }
 
 async function flushFile(context: CommandContext, path: string, file: SedFile): Promise<void> {
@@ -314,6 +315,7 @@ async function* nullRecords(context: CommandContext, files: readonly string[], b
 
 
 async function execute(program: readonly Instruction[], context: CommandContext, files: readonly string[], quiet: boolean, budget: Budget, separator: string, outputState: OutputState, lineLength: number): Promise<{ status: number; quit: boolean }> {
+  await outputState.flushStdout?.();
   const useBatches = separator !== "\0";
   const batchSource = useBatches ? lineRecordBatches(context, files, budget) : undefined;
   const singleSource = useBatches ? undefined : nullRecords(context, files, budget);
@@ -458,6 +460,7 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     }
     return undefined;
   };
+  outputState.flushStdout = flushStdout;
   const joinSpace = (left: string, right: string): string => {
     if (left.length + separator.length + right.length > budget.maxBufferBytes) throw new ProgramError("text buffer limit exceeded");
     return left + separator + right;
@@ -918,7 +921,6 @@ async function execute(program: readonly Instruction[], context: CommandContext,
     }
     return { status: 0, quit: false };
   } finally {
-    if (stdoutLen > 0) await flushStdout();
     if (batchSource) await batchSource.return(undefined);
     else if (singleSource) await singleSource.return(undefined);
   }
@@ -1154,6 +1156,7 @@ async function executeSedGeneral(
             const child = Object.assign(Object.create(Object.getPrototypeOf(context)), context, { stdin, stdout: { async write(chunk: Uint8Array) { rewritten = budget.check(rewritten + decodeBytes(encodeBytes(chunk), "latin1")); } } }) as CommandContext;
             outputState.stdoutUnterminated = false;
             const result = await execute(program, child, ["-"], quiet, budget, separator, outputState, lineLength);
+            await outputState.flushStdout?.();
             return { result, data: bytes(rewritten) };
           });
           if (result.quit || result.status) return result.status;
@@ -1167,8 +1170,12 @@ async function executeSedGeneral(
       }
       return (await execute(program, context, files, quiet, budget, separator, outputState, lineLength)).status;
     } finally {
-      for (const [path, file] of outputState.files) {
-        if (file.length) await flushFile(context, path, file);
-      }
+      // GNU sed closes its script files before draining the final stdout buffer.
+      // Keep each earlier separate-file execution and in-place result drained.
+      try {
+        for (const [path, file] of outputState.files) {
+          if (file.length) await flushFile(context, path, file);
+        }
+      } finally { await outputState.flushStdout?.(); }
     }
 }

@@ -2160,12 +2160,9 @@ fn cmd_uniq(
     } else { None };
 
     let delimiter = if zero_term { 0u8 } else { b'\n' };
-    let locale = env
-        .get("LC_ALL")
-        .or_else(|| env.get("LC_CTYPE"))
-        .or_else(|| env.get("LANG"))
-        .map(|s| s.as_str())
-        .unwrap_or("");
+    let locale = ["LC_ALL", "LC_CTYPE", "LANG"].into_iter()
+        .filter_map(|name| env.get(name).filter(|value| !value.is_empty()))
+        .next().map(String::as_str).unwrap_or("C");
     let byte_locale = locale == "C" || locale == "POSIX";
     let identity_key =
         skip_fields == 0 && skip_chars == 0 && max_chars.is_none() && !ignore_case;

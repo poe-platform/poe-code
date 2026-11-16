@@ -54,7 +54,7 @@ for (const [input, flags, expected] of [
   ["😀A\\n😀a\\n", "-i -s 1 -w 1", "😀A\n"],
 ] as const) {
   test(`uniq Unicode ${flags}`, async () => {
-    const pipeline = `printf '${input}' | uniq ${flags}`;
+    const pipeline = `printf '${input}' | LC_ALL=C.UTF-8 uniq ${flags}`;
     assert.equal((await execute(pipeline)).stdout, expected);
     for (const source of [`x=$(${pipeline}); echo "$x"`, `for i in 1 2; do x=$(${pipeline}); done; echo "$x"`]) {
       assert.equal((await execute(source)).stdout, expected);

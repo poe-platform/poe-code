@@ -37,6 +37,21 @@ pub enum EvalError {
     UnportedCommand(String),
 }
 
+const SET_OPTIONS: &[&str] = &[
+    "allexport",
+    "braceexpand",
+    "hashall",
+    "errexit",
+    "noclobber",
+    "noexec",
+    "noglob",
+    "nounset",
+    "pipefail",
+    "physical",
+    "errtrace",
+    "functrace",
+];
+
 const INDEX_OUT_OF_RANGE: &str = "indexed array: index outside 0..2147483647";
 const STDIN_STREAM_FD: u32 = u32::MAX;
 type InputCursor = Rc<RefCell<String>>;
@@ -804,7 +819,7 @@ impl<'a> EvalState<'a> {
             caller_top_level: self.caller_top_level,
             script_name: self.script_name.clone(),
             current_line: self.current_line,
-            local_scopes: Vec::new(),
+            local_scopes: self.local_scopes.clone(),
             fd_table: self.fd_table.clone(),
             default_input_fds: self.default_input_fds.clone(),
             exec_replaced_stdin: false,
@@ -4507,6 +4522,10 @@ impl<'a> EvalState<'a> {
                 if !k.starts_with('\0') && !k.contains('[') {
                     continue;
                 }
+                if let Some(option) = k.strip_prefix("\0set_") {
+                    self.apply_set_option(option, orig.as_deref() == Some("1"));
+                    continue;
+                }
                 match orig {
                     Some(v) => {
                         self.env.insert(k, v);
@@ -7301,20 +7320,6 @@ impl<'a> EvalState<'a> {
     }
 
     fn builtin_set(&mut self, args: &[String]) -> BuiltinOutcome {
-        const SET_OPTIONS: &[&str] = &[
-            "allexport",
-            "braceexpand",
-            "hashall",
-            "errexit",
-            "noclobber",
-            "noexec",
-            "noglob",
-            "nounset",
-            "pipefail",
-            "physical",
-            "errtrace",
-            "functrace",
-        ];
         const UNSUPPORTED_SET_OPTIONS: &[&str] = &[
             "emacs",
             "histexpand",
@@ -7706,20 +7711,6 @@ impl<'a> EvalState<'a> {
             };
         }
 
-        const SET_OPTIONS: &[&str] = &[
-            "allexport",
-            "braceexpand",
-            "hashall",
-            "errexit",
-            "noclobber",
-            "noexec",
-            "noglob",
-            "nounset",
-            "pipefail",
-            "physical",
-            "errtrace",
-            "functrace",
-        ];
         const SHOPT_OPTIONS: &[&str] = &[
             "cdable_vars",
             "checkhash",
@@ -8360,6 +8351,17 @@ impl<'a> EvalState<'a> {
         let mut decl_stderr = String::new();
         let mut decl_status = 0;
         for op in operands {
+            if cmd == "local" && op == "-" {
+                // Function cleanup already restores local bindings. Keep the first
+                // snapshot there, including options held in dedicated state fields.
+                for option in SET_OPTIONS.iter().copied().chain(["xtrace", "posix"]) {
+                    let enabled = self.get_shopt_enabled(option, true);
+                    self.local_scopes.last_mut().unwrap()
+                        .entry(format!("\0set_{option}"))
+                        .or_insert_with(|| Some(if enabled { "1" } else { "0" }.to_string()));
+                }
+                continue;
+            }
             let (base_name, val_opt, append) = match parse_assignment_lhs_rhs(&op) {
                 Some((k, v, app)) => (k.to_string(), Some(v.to_string()), app),
                 None => (op.clone(), None, false),

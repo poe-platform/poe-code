@@ -17171,3 +17171,5 @@ import "./readonly-discard.wasm.test.mjs";
 import "./arithmetic-discard.wasm.test.mjs";
 
 import "./physical-mode.wasm.test.mjs";
+
+import "./local-options.wasm.test.mjs";

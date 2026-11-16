@@ -689,7 +689,7 @@ fn read_xml_operand(
     }));
     read.and_then(|_| parser.finish()).map_err(|e| {
         if e.starts_with("Invalid XML:") { (1, e) }
-        else if e == "invalid data" { (1, "XML input must be UTF-8".into()) }
+        else if e == "invalid data" { (1, "XML input must be valid UTF-8".into()) }
         else if e.starts_with("Execution aborted:") { (5, e) }
         else if let Some((path,_)) = file { (2, super::coreutils::stream_file_error(e, "readStream", path)) }
         else { (2, e) }

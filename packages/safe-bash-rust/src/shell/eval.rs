@@ -7,7 +7,7 @@ use crate::shell::builtins::{
     hash_order_insert, hash_order_remove, path_search_checks_cwd,
 };
 use crate::shell::expand::{
-    apply_var_attributes, bash_quote_double, decimal_index, decode_ansi_c_escapes,
+    apply_var_attributes, effective_ifs, bash_quote_double, decimal_index, decode_ansi_c_escapes,
     decode_ansi_c_escapes_with_locale, eval_arith, eval_arith_formatted,
     expand_double_quoted_at_expr, expand_globs_in_word_with_projection, expand_parameter_expr,
     expand_tilde_prefix, find_var_name_end, get_var_meta_info, glob_match_ext, glob_match_full,
@@ -8557,6 +8557,11 @@ impl<'a> EvalState<'a> {
                     break;
                 }
             } else if is_indexed || is_assoc {
+                if is_indexed && !self.env.contains_key(&format!("\0keys__{base_name}"))
+                    && let Some(value) = self.env.get(&base_name).cloned()
+                {
+                    self.env.insert(format!("{base_name}[0]"), value);
+                }
                 // A bare declaration has no assigned key list until the first write.
                 if self.env.contains_key(&format!("\0keys__{base_name}")) || self.env.contains_key(&base_name) {
                     sync_array_metadata(&base_name, self.env);
@@ -9297,10 +9302,7 @@ impl<'a> EvalState<'a> {
         let ifs_bytes: Vec<u8> = if exact_chars {
             Vec::new()
         } else {
-            self.env
-                .get("IFS")
-                .map(|s| stream_string_to_bytes(s))
-                .unwrap_or_else(|| b" \t\n".to_vec())
+            stream_string_to_bytes(effective_ifs(self.env))
         };
 
         let status = if timed_out {
@@ -12242,11 +12244,7 @@ impl<'a> EvalState<'a> {
         escape_quoted_glob: bool,
     ) -> Result<Vec<String>, EvalError> {
         if split_and_glob && (word == "$@" || word == "${@}") {
-            let ifs = self
-                .env
-                .get("IFS")
-                .cloned()
-                .unwrap_or_else(|| " \t\n".to_string());
+            let ifs = effective_ifs(self.env).to_string();
             let mut out = Vec::new();
             for arg in &self.pos_args {
                 out.extend(split_ifs_fields(arg, &ifs, None));
@@ -12284,11 +12282,7 @@ impl<'a> EvalState<'a> {
             return Ok(vec![s]);
         }
 
-        let ifs = self
-            .env
-            .get("IFS")
-            .cloned()
-            .unwrap_or_else(|| " \t\n".to_string());
+        let ifs = effective_ifs(self.env).to_string();
         let is_ifs = |c: char| ifs.contains(c);
         let is_ifs_ws = |c: char| is_ifs(c) && matches!(c, ' ' | '\t' | '\n');
 

@@ -17175,3 +17175,5 @@ import "./physical-mode.wasm.test.mjs";
 import "./local-options.wasm.test.mjs";
 
 import "./function-loop-boundary.wasm.test.mjs";
+
+import "./declared-ifs.wasm.test.mjs";

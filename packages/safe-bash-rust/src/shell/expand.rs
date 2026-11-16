@@ -1,6 +1,15 @@
 use crate::vfs::{SafeBashFs, resolve_posix_path};
 use std::collections::{BTreeMap, BTreeSet};
 
+pub(super) fn effective_ifs(env: &BTreeMap<String, String>) -> &str {
+    // An explicit array declaration disables IFS splitting and joining.
+    if env.get("\0attr__IFS").is_some_and(|attr| attr.contains('a') || attr.contains('A')) {
+        ""
+    } else {
+        env.get("IFS").map(String::as_str).unwrap_or(" \t\n")
+    }
+}
+
 pub fn glob_match(pattern: &str, text: &str) -> bool {
     glob_match_full(pattern, text, false, true)
 }
@@ -1607,17 +1616,7 @@ pub fn expand_parameter_expr(
         return Ok(pos_args.join(" "));
     }
     if expr == "*" {
-        let sep = env
-            .get("IFS")
-            .and_then(|s| s.chars().next())
-            .map(|c| c.to_string())
-            .unwrap_or_else(|| {
-                if env.contains_key("IFS") {
-                    String::new()
-                } else {
-                    " ".to_string()
-                }
-            });
+        let sep = effective_ifs(env).chars().next().map(|c| c.to_string()).unwrap_or_default();
         return Ok(pos_args.join(&sep));
     }
 
@@ -1642,16 +1641,7 @@ pub fn expand_parameter_expr(
                         out.push(apply_value_transform(el, xform, env, last_exit, pos_args)?);
                     }
                     let sep = if eff_var.ends_with("[*]") || eff_var == "*" {
-                        env.get("IFS")
-                            .and_then(|s| s.chars().next())
-                            .map(|c| c.to_string())
-                            .unwrap_or_else(|| {
-                                if env.contains_key("IFS") {
-                                    String::new()
-                                } else {
-                                    " ".to_string()
-                                }
-                            })
+                        effective_ifs(env).chars().next().map(|c| c.to_string()).unwrap_or_default()
                     } else {
                         " ".to_string()
                     };
@@ -1775,9 +1765,7 @@ pub fn expand_parameter_expr(
                 keys.push("0".to_string());
             }
             if iv_var.ends_with("[*]") && env.get("\0in_dquote").is_some_and(|v| v == "1") {
-                let separator = env.get("IFS")
-                    .map(|s| s.chars().next().map(|c| c.to_string()).unwrap_or_default())
-                    .unwrap_or_else(|| " ".to_string());
+                let separator = effective_ifs(env).chars().next().map(|c| c.to_string()).unwrap_or_default();
                 return Ok(keys.join(&separator));
             }
             return Ok(keys.join(" "));
@@ -1785,17 +1773,7 @@ pub fn expand_parameter_expr(
         if !iv_var.is_empty() && !iv_var.contains('[') && (iv_tail == "*" || iv_tail == "@") {
             let names = collect_prefix_var_names(iv_var, env);
             if iv_tail == "*" && env.get("\0in_dquote").map(|v| v == "1").unwrap_or(false) {
-                let sep = env
-                    .get("IFS")
-                    .and_then(|s| s.chars().next())
-                    .map(|c| c.to_string())
-                    .unwrap_or_else(|| {
-                        if env.contains_key("IFS") {
-                            String::new()
-                        } else {
-                            " ".to_string()
-                        }
-                    });
+                let sep = effective_ifs(env).chars().next().map(|c| c.to_string()).unwrap_or_default();
                 return Ok(names.join(&sep));
             }
             return Ok(names.join(" "));
@@ -3870,17 +3848,7 @@ pub fn lookup_var(
     }
     if name == "@" || name == "*" {
         if name == "*" {
-            let sep = env
-                .get("IFS")
-                .and_then(|s| s.chars().next())
-                .map(|c| c.to_string())
-                .unwrap_or_else(|| {
-                    if env.contains_key("IFS") {
-                        String::new()
-                    } else {
-                        " ".to_string()
-                    }
-                });
+            let sep = effective_ifs(env).chars().next().map(|c| c.to_string()).unwrap_or_default();
             return pos_args.join(&sep);
         }
         return pos_args.join(" ");
@@ -3921,17 +3889,7 @@ pub fn lookup_var(
         }
         let vals: Vec<String> = entries.into_iter().map(|(_, v)| v).collect();
         if is_star {
-            let sep = env
-                .get("IFS")
-                .and_then(|s| s.chars().next())
-                .map(|c| c.to_string())
-                .unwrap_or_else(|| {
-                    if env.contains_key("IFS") {
-                        String::new()
-                    } else {
-                        " ".to_string()
-                    }
-                });
+            let sep = effective_ifs(env).chars().next().map(|c| c.to_string()).unwrap_or_default();
             return vals.join(&sep);
         }
         return vals.join(" ");

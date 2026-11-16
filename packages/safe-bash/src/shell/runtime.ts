@@ -10589,7 +10589,7 @@ export class Runtime {
   private ifsSeparator(state: State, io: IO): ShellValue {
     // Indexed printf writes retain the cached join character even though IFS
     // array conversion disables ordinary field splitting.
-    const text = state.variables.IFS ?? " ";
+    const text = state.variables.IFS ?? (arrayStore(state)?.get("IFS") ? "" : " ");
     const value = stateMonitor(state)?.values.get("IFS", text) ?? text;
     const byteCount = byteLocale(state.variables);
     if (typeof value === "string" && (!byteCount || !value || value.charCodeAt(0) < 128)) return value ? String.fromCodePoint(value.codePointAt(0)!) : "";

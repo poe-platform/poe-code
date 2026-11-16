@@ -396,7 +396,7 @@ for (const entry of readonlyDiscardBoundaries) {
     const shell = new Shell({ fs, extensions });
     context.after(() => shell.dispose());
     for (const command of basicCommands()) shell.register(command);
-    const result = await shell.exec(entry.source, { env: { LC_ALL: "C" } });
+    const result = await shell.exec(entry.source, { env: { LC_ALL: "C" }, ...("input" in entry ? { stdin: entry.input } : {}) });
     assert.deepEqual({ status: result.exitCode, stdoutHex: Buffer.from(result.stdoutBytes).toString("hex"), stderrHex: Buffer.from(result.stderrBytes).toString("hex") },
       { status: entry.status, stdoutHex: entry.stdoutHex, stderrHex: entry.stderrHex });
   });
@@ -482,7 +482,7 @@ for (const entry of readonlyNestedDiscardBoundaries) {
     const shell = new Shell({ fs, extensions });
     context.after(() => shell.dispose());
     for (const command of basicCommands()) shell.register(command);
-    const result = await shell.exec(entry.source, { env: { LC_ALL: "C" }, ...(entry.name === "standard-input-script" ? { stdin: entry.input } : {}) });
+    const result = await shell.exec(entry.source, { env: { LC_ALL: "C" }, ...("input" in entry ? { stdin: entry.input } : {}) });
     assert.deepEqual({ status: result.exitCode, stdoutHex: Buffer.from(result.stdoutBytes).toString("hex"), stderrHex: Buffer.from(result.stderrBytes).toString("hex") },
       { status: entry.status, stdoutHex: entry.stdoutHex, stderrHex: entry.stderrHex });
   });

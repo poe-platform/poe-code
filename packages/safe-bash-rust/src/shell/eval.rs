@@ -4994,8 +4994,16 @@ impl<'a> EvalState<'a> {
                             });
                         }
                     }
+                    let descriptor = match effective_target.as_str() {
+                        "/dev/stdin" => Some(0),
+                        "/dev/stdout" => Some(1),
+                        "/dev/stderr" => Some(2),
+                        name => name.strip_prefix("/dev/fd/")
+                            .filter(|suffix| !suffix.is_empty() && suffix.bytes().all(|b| b.is_ascii_digit()))
+                            .map(|suffix| suffix.parse::<u32>().unwrap_or(STDIN_STREAM_FD)),
+                    };
                     let full = resolve_posix_path(self.cwd, &effective_target);
-                    if self.fs.is_dir(&full) {
+                    if descriptor.is_none() && self.fs.is_dir(&full) {
                         self.budget.leave_substitution();
                         if is_special {
                             self.exit_requested = Some(1);
@@ -5009,7 +5017,7 @@ impl<'a> EvalState<'a> {
                             exit_code: 1,
                         });
                     }
-                    if let Ok(meta) = self.fs.stat(&full)
+                    if descriptor.is_none() && let Ok(meta) = self.fs.stat(&full)
                         && (meta.mode & 0o444) == 0
                     {
                         self.budget.leave_substitution();
@@ -5025,9 +5033,30 @@ impl<'a> EvalState<'a> {
                             exit_code: 1,
                         });
                     }
-                    match self.fs.read_file(&full) {
+                    let contents = if let Some(fd) = descriptor {
+                        // The internal stdin cursor is not a public descriptor number.
+                        if fd != STDIN_STREAM_FD && self.is_fd_readable(fd) {
+                            let mut bytes = Vec::new();
+                            let budget = self.budget;
+                            let result = self.read_fd_chunks(fd, stdin, &mut |chunk, _| {
+                                budget.add_source_bytes(chunk.len())?;
+                                bytes.extend_from_slice(chunk);
+                                Ok((false, chunk.len()))
+                            });
+                            if let Err(error) = budget.check_exceeded() {
+                                self.budget.leave_substitution();
+                                return Err(EvalError::Budget(error));
+                            }
+                            result.map(|()| bytes)
+                        } else {
+                            Err("No such file or directory".to_string())
+                        }
+                    } else {
+                        self.fs.read_file(&full)
+                    };
+                    match contents {
                         Ok(bytes) => {
-                            if let Err(e) = self.budget.add_source_bytes(bytes.len()) {
+                            if descriptor.is_none() && let Err(e) = self.budget.add_source_bytes(bytes.len()) {
                                 self.budget.leave_substitution();
                                 return Err(EvalError::Budget(e));
                             }
@@ -5158,15 +5187,16 @@ impl<'a> EvalState<'a> {
                             );
                             return Ok(out);
                         }
-                        Err(_) => {
+                        Err(error) => {
                             self.budget.leave_substitution();
                             if is_special {
                                 self.exit_requested = Some(1);
                             }
+                            let reason = if descriptor.is_some() { error.as_str() } else { "No such file or directory" };
                             return Ok(BuiltinOutcome {
                                 stdout: String::new(),
                                 stderr: format!(
-                                    "{}{effective_target}: No such file or directory\n",
+                                    "{}{effective_target}: {reason}\n",
                                     self.diag_prefix()
                                 ),
                                 exit_code: 1,
@@ -18013,17 +18043,16 @@ fi"#,
     }
 
     #[test]
-    fn source_resolves_descriptor_paths_in_the_filesystem() {
+    fn source_resolves_proc_paths_in_the_filesystem() {
         let (mut shell, fs) = crate::shell::Shell::with_memory_fs();
-        for path in ["/dev/fd/3", "/proc/self/fd/3"] {
-            let script = format!("source {path} 3<<<'echo descriptor'");
-            let r = shell.exec(&script).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr), (1, "", format!("shell: line 1: {path}: No such file or directory\n")));
-            fs.mkdir_all(&crate::vfs::dirname_posix_path(path)).unwrap();
-            fs.write_file(path, b"echo file").unwrap();
-            let r = shell.exec(&script).unwrap();
-            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "file\n", ""));
-        }
+        let path = "/proc/self/fd/3";
+        let script = format!("source {path} 3<<<'echo descriptor'");
+        let r = shell.exec(&script).unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr), (1, "", format!("shell: line 1: {path}: No such file or directory\n")));
+        fs.mkdir_all(&crate::vfs::dirname_posix_path(path)).unwrap();
+        fs.write_file(path, b"echo file").unwrap();
+        let r = shell.exec(&script).unwrap();
+        assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, "file\n", ""));
     }
 
     #[test]

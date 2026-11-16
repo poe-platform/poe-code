@@ -7678,7 +7678,7 @@ export class Runtime {
       if (descriptor !== undefined) {
         const entry = io.descriptors?.get(descriptor);
         const input = entry?.closed ? undefined : entry?.input ?? (!io.descriptors && descriptor === 0 ? io.stdin : undefined);
-        if (!input || input === closedSource) throw new FsError("EBADF", { path: target });
+        if (!input || input === closedSource) throw new FsError("ENOENT", { path: target });
         bytes = await collectBytes(input, { ...options, ...(maxBytes === Infinity ? {} : { maxBytes }) });
       } else {
         const path = pathOf(state, target);

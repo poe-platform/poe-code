@@ -1662,7 +1662,11 @@ export class ShellInput implements ByteSource, CommandInput {
           if (!quoted && !raw && first === 92) { account(); escaping = true; continue; }
           if (!quoted && !exact && first === delimiter) { terminated = true; outcome.reason = "delimiter"; break; }
           account();
-          if (first === 0) continue;
+          if (first === 0) {
+            if (!quoted) continue;
+            if (visible && !buffer.length) buffer.append(1);
+            visible = false;
+          }
           if (quoted && visible) {
             scope.reserve(64, 2);
             escapedByteOffsets.push(buffer.length);
@@ -1675,14 +1679,6 @@ export class ShellInput implements ByteSource, CommandInput {
               ? (this.signal.throwIfAborted(), this._cursor.position++, chunk[offset++]!)
               : await nextByte();
             if (next === undefined) break;
-            if (!exact && next === delimiter && !utf8Continuation(first, position, next)) {
-              // Bash retains lookahead on streams, but drops it at a file's -n boundary.
-              if (units + 1 !== count || this._cursor.stat?.type !== "file") {
-                offset--;
-                this._cursor.position--;
-              }
-              break;
-            }
             account();
             if (next === 0) visible = false;
             else if (visible) buffer.append(next);

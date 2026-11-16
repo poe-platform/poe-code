@@ -21,6 +21,9 @@ Native `seq` rejects trailing numeric whitespace while accepting leading whitesp
 Invalid-number diagnostics quote the operand; format errors identify missing,
 incomplete, unknown, and repeated conversions.
 
+Native `read` consumes malformed UTF-8 units with the byte that invalidates them,
+including newline or NUL, and preserves the remaining input for later commands.
+
 Native `ffprobe` reports Y4M packet positions relative to the input file, including
 variable-length `FRAME` tags, and exposes frame positions as `pkt_pos`. Timestamps
 use the stream's frame time base, including fractional rates such as `30000:1001`.

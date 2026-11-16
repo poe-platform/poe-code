@@ -8842,22 +8842,16 @@ impl<'a> EvalState<'a> {
             let mut pos = 0;
             while !terminated && pos < bytes.len() {
                 let byte = bytes[pos];
-                if let Some((first, index)) = continuation
-                    && !is_valid_utf8_continuation(first, index, byte)
-                {
-                    continuation = None;
-                    units += 1;
-                    terminated = Some(units) == count;
-                    continue;
-                }
                 if input_bytes == budget.limits.max_input_bytes {
                     return Err(budget.record_exceeded(format!("Execution aborted: Shell limit exceeded: maxInputBytes ({})", budget.limits.max_input_bytes)));
                 }
                 pos += 1;
                 input_bytes += 1;
                 if let Some((first, index)) = continuation {
+                    if byte == 0 { visible = false; }
                     if visible { out.push(byte); }
-                    continuation = (index + 1 < utf8_seq_length(first)).then_some((first, index + 1));
+                    continuation = (is_valid_utf8_continuation(first, index, byte)
+                        && index + 1 < utf8_seq_length(first)).then_some((first, index + 1));
                 } else {
                     if !raw_mode && !escaped && byte == b'\\' && delimiter != Some(b'\\') {
                         escaped = true;
@@ -16576,6 +16570,27 @@ mod tests {
         let pre_z_to_a_post = state.eval_script_str("(printf '<%s>' pre{Z..a}post) 2>/dev/null; printf '%s' \"$?\"", "").unwrap();
         assert_eq!(pre_z_to_a_post.exit_code, 0);
         assert_eq!(pre_z_to_a_post.stdout, "1");
+    }
+
+    #[test]
+    fn read_consumes_invalid_utf8_continuations_and_preserves_unread_bytes() {
+        for (input, expected) in [
+            (b"\xc3\ntail".as_slice(), b"0\0\xc3\n\0tail".as_slice()),
+            (b"\xc3Atail", b"0\0\xc3A\0tail"),
+            (b"\xc3\0tail", b"0\0\xc3\0tail"),
+            (b"\xe2\x82\ntail", b"0\0\xe2\x82\n\0tail"),
+            (b"\xe2\x82", b"0\0\xe2\x82\0"),
+        ] {
+            let vfs = crate::vfs::MemoryVfs::new();
+            let mut cwd = "/".to_string();
+            let mut env = BTreeMap::from([("LC_ALL".into(), "en_US.UTF-8".into())]);
+            let budget = ExecutionBudget::new(crate::budget::ShellLimits::default(), None);
+            let custom = BTreeMap::new();
+            let mut state = EvalState::new(&mut cwd, &mut env, &vfs, &budget, &custom, false);
+            let result = state.eval_script_str(r#"IFS= read -rn1 value; status=$?; printf '%s\0%s\0' "$status" "$value"; cat"#, &crate::vfs::bytes_to_stream_string(input)).unwrap();
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            assert_eq!(crate::vfs::stream_string_to_bytes(&result.stdout), expected);
+        }
     }
 
     #[test]

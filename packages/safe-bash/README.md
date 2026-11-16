@@ -275,6 +275,8 @@ variables of the same name. Use `--` to end option parsing.
 The default `read` accepts `-u 0` to select supplied stdin, plus `-p PROMPT`
 and `-s` for nonterminal input; prompts are suppressed and silent mode has no
 terminal effect. Other `-u` descriptors require the optional read extension.
+`read` preserves byte values and unread input across chunk boundaries. Escaped
+NUL bytes and malformed UTF-8 units follow Bash's counting and visibility rules.
 `export -n NAME` removes a variable's export attribute while keeping its value;
 `export -f NAME` passes a defined function to virtual child shells, and `export -fn NAME`
 stops passing it. `export -p` prints reusable variable declarations; `export -fp` lists

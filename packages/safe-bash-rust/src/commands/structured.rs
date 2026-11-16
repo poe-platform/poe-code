@@ -29177,6 +29177,9 @@ mod xlsx;
 #[path="ods.rs"]
 mod ods;
 
+#[path="spreadsheetml.rs"]
+mod spreadsheetml;
+
 fn parse_cell_coord(cell_ref: &str) -> Option<(usize, usize)> {
     let s = cell_ref.trim().replace('$', "");
     let col_idx = xlsx_col_ref_to_idx(&s)?;
@@ -29486,7 +29489,7 @@ fn workbook_text_rows(input:&str, csv:bool)->Vec<Vec<String>> {
     rows
 }
 
-fn load_workbook_from_file(path: &str, cwd: &str, fs: &dyn SafeBashFs) -> Result<Vec<WorkbookSheet>, String> {
+fn load_workbook_from_file(path: &str, cwd: &str, fs: &dyn SafeBashFs, importer: Option<&str>, recalc: bool) -> Result<Vec<WorkbookSheet>, String> {
     let full = resolve_posix_path(cwd, path);
     if let Ok(meta) = fs.stat(&full)
         && meta.kind == crate::vfs::VfsEntryKind::Directory
@@ -29498,7 +29501,10 @@ fn load_workbook_from_file(path: &str, cwd: &str, fs: &dyn SafeBashFs) -> Result
         .map_err(|_| format!("E {path}: No such file or directory\n"))?;
     let fname = path.rsplit('/').next().unwrap_or(path);
     let lower = fname.to_ascii_lowercase();
-    if lower.ends_with(".xlsx") {
+    if importer == Some("Gnumeric_Excel:excel_xml") || importer.is_none() && lower.ends_with(".xml") && bytes.windows(spreadsheetml::NAMESPACE.len()).any(|window| window == spreadsheetml::NAMESPACE.as_bytes()) {
+        return spreadsheetml::read(&bytes, fs.max_input_bytes(), recalc);
+    }
+    let mut sheets = if lower.ends_with(".xlsx") {
         read_xlsx_all_sheets(&bytes, fname, ["FALSE", "TRUE"], fs.max_input_bytes())
     } else if lower.ends_with(".ods") {
         ods::read(&bytes, fname, fs.max_input_bytes()).ok_or_else(|| "ssconvert: ODS workbook exceeds input limit\n".into())
@@ -29510,7 +29516,9 @@ fn load_workbook_from_file(path: &str, cwd: &str, fs: &dyn SafeBashFs) -> Result
             name: fname.to_string(),
             rows: workbook_text_rows(&String::from_utf8_lossy(&bytes),lower.ends_with(".csv")),
         }])
-    }
+    }?;
+    if recalc { for sheet in &mut sheets { recalc_workbook_sheet(sheet); } }
+    Ok(sheets)
 }
 
 fn write_workbook_to_file(
@@ -29648,6 +29656,7 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
     let mut split_sheets = false;
     let mut merge_to: Option<String> = None;
     let mut export_type: Option<String> = None;
+    let mut import_type: Option<String> = None;
     let mut export_options = Vec::new();
     let mut sheet_options = Vec::new();
     let mut sep = ',';
@@ -29856,13 +29865,17 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
             }
             if a == "-T" || a == "--export-type" {
                 export_type = Some(args[i + 1].clone());
+            } else if a == "-I" || a == "--import-type" {
+                import_type = Some(args[i + 1].clone());
             }
             i += 2;
         } else if let Some(v) = a.strip_prefix("--export-type=") {
             export_type = Some(v.to_string());
             i += 1;
-        } else if a.starts_with("--import-type=")
-            || a.starts_with("--import-encoding=")
+        } else if let Some(v) = a.strip_prefix("--import-type=") {
+            import_type = Some(v.to_string());
+            i += 1;
+        } else if a.starts_with("--import-encoding=")
             || a.starts_with("--lib-dir=")
             || a.starts_with("--data-dir=")
             || a.starts_with("--resize=")
@@ -29927,16 +29940,10 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
             return err_out("Usage: ssconvert [OPTION...] INFILE [OUTFILE]\n", 1);
         }
         let mut all_sheets = Vec::new();
+        let recalc = recalc && !matches!(target_out.rsplit_once('.').map(|(_, ext)| ext.to_ascii_lowercase()).as_deref(), Some("xlsx" | "ods"));
         for infile in &positional {
-            match load_workbook_from_file(infile, cwd, fs) {
-                Ok(mut s) => {
-                    if recalc && !matches!(target_out.rsplit_once('.').map(|(_, ext)| ext.to_ascii_lowercase()).as_deref(), Some("xlsx" | "ods")) {
-                        for sh in &mut s {
-                            recalc_workbook_sheet(sh);
-                        }
-                    }
-                    all_sheets.extend(s);
-                }
+            match load_workbook_from_file(infile, cwd, fs, import_type.as_deref(), recalc) {
+                Ok(s) => all_sheets.extend(s),
                 Err(e) => return err_out(&e, 1),
             }
         }
@@ -29961,7 +29968,8 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
     }
     let infile = &positional[0];
     let outfile = &positional[1];
-    let mut sheets = match load_workbook_from_file(infile, cwd, fs) {
+    let recalc = recalc && !matches!(outfile.rsplit_once('.').map(|(_, ext)| ext.to_ascii_lowercase()).as_deref(), Some("xlsx" | "ods"));
+    let mut sheets = match load_workbook_from_file(infile, cwd, fs, import_type.as_deref(), recalc) {
         Ok(s) => s,
         Err(e) => return err_out(&e, 1),
     };
@@ -29998,11 +30006,6 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
         let sheet = sheets.remove(active);
         sheets.clear();
         sheets.push(sheet);
-    }
-    if recalc && !matches!(outfile.rsplit_once('.').map(|(_, ext)| ext.to_ascii_lowercase()).as_deref(), Some("xlsx" | "ods")) {
-        for sh in &mut sheets {
-            recalc_workbook_sheet(sh);
-        }
     }
     if split_sheets {
         for (idx, sh) in sheets.iter().enumerate() {

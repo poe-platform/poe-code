@@ -346,7 +346,9 @@ test("ssconvert SpreadsheetML import shares SDK bytes, content probes and replay
     const replay = await shell.exec("ssconvert --recalc -T Gnumeric_stf:stf_csv /round.xml fd://1");
     assert.equal(replay.exitCode, 0, replay.stderr); assert.equal(replay.stderr, ""); assert.equal(replay.stdout, "4,6\n");
     const forced = await shell.exec("ssconvert -I Gnumeric_Excel:excel_xml -T Gnumeric_stf:stf_csv /book.xml fd://1");
-    assert.equal(forced.exitCode, 0, forced.stderr); assert.equal(forced.stdout, "4,6\n");
+    assert.equal(forced.exitCode, 0, forced.stderr); assert.equal(forced.stdout, "4,99\n");
+    const recalculated = await shell.exec("ssconvert --recalc -I Gnumeric_Excel:excel_xml -T Gnumeric_stf:stf_csv /book.xml fd://1");
+    assert.equal(recalculated.exitCode, 0, recalculated.stderr); assert.equal(recalculated.stdout, "4,6\n");
     const listing = await shell.exec("ssconvert --list-importers");
     assert.equal(listing.exitCode, 0); assert.match(listing.stderr, /Gnumeric_Excel:excel_xml/);
     assert.equal(volume.readFileSync("/book.xml", "utf8"), original);

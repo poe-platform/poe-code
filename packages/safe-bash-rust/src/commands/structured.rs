@@ -29055,7 +29055,21 @@ fn parse_xlsx_worksheet_xml(ws_xml: &str, shared_strings: &[String], boolean_tex
 }
 
 fn read_xlsx_all_sheets(bytes: &[u8], fallback_name: &str, boolean_text: [&str; 2], mut remaining: usize) -> Result<Vec<WorkbookSheet>, String> {
-    let entries = read_office_archive(bytes);
+    use std::borrow::Cow;
+    if bytes.len() > remaining { return Err("XLSX archive exceeds input limit".into()); }
+    let (members, _) = super::codecs::zip_directory(bytes.len(), |range| Ok(Cow::Borrowed(&bytes[range])))?;
+    let mut entries = BTreeMap::new();
+    for member in members {
+        remaining = remaining.checked_sub(member.size).ok_or("XLSX archive exceeds input limit")?;
+        if member.typeflag == b'5' { continue; }
+        if member.typeflag != b'0' || !matches!(member.method, 0 | 8) {
+            return Err("unsupported XLSX ZIP member".into());
+        }
+        let content = member.decode(Cow::Borrowed(&bytes[member.payload.clone()]), None)?;
+        if entries.insert(member.name, content).is_some() {
+            return Err("duplicate XLSX ZIP member".into());
+        }
+    }
     let wb_xml = entries
         .get("xl/workbook.xml")
         .map(|b| String::from_utf8_lossy(b).into_owned())

@@ -1,6 +1,25 @@
 use super::*;
 
 #[test]
+fn xlsx_archive_validates_the_directory_crc_and_aggregate_expansion() {
+    let original = include_bytes!("../../../tests/fixtures/xml-prefixes.xlsx");
+    assert!(read_xlsx_all_sheets(&original[..original.len() - 22], "Sheet1", ["FALSE", "TRUE"], 65536).is_err());
+    assert!(read_xlsx_all_sheets(original, "Sheet1", ["FALSE", "TRUE"], 1024).unwrap_err().contains("input limit"));
+    let expanded = include_bytes!("../../../tests/fixtures/expanded-workbook.xlsx");
+    assert!(expanded.len() < 8192);
+    assert!(read_xlsx_all_sheets(expanded, "Sheet1", ["FALSE", "TRUE"], 8192).unwrap_err().contains("input limit"));
+    let streamed = include_bytes!("../../../tests/fixtures/streamed-workbook.xlsx");
+    let sheets = read_xlsx_all_sheets(streamed, "Sheet1", ["FALSE", "TRUE"], 65536).unwrap();
+    assert_eq!(sheets[0].rows[1], ["café 🚀 & <tag>", " lead bold tail "]);
+    let mut crc = original.to_vec();
+    let central = crc.windows(4).position(|bytes| bytes == b"PK\x01\x02").unwrap();
+    let local = u32::from_le_bytes(crc[central + 42..central + 46].try_into().unwrap()) as usize;
+    crc[central + 16] ^= 1;
+    crc[local + 14] ^= 1;
+    assert!(read_xlsx_all_sheets(&crc, "Sheet1", ["FALSE", "TRUE"], 65536).unwrap_err().contains("CRC32"));
+}
+
+#[test]
 fn xlsx_xml_part_failures_preserve_exports() {
     let source = include_bytes!("../../../tests/fixtures/xml-prefixes.xlsx");
     for part in ["xl/workbook.xml", "xl/_rels/workbook.xml.rels", "xl/sharedStrings.xml", "xl/worksheets/sheet1.xml"] {

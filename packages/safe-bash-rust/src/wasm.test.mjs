@@ -5,6 +5,7 @@ import "./pdf-text-stroke.wasm.test.mjs";
 import "./patch-bytes.wasm.test.mjs";
 import "./xlsx-rows.wasm.test.mjs";
 import "./xlsx-xml.wasm.test.mjs";
+import "./xlsx-archive.wasm.test.mjs";
 import "./xlsx-booleans.wasm.test.mjs";
 import "./xlsx-selection.wasm.test.mjs";
 import assert from "node:assert/strict";

@@ -5454,8 +5454,10 @@ pub(super) fn cmd_gzip(
         if pass { return Ok(data.to_vec()); }
         decompress_for_invoked(invoked, data, &xz_format)
     };
-    let decode_error = |error: &str| {
-        if is_bzip2 {
+    let decode_error = |error: &str, source: &str| {
+        if is_gzip {
+            err_out(&format!("{invoked}: {source}: {error}\n"), 1)
+        } else if is_bzip2 {
             let msg = if error == "unexpected end of file" { error } else { "invalid compressed data or codec memory limit exceeded" };
             err_out(&format!("{invoked}: {msg}\n"), 2)
         } else if is_zstd {
@@ -5622,7 +5624,7 @@ pub(super) fn cmd_gzip(
             };
             check_source().map_err(failure)?;
             let data = read(plan.as_ref().map(|p| p.real.as_str()))?;
-            let output = if decompress || test_mode { decode(&data, plan.as_ref().is_some_and(|p| p.destination.is_some())).map_err(|e| decode_error(&e))? }
+            let output = if decompress || test_mode { decode(&data, plan.as_ref().is_some_and(|p| p.destination.is_some())).map_err(|e| decode_error(&e, plan.as_ref().map_or("stdin", |p| p.operand.as_str())))? }
                 else { compress_for_invoked(invoked, &data, level, &xz_format, xz_check, zstd_check) };
             let version = fs.generation();
             check_source().map_err(failure)?;

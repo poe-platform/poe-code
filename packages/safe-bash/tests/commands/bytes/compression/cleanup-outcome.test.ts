@@ -45,7 +45,7 @@ for (const cleanupFailure of [false, 0, "", null, undefined]) {
     });
     const result = await shell.exec("gzip /input");
     assert.equal(result.exitCode, 1);
-    assert.equal(result.stderr, "gzip: compression failed and staging cleanup failed; input retained\n");
+    assert.equal(result.stderr, "gzip: /input: compression failed and staging cleanup failed; input retained\n");
     assert.equal(seen.length, 1);
     assert.ok(seen[0] instanceof AggregateError);
     assert.equal(seen[0].errors.length, 2);

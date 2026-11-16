@@ -111,7 +111,73 @@ fn pretty(v: &J, depth: usize, out: &mut String, limit: usize) -> Result<(), &'s
 #[path = "pdf_json_pages.rs"]
 mod pdf_json_pages;
 
+fn attachment_date(value: &str) -> Option<String> {
+    let bytes = value.as_bytes();
+    if !bytes.starts_with(b"D:") || bytes.len() < 16 || !bytes[2..16].iter().all(u8::is_ascii_digit) {
+        return None;
+    }
+    let zone = if bytes.len() > 16 && bytes[16] != b'Z' {
+        if bytes.len() != 23 || !matches!(bytes[16], b'+' | b'-') || bytes[19] != b'\'' || bytes[22] != b'\''
+            || !bytes[17..19].iter().chain(&bytes[20..22]).all(u8::is_ascii_digit) {
+            return None;
+        }
+        format!("{}:{}", &value[16..19], &value[20..22])
+    } else {"Z".into()};
+    Some(format!("{}-{}-{}T{}:{}:{}{zone}", &value[2..6], &value[6..8], &value[8..10], &value[10..12], &value[12..14], &value[14..16]))
+}
+
 impl<'a> PageSource<'a> {
+    fn json_attachment(&mut self, reference: &Value<'a>) -> J {
+        let spec = self.objects.resolve(reference);
+        let embedded = spec.as_ref().and_then(|s| s.get(b"EF")).and_then(|v| self.objects.resolve(v));
+        let mut names = BTreeMap::new();
+        let mut streams = BTreeMap::new();
+        let mut preferred_name = J::Null;
+        let mut preferred_contents = J::Null;
+        for key in [b"UF".as_slice(), b"F", b"DOS", b"Mac", b"Unix"] {
+            let label: Vec<u16> = format!("/{}", std::str::from_utf8(key).unwrap()).encode_utf16().collect();
+            if let Some(Value::String {bytes, ..}) = spec.as_ref().and_then(|s| s.get(key)).and_then(|v| self.objects.resolve(v)) {
+                let name = string(&pdf_string::decode(&bytes));
+                if matches!(preferred_name, J::Null) {preferred_name = name.clone();}
+                names.insert(label.clone(), name);
+            }
+            let Some(stream_ref) = embedded.as_ref().and_then(|e| e.get(key)) else {continue};
+            let Some(stream @ Value::Dict(_)) = self.objects.resolve(stream_ref) else {continue};
+            if matches!(preferred_contents, J::Null) && let Value::Ref((n, g)) = stream_ref {
+                preferred_contents = string(&format!("{n} {g} R"));
+            }
+            let params = stream.get(b"Params").and_then(|v| self.objects.resolve(v));
+            let checksum = match params.as_ref().and_then(|p| p.get(b"CheckSum")).and_then(|v| self.objects.resolve(v)) {
+                Some(Value::String {bytes, ..}) => string(&bytes.iter().map(|b| format!("{b:02x}")).collect::<String>()),
+                _ => J::Null,
+            };
+            let date = match params.as_ref().and_then(|p| p.get(b"CreationDate")).and_then(|v| self.objects.resolve(v)) {
+                Some(Value::String {bytes, ..}) => attachment_date(&pdf_string::decode(&bytes)).map_or(J::Null, |s| string(&s)),
+                _ => J::Null,
+            };
+            let mime = match stream.get(b"Subtype").and_then(|v| self.objects.resolve(v)) {
+                Some(Value::Word(w)) if w.starts_with(b"/") => string(&name(&w[1..])),
+                _ => J::Null,
+            };
+            streams.insert(label, record([
+                ("checksum", checksum), ("creationdate", date.clone()), ("mimetype", mime),
+                // Native qpdf uses CreationDate for both date fields.
+                ("modificationdate", date),
+            ]));
+        }
+        let description = match spec.as_ref().and_then(|s| s.get(b"Desc")).and_then(|v| self.objects.resolve(v)) {
+            Some(Value::String {bytes, ..}) => string(&pdf_string::decode(&bytes)),
+            _ => J::Null,
+        };
+        record([
+            ("description", description),
+            ("filespec", match reference {Value::Ref((n, g)) => string(&format!("{n} {g} R")), _ => J::Null}),
+            ("names", J::Object(names.into_iter().collect())),
+            ("preferredcontents", preferred_contents), ("preferredname", preferred_name),
+            ("streams", J::Object(streams.into_iter().collect())),
+        ])
+    }
+
     pub(in crate::commands::archive) fn qpdf_json(
         &mut self,
         version: u32,
@@ -285,7 +351,7 @@ impl<'a> PageSource<'a> {
             }
             attachments.push((
                 a.key,
-                record([("filename", string(&pdf_string::decode(&a.filename)))]),
+                self.json_attachment(&a.spec),
             ));
         }
         attachments.sort_by_key(|(k, _)| {

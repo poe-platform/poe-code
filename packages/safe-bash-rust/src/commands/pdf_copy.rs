@@ -62,10 +62,11 @@ pub(in super::super) struct PageSource<'a> {
     trailer: Value<'a>,
 }
 
-struct Attachment {
+struct Attachment<'a> {
     key: String,
     filename: Vec<u8>,
     stream: ObjectId,
+    spec: Value<'a>,
 }
 
 pub(super) type PageTree<'a> = BTreeMap<ObjectId, Option<Value<'a>>>;
@@ -311,7 +312,7 @@ impl<'a> PageSource<'a> {
         })
     }
 
-    fn attachments(&mut self, qpdf: bool) -> Option<Vec<Attachment>> {
+    fn attachments(&mut self, qpdf: bool) -> Option<Vec<Attachment<'a>>> {
         let names = self
             .catalog
             .get(b"Names")
@@ -401,6 +402,7 @@ impl<'a> PageSource<'a> {
                 key,
                 filename: name,
                 stream,
+                spec,
             });
         }
         Some(files)

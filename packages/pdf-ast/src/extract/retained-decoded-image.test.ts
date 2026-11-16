@@ -238,3 +238,47 @@ it.each([false, true])("uses default Indexed Decode for a null dictionary value,
   try { expect(await collect(image.rows())).toEqual(expected); }
   finally { await image.close(); await f.close(); }
 });
+
+for (const decode of [[0, 1], [1, 0], [0.25, 0.75], [1.5, -0.5]]) {
+  it(`maps JBIG2 Decode ${decode} like independent raw one-bit samples before masks`, async () => {
+    const { decodePng } = await import("../index.js");
+    const source = decodePng(fixture("jbig2-source.png"));
+    const raw = new Uint8Array(64 * 32 / 8);
+    for (let p = 0; p < 64 * 32; p++) if (source.data[p * 4]) raw[p >> 3]! |= 128 >> (p % 8);
+    const dict = cosDict({ Width: cosNumber(64), Height: cosNumber(32), BitsPerComponent: cosNumber(1), ColorSpace: cosName("DeviceGray"), Decode: cosArray(decode.map(value => cosNumber(value))) });
+    const mask = (doc: PdfDocument, dict: PdfCosDict) => dictSet(dict, "SMask", doc.cos.allocateObject(cosStream(cosDict({ Width: cosNumber(1), Height: cosNumber(1), BitsPerComponent: cosNumber(8), ColorSpace: cosName("DeviceGray"), Matte: cosArray([cosNumber(0.25)]) }), new Uint8Array([128]))));
+    const reference = await open(raw, dict, mask);
+    dictSet(dict, "Filter", cosName("JBIG2Decode"));
+    const f = await open(fixture("jbig2-generic-stream.bin"), dict, mask);
+    const image = await PdfRetainedDecodedImage.open(f.document, f.image, f.storage, { chunkBytes: 31 });
+    try {
+      expect(f.expected.rgba).toEqual(reference.expected.rgba);
+      expect(await collect(image.nativeContents())).toEqual(fixture("jbig2-generic-stream.bin"));
+      expect(await collect(image.rows())).toEqual(reference.expected.rgba);
+    } finally { await image.close(); await f.close(); await reference.close(); }
+  });
+}
+
+it.each([[1, 0], [0.25, 0.75]])("maps wrapped JBIG2 global-symbol samples with Decode %s,%s", async (low, high) => {
+  const { createHash } = await import("node:crypto");
+  const { decodeJbig2ToRgba } = await import("./images.js");
+  const { encodeAsciiHex } = await import("../cos/filters.js");
+  const bytes = fixture("jbig2-symbols.0000"), globals = fixture("jbig2-symbols.sym");
+  const independent = decodeJbig2ToRgba(bytes, 64, 32, globals);
+  // The independent PyMuPDF reference for this lossy symbol fixture.
+  expect(createHash("sha256").update(independent).digest("hex")).toBe("2f6fdd7e5b7bf087b4c8511e64986052aa0cbd4f267346c39906e27bc99d21ce");
+  for (let p = 0; p < independent.length; p += 4) {
+    const gray = Math.round(255 * (independent[p] === 0 ? low : high));
+    independent[p] = independent[p + 1] = independent[p + 2] = gray;
+  }
+  const f = await open(encodeAsciiHex(bytes), cosDict({ Width: cosNumber(64), Height: cosNumber(32), BitsPerComponent: cosNumber(1), ColorSpace: cosName("DeviceGray"), Decode: cosArray([cosNumber(low), cosNumber(high)]), Filter: cosArray([cosName("ASCIIHexDecode"), cosName("JBIG2Decode")]) }), (doc, dict) => {
+    dictSet(dict, "DecodeParms", cosArray([{ kind: "null" }, cosDict({ JBIG2Globals: doc.cos.allocateObject(cosStream(globals)) })]));
+  });
+  const image = await PdfRetainedDecodedImage.open(f.document, f.image, f.storage);
+  try {
+    expect(f.expected.rgba).toEqual(independent);
+    expect(await collect(image.nativeContents())).toEqual(bytes);
+    expect(await collect(image.nativeContents("globals"))).toEqual(globals);
+    expect(await collect(image.rows())).toEqual(independent);
+  } finally { await image.close(); await f.close(); }
+});

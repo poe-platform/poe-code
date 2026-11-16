@@ -963,6 +963,12 @@ export function *decodeXObjectImageToRgbaSteps(
         : doc.resolveDict(params);
       const globals = decodeParms ? doc.resolve(dictGet(decodeParms, "JBIG2Globals")) : undefined;
       rgba = (yield* decodeJbig2ToRgbaSteps(rawEncBytes, width, height, globals?.kind === "stream" ? doc.decodeStream(globals) : undefined, doc.maxDecompressedBytes));
+      const decodePairs = yield* parseDecodePairsSteps(doc, dict);
+      if (decodePairs) for (let at = 0; at < rgba.length; at += 4) {
+        if (++work % 16384 === 0) yield;
+        const gray = Math.round(255 * remapUnitSampleWithDecode(rgba[at]! / 255, 0, decodePairs));
+        rgba[at] = rgba[at + 1] = rgba[at + 2] = gray;
+      }
     } else if (encoding === "jpx") {
       const decoded = (yield* decodeJpxSamplesSteps(rawEncBytes, doc.maxDecompressedBytes));
       width = decoded.width;

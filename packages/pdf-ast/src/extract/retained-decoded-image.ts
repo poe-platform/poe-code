@@ -251,8 +251,20 @@ export class PdfRetainedDecodedImage {
           }
         } finally { await rows.return(); }
       }
+      async function* jbig2Rows(): AsyncGenerator<Uint8Array> {
+        const [low, high] = decode![0]!;
+        for await (const row of currentCodec!.rows()) {
+          signal?.throwIfAborted();
+          for (let at = 0; at < row.length; at += 4) {
+            if (at > 0 && at % 65536 === 0) { await new Promise<void>(resolve => setTimeout(resolve, 0)); signal?.throwIfAborted(); }
+            const gray = Math.round(255 * Math.max(0, Math.min(1, low + row[at]! / 255 * (high - low))));
+            row[at] = row[at + 1] = row[at + 2] = gray;
+          }
+          yield row;
+        }
+      }
       async function* produce(): AsyncGenerator<Uint8Array> {
-        let rows: AsyncIterable<Uint8Array> = currentCodec ? encoding === "jpeg" && (width !== currentCodec.width || height !== currentCodec.height) ? jpegRows() : currentCodec.rows() : decodeRetainedSampleRows(samples, width, height, bitsPerComponent, color, { maxWorkingBytes: pixelScratch, maxOutputBytes: outputLimit, ...(decode ? { decode } : {}), ...(signal ? { signal } : {}) });
+        let rows: AsyncIterable<Uint8Array> = currentCodec ? encoding === "jbig2" && decode ? jbig2Rows() : encoding === "jpeg" && (width !== currentCodec.width || height !== currentCodec.height) ? jpegRows() : currentCodec.rows() : decodeRetainedSampleRows(samples, width, height, bitsPerComponent, color, { maxWorkingBytes: pixelScratch, maxOutputBytes: outputLimit, ...(decode ? { decode } : {}), ...(signal ? { signal } : {}) });
         for (const mask of masks) rows = applyRetainedImageMask(rows, width, height, mask, { mode: mask.mode, ...(mask.matte ? { matte: mask.matte } : {}), maxWorkingBytes: maskScratch, maxOutputBytes: outputLimit, ...(signal ? { signal } : {}) });
         let y = 0;
         for await (const row of rows) {

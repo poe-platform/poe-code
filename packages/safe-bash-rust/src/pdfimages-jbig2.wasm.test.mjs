@@ -22,6 +22,7 @@ for (const runtime of ["TypeScript", "Rust"]) for (const chained of [false, true
         const image = doc.cos.allocateObject(cosStream(chained ? new TextEncoder().encode(pageBytes.toString("hex") + ">") : pageBytes, {
           dict: cosDict({Type: cosName("XObject"), Subtype: cosName("Image"), Width: cosNumber(64), Height: cosNumber(32),
             BitsPerComponent: cosNumber(1), ColorSpace: cosName("DeviceGray"),
+            Decode: cosArray((flag === "-all" ? [1, 0] : [0.25, 0.75]).map(value => cosNumber(value))),
             Filter: chained ? cosArray([cosName("ASCIIHexDecode"), cosName("JBIG2Decode")]) : cosName("JBIG2Decode"),
             DecodeParms: chained ? cosArray([{kind: "null"}, params]) : params}),
         }));

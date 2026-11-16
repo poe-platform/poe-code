@@ -14,6 +14,8 @@ For trusted Python in native hybrid mode, install Pyodide 314.0.6 and set the ho
 
 ## Feature Index
 
+`zip -X` strips optional metadata from new or replaced members; `-X-` restores normal timestamp records. The last flag wins. Existing unselected members retain their metadata, and required ZIP64 fields remain. The native writer currently omits Unix owner-ID records.
+
 | Capability | Description |
 | --- | --- |
 | `Shell` | Stateful virtual shell (`cwd`, `env`, `SafeBashFs`) using native Rust by default; select `BackendMode::Hybrid` or `TypeScriptOnly` explicitly for the Node bridge |

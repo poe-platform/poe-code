@@ -3559,10 +3559,10 @@ pub(super) struct ZipRecord<'a> {
 pub(super) type ZipRecords<'a> = std::collections::BTreeMap<String,ZipRecord<'a>>;
 
 pub fn serialize_zip_archive(entries: &[crate::commands::archive::TarEntry]) -> Vec<u8> {
-    encode_zip_members(entries, (0,0), &[], false, (false,None), &ZipRecords::new(), |_,_,_,_| true)
+    encode_zip_members(entries, (0,0), &[], false, (false,None,false), &ZipRecords::new(), |_,_,_,_| true)
 }
 
-pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry], (compression,level): (u16,u8), store_suffixes: &[&str], document: bool, (descriptors,zip64): (bool,Option<bool>), retained: &ZipRecords<'_>, mut report: impl FnMut(&crate::commands::archive::TarEntry,u16,usize,usize)->bool) -> Vec<u8> {
+pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry], (compression,level): (u16,u8), store_suffixes: &[&str], document: bool, (descriptors,zip64,strip_extra): (bool,Option<bool>,bool), retained: &ZipRecords<'_>, mut report: impl FnMut(&crate::commands::archive::TarEntry,u16,usize,usize)->bool) -> Vec<u8> {
     let mut out = Vec::new();
     let mut central = Vec::new();
     let mut comment = Vec::new();
@@ -3659,7 +3659,7 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         extra[4] = 1;
         extra[5..9].copy_from_slice(&(e.mtime as u64 as i32).to_le_bytes());
 
-        let extra=if stdin_member {&[][..]} else {&extra[..]};
+        let extra=if stdin_member || strip_extra {&[][..]} else {&extra[..]};
         let local_offset = out.len() as u32;
         out.extend_from_slice(&0x0403_4b50u32.to_le_bytes());
         out.extend_from_slice(&version.to_le_bytes());

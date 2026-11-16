@@ -291,7 +291,7 @@ mod tests {
             (8, 6),
             &[],
             false,
-            (false, None),
+            (false, None, false),
             &ZipRecords::new(),
             |_, _, _, _| true,
         );

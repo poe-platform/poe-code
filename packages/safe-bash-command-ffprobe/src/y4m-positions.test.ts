@@ -25,7 +25,8 @@ for (const { name, tags, positions } of fixtures) {
       .toEqual(positions.map((offset, pts) => ({ offset, size: 12, pts })));
     expect(doc.tracks[0]!.decodedVideoFrames!.map(frame => Buffer.from(frame.native!.pixels))).toEqual(payloads);
     expect(Buffer.from(serializeY4m(doc))).toEqual(Buffer.concat([
-      header, ...payloads.flatMap(payload => [Buffer.from("FRAME\n"), payload])
+      Buffer.from("YUV4MPEG2 W4 H2 F25:1 Ip A1:1 C420jpeg XYSCSS=420JPEG\n"),
+      ...payloads.flatMap(payload => [Buffer.from("FRAME\n"), payload])
     ]));
   });
 

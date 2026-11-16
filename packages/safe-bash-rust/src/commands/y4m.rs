@@ -3,6 +3,7 @@ pub(super) struct Stream<'a> {
     pub width: u32,
     pub height: u32,
     pub fps: f64,
+    pub frame_rate: (u32, u32),
     pub frame_size: u64,
     data: &'a [u8],
 }
@@ -30,7 +31,7 @@ impl<'a> Stream<'a> {
             .iter()
             .position(|b| *b == b'\n')
             .unwrap_or(input.len());
-        let (mut width, mut height, mut fps) = (64u32, 64u32, 30.);
+        let (mut width, mut height, mut frame_rate) = (64u32, 64u32, (25, 1));
         for token in String::from_utf8_lossy(&input[..end]).split_whitespace() {
             if let Some(w) = token.strip_prefix('W') {
                 width = integer(w, width)?;
@@ -40,8 +41,8 @@ impl<'a> Stream<'a> {
             }
             if let Some(rate) = token.strip_prefix('F') {
                 let mut parts = rate.split(':');
-                fps = f64::from(integer(parts.next().unwrap_or(""), 30)?)
-                    / f64::from(integer(parts.next().unwrap_or(""), 1)?);
+                frame_rate = (integer(parts.next().unwrap_or(""), 25)?,
+                    integer(parts.next().unwrap_or(""), 1)?);
             }
         }
         let frame_size = (u64::from(width) * u64::from(height))
@@ -50,7 +51,8 @@ impl<'a> Stream<'a> {
         Ok(Self {
             width,
             height,
-            fps,
+            fps: f64::from(frame_rate.0) / f64::from(frame_rate.1),
+            frame_rate,
             frame_size,
             data: input.get(end + 1..).unwrap_or_default(),
         })

@@ -7,6 +7,10 @@ Inspect audio and video, including NUT PCM audio and RGB/BGR video packets, with
 Streaming metadata sources close on read failure or early return, including
 string-validation preflight. A cleanup failure does not replace the original read error.
 
+Y4M packet and frame positions are relative to the input file, including `FRAME`
+tags. Reserializing a Y4M document preserves its samples and writes a canonical
+chroma header, so positions in the new file can differ from the source.
+
 ```sh
 ffprobe -v quiet -of json -show_format -show_streams recording.wav
 ffprobe -show_entries stream=sample_rate,channels:format=duration -of csv recording.wav

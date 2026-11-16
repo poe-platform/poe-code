@@ -14,6 +14,10 @@ For trusted Python in native hybrid mode, install Pyodide 314.0.6 and set the ho
 
 ## Feature Index
 
+Native `ffprobe` reports Y4M packet positions relative to the input file, including
+variable-length `FRAME` tags, and exposes frame positions as `pkt_pos`. Timestamps
+use the stream's frame time base, including fractional rates such as `30000:1001`.
+
 VFS script execution populates the command cache. `hash -t` reports cached entries;
 `hash -r` and changes to `PATH` clear them. `set +h` disables hashing and `set -h`
 restores it. `shopt -s checkhash` retries `PATH` when a cached executable becomes

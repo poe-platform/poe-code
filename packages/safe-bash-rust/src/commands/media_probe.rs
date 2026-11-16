@@ -13,6 +13,7 @@ pub(super) struct Clip {
 
 enum VideoPackets {
     Fixed(u64),
+    Y4m { size: u64, offsets: Vec<usize> },
     Gif(Vec<(u64, usize)>), // cumulative duration and end offset of each packet
 }
 
@@ -35,23 +36,33 @@ enum Track {
 }
 
 impl Clip {
-    pub(super) fn y4m(input: &[u8]) -> Result<Self, &'static str> {
+    pub(super) fn y4m(input: &[u8], records: bool, limit: usize) -> Result<Self, &'static str> {
         let stream = super::y4m::Stream::parse(input)?;
         let (width, height, fps, frame_size) =
             (stream.width, stream.height, stream.fps, stream.frame_size);
-        let count = stream.frames().count();
+        let mut count = 0;
+        let mut offsets = Vec::new();
+        for frame in stream.frames() {
+            if records {
+                if count >= limit / size_of::<usize>() {
+                    return Err("sample index exceeds memory budget");
+                }
+                offsets.push(frame.as_ptr().addr() - input.as_ptr().addr());
+            }
+            count += 1;
+        }
         Ok(Self {
             track: Track::Video {
                 tag: b"raw ",
                 width,
                 height,
-                packets: VideoPackets::Fixed(frame_size),
+                packets: VideoPackets::Y4m { size: frame_size, offsets },
             },
-            timescale: 90000,
+            timescale: stream.frame_rate.0,
             payload_bytes: count as u64 * frame_size,
             duration: count as f64 / fps,
             count,
-            ticks: (90000. / fps).round().max(1.) as u64,
+            ticks: stream.frame_rate.1.into(),
         })
     }
     pub(super) fn still(input: &[u8], limit: usize) -> Result<Self, &'static str> {
@@ -180,6 +191,34 @@ impl Clip {
 
 pub(super) type Row = Vec<(&'static str, JVal)>;
 use JVal::{Number, Object, Str};
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn y4m_indexes_physical_offsets_relative_to_a_sliced_input() {
+        let mut input = vec![0; 17];
+        input.extend_from_slice(b"YUV4MPEG2 W4 H2 F30000:1001 Ip A1:1 C420jpeg\n");
+        for tag in ["FRAME Xlong=hello\n", "FRAME\n", "FRAME Xt=12\n"] {
+            input.extend_from_slice(tag.as_bytes());
+            input.extend_from_slice(&[128; 12]);
+        }
+        input.extend_from_slice(b"FRAME\nshort");
+        let clip = Clip::y4m(&input[17..], true, input.len()).unwrap();
+        assert_eq!(clip.count, 3);
+        for (i, position) in [63, 81, 105].into_iter().enumerate() {
+            for frame in [false, true] {
+                let row = clip.record(i, frame);
+                assert!(row.iter().any(|(key, value)| *key == "pts" && matches!(value, Number(n, _) if *n == i as f64)));
+                assert!(row.iter().any(|(key, value)| *key == if frame { "pkt_pos" } else { "pos" }
+                    && matches!(value, Str(s) if *s == position.to_string())));
+            }
+        }
+        assert!(Clip::y4m(&input[17..], true, 2 * size_of::<usize>()).is_err());
+        assert_eq!(Clip::y4m(&input[17..], false, 0).unwrap().count, 3);
+    }
+}
 
 pub(super) fn ratio(a: u64, b: u64, sep: char) -> String {
     let (mut x, mut y) = (a, b);
@@ -532,6 +571,10 @@ impl Clip {
                 packets: VideoPackets::Fixed(frame_size),
                 ..
             } => (default_pts, self.ticks, *frame_size, i as u64 * frame_size),
+            Track::Video {
+                packets: VideoPackets::Y4m { size, offsets },
+                ..
+            } => (default_pts, self.ticks, *size, offsets[i] as u64),
         };
         let key = i == 0
             || !matches!(
@@ -541,7 +584,7 @@ impl Clip {
                     ..
                 }
             );
-        self.info().codec.record(
+        let mut row = self.info().codec.record(
             0,
             self.timescale,
             Packet {
@@ -553,7 +596,19 @@ impl Clip {
                 key,
             },
             frame,
-        )
+        );
+        // The shared formatter uses integer clock ticks; Y4M exposes frame ticks.
+        if matches!(self.track, Track::Video { packets: VideoPackets::Y4m { .. }, .. }) {
+            for (key, value) in &mut row {
+                match *key {
+                    "pts" | "dts" | "pkt_dts" | "best_effort_timestamp" => *value = Number(i as f64, None),
+                    "duration" | "pkt_duration" => *value = Number(1., None),
+                    _ => {}
+                }
+            }
+            if frame { row.push(("pkt_pos", Str(pos.to_string()))); }
+        }
+        row
     }
 }
 
@@ -717,7 +772,17 @@ impl Clip {
                     0,
                 ) =>
             {
-                Box::new(std::iter::once(self.info().stream(0, counts)))
+                let mut row = self.info().stream(0, counts);
+                if matches!(self.track, Track::Video { packets: VideoPackets::Y4m { .. }, .. }) {
+                    for (key, value) in &mut row {
+                        match *key {
+                            "time_base" => *value = Str(ratio(self.ticks, self.timescale.into(), '/')),
+                            "duration_ts" => *value = Number(self.count as f64, None),
+                            _ => {}
+                        }
+                    }
+                }
+                Box::new(std::iter::once(row))
             }
             "format" => Box::new(std::iter::once(self.format(filename, bytes))),
             _ => Box::new(std::iter::empty()),

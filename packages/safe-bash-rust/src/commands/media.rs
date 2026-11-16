@@ -5503,7 +5503,7 @@ pub(super) fn cmd_ffprobe(args: &[String], mut stdin: super::CommandInput, cwd: 
             media_probe::Clip::subtitles(&raw_bytes,container=="webvtt",records,fs.max_input_bytes())
         } else if container == "aac" {
             Ok(media_probe::Clip::adts(&raw_bytes, records))
-        } else { media_probe::Clip::y4m(&raw_bytes) };
+        } else { media_probe::Clip::y4m(&raw_bytes,records,fs.max_input_bytes()) };
         return match clip.and_then(|clip|clip.report(name,raw_bytes.len(),opts)) {
             Ok(output)=>ok_out(&output), Err(reason)=>ffprobe_err(reason),
         };
@@ -15004,7 +15004,7 @@ mod media_unit_tests {
         assert_eq!(run(&["-show_entries", "stream=codec_name,width,height,r_frame_rate,nb_frames:format=duration", "-of", "csv=p=0", "clip"]).stdout,
             "rawvideo,3,1,30000/1001,2\n0.066733\n");
         assert_eq!(run(&["-show_packets", "-show_entries", "packet=size,pos,pts", "-of", "json=c=1", "clip"]).stdout,
-            "{\"packets\":[{\"pts\":0,\"size\":\"7\",\"pos\":\"0\"},{\"pts\":3003,\"size\":\"7\",\"pos\":\"7\"}]}\n");
+            "{\"packets\":[{\"pts\":0,\"size\":\"7\",\"pos\":\"34\"},{\"pts\":1,\"size\":\"7\",\"pos\":\"52\"}]}\n");
         assert_eq!(run(&["-select_streams", "a", "-show_streams", "-of", "json=c=1", "clip"]).stdout, "{\"streams\":[]}\n");
         fs.write_file("/bad.y4m", b"no").unwrap();
         assert_eq!(run(&["bad.y4m"]).stderr, "ffprobe: Invalid YUV4MPEG2 stream: missing 'YUV4MPEG2 ' magic\n");

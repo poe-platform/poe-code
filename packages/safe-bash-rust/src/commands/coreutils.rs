@@ -4171,9 +4171,10 @@ struct SeqDecimal {
 }
 
 fn parse_seq_decimal(text: &str) -> Result<SeqDecimal, String> {
-    let t = text.trim();
+    let invalid = || format!("seq: invalid floating point argument: {}\nTry 'seq --help' for more information.\n", fmt_quote::quote(text, false, false));
+    let t = text.trim_start_matches([' ', '\t', '\n', '\r', '\u{b}', '\u{c}']);
     if t.is_empty() {
-        return Err(format!("seq: invalid decimal argument: '{text}'\n"));
+        return Err(invalid());
     }
     let (sign_neg, rest) = if let Some(r) = t.strip_prefix('-') {
         (true, r)
@@ -4196,12 +4197,12 @@ fn parse_seq_decimal(text: &str) -> Result<SeqDecimal, String> {
             || !int_part.chars().all(|c| c.is_ascii_hexdigit())
             || !frac_part.chars().all(|c| c.is_ascii_hexdigit())
         {
-            return Err(format!("seq: invalid decimal argument: '{text}'\n"));
+            return Err(invalid());
         }
         let exp: i32 = match exp_str {
             Some(es) => es
                 .parse::<i32>()
-                .map_err(|_| format!("seq: invalid decimal argument: '{text}'\n"))?,
+                .map_err(|_| invalid())?,
             None => 0,
         };
         let digits = format!(
@@ -4210,7 +4211,7 @@ fn parse_seq_decimal(text: &str) -> Result<SeqDecimal, String> {
             frac_part
         );
         let mut coeff = i128::from_str_radix(&digits, 16)
-            .map_err(|_| format!("seq: invalid decimal argument: '{text}'\n"))?;
+            .map_err(|_| invalid())?;
         if sign_neg {
             coeff = -coeff;
         }
@@ -4248,12 +4249,12 @@ fn parse_seq_decimal(text: &str) -> Result<SeqDecimal, String> {
         || !int_part.chars().all(|c| c.is_ascii_digit())
         || !frac_part.chars().all(|c| c.is_ascii_digit())
     {
-        return Err(format!("seq: invalid decimal argument: '{text}'\n"));
+        return Err(invalid());
     }
     let exp: i32 = match exp_str {
         Some(es) => es
             .parse::<i32>()
-            .map_err(|_| format!("seq: invalid decimal argument: '{text}'\n"))?,
+            .map_err(|_| invalid())?,
         None => 0,
     };
     let digits = format!(
@@ -4263,7 +4264,7 @@ fn parse_seq_decimal(text: &str) -> Result<SeqDecimal, String> {
     );
     let mut coeff = digits
         .parse::<i128>()
-        .map_err(|_| format!("seq: invalid decimal argument: '{text}'\n"))?;
+        .map_err(|_| invalid())?;
     if sign_neg {
         coeff = -coeff;
     }
@@ -4384,8 +4385,11 @@ fn parse_seq_format(text: &str) -> Result<SeqFormat, String> {
         if cur < chs.len() && chs[cur] == 'L' {
             cur += 1;
         }
-        if cur >= chs.len() || !"fFeEgGaA".contains(chs[cur]) {
-            return Err("seq: format requires one f, e, g or a conversion\n".to_string());
+        if cur >= chs.len() {
+            return Err(format!("seq: format '{text}' ends in %\n"));
+        }
+        if !"fFeEgGaA".contains(chs[cur]) {
+            return Err(format!("seq: format '{text}' has unknown %{} directive\n", chs[cur]));
         }
         let kind = chs[cur];
         let width = width_str.parse::<usize>().unwrap_or(0);
@@ -4404,7 +4408,7 @@ fn parse_seq_format(text: &str) -> Result<SeqFormat, String> {
             f.suffix = literal;
             Ok(f)
         }
-        None => Err("seq: format must contain exactly one conversion\n".to_string()),
+        None => Err(format!("seq: format '{text}' has no % directive\n")),
     }
 }
 
@@ -21443,6 +21447,27 @@ mod tests {
         let factor = try_run_coreutil("factor", &args(&["360"]), "", "/", &BTreeMap::new(), &vfs).unwrap();
         assert_eq!(factor.exit_code, 0);
         assert_eq!(factor.stdout.trim(), "360: 2 2 2 3 3 5");
+    }
+
+    #[test]
+    fn seq_rejects_trailing_whitespace_and_reports_native_format_errors() {
+        for (suffix, quoted) in [(" ", " "), ("\t", "\\t"), ("\n", "\\n"), ("\r", "\\r"), ("\u{b}", "\\v"), ("\u{c}", "\\f")] {
+            for number in ["2", "0x2"] {
+                let operand = format!("{number}{suffix}");
+                for operands in [vec![operand.as_str()], vec![operand.as_str(), "3"], vec!["1", operand.as_str(), "3"], vec!["1", "1", operand.as_str()]] {
+                    let out = cmd_seq(&args(&operands));
+                    assert_eq!((out.exit_code, out.stdout.as_str()), (1, ""));
+                    assert_eq!(out.stderr, format!("seq: invalid floating point argument: '{number}{quoted}'\nTry 'seq --help' for more information.\n"));
+                }
+                let out = cmd_seq(&args(&[&format!("{suffix}{number}")]));
+                assert_eq!((out.exit_code, out.stdout.as_str(), out.stderr.as_str()), (0, "1\n2\n", ""));
+            }
+        }
+        for (format, reason) in [("", "has no % directive"), ("%%", "has no % directive"), ("%", "ends in %"), ("%.2", "ends in %"), ("%s", "has unknown %s directive"), ("%f %s", "has too many % directives")] {
+            let out = cmd_seq(&args(&["-f", format, "3"]));
+            assert_eq!((out.exit_code, out.stdout.as_str()), (1, ""));
+            assert_eq!(out.stderr, format!("seq: format '{format}' {reason}\n"));
+        }
     }
 
 

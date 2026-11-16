@@ -1,5 +1,6 @@
 import { utf8ByteLength } from "safe-bash-byte-engine";
 import type { CommandDefinition } from "safe-bash-contracts";
+import { escapeText } from "safe-bash-contracts/escaping";
 import { UsageError } from "safe-bash-io-engine/internal";
 import { command, type Session, type StreamFormatLimits } from "safe-bash-text-stream-engine/stream-format/shared";
 
@@ -23,7 +24,7 @@ function decimal(text: string, session?: Session): Decimal {
     return { coefficient, scale, precision, width: 0, negativeZero: coefficient === 0n && hexadecimal[1] === "-" };
   }
   const match = /^([+-]?)(?:(\d+)(?:\.(\d*))?|\.(\d+))(?:[eE]([+-]?\d+))?$/u.exec(text.trimStart());
-  if (!match) throw new UsageError(`invalid floating point argument: '${text}'\nTry 'seq --help' for more information.`);
+  if (!match) throw new UsageError(`invalid floating point argument: '${escapeText(text, "display").replaceAll("'", "\\'")}'\nTry 'seq --help' for more information.`);
   const fraction = match[3] ?? match[4] ?? "";
   const digits = (match[2] ?? "0") + fraction;
   const exponent = Number(match[5] ?? 0);

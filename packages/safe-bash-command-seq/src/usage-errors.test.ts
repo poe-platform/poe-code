@@ -16,6 +16,13 @@ for (const { args, message } of [
   { args: ["bad", "3"], message: "invalid floating point argument: 'bad'" },
   { args: ["1", "bad", "3"], message: "invalid floating point argument: 'bad'" },
   { args: ["1", "2", "bad"], message: "invalid floating point argument: 'bad'" },
+  { args: ["2\t"], message: "invalid floating point argument: '2\\t'" },
+  { args: ["2\n"], message: "invalid floating point argument: '2\\n'" },
+  { args: ["2\r"], message: "invalid floating point argument: '2\\r'" },
+  { args: ["2\v"], message: "invalid floating point argument: '2\\v'" },
+  { args: ["2\f"], message: "invalid floating point argument: '2\\f'" },
+  { args: ["2'"], message: "invalid floating point argument: '2\\''" },
+  { args: ["2\\"], message: "invalid floating point argument: '2\\\\'" },
 ]) {
   test(`seq operand diagnostic: ${JSON.stringify(args)}`, async () => {
     const values = createCommandArguments(args);

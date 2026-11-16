@@ -23,7 +23,7 @@ test("seq rejects trailing whitespace in every operand directly and in command s
   const instance = shell();
   try {
     for (const number of ["2", "0x2"]) {
-      for (const whitespace of [" ", "\t", "\n", "\r", "\v", "\f"]) {
+      for (const [whitespace, escaped] of [[" ", " "], ["\t", "\\t"], ["\n", "\\n"], ["\r", "\\r"], ["\v", "\\v"], ["\f", "\\f"]]) {
         const operand = number + whitespace;
         for (const args of [[operand], [operand, "3"], ["1", operand, "3"]]) {
           const command = `seq ${args.map(quote).join(" ")}`;
@@ -31,7 +31,7 @@ test("seq rejects trailing whitespace in every operand directly and in command s
             const result = await instance.exec(script);
             assert.equal(result.exitCode, 1, JSON.stringify(script));
             assert.equal(result.stdout, "", JSON.stringify(script));
-            assert.ok(result.stderr.includes("invalid decimal argument"), result.stderr);
+            assert.equal(result.stderr, `seq: invalid floating point argument: '${number + escaped}'\nTry 'seq --help' for more information.\n`);
           }
           const captured = await instance.exec(`values=$(${command}); status=$?; printf '%s:<%s>\\n' "$status" "$values"`);
           assert.equal(captured.stdout, "1:<>\n", JSON.stringify(command));

@@ -955,8 +955,11 @@ and credential protections remain in effect.
   same command line or inside a function body is parsed before that line executes.
   Virtual `bash -O option` and `bash +O option` enable or disable supported `shopt`
   options before parsing command strings, stdin, or virtual script files.
-  `checkhash` defaults off: a removed cached executable fails with status 127.
+  `checkhash` defaults off: a removed executable cached by absolute path fails with status 127.
   `shopt -s checkhash` searches `PATH` again when a cached executable is no longer usable.
+  Current-directory hashes are rechecked: an unusable `./tool` allows another
+  `PATH` entry to win. Discovery can report an existing nonexecutable file when
+  no executable is available; executing it still fails with status 126.
   `sourcepath` defaults on: `source` and `.` search `PATH` for names without a slash.
   `shopt -u sourcepath` loads those names from the current directory instead; explicit paths are unchanged.
   `shopt -s xpg_echo` enables backslash escapes in builtin `echo`; `echo -E` disables them for that call.

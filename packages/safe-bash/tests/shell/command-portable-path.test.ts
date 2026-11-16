@@ -155,7 +155,9 @@ test("portable lookup enforces permissions, path and command budgets", async con
   await fs.writeFile("/bin/tool", Buffer.from("true\n"), { mode: 0o644 });
   const shell = new Shell({ fs });
   context.after(() => shell.dispose());
-  assert.equal((await shell.exec("command -pv tool")).exitCode, 1);
+  const discovered = await shell.exec("command -pv tool");
+  assert.equal(discovered.exitCode, 0);
+  assert.equal(discovered.stdout, "/bin/tool\n");
   assert.equal((await shell.exec("command -p tool")).exitCode, 126);
   for (const [source, limits, limit] of [
     ["command -pv missing", { maxPathComponents: 1 }, "maxPathComponents"],

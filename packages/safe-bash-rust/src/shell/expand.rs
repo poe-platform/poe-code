@@ -3834,6 +3834,9 @@ pub fn lookup_var(
         if env.get("\0set_noglob").map(|v| v == "1").unwrap_or(false) {
             flags.push('f');
         }
+        if env.get("\0set_hashall").is_none_or(|v| v != "0") {
+            flags.push('h');
+        }
         if env.get("\0set_noexec").map(|v| v == "1").unwrap_or(false) {
             flags.push('n');
         }

@@ -14,6 +14,11 @@ For trusted Python in native hybrid mode, install Pyodide 314.0.6 and set the ho
 
 ## Feature Index
 
+VFS script execution populates the command cache. `hash -t` reports cached entries;
+`hash -r` and changes to `PATH` clear them. `set +h` disables hashing and `set -h`
+restores it. `shopt -s checkhash` retries `PATH` when a cached executable becomes
+unusable. Current-directory hashes are rechecked even with `checkhash` off.
+
 `zip -X` strips optional metadata from new or replaced members; `-X-` restores timestamp and known virtual owner-ID records. The last flag wins. Existing unselected members retain their metadata, and required ZIP64 fields remain. Filesystems that omit either owner ID produce no owner record.
 
 | Capability | Description |

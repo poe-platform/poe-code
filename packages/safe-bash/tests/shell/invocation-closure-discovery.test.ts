@@ -45,7 +45,9 @@ test("discovery and dispatch refresh permissions, symlinks and cwd", async () =>
   await fs.symlink("tool", "/bin/link");
   assert.equal((await shell.exec("PATH=/bin; command -v link; command link")).stdout, "/bin/link\nlive\n");
   await fs.chmod("/bin/tool", 0o644);
-  assert.equal((await shell.exec("PATH=/bin; command -v link")).exitCode, 1);
+  const denied = await shell.exec("PATH=/bin; command -v link; type -ap link");
+  assert.equal(denied.stdout, "/bin/link\n");
+  assert.equal(denied.exitCode, 1);
   assert.equal((await shell.exec("PATH=/bin; command link")).exitCode, 126);
   await fs.rm("/bin/tool");
   assert.equal((await shell.exec("PATH=/bin; command -v link")).exitCode, 1);

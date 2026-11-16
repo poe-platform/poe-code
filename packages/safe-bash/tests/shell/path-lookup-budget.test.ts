@@ -273,7 +273,7 @@ test("PATH source search shares bounded metadata but always checks read access",
 test("PATH source and executable permission probes are not interchangeable", async context => {
   const { fs, shell } = fixture(context, "/");
   await fs.writeFile("/file", script, { mode: 0o644 });
-  assert.equal((await shell.exec("source file; command -v file")).exitCode, 1);
+  assert.equal((await shell.exec("source file; type -ap file")).exitCode, 1);
   await fs.chmod("/file", 0o111);
   const result = await shell.exec("command -v file; source file");
   assert.equal(result.stdout, "/file\n");
@@ -287,7 +287,7 @@ test("PATH access denial is never cached and cannot be bypassed by a positive hi
   context.mock.method(fs, "access", async () => {
     if (++calls === 2) throw new FsError("EACCES", { path: "/tool" });
   });
-  const result = await shell.exec("command -v tool; command -v tool; command -v tool");
+  const result = await shell.exec("type -ap tool; type -ap tool; type -ap tool");
   assert.equal(result.stdout, "/tool\n/tool\n");
   assert.equal(calls, 3);
 });

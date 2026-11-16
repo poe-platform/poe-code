@@ -3,7 +3,8 @@ use crate::budget::ExecutionBudget;
 use crate::commands::{ChildIo, CommandInput, FileCommandInput, FileInputPosition, try_run_command_with_input};
 use crate::shell::builtins::{
     BuiltinOutcome, effective_path_env, eval_ere_match, eval_test_unary_predicate,
-    path_targets, same_file, try_run_builtin,
+    path_targets, same_file, try_run_builtin, cached_command_path, clear_command_hashes,
+    hash_order_insert, hash_order_remove, path_search_checks_cwd,
 };
 use crate::shell::expand::{
     apply_var_attributes, bash_quote_double, decimal_index, decode_ansi_c_escapes,
@@ -266,6 +267,9 @@ impl PrefixBinding {
     }
 
     fn exchange(&mut self, env: &mut BTreeMap<String, String>) {
+        if self.name == "PATH" {
+            clear_command_hashes(env);
+        }
         if self.array {
             let prefix = format!("{}[", self.name);
             for (key, _) in env.range(prefix.clone()..).take_while(|(k, _)| k.starts_with(&prefix)) {
@@ -3511,6 +3515,7 @@ impl<'a> EvalState<'a> {
             self.env.remove("\0pwd_unset__");
         }
         if resolved == "PATH" {
+            clear_command_hashes(self.env);
             self.env.remove("\0path_unset__");
         }
         self.env.insert(resolved, final_val);
@@ -3971,8 +3976,24 @@ impl<'a> EvalState<'a> {
             && !self.functions.contains_key(&expanded_words[0])
             && !Self::is_shell_builtin_name(&expanded_words[0]);
         let outer_env = is_external_inline.then(|| self.env.clone());
+        let cache_name = is_external_inline.then(|| expanded_words[0].clone());
+        let path_prefix = simple.assignments.iter().any(|(name, _, _)| resolve_nameref_base(name, self.env) == "PATH");
         let result = self.run_expanded_simple(simple, expanded_words, stdin, debug_out, has_inline_input, is_external_inline);
-        if let Some(env) = outer_env { *self.env = env; }
+        if let Some(mut env) = outer_env {
+            if path_prefix {
+                clear_command_hashes(&mut env);
+            } else if effective_path_env(&env).is_some_and(|path| !path.is_empty()) && let Some(name) = cache_name {
+                // Redirect expansion is isolated, but command lookup belongs
+                // to the invoking shell, just as it does without a redirect.
+                if let Some(path) = self.env.get(&format!("\0hash__{name}")).cloned() {
+                    let check_dot = self.env.get(&format!("\0hash_dot__{name}")).is_some_and(|v| v == "1");
+                    hash_order_insert(&mut env, &name, path, check_dot);
+                } else {
+                    hash_order_remove(&mut env, &name);
+                }
+            }
+            *self.env = env;
+        }
         result
     }
 
@@ -5795,9 +5816,23 @@ impl<'a> EvalState<'a> {
             );
         }
 
-        match self.search_command_path(cmd, default_path) {
+        let mut cached = if default_path { None } else { cached_command_path(cmd, self.cwd, self.env, self.fs) };
+        if let Some(path) = &cached
+            && self.get_shopt_enabled("checkhash", false)
+            && !self.is_virtual_executable_path(&resolve_posix_path(self.cwd, path))
+            && !self.fs.stat(&resolve_posix_path(self.cwd, path)).is_ok_and(|st| st.kind == crate::vfs::VfsEntryKind::File && st.mode & 0o111 != 0)
+        {
+            hash_order_remove(self.env, cmd);
+            cached = None;
+        }
+        let target = if let Some(path) = &cached { Ok(Some(path.clone())) } else { self.search_command_path(cmd, default_path) };
+        match target {
             Err(denied) => return Ok(denied),
             Ok(Some(target)) => {
+                if cached.is_none() && !default_path && self.get_shopt_enabled("hashall", true) && effective_path_env(self.env).is_some_and(|path| !path.is_empty()) {
+                    let check_dot = path_search_checks_cwd(cmd, &target, self.cwd, self.env);
+                    hash_order_insert(self.env, cmd, target.clone(), check_dot);
+                }
                 return self.run_vfs_script(
                     &target,
                     args,
@@ -6117,6 +6152,7 @@ impl<'a> EvalState<'a> {
             return Vec::new();
         }
         let mut matches = Vec::new();
+        let mut non_executable = None;
         let path_opt = if default_path {
             Some("/bin:/usr/bin")
         } else {
@@ -6131,15 +6167,21 @@ impl<'a> EvalState<'a> {
                 }
                 continue;
             }
-            if let Ok(st) = self.fs.stat(&resolved)
-                && st.kind == crate::vfs::VfsEntryKind::File
-                && (st.mode & 0o111) != 0
-            {
-                matches.push(target);
-                if !show_all {
-                    break;
+            if let Ok(st) = self.fs.stat(&resolved) && st.kind == crate::vfs::VfsEntryKind::File {
+                if (st.mode & 0o111) != 0 {
+                    matches.push(target);
+                    if !show_all {
+                        break;
+                    }
+                } else if non_executable.is_none() {
+                    non_executable = Some(target);
                 }
             }
+        }
+        if matches.is_empty() && !show_all && !name.contains('/') && path_opt.is_some_and(|path| !path.is_empty()) && !self.get_shopt_enabled("posix", true)
+            && let Some(path) = non_executable
+        {
+            matches.push(path);
         }
         matches
     }
@@ -6194,7 +6236,9 @@ impl<'a> EvalState<'a> {
                     .map(|v| v == "1")
                     .unwrap_or(false);
                 let absolute = is_command && mode == "describe";
-                for mut path in self.search_discovery_paths(name, show_all, default_path) {
+                let cached = (!show_all).then(|| cached_command_path(name, self.cwd, self.env, self.fs)).flatten();
+                let paths = if let Some(path) = cached { vec![path] } else { self.search_discovery_paths(name, show_all, default_path) };
+                for mut path in paths {
                     if (absolute || is_posix)
                         && !name.contains('/')
                         && !path.starts_with('/')
@@ -7169,6 +7213,7 @@ impl<'a> EvalState<'a> {
         const SET_OPTIONS: &[&str] = &[
             "allexport",
             "braceexpand",
+            "hashall",
             "errexit",
             "noclobber",
             "noexec",
@@ -7180,7 +7225,6 @@ impl<'a> EvalState<'a> {
         ];
         const UNSUPPORTED_SET_OPTIONS: &[&str] = &[
             "emacs",
-            "hashall",
             "histexpand",
             "history",
             "ignoreeof",
@@ -7280,6 +7324,7 @@ impl<'a> EvalState<'a> {
                         'u' => self.apply_set_option("nounset", enable),
                         'a' => self.apply_set_option("allexport", enable),
                         'f' => self.apply_set_option("noglob", enable),
+                        'h' => self.apply_set_option("hashall", enable),
                         'C' => self.apply_set_option("noclobber", enable),
                         'n' => self.apply_set_option("noexec", enable),
                         'x' => self.apply_set_option("xtrace", enable),
@@ -7331,7 +7376,7 @@ impl<'a> EvalState<'a> {
                         _ => {
                             return BuiltinOutcome {
                                 stdout: String::new(),
-                                stderr: "set: unsupported shell option; supported forms are +/- a/e/u/f/n/B/C clusters, -- arguments and terminal o with allexport, braceexpand, noclobber, noexec, noglob, pipefail, errexit or nounset\n".to_string(),
+                                stderr: "set: unsupported shell option; supported forms are +/- a/e/h/u/f/n/B/C clusters, -- arguments and terminal o with allexport, braceexpand, hashall, noclobber, noexec, noglob, pipefail, errexit or nounset\n".to_string(),
                                 exit_code: 1,
                             };
                         }
@@ -7498,6 +7543,7 @@ impl<'a> EvalState<'a> {
                 "noclobber" => self.noclobber,
                 "noexec" => self.noexec,
                 "xtrace" => self.xtrace,
+                "hashall" => self.env.get("\0set_hashall").is_none_or(|v| v != "0"),
                 "braceexpand" => self
                     .env
                     .get("\0set_braceexpand")
@@ -7571,6 +7617,7 @@ impl<'a> EvalState<'a> {
         const SET_OPTIONS: &[&str] = &[
             "allexport",
             "braceexpand",
+            "hashall",
             "errexit",
             "noclobber",
             "noexec",
@@ -7581,6 +7628,7 @@ impl<'a> EvalState<'a> {
             "functrace",
         ];
         const SHOPT_OPTIONS: &[&str] = &[
+            "checkhash",
             "dotglob",
             "expand_aliases",
             "extglob",
@@ -8677,6 +8725,7 @@ impl<'a> EvalState<'a> {
                 self.retained_prefix_vars.push(resolved.clone());
             }
             if resolved == "PATH" {
+                clear_command_hashes(self.env);
                 self.env.insert("\0path_unset__".to_string(), "1".to_string());
             }
             if resolved == "RANDOM" {
@@ -17861,7 +17910,7 @@ fi"#,
         assert_eq!(r1.exit_code, 0);
         assert_eq!(
             r1.stdout,
-            "multiline:ok\nempty:ok\nposix_empty:ok\ndb_arith=1:[[: 1/0: division by 0 (error token is \"0\")\ndb_loc=2:[[ locale character class: unsupported conditional profile\ndb_fd=2:[[ descriptor predicate: unsupported conditional profile\nvar:ok\nside=0\ntilde_custom=/custom/pwd/sub\ntilde_unset=~+/sub\nerrexit=off:off:-1:B|on:on\n"
+            "multiline:ok\nempty:ok\nposix_empty:ok\ndb_arith=1:[[: 1/0: division by 0 (error token is \"0\")\ndb_loc=2:[[ locale character class: unsupported conditional profile\ndb_fd=2:[[ descriptor predicate: unsupported conditional profile\nvar:ok\nside=0\ntilde_custom=/custom/pwd/sub\ntilde_unset=~+/sub\nerrexit=off:off:-1:hB|on:on\n"
         );
 
         let r_nonempty_op = state.eval_script_str("[[ -z && -n = -n ]]", "").unwrap();

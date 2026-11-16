@@ -1080,7 +1080,7 @@ pub fn resolve_hash_command(
     None
 }
 
-fn hash_order_insert(env: &mut BTreeMap<String, String>, name: &str, target: String) {
+pub(super) fn hash_order_insert(env: &mut BTreeMap<String, String>, name: &str, target: String, check_dot: bool) {
     let mut order: Vec<String> = env
         .get("\0hash_order")
         .map(|s| {
@@ -1093,10 +1093,12 @@ fn hash_order_insert(env: &mut BTreeMap<String, String>, name: &str, target: Str
     order.push(name.to_string());
     env.insert("\0hash_order".to_string(), order.join("\n"));
     env.insert(format!("\0hash__{name}"), target);
+    env.insert(format!("\0hash_dot__{name}"), if check_dot { "1" } else { "0" }.into());
 }
 
-fn hash_order_remove(env: &mut BTreeMap<String, String>, name: &str) -> Option<String> {
+pub(super) fn hash_order_remove(env: &mut BTreeMap<String, String>, name: &str) -> Option<String> {
     let removed = env.remove(&format!("\0hash__{name}"));
+    env.remove(&format!("\0hash_dot__{name}"));
     if let Some(s) = env.get("\0hash_order").cloned() {
         let order: Vec<&str> = s
             .split('\n')
@@ -1109,6 +1111,42 @@ fn hash_order_remove(env: &mut BTreeMap<String, String>, name: &str) -> Option<S
         }
     }
     removed
+}
+
+pub(super) fn clear_command_hashes(env: &mut BTreeMap<String, String>) {
+    env.retain(|key, _| !key.starts_with("\0hash__") && !key.starts_with("\0hash_dot__") && key != "\0hash_order");
+}
+
+pub(super) fn path_search_checks_cwd(name: &str, target: &str, cwd: &str, env: &BTreeMap<String, String>) -> bool {
+    for candidate in path_targets(effective_path_env(env), name) {
+        let parent = candidate.rsplit_once('/').map(|(parent, _)| parent).unwrap_or(".");
+        if candidate.starts_with('.') && resolve_posix_path(cwd, parent) == cwd {
+            return true;
+        }
+        if candidate == target {
+            break;
+        }
+    }
+    false
+}
+
+pub(super) fn cached_command_path(name: &str, cwd: &str, env: &BTreeMap<String, String>, fs: &dyn SafeBashFs) -> Option<String> {
+    if env.get("\0set_hashall").is_some_and(|v| v == "0") {
+        return None;
+    }
+    let path = env.get(&format!("\0hash__{name}"))?;
+    if !path.starts_with('/') || env.get(&format!("\0hash_dot__{name}")).is_some_and(|v| v == "1") {
+        let relative = if path.starts_with('/') { name } else { path };
+        let dotted = if relative.starts_with("./") { relative.to_string() } else { format!("./{relative}") };
+        let resolved = resolve_posix_path(cwd, &dotted);
+        if is_virtual_executable_path(&dotted, cwd) || fs.stat(&resolved).is_ok_and(|st| st.kind == crate::vfs::VfsEntryKind::File && st.mode & 0o111 != 0) {
+            return Some(dotted);
+        }
+        if path.starts_with('.') && path.rsplit_once('/').is_some_and(|(parent, _)| same_file(cwd, ".", parent, fs)) {
+            return None;
+        }
+    }
+    Some(path.clone())
 }
 
 fn hash_ordered_entries(env: &BTreeMap<String, String>) -> Vec<(String, String)> {
@@ -1138,6 +1176,9 @@ fn builtin_hash(
     env: &mut BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
+    if env.get("\0set_hashall").is_some_and(|v| v == "0") {
+        return BuiltinOutcome { stdout: String::new(), stderr: "hash: hashing disabled\n".into(), exit_code: 1 };
+    }
     let mut hash_args: Vec<String> = args.to_vec();
     let mut reset = false;
     let mut list_mode = false;
@@ -1196,15 +1237,7 @@ fn builtin_hash(
     }
 
     if reset {
-        let keys: Vec<String> = env
-            .keys()
-            .filter(|k| k.starts_with("\0hash__"))
-            .cloned()
-            .collect();
-        for k in keys {
-            env.remove(&k);
-        }
-        env.remove("\0hash_order");
+        clear_command_hashes(env);
     }
 
     if print_target && hash_args.is_empty() {
@@ -1245,14 +1278,11 @@ fn builtin_hash(
             continue;
         }
         if let Some(ref cp) = custom_path {
-            hash_order_insert(env, name, cp.clone());
+            hash_order_insert(env, name, cp.clone(), false);
             continue;
         }
         if print_target {
-            let existing = env
-                .get(&format!("\0hash__{name}"))
-                .cloned()
-                .or_else(|| resolve_hash_command(name, cwd, env, fs));
+            let existing = cached_command_path(name, cwd, env, fs);
             if let Some(target) = existing {
                 if hash_args.len() > 1 {
                     stdout.push_str(&format!("{name}\t{target}\n"));
@@ -1266,7 +1296,8 @@ fn builtin_hash(
             continue;
         }
         if let Some(resolved) = resolve_hash_command(name, cwd, env, fs) {
-            hash_order_insert(env, name, resolved);
+            let check_dot = path_search_checks_cwd(name, &resolved, cwd, env);
+            hash_order_insert(env, name, resolved, check_dot);
         } else if crate::commands::search::is_known_command(name)
             || matches!(
             name.as_str(),
@@ -2361,8 +2392,8 @@ pub fn eval_test_unary_predicate(
                     .is_some_and(|a| a.contains('n'));
         }
         "-o" => {
-            return if val == "braceexpand" {
-                env.get("\0set_braceexpand").map(|v| v != "0").unwrap_or(true)
+            return if matches!(val, "braceexpand" | "hashall") {
+                env.get(&format!("\0set_{val}")).map(|v| v != "0").unwrap_or(true)
             } else {
                 env.get(&format!("\0set_{val}")).is_some_and(|v| v == "1")
             };

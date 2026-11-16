@@ -993,7 +993,7 @@ export interface State extends DynamicVariableState {
   callerFrames?: (CallerFrame & { readonly routine: string })[];
   callerTopLevel?: boolean;
   shellStartedAt?: number;
-  hashedCommands?: Map<string, { path: string; hits: number }>;
+  hashedCommands?: Map<string, { path: string; hits: number; checkDot?: boolean }>;
 }
 export const declarationArrays = Symbol("declarationArrays");
 export function captureCallerFrame(state: State, io: IO, routine: string, line = io.diagnosticLine ?? 1): CallerFrame & { readonly routine: string } {
@@ -6062,6 +6062,7 @@ export class Runtime {
     const functionCommand = words.length > 0 && state.functions.has(words[0]!);
     const persistentRedirects = words[declarationIndex] === "exec" && !functionCommand && !state.extensions?.builtins.has("exec");
     const isolatedInlineInput = inlineInput && words.length > 0 && !shellBuiltinNames.has(words[0]!) && !state.extensions?.builtins.has(words[0]!) && !functionCommand;
+    const outerState = state;
     const snapshotScope = isolatedInlineInput ? (() => {
       const s = originalIO[invocationScope].child();
       snapshotHolder.scope = s;
@@ -6276,6 +6277,17 @@ export class Runtime {
           this.syncGetopts(state);
         }
       } else if (previous) for (const saved of previous.values()) saved.heldValue?.release();
+      if (snapshotScope) {
+        // Redirect expansion has child-local variables; resolving the external
+        // command still updates the invoking shell's command cache.
+        if (previous?.has("PATH")) outerState.hashedCommands?.clear();
+        else if (outerState.variables.PATH ?? (outerState.pathUnset ? "" : defaultCommandPath)) {
+          const name = words[0]!;
+          const entry = state.hashedCommands?.get(name);
+          if (entry) (outerState.hashedCommands ??= new Map()).set(name, { ...entry });
+          else outerState.hashedCommands?.delete(name);
+        }
+      }
     }
   }
   private dispatchFastCommand?(_name: string, _definition: any, _values: readonly ShellValue[], _state: State, _io: IO, _scope: InvocationScope): Promise<number>;
@@ -6800,15 +6812,17 @@ export class Runtime {
             return { exitCode: await this.interpreter(virtualName ? this.virtualExecutionContext(context, virtualName) : context, state, io) };
           }
           if (context.command.includes("/") || !defaultPath && state.variables.PATH === undefined && state.pathUnset) return { exitCode: await this.scriptFile(context, state, io, context.command, context.args, true) };
-          let cached = defaultPath || state.hashall === false ? undefined : state.hashedCommands?.get(context.command);
-          if (cached && state.checkhash && !(await this.searchPaths(pathOf(state, cached.path), state, false, true)).length) {
+          let cached = defaultPath ? undefined : await this.cachedCommandPath(context.command, state);
+          if (cached && state.checkhash && !(await this.searchPaths(pathOf(state, cached), state, false, true)).length) {
             state.hashedCommands!.delete(context.command);
             cached = undefined;
           }
-          const target = cached?.path ?? (await this.searchPaths(context.command, state, false, false, defaultPath))[0];
+          const target = cached ?? (await this.searchPaths(context.command, state, false, false, defaultPath))[0];
           if (target !== undefined) {
             if (!defaultPath && state.hashall !== false && state.variables.PATH !== "") {
-              const entry = cached ?? { path: target, hits: 0 };
+              const entry = cached ? state.hashedCommands!.get(context.command)! : {
+                path: target, hits: 0, checkDot: this.pathSearchChecksCwd(context.command, target, state),
+              };
               entry.hits++;
               (state.hashedCommands ??= new Map()).set(context.command, entry);
             }
@@ -6980,8 +6994,8 @@ export class Runtime {
       if (mode === "path" && (matches[0]?.kind === "command" && !shellBuiltinNames.has(name)
         || matches[0]?.kind === "interpreter")) matches = [];
       if (all || !matches.length) {
-        const cached = !all && !defaultPath && state.hashall !== false ? state.hashedCommands?.get(name) : undefined;
-        const paths = cached ? [cached.path] : await this.searchPaths(name, state, all, true, defaultPath);
+        const cached = !all ? await this.cachedCommandPath(name, state) : undefined;
+        const paths = cached ? [cached] : await this.searchPaths(name, state, all, true, defaultPath, true);
         matches.push(...paths.map(path => {
           const absolute = command && mode === "describe";
           if ((absolute || state.profile === "sh") && !name.includes("/") && !path.startsWith("/")) {
@@ -7012,9 +7026,38 @@ export class Runtime {
     }
     return (command ? found > 0 || args.length === 0 : found === args.length) ? 0 : 1;
   }
-  async searchPaths(name: string, state: State, all = false, discovery = false, defaultPath = false): Promise<string[]> {
+  async cachedCommandPath(name: string, state: State): Promise<string | undefined> {
+    const entry = state.hashall !== false ? state.hashedCommands?.get(name) : undefined;
+    if (!entry) return undefined;
+    if (entry.checkDot || !entry.path.startsWith("/")) {
+      const relative = entry.path.startsWith("/") ? name : entry.path;
+      const dotted = relative.startsWith("./") ? relative : `./${relative}`;
+      if ((await this.searchPaths(dotted, state, false, true)).length) return dotted;
+      if (entry.path.startsWith(".")) {
+        try {
+          const options = { signal: this.signal };
+          const directory = await interruptible(this.fs.realpath(pathOf(state, dirname(entry.path)), options), this.signal);
+          const cwd = await interruptible(this.fs.realpath(state.cwd, options), this.signal);
+          if (directory === cwd) return undefined;
+        } catch (error) {
+          this.signal.throwIfAborted();
+          if (errorCode(error) !== "ENOENT" && errorCode(error) !== "ENOTDIR") throw error;
+        }
+      }
+    }
+    return entry.path;
+  }
+  pathSearchChecksCwd(name: string, target: string, state: State): boolean {
+    for (const candidate of pathTargets(name, state.variables.PATH, this.budget.limits, this.signal, limit => this.budget.fail(limit))) {
+      if (candidate.startsWith(".") && resolvePath(state.cwd, dirname(candidate)) === state.cwd) return true;
+      if (candidate === target) break;
+    }
+    return false;
+  }
+  async searchPaths(name: string, state: State, all = false, discovery = false, defaultPath = false, preferExecutable = false): Promise<string[]> {
     if (!name) return [];
     let denied: CommandFailure | undefined;
+    let nonExecutable: string | undefined;
     const matches: string[] = [];
     for (const target of pathTargets(name, defaultPath ? defaultCommandPath : state.variables.PATH ?? (state.pathUnset ? undefined : defaultCommandPath), this.budget.limits, this.signal, limit => this.budget.fail(limit))) {
       const resolved = pathOf(state, target);
@@ -7023,9 +7066,11 @@ export class Runtime {
         if (!all) return matches;
         continue;
       }
+      let fileExists = false;
       try {
         const options = { signal: this.signal };
         if (!await interruptible(this.budget.pathLookup.isFile(this.fs, resolved, this.signal), this.signal)) continue;
+        fileExists = true;
         const capabilities = this.fs.capabilitiesFor
           ? await interruptible(this.fs.capabilitiesFor(resolved, options), this.signal) : this.fs.capabilities;
         if (capabilities.permissions !== true) throw new CommandFailure(`${target}: execution permissions are not supported by this filesystem`, 126);
@@ -7039,10 +7084,13 @@ export class Runtime {
         const code = errorCode(error);
         if (code === "ENOENT" || code === "ENOTDIR") continue;
         if (code !== "EACCES" && code !== "EPERM") throw new CommandFailure(filesystemDiagnostic(error, target, this.budget.onInternalError) ?? `${target}: ${message(error, this.budget.onInternalError)}`, 126);
+        if (fileExists) nonExecutable ??= target;
         denied ??= new CommandFailure(filesystemDiagnostic(error, target, this.budget.onInternalError) ?? `${target}: ${message(error, this.budget.onInternalError)}`, 126);
       }
     }
     if (denied && !matches.length && !discovery) throw denied;
+    if (!matches.length && preferExecutable && !all && state.profile !== "sh" && !name.includes("/")
+      && (defaultPath || !!state.variables.PATH) && nonExecutable) matches.push(nonExecutable);
     return matches;
   }
   async processState(context: CommandContext, state: State, io: IO, arg0: ShellValue, args: readonly string[]): Promise<State> {
@@ -8860,20 +8908,17 @@ export class Runtime {
           continue;
         }
         if (printTarget) {
-          let existing = table.get(name)?.path;
+          const existing = await this.cachedCommandPath(name, state);
           if (existing === undefined) {
             await this.diagnostic(context, `hash: ${name}: not found`);
             status = 1;
           } else {
-            if (!existing.startsWith("/") && !existing.startsWith("./")) {
-              existing = (await this.searchPaths(`./${existing}`, state, false, true))[0] ?? existing;
-            }
             await writeText(stdout, hashArgs.length > 1 ? `${name}\t${existing}\n` : `${existing}\n`);
           }
           continue;
         }
         const [resolved] = await this.searchPaths(name, state, false, true, false);
-        if (resolved !== undefined) table.set(name, { path: resolved, hits: 0 }); else if (!shellBuiltinNames.has(name) && !this.commands.has(name) && name !== "bash" && name !== "sh" && name !== "zsh") {
+        if (resolved !== undefined) table.set(name, { path: resolved, hits: 0, checkDot: this.pathSearchChecksCwd(name, resolved, state) }); else if (!shellBuiltinNames.has(name) && !this.commands.has(name) && name !== "bash" && name !== "sh" && name !== "zsh") {
           await this.diagnostic(context, `hash: ${name}: not found`);
           status = 1;
         }

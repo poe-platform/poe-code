@@ -17167,3 +17167,5 @@ import "./pdf-cairo-svg.wasm.test.mjs";
 import "./pdf-text-geometry.wasm.test.mjs";
 
 import "./readonly-discard.wasm.test.mjs";
+
+import "./arithmetic-discard.wasm.test.mjs";

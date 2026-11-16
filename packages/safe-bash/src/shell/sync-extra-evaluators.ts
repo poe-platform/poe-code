@@ -252,7 +252,7 @@ import {
   cloneGetoptsBinding, saveVariable, hasActiveVariableAttributes, tryRestoreVariableSync,
   isShellIdentifier, errorCode, message, mapfileCallbackStates, emptyStrings, singleStatusZero,
   singleStatusOne, SYNC_UNIT_ZERO, SYNC_UNIT_ONE, arithTreeTouchesArray, type CachedSingleEvalUnit,
-  isDefaultShellSyntax, getOrParseSingleEvalUnit, syncPipePools, defaultParameterOperators, ExpansionFailure, NounsetFailure, NounsetDiagnosticFailure, ExtensionCheckpointFailure, publishVariable, restoreVariable, } from "./runtime.js";
+  isDefaultShellSyntax, getOrParseSingleEvalUnit, syncPipePools, defaultParameterOperators, ExpansionFailure, ArithmeticExpansionFailure, NounsetFailure, NounsetDiagnosticFailure, ExtensionCheckpointFailure, publishVariable, restoreVariable, } from "./runtime.js";
 
 import { hasYieldCheckpoint, runYieldCheckpoint } from "../contracts/yield.js";
 import { ShellSyntaxError } from "./types.js";
@@ -5437,7 +5437,7 @@ const syncExtraRuntimeMethods = {
             return undefined;
           }
           this.rethrowArithmeticControl(error);
-          throw new ExpansionFailure(message(error, this.budget.onInternalError), line);
+          throw new ArithmeticExpansionFailure(message(error, this.budget.onInternalError), line);
         }
       } else if (part.kind === "substitution") {
         if (split && !part.quoted) return undefined;
@@ -16051,11 +16051,11 @@ const syncExtraRuntimeMethods = {
     } catch (error) {
       if (!(error instanceof ExpansionFailure)) throw error;
       this.signal.throwIfAborted();
-      // Loop cleanup has published completed effects. Terminate without replaying
-      // the loop or executing commands after the failed expansion.
+      // Loop cleanup has published completed effects. Unwind this unit without
+      // replaying the loop or running its remaining commands.
       const diagnostic = `${io.scriptName ?? "shell"}: line ${error.line ?? diagnosticLine}: ${error.message}\n`;
       syncSinks.get(io.stderr)!(fastSharedTextEncoder.encode(escapeText(diagnostic, "diagnostic")));
-      throw completedExit(1);
+      throw completedExit(1, error instanceof ArithmeticExpansionFailure && !rawState.subshellEnvironment ? "discard" : "exit");
     } finally {
       this._syncLoopInvariantSubMap = prevInvMap;
     }

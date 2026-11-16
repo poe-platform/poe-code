@@ -1438,6 +1438,8 @@ impl<'a> EvalState<'a> {
             self.exit_requested = Some(2);
             return 2;
         }
+        let arithmetic_expansion = msg.starts_with("__arith_expansion__");
+        let msg = msg.strip_prefix("__arith_expansion__").unwrap_or(msg);
         let is_param_err = msg.starts_with("__param_err__");
         let clean_msg = msg
             .strip_prefix("__param_err__")
@@ -1458,6 +1460,7 @@ impl<'a> EvalState<'a> {
         let code = if is_param_err && !is_subshell { 127 } else { 1 };
         self.last_exit = code;
         self.exit_requested = Some(code);
+        self.discard_requested = arithmetic_expansion && !self.subshell_environment;
         code
     }
 
@@ -4075,7 +4078,7 @@ impl<'a> EvalState<'a> {
                         self.route_outcome(&mut out);
                         return Ok(out);
                     }
-                    Err(EvalError::Syntax(msg)) if msg.contains("readonly variable") => {
+                    Err(EvalError::Syntax(msg)) if !msg.starts_with("__arith_expansion__") && msg.contains("readonly variable") => {
                         let code =
                             if is_posix && (is_special_head || expanded_words.is_empty()) {
                                 127
@@ -4148,7 +4151,7 @@ impl<'a> EvalState<'a> {
                         break;
                     }
                     Err(EvalError::Syntax(msg)) => {
-                        let code = if msg.contains("readonly variable") {
+                        let code = if !msg.starts_with("__arith_expansion__") && msg.contains("readonly variable") {
                             let code = if is_posix { 127 } else { 1 };
                             debug_out.stderr.push_str(&format!("{}{msg}\n", self.diag_prefix()));
                             self.last_exit = code;
@@ -4302,7 +4305,7 @@ impl<'a> EvalState<'a> {
                 }
                 match this.assign_variable(k, &value, *append) {
                     Ok(()) => saved.push(binding),
-                    Err(EvalError::Syntax(msg)) if msg.contains("readonly variable") => {
+                    Err(EvalError::Syntax(msg)) if !msg.starts_with("__arith_expansion__") && msg.contains("readonly variable") => {
                         out.stderr.push_str(&format!("{}{msg}\n", this.diag_prefix()));
                         if let Some(code) = readonly_exit {
                             out.exit_code = code;
@@ -10549,6 +10552,7 @@ impl<'a> EvalState<'a> {
                             let clean = msg
                                 .strip_prefix("__param_err__")
                                 .or_else(|| msg.strip_prefix("__nounset__"))
+                                .or_else(|| msg.strip_prefix("__arith_expansion__"))
                                 .unwrap_or(&msg);
                             let prefix = self.diag_prefix();
                             let in_subshell = self
@@ -12453,7 +12457,7 @@ impl<'a> EvalState<'a> {
                     *idx = resume_idx;
                     let expanded_expr = self.expand_arith_text(&expr)?;
                     let val = eval_arith_formatted(&expanded_expr, self.env)
-                        .map_err(EvalError::Syntax)?;
+                        .map_err(|msg| EvalError::Syntax(if msg.starts_with("__nounset__") { msg } else { format!("__arith_expansion__{msg}") }))?;
                     return Ok(val.to_string());
                 }
                 Ok(None) => {}

@@ -1251,6 +1251,7 @@ export class ExpansionFailure extends Error {
   constructor(message: string, readonly line?: number) { super(message); }
 }
 class FailglobFailure extends ExpansionFailure {}
+export class ArithmeticExpansionFailure extends ExpansionFailure {}
 export class CommandFailure extends Error {
   constructor(message: string, readonly status: number) { super(message); }
 }
@@ -5535,6 +5536,7 @@ export class Runtime {
         catch (failure) { this.signal.throwIfAborted(); publicDiagnosticMessage(failure, this.budget.onInternalError); }
       }
       if (error instanceof FailglobFailure) throw completedExit(1, state.errexit ? "exit" : "discard");
+      if (error instanceof ArithmeticExpansionFailure) throw completedExit(1, state.subshellEnvironment ? "exit" : "discard");
       if (error instanceof ExpansionFailure || error instanceof BraceExpansionFailure) throw completedExit(error instanceof ParameterExpansionFailure && !state.isolated ? 127 : 1);
       if (error instanceof FatalCommandFailure) throw completedExit(error.status);
       if (error instanceof DiscardCommandFailure) throw completedExit(error.status, state.subshellEnvironment ? "exit" : "discard");
@@ -10285,7 +10287,7 @@ export class Runtime {
     }
     if (part.kind === "arithmetic") {
       try { return String(await this.expandedArithmeticValue(part.expression, state, { ...io, diagnosticLine: io.diagnosticLine ?? part.line })); }
-      catch (error) { this.rethrowArithmeticControl(error); throw new ExpansionFailure(message(error, this.budget.onInternalError), io.diagnosticLine ?? part.line); }
+      catch (error) { this.rethrowArithmeticControl(error); throw new ArithmeticExpansionFailure(message(error, this.budget.onInternalError), io.diagnosticLine ?? part.line); }
     }
     if (part.kind === "process-substitution") {
       if (state.depth >= this.budget.limits.maxSubstitutionDepth) this.budget.fail("maxSubstitutionDepth");

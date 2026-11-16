@@ -34,8 +34,8 @@ ${header}; do
   echo unreachable
 done
 echo after`);
-      assert.equal(result.exitCode, 1);
-      assert.equal(result.stdout, "before:1\n");
+      assert.equal(result.exitCode, 0);
+      assert.equal(result.stdout, "before:1\nafter\n");
       assert.equal(result.stderr, 'shell: line 5: 08: value too great for base (error token is "08")\n');
       const subsequent = await session.exec('echo "$count:$s"; for j in 1 2; do count=$((count + j)); done; echo "$count"');
       assert.equal(subsequent.exitCode, 0);
@@ -46,8 +46,8 @@ echo after`);
 }
 
 // Replacement expectations use Bash 5.2's default patsub_replacement behavior.
-// Division by zero in an assignment expansion terminates the script, preserving
-// output from completed commands; it does not continue to the next iteration.
+// Division by zero discards the current input unit, preserving completed output;
+// it does not continue to the next iteration. Later input units can still run.
 for (const [source, stdout, diagnostic] of [
   ['for i in {1..4}; do echo "val:$i"; done; echo "last:$_"', 'val:1\nval:2\nval:3\nval:4\nlast:val:4\n', false],
   ['for i in {1..4}; do a=($i); echo "val:${a[0]}"; done', 'val:1\nval:2\nval:3\nval:4\n', false],

@@ -22,35 +22,9 @@ pub(super) fn same_file(cwd: &str, left: &str, right: &str, fs: &dyn SafeBashFs)
     matches!((identity(left), identity(right)), (Some(a), Some(b)) if a == b)
 }
 
-pub fn resolve_physical_path(cwd: &str, path: &str, fs: &dyn SafeBashFs) -> String {
-    let logical = resolve_posix_path(cwd, path);
-    let mut cur = String::new();
-    for seg in logical.split('/').filter(|s| !s.is_empty()) {
-        let next = format!("{cur}/{seg}");
-        let mut probe = next.clone();
-        for _ in 0..16 {
-            if let Ok(target) = fs.readlink(&probe) {
-                let parent = match probe.rsplit_once('/') {
-                    Some(("", _)) | None => "/",
-                    Some((p, _)) => p,
-                };
-                probe = resolve_posix_path(parent, &target);
-            } else {
-                break;
-            }
-        }
-        cur = probe;
-    }
-    if cur.is_empty() {
-        "/".to_string()
-    } else {
-        cur
-    }
-}
-
 pub(super) fn pwd(args: &[String], cwd: &str, env: &BTreeMap<String,String>, fs: &dyn SafeBashFs, external: Option<&str>) -> BuiltinOutcome {
     let posix = env.contains_key("POSIXLY_CORRECT");
-    let mut physical = external.is_some() && !posix;
+    let mut physical = if external.is_some() { !posix } else { env.get("\0set_physical").is_some_and(|value| value == "1") };
     let mut ignored = false;
     let mut out = BuiltinOutcome { stdout: String::new(), stderr: String::new(), exit_code: 0 };
     for (i, arg) in args.iter().enumerate() {
@@ -255,7 +229,7 @@ fn builtin_cd(
     env: &mut BTreeMap<String, String>,
     fs: &dyn SafeBashFs,
 ) -> BuiltinOutcome {
-    let mut physical = false;
+    let mut physical = env.get("\0set_physical").is_some_and(|value| value == "1");
     let mut offset = 0usize;
     if !skip_opts {
         while offset < args.len() {
@@ -373,7 +347,8 @@ fn builtin_cd(
                 continue;
             }
             let candidate = if physical {
-                resolve_physical_path(cwd, &raw, fs)
+                let Ok(path) = fs.access_path(&raw, true) else { continue; };
+                path
             } else {
                 resolve_posix_path(cwd, &raw)
             };
@@ -410,7 +385,7 @@ fn builtin_cd(
             };
             if !physical { check_logical_parents(&raw)?; }
             let candidate = if physical {
-                resolve_physical_path(cwd, path, fs)
+                fs.access_path(&raw, true).map_err(|error| if error.starts_with("ENOTDIR") { "Not a directory" } else { "No such file or directory" })?
             } else {
                 resolve_posix_path(cwd, path)
             };

@@ -17169,3 +17169,5 @@ import "./pdf-text-geometry.wasm.test.mjs";
 import "./readonly-discard.wasm.test.mjs";
 
 import "./arithmetic-discard.wasm.test.mjs";
+
+import "./physical-mode.wasm.test.mjs";

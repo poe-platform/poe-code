@@ -5886,6 +5886,7 @@ impl<'a> EvalState<'a> {
                 false,
                 false,
                 false,
+                false,
                 cmd,
                 None,
             );
@@ -5915,6 +5916,7 @@ impl<'a> EvalState<'a> {
                     true,
                     false,
                     None,
+                    false,
                     false,
                     false,
                     false,
@@ -6476,6 +6478,7 @@ impl<'a> EvalState<'a> {
         let mut allexport = false;
         let mut errexit = false;
         let mut noclobber = false;
+        let mut physical = false;
         let mut nounset = false;
         let mut pipefail = false;
         let mut noexec = false;
@@ -6522,6 +6525,7 @@ impl<'a> EvalState<'a> {
                         | "noglob"
                         | "nounset"
                         | "pipefail"
+                        | "physical"
                 )
             {
                 match opt_name.as_str() {
@@ -6533,6 +6537,7 @@ impl<'a> EvalState<'a> {
                     "noglob" => noglob = on,
                     "nounset" => nounset = on,
                     "pipefail" => pipefail = on,
+                    "physical" => physical = on,
                     _ => {}
                 }
                 idx += 1;
@@ -6541,14 +6546,14 @@ impl<'a> EvalState<'a> {
             let flags = &a[1..];
             let valid_flags = !flags.is_empty()
                 && flags.chars().all(|ch| {
-                    matches!(ch, 'a' | 'B' | 'e' | 'C' | 'n' | 'f' | 'u')
+                    matches!(ch, 'a' | 'B' | 'e' | 'C' | 'n' | 'f' | 'u' | 'P')
                         || (on && matches!(ch, 'c' | 's' | 'l' | 'i'))
                 });
             if !valid_flags {
                 return Ok(BuiltinOutcome {
                     stdout: String::new(),
                     stderr: format!(
-                        "{invoked_cmd}: {a}: unsupported option; supported flags are -c, -s, +/-a, +/-e, +/-u, +/-n, +/-B, +/-f, +/-C and +/-o allexport, braceexpand, errexit, noclobber, noexec, noglob, nounset, pipefail\n"
+                        "{invoked_cmd}: {a}: unsupported option; supported flags are -c, -s, +/-a, +/-e, +/-u, +/-n, +/-B, +/-f, +/-C, +/-P and +/-o allexport, braceexpand, errexit, noclobber, noexec, noglob, nounset, physical, pipefail\n"
                     ),
                     exit_code: 2,
                 });
@@ -6561,6 +6566,7 @@ impl<'a> EvalState<'a> {
                     'B' => braceexpand = Some(on),
                     'e' => errexit = on,
                     'C' => noclobber = on,
+                    'P' => physical = on,
                     'n' => noexec = on,
                     'f' => noglob = on,
                     'u' => nounset = on,
@@ -6585,6 +6591,7 @@ impl<'a> EvalState<'a> {
                 allexport,
                 noclobber,
                 noglob,
+                physical,
                 invoked_cmd,
                 loaded_source,
             );
@@ -6661,6 +6668,7 @@ impl<'a> EvalState<'a> {
         sub.apply_set_option("braceexpand", braceexpand.unwrap_or(true));
         sub.apply_set_option("errexit", errexit);
         sub.apply_set_option("noclobber", noclobber);
+        sub.apply_set_option("physical", physical);
         sub.apply_set_option("noexec", noexec);
         sub.apply_set_option("noglob", noglob);
         sub.apply_set_option("nounset", nounset);
@@ -6878,6 +6886,7 @@ impl<'a> EvalState<'a> {
         allexport: bool,
         noclobber: bool,
         noglob: bool,
+        physical: bool,
         invoked_cmd: &str,
         loaded_source: Option<(String, String)>,
     ) -> Result<BuiltinOutcome, EvalError> {
@@ -7166,6 +7175,7 @@ impl<'a> EvalState<'a> {
         sub.apply_set_option("braceexpand", braceexpand.unwrap_or(true));
         sub.apply_set_option("errexit", errexit);
         sub.apply_set_option("noclobber", noclobber);
+        sub.apply_set_option("physical", physical);
         sub.apply_set_option("noexec", noexec);
         sub.apply_set_option("noglob", noglob);
         sub.apply_set_option("nounset", nounset);
@@ -7301,6 +7311,7 @@ impl<'a> EvalState<'a> {
             "noglob",
             "nounset",
             "pipefail",
+            "physical",
             "errtrace",
             "functrace",
         ];
@@ -7315,7 +7326,6 @@ impl<'a> EvalState<'a> {
             "nolog",
             "notify",
             "onecmd",
-            "physical",
             "posix",
             "privileged",
             "verbose",
@@ -7407,6 +7417,7 @@ impl<'a> EvalState<'a> {
                         'f' => self.apply_set_option("noglob", enable),
                         'h' => self.apply_set_option("hashall", enable),
                         'C' => self.apply_set_option("noclobber", enable),
+                        'P' => self.apply_set_option("physical", enable),
                         'n' => self.apply_set_option("noexec", enable),
                         'x' => self.apply_set_option("xtrace", enable),
                         'T' => self.apply_set_option("functrace", enable),
@@ -7457,7 +7468,7 @@ impl<'a> EvalState<'a> {
                         _ => {
                             return BuiltinOutcome {
                                 stdout: String::new(),
-                                stderr: "set: unsupported shell option; supported forms are +/- a/e/h/u/f/n/B/C clusters, -- arguments and terminal o with allexport, braceexpand, hashall, noclobber, noexec, noglob, pipefail, errexit or nounset\n".to_string(),
+                                stderr: "set: unsupported shell option; supported forms are +/- a/e/h/u/f/n/B/C/P clusters, -- arguments and terminal o with allexport, braceexpand, hashall, noclobber, noexec, noglob, physical, pipefail, errexit or nounset\n".to_string(),
                                 exit_code: 1,
                             };
                         }
@@ -7705,6 +7716,7 @@ impl<'a> EvalState<'a> {
             "noglob",
             "nounset",
             "pipefail",
+            "physical",
             "errtrace",
             "functrace",
         ];

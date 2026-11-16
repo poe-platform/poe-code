@@ -8977,7 +8977,7 @@ export class Runtime {
     if (command === "getopts") return this.getoptsBuiltin(context, state, assignments);
     if (command === "pushd" || command === "dirs" || command === "popd") return this.directoryStackBuiltin(context, state, diagnose);
     if (command === "pwd") {
-      let physical = false;
+      let physical = !!state.physical;
       for (const arg of args) {
         if (arg === "--" || !arg.startsWith("-") || arg === "-") break;
         if (arg === "--help") { await writeText(stdout, pwdBuiltinHelp); return 2; }

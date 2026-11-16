@@ -3860,6 +3860,9 @@ pub fn lookup_var(
         if env.get("\0set_noclobber").map(|v| v == "1").unwrap_or(false) {
             flags.push('C');
         }
+        if env.get("\0set_physical").is_some_and(|value| value == "1") {
+            flags.push('P');
+        }
         return flags;
     }
     if name == "#" {

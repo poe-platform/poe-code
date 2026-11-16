@@ -1347,7 +1347,10 @@ where
                 debug_stderr,
             );
         }
-        exec_cwd = crate::shell::builtins::resolve_physical_path(cwd, &resolved, fs);
+        exec_cwd = match fs.access_path(&resolved, true) {
+            Ok(path) => path,
+            Err(error) => return finish_err(EnvError::Fs(error), debug_stderr),
+        };
     }
 
     if let Some(a0) = &parsed.argv0

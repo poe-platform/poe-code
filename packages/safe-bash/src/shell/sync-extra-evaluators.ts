@@ -10467,7 +10467,8 @@ const syncExtraRuntimeMethods = {
         const fastPipeSink = !fastSyncSink && io.stdout instanceof BudgetedPipeStageSink && io.stdout.write === BudgetedPipeStageSink.prototype.write && io.stdout.canWriteSync() ? io.stdout : undefined;
         const syncOut = (fastSyncSink || fastPipeSink) ? undefined : syncSinks.get(io.stdout);
         if (fastSyncSink || fastPipeSink || syncOut) {
-          const encoded = encodeRedirectTextWithNewlineToScratch(rawState.logicalCwd ?? rawState.cwd) ?? fastSharedTextEncoder.encode(`${rawState.logicalCwd ?? rawState.cwd}\n`);
+          const path = rawState.physical && command.words.length === 1 ? rawState.cwd : rawState.logicalCwd ?? rawState.cwd;
+          const encoded = encodeRedirectTextWithNewlineToScratch(path) ?? fastSharedTextEncoder.encode(`${path}\n`);
           const byteLength = encoded.byteLength;
           if (canWriteBuiltinOutput(this.budget, fastPipeSink, byteLength)) {
             if (rawState.extensions && !rawState.extensions.eventDepth) publishCommandSpelling(rawState, commandSpelling(command));
@@ -16683,7 +16684,7 @@ const syncExtraRuntimeMethods = {
     const args = step.discardWords!.map(word => this.fastValueWord(word, rawState, io, false, false, false, false, 0, step.line) as string);
     const cmdName = step.cmd.words[0]!.plain!;
     let output: string;
-    if (cmdName === "pwd") output = rawState.logicalCwd ?? rawState.cwd;
+    if (cmdName === "pwd") output = rawState.physical && args.length === 0 ? rawState.cwd : rawState.logicalCwd ?? rawState.cwd;
     else if (cmdName === "echo") output = args[0]!;
     else if (cmdName === "dirname") output = this.evalSyncDirname(args)!;
     else output = this.evalSyncBasename(step.discardSuffix === undefined ? args : ["-s", step.discardSuffix, ...args])!;
@@ -18229,7 +18230,7 @@ const syncExtraRuntimeMethods = {
           stage0Formatted = evalSyncEnv(subArgs0, rawState.exported, rawState.variables);
         } else if (w0Plain0 === "pwd") {
           if (subArgs0.length === 0 || (subArgs0.length === 1 && subArgs0[0] === "-L")) {
-            stage0Formatted = (rawState.logicalCwd ?? rawState.cwd) + "\n";
+            stage0Formatted = (rawState.physical && subArgs0.length === 0 ? rawState.cwd : rawState.logicalCwd ?? rawState.cwd) + "\n";
           }
         } else if (w0Plain0 === "awk") {
           const awk0 = this.evalSyncAwk([], subArgs0);
@@ -20059,7 +20060,7 @@ const syncExtraRuntimeMethods = {
       }
     }
     if (w0Plain === "pwd" && (cmd.words.length === 1 || (cmd.words.length === 2 && cmd.words[1]?.plain === "-L")) && !hasShellFunction(rawState, "pwd") && !rawState.extensions?.builtins.has("pwd") && !this.hasBuiltinOverride("pwd")) {
-      let res = rawState.logicalCwd ?? rawState.cwd;
+      let res = rawState.physical && cmd.words.length === 1 ? rawState.cwd : rawState.logicalCwd ?? rawState.cwd;
       while (res.endsWith("\n")) res = res.slice(0, -1);
       const byteLength = shellValueByteLength(res) + 1;
       const nextBytes = this.budget.bytes + byteLength;

@@ -15108,7 +15108,6 @@ struct XPathEntry<'a> {
 
 struct XPathDocument<'a> {
     program: &'a [xpath::Query<'a>],
-    namespaces: BTreeMap<&'a str, &'a str>,
     entries: Vec<XPathEntry<'a>>,
     requested: Cell<Option<(usize, usize, usize, usize)>>,
     returned: Cell<Option<XPathVal<'a>>>,
@@ -15168,7 +15167,6 @@ impl<'a> XPathDocument<'a> {
                             changes.push((prefix, scope.insert(prefix, uri)));
                         }
                     }
-                    if parent == 0 { self.namespaces = scope.clone(); }
                     let prefix = el.tag.split_once(':').map_or("", |(p, _)| p);
                     let id = self.add(parent, XPathItem::Node(el, scope.get(prefix).copied().unwrap_or("")));
                     for attr in &el.attrs {
@@ -15203,7 +15201,7 @@ impl<'a> XPathItem<'a> {
 }
 
 fn eval_xmllint_xpath(dom: &[XmlNode], program: &[xpath::Query], available: usize, fs: &dyn SafeBashFs) -> BuiltinOutcome {
-    let mut doc = XPathDocument { program, namespaces: BTreeMap::new(), entries: Vec::new(), requested: Cell::new(None), returned: Cell::new(None) };
+    let mut doc = XPathDocument { program, entries: Vec::new(), requested: Cell::new(None), returned: Cell::new(None) };
     doc.add(0, XPathItem::Document(dom));
     doc.index(dom);
     let val = match doc.evaluate() {
@@ -15471,7 +15469,8 @@ async fn eval_xpath_path_ctx(doc: &XPathDocument<'_>, ctx: usize, path: &xpath::
     for step in &path.steps {
         let name = match step.test { AxisTest::Element(n) | AxisTest::Attribute(n) => n, _ => "" };
         let (local, uri) = if let Some((prefix, local)) = name.split_once(':') {
-            (local, *doc.namespaces.get(prefix).ok_or_else(|| format!("undefined XPath namespace prefix: {prefix}"))?)
+            if prefix != "xml" { return Err(format!("undefined XPath namespace prefix: {prefix}")); }
+            (local, "http://www.w3.org/XML/1998/namespace")
         } else { (name, "") };
         let mut next = Vec::new();
         let mut visited_end = 0;

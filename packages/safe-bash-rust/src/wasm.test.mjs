@@ -15635,7 +15635,7 @@ test("xmllint compiles XPath paths and predicates before opening XML operands", 
   } finally { rs.dispose(); }
 });
 
-test("XPath resolves query prefixes at the root and matches expanded names at each node", async () => {
+test("XPath keeps query prefixes separate and preserves expanded names at each node", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const fs = new MemoryFileSystem(), js = new Shell({ fs, cwd: "/" }).use(agentCommands());
   const rs = new RustWasmBash({ cwd: "/" });

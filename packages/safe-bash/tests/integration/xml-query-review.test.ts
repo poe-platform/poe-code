@@ -47,10 +47,12 @@ test("unprefixed names and attributes do not silently acquire a document namespa
   assert.equal((await query("count(/*/*)", xml)).stdout, "3\n");
   assert.equal((await query("count(/*/@*)", xml)).stdout, "1\n");
   assert.equal((await query("/*/@a", xml)).stdout, ' a="v"\n');
-  assert.equal((await query("count(/*/p:i)", xml)).stdout, "1\n");
-  const prefixed = await query("/*/missing:i", xml);
-  assert.equal(prefixed.exitCode, 10);
-  assert.equal(prefixed.stdout, "");
+  for (const [source, prefix] of [["count(/*/p:i)", "p"], ["/*/missing:i", "missing"]]) {
+    const prefixed = await query(source!, xml);
+    assert.equal(prefixed.exitCode, 10);
+    assert.equal(prefixed.stdout, "");
+    assert.equal(prefixed.stderr, `xmllint: undefined XPath namespace prefix: ${prefix}\n`);
+  }
 });
 
 test("mixed content retains descendant order and direct text boundaries", async () => {

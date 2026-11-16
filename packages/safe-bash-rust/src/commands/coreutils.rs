@@ -16683,7 +16683,7 @@ impl SplitNames {
     }
 }
 
-fn parse_split_number(text: &str, label: &str, units: bool, zero: bool) -> Result<usize, String> {
+fn parse_split_number(text: &str, label: &str, units: bool, zero: bool, logical_count: bool) -> Result<usize, String> {
     let trimmed = text.trim_start_matches(['\t', '\n', '\x0b', '\x0c', '\r', ' ']);
     let body = trimmed.strip_prefix('+').unwrap_or(trimmed);
     let digit_len = body.chars().take_while(|c| c.is_ascii_digit()).count();
@@ -16722,18 +16722,16 @@ fn parse_split_number(text: &str, label: &str, units: bool, zero: bool) -> Resul
     let num_val: u128 = if digits.is_empty() {
         1
     } else {
-        digits
-            .parse::<u128>()
-            .map_err(|_| format!("split: invalid {label}: '{text}'\n"))?
+        digits.bytes().fold(0u128, |n, digit| n.saturating_mul(10).saturating_add(u128::from(digit - b'0')))
     };
-    let total = num_val
-        .checked_mul(multiplier)
-        .ok_or_else(|| format!("split: invalid {label}: '{text}'\n"))?;
+    let total = num_val.saturating_mul(multiplier);
     let min_val = if zero { 0 } else { 1 };
-    if total < min_val || total > (usize::MAX as u128) {
+    if total < min_val || (!logical_count && total > (usize::MAX as u128)) {
         return Err(format!("split: invalid {label}: '{text}'\n"));
     }
-    Ok(total as usize)
+    // A byte/line window beyond the addressable input size cannot split that input.
+    // Keep allocation counts (suffixes and chunks) strict, including on wasm32.
+    Ok(total.min(usize::MAX as u128) as usize)
 }
 
 fn format_radix_u128(mut val: u128, radix: u32) -> String {
@@ -16794,7 +16792,7 @@ fn parse_split_args(args: &[String], max_files: Option<usize>) -> Result<SplitAr
             }
             "a" => {
                 suffix_length =
-                    parse_split_number(&value.unwrap_or_default(), "suffix length", false, true)?;
+                    parse_split_number(&value.unwrap_or_default(), "suffix length", false, true, false)?;
             }
             "e" => elide_empty = true,
             "u" => {}
@@ -16844,9 +16842,9 @@ fn parse_split_args(args: &[String], max_files: Option<usize>) -> Result<SplitAr
                     if parts.is_empty() || parts.len() > 2 {
                         return Err(format!("split: invalid number of chunks: '{val}'\n"));
                     }
-                    size = parse_split_number(parts.last().unwrap(), "number of chunks", false, false)?;
+                    size = parse_split_number(parts.last().unwrap(), "number of chunks", false, false, false)?;
                     if parts.len() == 2 {
-                        selected_chunk = parse_split_number(parts[0], "chunk number", false, false)?;
+                        selected_chunk = parse_split_number(parts[0], "chunk number", false, false, false)?;
                         if selected_chunk > size {
                             return Err(format!("split: invalid chunk number: '{val}'\n"));
                         }
@@ -16862,6 +16860,7 @@ fn parse_split_args(args: &[String], max_files: Option<usize>) -> Result<SplitAr
                     },
                     option == "b" || option == "C",
                     false,
+                    true,
                 )?;
             }
         }

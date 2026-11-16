@@ -32,14 +32,14 @@ test("xargs preserves backslashes inside either kind of quote", async () => {
 
 test("xargs quoted backslashes do not escape closing quotes", async () => {
   const result = await run("xargs", ["printf", "<%s>\n"], { stdin: '"a\\"b"\n' });
-  assert.equal(result.exitCode, 2);
+  assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
 });
 
 test("xargs rejects a newline inside a quoted word without dispatching", async () => {
   let calls = 0;
   const result = await run("xargs", ["custom"], { stdin: chunks('"first\nsecond"'), execute() { calls++; return { exitCode: 0 }; } });
-  assert.equal(result.exitCode, 2);
+  assert.equal(result.exitCode, 1);
   assert.equal(calls, 0);
 });
 

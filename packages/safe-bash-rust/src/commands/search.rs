@@ -7205,7 +7205,7 @@ where
                     return BuiltinOutcome {
                         stdout: out,
                         stderr: err,
-                        exit_code: 2,
+                        exit_code: 1,
                     };
                 }
             }

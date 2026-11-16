@@ -29,6 +29,16 @@ async function run(command: CommandDefinition, args: readonly string[], env: Rec
 }
 
 for (const [route, command] of [['standalone', createFoldCommand()], ['aggregate', familyFold(settings({}))]] as const) {
+  test(`${route} fold reports invalid widths before reading input`, async () => {
+    for (const value of ['0', '-3', '3b', '18446744073709551616']) {
+      const result = await run(command, ['-w', value]);
+      assert.deepEqual(result, { exitCode: 1, stdout: '', stderr: `fold: invalid number '${value}'\n` });
+    }
+    assert.deepEqual(await run(command, ['--version']), {
+      exitCode: 0, stdout: 'fold (safe-bash virtual implementation)\n', stderr: '',
+    });
+  });
+
   for (const option of ['help', 'version']) {
     test(`${route} fold accepts information prefixes with other arguments without reading input`, async () => {
       const expected = await run(command, [`--${option}`]);
@@ -68,3 +78,9 @@ for (const [route, command] of [['standalone', createFoldCommand()], ['aggregate
     }
   });
 }
+
+test('aggregate fold keeps unexpected implementation failures private', async () => {
+  const env = new Proxy({}, { get() { throw new Error('private implementation detail'); } });
+  const result = await run(familyFold(settings({})), ['-w', '0'], env);
+  assert.deepEqual(result, { exitCode: 1, stdout: '', stderr: 'fold: internal error\n' });
+});

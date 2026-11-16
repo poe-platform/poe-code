@@ -22,11 +22,11 @@ export function parseFoldArguments(args: readonly string[], configuration: Parti
     let number = 0n;
     for (; i < value.length; i++) {
       const digit = value.charCodeAt(i) - 48;
-      if (digit < 0 || digit > 9) throw new FoldError('WIDTH', 'Width must be a positive decimal integer');
+      if (digit < 0 || digit > 9) throw new FoldError('WIDTH', `invalid number '${value}'`);
       number = number * 10n + BigInt(digit);
-      if (number > 18446744073709551606n) throw new FoldError('WIDTH', 'Width exceeds released 64-bit native range');
+      if (number > 18446744073709551606n) throw new FoldError('WIDTH', `invalid number '${value}'`);
     }
-    if (start === i || number === 0n) throw new FoldError('WIDTH', 'Width must be at least 1');
+    if (start === i || number === 0n) throw new FoldError('WIDTH', `invalid number '${value}'`);
     // Columns cannot exceed checked safe-integer arithmetic. Larger CLI widths
     // are equivalent within that domain; keep the engine and SDK numeric.
     width = number > BigInt(Number.MAX_SAFE_INTEGER) ? Number.MAX_SAFE_INTEGER : Number(number);
@@ -50,7 +50,7 @@ export function parseFoldArguments(args: readonly string[], configuration: Parti
         if (option === 'help' || option === 'version') {
           const information = option === 'help'
             ? 'Usage: fold [OPTION]... [FILE]...\nWrap input lines to fit the specified width (default 80).\n  -b, --bytes       count bytes\n  -c, --characters  count characters\n  -s, --spaces      break at spaces\n  -w, --width=N     use width N\n      --help        display this help\n      --version     display version information\n'
-            : 'fold (safe-bash) 0.0.1\n';
+            : 'fold (safe-bash virtual implementation)\n';
           return Object.freeze({ width, mode, spaces, files: Object.freeze(files), information });
         }
         if (option === 'spaces') spaces = true; else mode = option === 'bytes' ? 'bytes' : 'characters';

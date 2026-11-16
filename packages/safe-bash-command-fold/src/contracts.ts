@@ -1,3 +1,4 @@
+import { PublicDiagnostic } from "safe-bash-contracts/diagnostics";
 // Released GNU coreutils 9.10 IO_BUFSIZE; flushing changes -s break candidates.
 export const foldLineBytes = 256 * 1024;
 export type FoldMode = 'columns' | 'characters' | 'bytes';
@@ -14,7 +15,7 @@ export interface FoldLimits {
 }
 export const defaultFoldLimits: FoldLimits = Object.freeze({ inputBytes: Infinity, chunkBytes: Infinity, decodedBytes: Infinity, outputBytes: Infinity, retainedBytes: Infinity, work: Infinity, argumentBytes: Infinity });
 export type FoldErrorCode = 'OPTION' | 'WIDTH' | 'INPUT' | 'LIMIT' | 'LOCALE' | 'ARITHMETIC' | 'CANCELLED' | 'CLOSED';
-export class FoldError extends Error {
+export class FoldError extends PublicDiagnostic {
   constructor(readonly code: FoldErrorCode, message: string) { super(message); this.name = 'FoldError'; }
 }
 export function validateLimits(limits: FoldLimits): void {

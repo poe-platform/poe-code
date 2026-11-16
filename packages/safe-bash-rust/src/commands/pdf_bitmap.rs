@@ -10,6 +10,7 @@ pub(in crate::commands::archive) enum ImageRead {
     Extract {
         fax: bool,
         jpeg: bool,
+        jbig2: bool,
         png: bool,
         tiff: bool,
     },
@@ -34,6 +35,7 @@ pub(in crate::commands::archive) enum NativeImage {
     Fax(Vec<u8>, String),
     Pbm(Vec<u8>),
     Jpeg(Vec<u8>),
+    Jbig2(Vec<u8>, Option<Vec<u8>>),
 }
 
 pub(super) enum ImageStream<'a> {
@@ -57,6 +59,7 @@ fn image_color<'a>(objects: &mut Objects<'a>, mut color: Value<'a>, colors: Opti
 
 pub(in crate::commands::archive) struct Image {
     jpeg: bool,
+    jbig2: bool,
     pub(super) stencil: bool,
     pub(super) mask: Option<ObjectId>,
     pub(super) has_alpha: bool,
@@ -118,7 +121,11 @@ impl Image {
             last.as_ref().and_then(Value::word),
             Some(b"/DCTDecode" | b"/DCT")
         );
-        if !fax && !jpeg {
+        let jbig2 = last.as_ref().and_then(Value::word) == Some(b"/JBIG2Decode");
+        if jbig2 && !matches!(mode, ImageRead::List | ImageRead::Extract {jbig2: true, ..}) {
+            return Some(None);
+        }
+        if !fax && !jpeg && !jbig2 {
             for filter in &filters {
                 if !matches!(
                     objects.filter_value(filter.clone())?.word(),
@@ -219,7 +226,24 @@ impl Image {
         }
         let mut pixels = Vec::new();
         let mut native = None;
-        if fax && mode != ImageRead::List {
+        if jbig2 && mode != ImageRead::List {
+            let data = objects.decode(&dict, encoded)?;
+            let params = match dict.get(b"DecodeParms") {
+                Some(v) => match objects.filter_value(v.clone())? {
+                    Value::Array(a) => a.get(filters.len() - 1).and_then(|v| objects.filter_value(v.clone())),
+                    v => Some(v),
+                },
+                None => None,
+            };
+            let globals = match params.as_ref().and_then(|p| p.get(b"JBIG2Globals")) {
+                Some(v) => Some(objects.decoded_stream(v.reference()?)?.into_owned()),
+                None => None,
+            };
+            if data.len().checked_add(globals.as_ref().map_or(0, Vec::len))? > limit {
+                return None;
+            }
+            native = Some(NativeImage::Jbig2(data.into_owned(), globals));
+        } else if fax && mode != ImageRead::List {
             let outer = match objects.filter_value(dict.get(b"Filter")?.clone())? {
                 Value::Array(mut a) => {
                     a.pop()?;
@@ -535,6 +559,7 @@ impl Image {
             bits: if indexed { 8 } else { bits },
             rgb48,
             jpeg,
+            jbig2,
             native,
             width,
             height,
@@ -594,6 +619,8 @@ impl Image {
             "ccitt"
         } else if self.jpeg {
             "jpeg"
+        } else if self.jbig2 {
+            "jbig2"
         } else {
             "image"
         };

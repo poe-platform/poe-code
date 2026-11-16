@@ -10127,6 +10127,7 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
     let mut tiff_mode = false;
     let mut ccitt_mode = false;
     let mut jpeg_mode = false;
+    let mut jbig2_mode = false;
     let mut all_mode = false;
     let mut first_p: Option<usize> = None;
     let mut last_p: Option<usize> = None;
@@ -10144,7 +10145,8 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
             "-all" => all_mode = true,
             "-u" => unique=true, "-q" => quiet = true,
             "-ccitt" => ccitt_mode = true,
-            "-jp2" | "-jbig2" => {}
+            "-jbig2" => jbig2_mode = true,
+            "-jp2" => {}
             "-f" => {
                 let Some(raw) = args.get(i + 1) else {
                     return err_out("Missing value for '-f'\n", 99);
@@ -10252,7 +10254,7 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
         let mut outputs = Vec::new();
         let mut remaining = fs.shell_limits().max_output_bytes;
         for page in start_p..=end_p {
-            let mode = if list_mode { pdf_reader::ImageRead::List } else { pdf_reader::ImageRead::Extract { fax: ccitt_mode || all_mode, jpeg: jpeg_mode || all_mode, png: png_mode || all_mode, tiff: tiff_mode || all_mode } };
+            let mode = if list_mode { pdf_reader::ImageRead::List } else { pdf_reader::ImageRead::Extract { fax: ccitt_mode || all_mode, jpeg: jpeg_mode || all_mode, jbig2: jbig2_mode || all_mode, png: png_mode || all_mode, tiff: tiff_mode || all_mode } };
             let done = source.images(page, fs.max_input_bytes(), mode, |im, parent| {
                 let (w, h) = (im.width, im.height);
                 if w < min_width || h < min_height || unique && im.id.is_some_and(|id| !seen.insert(id)) {
@@ -10266,7 +10268,7 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                     let mut stage = |ext: &str, bytes: Vec<u8>| {
                         remaining = remaining.checked_sub(bytes.len())?;
                         let name = format!("{base}.{ext}");
-                        if print_names { out.push_str(&name); out.push('\n'); }
+                        if print_names && ext != "jb2g" { out.push_str(&name); out.push('\n'); }
                         outputs.push((name, bytes));
                         Some(())
                     };
@@ -10274,6 +10276,10 @@ fn cmd_pdfimages(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                         match native {
                             pdf_reader::NativeImage::Jpeg(data) => stage("jpg",data)?,
                             pdf_reader::NativeImage::Pbm(data) => stage("pbm",data)?,
+                            pdf_reader::NativeImage::Jbig2(data, globals) => {
+                                stage("jb2e", data)?;
+                                if let Some(globals) = globals {stage("jb2g", globals)?;}
+                            }
                             pdf_reader::NativeImage::Fax(data,params) => {
                                 stage("ccitt", data)?;
                                 stage("params", params.into_bytes())?;
@@ -17650,6 +17656,37 @@ mod media_unit_tests {
         assert_eq!(keys, ["Title", "Subject", "Producer", "Zebra", "Alpha"]);
         assert!(dump.stdout.contains("PdfID0: f123\nPdfID1: cdef\n"));
         assert!(dump.stdout.contains("PageMediaDimensions: 300.25 400.5\n"));
+    }
+
+    #[test]
+    fn pdfimages_preserves_jbig2_streams_without_listing_globals() {
+        let globals = include_bytes!("../../../pdf-ast/src/fixtures/jbig2-symbols.sym");
+        for (data, params) in [
+            (include_bytes!("../../../pdf-ast/src/fixtures/jbig2-symbols.0000").as_slice(), " /DecodeParms [null << /JBIG2Globals 5 0 R >>]"),
+            (include_bytes!("../../../pdf-ast/src/fixtures/jbig2-generic-stream.bin").as_slice(), ""),
+        ] {
+            let encoded = data.iter().map(|b| format!("{b:02x}")).collect::<String>() + ">";
+            let global_hex = globals.iter().map(|b| format!("{b:02x}")).collect::<String>() + ">";
+            let image = format!("<< /Type /XObject /Subtype /Image /Width 64 /Height 32 /BitsPerComponent 1 /ColorSpace /DeviceGray /Filter [/ASCIIHexDecode /JBIG2Decode]{params} /Length {} >>\nstream\n{encoded}\nendstream", encoded.len());
+            let global_stream = format!("<< /Filter /ASCIIHexDecode /Length {} >>\nstream\n{global_hex}\nendstream", global_hex.len());
+            let content = "q 64 0 0 32 10 10 cm /Im1 Do Q";
+            let content = format!("<< /Length {} >>\nstream\n{content}\nendstream", content.len());
+            let pdf = classic_pdf(&[
+                "<< /Type /Catalog /Pages 2 0 R >>",
+                "<< /Type /Pages /Kids [3 0 R] /Count 1 /MediaBox [0 0 100 100] >>",
+                "<< /Type /Page /Parent 2 0 R /Resources << /XObject << /Im1 4 0 R >> >> /Contents 6 0 R >>",
+                &image, &global_stream, &content,
+            ], "");
+            for flag in ["-all", "-jbig2"] {
+                let fs = MemoryVfs::new(); fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+                let result = cmd_media_doc("pdfimages", &media_args(&[flag, "-p", "-print-filenames", "/in.pdf", "/image"]), "", "/", &fs);
+                assert_eq!(result.exit_code, 0, "{}", result.stderr);
+                assert_eq!(result.stdout, "/image-001-000.jb2e\n");
+                assert_eq!(fs.read_file("/image-001-000.jb2e").unwrap(), data);
+                if params.is_empty() {assert!(!fs.exists("/image-001-000.jb2g"));}
+                else {assert_eq!(fs.read_file("/image-001-000.jb2g").unwrap(), globals);}
+            }
+        }
     }
 
     #[test]

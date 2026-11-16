@@ -1539,7 +1539,7 @@ describe("safe-bash PDF tooling suite (pdfinfo, pdftotext, qpdf, soffice, wkhtml
     );
     assert.equal(res.exitCode, 0, res.stderr);
     assert.ok(res.stdout.includes("/work/ext-000.jb2e"));
-    assert.ok(res.stdout.includes("/work/ext-000.jb2g"));
+    assert.ok(!res.stdout.includes("/work/ext-000.jb2g"));
     assert.deepEqual(await vfs.readdir("/tmp"), []);
     assert.deepEqual(await vfs.readFile("/work/ext-000.jb2e"), new Uint8Array(page));
     assert.deepEqual(await vfs.readFile("/work/ext-000.jb2g"), new Uint8Array(globals));

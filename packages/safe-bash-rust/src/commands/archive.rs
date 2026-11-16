@@ -5456,7 +5456,23 @@ pub(super) fn cmd_gzip(
     };
     let decode_error = |error: &str, source: &str| {
         if is_gzip {
-            err_out(&format!("{invoked}: {source}: {error}\n"), 1)
+            let mut display = String::new();
+            for c in source.chars() {
+                match c {
+                    '\x08' => display.push_str("\\b"),
+                    '\x0b' => display.push_str("\\v"),
+                    '\x0c' => display.push_str("\\f"),
+                    '\r' => display.push_str("\\r"),
+                    '\n' | '\t' => display.push(c),
+                    c if c.is_control() => {
+                        for byte in c.encode_utf8(&mut [0; 4]).bytes() {
+                            display.push_str(&format!("\\{byte:03o}"));
+                        }
+                    }
+                    c => display.push(c),
+                }
+            }
+            err_out(&format!("{invoked}: {display}: {error}\n"), 1)
         } else if is_bzip2 {
             let msg = if error == "unexpected end of file" { error } else { "invalid compressed data or codec memory limit exceeded" };
             err_out(&format!("{invoked}: {msg}\n"), 2)

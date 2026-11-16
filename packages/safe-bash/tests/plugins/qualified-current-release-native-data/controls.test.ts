@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { globSync, readFileSync } from "node:fs";
+import { existsSync, globSync, readFileSync } from "node:fs";
 import { dirname, join, relative, sep } from "node:path";
 import test from "node:test";
 import ts from "typescript";
@@ -122,8 +122,10 @@ for (const path of globSync(workspaces.map(pattern => `${pattern}/package.json`)
     const types = typeof target.types === "string" ? target.types : target.types?.default;
     if (!types?.startsWith("./dist/") || !types.endsWith(".d.ts")) continue;
     const specifier = manifest.name + (subpath === "." ? "" : subpath.slice(1));
-    const sourcePath = `${directory}/src/${types.slice("./dist/".length, -".d.ts".length)}.ts`;
-    if (subpath !== "." && sourcePath !== `${directory}/src/${subpath.slice(2)}.ts`) {
+    const stem = `${directory}/src/${types.slice("./dist/".length, -".d.ts".length)}`;
+    const sourcePath = existsSync(join(root, `${stem}.ts`)) ? `${stem}.ts` : `${stem}.d.ts`;
+    assert.ok(existsSync(join(root, sourcePath)), `missing source for ${specifier}: ${sourcePath}`);
+    if (subpath !== "." && stem !== `${directory}/src/${subpath.slice(2)}`) {
       workspaceSourcePaths[specifier] = [sourcePath];
     }
     workspaceExports.push({ specifier, source: join(root, sourcePath) });

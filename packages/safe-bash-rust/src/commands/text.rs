@@ -3817,10 +3817,7 @@ fn try_eval_awk_func(s: &str, state: &mut AwkState) -> Option<Scalar> {
                 "log" => n.ln(),
                 _ => n.atan2(args.get(1).map(|a| eval_awk_value(a, state).number()).unwrap_or(0.0)),
             };
-            if value.is_finite() { Some(Scalar::Number(value)) } else {
-                state.runtime_err.get_or_insert_with(|| format!("awk: invalid mathematical result in '{fn_name}'\n"));
-                Some(Scalar::Text(String::new()))
-            }
+            Some(Scalar::Number(value))
         }
         "srand" => {
             let old_seed = state.rng_state;
@@ -4229,12 +4226,14 @@ fn format_awk_printf(fmt_str: &str, vals: &[Scalar], convfmt: Option<&str>) -> R
             let (raw_body, is_num, allow_sign) = match conv {
                 'd' | 'i' => {
                     let n = val.number();
+                    if !n.is_finite() { return Err((2, "cannot format a non-finite number")); }
                     let integer = n.trunc();
                     let text = if integer == 0.0 { "0".into() } else { format!("{integer:.0}") };
                     (text, true, n >= 0.0)
                 }
                 'u' | 'x' | 'X' | 'o' => {
                     let n = val.number();
+                    if !n.is_finite() { return Err((2, "cannot format a non-finite number")); }
                     let unsigned = (n.trunc() % 4294967296.0) as i64 as u32;
                     let mut text = match conv {
                         'x' => format!("{unsigned:x}"),
@@ -4248,7 +4247,9 @@ fn format_awk_printf(fmt_str: &str, vals: &[Scalar], convfmt: Option<&str>) -> R
                     (text, true, false)
                 }
                 'f' | 'F' | 'e' | 'E' | 'g' | 'G' => {
-                    (awk_float::format(val.number(), conv, prec.unwrap_or(6), alt_form)?, true, true)
+                    let n = val.number();
+                    if !n.is_finite() { zero_pad = false; }
+                    (awk_float::format(n, conv, prec.unwrap_or(6), alt_form)?, true, !n.is_nan())
                 }
                 'c' => {
                     let byte = match val {
@@ -9630,10 +9631,24 @@ mod tests {
     }
 
     #[test]
+    fn awk_preserves_nonfinite_math_and_float_output() {
+        for (program, input, expected) in [
+            (r#"{print $1, int($1)}"#, "1e999\n-1e999\n", "1e999 inf\n-1e999 -inf\n"),
+            (r#"BEGIN {print sqrt(-1), log(0), log(-1), exp(1000), int(sqrt(-1))}"#, "", "nan -inf nan inf nan\n"),
+            (r#"BEGIN {x=exp(1000); print x, "value=" x, log(x), sin(x), cos(x)}"#, "", "inf value=inf inf nan nan\n"),
+            (r#"BEGIN {printf "%#f|%010f|%+g|%G|%.101g\n", exp(1000), exp(1000), sqrt(-1), log(0), exp(1000)}"#, "", "inf|       inf|nan|-INF|inf\n"),
+            (r#"BEGIN {printf "%s|%.2s|%8s\n", exp(1000), log(0), sqrt(-1)}"#, "", "inf|-i|     nan\n"),
+        ] {
+            let out = try_run_text_command("awk", &args(&[program]), input, "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
+            assert_eq!((out.exit_code, out.stdout.as_str(), out.stderr.as_str()), (0, expected, ""), "{program}");
+        }
+    }
+
+    #[test]
     fn awk_float_format_failures_preserve_prior_output() {
         for (fmt, arg, status, message) in [
             ("%.100g", ".000125", 1, "awk: internal error\n"),
-            ("%f", r#""1e999""#, 2, "awk: cannot format a non-finite number\n"),
+            ("%d", r#""1e999""#, 2, "awk: cannot format a non-finite number\n"),
         ] {
             let program = format!(r#"BEGIN {{ print 1; printf "{fmt}", {arg}; print 2 }}"#);
             let out = try_run_text_command("awk", &args(&[&program]), "", "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();

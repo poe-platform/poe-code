@@ -76,17 +76,17 @@ for (const [filter, expected] of [['index("a")', [0]], ['rindex("a")', [2]], ['i
 }
 
 for (const mode of ["pipeline", "substitution", "loop", "arithmetic-loop"] as const) {
-  test(`awk nonfinite int preserves the direct command error: ${mode}`, async () => {
+  test(`awk nonfinite int preserves the direct command output: ${mode}`, async () => {
     const shell = new Shell({ fs: new MemoryFileSystem(), commands: new CommandRegistry([...createStandardCommands(), ...createTextProgramCommands()]) });
     try {
       const pipeline = `printf '1.5e309\\n' | awk '{ print int($1) }'`;
-      const source = mode === "pipeline" ? pipeline : mode === "substitution" ? `out=$(${pipeline})`
-        : mode === "loop" ? `for i in 1; do out=$(${pipeline}); done`
-        : `for ((i=0;i<1;i++)); do out=$(${pipeline}); done`;
+      const source = mode === "pipeline" ? pipeline : mode === "substitution" ? `out=$(${pipeline}); printf '%s\\n' "$out"`
+        : mode === "loop" ? `for i in 1; do out=$(${pipeline}); done; printf '%s\\n' "$out"`
+        : `for ((i=0;i<1;i++)); do out=$(${pipeline}); done; printf '%s\\n' "$out"`;
       const result = await shell.exec(source);
-      assert.equal(result.stdout, "");
-      assert.match(result.stderr, /invalid mathematical result in 'int'/);
-      assert.notEqual(result.exitCode, 0);
+      assert.equal(result.stdout, "inf\n");
+      assert.equal(result.stderr, "");
+      assert.equal(result.exitCode, 0);
     } finally { await shell.dispose(); }
   });
 }

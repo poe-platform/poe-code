@@ -64,7 +64,11 @@ pub(super) fn format(n: f64, conv: char, precision: usize, alternate: bool) -> R
     let general = kind == 'g';
     let mut places = if general { precision.max(1) - 1 } else { precision };
     let mut magnitude = n.abs();
-    if !magnitude.is_finite() { return Err((2, "cannot format a non-finite number")); }
+    if !magnitude.is_finite() {
+        let mut text = if n.is_nan() { "nan" } else if n < 0.0 { "-inf" } else { "inf" }.to_string();
+        if conv.is_ascii_uppercase() { text.make_ascii_uppercase(); }
+        return Ok(text);
+    }
     let mut d = Decimal::exact(magnitude);
     if kind == 'f' { d.round(i64::from(d.point) + places as i64); }
     else { d.round(places as i64 + 1); }

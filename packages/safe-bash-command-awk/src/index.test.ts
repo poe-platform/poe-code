@@ -40,6 +40,7 @@ for (const value of [-2, -1, -0.5, 0, 1]) {
 }
 
 for (const [program, expected] of [
+  ['BEGIN { print int("1e999"), int("-1e999"), int(sqrt(-1)) }', "inf -inf nan\n"],
   ['BEGIN { print sqrt(-1) }', "nan\n"],
   ['BEGIN { print log(0) }', "-inf\n"],
   ['BEGIN { print log(-1) }', "nan\n"],

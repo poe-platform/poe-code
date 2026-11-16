@@ -17148,3 +17148,4 @@ import "./uniq-windows.wasm.test.mjs";
 import "./fold-diagnostics.wasm.test.mjs";
 
 import "./unzip-selection.wasm.test.mjs";
+import "./awk-nonfinite.wasm.test.mjs";

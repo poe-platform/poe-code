@@ -17,20 +17,25 @@ const loops = [
   (body: string) => `i=0; until [ $i -ge 2 ]; do ${body}; i=$((i+1)); done`,
   (body: string) => `for ((i=0; i<2; i++)); do ${body}; done`,
 ];
-for (const [initial, invalid, command] of [
-  ['{"a":1}', "bad", "jq -r .a"],
-  ["1024", "bad", "numfmt --to=iec"],
-  ["42", "1e400", "awk '{print int($1)}'"],
-]) {
+for (const [initial, mutated, command, expectsError] of [
+  ['{"a":1}', "bad", "jq -r .a", true],
+  ["1024", "bad", "numfmt --to=iec", true],
+  ["42", "1e400", "awk '{print int($1)}'", false],
+] as const) {
   for (const piped of [false, true]) {
     const sub = piped ? `cat <<< $j | ${command}` : `${command} <<< $j`;
     for (const output of [`echo "$( ${sub} )"`, `printf '%s\\n' "$( ${sub} )"`, `x="$( ${sub} )"; echo "$?:$x"`]) {
       for (const [index, loop] of loops.entries()) {
         test(`function mutation: ${command}, piped=${piped}, loop=${index}, ${output}`, async () => {
-          const setup = `mut() { j=${invalid}; }; j='${initial}'; `;
+          const setup = `mut() { j=${mutated}; }; j='${initial}'; `;
           const body = `mut; ${output}`;
           const expected = await execute(`${setup}${body}; ${body}`);
-          assert.notEqual(expected.stderr, "");
+          if (expectsError) assert.notEqual(expected.stderr, "");
+          else {
+            assert.equal(expected.stderr, "");
+            assert.equal(expected.exitCode, 0);
+            assert.equal(expected.stdout, output.startsWith("x=") ? "0:inf\n0:inf\n" : "inf\ninf\n");
+          }
           assert.deepEqual(await execute(setup + loop(body)), expected);
         });
       }

@@ -27,6 +27,14 @@ for (const mode of ["substitution", "loop", "arithmetic-loop"]) {
     : `for ((i=0;i<2;i++)); do out=$(${pipeline}); done`;
   cases.push([mode, `${source}; printf '%s\\n' "$out"`, "inf\n"]);
 }
+for (const piped of [false, true]) {
+  const command = piped ? "cat <<< $j | awk '{print int($1)}'" : "awk '{print int($1)}' <<< $j";
+  const body = `mut; x=$(${command}); printf '%s:%s\\n' "$?" "$x"`;
+  for (const loop of [`for i in 1 2; do ${body}; done`, `i=0; while [ $i -lt 2 ]; do ${body}; i=$((i+1)); done`,
+    `i=0; until [ $i -ge 2 ]; do ${body}; i=$((i+1)); done`, `for ((i=0;i<2;i++)); do ${body}; done`]) {
+    cases.push([`function mutation piped=${piped} ${loop}`, `mut() { j=1e400; }; j=42; ${loop}`, "0:inf\n0:inf\n"]);
+  }
+}
 for (const runtime of ["TypeScript", "Rust"]) for (const [name, source, stdout, status = 0, stderr = ""] of cases) {
   test(`${runtime} awk nonfinite ${name}`, {skip: !WebAssembly.Suspending}, async () => {
     const {Shell, createMemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");

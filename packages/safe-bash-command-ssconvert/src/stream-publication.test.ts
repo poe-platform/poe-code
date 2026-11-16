@@ -5,7 +5,7 @@ import { toByteSource } from "safe-bash-contracts/io";
 import { createSsconvertCommand } from "./commands.js";
 import type { Codec } from "./codecs/types.js";
 
-it.each(["/out.data", "fd://1"])("streams codec chunks through the injected output %s", async destination => {
+it.each(["/out.data", "fd://1", "fd://2"])("streams codec chunks through the injected output %s", async destination => {
   const fs = createMemoryFileSystem();
   await fs.writeFile("/in.data", new Uint8Array());
   const readFile = vi.spyOn(fs, "readFile").mockRejectedValue(new Error("whole-file read"));
@@ -24,7 +24,11 @@ it.each(["/out.data", "fd://1"])("streams codec chunks through the injected outp
     signal: new AbortController().signal, stdin: toByteSource(""), stdout: { async write(bytes) {
       await new Promise<void>(resolve => queueMicrotask(resolve));
       expect(bytes.every(byte => byte === sent - 1)).toBe(true); outputBytes += bytes.length;
-    } }, stderr: { async write(bytes) { errors.push(new TextDecoder().decode(bytes)); } }, registerCleanup(cleanup) { cleanups.push(cleanup); } };
+    } }, stderr: { async write(bytes) {
+      if (destination === "fd://2") {
+        expect(bytes.every(byte => byte === sent - 1)).toBe(true); outputBytes += bytes.length;
+      } else errors.push(new TextDecoder().decode(bytes));
+    } }, registerCleanup(cleanup) { cleanups.push(cleanup); } };
   try {
     expect(await createSsconvertCommand({ codecs: [codec] }).execute(context), errors.join("")).toMatchObject({ exitCode: 0 });
     expect(buffered).not.toHaveBeenCalled();

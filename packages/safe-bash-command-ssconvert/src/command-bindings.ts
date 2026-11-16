@@ -187,7 +187,8 @@ export function createCommandBindings(
               cwd,
               descriptors: { ...binding.io?.descriptors,
                 0: { source: context.stdin },
-                1: { sink: standardOutput }
+                1: { sink: standardOutput },
+                2: { sink: standardError }
               },
               filesystem: {
               openOutput,

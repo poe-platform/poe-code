@@ -29520,18 +29520,25 @@ fn write_workbook_to_file(
     sep: char,
     raw: bool,
     fs: &dyn SafeBashFs,
-) -> Result<(), String> {
+    exporter: &str,
+) -> Result<BuiltinOutcome, String> {
+    if path.starts_with("fd://") && !matches!(path, "fd://1" | "fd://2") {
+        return Err("ssconvert: unsupported output descriptor\n".into());
+    }
     let full = resolve_posix_path(cwd, path);
     let lower = path.to_ascii_lowercase();
-    if lower.ends_with(".xlsx") {
-        let bytes = xlsx::write(sheets,fs.max_input_bytes()).ok_or("ssconvert: XLSX output exceeds byte limit\n")?;
-        fs.write_file(&full, &bytes)
-            .map_err(|e| format!("ssconvert: {path}: {e}\n"))
-    } else if lower.ends_with(".ods") {
-        let bytes = ods::write(sheets,fs.max_input_bytes()).ok_or("ssconvert: ODS output exceeds byte limit\n")?;
-        fs.write_file(&full, &bytes)
-            .map_err(|e| format!("ssconvert: {path}: {e}\n"))
-    } else if lower.ends_with(".html") || lower.ends_with(".htm") {
+    let format = match exporter {
+        "Gnumeric_Excel:xlsx" | "Gnumeric_Excel:xlsx2" => "xlsx",
+        "Gnumeric_OpenCalc:odf" => "ods",
+        "Gnumeric_html:xhtml" => "html",
+        "Gnumeric_stf:stf_csv" => "csv",
+        _ => lower.rsplit_once('.').map_or("", |(_, extension)| extension),
+    };
+    let bytes = if format == "xlsx" {
+        xlsx::write(sheets,fs.max_input_bytes()).ok_or("ssconvert: XLSX output exceeds byte limit\n")?
+    } else if format == "ods" {
+        ods::write(sheets,fs.max_input_bytes()).ok_or("ssconvert: ODS output exceeds byte limit\n")?
+    } else if matches!(format, "html" | "htm") {
         let mut html = String::from(
             "<!DOCTYPE html PUBLIC \"-//W3C//DTD XHTML 1.0 Transitional//EN\"\n\t\t\"http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd\">\n<html xmlns=\"http://www.w3.org/1999/xhtml\" xml:lang=\"en\" lang=\"en\">\n<head>\n\t<title>Tables</title>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=utf-8\" />\n</head>\n<body>\n",
         );
@@ -29548,10 +29555,9 @@ fn write_workbook_to_file(
             html.push_str("</table>\n");
         }
         html.push_str("</body>\n</html>\n");
-        fs.write_file(&full, html.as_bytes())
-            .map_err(|e| format!("ssconvert: {path}: {e}\n"))
+        html.into_bytes()
     } else {
-        let actual_sep = if lower.ends_with(".tsv") && sep == ',' {
+        let actual_sep = if format == "tsv" && sep == ',' {
             '\t'
         } else {
             sep
@@ -29581,8 +29587,16 @@ fn write_workbook_to_file(
                 if out.len()>limit {return Err("ssconvert: text output exceeds byte limit\n".into());}
             }
         }
-        fs.write_file(&full, out.as_bytes())
-            .map_err(|e| format!("ssconvert: {path}: {e}\n"))
+        out.into_bytes()
+    };
+    if bytes.len() > fs.max_input_bytes() { return Err("ssconvert: output exceeds byte limit\n".into()); }
+    if path == "fd://1" {
+        Ok(ok_out(&crate::vfs::bytes_to_stream_string(&bytes)))
+    } else if path == "fd://2" {
+        Ok(BuiltinOutcome { stdout: String::new(), stderr: crate::vfs::bytes_to_stream_string(&bytes), exit_code: 0 })
+    } else {
+        fs.write_file(&full, &bytes).map_err(|e| format!("ssconvert: {path}: {e}\n"))?;
+        Ok(ok_out(""))
     }
 }
 
@@ -29927,10 +29941,10 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
             }
         }
         if exporter == "Gnumeric_stf:stf_csv" { all_sheets.truncate(1); }
-        if let Err(e) = write_workbook_to_file(&target_out, cwd, &all_sheets, sep, raw, fs) {
-            return err_out(&e, 1);
-        }
-        return ok_out("");
+        return match write_workbook_to_file(&target_out, cwd, &all_sheets, sep, raw, fs, exporter) {
+            Ok(out) => out,
+            Err(e) => err_out(&e, 1),
+        };
     }
 
     if positional.is_empty() || positional.len() > 2 {
@@ -29999,16 +30013,16 @@ fn cmd_ssconvert(args: &[String], _stdin: &str, cwd: &str, fs: &dyn SafeBashFs) 
             } else {
                 format!("{outfile}.{idx}")
             };
-            if let Err(e) = write_workbook_to_file(&resolved_out, cwd, std::slice::from_ref(sh), sep, raw, fs) {
+            if let Err(e) = write_workbook_to_file(&resolved_out, cwd, std::slice::from_ref(sh), sep, raw, fs, exporter) {
                 return err_out(&e, 1);
             }
         }
         return ok_out("");
     }
-    if let Err(e) = write_workbook_to_file(outfile, cwd, &sheets, sep, raw, fs) {
-        return err_out(&e, 1);
+    match write_workbook_to_file(outfile, cwd, &sheets, sep, raw, fs, exporter) {
+        Ok(out) => out,
+        Err(e) => err_out(&e, 1),
     }
-    ok_out("")
 }
 
 #[derive(Clone, Debug)]
@@ -37292,6 +37306,26 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
         assert_eq!(sheets[0].rows.len(),2);
         assert_eq!(sheets[0].rows[1][70],"x  y\nz");
         assert!(ods::read(&bytes,"S",512).is_none());
+    }
+
+    #[test]
+    fn ssconvert_exports_to_streams_without_creating_descriptor_paths() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/c.csv", b"4,99\n").unwrap();
+        let before = fs.list_dir("/").unwrap();
+        for (descriptor, stdout, stderr) in [("fd://1", "4,99\n", ""), ("fd://2", "", "4,99\n")] {
+            let r = cmd_ssconvert(&args(&["-T", "Gnumeric_stf:stf_csv", "/c.csv", descriptor]), "", "/", &fs);
+            assert_eq!((r.exit_code, r.stdout.as_str(), r.stderr.as_str()), (0, stdout, stderr));
+        }
+        let bad = cmd_ssconvert(&args(&["-T", "Gnumeric_stf:stf_csv", "/c.csv", "fd://3"]), "", "/", &fs);
+        assert_ne!(bad.exit_code, 0);
+        assert!(bad.stdout.is_empty());
+        let r = cmd_ssconvert(&args(&["-T", "Gnumeric_Excel:xlsx", "/c.csv", "fd://1"]), "", "/", &fs);
+        assert_eq!(r.exit_code, 0, "{}", r.stderr);
+        let bytes = crate::vfs::stream_string_to_bytes(&r.stdout);
+        assert_eq!(&bytes[..4], b"PK\x03\x04");
+        assert_eq!(read_xlsx_all_sheets(&bytes, "S", ["FALSE", "TRUE"], fs.max_input_bytes()).unwrap()[0].rows[0], ["4", "99"]);
+        assert_eq!(fs.list_dir("/").unwrap(), before);
     }
 
     #[test]

@@ -6493,6 +6493,12 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
     let mut members: BTreeMap<_,_> = entries.iter().enumerate().filter(|(_,e)| e.typeflag != ZIP_COMMENT_TYPE)
         .map(|(index,e)| (e.name.clone(), (index,None::<String>,Some(e.mtime)))).collect();
     let mut owners = BTreeMap::new();
+    if junk_paths {
+        // Info-ZIP strips filter paths, then matches original source names.
+        for pattern in includes.iter_mut().chain(excludes.iter_mut()) {
+            *pattern = pattern.rsplit('/').next().unwrap_or_default().to_owned();
+        }
+    }
     while let Some((t,stored_name)) = targets.pop_front() {
         let mut raw_entries = Vec::new();
         let visit = if t == "-" && !stored_name {
@@ -6510,7 +6516,7 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
         } else { visit_archive_sources(
             t.trim_start_matches('/'),
             &resolve_posix_path(cwd, &t),
-            &excludes,
+            if junk_paths { &[] } else { &excludes },
             false,
             !store_symlinks,
             false,
@@ -6565,12 +6571,15 @@ pub(super) fn cmd_zip(args: &[String], stdin: super::CommandInput, cwd: &str, fs
                 }
             }
             let base = crate::vfs::basename_posix_path(&e.name);
+            if junk_paths && excludes.iter().any(|pattern| crate::shell::expand::glob_match(pattern, &e.name)) {
+                continue;
+            }
             if !includes.is_empty() {
                 if e.typeflag == b'5' {
                     continue;
                 }
                 let matched = includes.iter().any(|inc| {
-                    crate::shell::expand::glob_match(inc, &base)
+                    !junk_paths && crate::shell::expand::glob_match(inc, &base)
                         || crate::shell::expand::glob_match(inc, &e.name)
                 });
                 if !matched {

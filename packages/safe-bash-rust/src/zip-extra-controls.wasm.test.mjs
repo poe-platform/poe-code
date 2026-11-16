@@ -37,6 +37,29 @@ function entries(input) {
   return result;
 }
 
+for (const runtime of ["TypeScript", "Rust"]) for (const [filters, names] of [
+  ["-i 'folder/*' -x 'folder/'", ["data", "binary"]],
+  ["-i 'folder/data'", []],
+  ["-x 'folder/data'", ["data", "binary"]],
+]) test(`${runtime} zip junks filter paths before matching source names: ${filters}`, {skip: !WebAssembly.Suspending}, async () => {
+  const {Shell, createMemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/folder");
+  await fs.writeFile("/folder/data", Buffer.from("payload"));
+  await fs.writeFile("/binary", Buffer.from("binary"));
+  const shell = runtime === "TypeScript" ? new Shell({fs}).use(agentCommands())
+    : new RustWasmBash({fs, cwd: "/", forceNative: true});
+  try {
+    const result = await shell.exec(`zip -qrj output.zip folder binary ${filters}`);
+    assert.equal(result.exitCode, 0, result.stdout + result.stderr);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(entries(await fs.readFile("/output.zip")).map(entry => entry.name), names);
+    assert.equal(Buffer.from(await fs.readFile("/folder/data")).toString(), "payload");
+    assert.equal(Buffer.from(await fs.readFile("/binary")).toString(), "binary");
+    if (runtime === "Rust") assert.equal(shell._companion, null);
+  } finally {await shell.dispose();}
+});
+
 for (const runtime of ["TypeScript", "Rust"]) for (const owner of [{uid: 0, gid: 0}, {uid: 501, gid: 20}, {}, {uid: 501}, {gid: 20}]) {
   for (const options of ["", "-X", "-X -X-"]) test(`${runtime} ZIP source owner ${JSON.stringify(owner)} ${options}`, {skip: !WebAssembly.Suspending}, async () => {
     const {Shell, createMemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");

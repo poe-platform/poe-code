@@ -737,7 +737,7 @@ test("zip uses the last compression level even after operands", async () => {
 for (const { args, names } of [
   { args: ["-qr", "output.zip", "folder", "binary", "-x", "folder/*"], names: ["binary"] },
   { args: ["-qr", "output.zip", "folder", "binary", "-i", "folder/d?t[ab]"], names: ["folder/data"] },
-  { args: ["-qrj", "output.zip", "folder", "binary", "-i", "folder/*", "-x", "folder/"], names: ["data"] },
+  { args: ["-qrj", "output.zip", "folder", "binary", "-i", "folder/*", "-x", "folder/"], names: ["data", "binary"] },
   { args: ["-qr", "-x", "folder/*", "@", "output.zip", "folder", "binary"], names: ["binary"] },
   { args: ["-qr", "output.zip", "folder", "binary", "-ifolder/*", "-x", "folder/"], names: ["folder/data"] },
 ]) {

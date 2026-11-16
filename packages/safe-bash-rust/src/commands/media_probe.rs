@@ -197,6 +197,31 @@ mod tests {
     use super::*;
 
     #[test]
+    fn combined_json_keeps_uneven_sections_and_independent_filters() {
+        let settings = BTreeMap::from([("c", "1")]);
+        for (packets, frames, expected) in [
+            (0, 0, "[]"),
+            (2, 0, r#"[{"type":"packet","pts":0},{"type":"packet","pts":1}]"#),
+            (0, 2, r#"[{"type":"frame","pos":"0"},{"type":"frame","pos":"1"}]"#),
+            (2, 1, r#"[{"type":"packet","pts":0},{"type":"frame","pos":"0"},{"type":"packet","pts":1}]"#),
+            (1, 2, r#"[{"type":"packet","pts":0},{"type":"frame","pos":"0"},{"type":"frame","pos":"1"}]"#),
+        ] {
+            for limit in [16, 1024] {
+                let result = report(ProbeOptions {
+                    show: BTreeSet::from(["packet", "frame"]),
+                    entries: Some("packet=pts:frame=pos"), select: None, counts: (false, false),
+                    writer: "json", settings: &settings, limit,
+                }, |section| {
+                    let count = if section == "packet" { packets } else if section == "frame" { frames } else { 0 };
+                    Box::new((0..count).map(|i| vec![("pts", Number(i as f64, None)), ("pos", Str(i.to_string()))]))
+                });
+                if limit == 16 { assert_eq!(result, Err("output byte limit exceeded")); }
+                else { assert_eq!(result.unwrap(), format!("{{\"packets_and_frames\":{expected}}}\n")); }
+            }
+        }
+    }
+
+    #[test]
     fn y4m_indexes_physical_offsets_relative_to_a_sliced_input() {
         let mut input = vec![0; 17];
         input.extend_from_slice(b"YUV4MPEG2 W4 H2 F30000:1001 Ip A1:1 C420jpeg\n");
@@ -838,6 +863,7 @@ pub(super) fn report<'a>(
     }
     let setting = |key| opts.settings.get(key).copied();
     let json = opts.writer == "json";
+    let combined = json && opts.show.contains("packet") && opts.show.contains("frame");
     let compact = setting("compact") == Some("1") || setting("c") == Some("1");
     let defaults = opts.show.is_empty() && opts.entries.is_none();
     let mut out = if json { "{".to_owned() } else { String::new() };
@@ -850,6 +876,7 @@ pub(super) fn report<'a>(
         ("chapter", "chapters"),
         ("format", "format"),
     ] {
+        if combined && section == "frame" { continue; }
         if section == "chapter" && !matches!(opts.writer, "default" | "json") {
             continue;
         }
@@ -869,6 +896,8 @@ pub(super) fn report<'a>(
             continue;
         }
         let array = section != "format";
+        let interleave = combined && section == "packet";
+        let key = if interleave { "packets_and_frames" } else { key };
         if json {
             if !first {
                 out.push(',');
@@ -886,8 +915,22 @@ pub(super) fn report<'a>(
             }
         }
         let mut count = 0;
-        for (i, mut row) in rows(section).enumerate() {
+        let mut section_rows = rows(section);
+        let mut frame_rows = interleave.then(|| rows("frame"));
+        let mut next_frame = false;
+        let records = std::iter::from_fn(move || {
+            let Some(frames) = &mut frame_rows else {
+                return section_rows.next().map(|row| (section, row));
+            };
+            let row = if next_frame { frames.next().map(|row| ("frame", row)) }
+                else { section_rows.next().map(|row| ("packet", row)) };
+            next_frame = !next_frame;
+            row.or_else(|| if next_frame { frames.next().map(|row| ("frame", row)) }
+                else { section_rows.next().map(|row| ("packet", row)) })
+        });
+        for (i, (record_section, mut row)) in records.enumerate() {
             count += 1;
+            let fields = filters.get(record_section);
             if section != "chapter" && (fields.is_some() || tags.is_some()) {
                 row.retain_mut(|(key, value)| {
                     if *key == "tags"
@@ -901,6 +944,7 @@ pub(super) fn report<'a>(
                 });
             }
             if json {
+                if interleave { row.insert(0, ("type", Str(record_section.into()))); }
                 if array {
                     if i != 0 {
                         out.push(',');

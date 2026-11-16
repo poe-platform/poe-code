@@ -10,6 +10,9 @@ string-validation preflight. A cleanup failure does not replace the original rea
 Y4M packet and frame positions are relative to the input file, including `FRAME`
 tags. Reserializing a Y4M document preserves its samples and writes a canonical
 chroma header, so positions in the new file can differ from the source.
+Requesting both packets and frames as JSON returns interleaved
+`packets_and_frames` records, each with a `type` field. Packet and frame field
+selections apply independently.
 
 ```sh
 ffprobe -v quiet -of json -show_format -show_streams recording.wav

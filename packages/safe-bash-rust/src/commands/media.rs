@@ -17653,6 +17653,35 @@ mod media_unit_tests {
     }
 
     #[test]
+    fn qpdf_annotation_fallback_fonts_have_explicit_metrics() {
+        use mcp_protocol_rust::json::{self, Value as J};
+        for resources in ["", "/Resources << /Font << /F1 << /Type /Font /Subtype /Type1 /BaseFont /Courier >> >> >>"] {
+            let page = format!("<< /Type /Page /Parent 2 0 R {resources} /Annots [4 0 R] >>");
+            let pdf = classic_pdf(&[
+                "<< /Type /Catalog /Pages 2 0 R >>",
+                "<< /Type /Pages /Kids [3 0 R] /Count 1 /MediaBox [0 0 300 200] >>", &page,
+                "<< /Subtype /Square /Rect [20 40 220 90] /F 4 /Contents (Fallback) >>",
+            ], "");
+            let fs = MemoryVfs::new();
+            fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+            let result = cmd_media_doc("qpdf", &media_args(&["/in.pdf", "/out.pdf", "--flatten-annotations=all"]), "", "/", &fs);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            let result = cmd_media_doc("qpdf", &media_args(&["/out.pdf", "--json=2", "--json-key=qpdf"]), "", "/", &fs);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            let report = json::parse(result.stdout.as_bytes(), json::Limits::default()).unwrap();
+            let J::Array(sections) = report.get("qpdf").unwrap() else {panic!()};
+            let J::Object(objects) = &sections[1] else {panic!()};
+            let font = objects.iter().filter_map(|(_, object)| object.get("value"))
+                .find(|v| v.get("/BaseFont") == Some(&J::String("/Helvetica".encode_utf16().collect()))).unwrap();
+            assert_eq!(font.get("/FirstChar"), Some(&J::Number(32.)));
+            assert_eq!(font.get("/LastChar"), Some(&J::Number(255.)));
+            let J::Array(widths) = font.get("/Widths").unwrap() else {panic!()};
+            assert_eq!(widths.len(), 224);
+            assert_eq!(widths[128 - 32], J::Number(556.));
+        }
+    }
+
+    #[test]
     fn pdftotext_groups_rotated_words_inside_shifted_media_box() {
         for matrix in ["1 0 0 1", "0 1 -1 0", "-1 0 0 -1", "0 -1 1 0"] {
             let stream = format!("q {matrix} 0 0 cm BT /F1 10 Tf 0 0 Td (FIRST WORD) Tj 0 -12 Td (SECOND LINE) Tj 0 132 Td (OUTSIDE) Tj ET Q");

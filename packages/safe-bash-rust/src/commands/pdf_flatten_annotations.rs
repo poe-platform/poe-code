@@ -336,7 +336,12 @@ impl<'a> LayerState<'a> {
                     };
                     let n = (*next, 0);
                     *next = next.checked_add(1).ok_or(LARGE)?;
-                    let body=b"<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /Helvetica\n/Encoding /WinAnsiEncoding\n>>".to_vec();
+                    let widths = super::WIDTHS[0][32..]
+                        .iter()
+                        .map(u16::to_string)
+                        .collect::<Vec<_>>()
+                        .join(" ");
+                    let body = format!("<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /Helvetica\n/Encoding /WinAnsiEncoding\n/FirstChar 32\n/LastChar 255\n/Widths [ {widths} ]\n>>").into_bytes();
                     *left = left.checked_sub(body.len()).ok_or(LARGE)?;
                     bodies.insert(n, body);
                     fonts.push((f.as_bytes().to_vec().into(), Value::Ref(n)));

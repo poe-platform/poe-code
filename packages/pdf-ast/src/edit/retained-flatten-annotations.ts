@@ -1,5 +1,6 @@
 import { IntegerTable, PagedStorage } from "@poe-code/safe-fs/storage";
-import { cosDict, cosName, decodePdfString, dictDelete, dictGet, dictSet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
+import { cosDict, decodePdfString, dictDelete, dictGet, dictSet, type PdfCosDict, type PdfCosNode, type PdfCosRef } from "../ast.js";
+import { createStandard14FontDict } from "../fonts/standard14.js";
 import { PdfNameIndex } from "../cos/name-index.js";
 import type { PdfMutableObjectStore } from "../cos/mutable-object-store.js";
 import type { PdfIndexStorage } from "../cos/object-index.js";
@@ -59,7 +60,7 @@ export async function flattenRetainedAnnotations(document: PdfRetainedDocument, 
             if (base?.kind === "name" && base.decoded === "Helvetica") { await saveResources(); return entry.key.decoded; }
           }
           let name = `F${fontCounter++}`; while (dictGet(fonts.value, name)) name = `F${fontCounter++}`;
-          const reference = await store.allocate(cosDict({ Type: cosName("Font"), Subtype: cosName("Type1"), BaseFont: cosName("Helvetica"), Encoding: cosName("WinAnsiEncoding") }));
+          const reference = await store.allocate(createStandard14FontDict("Helvetica"));
           dictSet(fonts.value, name, reference); await saveResources(); return name;
         }
         for (let itemIndex = 0; itemIndex < annotations.items.length; itemIndex++) {

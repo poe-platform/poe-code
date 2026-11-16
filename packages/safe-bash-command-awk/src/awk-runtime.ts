@@ -1118,13 +1118,16 @@ export class AwkRuntime {
       return numeric(1);
     }
     if (!expression.file) {
-      const record = await this.readMainRecord();
       const target = expression.target ? await this.reference(expression.target) : undefined;
-      if (target) await target.set(inputValue(record ?? ""));
-      else if (record !== undefined) await this.setRecord(record);
-      return numeric(record === undefined ? 0 : 1);
+      target?.get();
+      const record = await this.readMainRecord();
+      if (record === undefined) return numeric(0);
+      if (target) await target.set(inputValue(record));
+      else await this.setRecord(record);
+      return numeric(1);
     }
     const target = expression.target ? await this.reference(expression.target) : undefined;
+    target?.get();
     const file = textDecoder.decode(latin1Bytes(this.asText(await this.scalarExpression(expression.file))));
     if (!file) throw new ProgramError("getline requires a nonempty filename");
     let path: string;

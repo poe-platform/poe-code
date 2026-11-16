@@ -13,6 +13,8 @@ virtual shell, with bounded streams and `close(command)` support.
 Use `fflush()`, `fflush("")`, or `fflush("/dev/stdout")` to publish pending stdout.
 Output also flushes before awaiting another input chunk. `fflush(filename)` returns
 `0` for an open output and `-1` for an unknown output without closing it.
+`getline` preserves the target value at end of input. Array indexes and field
+targets are evaluated once before reading, including when the read reaches EOF.
 
 ```ts
 import { createAwkCommand, awkCommands } from "@poe-platform/safe-bash/commands/awk";

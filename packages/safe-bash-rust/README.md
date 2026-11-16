@@ -14,6 +14,9 @@ For trusted Python in native hybrid mode, install Pyodide 314.0.6 and set the ho
 
 ## Feature Index
 
+Native `awk getline` preserves its target value at EOF. Array indexes and field
+targets are evaluated once before reading, including when no record remains.
+
 Native `ffprobe` reports Y4M packet positions relative to the input file, including
 variable-length `FRAME` tags, and exposes frame positions as `pkt_pos`. Timestamps
 use the stream's frame time base, including fractional rates such as `30000:1001`.

@@ -1,4 +1,4 @@
-use super::{AwkState, is_valid_awk_ident, Scalar, unescape_sed_text};
+use super::{AwkState, AwkTarget, is_valid_awk_ident, Scalar, unescape_sed_text};
 use crate::vfs::{ChunkReader, bytes_to_stream_string};
 
 enum Source<'a> {
@@ -80,6 +80,9 @@ impl<'a> Reader<'a> {
 
 impl AwkState<'_> {
     pub(super) fn read_getline_from_file(&mut self, name: &str, into_var: Option<&str>) -> Scalar {
+        let target = into_var.and_then(|name| AwkTarget::resolve(name, self));
+        if self.runtime_err.is_some() { return Scalar::Unset; }
+        if let Some(target) = &target { target.get(self); }
         if name.is_empty() {
             self.runtime_err = Some("awk: getline requires a nonempty filename\n".into());
             return Scalar::Number(-1.0);
@@ -101,7 +104,7 @@ impl AwkState<'_> {
         });
         match reader.record(rs.first().copied(), &mut self.stdin, &mut self.output, self.vfs) {
             Ok(Some(line)) => {
-                if let Some(var) = into_var { self.set_var(var, Scalar::input(line)); } else { self.set_line(&line); }
+                if let Some(target) = target { target.set(Scalar::input(line), self); } else { self.set_line(&line); }
                 Scalar::Number(1.0)
             }
             Ok(None) => Scalar::Number(0.0),

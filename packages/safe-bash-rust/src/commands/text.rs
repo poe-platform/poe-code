@@ -1985,11 +1985,12 @@ impl<'a> AwkState<'a> {
     }
 
     fn read_getline_from_stream(&mut self, into_var: Option<&str>) -> Scalar {
+        let target = into_var.and_then(|name| AwkTarget::resolve(name, self));
+        if self.runtime_err.is_some() { return Scalar::Unset; }
+        if let Some(target) = &target { target.get(self); }
         if let Some(l) = self.read_main(false) {
-            if let Some(vn) = into_var
-                && !vn.is_empty()
-            {
-                self.set_var(vn, Scalar::input(l));
+            if let Some(target) = target {
+                target.set(Scalar::input(l), self);
             } else {
                 self.set_line(&l);
             }
@@ -9540,6 +9541,22 @@ mod tests {
 
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn awk_getline_resolves_targets_before_reading_and_preserves_eof_values() {
+        for (program, input, expected) in [
+            (r#"BEGIN{x="seed";r=getline x;print r,x,NR,FNR}"#, "", "0 seed 0 0\n"),
+            (r#"BEGIN{i=0;a[0]="seed";r=getline a[i++];print r,i,a[0]}"#, "", "0 1 seed\n"),
+            (r#"BEGIN{i=0;a[0]="seed";r=getline a[i++];print r,i,a[0]}"#, "value\n", "1 1 value\n"),
+            ("BEGIN{r=getline a[NR];print r,(0 in a),(1 in a)}", "value\n", "1 1 0\n"),
+            ("BEGIN{i=0;r=getline a[i++];print r,i,(0 in a),length(a)}", "", "0 1 1 1\n"),
+            (r#"BEGIN{$0="left right";i=1;r=getline $(i++);print r,i,NF,$0}"#, "", "0 2 2 left right\n"),
+            (r#"BEGIN{$0="left right";i=1;r=getline $(i++);print r,i,NF,$0}"#, "value\n", "1 2 2 value right\n"),
+        ] {
+            let out = try_run_text_command("awk", &args(&[program]), input, "/", &BTreeMap::new(), &MemoryVfs::new()).unwrap();
+            assert_eq!((out.exit_code, out.stdout.as_str(), out.stderr.as_str()), (0, expected, ""), "{program}");
+        }
     }
 
     #[test]

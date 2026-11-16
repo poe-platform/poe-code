@@ -3,12 +3,12 @@ import test from "node:test";
 import { runVirtual } from "./helpers.js";
 
 for (const counter of ["NR", "FNR"]) {
-  test(`awk getline evaluates its target after advancing ${counter}`, async () => {
+  test(`awk getline evaluates its target before advancing ${counter}`, async () => {
     const result = await runVirtual("awk", {
       args: [`{ getline a[${counter}]; print NR, FNR, a[1], a[2] }`], stdin: "first\nsecond\n",
     });
     assert.equal(result.exitCode, 0, result.stderr.toString());
-    assert.equal(result.stdout.toString(), "2 2  second\n");
+    assert.equal(result.stdout.toString(), "2 2 second \n");
   });
 }
 

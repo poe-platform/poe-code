@@ -55,10 +55,13 @@ for (const [program, expected] of [
 });
 
 for (const [program, input, expected] of [
-  ['BEGIN { x="seed"; r=getline x; print r,"["x"]",NR,FNR }', "", "0 [] 0 0\n"],
-  ['BEGIN { x="seed"; r=getline x; print r,"["x"]",NR,FNR; r=getline x; print r,"["x"]",NR,FNR }', "a\n", "1 [a] 1 1\n0 [] 1 1\n"],
-  ['{ x="seed"; r=getline x; print r,"["x"]",NR,FNR,$0 }', "a\n", "0 [] 1 1 a\n"],
-] as const) test(`getline clears its target at stdin EOF: ${program}`, async () => {
+  ['BEGIN { x="seed"; r=getline x; print r,"["x"]",NR,FNR }', "", "0 [seed] 0 0\n"],
+  ['BEGIN { x="seed"; r=getline x; print r,"["x"]",NR,FNR; r=getline x; print r,"["x"]",NR,FNR }', "a\n", "1 [a] 1 1\n0 [a] 1 1\n"],
+  ['{ x="seed"; r=getline x; print r,"["x"]",NR,FNR,$0 }', "a\n", "0 [seed] 1 1 a\n"],
+  ['BEGIN { i=0; a[0]="seed"; r=getline a[i++]; print r,i,length(a),"["a[0]"]" }', "", "0 1 1 [seed]\n"],
+  ['BEGIN { $0="left right"; i=1; r=getline $(i++); print r,i,NF,$0 }', "", "0 2 2 left right\n"],
+  ['BEGIN { $0="seed"; r=getline; print r,"["$0"]",NF }', "", "0 [seed] 1\n"],
+] as const) test(`getline preserves its target at stdin EOF: ${program}`, async () => {
   const result = await run(createAwkCommand(), [program], input);
   assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(result.stdout, expected);

@@ -9108,8 +9108,12 @@ impl<'a> EvalState<'a> {
             });
         }
 
+        let valid_destination = |name: &str| match name.split_once('[') {
+            Some((base, sub)) => is_valid_shell_ident(base) && sub.ends_with(']'),
+            None => is_valid_shell_ident(name),
+        };
         if let Some(first_var) = vars.first()
-            && !is_valid_shell_ident(first_var)
+            && !valid_destination(first_var)
         {
             return Ok(BuiltinOutcome {
                 stdout: String::new(),
@@ -9269,7 +9273,7 @@ impl<'a> EvalState<'a> {
                 ))
             };
             for (i, orig_name) in target_names.iter().enumerate() {
-                if !is_valid_shell_ident(orig_name) {
+                if !valid_destination(orig_name) {
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
                         stderr: format!("{prefix}read: `{orig_name}': not a valid identifier\n"),
@@ -9281,14 +9285,29 @@ impl<'a> EvalState<'a> {
                     .split_once('[')
                     .map(|(b, _)| b)
                     .unwrap_or(&resolved);
+                let base = resolve_nameref_base(base, self.env).to_string();
                 if self
                     .env
                     .get(&format!("\0attr__{base}"))
                     .is_some_and(|a| a.contains('r'))
                 {
+                    // read evaluates an explicit subscript even when assignment is readonly.
+                    if let Some((_, sub)) = resolved.split_once('[')
+                        && let Some(sub) = sub.strip_suffix(']')
+                    {
+                        if self.env.get(&format!("\0assoc__{base}")).is_some_and(|v| v == "1") {
+                            self.associative_write_key(sub)?;
+                        } else if let Err(message) = self.indexed_write_subscript(&base, sub)? {
+                            return Ok(BuiltinOutcome {
+                                stdout: String::new(),
+                                stderr: format!("{prefix}{message}\n"),
+                                exit_code: 1,
+                            });
+                        }
+                    }
                     return Ok(BuiltinOutcome {
                         stdout: String::new(),
-                        stderr: format!("{prefix}{orig_name}: readonly variable\n"),
+                        stderr: format!("{prefix}{base}: readonly variable\n"),
                         exit_code: if default_reply || i + 1 < target_names.len() {
                             2
                         } else {
@@ -9307,7 +9326,7 @@ impl<'a> EvalState<'a> {
                     )));
                 }
                 let val_str = bytes_to_stream_string(val_bytes);
-                self.assign_variable(orig_name, &val_str, false)?;
+                self.assign_variable(&resolved, &val_str, false)?;
             }
         }
 

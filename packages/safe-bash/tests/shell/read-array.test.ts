@@ -62,7 +62,7 @@ for (const command of [
     for (const builtin of basicCommands()) commands.register(builtin);
     const source = `${command}; echo "$?:\${PIPESTATUS[*]}"; true; echo "\${PIPESTATUS[*]}"`;
     const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source], {
-      input: "X Y\n", encoding: "utf8", env: { LC_ALL: "C" }, timeout: 2000,
+      input: command.includes("<<<") ? undefined : "X Y\n", encoding: "utf8", env: { LC_ALL: "C" }, timeout: 2000,
     });
     assert.ifError(native.error);
     assert.equal(native.signal, null);
@@ -132,7 +132,6 @@ for (const [label, source] of [
   ["readonly indexed member", 'readonly -a locked=(old keep); read "locked[0]" <<< new; printf "continued:%s <%s> <%s>\\n" "$?" "${locked[@]}"'],
   ["readonly associative member", 'declare -A locked=([key]=old); readonly locked; read "locked[key]" <<< new; printf "continued:%s <%s>\\n" "$?" "${locked[key]}"'],
   ["nameref to readonly member", 'readonly locked=old; declare -n ref="locked[0]"; read ref <<< new; printf "continued:%s <%s>\\n" "$?" "$locked"'],
-  ["partial assignment and consumed record", 'readonly locked=old; read first "locked[0]" last; printf "continued:%s <%s> <%s> <%s>\\n" "$?" "$first" "$locked" "$last"; read tail; printf "tail:%s\\n" "$tail"'],
   ["errexit", 'set -e; readonly locked=old; read "locked[0]" <<< new; printf "unexpected\\n"'],
   ["handled failure", 'readonly locked=old; read "locked[0]" <<< new || printf "handled:%s\\n" "$?"; printf "continued:<%s>\\n" "$locked"'],
   ["readonly scalar control", 'readonly locked=old; read locked <<< new; printf "continued:%s <%s>\\n" "$?" "$locked"'],
@@ -143,7 +142,8 @@ for (const [label, source] of [
     for (const command of basicCommands()) commands.register(command);
     const stdin = "one two three\nTAIL\n";
     try {
-      const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source, "shell"], { input: stdin, encoding: "utf8", env: { LC_ALL: "C" }, timeout: 10000 });
+      // These cases redirect read from a here-string; writing unused stdin can race child exit with EPIPE.
+      const native = spawnSync(bashExecutable, ["--noprofile", "--norc", "-c", source, "shell"], { encoding: "utf8", env: { LC_ALL: "C" }, timeout: 10000 });
       assert.equal(native.error, undefined);
       assert.equal(native.signal, null);
       const result = await shell.exec(source, { stdin });
@@ -153,6 +153,17 @@ for (const [label, source] of [
     } finally { await shell.dispose(); }
   });
 }
+
+test("Bash 5.3 read destination failure preserves partial assignment and consumes the record", async t => {
+  const { shell, commands } = setup({ extensions: [arraysExtension()] });
+  t.after(() => shell.dispose());
+  for (const command of basicCommands()) commands.register(command);
+  const result = await shell.exec('readonly locked=old; read first "locked[0]" last; printf "continued:%s <%s> <%s> <%s>\\n" "$?" "$first" "$locked" "$last"; read tail; printf "tail:%s\\n" "$tail"', { stdin: "one two three\nTAIL\n" });
+  // GNU Bash 5.3.0 returns 2 here; the historical 5.2 reference returns 1.
+  assert.equal(result.stdout, "continued:2 <one> <old> <>\ntail:TAIL\n");
+  assert.equal(result.stderr, "shell: line 1: locked: readonly variable\n");
+  assert.equal(result.exitCode, 0);
+});
 
 for (const [destinations, first, last] of [
   ["x bad-name", "one", "old"],

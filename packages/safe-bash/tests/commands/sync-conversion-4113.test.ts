@@ -1978,7 +1978,7 @@ test("Wave 235: pandoc conversion/-o, wkhtmltopdf file output, gpg -o, and ssh-k
   assert.equal(res.exitCode, 0, res.stderr);
   assert.equal(
     res.stdout.trim(),
-    "<h1 id=\"wave-235-heading\">Wave 235 Heading</h1><p>Paragraph body.</p>|Wave 235 Heading|Wave 235 Heading|%PDF-|-----BEGIN PGP PUBLIC KEY BLOCK-----|-----BEGIN PGP SIGNATURE-----|Signing file /tmp/w235.md|-----BEGIN SSH SIGNATURE-----|# Host oldhost.local found: removed|1"
+    "<h1 id=\"wave-235-heading\">Wave 235 Heading</h1><p>Paragraph body.</p>|Wave 235 Heading|Wave 235 Heading|%PDF-|-----BEGIN PGP PUBLIC KEY BLOCK-----|-----BEGIN PGP SIGNATURE-----|Signing file /tmp/w235.md|-----BEGIN SSH SIGNATURE-----|# Host oldhost.local found: line 1|1"
   );
 });
 

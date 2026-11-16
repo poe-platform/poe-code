@@ -590,6 +590,10 @@ fn eval_arith_formatted_inner(
 }
 
 fn format_arith_diag(src: &str, msg: &str, off: usize) -> String {
+    if let Some(token) = msg.strip_prefix("Invalid octal constant: ") {
+        let display_src = src.get(..off + token.len()).unwrap_or(src).trim_start();
+        return format!("{display_src}: value too great for base (error token is \"{token}\")");
+    }
     let display_src = src.trim_start();
     let trimmed_end = src.trim_end();
     let clamp_off = if off >= trimmed_end.len() {
@@ -1102,13 +1106,14 @@ fn resolve_arith_var_resolved(
     if trimmed.is_empty() {
         return Ok(0);
     }
-    if let Ok(n) = trimmed.parse::<i64>() {
+    let digits = trimmed.strip_prefix('+').or_else(|| trimmed.strip_prefix('-')).unwrap_or(trimmed);
+    if (!digits.starts_with('0') || digits.len() == 1) && let Ok(n) = trimmed.parse::<i64>() {
         return Ok(n);
     }
     if !visiting.insert(resolved.to_string()) {
         return Err("Arithmetic variable recursion".to_string());
     }
-    let res = eval_arith_with_visiting(trimmed, env, visiting);
+    let res = eval_arith_formatted_inner(trimmed, env, visiting);
     visiting.remove(resolved);
     res
 }

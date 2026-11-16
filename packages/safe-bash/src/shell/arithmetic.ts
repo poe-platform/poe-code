@@ -487,7 +487,7 @@ export function* arithmeticEvaluation(program: ArithmeticProgram, references: Ar
   const visiting = new Set<string>();
   const binary = binaryArithmeticOp;
   type Frame = { kind: "evaluate"; node: Arithmetic }
-    | { kind: "variable"; name: string }
+    | { kind: "variable"; name: string; program: ArithmeticProgram }
     | { kind: "conditional"; node: Extract<Arithmetic, { kind: "conditional" }> }
     | { kind: "unary"; node: Extract<Arithmetic, { kind: "unary" }> }
     | { kind: "left"; node: Extract<Arithmetic, { kind: "binary" }> }
@@ -514,7 +514,9 @@ export function* arithmeticEvaluation(program: ArithmeticProgram, references: Ar
             value = fast;
           } else {
             visiting.add(reference);
-            pending.push({ kind: "variable", name: reference }, { kind: "evaluate", node: parseArithmetic(text ?? "0", 0, budget) });
+            pending.push({ kind: "variable", name: reference, program });
+            program = { source: text ?? "0" };
+            pending.push({ kind: "evaluate", node: parseArithmetic(program.source, 0, budget) });
           }
         } else if (node.kind === "invalid-write") {
           pending.push({ kind: "invalid-write", node }, { kind: "evaluate", node: node.operand });
@@ -529,7 +531,10 @@ export function* arithmeticEvaluation(program: ArithmeticProgram, references: Ar
         }
       } else if (frame.kind === "invalid-write") {
         throw new ArithmeticFailure(frame.node.reason, frame.node.offset);
-      } else if (frame.kind === "variable") visiting.delete(frame.name);
+      } else if (frame.kind === "variable") {
+        visiting.delete(frame.name);
+        program = frame.program;
+      }
       else if (frame.kind === "conditional") {
         pending.push({ kind: "evaluate", node: value ? frame.node.yes : frame.node.no });
       } else if (frame.kind === "unary") {

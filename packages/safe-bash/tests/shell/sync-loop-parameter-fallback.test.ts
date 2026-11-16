@@ -6,7 +6,10 @@ import { Shell } from "../../src/shell/index.js";
 import { MemoryFileSystem } from "../../src/fs/memory/index.js";
 
 for (const header of ["for i in {1..3}", "for ((i=0;i<3;i++))"]) {
-  for (const value of ["08", "1 +"]) {
+  for (const [value, diagnostic] of [
+    ["08", '08: value too great for base (error token is "08")'],
+    ["1 +", '1 +: arithmetic syntax error: operand expected (error token is "+")'],
+  ]) {
     test(`loop arithmetic expansion failure: ${header}, ${value}`, async () => {
       const shell = new Shell({ fs: new MemoryFileSystem() });
       for (const command of basicCommands()) shell.commands.register(command);
@@ -14,7 +17,7 @@ for (const header of ["for i in {1..3}", "for ((i=0;i<3;i++))"]) {
         const result = await shell.exec(`s='${value}'; ${header}; do s=$((s + i)); done`);
         assert.equal(result.exitCode, 1);
         assert.equal(result.stdout, "");
-        assert.match(result.stderr, /^shell: line 1: .*arithmetic.*\n$/);
+        assert.equal(result.stderr, `shell: line 1: ${diagnostic}\n`);
       } finally { await shell.dispose(); }
     });
   }
@@ -33,7 +36,7 @@ done
 echo after`);
       assert.equal(result.exitCode, 1);
       assert.equal(result.stdout, "before:1\n");
-      assert.match(result.stderr, /^shell: line 5: .*arithmetic.*\n$/);
+      assert.equal(result.stderr, 'shell: line 5: 08: value too great for base (error token is "08")\n');
       const subsequent = await session.exec('echo "$count:$s"; for j in 1 2; do count=$((count + j)); done; echo "$count"');
       assert.equal(subsequent.exitCode, 0);
       assert.equal(subsequent.stdout, "1:08\n4\n");

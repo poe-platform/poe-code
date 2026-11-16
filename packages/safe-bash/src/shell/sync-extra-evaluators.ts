@@ -2323,9 +2323,14 @@ function evaluateArithmeticBigInt(program: ArithmeticProgram, references: Arithm
       if (fast !== undefined) return fast;
       visiting ??= new Set();
       visiting.add(reference);
+      const parent = program;
+      program = { source: text ?? "0" };
       try {
-        return evalNode(parseArithmetic(text ?? "0", 0, budget), depth + 1);
+        return evalNode(parseArithmetic(program.source, 0, budget), depth + 1);
+      } catch (error) {
+        formatArithmeticError(program, error);
       } finally {
+        program = parent;
         visiting.delete(reference);
       }
     };
@@ -2337,9 +2342,14 @@ function evaluateArithmeticBigInt(program: ArithmeticProgram, references: Arithm
       if (fast !== undefined) return { reference, value: fast };
       visiting ??= new Set();
       visiting.add(reference);
+      const parent = program;
+      program = { source: text ?? "0" };
       try {
-        return { reference, value: evalNode(parseArithmetic(text ?? "0", 0, budget), depth + 1) };
+        return { reference, value: evalNode(parseArithmetic(program.source, 0, budget), depth + 1) };
+      } catch (error) {
+        formatArithmeticError(program, error);
       } finally {
+        program = parent;
         visiting.delete(reference);
       }
     };

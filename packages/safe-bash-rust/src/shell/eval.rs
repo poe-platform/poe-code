@@ -18636,7 +18636,7 @@ LOOP='-S ${LOOP}' env -S '${LOOP}' 2>/tmp/env_loop; printf 'env_loop=%s:%s\n' "$
             );
             assert_eq!(
                 r.stderr,
-                "shell: line 1: ((: '5' == 5 : syntax error: operand expected (error token is \"'5' == 5 \")\nshell: line 2: ((: a++, x = b : arithmetic syntax error in expression (error token is \", x = b \")\n"
+                "shell: line 1: ((: '5' == 5 : syntax error: operand expected (error token is \"'5' == 5 \")\nshell: line 2: ((: foo bar: arithmetic syntax error in expression (error token is \"bar\")\n"
             );
         }
     }

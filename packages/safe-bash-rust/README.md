@@ -23,6 +23,8 @@ incomplete, unknown, and repeated conversions.
 
 Native `read` consumes malformed UTF-8 units with the byte that invalidates them,
 including newline or NUL, and preserves the remaining input for later commands.
+IFS splitting preserves Bash's single-byte backslash quoting for multibyte
+separators; raw reads retain normal UTF-8 separator matching.
 
 Native `ffprobe` reports Y4M packet positions relative to the input file, including
 variable-length `FRAME` tags, and exposes frame positions as `pkt_pos`. Timestamps

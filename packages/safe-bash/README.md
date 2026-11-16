@@ -277,6 +277,8 @@ and `-s` for nonterminal input; prompts are suppressed and silent mode has no
 terminal effect. Other `-u` descriptors require the optional read extension.
 `read` preserves byte values and unread input across chunk boundaries. Escaped
 NUL bytes and malformed UTF-8 units follow Bash's counting and visibility rules.
+During IFS splitting, a backslash protects one byte, including the first byte of
+a multibyte separator; raw reads retain normal UTF-8 separator matching.
 `export -n NAME` removes a variable's export attribute while keeping its value;
 `export -f NAME` passes a defined function to virtual child shells, and `export -fn NAME`
 stops passing it. `export -p` prints reusable variable declarations; `export -fp` lists

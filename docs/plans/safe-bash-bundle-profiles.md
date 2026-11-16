@@ -67,6 +67,30 @@ Source moves are not counted as added functionality. In particular, the HarfBuzz
 
 The PDF help-path correction reduces a source command bundle but does not reduce these installed profile totals; no installed saving is claimed. Two independent runs of the ordinary installed verifier passed all 17 Worker profiles and both portable network/SafeJS conditions, without budget bypasses, bundler exclusions, aliases or consumer rewrites.
 
+### November 16 CSV/XLSX qualification
+
+Installed scoped tarballs built from `424934a8` reproduce the CSV/XLSX rejection:
+3,957,421 bytes exceed the 3,956,077-byte ceiling. Refresh only `csvXlsx` to the
+measured 3,957,421-byte baseline. All other baselines, the 2% total and 5%
+incremental tolerances, engine exclusions and Worker assertions stay unchanged.
+
+Against the October 4 `0f945f4c80` measurements, core grows from 1,713,418 to
+1,755,580 bytes; CSV grows from 3,570,816 to 3,633,314; CSV/XLSX grows from
+3,878,506 to 3,957,421. Of the 78,915-byte CSV/XLSX increase, 42,162 bytes are
+shared core growth, 20,336 are additional CSV-profile growth, and 16,417 are
+additional XLSX-over-CSV growth. These are profile differences, not a per-module
+or per-commit decomposition.
+
+The 384 contributing inputs retain one spreadsheet engine, one XLSX AST/format,
+one XML AST, and the selected office-package, compression and Pako code. The
+source comparison covers shell/cache and filesystem repairs; Shift-JIS and
+formula corrections; bounded XML attributes, character and frame handling;
+and XLSX comment geometry/printing preservation. No unrelated format or
+duplicate engine was identified. The ordinary installed verifier passed all
+17 profiles and portable Worker command checks, including both network/SafeJS
+conditions and local/remote image, Pandoc and entropy checks. The six static and
+dynamic Node-import rejection tests also passed.
+
 ### October 4 bounded-hostname qualification
 
 A clean build of `832bb112f0` was packed and installed in an isolated consumer. The unchanged verifier reproduced the registry rejection: 6,721,017 bytes exceeded its 6,566,498-byte cap. Only these four profiles exceeded their previous total budgets:

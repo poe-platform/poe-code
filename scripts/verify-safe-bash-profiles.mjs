@@ -139,7 +139,8 @@ export const safeBashProfileBaselines = {
   "multiplePdf": 3621298,
   // One spreadsheet engine with streamed formats and caller-backed workbook storage.
   "csv": 3570816,
-  "csvXlsx": 3878506,
+  // November 16 installed graph review retains one spreadsheet engine and XLSX codec.
+  "csvXlsx": 3957421,
   // Portable revision date filters retain gix-date and Jiff parsing.
   "git": 7845428,
   // Registries also retain bounded Unicode hostname processing and IDNA data.

@@ -326,7 +326,7 @@ test("capabilities are immutable, detached, conservative, and omit unknown exten
   const capabilities = {
     readOnly: false, append: true, symlinks: true, hardlinks: true, permissions: true, conditionalChmod: true, timestamps: true,
     atomicRename: true, atomicResize: true, streamingRead: true, streamingWrite: true, nativeExec: true, customWrites: true,
-    atomicFilePublication: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicTreeRemoval: true, atomicFileStaging: true, atomicDirectoryMetadata: true, trustedOwnedStaging: true,
+    atomicFilePublication: true, atomicFileMutation: true, atomicEntryRemoval: true, atomicTreeRemoval: true, atomicStagedFileBackup: true, atomicFileStaging: true, atomicDirectoryMetadata: true, trustedOwnedStaging: true,
   };
   const fixture = createFixture(true, capabilities);
   const filesystem = createReadOnlyFileSystem(fixture.filesystem);
@@ -335,7 +335,7 @@ test("capabilities are immutable, detached, conservative, and omit unknown exten
     atomicRename: false, atomicRenameNoReplace: false, streamingRead: true, streamingWrite: false, retainedRead: false, open: false,
     descriptorWriteStream: false, retainedResize: false, atomicResize: false,
     retainedStagingCleanup: false, retainedStagingWrite: false, synchronousStagingResolution: false, synchronousFollowedStagingResolution: false, atomicEntryRemovalReceipt: false,
-    atomicFilePublication: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicTreeRemoval: false, atomicStagedFileMutation: false, atomicFileStaging: false, atomicDirectoryMetadata: false, trustedOwnedStaging: false,
+    atomicFilePublication: false, atomicFileMutation: false, atomicEntryRemoval: false, atomicTreeRemoval: false, atomicStagedFileMutation: false, atomicStagedFileBackup: false, atomicFileStaging: false, atomicDirectoryMetadata: false, trustedOwnedStaging: false,
     write: false, exclusiveCreate: false, mkdir: false, recursiveMkdir: false,
     remove: false, removeDirectory: false, recursiveRemove: false, rename: false,
     copy: false, exclusiveCopy: false, truncate: false, streamingAppend: false, randomAccessWrite: false,

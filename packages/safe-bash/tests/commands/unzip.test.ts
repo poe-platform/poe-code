@@ -84,7 +84,7 @@ test("unzip Shell excludes multiple patterns and preserves case-sensitive defaul
     await assert.rejects(fs.stat("/work/out/c.tmp"));
     const unmatched = await shell.exec("unzip -l sample.zip A.TXT");
     assert.equal(unmatched.exitCode, 11);
-    assert.equal(unmatched.stderr, "caution: filename not matched:  A.TXT\n");
+    assert.equal(unmatched.stderr, "");
   } finally { await shell.dispose(); }
 });
 

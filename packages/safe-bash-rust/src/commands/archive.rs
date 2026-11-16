@@ -6949,7 +6949,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     for (pat,matched) in members.iter().zip(matched_patterns) {
         if !matched { unmatched.push_str(&format!("caution: filename not matched:  {}\n",unzip_filtered(pat))); }
     }
-    let selection_status = if selected.is_empty() || !unmatched.is_empty() { 11 } else { 0 };
+    let selection_status = if selected.is_empty() || !unmatched.is_empty() && !(names_only || list_table && !effective_pipe) { 11 } else { 0 };
     let count=selected.len();
     let password_status=|bad,status| if bad==0 {status} else if bad==count {82} else {1};
     let mut stderr=String::new();
@@ -6986,7 +6986,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     Err(e)=>{stderr.push_str(&format!("unzip: {}\n",tar_format::display(&e)));return BuiltinOutcome {stdout:out,stderr,exit_code:2};}
                 };
                 if test_only {
-                    if !quiet { writeln!(out,"    testing: {} OK",padded(&entry.name)).unwrap(); }
+                    if !quiet { writeln!(out,"    testing: {}   OK",padded(&entry.name)).unwrap(); }
                 } else {
                     out.push_str(&crate::vfs::bytes_to_stream_string(&data));
                     if pipe_headers && !pipe_to_stdout && !quiet {out.push('\n');}
@@ -7000,11 +7000,15 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             } else { writeln!(out,"---------                     -------\n{total:>9}                     {count} {label}").unwrap(); }
         }
         let status=password_status(bad_passwords,selection_status);
-        if test_only && quiet_level < 2 {
-            if status != 0 { writeln!(out,"At least one error was detected in {}.",unzip_filtered(&arch)).unwrap(); }
-            else { writeln!(out,"No errors detected in compressed data of {}.",unzip_filtered(&arch)).unwrap(); }
-        }
-        stderr.push_str(&unmatched);
+        if test_only {
+            out.push_str(&unmatched);
+            if quiet_level < 2 {
+                if count == 0 && unmatched.is_empty() { writeln!(out,"Caution:  zero files tested in {}.",unzip_filtered(&arch)).unwrap(); }
+                else if status != 0 { writeln!(out,"At least one error was detected in {}.",unzip_filtered(&arch)).unwrap(); }
+                else if !members.is_empty() || !excludes.is_empty() { writeln!(out,"No errors detected in {} for the {count} file{} tested.",unzip_filtered(&arch),if count == 1 { "" } else { "s" }).unwrap(); }
+                else { writeln!(out,"No errors detected in compressed data of {}.",unzip_filtered(&arch)).unwrap(); }
+            }
+        } else if !list { stderr.push_str(&unmatched); }
         return BuiltinOutcome {stdout:out,stderr,exit_code:status};
     }
     {

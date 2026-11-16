@@ -1,0 +1,445 @@
+{
+  "oracle": "Info-ZIP UnZip 6.00, LC_ALL=C, TZ=UTC",
+  "fixtureSha256": "a2e8e6218b1459c2d6b8d658586d79c471aeb9f21c1989a6cf29af944ca490cc",
+  "cases": [
+    {
+      "args": [
+        "-l",
+        "/input.zip",
+        "a.txt"
+      ],
+      "status": 0,
+      "stdout": "Archive:  /input.zip\n  Length      Date    Time    Name\n---------  ---------- -----   ----\n        1  2026-11-16 05:24   a.txt\n---------                     -------\n        1                     1 file\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-l",
+        "/input.zip",
+        "A.TXT"
+      ],
+      "status": 11,
+      "stdout": "Archive:  /input.zip\n  Length      Date    Time    Name\n---------  ---------- -----   ----\n---------                     -------\n        0                     0 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-l",
+        "/input.zip",
+        "a.txt",
+        "A.TXT"
+      ],
+      "status": 0,
+      "stdout": "Archive:  /input.zip\n  Length      Date    Time    Name\n---------  ---------- -----   ----\n        1  2026-11-16 05:24   a.txt\n---------                     -------\n        1                     1 file\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-l",
+        "/input.zip",
+        "a*",
+        "*.txt"
+      ],
+      "status": 0,
+      "stdout": "Archive:  /input.zip\n  Length      Date    Time    Name\n---------  ---------- -----   ----\n        1  2026-11-16 05:24   a.txt\n---------                     -------\n        1                     1 file\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-l",
+        "/input.zip",
+        "-x",
+        "*"
+      ],
+      "status": 11,
+      "stdout": "Archive:  /input.zip\n  Length      Date    Time    Name\n---------  ---------- -----   ----\n---------                     -------\n        0                     0 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-v",
+        "/input.zip",
+        "a.txt"
+      ],
+      "status": 0,
+      "stdout": "Archive:  /input.zip\n Length   Method    Size  Cmpr    Date    Time   CRC-32   Name\n--------  ------  ------- ---- ---------- ----- --------  ----\n       1  Stored        1   0% 2026-11-16 05:24 e8b7be43  a.txt\n--------          -------  ---                            -------\n       1                1   0%                            1 file\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-v",
+        "/input.zip",
+        "A.TXT"
+      ],
+      "status": 11,
+      "stdout": "Archive:  /input.zip\n Length   Method    Size  Cmpr    Date    Time   CRC-32   Name\n--------  ------  ------- ---- ---------- ----- --------  ----\n--------          -------  ---                            -------\n       0                0   0%                            0 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-v",
+        "/input.zip",
+        "a.txt",
+        "A.TXT"
+      ],
+      "status": 0,
+      "stdout": "Archive:  /input.zip\n Length   Method    Size  Cmpr    Date    Time   CRC-32   Name\n--------  ------  ------- ---- ---------- ----- --------  ----\n       1  Stored        1   0% 2026-11-16 05:24 e8b7be43  a.txt\n--------          -------  ---                            -------\n       1                1   0%                            1 file\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-v",
+        "/input.zip",
+        "a*",
+        "*.txt"
+      ],
+      "status": 0,
+      "stdout": "Archive:  /input.zip\n Length   Method    Size  Cmpr    Date    Time   CRC-32   Name\n--------  ------  ------- ---- ---------- ----- --------  ----\n       1  Stored        1   0% 2026-11-16 05:24 e8b7be43  a.txt\n--------          -------  ---                            -------\n       1                1   0%                            1 file\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-v",
+        "/input.zip",
+        "-x",
+        "*"
+      ],
+      "status": 11,
+      "stdout": "Archive:  /input.zip\n Length   Method    Size  Cmpr    Date    Time   CRC-32   Name\n--------  ------  ------- ---- ---------- ----- --------  ----\n--------          -------  ---                            -------\n       0                0   0%                            0 files\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-Z",
+        "-1",
+        "/input.zip",
+        "a.txt"
+      ],
+      "status": 0,
+      "stdout": "a.txt\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-Z",
+        "-1",
+        "/input.zip",
+        "A.TXT"
+      ],
+      "status": 11,
+      "stdout": "",
+      "stderr": "caution: filename not matched:  A.TXT\n"
+    },
+    {
+      "args": [
+        "-Z",
+        "-1",
+        "/input.zip",
+        "a.txt",
+        "A.TXT"
+      ],
+      "status": 0,
+      "stdout": "a.txt\n",
+      "stderr": "caution: filename not matched:  A.TXT\n"
+    },
+    {
+      "args": [
+        "-Z",
+        "-1",
+        "/input.zip",
+        "a*",
+        "*.txt"
+      ],
+      "status": 0,
+      "stdout": "a.txt\n",
+      "stderr": "caution: filename not matched:  *.txt\n"
+    },
+    {
+      "args": [
+        "-Z",
+        "-1",
+        "/input.zip",
+        "-x",
+        "*"
+      ],
+      "status": 11,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-p",
+        "/input.zip",
+        "a.txt"
+      ],
+      "status": 0,
+      "stdout": "a",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-p",
+        "/input.zip",
+        "A.TXT"
+      ],
+      "status": 11,
+      "stdout": "",
+      "stderr": "caution: filename not matched:  A.TXT\n"
+    },
+    {
+      "args": [
+        "-p",
+        "/input.zip",
+        "a.txt",
+        "A.TXT"
+      ],
+      "status": 11,
+      "stdout": "a",
+      "stderr": "caution: filename not matched:  A.TXT\n"
+    },
+    {
+      "args": [
+        "-p",
+        "/input.zip",
+        "a*",
+        "*.txt"
+      ],
+      "status": 11,
+      "stdout": "a",
+      "stderr": "caution: filename not matched:  *.txt\n"
+    },
+    {
+      "args": [
+        "-p",
+        "/input.zip",
+        "-x",
+        "*"
+      ],
+      "status": 11,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-t",
+        "/input.zip",
+        "a.txt"
+      ],
+      "status": 0,
+      "stdout": "Archive:  /input.zip\n    testing: a.txt                    OK\nNo errors detected in /input.zip for the 1 file tested.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-t",
+        "/input.zip",
+        "A.TXT"
+      ],
+      "status": 11,
+      "stdout": "Archive:  /input.zip\ncaution: filename not matched:  A.TXT\nAt least one error was detected in /input.zip.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-t",
+        "/input.zip",
+        "a.txt",
+        "A.TXT"
+      ],
+      "status": 11,
+      "stdout": "Archive:  /input.zip\n    testing: a.txt                    OK\ncaution: filename not matched:  A.TXT\nAt least one error was detected in /input.zip.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-t",
+        "/input.zip",
+        "a*",
+        "*.txt"
+      ],
+      "status": 11,
+      "stdout": "Archive:  /input.zip\n    testing: a.txt                    OK\ncaution: filename not matched:  *.txt\nAt least one error was detected in /input.zip.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-t",
+        "/input.zip",
+        "-x",
+        "*"
+      ],
+      "status": 11,
+      "stdout": "Archive:  /input.zip\nCaution:  zero files tested in /input.zip.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-tq",
+        "/input.zip",
+        "a.txt"
+      ],
+      "status": 0,
+      "stdout": "No errors detected in /input.zip for the 1 file tested.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-tq",
+        "/input.zip",
+        "A.TXT"
+      ],
+      "status": 11,
+      "stdout": "caution: filename not matched:  A.TXT\nAt least one error was detected in /input.zip.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-tq",
+        "/input.zip",
+        "a.txt",
+        "A.TXT"
+      ],
+      "status": 11,
+      "stdout": "caution: filename not matched:  A.TXT\nAt least one error was detected in /input.zip.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-tq",
+        "/input.zip",
+        "a*",
+        "*.txt"
+      ],
+      "status": 11,
+      "stdout": "caution: filename not matched:  *.txt\nAt least one error was detected in /input.zip.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-tq",
+        "/input.zip",
+        "-x",
+        "*"
+      ],
+      "status": 11,
+      "stdout": "Caution:  zero files tested in /input.zip.\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-tqq",
+        "/input.zip",
+        "a.txt"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-tqq",
+        "/input.zip",
+        "A.TXT"
+      ],
+      "status": 11,
+      "stdout": "caution: filename not matched:  A.TXT\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-tqq",
+        "/input.zip",
+        "a.txt",
+        "A.TXT"
+      ],
+      "status": 11,
+      "stdout": "caution: filename not matched:  A.TXT\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-tqq",
+        "/input.zip",
+        "a*",
+        "*.txt"
+      ],
+      "status": 11,
+      "stdout": "caution: filename not matched:  *.txt\n",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-tqq",
+        "/input.zip",
+        "-x",
+        "*"
+      ],
+      "status": 11,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-oq",
+        "/input.zip",
+        "a.txt",
+        "-d",
+        "/out"
+      ],
+      "status": 0,
+      "stdout": "",
+      "stderr": ""
+    },
+    {
+      "args": [
+        "-oq",
+        "/input.zip",
+        "A.TXT",
+        "-d",
+        "/out"
+      ],
+      "status": 11,
+      "stdout": "",
+      "stderr": "caution: filename not matched:  A.TXT\n"
+    },
+    {
+      "args": [
+        "-oq",
+        "/input.zip",
+        "a.txt",
+        "A.TXT",
+        "-d",
+        "/out"
+      ],
+      "status": 11,
+      "stdout": "",
+      "stderr": "caution: filename not matched:  A.TXT\n"
+    },
+    {
+      "args": [
+        "-oq",
+        "/input.zip",
+        "a*",
+        "*.txt",
+        "-d",
+        "/out"
+      ],
+      "status": 11,
+      "stdout": "",
+      "stderr": "caution: filename not matched:  *.txt\n"
+    },
+    {
+      "args": [
+        "-oq",
+        "/input.zip",
+        "-x",
+        "*",
+        "-d",
+        "/out"
+      ],
+      "status": 11,
+      "stdout": "",
+      "stderr": ""
+    }
+  ]
+}

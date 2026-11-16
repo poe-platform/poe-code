@@ -354,8 +354,9 @@ export function createUnzipCommand(options: ArchiveCommandsOptions = {}): Comman
       for (let index = 0; !parsed.list && index < parsed.exclusions.length; index++) if (!exclusions.matched.has(index)) {
         await budget.output(`caution: excluded filename not matched:  ${filtered(parsed.exclusions[index]!)}\n`, !parsed.test);
       }
-      if (parsed.test && parsed.quiet < 2) await budget.output(resultCode
-        ? `At least one error was detected in ${filtered(archive)}.\n`
+      if (parsed.test && parsed.quiet < 2) await budget.output(!selected && !exitCode
+        ? `Caution:  zero files tested in ${filtered(archive)}.\n`
+        : resultCode ? `At least one error was detected in ${filtered(archive)}.\n`
         : parsed.patterns.length || parsed.exclusions.length
           ? `No errors detected in ${filtered(archive)} for the ${selected} file${selected === 1 ? "" : "s"} tested.\n`
           : `No errors detected in compressed data of ${filtered(archive)}.\n`);

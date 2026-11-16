@@ -881,3 +881,9 @@ for (const flags of [0, 1, 2, 3, 7]) {
     }
   });
 }
+
+for (const mode of ["-t", "-tq", "-tqq"]) test(`unzip ${mode} reports zero tested files after exclusions`, async () => {
+  const result = await run(await fixture(), [mode, "sample.zip", "-x", "*"]);
+  assert.deepEqual(result, { exitCode: 11, stderr: "", stdout:
+    (mode === "-t" ? heading : "") + (mode === "-tqq" ? "" : "Caution:  zero files tested in sample.zip.\n") });
+});

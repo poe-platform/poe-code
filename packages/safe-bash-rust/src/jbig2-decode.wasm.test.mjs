@@ -11,7 +11,7 @@ import { pdfimagesCommands } from "safe-bash-command-pdfimages";
 
 const fixture = (name) => new Uint8Array(readFileSync(new URL(`../../pdf-ast/src/fixtures/${name}`, import.meta.url)));
 
-for (const kind of ["generic-stream.bin", "mmr-stream.bin", "symbols.0000"]) for (const runtime of ["TypeScript", "Rust"]) for (const wrapped of [false, true]) for (const decode of [[0, 1], [1, 0], [0.25, 0.75]]) {
+for (const kind of ["generic-stream.bin", "mmr-stream.bin", "symbols.0000"]) for (const runtime of ["TypeScript", "Rust"]) for (const wrapped of [false, true]) for (const decode of [[0, 1], [1, 0], [0.25, 0.75], [0.75, 0.25], [0, 0], [1, 1]]) {
   test(`${runtime} renders and extracts JBIG2 ${kind} Decode ${decode} (wrapped=${wrapped}) like independent raw samples`, { skip: !WebAssembly.Suspending }, async () => {
     const payloadBytes = fixture(`jbig2-${kind}`);
     const globals = kind === "symbols.0000" ? fixture("jbig2-symbols.sym") : undefined;

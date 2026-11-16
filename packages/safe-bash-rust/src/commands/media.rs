@@ -112,6 +112,8 @@ mod qpdf_argfiles;
 mod exiftool_argfiles;
 #[path = "fax.rs"]
 mod fax;
+#[path = "jbig2.rs"]
+mod jbig2;
 #[path = "tiff.rs"]
 mod tiff;
 #[path = "bmp.rs"]

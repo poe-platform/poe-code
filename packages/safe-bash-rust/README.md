@@ -61,11 +61,15 @@ process black (`0 0 0 1`) is RGB `(44,46,53)`. Device-dependent profiles can dif
 red (`0 1 1 0`) is `(255,46,23)` here and `(238,29,35)` in the PDFium reference.
 See [the PDF.js license](./LICENSE.PDFJS).
 
-Embedded JBIG2 images support generic arithmetic/MMR regions and global symbol
-dictionaries through [Hayro](./LICENSE.HAYRO). Rendering and decoded PNG/PBM
-extraction apply PDF Decode values before masks; encoded JBIG2 extraction keeps
-the original page and global streams. Fractional Decode values retain grayscale
-levels in PNG output.
+PDF rendering and decoded image extraction support embedded JBIG2 streams with
+known segment lengths: global symbol dictionaries, arithmetic and Huffman text,
+generic arithmetic/MMR regions, refinement symbols, and halftone patterns.
+Image Decode mappings apply before rendering; `pdfimages -jbig2` preserves the
+encoded image and globals. Malformed or unsupported decoding fails before
+replacing output. Standalone JBIG2 file headers, unknown segment lengths, retained
+coding contexts, Huffman refinement, and halftone skip are not supported by the
+native decoder. Memory and decoding work are bounded. Fractional Decode values
+retain grayscale levels in PNG output.
 
 PDF raster output applies the standard `/BM` blend modes to paths, text, images,
 and shading, including constant opacity and saved graphics state. Invalid or

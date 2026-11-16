@@ -5,7 +5,7 @@ import { cosArray, cosDict, cosName, cosNumber, cosStream, cosString, dictSet, t
 import { PdfDocument } from "../document.js";
 import { PdfRetainedDocument } from "../retained-document.js";
 import { PdfFileSource } from "../source.js";
-import { decodeXObjectImageToRgba } from "./images.js";
+import { decodeJbig2ToRgba, decodeXObjectImageToRgba } from "./images.js";
 import { PdfRetainedDecodedImage } from "./retained-decoded-image.js";
 const fixture = (name: string) => new Uint8Array(readFileSync(new URL(`../fixtures/${name}`, import.meta.url)));
 async function open(bytes: Uint8Array, entries: PdfCosDict, amend?: (doc: PdfDocument, dict: PdfCosDict) => void, password = "", compare = true) {
@@ -56,6 +56,35 @@ it("resolves JBIG2 globals from the matching filter parameter slot", async () =>
   const image = await PdfRetainedDecodedImage.open(f.document, f.image, f.storage);
   expect(await collect(image.nativeContents("globals"))).toEqual(fixture("jbig2-symbols.sym"));
   expect(await collect(image.rows())).toEqual(f.expected.rgba); await image.close(); await f.close();
+});
+it.each([[1,0], [0.25,0.75], [-1,2]])("maps JBIG2 Decode [%s %s] in buffered and retained images", async (low, high) => {
+  const bytes = fixture("jbig2-generic-stream.bin"), expected = decodeJbig2ToRgba(bytes,64,32);
+  for (let at = 0; at < expected.length; at += 4) {
+    const value = Math.max(0,Math.min(255,Math.round(low * 255 + (high - low) * expected[at]!)));
+    expected[at] = expected[at+1] = expected[at+2] = value;
+  }
+  const f = await open(bytes,cosDict({Width:cosNumber(64),Height:cosNumber(32),BitsPerComponent:cosNumber(1),ColorSpace:cosName("DeviceGray"),Filter:cosName("JBIG2Decode"),Decode:cosArray([cosNumber(low),cosNumber(high)])}));
+  try {
+    expect(f.expected.rgba).toEqual(expected);
+    const image = await PdfRetainedDecodedImage.open(f.document,f.image,f.storage);
+    try { expect(await collect(image.nativeContents())).toEqual(bytes); expect(await collect(image.rows())).toEqual(expected); }
+    finally {await image.close();}
+  } finally {await f.close();}
+});
+it.each([false,true])("paints retained JBIG2 stencils with caller alpha, inverted=%s",async inverted=>{
+  const bytes=fixture("jbig2-generic-stream.bin"),source=decodeJbig2ToRgba(bytes,64,32);
+  const f=await open(bytes,cosDict({Width:cosNumber(64),Height:cosNumber(32),BitsPerComponent:cosNumber(1),
+    ImageMask:{kind:"boolean",value:true},Filter:cosName("JBIG2Decode"),Decode:cosArray([cosNumber(inverted?1:0),cosNumber(inverted?0:1)])}));
+  try{
+    const image=await PdfRetainedDecodedImage.open(f.document,f.image,f.storage,{fillColor:{r:0.2,g:0.6,b:0.8,alpha:0.5}});
+    try{
+      const pixels=await collect(image.rows());
+      for(let at=0;at<source.length;at+=4){
+        const painted=inverted?source[at]===255:source[at]===0;
+        expect([...pixels.subarray(at,at+4)]).toEqual(painted?[51,153,204,128]:[255,255,255,0]);
+      }
+    }finally{await image.close();}
+  }finally{await f.close();}
 });
 it("preserves RGB color keys and caller alpha", async () => {
   const f = await open(new Uint8Array([1, 2, 3, 4, 5, 6, 1, 2, 3, 7, 8, 9]), cosDict({ Mask: cosArray([1, 1, 2, 2, 3, 3].map(n => cosNumber(n))) }));

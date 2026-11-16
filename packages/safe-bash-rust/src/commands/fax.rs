@@ -183,6 +183,26 @@ fn changes(line: &[u8], width: usize) -> impl Iterator<Item = usize> + '_ {
     })
 }
 
+// Halftone gray planes are separate T.6 streams, each followed by EOFB and
+// byte padding. Return the next plane's byte offset, without consuming it.
+pub(super) fn jbig2_plane(data: &[u8], width: usize, height: usize, limit: usize) -> Option<(Vec<u8>, usize)> {
+    let stride = width.div_ceil(8);
+    let size = stride.checked_mul(height)?;
+    if width == 0 || size > limit {return None;}
+    let mut out = vec![0;size];
+    let mut bits = Bits {bytes: data,pos:0,lsb:false};
+    let mut previous: &[u8] = &[];
+    for row in out.chunks_exact_mut(stride) {
+        line_2d(&mut bits,previous,row,width)?;
+        previous = row;
+    }
+    for _ in 0..2 {
+        for _ in 0..11 {if bits.bit()? != 0 {return None;}}
+        if bits.bit()? != 1 {return None;}
+    }
+    Some((out,bits.pos.div_ceil(8)))
+}
+
 fn reference(line: &[u8], width: usize) -> impl FnMut(usize, bool, bool) -> (usize, usize) + '_ {
     let mut changes = changes(line, width).peekable();
     let mut b = changes.next().unwrap_or(width);

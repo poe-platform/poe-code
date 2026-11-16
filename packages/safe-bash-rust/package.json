@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "license": "MIT",
-  "description": "Rust and WebAssembly @poe-platform/safe-bash runtime with poe-agent-rust integration",
+  "description": "Zero-dependency Rust and WebAssembly @poe-platform/safe-bash runtime with poe-agent-rust integration",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "exports": {

@@ -244,24 +244,35 @@ impl Image {
                 native = Some(NativeImage::Jbig2(data.into_owned(), globals));
             } else {
                 if count > limit / 4 { return None; }
-                let page = hayro_jbig2::Image::new_embedded(&data, globals.as_deref()).ok()?;
-                if (page.width() as usize, page.height() as usize) != (width, height) { return None; }
-                struct Pixels(Vec<[u8; 4]>);
-                impl hayro_jbig2::Decoder for Pixels {
-                    fn push_pixel(&mut self, black: bool) {
-                        let v = if black { 0 } else { 255 };
-                        self.0.push([v, v, v, 255]);
+                let rows = crate::commands::archive::jbig2::decode(&data, globals.as_deref(), width, height, limit)?;
+                if format == Some("PNM") {
+                    let (black_zero, black_one) = if stencil {(false, true)} else if let Some(v) = dict.get(b"Decode") {
+                        let Value::Array(ranges) = objects.filter_value(v.clone())? else {return None;};
+                        if ranges.len() != 2 {return None;}
+                        let low = objects.filter_value(ranges[0].clone())?.number()?;
+                        let high = objects.filter_value(ranges[1].clone())?.number()?;
+                        if !low.is_finite() || !high.is_finite() {return None;}
+                        ((low * 255.).round() < 128., (high * 255.).round() < 128.)
+                    } else {(true, false)};
+                    let mut out = format!("P4\n{width} {height}\n").into_bytes();
+                    if out.len().checked_add(rows.len())? > limit {return None;}
+                    out.extend(rows.into_iter().map(|b| match (black_zero, black_one) {
+                        (true, false) => b,
+                        (false, true) => !b,
+                        (true, true) => 255,
+                        (false, false) => 0,
+                    }));
+                    native = Some(NativeImage::Pbm(out));
+                } else {
+                    pixels.reserve_exact(count);
+                    for row in rows.chunks_exact(width.div_ceil(8)) {
+                        pixels.extend((0..width).map(|x| {
+                            let bit = row[x / 8] & (128 >> (x % 8)) != 0;
+                            let v = if bit {0} else {255};
+                            [v,v,v,255]
+                        }));
                     }
-                    fn push_pixel_chunk(&mut self, black: bool, count: u32) {
-                        let v = if black { 0 } else { 255 };
-                        self.0.resize(self.0.len() + count as usize * 8, [v, v, v, 255]);
-                    }
-                    fn next_line(&mut self) {}
                 }
-                let mut output = Pixels(Vec::with_capacity(count));
-                page.decode(&mut output).ok()?;
-                if output.0.len() != count { return None; }
-                pixels = output.0;
             }
         } else if fax && mode != ImageRead::List {
             let outer = match objects.filter_value(dict.get(b"Filter")?.clone())? {

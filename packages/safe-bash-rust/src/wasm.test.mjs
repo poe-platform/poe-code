@@ -4,6 +4,7 @@ import "./jbig2-decode.wasm.test.mjs";
 import "./pdf-jbig2-stencil.wasm.test.mjs";
 import "./gnu-information.wasm.test.mjs";
 import "./pdf-postscript.wasm.test.mjs";
+import "./pdf-jbig2-raster.wasm.test.mjs";
 import "./pdf-header-offset.wasm.test.mjs";
 import "./pdf-path-clipping.test.mjs";
 import "./pdf-text-stroke.wasm.test.mjs";

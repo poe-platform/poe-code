@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { expect, it } from "vitest";
+import {decodeJbig2ToRgba, decodeXObjectImageToRgba} from "./images.js";
 import {
   PdfDocument, cosArray, cosDict, cosName, cosNumber, cosStream, dictSet,
   extractDocumentImages, decodeInlineImageNodeToRgba,
@@ -8,6 +9,18 @@ import {
 
 const fixture = (name: string) => readFileSync(new URL(`../fixtures/${name}`, import.meta.url));
 const digest = (bytes: Uint8Array) => createHash("sha256").update(bytes).digest("hex");
+
+it.each([false, true])("paints JBIG2 stencils with caller color and alpha, inverted=%s", inverted => {
+  const doc = PdfDocument.create(), bytes = fixture("jbig2-generic-stream.bin");
+  const source = decodeJbig2ToRgba(bytes,64,32);
+  const stream = cosStream(bytes,{dict:cosDict({Width:cosNumber(64),Height:cosNumber(32),BitsPerComponent:cosNumber(1),
+    ImageMask:{kind:"boolean",value:true},Filter:cosName("JBIG2Decode"),Decode:cosArray([cosNumber(inverted?1:0),cosNumber(inverted?0:1)])})});
+  const result = decodeXObjectImageToRgba(doc.cos,stream,undefined,{r:0.2,g:0.6,b:0.8,alpha:0.5});
+  for(let at=0;at<source.length;at+=4) {
+    const painted = inverted ? source[at]===255 : source[at]===0;
+    expect([...result.rgba.subarray(at,at+4)]).toEqual(painted?[51,153,204,128]:[255,255,255,0]);
+  }
+});
 
 // Same PDF.js regression documents and independent reference pixels as pdfjs-codecs.test.ts.
 it.each([

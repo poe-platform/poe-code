@@ -10085,15 +10085,15 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 .or_else(|| name.parse::<usize>().ok().filter(|&i| i < sheets.len()))
         } else { Some(0) };
         let Some(chosen) = chosen else { return err_out("in2csv: Unknown sheet\n", 1); };
-        let mut parsed_rows = sheets.into_iter().nth(chosen).map(|sheet| sheet.rows).unwrap_or_default();
+        let Some(sheet) = sheets.into_iter().nth(chosen) else { return ok_out(""); };
+        let mut parsed_rows = sheet.rows;
         let max_cols = parsed_rows.first().map_or(0, Vec::len);
-        if skip_lines > 0 && skip_lines <= parsed_rows.len() {
-            parsed_rows.drain(0..skip_lines);
-        }
+        let skip_lines = if skip_lines <= parsed_rows.len() { skip_lines } else { 0 };
+        parsed_rows.drain(..skip_lines);
         if parsed_rows.is_empty() {
             return ok_out("");
         }
-        let (headers, data_rows) = if no_header {
+        let (headers, mut data_rows) = if no_header {
             (default_csvkit_headers(max_cols), parsed_rows)
         } else {
             (
@@ -10101,6 +10101,20 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 parsed_rows[1..].to_vec(),
             )
         };
+        for column in 0..headers.len() {
+            let boolean = !json_options.inference.no_inference && data_rows.iter().enumerate().all(|(row, values)| {
+                values[column].is_empty() && sheet.empty_text_cells.binary_search(&(row + skip_lines + usize::from(!no_header), column)).is_err()
+                    || json_options.inference.text_cell(values[column].clone()).is_none_or(|cell| cell.boolean.is_some())
+            });
+            for values in &mut data_rows {
+                if values[column].is_empty() { continue; }
+                values[column] = match json_options.inference.text_cell(std::mem::take(&mut values[column])) {
+                    Some(cell) if boolean => if cell.boolean == Some(true) { "True" } else { "False" }.into(),
+                    Some(cell) => cell.text,
+                    None => String::new(),
+                };
+            }
+        }
         return finish_rows(headers, data_rows);
     }
 
@@ -28979,6 +28993,7 @@ struct WorkbookSheet {
     delimited: bool,
     name: String,
     rows: Vec<Vec<String>>,
+    empty_text_cells: Vec<(usize, usize)>,
 }
 
 pub(super) fn xlsx_idx_to_col_ref(mut idx: usize) -> String {
@@ -28993,7 +29008,7 @@ pub(super) fn xlsx_idx_to_col_ref(mut idx: usize) -> String {
     chars.into_iter().rev().collect()
 }
 
-fn parse_xlsx_worksheet_xml(ws_xml: &str, shared_strings: &[String], boolean_text: [&str; 2], remaining: &mut usize) -> Result<Vec<Vec<String>>, String> {
+fn parse_xlsx_worksheet_xml(ws_xml: &str, shared_strings: &[String], boolean_text: [&str; 2], remaining: &mut usize, empty_text_cells: &mut Vec<(usize, usize)>) -> Result<Vec<Vec<String>>, String> {
     use xlsx_xml::{attr, children, text};
     let invalid = "invalid XLSX worksheet or coordinate";
     let limit = "XLSX worksheet exceeds input limit";
@@ -29040,17 +29055,24 @@ fn parse_xlsx_worksheet_xml(ws_xml: &str, shared_strings: &[String], boolean_tex
                     format!("={}", text(formula))
                 } else { String::new() };
                 // Repeated coordinates retain the last cell, like the TS reader.
-                let old = cells.get(&(r, c)).map_or(0, |v: &String| v.len());
+                let old = cells.get(&(r, c)).map_or(0, |v: &(String, bool)| v.0.len());
                 *remaining = remaining.checked_add(old).and_then(|n| n.checked_sub(value.len())).ok_or(limit)?;
                 if storage > *remaining { return Err(limit.into()); }
-                cells.insert((r, c), value);
+                let empty_text = value.is_empty() && (kind == "inlineStr" && children(cell, "is").next().is_some()
+                    || kind == "s" && children(cell, "v").next().and_then(|v| text(v).trim().parse::<usize>().ok()).is_some_and(|i| shared_strings.get(i).is_some_and(String::is_empty)));
+                cells.insert((r, c), (value, empty_text));
             }
         }
     }
     let storage = height * (width * std::mem::size_of::<String>() + std::mem::size_of::<Vec<String>>());
-    *remaining = remaining.checked_sub(storage).ok_or(limit)?;
+    let empty_count = cells.values().filter(|(_, empty)| *empty).count();
+    *remaining = remaining.checked_sub(storage).and_then(|n| n.checked_sub(empty_count * std::mem::size_of::<(usize, usize)>())).ok_or(limit)?;
+    *empty_text_cells = Vec::with_capacity(empty_count);
     let mut rows = vec![vec![String::new(); width]; height];
-    for ((r, c), value) in cells { rows[r][c] = value; }
+    for ((r, c), (value, empty)) in cells {
+        rows[r][c] = value;
+        if empty { empty_text_cells.push((r, c)); }
+    }
     Ok(rows)
 }
 
@@ -29121,11 +29143,14 @@ fn read_xlsx_all_sheets(bytes: &[u8], fallback_name: &str, boolean_text: [&str; 
             .get(&ws_path)
             .map(|b| String::from_utf8_lossy(b).into_owned())
             .unwrap_or_default();
+        let mut empty_text_cells = Vec::new();
+        let rows = parse_xlsx_worksheet_xml(&ws_xml, &shared_strings, boolean_text, &mut remaining, &mut empty_text_cells)?;
         out.push(WorkbookSheet {
             active: idx == active,
             delimited: false,
             name: sname,
-            rows: parse_xlsx_worksheet_xml(&ws_xml, &shared_strings, boolean_text, &mut remaining)?,
+            rows,
+            empty_text_cells,
         });
     }
     Ok(out)
@@ -29479,6 +29504,7 @@ fn load_workbook_from_file(path: &str, cwd: &str, fs: &dyn SafeBashFs) -> Result
         ods::read(&bytes, fname, fs.max_input_bytes()).ok_or_else(|| "ssconvert: ODS workbook exceeds input limit\n".into())
     } else {
         Ok(vec![WorkbookSheet {
+            empty_text_cells: Vec::new(),
             active: true,
             delimited: true,
             name: fname.to_string(),

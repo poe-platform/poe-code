@@ -379,6 +379,7 @@ pub(super) fn read(
             }
         }
         sheets.push(WorkbookSheet {
+            empty_text_cells: Vec::new(),
             active: sheets.is_empty(),
             delimited: false,
             name: sname,

@@ -59,6 +59,14 @@ test("null-only and empty columns prefer first hypothesis, and short rows pad nu
   expect(inferTable([], []).rows).toEqual([]);
 });
 
+test("boolean inference excludes headers and distinguishes absent cells from empty text", () => {
+  const headers = ["Boolean", "Mixed", "Missing", "Empty"];
+  const rows = [["true", "true", "true", "true"], ["false", "word", null, ""]];
+  expect(inferTable(headers, rows).rows).toEqual([[true, "true", true, true], [false, "word", null, null]]);
+  expect(inferTable(headers, rows, { blanks: true }).rows).toEqual([[true, "true", true, "true"], [false, "word", null, ""]]);
+  expect(inferTable(headers, rows, { noInference: true }).rows).toEqual([["true", "true", "true", "true"], ["false", "word", null, null]]);
+});
+
 test("direct typed tables retain unqualified header warning cases as blockers", () => {
   for (const [headers, rows] of [
     [["a", "a"], [["x", "y"]]], [["", "b"], [["x", "y"]]], [[], [[], []]]

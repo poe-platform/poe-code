@@ -9,6 +9,10 @@ import { authenticateOracle, nativeOptions } from "../trap/oracle.js";
 
 let oracle: string | undefined;
 
+// Exact GNU Bash 5.3.0 captures (Linux, C and en_US.UTF-8), archive SHA256
+// 0d5cd86965f869a26cf64f4b71be7b96f90a3ba8b3d74e27e8e9d9d5550f31ba.
+// Retained bytes were read with a second builtin; external cat bypasses lookahead.
+
 function fixture(source: ByteSource, controller = new AbortController(), bytes = 65_536, fields = 4096) {
   const budget = new Budget({ ...defaultLimits, maxExpansionBytes: bytes, maxExpansionFields: fields, maxWallClockMs: 2000 }, controller.signal);
   const input = new ShellInput(source, budget);
@@ -20,40 +24,33 @@ function chunks(bytes: Uint8Array, size: number): ByteSource {
 }
 
 const cases = [
-  { name: "raw invalid byte", hex: "ff0a7461696c", raw: true, flags: "-r" },
-  { name: "raw byte count", hex: "ff0a7461696c", raw: true, flags: "-rn1", count: 1 },
-  { name: "UTF8 or byte count", hex: "c3a9f09f98800a7461696c", raw: true, flags: "-rn1", count: 1 },
-  { name: "exact count crosses newline", hex: "ff0afe00740a", raw: true, flags: "-rN3", count: 3, exact: true },
-  { name: "custom delimiter", hex: "ff3afe0a", raw: true, flags: "-rd:", delimiter: 58 },
-  { name: "NUL delimiter", hex: "ff00fe0a", raw: true, flags: "-rd ''", delimiter: 0 },
-  { name: "NUL ignored", hex: "00ff000afe", raw: true, flags: "-r" },
-  { name: "NUL does not count", hex: "00ff00fe0a", raw: true, flags: "-rn2", count: 2 },
-  { name: "escaped space and byte", hex: "ff5c205cfe0a7461696c", raw: false, flags: "" },
-  { name: "escaped delimiter", hex: "ff5c3afe3a7461696c", raw: false, flags: "-d:", delimiter: 58 },
-  { name: "continuation across chunks", hex: "ff5c0afe0a7461696c", raw: false, flags: "" },
-  { name: "count excludes escape prefix", hex: "5cfffe0a", raw: false, flags: "-n1", count: 1 },
-  { name: "raw slash", hex: "5cff0a", raw: true, flags: "-rn1", count: 1 },
-  { name: "partial EOF", hex: "fffe", raw: true, flags: "-rn3", count: 3 },
-  { name: "empty EOF", hex: "", raw: true, flags: "-r" },
-  { name: "zero count", hex: "ff0a", raw: true, flags: "-rN0", count: 0, exact: true },
-  { name: "invalid continuation consumes native unit", hex: "c30a7461696c", raw: true, flags: "-rn1", count: 1 },
-  { name: "truncated multibyte EOF", hex: "e282", raw: true, flags: "-rn1", count: 1 },
-  { name: "escaped NUL", hex: "5c00410a7461696c", raw: false, flags: "-n1", count: 1 },
-  { name: "trailing escape EOF", hex: "5c", raw: false, flags: "" },
-  { name: "prefixed trailing escape EOF", hex: "61625c", raw: false, flags: "-N4", count: 4, exact: true },
-  { name: "prefixed escaped NUL", hex: "615c00420a", raw: false, flags: "" },
+  { name: "raw invalid byte", hex: "ff0a7461696c", raw: true, flags: "-r", expected: ["3000ff007461696c", "3000ff007461696c"] },
+  { name: "raw byte count", hex: "ff0a7461696c", raw: true, flags: "-rn1", count: 1, expected: ["3000ff000a7461696c", "3000ff000a7461696c"] },
+  { name: "UTF8 or byte count", hex: "c3a9f09f98800a7461696c", raw: true, flags: "-rn1", count: 1, expected: ["3000c300a9f09f98800a7461696c", "3000c3a900f09f98800a7461696c"] },
+  { name: "exact count crosses newline", hex: "ff0afe00740a", raw: true, flags: "-rN3", count: 3, exact: true, expected: ["3000ff0afe0000740a", "3000ff0afe0000740a"] },
+  { name: "custom delimiter", hex: "ff3afe0a", raw: true, flags: "-rd:", delimiter: 58, expected: ["3000ff00fe0a", "3000ff00fe0a"] },
+  { name: "NUL delimiter", hex: "ff00fe0a", raw: true, flags: "-rd ''", delimiter: 0, expected: ["3000ff00fe0a", "3000ff00fe0a"] },
+  { name: "NUL ignored", hex: "00ff000afe", raw: true, flags: "-r", expected: ["3000ff00fe", "3000ff00fe"] },
+  { name: "NUL does not count", hex: "00ff00fe0a", raw: true, flags: "-rn2", count: 2, expected: ["3000fffe000a", "3000fffe000a"] },
+  { name: "escaped space and byte", hex: "ff5c205cfe0a7461696c", raw: false, flags: "", expected: ["3000ff20fe007461696c", "3000ff20fe007461696c"] },
+  { name: "escaped delimiter", hex: "ff5c3afe3a7461696c", raw: false, flags: "-d:", delimiter: 58, expected: ["3000ff3afe007461696c", "3000ff3afe007461696c"] },
+  { name: "continuation across chunks", hex: "ff5c0afe0a7461696c", raw: false, flags: "", expected: ["3000fffe007461696c", "3000fffe007461696c"] },
+  { name: "count excludes escape prefix", hex: "5cfffe0a", raw: false, flags: "-n1", count: 1, expected: ["3000ff00fe0a", "3000ff00fe0a"] },
+  { name: "raw slash", hex: "5cff0a", raw: true, flags: "-rn1", count: 1, expected: ["30005c00ff0a", "30005c00ff0a"] },
+  { name: "partial EOF", hex: "fffe", raw: true, flags: "-rn3", count: 3, expected: ["3100fffe00", "3100fffe00"] },
+  { name: "empty EOF", hex: "", raw: true, flags: "-r", expected: ["310000", "310000"] },
+  { name: "zero count", hex: "ff0a", raw: true, flags: "-rN0", count: 0, exact: true, expected: ["300000ff0a", "300000ff0a"] },
+  { name: "invalid continuation consumes native unit", hex: "c30a7461696c", raw: true, flags: "-rn1", count: 1, expected: ["3000c3000a7461696c", "3000c3000a7461696c"] },
+  { name: "truncated multibyte EOF", hex: "e282", raw: true, flags: "-rn1", count: 1, expected: ["3000e20082", "3000e28200"] },
+  { name: "escaped NUL", hex: "5c00410a7461696c", raw: false, flags: "-n1", count: 1, expected: ["300041000a7461696c", "300041000a7461696c"] },
+  { name: "trailing escape EOF", hex: "5c", raw: false, flags: "", expected: ["310000", "310000"] },
+  { name: "prefixed trailing escape EOF", hex: "61625c", raw: false, flags: "-N4", count: 4, exact: true, expected: ["3100616200", "3100616200"] },
+  { name: "prefixed escaped NUL", hex: "615c00420a", raw: false, flags: "", expected: ["3000614200", "3000614200"] },
 ] as const;
 
-for (const locale of ["C", "en_US.UTF-8"]) for (const entry of cases) {
-  test(`byte read native ${locale}: ${entry.name}`, { ...nativeOptions(), timeout: 2000 }, async () => {
+for (const [profile, locale] of ["C", "en_US.UTF-8"].entries()) for (const entry of cases) {
+  test(`byte read Bash 5.3 ${locale}: ${entry.name}`, { timeout: 2000 }, async () => {
     const bytes = Buffer.from(entry.hex, "hex");
-    const native = spawnSync(oracle ??= authenticateOracle(), ["--noprofile", "--norc", "-c", `IFS= read ${entry.flags} value; status=$?; printf '%s\\0%s\\0' "$status" "$value"; /bin/cat`], {
-      input: bytes, env: { PATH: "/usr/bin:/bin", LC_ALL: locale }, timeout: 1000, maxBuffer: 4096,
-    });
-    assert.equal(native.error, undefined);
-    assert.equal(native.signal, null);
-    assert.equal(native.status, 0);
-    assert.equal(native.stderr.length, 0);
     for (const size of [1, 2, 7]) {
       const subject = fixture(chunks(bytes, size));
       try {
@@ -66,7 +63,7 @@ for (const locale of ["C", "en_US.UTF-8"]) for (const entry of cases) {
         const remainder: Uint8Array[] = [];
         for await (const chunk of subject.input) remainder.push(chunk);
         const actual = Buffer.concat([Buffer.from(result.terminated ? "0\0" : "1\0"), shellValueBytes(result.shellValue), Buffer.from([0]), ...remainder]);
-        assert.deepEqual(actual, native.stdout, `chunk size ${size}`);
+        assert.equal(actual.toString("hex"), entry.expected[profile], `chunk size ${size}`);
         result.release();
         assert.deepEqual(subject.budget.values.usage, { bytes: 0, slots: 0 });
       } finally { await subject.close(); }

@@ -1652,21 +1652,14 @@ export class ShellInput implements ByteSource, CommandInput {
           const first = offset < chunk.length && !deadline
             ? (this.signal.throwIfAborted(), this._cursor.position++, chunk[offset++]!)
             : await nextByte();
-          if (first === undefined) {
-            if (escaping && visible && !buffer.length && outcome.reason === "eof") buffer.append(1);
-            break;
-          }
+          if (first === undefined) break;
           const quoted = escaping;
           escaping = false;
           if (quoted && first === 10) { account(); continue; }
           if (!quoted && !raw && first === 92) { account(); escaping = true; continue; }
           if (!quoted && !exact && first === delimiter) { terminated = true; outcome.reason = "delimiter"; break; }
           account();
-          if (first === 0) {
-            if (!quoted) continue;
-            if (visible && !buffer.length) buffer.append(1);
-            visible = false;
-          }
+          if (first === 0) continue;
           if (quoted && visible) {
             scope.reserve(64, 2);
             escapedByteOffsets.push(buffer.length);
@@ -1679,6 +1672,14 @@ export class ShellInput implements ByteSource, CommandInput {
               ? (this.signal.throwIfAborted(), this._cursor.position++, chunk[offset++]!)
               : await nextByte();
             if (next === undefined) break;
+            if (!exact && next === delimiter && !utf8Continuation(first, position, next)) {
+              // Bash 5.3 retains lookahead on streams, but drops it at a file's -n boundary.
+              if (units + 1 !== count || this._cursor.stat?.type !== "file") {
+                offset--;
+                this._cursor.position--;
+              }
+              break;
+            }
             account();
             if (next === 0) visible = false;
             else if (visible) buffer.append(next);
@@ -1792,7 +1793,7 @@ export class ShellInput implements ByteSource, CommandInput {
             };
             const width = (input: Uint8Array, start: number): number => {
               if (input === bytes && reason === "timeout" && bytes[start] === 1 && escapedStart(start + 1)) return 2;
-              if (byteCount || input === bytes && escapedStart(start)) return 1;
+              if (byteCount) return 1;
               const length = displayWidth(input, start);
               return length === utf8Length(input[start]!) ? length : 1;
             };

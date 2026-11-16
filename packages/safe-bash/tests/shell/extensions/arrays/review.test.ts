@@ -83,25 +83,21 @@ for (const command of ["bash /child.sh", "sh /child.sh", "/child.sh"]) {
   });
 }
 
+// GNU Bash 5.3.0 byte captures from the same pinned GNU archive as input-bytes.test.ts.
 const readCases = [
-  { name: "invalid byte versus replacement separator", input: "ffefbfbd5a0a7461696c", ifs: "efbfbd", raw: true },
-  { name: "isolated multibyte IFS component", input: "41a9420a7461696c", ifs: "c3a9", raw: true },
-  { name: "raw separator versus valid multibyte payload", input: "41c3a9420a7461696c", ifs: "a9", raw: true },
-  { name: "truncated sequence before newline", input: "e2820a7461696c", ifs: "20", raw: true },
-  { name: "escaped astral separator with remainder", input: "615cf09f988062f09f988063f09f9880640a7461696c", ifs: "f09f9880", raw: false },
-  { name: "escaped NUL preserves native visible prefix", input: "415c00420a7461696c", ifs: "20", raw: false },
+  { name: "invalid byte versus replacement separator", input: "ffefbfbd5a0a7461696c", ifs: "efbfbd", raw: true, expected: ["3000ff00bfbd5a007461696c", "3000ff005a007461696c"] },
+  { name: "isolated multibyte IFS component", input: "41a9420a7461696c", ifs: "c3a9", raw: true, expected: ["3000410042007461696c", "3000410042007461696c"] },
+  { name: "raw separator versus valid multibyte payload", input: "41c3a9420a7461696c", ifs: "a9", raw: true, expected: ["300041c30042007461696c", "300041c3a94200007461696c"] },
+  { name: "truncated sequence before newline", input: "e2820a7461696c", ifs: "20", raw: true, expected: ["3000e28200007461696c", "3000e28200007461696c"] },
+  { name: "escaped astral separator with remainder", input: "615cf09f988062f09f988063f09f9880640a7461696c", ifs: "f09f9880", raw: false, expected: ["300061f000988062f09f988063f09f988064007461696c", "300061f09f9880620063f09f988064007461696c"] },
+  { name: "escaped NUL preserves native visible prefix", input: "415c00420a7461696c", ifs: "20", raw: false, expected: ["3000414200007461696c", "3000414200007461696c"] },
 ] as const;
 
-for (const locale of ["C", "en_US.UTF-8"]) {
+for (const [profile, locale] of ["C", "en_US.UTF-8"].entries()) {
   for (const entry of readCases) {
-    test(`review: native read chunks ${locale}: ${entry.name}`, nativeOptions(), async () => {
+    test(`review: Bash 5.3 read chunks ${locale}: ${entry.name}`, async () => {
       const bytes = Buffer.from(entry.input, "hex");
       const ifs = Buffer.from(entry.ifs, "hex");
-      const inputOctal = [...bytes].map(byte => `\\0${byte.toString(8).padStart(3, "0")}`).join("");
-      const ifsOctal = [...ifs].map(byte => `\\0${byte.toString(8).padStart(3, "0")}`).join("");
-      const native = runNative(`LC_ALL=${locale}; printf '%b' '${inputOctal}' | { IFS=$(printf '%b' '${ifsOctal}') read ${entry.raw ? "-r" : ""} first second; status=$?; printf '%s\\0' "$status" "$first" "$second"; IFS= read -r -d '' tail; printf '%s' "$tail"; }`);
-      assert.equal(native.status, 0);
-      assert.equal(native.stderr.length, 0);
       for (const size of [1, 2, 5, 4096]) {
         const controller = new AbortController();
         const budget = new Budget({ ...defaultLimits, maxExpansionBytes: 65536, maxExpansionFields: 4096 }, controller.signal);
@@ -117,7 +113,7 @@ for (const locale of ["C", "en_US.UTF-8"]) {
             Buffer.from(line.terminated ? "0\0" : "1\0"),
             shellValueBytes(fields[0]?.value ?? ""), Uint8Array.of(0),
             shellValueBytes(fields[1]?.value ?? ""), Uint8Array.of(0), ...tail,
-          ]), native.stdout, `chunk size ${size}`);
+          ]), Buffer.from(entry.expected[profile]!, "hex"), `chunk size ${size}`);
           await line.release();
           assert.deepEqual(budget.values.usage, { bytes: 0, slots: 0 });
         } finally { await input.close(); budget.close(); budget.values.close(); }

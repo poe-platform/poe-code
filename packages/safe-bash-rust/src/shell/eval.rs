@@ -8836,6 +8836,7 @@ impl<'a> EvalState<'a> {
         let mut visible = true;
         let mut input_bytes = 0usize;
         let mut terminated = false;
+        let regular_file = matches!(self.fd_table.get(&fd), Some(FdTarget::InputFile { .. }));
         // A UTF-8 unit can straddle two file reads, including an invalid final sequence.
         let mut continuation = None;
         self.read_fd_chunks(fd, stdin, &mut |bytes, eof| {
@@ -8848,6 +8849,19 @@ impl<'a> EvalState<'a> {
                 pos += 1;
                 input_bytes += 1;
                 if let Some((first, index)) = continuation {
+                    if delimiter == Some(byte) && !is_valid_utf8_continuation(first, index, byte) {
+                        if Some(units + 1) == count {
+                            terminated = true;
+                            if !regular_file { pos -= 1; }
+                        } else {
+                            // Process the delimiter normally on the next iteration.
+                            pos -= 1;
+                            input_bytes -= 1;
+                        }
+                        continuation = None;
+                        units += 1;
+                        continue;
+                    }
                     if byte == 0 { visible = false; }
                     if visible { out.push(byte); }
                     continuation = (is_valid_utf8_continuation(first, index, byte)
@@ -8860,11 +8874,8 @@ impl<'a> EvalState<'a> {
                     let quoted = std::mem::take(&mut escaped);
                     if quoted && byte == b'\n' { continue; }
                     if !quoted && delimiter == Some(byte) { terminated = true; break; }
-                    if !quoted && byte == 0 { continue; }
-                    if byte == 0 {
-                        if out.is_empty() && visible { out.push(1); }
-                        visible = false;
-                    } else if visible {
+                    if byte == 0 { continue; }
+                    if visible {
                         if quoted { escaped_offsets.push(out.len()); }
                         out.push(byte);
                     }
@@ -15548,8 +15559,8 @@ fn split_read_fields(
         return Vec::new();
     }
     let escaped_start = |start: usize| -> bool { escaped_byte_offsets.binary_search(&start).is_ok() };
-    let unit_width = |input: &[u8], start: usize, is_record: bool| -> usize {
-        if byte_count || (is_record && escaped_start(start)) {
+    let unit_width = |input: &[u8], start: usize| -> usize {
+        if byte_count {
             return 1;
         }
         let len = read_display_width(input, start);
@@ -15559,9 +15570,9 @@ fn split_read_fields(
             1
         }
     };
-    let unit_key = |input: &[u8], start: usize, is_record: bool| -> u64 {
+    let unit_key = |input: &[u8], start: usize| -> u64 {
         let mut val = 1u64;
-        let w = unit_width(input, start, is_record);
+        let w = unit_width(input, start);
         for &b in &input[start..(start + w).min(input.len())] {
             val = val.wrapping_mul(257).wrapping_add(b as u64);
         }
@@ -15571,8 +15582,8 @@ fn split_read_fields(
     let mut keys = BTreeSet::new();
     let mut sep_pos = 0usize;
     while sep_pos < separators.len() {
-        let w = unit_width(separators, sep_pos, false);
-        keys.insert(unit_key(separators, sep_pos, false));
+        let w = unit_width(separators, sep_pos);
+        keys.insert(unit_key(separators, sep_pos));
         for &b in &separators[sep_pos..(sep_pos + w).min(separators.len())] {
             keys.insert(257 + b as u64);
         }
@@ -15580,7 +15591,7 @@ fn split_read_fields(
     }
 
     let is_separator = |start: usize| -> bool {
-        !escaped_start(start) && keys.contains(&unit_key(bytes, start, true))
+        !escaped_start(start) && keys.contains(&unit_key(bytes, start))
     };
     let is_whitespace = |start: usize| -> bool {
         matches!(bytes[start], b' ' | b'\t' | b'\n') && is_separator(start)
@@ -15589,7 +15600,7 @@ fn split_read_fields(
     let mut end = 0usize;
     let mut scan = 0usize;
     while scan < bytes.len() {
-        let w = unit_width(bytes, scan, true);
+        let w = unit_width(bytes, scan);
         if !is_whitespace(scan) {
             end = scan + w;
         }
@@ -15601,22 +15612,22 @@ fn split_read_fields(
     let max_fields = maximum.unwrap_or(usize::MAX);
 
     while position < end && is_whitespace(position) {
-        position += unit_width(bytes, position, true);
+        position += unit_width(bytes, position);
     }
     while position < end && fields.len() < max_fields {
         let start = position;
         while position < end && !is_separator(position) {
-            position += unit_width(bytes, position, true);
+            position += unit_width(bytes, position);
         }
         let mut field_end = position;
         while position < end && is_whitespace(position) {
-            position += unit_width(bytes, position, true);
+            position += unit_width(bytes, position);
         }
         if position < end && is_separator(position) {
-            position += unit_width(bytes, position, true);
+            position += unit_width(bytes, position);
         }
         while position < end && is_whitespace(position) {
-            position += unit_width(bytes, position, true);
+            position += unit_width(bytes, position);
         }
         if let Some(max) = maximum
             && fields.len() + 1 == max
@@ -16573,12 +16584,12 @@ mod tests {
     }
 
     #[test]
-    fn read_consumes_invalid_utf8_continuations_and_preserves_unread_bytes() {
+    fn read_preserves_bash53_delimiters_and_unread_bytes() {
         for (input, expected) in [
-            (b"\xc3\ntail".as_slice(), b"0\0\xc3\n\0tail".as_slice()),
+            (b"\xc3\ntail".as_slice(), b"0\0\xc3\0\ntail".as_slice()),
             (b"\xc3Atail", b"0\0\xc3A\0tail"),
             (b"\xc3\0tail", b"0\0\xc3\0tail"),
-            (b"\xe2\x82\ntail", b"0\0\xe2\x82\n\0tail"),
+            (b"\xe2\x82\ntail", b"0\0\xe2\x82\0\ntail"),
             (b"\xe2\x82", b"0\0\xe2\x82\0"),
         ] {
             let vfs = crate::vfs::MemoryVfs::new();

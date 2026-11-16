@@ -17179,3 +17179,4 @@ import "./function-loop-boundary.wasm.test.mjs";
 import "./declared-ifs.wasm.test.mjs";
 
 import "./sed-output-order.wasm.test.mjs";
+import "./webdav-cd.wasm.test.mjs";

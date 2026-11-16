@@ -1,6 +1,25 @@
 use super::*;
 
 #[test]
+fn in2csv_xlsx_skipping_at_eof_retains_headers() {
+    let fs = crate::MemoryVfs::new();
+    fs.write_file("/input.xlsx", include_bytes!("../../../tests/fixtures/skip-rows.xlsx")).unwrap();
+    for skip in ["3", "999"] {
+        for no_header in [false, true] {
+            let mut args = vec!["--skip-lines", skip];
+            if no_header { args.push("--no-header-row"); }
+            args.push("/input.xlsx");
+            let args = args.into_iter().map(String::from).collect::<Vec<_>>();
+            let result = try_run_structured_command("in2csv", &args, "", "/", &Default::default(), &fs).unwrap();
+            assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, "a,b\n", ""));
+        }
+    }
+    let args = ["--sheet", "Empty", "/input.xlsx"].map(String::from);
+    let result = try_run_structured_command("in2csv", &args, "", "/", &Default::default(), &fs).unwrap();
+    assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, "\n", ""));
+}
+
+#[test]
 fn in2csv_infers_boolean_columns_without_changing_mixed_text() {
     let fs = crate::MemoryVfs::new();
     fs.write_file("/input.xlsx", include_bytes!("../../../tests/fixtures/boolean-inference.xlsx")).unwrap();

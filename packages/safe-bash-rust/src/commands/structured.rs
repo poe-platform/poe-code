@@ -10052,7 +10052,7 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         if add_bom {
             out.push('\u{feff}');
         }
-        if !headers.is_empty() {
+        if !headers.is_empty() || fmt == "xlsx" {
             let mut h = headers;
             if line_numbers {
                 h.insert(0, "line_number".to_string());
@@ -10088,10 +10088,10 @@ fn cmd_in2csv(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         let Some(sheet) = sheets.into_iter().nth(chosen) else { return ok_out(""); };
         let mut parsed_rows = sheet.rows;
         let max_cols = parsed_rows.first().map_or(0, Vec::len);
-        let skip_lines = if skip_lines <= parsed_rows.len() { skip_lines } else { 0 };
+        let skip_lines = skip_lines.min(parsed_rows.len());
         parsed_rows.drain(..skip_lines);
         if parsed_rows.is_empty() {
-            return ok_out("");
+            return finish_rows(default_csvkit_headers(max_cols), Vec::new());
         }
         let (headers, mut data_rows) = if no_header {
             (default_csvkit_headers(max_cols), parsed_rows)

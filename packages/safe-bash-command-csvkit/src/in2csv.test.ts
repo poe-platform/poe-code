@@ -1,5 +1,6 @@
 import { test } from "vitest";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { Volume } from "memfs";
 import { execute, run, defaultLimits } from "./engine.js";
 import { OwnedArguments } from "./argv.js";
@@ -32,6 +33,14 @@ async function invoke(item: typeof reference.cases[number], sdk = false, overrid
 }
 for (const [index, item] of reference.cases.entries()) test(`in2csv frozen original differential ${index}: ${item.argv.join(' ')}`, async () => {
   assert.deepEqual(await invoke(item), { stdout: item.stdout, stderr: item.stderr, status: item.status, effects: item.effects });
+});
+
+for (const skip of [3, 999]) test(`XLSX skip-lines ${skip} retains the empty table header`, async () => {
+  const bytes = readFileSync(new URL('../../safe-bash-rust/tests/fixtures/skip-rows.xlsx', import.meta.url));
+  const result = await invoke({ argv: ['--skip-lines', String(skip), '--no-header-row', '/work/input.xlsx'], files: {}, binaries: {}, stdin: '', stdout: '', stderr: '', status: 0, effects: {} }, false, {
+    fs: { readFile: async () => bytes, writeFile: async () => { throw new Error('unexpected write'); } }
+  });
+  assert.deepEqual(result, { stdout: 'a,b\n', stderr: '', status: 0, effects: {} });
 });
 
 test('GeoJSON rejects an oversized header even when there are no data rows', async () => {

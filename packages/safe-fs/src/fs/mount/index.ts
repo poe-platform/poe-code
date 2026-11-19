@@ -1383,22 +1383,45 @@ export class MountFileSystem implements FileSystem {
   }
 
   async *readStream(path: string, options: ReadStreamOptions = {}): ByteSource {
-    let release: (() => void) | undefined;
+    // Admission covers startup and each backend pull, but never a consumer
+    // pause: a caller may remove or rename other entries between chunks, as
+    // archive extraction does while it streams the archive.
+    const admitted = async <Result>(action: () => Promise<Result>): Promise<Result> => {
+      const release = await this.acquireNamespace(options);
+      try {
+        return await action();
+      } finally {
+        release();
+      }
+    };
+    let location: Location | undefined;
+    let source: AsyncGenerator<Uint8Array> | undefined;
+    let item: IteratorResult<Uint8Array> | undefined;
     try {
-      release = await this.acquireNamespace(options);
-      options.signal?.throwIfAborted();
-      const location = await this.resolve(path, options);
-      if (location.synthetic) fail("EISDIR");
-      const source = this.optional(location, "readStream", "streamingRead").call(location.mount.backend, location.local, options);
-      for await (const chunk of readBytes(source, options.signal)) {
+      item = await admitted(async () => {
         options.signal?.throwIfAborted();
-        yield chunk;
+        location = await this.resolve(path, options);
+        if (location.synthetic) fail("EISDIR");
+        const stream = this.optional(location, "readStream", "streamingRead").call(location.mount.backend, location.local, options);
+        source = readBytes(stream, options.signal);
+        return source.next();
+      });
+      while (!item.done) {
+        options.signal?.throwIfAborted();
+        yield item.value;
+        item = await admitted(async () => {
+          // A path-based backend must not follow a guest rename into another mount.
+          const current = await this.resolve(path, options);
+          if (current.path !== location!.path || current.mount !== location!.mount ||
+              current.local !== location!.local || current.synthetic) fail("EBUSY");
+          return source!.next();
+        });
       }
       options.signal?.throwIfAborted();
     } catch (error) {
       throw this.error(error, "readStream", path, options);
     } finally {
-      release?.();
+      if (item?.done !== true) await source?.return(undefined);
     }
   }
 

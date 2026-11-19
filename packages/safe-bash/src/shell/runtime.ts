@@ -6853,6 +6853,8 @@ export class Runtime {
           ? Object.create(Object.getPrototypeOf(forwarded), {
             ...Object.getOwnPropertyDescriptors(forwarded), externalInvocation: { value: true, configurable: true }, }) as ShellCommandContext
           : forwarded;
+        const workerState = workerRuntimeContexts.get(forwarded);
+        if (workerState && executionContext !== forwarded) workerRuntimeContexts.set(executionContext, workerState);
         try {
           const raw = definition.execute(virtualName ? this.virtualExecutionContext(executionContext, virtualName) : executionContext);
           const observed = this.observeRuntimeReturn(raw, runtimeFrame);

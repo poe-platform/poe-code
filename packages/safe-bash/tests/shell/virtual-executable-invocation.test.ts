@@ -55,8 +55,10 @@ test("absolute interpreter paths retain the original zeroth argument", async () 
   assert.equal((await shell.exec("/bin/sh -c 'echo \"$0\"'")).stdout, "/bin/sh\n");
 });
 
-test("path invocation retains invocation-owned worker state and argument identity", async () => {
+for (const middleware of [false, true]) test(`path invocation retains invocation-owned worker state and argument identity, middleware=${middleware}`, async context => {
   const shell = new Shell({ fs: createMemoryFileSystem(), limits: { maxCommands: 100 } });
+  context.after(() => shell.dispose());
+  if (middleware) shell.use((_context, next) => next());
   let invoked = false;
   shell.commands.register({ name: "context-probe", execute(context) {
     invoked = true;
@@ -70,7 +72,8 @@ test("path invocation retains invocation-owned worker state and argument identit
     assert.deepEqual(context.args, ["argument"]);
     return { exitCode: 0 };
   } });
-  assert.equal((await shell.exec("umask 077; trap '' INT; /bin/context-probe argument")).exitCode, 0);
+  const result = await shell.exec("umask 077; trap '' INT; /bin/context-probe argument");
+  assert.equal(result.exitCode, 0, result.stderr);
   assert.equal(invoked, true);
 });
 

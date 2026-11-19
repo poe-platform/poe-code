@@ -1215,7 +1215,11 @@ test("readlink missing canonicalization preserves filesystem failures and cancel
   const denied = await run("readlink", ["-m", "missing"], { fs });
   assert.equal(denied.exitCode, 1);
   assert.equal(denied.stdout, "");
-  assert.ok(denied.stderr.includes("EACCES"));
+  assert.equal(denied.stderr, "");
+  const verbose = await run("readlink", ["-vm", "missing"], { fs });
+  assert.equal(verbose.exitCode, 1);
+  assert.equal(verbose.stdout, "");
+  assert.equal(verbose.stderr, "readlink: EACCES: permission denied '/work'\n");
   const controller = new AbortController();
   const reason = new Error("cancel canonicalization");
   context.mock.method(fs, "lstat", async () => { controller.abort(reason); throw new FsError("ENOENT"); });

@@ -271,7 +271,7 @@ test("stream I/O errors are explicit failures, not native stdio error suppressio
   const result = await run([], "", {}, { stdin });
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
-  assert.equal(result.stderr, "tsort: -: Input/output error\n");
+  assert.equal(result.stderr, "tsort: -: read error: Input/output error\n");
   assert.equal(returned, 1);
 });
 

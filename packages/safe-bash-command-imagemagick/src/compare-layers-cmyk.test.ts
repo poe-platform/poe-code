@@ -43,10 +43,10 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
             .toBe("2x1+0+0;2x1+0+0;");
     });
 
-    it(`${mode} preserves canvas black when copying an sRGB frame without black`, async () => {
+    it(`${mode} retains an sRGB black frame after a CMYK frame with half black ink`, async () => {
         expect(await run(["-size", "2x1", "xc:cmyk(0%,0%,0%,50%)", "xc:black",
             "-layers", "CompareAny", "-format", "%wx%h%O;", "info:"]))
-            .toBe("2x1+0+0;");
+            .toBe("2x1+0+0;2x1+0+0;");
     });
 
     it(`${mode} compares CMYK spans within the storage transfer limit`, async () => {

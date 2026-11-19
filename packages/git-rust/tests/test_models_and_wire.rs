@@ -237,9 +237,7 @@ fn test_git_pack_index_from_idx_and_from_pack_and_read() {
     assert_eq!(idx_buffer, idx);
 
     // Truncated pack
-    let p_trunc =
-        GitPackIndex::from_pack::<fn(&str) -> Result<_, _>>(&pack[..12], None).unwrap();
-    assert_eq!(p_trunc.offsets.len(), 0);
+    assert!(GitPackIndex::from_pack::<fn(&str) -> Result<_, _>>(&pack[..12], None).is_err());
 
     // Read undeltified object
     p_idx.load(pack);

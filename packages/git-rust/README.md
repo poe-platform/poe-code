@@ -21,6 +21,17 @@ Full-featured Rust Git implementation with both a standalone native CLI binary (
 
 `git diff --check` validates added lines for trailing whitespace, spaces before tabs in indentation, leftover conflict markers, and new blank lines at EOF. Use `--cached` for staged changes and `-- <paths>` to limit validation; check errors exit with status 2.
 
+Rust servers can use `models::encode_pack` to encode a fallible iterator of
+objects from their own storage, and `GitPktLine::decode` to parse a complete packet without
+copying the trailing binary pack. It reports malformed or truncated framing as
+an error. `GitPackIndex::from_pack` verifies pack and zlib checksums, object
+counts, sizes and delta bases before returning an index; truncated packs never
+produce partial success. Decoding is bounded to 64 MiB per object, 256 MiB for
+the encoded pack and aggregate decoded bytes, one million entries, and 64
+nested delta reads. Invalid UTF-8 or duplicate tree names are rejected instead
+of being silently changed. These codecs do not provide HTTP routing, storage
+transactions, or authorization; an embedding server supplies those policies.
+
 Branch deletion refuses the checked-out branch. Use `branch -d` for merged branches or `branch -D` to delete an unmerged branch.
 
 ## Using `git-rust` as Your Local `git` CLI

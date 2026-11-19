@@ -28,7 +28,7 @@ impl GitTree {
                     ))
                 })?;
             let space = cursor + space_rel;
-            let null_rel = buffer[cursor..]
+            let null_rel = buffer[space + 1..]
                 .iter()
                 .position(|&b| b == 0)
                 .ok_or_else(|| {
@@ -36,13 +36,17 @@ impl GitTree {
                         "GitTree: Error parsing buffer at byte location {cursor}: Could not find the next null character."
                     ))
                 })?;
-            let nullchar = cursor + null_rel;
-            let mut mode = String::from_utf8_lossy(&buffer[cursor..space]).to_string();
+            let nullchar = space + 1 + null_rel;
+            let mut mode = std::str::from_utf8(&buffer[cursor..space])
+                .map_err(|_| GitError::internal("Invalid tree mode encoding"))?
+                .to_string();
             if mode == "40000" {
                 mode = "040000".to_string();
             }
             let entry_type = tree_mode_to_type(&mode)?.to_string();
-            let path = String::from_utf8_lossy(&buffer[space + 1..nullchar]).to_string();
+            let path = std::str::from_utf8(&buffer[space + 1..nullchar])
+                .map_err(|_| GitError::internal("Tree filenames must be UTF-8"))?
+                .to_string();
             validate_tree_entry_name(&path)?;
             if nullchar + 21 > buffer.len() {
                 return Err(GitError::internal("GitTree: truncated 20-byte OID"));
@@ -57,6 +61,9 @@ impl GitTree {
             });
         }
         entries.sort_by(|a, b| compare_strings(&a.path, &b.path));
+        if entries.windows(2).any(|pair| pair[0].path == pair[1].path) {
+            return Err(GitError::internal("Duplicate tree entry"));
+        }
         Ok(Self { entries })
     }
 
@@ -71,6 +78,9 @@ impl GitTree {
             entries.push(entry);
         }
         entries.sort_by(|a, b| compare_strings(&a.path, &b.path));
+        if entries.windows(2).any(|pair| pair[0].path == pair[1].path) {
+            return Err(GitError::internal("Duplicate tree entry"));
+        }
         Ok(Self { entries })
     }
 
@@ -158,9 +168,7 @@ pub fn validate_tree_entry_name(path: &str) -> Result<(), GitError> {
 
     let is_ntfs_short_git = {
         let s = normalized.strip_prefix('.').unwrap_or(&normalized);
-        s.len() == 5
-            && s.starts_with("git~")
-            && matches!(s.as_bytes()[4], b'1'..=b'9')
+        s.len() == 5 && s.starts_with("git~") && matches!(s.as_bytes()[4], b'1'..=b'9')
     };
 
     if path.is_empty()

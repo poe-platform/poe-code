@@ -1,8 +1,8 @@
 use crate::errors::GitError;
 
 const LENGTH_BASE: [u16; 29] = [
-    3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115,
-    131, 163, 195, 227, 258,
+    3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131,
+    163, 195, 227, 258,
 ];
 const LENGTH_EXTRA: [u8; 29] = [
     0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0,
@@ -12,8 +12,8 @@ const DIST_BASE: [u16; 30] = [
     2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577,
 ];
 const DIST_EXTRA: [u8; 30] = [
-    0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12,
-    13, 13,
+    0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13,
+    13,
 ];
 const CL_ORDER: [usize; 19] = [
     16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15,
@@ -120,6 +120,13 @@ impl HuffmanTable {
             }
             if len > 0 {
                 counts[len as usize] += 1;
+            }
+        }
+        let mut available = 1i32;
+        for count in counts.iter().skip(1) {
+            available = available * 2 - i32::from(*count);
+            if available < 0 {
+                return Err(GitError::internal("Oversubscribed Huffman tree"));
             }
         }
         let mut offsets = [0u16; 16];
@@ -233,6 +240,14 @@ fn fixed_tables() -> (HuffmanTable, HuffmanTable) {
 }
 
 pub fn inflate_raw_from(input: &[u8], start_offset: usize) -> Result<(Vec<u8>, usize), GitError> {
+    inflate_raw_bounded(input, start_offset, 64 * 1024 * 1024)
+}
+
+fn inflate_raw_bounded(
+    input: &[u8],
+    start_offset: usize,
+    limit: usize,
+) -> Result<(Vec<u8>, usize), GitError> {
     let mut reader = BitReader::new(input, start_offset);
     let mut out = Vec::new();
     loop {
@@ -247,6 +262,9 @@ pub fn inflate_raw_from(input: &[u8], start_offset: usize) -> Result<(Vec<u8>, u
                     return Err(GitError::internal("Corrupt stored block length in deflate"));
                 }
                 let data = reader.read_aligned_bytes(len as usize)?;
+                if data.len() > limit.saturating_sub(out.len()) {
+                    return Err(GitError::internal("Inflated object exceeds byte limit"));
+                }
                 out.extend_from_slice(data);
             }
             1 | 2 => {
@@ -286,6 +304,9 @@ pub fn inflate_raw_from(input: &[u8], start_offset: usize) -> Result<(Vec<u8>, u
                             _ => return Err(GitError::internal("Invalid code length symbol")),
                         }
                     }
+                    if all_lengths.len() != hlit + hdist || all_lengths[256] == 0 {
+                        return Err(GitError::internal("Invalid dynamic Huffman lengths"));
+                    }
                     let lit_t = HuffmanTable::from_code_lengths(&all_lengths[..hlit])?;
                     let dist_t = HuffmanTable::from_code_lengths(&all_lengths[hlit..hlit + hdist])?;
                     (lit_t, dist_t)
@@ -294,6 +315,9 @@ pub fn inflate_raw_from(input: &[u8], start_offset: usize) -> Result<(Vec<u8>, u
                 loop {
                     let sym = lit_table.decode(&mut reader)?;
                     if sym < 256 {
+                        if out.len() == limit {
+                            return Err(GitError::internal("Inflated object exceeds byte limit"));
+                        }
                         out.push(sym as u8);
                     } else if sym == 256 {
                         break;
@@ -312,6 +336,9 @@ pub fn inflate_raw_from(input: &[u8], start_offset: usize) -> Result<(Vec<u8>, u
                         let distance = DIST_BASE[dist_sym] as usize + extra_dist;
                         if distance == 0 || distance > out.len() {
                             return Err(GitError::internal("Match distance out of bounds"));
+                        }
+                        if length > limit.saturating_sub(out.len()) {
+                            return Err(GitError::internal("Inflated object exceeds byte limit"));
                         }
                         let start = out.len() - distance;
                         if distance >= length {
@@ -345,14 +372,34 @@ pub fn zlib_inflate_with_consumed(input: &[u8]) -> Result<(Vec<u8>, usize), GitE
         (cmf & 0x0f) == 8 && (cmf >> 4) <= 7 && ((cmf as u16) << 8 | flg as u16).is_multiple_of(31);
 
     if is_zlib_header {
-        let fdict = (flg & 0x20) != 0;
-        let start = if fdict { 6 } else { 2 };
-        let (out, raw_consumed) = inflate_raw_from(input, start)?;
-        let total = (start + raw_consumed + 4).min(input.len());
-        Ok((out, total))
+        zlib_inflate_bounded(input, 64 * 1024 * 1024)
     } else {
         inflate_raw_from(input, 0)
     }
+}
+
+/// Decode one RFC 1950 stream, checking its header, checksum and output budget.
+/// Packfiles require zlib framing, so this API never falls back to raw deflate.
+pub fn zlib_inflate_bounded(input: &[u8], limit: usize) -> Result<(Vec<u8>, usize), GitError> {
+    if input.len() < 6
+        || input[0] & 0x0f != 8
+        || input[0] >> 4 > 7
+        || !u16::from_be_bytes([input[0], input[1]]).is_multiple_of(31)
+        || input[1] & 0x20 != 0
+    {
+        return Err(GitError::internal(
+            "Invalid or dictionary-dependent zlib stream",
+        ));
+    }
+    let (out, consumed) = inflate_raw_bounded(input, 2, limit)?;
+    let end = 2 + consumed;
+    let checksum = input
+        .get(end..end + 4)
+        .ok_or_else(|| GitError::internal("Missing zlib checksum"))?;
+    if u32::from_be_bytes(checksum.try_into().unwrap()) != adler32(&out) {
+        return Err(GitError::internal("Invalid zlib checksum"));
+    }
+    Ok((out, end + 4))
 }
 
 pub fn zlib_inflate(input: &[u8]) -> Result<Vec<u8>, GitError> {

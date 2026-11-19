@@ -17,6 +17,8 @@ pub use git_config::{ConfigValue, GitConfig};
 pub use git_index::{CacheEntryFlags, GitIndex, IndexEntry};
 pub use git_object::{GitObject, UnwrappedObject};
 pub use git_pack_index::GitPackIndex;
+pub mod git_pack;
+pub use git_pack::encode_pack;
 pub use git_packed_refs::GitPackedRefs;
 pub use git_pkt_line::{GitPktLine, PktLineItem, PktLineReader};
 pub use git_ref_spec::{GitRefSpec, GitRefSpecSet};

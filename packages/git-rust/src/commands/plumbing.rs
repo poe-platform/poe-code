@@ -14,7 +14,7 @@ use crate::models::{
 use crate::storage::{
     _read_object, _write_object, resolve_filepath, resolve_filepath_entry, resolve_tree,
 };
-use crate::utils::{dirname, join, shasum_bytes, zlib_deflate, Author};
+use crate::utils::{dirname, join, Author};
 use crate::wire::write_refs_ad_response;
 
 pub fn init(
@@ -1055,36 +1055,13 @@ pub fn pack_objects(
     write: bool,
 ) -> Result<PackObjectsResult, GitError> {
     let gdir = discover_gitdir(fs, gitdir);
-    let mut pack = Vec::new();
-    pack.extend_from_slice(b"PACK");
-    pack.extend_from_slice(&2u32.to_be_bytes());
-    pack.extend_from_slice(&(oids.len() as u32).to_be_bytes());
-
-    for oid in oids {
-        let obj = _read_object(fs, &gdir, oid, "content")?;
-        let type_num: u8 = match obj.obj_type.as_str() {
-            "commit" => 0b001_0000,
-            "tree" => 0b010_0000,
-            "blob" => 0b011_0000,
-            "tag" => 0b100_0000,
-            other => return Err(GitError::internal(&format!("Unknown pack type {other}"))),
-        };
-        let mut length = obj.object.len();
-        let mut multibyte = if length > 0b1111 { 0x80u8 } else { 0 };
-        let last_four = (length & 0b1111) as u8;
-        length >>= 4;
-        pack.push(multibyte | type_num | last_four);
-        while multibyte != 0 {
-            multibyte = if length > 0x7f { 0x80u8 } else { 0 };
-            pack.push(multibyte | ((length & 0x7f) as u8));
-            length >>= 7;
-        }
-        pack.extend_from_slice(&zlib_deflate(&obj.object));
-    }
-
-    let sha = shasum_bytes(&pack);
-    let packfile_sha = crate::utils::to_hex(&sha);
-    pack.extend_from_slice(&sha);
+    let pack = crate::models::encode_pack(oids.iter().map(|oid| {
+        let object = _read_object(fs, &gdir, oid, "content")?;
+        Ok(crate::models::git_object::UnwrappedObject {
+            object_type: object.obj_type, object: object.object,
+        })
+    }))?;
+    let packfile_sha = crate::utils::to_hex(&pack[pack.len() - 20..]);
 
     let filename = format!("pack-{packfile_sha}.pack");
     if write {

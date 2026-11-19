@@ -3,9 +3,20 @@ use std::sync::{Arc, RwLock};
 
 use crate::errors::GitError;
 use crate::models::git_object::{GitObject, UnwrappedObject};
-use crate::utils::{
-    apply_delta, crc32, from_hex, shasum, shasum_bytes, to_hex, zlib_inflate_with_consumed,
-};
+use crate::utils::{apply_delta, crc32, from_hex, shasum, shasum_bytes, to_hex};
+
+use crate::utils::zlib::zlib_inflate_bounded;
+
+const MAX_OBJECT_BYTES: usize = 64 * 1024 * 1024;
+const MAX_PACK_BYTES: usize = 256 * 1024 * 1024;
+const MAX_OBJECTS: usize = 1_000_000;
+const MAX_DELTA_DEPTH: usize = 64;
+
+#[derive(Debug, Default)]
+struct ObjectCache {
+    bytes: usize,
+    objects: BTreeMap<usize, UnwrappedObject>,
+}
 
 #[derive(Debug, Clone)]
 pub struct GitPackIndex {
@@ -14,7 +25,7 @@ pub struct GitPackIndex {
     pub offsets: BTreeMap<String, usize>,
     pub packfile_sha: String,
     pub pack: Option<Vec<u8>>,
-    offset_cache: Arc<RwLock<BTreeMap<usize, UnwrappedObject>>>,
+    offset_cache: Arc<RwLock<ObjectCache>>,
 }
 
 impl GitPackIndex {
@@ -42,6 +53,9 @@ impl GitPackIndex {
             idx[fanout_end - 1],
         ]) as usize;
 
+        if size > MAX_OBJECTS || size > (idx.len() - fanout_end - 40) / 28 {
+            return Err(GitError::internal("Truncated or oversized packfile IDX"));
+        }
         let mut pos = fanout_end;
         let mut hashes = Vec::with_capacity(size);
         for _ in 0..size {
@@ -56,8 +70,8 @@ impl GitPackIndex {
         }
         let mut offsets = BTreeMap::new();
         for hash in &hashes {
-            let offset = u32::from_be_bytes([idx[pos], idx[pos + 1], idx[pos + 2], idx[pos + 3]])
-                as usize;
+            let offset =
+                u32::from_be_bytes([idx[pos], idx[pos + 1], idx[pos + 2], idx[pos + 3]]) as usize;
             offsets.insert(hash.clone(), offset);
             pos += 4;
         }
@@ -76,115 +90,95 @@ impl GitPackIndex {
     where
         F: Fn(&str) -> Result<UnwrappedObject, GitError>,
     {
-        if pack.len() < 12 || &pack[0..4] != b"PACK" {
-            return Err(GitError::internal("Invalid PACK header"));
+        if pack.len() < 32 || pack.len() > MAX_PACK_BYTES || &pack[..4] != b"PACK" {
+            return Err(GitError::internal("Invalid or oversized PACK"));
         }
-        let version = u32::from_be_bytes([pack[4], pack[5], pack[6], pack[7]]);
-        if version != 2 {
-            return Err(GitError::internal(&format!(
-                "Invalid packfile version: {version}"
-            )));
+        let version = u32::from_be_bytes(pack[4..8].try_into().unwrap());
+        if version != 2 && version != 3 {
+            return Err(GitError::internal("Unsupported packfile version"));
         }
-        let num_objects = u32::from_be_bytes([pack[8], pack[9], pack[10], pack[11]]) as usize;
-        let packfile_sha = if pack.len() >= 20 {
-            to_hex(&pack[pack.len() - 20..])
-        } else {
-            String::new()
-        };
-
-        if pack.len() <= 12 {
-            return Ok(Self {
-                hashes: Vec::new(),
-                crcs: BTreeMap::new(),
-                offsets: BTreeMap::new(),
-                packfile_sha,
-                pack: Some(pack.to_vec()),
-                offset_cache: Default::default(),
-            });
+        let count = u32::from_be_bytes(pack[8..12].try_into().unwrap()) as usize;
+        let body_end = pack.len() - 20;
+        if count > MAX_OBJECTS || count > body_end - 12 {
+            return Err(GitError::internal("Invalid pack object count"));
         }
-
-        let mut entry_offsets = Vec::with_capacity(num_objects);
-        let mut entry_crcs = BTreeMap::new();
-        let mut cursor = 12usize;
-        let max_body = pack.len().saturating_sub(20);
-
-        for _ in 0..num_objects {
-            if cursor >= max_body {
-                break;
+        if shasum_bytes(&pack[..body_end]).as_slice() != &pack[body_end..] {
+            return Err(GitError::internal("Invalid pack checksum"));
+        }
+        let mut cursor = 12;
+        let mut inflated_bytes = 0usize;
+        let mut offsets = Vec::with_capacity(count);
+        let mut crcs = BTreeMap::new();
+        for _ in 0..count {
+            let start = cursor;
+            let (kind, length, payload) = entry_header(&pack[..body_end], start)?;
+            inflated_bytes = inflated_bytes.saturating_add(length);
+            if inflated_bytes > MAX_PACK_BYTES {
+                return Err(GitError::internal("Inflated pack exceeds byte limit"));
             }
-            let entry_start = cursor;
-            let b0 = pack[cursor];
-            cursor += 1;
-            let btype = (b0 >> 4) & 0x07;
-            let mut b = b0;
-            while (b & 0x80) != 0 {
-                if cursor >= pack.len() {
-                    break;
-                }
-                b = pack[cursor];
-                cursor += 1;
+            if let EntryKind::OfsDelta(base) = kind
+                && offsets.binary_search(&base).is_err()
+            {
+                return Err(GitError::internal("Delta base is not an object boundary"));
             }
-            if btype == 6 {
-                // ofs-delta
-                let mut ob = pack[cursor];
-                cursor += 1;
-                while (ob & 0x80) != 0 {
-                    ob = pack[cursor];
-                    cursor += 1;
-                }
-            } else if btype == 7 {
-                // ref-delta
-                cursor += 20;
+            let (inflated, consumed) = zlib_inflate_bounded(&pack[payload..body_end], length)?;
+            if inflated.len() != length {
+                return Err(GitError::internal("Pack object length mismatch"));
             }
-            let Ok((_inflated, consumed)) = zlib_inflate_with_consumed(&pack[cursor..]) else {
-                break;
-            };
-            let entry_end = cursor + consumed;
-            let entry_crc = crc32(&pack[entry_start..entry_end]);
-            entry_offsets.push(entry_start);
-            entry_crcs.insert(entry_start, entry_crc);
-            cursor = entry_end;
+            cursor = payload + consumed;
+            offsets.push(start);
+            crcs.insert(start, crc32(&pack[start..cursor]));
         }
-
-        let mut p = Self {
+        if cursor != body_end {
+            return Err(GitError::internal(
+                "Pack object count or trailing data mismatch",
+            ));
+        }
+        let mut index = Self {
             hashes: Vec::new(),
             crcs: BTreeMap::new(),
             offsets: BTreeMap::new(),
-            packfile_sha,
+            packfile_sha: to_hex(&pack[body_end..]),
             pack: Some(pack.to_vec()),
             offset_cache: Default::default(),
         };
-
-        // Pass 1 & 2 (handles forward or backward ref-deltas in thin packs)
-        let mut unresolved = entry_offsets;
-        for _pass in 0..3 {
+        let mut unresolved = offsets;
+        let mut total_bytes = 0usize;
+        for _ in 0..=MAX_DELTA_DEPTH {
             if unresolved.is_empty() {
                 break;
             }
-            let mut next_unresolved = Vec::new();
+            let before = unresolved.len();
+            let mut next = Vec::new();
             for offset in unresolved {
-                match p.read_slice(offset, external_ref_delta) {
-                    Ok(unwrapped) => {
-                        let wrapped = GitObject::wrap(&unwrapped.object_type, &unwrapped.object);
-                        let oid = shasum(&wrapped);
-                        if !p.offsets.contains_key(&oid) {
-                            p.hashes.push(oid.clone());
-                            p.offsets.insert(oid.clone(), offset);
-                            if let Some(&c) = entry_crcs.get(&offset) {
-                                p.crcs.insert(oid, c);
-                            }
+                match index.read_slice(offset, external_ref_delta) {
+                    Ok(object) => {
+                        total_bytes = total_bytes.saturating_add(object.object.len());
+                        if total_bytes > MAX_PACK_BYTES {
+                            return Err(GitError::internal("Decoded pack exceeds byte limit"));
+                        }
+                        let oid = shasum(&GitObject::wrap(&object.object_type, &object.object));
+                        if !index.offsets.contains_key(&oid) {
+                            index.hashes.push(oid.clone());
+                            index.offsets.insert(oid.clone(), offset);
+                            index.crcs.insert(oid, crcs[&offset]);
                         }
                     }
-                    Err(_) => {
-                        next_unresolved.push(offset);
-                    }
+                    Err(_) => next.push(offset),
                 }
             }
-            unresolved = next_unresolved;
+            unresolved = next;
+            if unresolved.len() == before {
+                break;
+            }
         }
-
-        p.hashes.sort();
-        Ok(p)
+        if !unresolved.is_empty() {
+            return Err(GitError::internal(
+                "Pack contains invalid objects, unresolved bases, or excessive delta depth",
+            ));
+        }
+        index.hashes.sort();
+        Ok(index)
     }
 
     pub fn load(&mut self, pack: Vec<u8>) {
@@ -258,97 +252,139 @@ impl GitPackIndex {
     where
         F: Fn(&str) -> Result<UnwrappedObject, GitError>,
     {
-        if let Some(cached) = self.offset_cache.read().unwrap().get(&start) {
+        self.read_slice_inner(start, external_ref_delta, 0)
+    }
+
+    fn read_slice_inner<F>(
+        &self,
+        start: usize,
+        external_ref_delta: Option<&F>,
+        depth: usize,
+    ) -> Result<UnwrappedObject, GitError>
+    where
+        F: Fn(&str) -> Result<UnwrappedObject, GitError>,
+    {
+        if depth > MAX_DELTA_DEPTH {
+            return Err(GitError::internal("Excessive pack delta depth"));
+        }
+        if let Some(cached) = self.offset_cache.read().unwrap().objects.get(&start) {
             return Ok(cached.clone());
         }
-        let pack = self.pack.as_ref().ok_or_else(|| {
-            GitError::internal(
-                "Could not read packfile data. The packfile may be missing, corrupted, or too large to read into memory.",
-            )
-        })?;
-        if start >= pack.len() {
-            return Err(GitError::internal("Pack offset out of bounds"));
-        }
-        let mut pos = start;
-        let b0 = pack[pos];
-        pos += 1;
-        let btype = (b0 >> 4) & 0x07;
-        let mut length = (b0 & 0x0f) as usize;
-        let mut shift = 4usize;
-        let mut b = b0;
-        while (b & 0x80) != 0 {
-            b = pack[pos];
-            pos += 1;
-            length |= ((b & 0x7f) as usize) << shift;
-            shift += 7;
-        }
-
-        enum EntryKind {
-            Direct(&'static str),
-            OfsDelta(usize),
-            RefDelta(String),
-        }
-
-        let kind = match btype {
-            1 => EntryKind::Direct("commit"),
-            2 => EntryKind::Direct("tree"),
-            3 => EntryKind::Direct("blob"),
-            4 => EntryKind::Direct("tag"),
-            6 => {
-                let mut ob = pack[pos];
-                pos += 1;
-                let mut neg_offset = (ob & 0x7f) as usize;
-                while (ob & 0x80) != 0 {
-                    ob = pack[pos];
-                    pos += 1;
-                    neg_offset = ((neg_offset + 1) << 7) | ((ob & 0x7f) as usize);
+        let pack = self
+            .pack
+            .as_ref()
+            .ok_or_else(|| GitError::internal("Pack data is not loaded"))?;
+        let body = pack
+            .get(..pack.len().saturating_sub(20))
+            .ok_or_else(|| GitError::internal("Truncated pack"))?;
+        let (kind, length, pos) = entry_header(body, start)?;
+        // Resolve the base before inflating this delta, bounding live recursion memory.
+        let (object_type, base) = match kind {
+            EntryKind::Direct(kind) => (kind.to_string(), None),
+            EntryKind::OfsDelta(offset) => {
+                let base = self.read_slice_inner(offset, external_ref_delta, depth + 1)?;
+                (base.object_type, Some(base.object))
+            }
+            EntryKind::RefDelta(oid) => {
+                let base = if let Some(offset) = self.offsets.get(&oid) {
+                    self.read_slice_inner(*offset, external_ref_delta, depth + 1)?
+                } else if let Some(external) = external_ref_delta {
+                    external(&oid)?
+                } else {
+                    return Err(GitError::internal("Missing delta base"));
+                };
+                if base.object.len() > MAX_OBJECT_BYTES
+                    || shasum(&GitObject::wrap(&base.object_type, &base.object)) != oid
+                {
+                    return Err(GitError::internal("Invalid external delta base"));
                 }
-                EntryKind::OfsDelta(start - neg_offset)
-            }
-            7 => {
-                let base_oid = to_hex(&pack[pos..pos + 20]);
-                pos += 20;
-                EntryKind::RefDelta(base_oid)
-            }
-            _ => {
-                return Err(GitError::internal(&format!(
-                    "Unrecognized pack object type: {btype}"
-                )))
+                (base.object_type, Some(base.object))
             }
         };
-
-        let (inflated, _) = zlib_inflate_with_consumed(&pack[pos..])?;
+        let (inflated, _) = zlib_inflate_bounded(&body[pos..], length)?;
         if inflated.len() != length {
-            return Err(GitError::internal(&format!(
-                "Packfile told us object would have length {length} but it had length {}",
-                inflated.len()
-            )));
+            return Err(GitError::internal("Pack object length mismatch"));
         }
-
-        let result = match kind {
-            EntryKind::Direct(t) => UnwrappedObject {
-                object_type: t.to_string(),
-                object: inflated,
-            },
-            EntryKind::OfsDelta(base_offset) => {
-                let base = self.read_slice(base_offset, external_ref_delta)?;
-                let target = apply_delta(&inflated, &base.object)?;
-                UnwrappedObject {
-                    object_type: base.object_type,
-                    object: target,
-                }
-            }
-            EntryKind::RefDelta(base_oid) => {
-                let base = self.read_with_external(&base_oid, external_ref_delta)?;
-                let target = apply_delta(&inflated, &base.object)?;
-                UnwrappedObject {
-                    object_type: base.object_type,
-                    object: target,
-                }
-            }
+        let object = if let Some(base) = base {
+            apply_delta(&inflated, &base)?
+        } else {
+            inflated
         };
-
-        self.offset_cache.write().unwrap().insert(start, result.clone());
+        let result = UnwrappedObject {
+            object_type,
+            object,
+        };
+        let mut cache = self.offset_cache.write().unwrap();
+        if !cache.objects.contains_key(&start) {
+            if result.object.len() > MAX_OBJECT_BYTES.saturating_sub(cache.bytes) {
+                cache.objects.clear();
+                cache.bytes = 0;
+            }
+            cache.bytes += result.object.len();
+            cache.objects.insert(start, result.clone());
+        }
         Ok(result)
     }
+}
+
+enum EntryKind {
+    Direct(&'static str),
+    OfsDelta(usize),
+    RefDelta(String),
+}
+
+fn entry_header(body: &[u8], start: usize) -> Result<(EntryKind, usize, usize), GitError> {
+    let invalid = || GitError::internal("Invalid pack object header");
+    if start < 12 {
+        return Err(invalid());
+    }
+    let mut pos = start;
+    let mut byte = *body.get(pos).ok_or_else(invalid)?;
+    pos += 1;
+    let kind = (byte >> 4) & 7;
+    let mut length = (byte & 15) as usize;
+    let mut shift = 4;
+    while byte & 128 != 0 {
+        byte = *body.get(pos).ok_or_else(invalid)?;
+        pos += 1;
+        if shift >= usize::BITS as usize || (byte & 127) as usize > usize::MAX >> shift {
+            return Err(invalid());
+        }
+        length |= ((byte & 127) as usize) << shift;
+        shift += 7;
+    }
+    if length > MAX_OBJECT_BYTES {
+        return Err(GitError::internal("Pack object exceeds byte limit"));
+    }
+    let kind = match kind {
+        1 => EntryKind::Direct("commit"),
+        2 => EntryKind::Direct("tree"),
+        3 => EntryKind::Direct("blob"),
+        4 => EntryKind::Direct("tag"),
+        6 => {
+            let mut byte = *body.get(pos).ok_or_else(invalid)?;
+            pos += 1;
+            let mut distance = (byte & 127) as usize;
+            while byte & 128 != 0 {
+                byte = *body.get(pos).ok_or_else(invalid)?;
+                pos += 1;
+                distance = distance
+                    .checked_add(1)
+                    .and_then(|n| n.checked_mul(128))
+                    .and_then(|n| n.checked_add((byte & 127) as usize))
+                    .ok_or_else(invalid)?;
+            }
+            if distance == 0 || distance > start - 12 {
+                return Err(invalid());
+            }
+            EntryKind::OfsDelta(start - distance)
+        }
+        7 => {
+            let oid = body.get(pos..pos + 20).ok_or_else(invalid)?;
+            pos += 20;
+            EntryKind::RefDelta(to_hex(oid))
+        }
+        _ => return Err(invalid()),
+    };
+    Ok((kind, length, pos))
 }

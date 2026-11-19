@@ -11,28 +11,23 @@ pub fn apply_delta(delta: &[u8], source: &[u8]) -> Result<Vec<u8>, GitError> {
     }
     let target_size = read_varint_le(delta, &mut pos)?;
 
-    let first_op = read_op(delta, &mut pos, source)?;
-    if first_op.len() == target_size && pos == delta.len() {
-        return Ok(first_op.to_vec());
+    if target_size > 64 * 1024 * 1024 {
+        return Err(GitError::internal("Delta result exceeds object byte limit"));
     }
-
-    let mut chunks: Vec<&[u8]> = vec![first_op];
-    let mut tell = first_op.len();
+    let mut out = Vec::with_capacity(target_size);
     while pos < delta.len() {
         let op = read_op(delta, &mut pos, source)?;
-        chunks.push(op);
-        tell += op.len();
+        if op.len() > target_size.saturating_sub(out.len()) {
+            return Err(GitError::internal(
+                "Delta exceeds its declared target length",
+            ));
+        }
+        out.extend_from_slice(op);
     }
-
-    if target_size != tell {
-        return Err(GitError::internal(&format!(
-            "applyDelta expected target buffer to be {target_size} bytes but the resulting buffer was {tell} bytes"
-        )));
-    }
-
-    let mut out = Vec::with_capacity(tell);
-    for chunk in chunks {
-        out.extend_from_slice(chunk);
+    if out.len() != target_size {
+        return Err(GitError::internal(
+            "Delta does not match its declared target length",
+        ));
     }
     Ok(out)
 }
@@ -46,6 +41,9 @@ fn read_varint_le(data: &[u8], pos: &mut usize) -> Result<usize, GitError> {
         }
         let byte = data[*pos];
         *pos += 1;
+        if shift >= usize::BITS as usize || (byte & 0x7f) as usize > usize::MAX >> shift {
+            return Err(GitError::internal("Delta varint overflow"));
+        }
         result |= ((byte & 0x7f) as usize) << shift;
         if (byte & 0x80) == 0 {
             break;
@@ -66,7 +64,9 @@ fn read_compact_le(
     for _ in 0..size {
         if (flags & 1) != 0 {
             if *pos >= data.len() {
-                return Err(GitError::internal("Unexpected EOF reading delta compact integer"));
+                return Err(GitError::internal(
+                    "Unexpected EOF reading delta compact integer",
+                ));
             }
             result |= (data[*pos] as usize) << shift;
             *pos += 1;
@@ -77,11 +77,7 @@ fn read_compact_le(
     Ok(result)
 }
 
-fn read_op<'a>(
-    data: &'a [u8],
-    pos: &mut usize,
-    source: &'a [u8],
-) -> Result<&'a [u8], GitError> {
+fn read_op<'a>(data: &'a [u8], pos: &mut usize, source: &'a [u8]) -> Result<&'a [u8], GitError> {
     if *pos >= data.len() {
         return Err(GitError::internal("Unexpected EOF reading delta op"));
     }

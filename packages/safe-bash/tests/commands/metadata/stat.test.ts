@@ -112,17 +112,17 @@ test("stat preserves escape bytes, digit limits and literal fallback", async () 
   const cases: [string, number[]][] = [
     [String.raw`\a\b\e\f\n\r\t\v\\`, [7, 8, 27, 12, 10, 13, 9, 11, 92]],
     ["\\", [92]],
-    [String.raw`\q\c\8\9\X41`, [...Buffer.from(String.raw`\q\c\8\9\X41`)]],
-    [String.raw`\x`, [92, 120]],
-    [String.raw`\xG`, [92, 120, 71]],
+    [String.raw`\q\c\8\9\X41`, [...Buffer.from("qc89X41")]],
+    [String.raw`\x`, [120]],
+    [String.raw`\xG`, [120, 71]],
     [String.raw`\x0\x7\xF\xf`, [0, 7, 15, 15]],
     [String.raw`\x00\x7f\x80\xFF`, [0, 127, 128, 255]],
     [String.raw`\x123\x1G`, [18, 51, 1, 71]],
     [String.raw`\0\7\07\77`, [0, 7, 7, 63]],
     [String.raw`\000\377\400\777`, [0, 255, 0, 255]],
     [String.raw`\1234\08\778`, [83, 52, 0, 56, 63, 56]],
-    [String.raw`\%s:%%:\x25n:\045s`, [...Buffer.from("\\4:%:%n:%s")]],
-    [String.raw`\😀\n`, [...Buffer.from("\\😀\n")]],
+    [String.raw`\%s:%%:\x25n:\045s`, [...Buffer.from("%s:%:%n:%s")]],
+    [String.raw`\😀\n`, [...Buffer.from("😀\n")]],
   ];
   for (const [format, expected] of cases) {
     const result = await runMetadata("stat", ["--printf", format, "file"], fs);
@@ -131,7 +131,10 @@ test("stat preserves escape bytes, digit limits and literal fallback", async () 
     const literal = await runMetadata("stat", ["-c", format.replaceAll("%", "%%"), "file"], fs);
     assert.equal(literal.stdout, `${format}\n`, format);
   }
-  assert.equal((await runMetadata("stat", ["--printf", "\\%", "file"], fs)).exitCode, 1);
+  const escapedPercent = await runMetadata("stat", ["--printf", "\\%", "file"], fs);
+  assert.equal(escapedPercent.exitCode, 0);
+  assert.equal(escapedPercent.stdout, "%");
+  assert.equal(escapedPercent.stderr, "stat: warning: unrecognized escape '\\%'\n");
 });
 
 test("stat scans repeated escapes without slicing format suffixes", async context => {
@@ -147,7 +150,8 @@ test("stat scans repeated escapes without slicing format suffixes", async contex
   try {
     const result = await runMetadata("stat", ["--printf", format, "file"], fs);
     assert.equal(result.exitCode, 0, result.stderr);
-    assert.deepEqual(result.stdoutBytes, Buffer.concat(Array.from({ length: repetitions }, () => Buffer.from([10, 65, 255, 92, 113, 37]))));
+    assert.deepEqual(result.stdoutBytes, Buffer.concat(Array.from({ length: repetitions }, () => Buffer.from([10, 65, 255, 113, 37]))));
+    assert.equal(result.stderr, "stat: warning: unrecognized escape '\\q'\n".repeat(repetitions));
     assert.equal(suffixSlices, 0);
   } finally {
     slice.mock.restore();

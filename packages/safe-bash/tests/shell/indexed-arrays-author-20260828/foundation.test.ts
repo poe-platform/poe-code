@@ -404,7 +404,8 @@ test("foundation: scalar function argv retains exact public field byte and comma
 for (const [source, maxExpansionBytes, maxExpansionFields] of [
   ["seed=; V=x true", 4, 1],
   ["seed=; f() { local x=; }; f", 5, 2],
-  ["seed=; bash -c true", 4, 3],
+  // The child retains BASH_ARGV0="bash" as eight UTF-16 bytes.
+  ["seed=; bash -c true", 8, 3],
   ["seed=; call", 4, 1],
 ] as const) test(`foundation: automatic status leaves scalar scope budgets lazy: ${source}`, async () => {
   const instance = shell();
@@ -413,6 +414,15 @@ for (const [source, maxExpansionBytes, maxExpansionFields] of [
     const result = await instance.exec(source, { limits: { maxExpansionBytes, maxExpansionFields } });
     assert.equal(result.exitCode, 0, result.stderr);
     assert.equal(result.stderr, "");
+  } finally { await instance.dispose(); }
+});
+
+test("foundation: child BASH_ARGV0 retains its exact scalar byte budget", async () => {
+  const instance = shell();
+  try {
+    await assert.rejects(instance.exec("seed=; bash -c true", {
+      limits: { maxExpansionBytes: 7, maxExpansionFields: 3 },
+    }), error => error instanceof ShellLimitError && error.limit === "maxExpansionBytes");
   } finally { await instance.dispose(); }
 });
 

@@ -61,7 +61,7 @@ test("Bug #4: Bash parenthesized subshells reset loop control while command subs
   `);
   assert.equal(res.exitCode, 0);
   assert.equal(res.stdout, "child\niter:1:0\nchild\niter:2:0\nchild\niter:3:0\n");
-  assert.equal(res.stderr, "break: only meaningful in a loop\n".repeat(3));
+  assert.equal(res.stderr, "shell: line 3: break: only meaningful in a `for', `while', or `until' loop\n".repeat(3));
 });
 
 for (const command of ["break", "continue"]) {
@@ -70,7 +70,7 @@ for (const command of ["break", "continue"]) {
     const res = await shell.exec(`for i in 1 2; do (${command}; echo child:$?); echo item:$i; done; echo end`);
     assert.equal(res.exitCode, 0);
     assert.equal(res.stdout, "child:0\nitem:1\nchild:0\nitem:2\nend\n");
-    assert.equal(res.stderr, `${command}: only meaningful in a loop\n`.repeat(2));
+    assert.equal(res.stderr, `shell: line 1: ${command}: only meaningful in a \`for', \`while', or \`until' loop\n`.repeat(2));
   });
 
   test(`${command} in a command substitution still exits only the substitution`, async () => {
@@ -86,7 +86,7 @@ for (const command of ["break", "continue"]) {
     const res = await shell.exec(`for i in 1 2; do ((${command}; echo nested); r=$(${command}; echo captured); echo child:$r); echo item:$i; done; echo end`);
     assert.equal(res.exitCode, 0);
     assert.equal(res.stdout, "nested\nchild:captured\nitem:1\nnested\nchild:captured\nitem:2\nend\n");
-    assert.equal(res.stderr, `${command}: only meaningful in a loop\n`.repeat(4));
+    assert.equal(res.stderr, `shell: line 1: ${command}: only meaningful in a \`for', \`while', or \`until' loop\n`.repeat(4));
   });
 
   test(`${command} still controls a loop created inside a parenthesized subshell`, async () => {

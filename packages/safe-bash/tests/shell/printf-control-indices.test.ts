@@ -28,8 +28,21 @@ for (const name of ["IFS", "OPTIND"]) {
   }
 }
 
+// Native Bash 5.2.37 splits this input nondeterministically after replacing
+// IFS[0], in both C and C.UTF-8. Keep the deterministic shell contract separate
+// from the live oracle: indexed control writes do not refresh the scalar control.
+test("indexed IFS writes retain the previous splitting value", async () => {
+  const { shell, commands } = setup({ env: { LC_ALL: "C.UTF-8" } });
+  for (const command of basicCommands()) commands.register(command);
+  try {
+    const result = await shell.exec('IFS=" "; a=OLD; line="one:two"; printf -v IFS[0] %s :; rc=$?; set -- $line; echo "$rc|$#|$1|$2|$IFS"');
+    assert.equal(result.exitCode, 0);
+    assert.equal(result.stderr, "");
+    assert.deepEqual(result.stdoutBytes, new TextEncoder().encode("0|1|one:two||:\n"));
+  } finally { await shell.dispose(); }
+});
+
 for (const [script, stdout] of [
-  ['IFS=" "; a=OLD; line="one:two"; printf -v IFS[0] %s :; rc=$?; set -- $line; echo "$rc|$#|$1|$2|$IFS"', "0|1|one:two||:\n"],
   ['set -- -a -b; OPTIND=1; printf -v OPTIND[0] %s 2; rc=$?; getopts ab k; echo "$rc:$k:$OPTIND"', "0:a:2\n"],
   ['IFS=" "; a=OLD; line="one:two"; printf -v IFS %s :; rc=$?; set -- $line; echo "$rc|$#|$1|$2|$IFS"', "0|2|one|two|:\n"],
   ['set -- -a -b; OPTIND=1; printf -v OPTIND %s 2; rc=$?; getopts ab k; echo "$rc:$k:$OPTIND"', "0:b:3\n"],

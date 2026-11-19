@@ -89,7 +89,7 @@ function setup(context: TestContext, options: {
 }
 
 const foreground = [
-  { name: "subshell", source: "(:)", point: "child-job-install", children: 1, emptyCopies: 0 },
+  { name: "subshell", source: "(:)", point: "child-job-install", children: 1, emptyCopies: 1 },
   { name: "aggregate pipeline", source: ": | :", point: "child-job-install", children: 2, emptyCopies: 2 },
   { name: "dollar-parenthesis", source: "value=$(:)", point: "source-input-read", children: 1, emptyCopies: 1 },
 ] as const;
@@ -162,7 +162,7 @@ for (const withPositionals of [false, true]) test(`the four forms need neither a
     assert.deepEqual(result, baseline);
     assert.equal(observed.forks, scenario.children);
     assert.equal(observed.childRuns, scenario.children);
-    // Empty subshell snapshots need no value stores; retained positionals do.
+    // Child snapshots retain scalar state; positionals need an additional store.
     assert.equal(observed.copies.length, withPositionals ? 2 * scenario.children : scenario.emptyCopies);
     assert.ok(observed.copies.every(copy => observed.closed.has(copy)));
     assert.deepEqual(observed.callbacks, []);

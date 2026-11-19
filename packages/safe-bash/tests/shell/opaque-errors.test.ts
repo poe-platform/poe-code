@@ -216,7 +216,7 @@ for (const [source, exitCode, diagnostic] of [
   ["find / -delete -prune", 1, "find: -delete implies -depth; -prune is ineffective unless -depth is explicitly supplied\n"],
   ["printf '?' | base64 -d", 1, "base64: invalid input\n"],
   ["printf 'x' | xxd -r", 1, "xxd: invalid input: expected hexadecimal address and colon\n"],
-  ["printf 'x' | gunzip", 1, "gunzip: unexpected end of file\n"],
+  ["printf 'x' | gunzip", 1, "gunzip: stdin: unexpected end of file\n"],
 ] as const) {
   test(`CONTROL existing user diagnostic ${source}`, async context => {
     const { shell } = fixture(context);
@@ -348,7 +348,7 @@ test("HOST compression cleanup diagnostic retains both original aggregate causes
   const result = await shell.exec("gzip /input");
   assert.equal(result.exitCode, 1);
   assert.equal(result.stdout, "");
-  assert.equal(result.stderr, "gzip: compression failed and staging cleanup failed; input retained\n");
+  assert.equal(result.stderr, "gzip: /input: compression failed and staging cleanup failed; input retained\n");
   assert.equal(seen.length, 1);
   assert.ok(seen[0] instanceof AggregateError);
   assert.equal(seen[0].message, "compression failed and staging cleanup failed; input retained");

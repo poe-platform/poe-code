@@ -62,8 +62,8 @@ test("foundation: supported lazy bare operators preserve scalar behavior", { tim
   }
 });
 
-test("foundation: exact thirteen controls refuse conversion before RHS effects", { timeout: 5000 }, async () => {
-  const names = ["PATH", "PWD", "OLDPWD", "HOME", "CDPATH", "IFS", "OPTIND", "OPTERR", "OPTARG", "REPLY", "LANG", "LC_ALL", "LC_CTYPE"];
+test("foundation: exact sixteen controls refuse conversion before RHS effects", { timeout: 5000 }, async () => {
+  const names = ["PATH", "PWD", "OLDPWD", "HOME", "CDPATH", "IFS", "OPTIND", "OPTERR", "REPLY", "LANG", "LC_ALL", "LC_CTYPE", "RANDOM", "SECONDS", "LINENO", "BASH_ARGV0"];
   const instance = shell();
   try {
     for (const name of names) {
@@ -75,6 +75,10 @@ test("foundation: exact thirteen controls refuse conversion before RHS effects",
   } finally { await instance.dispose(); }
   // Native Bash keeps the current working directory as DIRSTACK's first entry.
   await output('DIRSTACK=(ordinary); printf "%s" "$DIRSTACK"', "/");
+});
+
+test("foundation: OPTARG supports array conversion and evaluates its RHS", async () => {
+  await output('OPTARG=(${side:=value}); printf "%s/%s/%s" "$?" "${side-unset}" "${OPTARG[0]}"', "0/value/value");
 });
 
 test("foundation: read, getopts and for update indexed zero only", { timeout: 5000 }, async () => {

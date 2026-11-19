@@ -115,7 +115,7 @@ for (const option of ["-u", "--update"]) {
       const skipped = targetTime !== undefined && targetTime >= 2000;
       assert.equal(result.exitCode, 0, result.stderr);
       assert.equal(result.stderr, "");
-      assert.equal(result.stdout, skipped ? "" : "renamed 'input' -> 'output'\n");
+      assert.equal(result.stdout, skipped ? "" : `renamed 'input' -> 'output'${targetTime === 1000 ? " (backup: 'output~')" : ""}\n`);
       assert.equal(Buffer.from(await fs.readFile("/work/output")).toString(), skipped ? "old" : "new");
       if (skipped) assert.equal(Buffer.from(await fs.readFile("/work/input")).toString(), "new");
       else await assert.rejects(fs.lstat("/work/input"), { code: "ENOENT" });

@@ -115,7 +115,7 @@ for (const input of ["a b ", "a ", "a b b a "]) {
       release();
       const result = await execution;
       assert.deepEqual({ status: result.exitCode, stdout: result.stdout, stderr: result.stderr }, {
-        status: 1, stdout: "", stderr: "tsort: -: Input/output error\n",
+        status: 1, stdout: "", stderr: "tsort: -: read error: Input/output error\n",
       });
       assert.deepEqual({ pulls, returns }, { pulls: 2, returns: 1 });
     } finally { release(); await execution.catch(() => {}); await shell.dispose(); }

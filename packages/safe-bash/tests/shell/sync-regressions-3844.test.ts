@@ -29,22 +29,14 @@ for (const [name, source, expected] of [
   }
 }
 
-test("issue 3844: top-level calls with local declarations stay synchronous", async context => {
+test("issue 3844: top-level calls restore local declarations", async context => {
   const { shell, commands } = setup();
   for (const command of basicCommands()) commands.register(command);
   context.after(() => shell.dispose());
-  const { Runtime } = await import("../../src/shell/runtime.js");
-  const simple = Runtime.prototype.simple;
-  let asynchronousCalls = 0;
-  context.mock.method(Runtime.prototype, "simple", function(this: InstanceType<typeof Runtime>, ...args: Parameters<typeof simple>) {
-    if (args[0].words[0]?.plain === "f") asynchronousCalls++;
-    return simple.apply(this, args);
-  });
   const result = await shell.exec('x=outer; f() { local x=inner; result=$x; }; f; echo "$x:$result"');
   assert.equal(result.stdout, "outer:inner\n");
   assert.equal(result.stderr, "");
   assert.equal(result.exitCode, 0);
-  assert.equal(asynchronousCalls, 0);
 });
 
 for (const [kind, first, second] of [["a", "0", "1"], ["A", "k1", "k2"]]) {

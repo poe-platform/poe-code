@@ -5686,7 +5686,7 @@ function parsePosterizeLevels(value: string): number {
     return levels;
 }
 
-function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "region" | "alphaBlend">, levelsRaw: number, dither: MagickState["dither"], diffusionAmount: number, channels: MagickState["channels"], signal?: AbortSignal, reducePalette = true, depthDither = false, colormap?: number[][]): Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined> {
+function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlpha" | "space" | "region" | "alphaBlend">, operation: "depth" | "posterize", levelsRaw: number, dither: MagickState["dither"], diffusionAmount: number, channels: MagickState["channels"], signal?: AbortSignal, reducePalette = true, depthDither = false, colormap?: number[][]): Generator<ConvolveRequest | undefined, void | number[], Uint8Array | undefined> {
     let cooperativeWork = 0;
     const levels = Math.max(2, Math.trunc(levelsRaw));
     const step = 255 / (levels - 1);
@@ -5700,8 +5700,9 @@ function* posterizePixelSteps(img: Pick<RgbaImage, "width" | "height" | "hasAlph
         const quantize = (sample: number, channel: number, position: number): number => {
             if (position % (img.width * 4) < 4) distortion[channel] = 0;
             const value = sample + (depthDither ? distortion[channel]! : 0);
-            // HDRI working samples stay unbounded until colorspace conversion.
-            const output = Math.round(value * (levels - 1)) / (levels - 1);
+            const rounded = Math.round(value * (levels - 1)) / (levels - 1);
+            // Depth reduction clamps to the quantum range; posterize retains HDRI samples.
+            const output = operation === "depth" ? Math.max(0, Math.min(1, rounded)) : rounded;
             // Native depth reduction scans left to right and resets each row.
             distortion[channel] = (value - output) * 7 / 16;
             return output;
@@ -11210,7 +11211,7 @@ function parseMagickPixelOperation(tokens: readonly string[], settings: MagickSt
             // Posterize replaces the colormap, including unused input PNG entries.
             const colormap: number[][] = [];
             const { pngPalette: ignoredPalette, pngIndices: ignoredIndices, indexedColors: ignoredIndexedColors, indexedColorSamples: ignoredSamples, ...unindexed } = image;
-            let output = yield* applyMagickRasterSteps({ ...unindexed, isPalette: true }, posterizePixelSteps(image, levels, state.dither, state.diffusionAmount ?? 1, channels, signal, !working, false, colormap), signal);
+            let output = yield* applyMagickRasterSteps({ ...unindexed, isPalette: true }, posterizePixelSteps(image, "posterize", levels, state.dither, state.diffusionAmount ?? 1, channels, signal, !working, false, colormap), signal);
             if (colormap.length) output = { ...output, indexedColorSamples: colormap, indexedColors: colormap.map(color => Math.round(color[3]!) * 16777216 + Math.round(color[0]!) * 65536 + Math.round(color[1]!) * 256 + Math.round(color[2]!)) };
             if (state.dither && levels >= 2 && Math.trunc(levels) <= 16 && image.writeMask) {
                 // Native clips both the dither write and the subsequent palette sync.
@@ -14831,7 +14832,7 @@ function* evaluatePipelineTokensSteps(tokens: readonly string[], files: Map<stri
             if (t === "-depth" || t === "+depth") {
                 const depth = state.inputDepth ?? 16, channels = state.channelExplicit ? state.channels : { r: true, g: true, b: true, a: true, k: true };
                 stack = yield* mapMagickImagesSteps(stack, function* (image) {
-                    if (depth < 16) image = yield* applyMagickRasterSteps(image, posterizePixelSteps(image, 2 ** depth, false, 1, channels, signal, false, state.dither === "floydsteinberg"), signal);
+                    if (depth < 16) image = yield* applyMagickRasterSteps(image, posterizePixelSteps(image, "depth", 2 ** depth, false, 1, channels, signal, false, state.dither === "floydsteinberg"), signal);
                     return { ...image, bitsPerSample: depth };
                 });
             }
@@ -18580,7 +18581,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 const depthDither = state.dither === "floydsteinberg";
                 steps.push(async (image, backend) => {
                     if (!image) return;
-                    if (depth < 16) image = await transformStoredMagickRaster(image, backend, posterizePixelSteps(image, 2 ** depth, false, 1, channels, signal, false, depthDither), signal);
+                    if (depth < 16) image = await transformStoredMagickRaster(image, backend, posterizePixelSteps(image, "depth", 2 ** depth, false, 1, channels, signal, false, depthDither), signal);
                     return { ...image, bitsPerSample: depth };
                 });
             }
@@ -18822,7 +18823,7 @@ async function tryConvertFilesResult(argv: readonly string[], input: ConvertFile
                 // Posterize replaces the colormap, including unused input PNG entries.
                 const colormap: number[][] = [];
                 const { pngPalette: ignoredPalette, storedPngIndices: ignoredIndices, indexedColors: ignoredIndexedColors, indexedColorSamples: ignoredSamples, ...unindexed } = image;
-                let output = await transformStoredMagickRaster({ ...unindexed, isPalette: true }, backend, posterizePixelSteps(image, expandedLevels, dither, diffusionAmount, channels, signal, !working, false, colormap), signal);
+                let output = await transformStoredMagickRaster({ ...unindexed, isPalette: true }, backend, posterizePixelSteps(image, "posterize", expandedLevels, dither, diffusionAmount, channels, signal, !working, false, colormap), signal);
                 if (colormap.length) output = { ...output, indexedColorSamples: colormap, indexedColors: colormap.map(color => Math.round(color[3]!) * 16777216 + Math.round(color[0]!) * 65536 + Math.round(color[1]!) * 256 + Math.round(color[2]!)) };
                 if (dither && expandedLevels >= 2 && Math.trunc(expandedLevels) <= 16 && image.storedWriteMask) {
                     // Native clips both the dither write and the subsequent palette sync.
@@ -24792,7 +24793,7 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
             const tiles: RgbaImage[] = transform.kind === "crop"
                 ? yield* applyMagickCropToStackSteps(image, transform.geometry, transform.gravity, analysis)
                 : [yield* ("operation" in transform ? transform.operation.apply(image)
-                : transform.kind === "depth" ? applyMagickRasterSteps(image, posterizePixelSteps(image, 2 ** transform.depth, false, 1, transform.channels, signal, false, transform.dither), signal)
+                : transform.kind === "depth" ? applyMagickRasterSteps(image, posterizePixelSteps(image, "depth", 2 ** transform.depth, false, 1, transform.channels, signal, false, transform.dither), signal)
                     : (transform.kind === "resize" || transform.kind === "scale" || transform.kind === "thumbnail") ? applyMagickResizeSteps(image, transform.geometry, transform.kernel, transform.kind === "thumbnail", false, transform.kind === "scale", transform.filter, undefined, false, undefined, transform.channels)
                     : transform.kind === "polaroid" ? applyMagickPolaroidSteps(image, transform.angle, transform.state, files, signal, analysis)
                     : transform.kind === "draw" ? applyMagickDrawingSteps(image, transform.drawing, transform.state, files, undefined, signal)
@@ -25305,7 +25306,7 @@ async function runMontageFiles(argv: readonly string[], input: ConvertFileInput,
                         ? parseMagickWarpOperation(["-rotate", String(transform.angle)], state, 0, analysis)?.plan(tile) : undefined;
                     let transformed: StoredRgbaImage = "operation" in transform
                         ? await transformStoredMagickPixels(tile, backend, transform.operation, signal)
-            : transform.kind === "depth" ? await transformStoredMagickRaster(tile, backend, posterizePixelSteps(tile, 2 ** transform.depth, false, 1, transform.channels, signal, false, transform.dither), signal)
+            : transform.kind === "depth" ? await transformStoredMagickRaster(tile, backend, posterizePixelSteps(tile, "depth", 2 ** transform.depth, false, 1, transform.channels, signal, false, transform.dither), signal)
                         : transform.kind === "polaroid" ? await applyStoredMagickPolaroid(tile, transform.angle, transform.state, backend, signal, analysis)
                         : transform.kind === "draw" ? await applyStoredMagickDrawing(tile, transform.drawing, transform.state, backend, signal)
                         : transform.kind === "colors" ? await quantizeStoredMagickImage(tile, transform.count, transform.state, backend, signal)

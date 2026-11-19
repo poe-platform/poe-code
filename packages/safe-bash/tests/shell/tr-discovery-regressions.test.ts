@@ -27,7 +27,7 @@ for (const [name, setup, body] of [
       const result = await shell.exec(source);
       assert.equal(result.exitCode, 0);
       assert.equal(result.stderr, "");
-      assert.equal(result.stdout, expected?.stdout ?? (name === "Unicode file content" ? "café\ncafé\n" : name === "large file content" ? `${" ".repeat(16999)}x\n`.repeat(2) : name.startsWith("PATH") ? "\n\n" : ""));
+      assert.equal(result.stdout, expected?.stdout ?? (name === "Unicode file content" ? "café\ncafé\n" : name === "large file content" ? `${" ".repeat(16999)}x\n`.repeat(2) : name === "PATH file discovery" ? "/bin/mytool\n/bin/mytool\n" : name === "PATH directory discovery" ? "\n\n" : ""));
       if (name === "bare output redirection") assert.equal((await fs.readFile("/out")).byteLength, 0);
     });
   }

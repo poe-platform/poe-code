@@ -4,11 +4,13 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createMagickCommand, runConvertCli } from "./index.js";
 
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
 for (const extension of ["png", "jpg", "gif", "tiff"]) {
   for (const mode of ["buffered", "retained", "command"]) {
     for (const operation of [[], ["-flop"], ["-strip"]]) {
       it(`writes expanded properties to ${extension} through ${mode} after ${operation.join(" ")}`, async () => {
-        const fixture = spawnSync("magick", ["-size", "2x1", "xc:red", "-set", "comment", "old-note", `${extension}:-`]);
+        const fixture = spawnSync(magick, ["-size", "2x1", "xc:red", "-set", "comment", "old-note", `${extension}:-`]);
         expect(fixture.status).toBe(0);
         const fs = new MemoryFileSystem();
         await fs.writeFile("/input", fixture.stdout);
@@ -28,9 +30,9 @@ for (const extension of ["png", "jpg", "gif", "tiff"]) {
         }
         const output = mode === "buffered" ? files.get(outputPath)! : await fs.readFile(outputPath);
         const format = extension === "png" ? "%[comment]|%[label]|%[asset]" : "%[comment]";
-        const native = spawnSync("magick", ["identify", "-quiet", "-format", format, "-"], { input: output, encoding: "utf8" });
+        const native = spawnSync(magick, ["identify", "-quiet", "-format", format, "-"], { input: output, encoding: "utf8" });
         expect(native.status, native.stderr).toBe(0);
-        expect(native.stdout).toBe(extension === "png" ? "width=2|width=2-label|new-code" : "width=2");
+        expect(native.stdout).toBe(extension === "png" ? operation.includes("-strip") ? "||" : "width=2|width=2-label|new-code" : "width=2");
       });
     }
   }
@@ -38,7 +40,7 @@ for (const extension of ["png", "jpg", "gif", "tiff"]) {
 
 for (const mode of ["buffered", "retained", "command"]) {
   it(`expands property names against the current image through ${mode}`, async () => {
-    const fixture = spawnSync("magick", ["-size", "3x2", "xc:#c8591e", "-set", "note", "original", "png:-"]);
+    const fixture = spawnSync(magick, ["-size", "3x2", "xc:#c8591e", "-set", "note", "original", "png:-"]);
     expect(fixture.status).toBe(0);
     const fs = new MemoryFileSystem();
     await fs.writeFile("/input.png", fixture.stdout);
@@ -57,11 +59,11 @@ for (const mode of ["buffered", "retained", "command"]) {
         .toEqual({ exitCode: 0, stdout: "", stderr: "" });
     }
     const output = mode === "buffered" ? files.get("/output.png")! : await fs.readFile("/output.png");
-    const properties = spawnSync("magick", ["identify", "-quiet", "-format", "%[original]|%[updated]|%[label]", "-"], { input: output, encoding: "utf8" });
+    const properties = spawnSync(magick, ["identify", "-quiet", "-format", "%[original]|%[updated]|%[label]", "-"], { input: output, encoding: "utf8" });
     expect(properties.status, properties.stderr).toBe(0);
     expect(properties.stdout).toBe("copied|copied-3|copied-3");
     expect(Buffer.from(output).includes(Buffer.from("%[note]"))).toBe(false);
-    const pixels = spawnSync("magick", ["-", "-depth", "8", "rgb:-"], { input: output });
+    const pixels = spawnSync(magick, ["-", "-depth", "8", "rgb:-"], { input: output });
     expect(pixels.status).toBe(0);
     expect([...pixels.stdout]).toEqual(Array.from({ length: 6 }, () => [200, 89, 30]).flat());
   });

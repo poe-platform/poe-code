@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { before, test } from "node:test";
 import { fileURLToPath } from "node:url";
+import { readFileSync } from "node:fs";
 import path from "node:path";
 import { createContext, runInContext } from "node:vm";
 import { build } from "esbuild";
@@ -11,6 +12,9 @@ let browser: BrowserShell;
 before(async () => {
   const root = fileURLToPath(new URL("../../../../", import.meta.url));
   const { resolveBrowserShellBuild } = await import(new URL("../../../../scripts/bundle-safe-bash.mjs", import.meta.url).href);
+  const { selectConditionalTarget } = await import(new URL("../../../../scripts/package-export-target.mjs", import.meta.url).href);
+  const packageDir = path.join(root, "packages/safe-bash");
+  const { imports } = JSON.parse(readFileSync(path.join(packageDir, "package.json"), "utf8"));
   const filesystem = await build({
     absWorkingDir: root,
     entryPoints: ["packages/safe-fs/src/core.ts"],
@@ -27,7 +31,8 @@ before(async () => {
       setup(builder) {
         builder.onResolve({ filter: /.*/ }, args => {
           if (args.path === "poe-code/safe-fs/core") return { path: args.path, external: true };
-          const filename = path.resolve(args.resolveDir, args.path);
+          const target = selectConditionalTarget(imports[args.path], new Set(["workerd", "worker", "browser", "import", "default"]));
+          const filename = target ? path.resolve(packageDir, target) : path.resolve(args.resolveDir, args.path);
           return emitted.has(filename) ? { path: filename, namespace: "emitted-browser" }
             : { errors: [{ text: `Missing emitted browser module: ${filename}` }] };
         });

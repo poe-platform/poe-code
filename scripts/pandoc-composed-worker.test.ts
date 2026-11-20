@@ -1,3 +1,4 @@
+import { workerdBundle } from "./workerd-bundle.fixture.js";
 import {fileURLToPath} from "node:url";
 import {builtinModules} from "node:module";
 import {build} from "esbuild";
@@ -14,14 +15,13 @@ it.each(["sdk","command"].flatMap(mode=>["none","sink","cancel"].map(fault=>({mo
     export {createCommandArguments} from "safe-bash-contracts/command";
     export {MemoryFileSystem} from "@poe-code/safe-fs/core";
     export {createR2PagedFixture} from "./scripts/pandoc-r2-storage.fixture.mjs";
-  `},bundle:true,platform:"browser",conditions:["workerd"],format:"cjs",write:false,metafile:true,logLevel:"silent",
+  `},bundle:true,platform:"browser",conditions:["workerd"],format: "esm", loader: { ".wasm": "copy" }, outdir: "out/workerd-fixture",write:false,metafile:true,logLevel:"silent",
     plugins:[{name:"reject-node-builtins",setup(builder){builder.onResolve({filter:/.*/},args=>{
       if(builtins.has(args.path)||args.path.startsWith("node:"))return {errors:[{text:"Forbidden Node import: "+args.path}]};
       return undefined;
     });}}]});
   expect(Object.keys(bundle.metafile!.inputs).filter(path=>path.includes("/src/"))).toEqual([]);
-  const runtime=new Miniflare({modules:true,compatibilityDate:"2026-07-01",cf:false,r2Buckets:["PAGES"],script:`
-    const api=(()=>{const module={exports:{}};${bundle.outputFiles[0]!.text};return module.exports;})();
+  const runtime=new Miniflare({compatibilityDate:"2026-07-01",cf:false,r2Buckets:["PAGES"],...workerdBundle(bundle, `
     export default {async fetch(request,env){
       const [mode,fault]=new URL(request.url).pathname.slice(1).split('/'),encoder=new TextEncoder(),decoder=new TextDecoder();
       const namespace=new api.MemoryFileSystem();await namespace.mkdir('/spill');
@@ -89,7 +89,7 @@ it.each(["sdk","command"].flatMap(mode=>["none","sink","cancel"].map(fault=>({mo
       return Response.json({failure,writes,committed,aborted,hostGlobals:[typeof process,typeof require,typeof Buffer],properties,length,largest,peakPending,hasSelectedDocument:['ALPHA','BETA','GAMMA'].filter(word=>output.includes(word)).length===1,hasImage:output.includes('\\\\jpegblip'),reads,opened,closed,largestRead,events,
         remaining:(await env.PAGES.list({limit:1})).objects.length,namespace:await namespace.readdir('/spill')});
     }};
-  `});
+  `) });
   try {
     const response=await runtime.dispatchFetch('https://composed.test/'+mode+'/'+fault);
     expect(response.status,response.status===200?undefined:await response.text()).toBe(200);

@@ -1,3 +1,4 @@
+import { workerdBundle } from "./workerd-bundle.fixture.js";
 import {fileURLToPath} from "node:url";
 import {build} from "esbuild";
 import {Miniflare} from "miniflare";
@@ -36,9 +37,8 @@ it.each(cases)("retains finite $from-to-$to reference budgets through the public
     export {createPandocCommand} from "./packages/safe-bash-command-pandoc/dist/command.js";
     export {MemoryFileSystem} from "./packages/safe-fs/src/core.ts";
     export {createR2PagedFixture} from "./scripts/pandoc-r2-storage.fixture.mjs";
-  `}, bundle: true, platform: "browser", conditions: ["workerd"], format: "cjs", write: false, logLevel: "silent"});
-  const runtime = new Miniflare({modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], script: `
-    const api = (() => {const module = {exports: {}}; ${bundle.outputFiles[0]!.text}; return module.exports;})();
+  `}, bundle: true, platform: "browser", conditions: ["workerd"], format: "esm", loader: { ".wasm": "copy" }, outdir: "out/workerd-fixture", write: false, logLevel: "silent"});
+  const runtime = new Miniflare({compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], ...workerdBundle(bundle, `
     export default {async fetch(request, env) {
       const namespace = new api.MemoryFileSystem(); await namespace.mkdir('/spill');
       await namespace.writeFile('/input.json', new Uint8Array());
@@ -80,7 +80,7 @@ it.each(cases)("retains finite $from-to-$to reference budgets through the public
       const matches = ${rejectedHostUri || fileCredentialsUri || noncharacterHostUri} ? rejected && text === '' : template ? text === 'headerbefore<p>' + value + '</p>\\nafter' : to === 'odt' ? text.startsWith('PK') && text.includes(value) : to === 'rtf' ? text.startsWith('{\\\\rtf1') && text.includes(value) : to === 'latex' ? (from === 'json' || from === 'rtf' ? text === value + '\\n' : text.startsWith('\\\\begin{longtable}') && text.includes(value)) : to === 'gfm' ? (from === 'json' || from === 'rtf' ? text === value + '\\n' : text === '| ' + value + ' |\\n| --- |\\n') : to === 'commonmark' ? text === value + '\\n' : to === 'rst' ? (from === 'json' || from === 'rtf' ? text === value + '\\n' : text.startsWith('.. list-table::') && text.includes(value)) : to === 'html5' ? (from === 'json' || from === 'rtf' ? text === '<p>' + value + '</p>\\n' : text.includes('>' + value + '</th>')) : to === 'plain' ? text === value + '\\n' + (${joined} ? '\\n' + value + '\\n' : '') : from === 'json' || from === 'rtf' ? text === (metadata ? JSON.stringify({...JSON.parse(json), meta: {title: {t: 'MetaString', c: value}}}) : json) + (crlf ? '\\r\\n' : '\\n') : JSON.parse(text).blocks[0].c[3][1][0][1][0][4][0].c[0].c === value;
       return Response.json({matches, nativeHostProbes, largest, closed, events, remaining: (await env.PAGES.list({limit: 1})).objects.length, namespace: await namespace.readdir('/spill')});
     }};
-  `});
+  `) });
   try {
     const response = await runtime.dispatchFetch("https://references.test/");
     expect(response.status, response.status === 200 ? undefined : await response.text()).toBe(200);

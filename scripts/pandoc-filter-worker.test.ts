@@ -1,3 +1,4 @@
+import { workerdBundle } from "./workerd-bundle.fixture.js";
 import {fileURLToPath} from "node:url";
 import {build} from "esbuild";
 import {Miniflare} from "miniflare";
@@ -13,12 +14,11 @@ it.each(["odt", "transformed-odt", "csv-odt", "rtf", "transformed-rtf", "csv-rtf
       export {convertToOutput, createJsonFilterCapability} from "./packages/safe-bash-command-pandoc/dist/index.js";
       export {MemoryFileSystem} from "./packages/safe-fs/src/core.ts";
       export {createR2PagedFixture} from "./scripts/pandoc-r2-storage.fixture.mjs";
-    `}, bundle: true, platform: "browser", conditions: ["workerd"], format: "cjs", write: false, logLevel: "silent",
+    `}, bundle: true, platform: "browser", conditions: ["workerd"], format: "esm", loader: { ".wasm": "copy" }, outdir: "out/workerd-fixture", write: false, logLevel: "silent",
   });
   const runtime = new Miniflare({
-    modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"],
-    script: `
-      const api = (() => {const module = {exports: {}}; ${bundled.outputFiles[0]!.text}; return module.exports;})();
+    compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"],
+    ...workerdBundle(bundled, `
       export default {async fetch(request, env) {
         const mode = new URL(request.url).pathname.slice(1);
         const namespace = new api.MemoryFileSystem();
@@ -56,8 +56,7 @@ it.each(["odt", "transformed-odt", "csv-odt", "rtf", "transformed-rtf", "csv-rtf
         return Response.json({calls, length, largest, hash, closed, aborted, error, events,
           remaining: (await env.PAGES.list({limit: 1})).objects.length, namespace: await namespace.readdir("/spill")});
       }};
-    `,
-  });
+    `) });
   try {
     const table = delimited ? await (await import("../packages/safe-bash-command-pandoc/dist/index.js")).convert([{bytes: new TextEncoder().encode("head\n" + "y".repeat(65536))}], {from: "csv", to: target}, {}) : ["rtf", "odt"].includes(target) ? await (await import("../packages/safe-bash-command-pandoc/dist/index.js")).convert([{bytes: new TextEncoder().encode(JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], "y".repeat(65536)]}, ...(transformed ? [{t: "Para", c: [{t: "Str", c: "tail"}]}] : [])]}))}], {from: "json", to: target}, {}) : undefined;
     const expected = table?.kind === "binary" ? table.bytes : new TextEncoder().encode(table?.kind === "text" ? table.text : target === "commonmark" || target === "gfm" ? "```\n" + "y".repeat(65536) + "\n```" + (transformed ? "\n\ntail\n" : "\n") : target === "latex" ? "\\begin{flushleft}\\ttfamily\n\\mbox{" + "y".repeat(65536) + "}\\\\\n\\end{flushleft}" + (transformed ? "\n\ntail\n" : "\n") : target === "rst" ? "::\n\n   " + "y".repeat(65536) + (transformed ? "\n\ntail\n" : "\n") : target === "html5" ? "<pre><code>" + "y".repeat(65536) + "</code></pre>\n" + (transformed ? "<p>tail</p>\n" : "") : target === "plain" ? "    " + "y".repeat(65536) + (transformed ? "\n\ntail\n" : "\n") : JSON.stringify({"pandoc-api-version": [1,23,1,2], meta: {}, blocks: [{t: "CodeBlock", c: [["",[],[]], "y".repeat(65536)]}, ...(transformed ? [{t: "Para", c: [{t: "Str", c: "tail"}]}] : [])]}) + "\n");

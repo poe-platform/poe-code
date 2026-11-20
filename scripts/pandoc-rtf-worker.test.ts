@@ -1,3 +1,4 @@
+import { workerdBundle } from "./workerd-bundle.fixture.js";
 import {fileURLToPath} from "node:url";
 import {build} from "esbuild";
 import {Miniflare} from "miniflare";
@@ -32,9 +33,8 @@ it.each(["png", "jpeg", "progressive"].flatMap(format => ["filesystem", "resolve
     export {convertToOutput} from "./packages/safe-bash-command-pandoc/dist/index.js";
     export {MemoryFileSystem} from "./packages/safe-fs/src/core.ts";
     export {createR2PagedFixture} from "./scripts/pandoc-r2-storage.fixture.mjs";
-  `}, bundle: true, platform: "browser", conditions: ["workerd"], format: "cjs", write: false, logLevel: "silent"});
-  const runtime = new Miniflare({modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], script: `
-    const api = (() => {const module = {exports: {}}; ${bundled.outputFiles[0]!.text}; return module.exports;})();
+  `}, bundle: true, platform: "browser", conditions: ["workerd"], format: "esm", loader: { ".wasm": "copy" }, outdir: "out/workerd-fixture", write: false, logLevel: "silent"});
+  const runtime = new Miniflare({compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], ...workerdBundle(bundled, `
     export default {async fetch(request, env) {
       const mode = new URL(request.url).pathname.slice(1), namespace = new api.MemoryFileSystem();
       await namespace.mkdir("/spill");
@@ -78,7 +78,7 @@ it.each(["png", "jpeg", "progressive"].flatMap(format => ["filesystem", "resolve
       } catch (caught) {error = {code: caught.code, message: caught.message};}
       return Response.json({length, hash, closed, aborted, returned, pulls, largest, error, events, remaining: (await env.PAGES.list({limit: 1})).objects.length, namespace: await namespace.readdir("/spill")});
     }};
-  `});
+  `) });
   try {
     const {convert} = await import("../packages/safe-bash-command-pandoc/dist/index.js");
     const expected = await convert([{bytes: new TextEncoder().encode(JSON.stringify(input))}], {from: "json", to}, {resources: {async resolve() {return bytes;}}});

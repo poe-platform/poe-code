@@ -10,15 +10,19 @@ import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import type { Document, FilterCapability } from "../packages/safe-bash-command-pandoc/src/types.js";
 import { ExecutionContext } from "../packages/safe-bash-command-pandoc/src/execution.js";
 import * as filesystem from "../packages/safe-fs/src/core.js";
+import { wasmVmFixture } from "./wasm-vm.fixture.js";
 
 let result: BuildResult;
 let script: string;
 let publishedScript: string;
+const wasm = wasmVmFixture();
 beforeAll(async () => {
   const root = fileURLToPath(new URL("../", import.meta.url));
   const options = resolveBrowserShellBuild(root);
   result = await build({
     ...options, entryPoints: undefined, splitting: false, sourcemap: false,
+    external: options.external.filter((name: string) => name !== "#document-converter-wasm"),
+    plugins: [...options.plugins, wasm.plugin],
     format: "cjs", logLevel: "silent",
     stdin: {
       contents: 'export * from "./src/commands/pandoc/index.js";',
@@ -52,7 +56,7 @@ it("uses prepared Pandoc adapters in the standalone browser shell build", async 
     createPandocCommand: () => { name: string };
   } };
   runInNewContext(script, {
-    module, Uint8Array, TextEncoder, TextDecoder, AbortController, AbortSignal,
+    module, Uint8Array, TextEncoder, TextDecoder, AbortController, AbortSignal, wasmModules: wasm.wasmModules,
     require(name: string) {
       expect(name).toBe("poe-code/safe-fs/core");
       return filesystem;

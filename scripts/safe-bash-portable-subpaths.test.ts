@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import path from "node:path";
 import { expect, it } from "vitest";
 import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
+import { selectConditionalTarget } from "./package-export-target.mjs";
 
 const root = process.cwd();
 const manifest = JSON.parse(readFileSync(path.join(root, "packages/safe-bash/package.json"), "utf8"));
@@ -42,6 +43,10 @@ it("executes every reported subpath in workerd without nodejs_compat", async () 
   const { build } = await import("esbuild");
   const { Miniflare } = await import("miniflare");
   const targets = new Set(subpaths.map(route => manifest.exports[`./${route}`].workerd.slice("./dist/".length, -3)));
+  for (const target of Object.values(manifest.imports)) {
+    const runtime = selectConditionalTarget(target, new Set(["workerd", "worker", "browser", "import", "default"]));
+    if (runtime) targets.add(runtime.slice("./dist/".length, -3));
+  }
   const result = await build({ ...recipe, sourcemap: false,
     entryPoints: Object.fromEntries(Object.entries(recipe.entryPoints).filter(([name]) => targets.has(name))),
   });
@@ -58,6 +63,9 @@ it("executes every reported subpath in workerd without nodejs_compat", async () 
     plugins: [{ name: "portable-artifacts", setup(builder) {
       builder.onResolve({ filter: /^@poe-platform\/safe-bash\// }, args => ({
         path: path.join(root, "packages/safe-bash", manifest.exports[args.path.replace("@poe-platform/safe-bash", ".")].workerd), namespace: "artifact",
+      }));
+      builder.onResolve({ filter: /^#/, namespace: "artifact" }, args => ({
+        path: path.join(root, "packages/safe-bash", selectConditionalTarget(manifest.imports[args.path], new Set(["workerd", "worker", "browser", "import", "default"]))), namespace: "artifact",
       }));
       builder.onResolve({ filter: /^\./, namespace: "artifact" }, args => ({
         path: path.resolve(path.dirname(args.importer), args.path), namespace: "artifact",

@@ -9,6 +9,7 @@ import { Miniflare } from "miniflare";
 import { resolveBrowserOpBuild, resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 import { publishBundleOutputs } from "./publish-bundle.mjs";
 import { createWorkspaceBuildPlan } from "./build-workspaces.mjs";
+import { selectConditionalTarget } from "./package-export-target.mjs";
 
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -53,7 +54,7 @@ it("exposes the complete default shell under browser conditions without Node bui
   expect(manifest.exports["."].types.browser).toBe("./dist/core.d.ts");
   const result = portableBuild;
   const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
-  expect([...new Set(imports.filter(item => item.external).map(item => item.path))]).toEqual(["poe-code/safe-fs/core"]);
+  expect([...new Set(imports.filter(item => item.external).map(item => item.path))]).toEqual(["poe-code/safe-fs/core", "#document-converter-wasm"]);
   expect(result.outputFiles!.some(output => output.path.endsWith("/core.browser.js"))).toBe(true);
 });
 
@@ -147,6 +148,10 @@ beforeAll(async () => {
           const output = path.resolve(directory, target);
           return artifacts.has(output) ? { path: output, namespace: "built-shell" } : undefined;
         });
+        builder.onResolve({ filter: /^#/, namespace: "built-shell" }, args => ({
+          path: path.resolve(directory, selectConditionalTarget(manifest.imports[args.path], new Set(["workerd", "worker", "browser", "import", "default"]))),
+          namespace: "built-shell",
+        }));
         builder.onResolve({ filter: /^\./, namespace: "built-shell" }, args => ({
           path: path.resolve(path.dirname(args.importer), args.path), namespace: "built-shell",
         }));
@@ -367,7 +372,7 @@ it("builds the portable shell without Node workers, adapters, or duplicate files
   expect(inputs.some(input => input.includes("fs/real/") || input.includes("transport/owner.ts"))).toBe(false);
   expect(inputs.some(input => input.includes("safe-fs/src"))).toBe(false);
   const imports = [...reachable].flatMap(filename => outputs[filename]!.imports);
-  expect([...new Set(imports.filter(item => item.external).map(item => item.path))]).toEqual(["poe-code/safe-fs/core"]);
+  expect([...new Set(imports.filter(item => item.external).map(item => item.path))]).toEqual(["poe-code/safe-fs/core", "#document-converter-wasm"]);
   expect(result.outputFiles!.some(output => output.path.endsWith("core.browser.js"))).toBe(true);
 });
 
@@ -400,6 +405,8 @@ it("preserves explicitly external private owners before applying browser source 
 it("bundles the complete portable preset with one owned-argument identity", async () => {
   const options = resolveBrowserShellBuild(root);
   expect(options.entryPoints).toEqual({
+    "document-converter/module": path.join(root, "packages/document-converter-rust/dist/module.js"),
+    "document-converter/module.workerd": path.join(root, "packages/document-converter-rust/dist/module.workerd.js"),
     "commands/csvkit/index.browser": path.join(root, "packages/safe-bash/src/commands/csvkit/index.ts"),
     "commands/pandoc/index.browser": path.join(root, "packages/safe-bash/src/commands/pandoc/index.ts"),
     "commands/ssconvert/index.browser": path.join(root, "packages/safe-bash/src/commands/ssconvert/index.ts"),
@@ -457,9 +464,7 @@ it("bundles the complete portable preset with one owned-argument identity", asyn
   });
   const result = portableBuild;
   const imports = Object.values(result.metafile!.outputs).flatMap(output => output.imports);
-  for (const imported of imports.filter(item => item.external)) {
-    expect(imported.path).toBe("poe-code/safe-fs/core");
-  }
+  expect([...new Set(imports.filter(item => item.external).map(item => item.path))]).toEqual(["poe-code/safe-fs/core", "#document-converter-wasm"]);
   expect(browser.posixPath).toBe(filesystem.posixPath);
   expect(browser.posixPath.join("/a", "..", "b")).toBe("/b");
   const names = browser.createAgentCommands().map(command => command.name).sort();

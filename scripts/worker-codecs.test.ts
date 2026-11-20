@@ -2,11 +2,13 @@ import { build } from "esbuild";
 import { decode } from "jpeg-js";
 import { createContext, runInContext } from "node:vm";
 import { expect, it } from "vitest";
+import { wasmVmFixture } from "./wasm-vm.fixture.js";
 
 async function worker(entry: string) {
+  const wasm = wasmVmFixture();
   const output = await build({ entryPoints: [entry], bundle: true, platform: "browser",
-    conditions: ["workerd"], format: "iife", globalName: "sdk", write: false, logLevel: "silent" });
-  const realm = createContext({ TextEncoder, TextDecoder, Uint8Array, AbortController, AbortSignal, atob, btoa, URL, crypto: globalThis.crypto, performance });
+    conditions: ["workerd"], format: "iife", globalName: "sdk", write: false, logLevel: "silent", plugins: [wasm.plugin] });
+  const realm = createContext({ TextEncoder, TextDecoder, Uint8Array, AbortController, AbortSignal, atob, btoa, URL, crypto: globalThis.crypto, performance, wasmModules: wasm.wasmModules });
   runInContext(output.outputFiles![0]!.text, realm);
   expect(runInContext("typeof Buffer + ':' + typeof process + ':' + typeof require", realm)).toBe("undefined:undefined:undefined");
   return realm;

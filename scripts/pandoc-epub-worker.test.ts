@@ -1,3 +1,4 @@
+import { workerdBundle } from "./workerd-bundle.fixture.js";
 import {fileURLToPath} from "node:url";
 import {build} from "esbuild";
 import {Miniflare} from "miniflare";
@@ -9,9 +10,8 @@ it.each(["sync", "async"].flatMap(kind => [false, true].map(cleanupFails => ({ki
     export {convertToOutput} from "./packages/safe-bash-command-pandoc/dist/index.js";
     export {MemoryFileSystem} from "./packages/safe-fs/src/core.ts";
     export {createR2PagedFixture} from "./scripts/pandoc-r2-storage.fixture.mjs";
-  `}, bundle: true, platform: "browser", conditions: ["workerd"], format: "cjs", write: false, logLevel: "silent"});
-  const runtime = new Miniflare({modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], script: `
-    const api = (() => {const module = {exports: {}}; ${bundle.outputFiles[0]!.text}; return module.exports;})();
+  `}, bundle: true, platform: "browser", conditions: ["workerd"], format: "esm", loader: { ".wasm": "copy" }, outdir: "out/workerd-fixture", write: false, logLevel: "silent"});
+  const runtime = new Miniflare({compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], ...workerdBundle(bundle, `
     export default {async fetch(request, env) {
       const namespace = new api.MemoryFileSystem(); await namespace.mkdir('/spill');
       const {fs, events} = api.createR2PagedFixture(namespace, env.PAGES);
@@ -32,7 +32,7 @@ it.each(["sync", "async"].flatMap(kind => [false, true].map(cleanupFails => ({ki
       return Response.json({code, pulls, returns, writes, closes, aborts, events,
         remaining: (await env.PAGES.list({limit: 1})).objects.length, namespace: await namespace.readdir('/spill')});
     }};
-  `});
+  `) });
   try {
     const response = await runtime.dispatchFetch("https://epub.test/");
     expect(response.status, response.status === 200 ? undefined : await response.text()).toBe(200);
@@ -49,9 +49,8 @@ it.each([16385, 262145])("rejects a %i-byte EPUB mimetype without a whole-member
     export {createCompressionCodec} from "@poe-code/compression";
     export {MemoryFileSystem} from "./packages/safe-fs/src/core.ts";
     export {createR2PagedFixture} from "./scripts/pandoc-r2-storage.fixture.mjs";
-  `}, bundle: true, platform: "browser", conditions: ["workerd"], format: "cjs", write: false, logLevel: "silent"});
-  const runtime = new Miniflare({modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], script: `
-    const api = (() => {const module = {exports: {}}; ${bundle.outputFiles[0]!.text}; return module.exports;})();
+  `}, bundle: true, platform: "browser", conditions: ["workerd"], format: "esm", loader: { ".wasm": "copy" }, outdir: "out/workerd-fixture", write: false, logLevel: "silent"});
+  const runtime = new Miniflare({compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], ...workerdBundle(bundle, `
     export default {async fetch(request, env) {
       const signal = new AbortController().signal;
       const limits = {maxArchiveBytes: Infinity, maxEntryBytes: Infinity, maxTotalBytes: Infinity, maxMembers: Infinity, maxPathBytes: Infinity, maxDepth: Infinity, maxPaxBytes: Infinity, maxTextBytes: Infinity, chunkSize: 4096};
@@ -81,7 +80,7 @@ it.each([16385, 262145])("rejects a %i-byte EPUB mimetype without a whole-member
       return Response.json({code, message, largestDecode, writes, closes, events,
         remaining: (await env.PAGES.list({limit: 1})).objects.length, namespace: await namespace.readdir('/spill')});
     }};
-  `});
+  `) });
   try {
     const response = await runtime.dispatchFetch("https://epub.test/");
     expect(response.status, response.status === 200 ? undefined : await response.text()).toBe(200);
@@ -101,9 +100,8 @@ it.each(["sdk", "command"].flatMap(mode => ["plain", "html5"].map(to => ({mode, 
     export {createCompressionCodec} from "@poe-code/compression";
     export {MemoryFileSystem} from "./packages/safe-fs/src/core.ts";
     export {createR2PagedFixture} from "./scripts/pandoc-r2-storage.fixture.mjs";
-  `}, bundle: true, platform: "browser", conditions: ["workerd"], format: "cjs", write: false, logLevel: "silent"});
-  const runtime = new Miniflare({modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], script: `
-    const api = (() => {const module = {exports: {}}; ${bundle.outputFiles[0]!.text}; return module.exports;})();
+  `}, bundle: true, platform: "browser", conditions: ["workerd"], format: "esm", loader: { ".wasm": "copy" }, outdir: "out/workerd-fixture", write: false, logLevel: "silent"});
+  const runtime = new Miniflare({compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], ...workerdBundle(bundle, `
     export default {async fetch(request, env) {
       const signal = new AbortController().signal;
       const limits = {maxArchiveBytes: Infinity, maxEntryBytes: Infinity, maxTotalBytes: Infinity, maxMembers: Infinity, maxPathBytes: Infinity, maxDepth: Infinity, maxPaxBytes: Infinity, maxTextBytes: Infinity, chunkSize: 4096};
@@ -155,7 +153,7 @@ it.each(["sdk", "command"].flatMap(mode => ["plain", "html5"].map(to => ({mode, 
       return Response.json({output, errors, exitCode: result?.exitCode ?? 0, events,
         remaining: (await env.PAGES.list({limit: 1})).objects.length, namespace: await namespace.readdir('/spill')});
     }};
-  `});
+  `) });
   try {
     const response = await runtime.dispatchFetch("https://epub.test/");
     expect(response.status, response.status === 200 ? undefined : await response.text()).toBe(200);

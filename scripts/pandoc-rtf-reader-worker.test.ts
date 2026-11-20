@@ -1,3 +1,4 @@
+import { workerdBundle } from "./workerd-bundle.fixture.js";
 import {fileURLToPath} from "node:url";
 import {build} from "esbuild";
 import {Miniflare} from "miniflare";
@@ -9,10 +10,9 @@ it.each(["plain", "rtf", "odt"])("reads RTF through external R2 pages into %s", 
     export {convertToOutput} from "./packages/safe-bash-command-pandoc/dist/index.js";
     export {MemoryFileSystem} from "./packages/safe-fs/src/core.ts";
     export {createR2PagedFixture} from "./scripts/pandoc-r2-storage.fixture.mjs";
-  `}, bundle: true, platform: "browser", conditions: ["workerd"], format: "cjs", write: false, logLevel: "silent"});
+  `}, bundle: true, platform: "browser", conditions: ["workerd"], format: "esm", loader: { ".wasm": "copy" }, outdir: "out/workerd-fixture", write: false, logLevel: "silent"});
   const prefix = String.raw`{\rtf1\ansi `, suffix = String.raw`{\b bold}\par end{\pict\pngblip 89504e470d0a1a0a0000000d49484452000000010000000108000000003a7e9b550000000d494441547801010200fdff008000820081c36e25e00000000049454e44ae426082}}`;
-  const runtime = new Miniflare({modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], script: `
-    const api = (() => {const module = {exports: {}}; ${bundled.outputFiles[0]!.text}; return module.exports;})();
+  const runtime = new Miniflare({compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], ...workerdBundle(bundled, `
     export default {async fetch(request, env) {
       const mode = new URL(request.url).pathname.slice(1), namespace = new api.MemoryFileSystem();
       await namespace.mkdir("/spill");
@@ -42,7 +42,7 @@ it.each(["plain", "rtf", "odt"])("reads RTF through external R2 pages into %s", 
       } catch (caught) {error = {code: caught.code, message: caught.message};}
       return Response.json({length, hash, closed, aborted, largest, error, events, remaining: (await env.PAGES.list({limit: 1})).objects.length, namespace: await namespace.readdir("/spill")});
     }};
-  `});
+  `) });
   try {
     const {convert} = await import("../packages/safe-bash-command-pandoc/dist/index.js");
     const source = prefix + Array.from({length: 8}, (_, i) => String.fromCharCode(97 + i).repeat(8192)).join("") + suffix;

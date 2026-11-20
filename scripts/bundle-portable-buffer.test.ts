@@ -60,7 +60,16 @@ it("preserves browser chunks when publishing the standalone bootstrap", async ()
   }));
   const volume = new Volume();
   volume.mkdirSync(path.join(root, "packages/safe-bash"), { recursive: true });
+  const licenses = path.join(root, "packages/document-converter-rust/dist");
+  volume.mkdirSync(licenses, { recursive: true });
+  for (const name of ["Liberation", "DejaVu", "NotoSansSC", "JetBrainsMono", "Unicode", "Python"]) {
+    volume.writeFileSync(path.join(licenses, "LICENSE." + name), `fixture license ${name}`);
+  }
   const result = await buildBrowserShellOutputs(root, { files: createFsFromVolume(volume).promises });
+  for (const name of ["Liberation", "DejaVu", "NotoSansSC", "JetBrainsMono", "Unicode", "Python"]) {
+    expect(volume.readFileSync(path.join(root, "packages/safe-bash/dist/document-converter", "LICENSE." + name), "utf8"))
+      .toBe(`fixture license ${name}`);
+  }
   const unreachable = new Set(findUnreachableBundleOutputs(result.metafile, Object.values(resolveBrowserShellBuild(root).entryPoints), root).map(f => path.resolve(root, f)));
   for (const output of result.outputFiles) {
     if (!unreachable.has(path.resolve(root, output.path))) expect(volume.existsSync(output.path), output.path).toBe(true);

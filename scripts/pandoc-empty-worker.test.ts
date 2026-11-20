@@ -1,16 +1,44 @@
+import { workerdBundle } from "./workerd-bundle.fixture.js";
 import {fileURLToPath} from "node:url";
 import {build} from "esbuild";
 import {Miniflare} from "miniflare";
 import {expect, it} from "vitest";
+
+it("loads the real precompiled converter for DOCX and PDF exports in workerd", async () => {
+  const bundle = await build({
+    stdin: {resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: 'export {convert} from "safe-bash-command-pandoc";'},
+    bundle: true, platform: "browser", conditions: ["workerd"], format: "esm",
+    loader: {".wasm": "copy"}, outdir: "out/workerd-fixture", write: false, logLevel: "silent",
+  });
+  const runtime = new Miniflare({compatibilityDate: "2026-07-01", cf: false, ...workerdBundle(bundle, `
+    export default {async fetch() {
+      if (typeof Buffer !== "undefined" || typeof process !== "undefined") throw new Error("Node globals present");
+      const outputs = [];
+      for (const to of ["docx", "pdf"]) {
+        const result = await api.convert([{bytes: new TextEncoder().encode("# Real WASM export")}], {from: "commonmark", to}, {yield: async () => {}});
+        const readback = await api.convert([{bytes: result.bytes}], {from: to, to: "plain"}, {yield: async () => {}});
+        outputs.push({to, signature: [...result.bytes.subarray(0, 4)], text: readback.text.trim()});
+      }
+      return Response.json(outputs);
+    }};
+  `)});
+  try {
+    const response = await runtime.dispatchFetch("https://documents.test/");
+    expect(response.status, await response.clone().text()).toBe(200);
+    expect(await response.json()).toEqual([
+      {to: "docx", signature: [80, 75, 3, 4], text: "Real WASM export"},
+      {to: "pdf", signature: [37, 80, 68, 70], text: "Real WASM export"},
+    ]);
+  } finally {await runtime.dispose();}
+}, 30000);
 
 it("retains a zero-input SDK filter response in caller R2 storage", async () => {
   const bundle = await build({stdin: {resolveDir: fileURLToPath(new URL("../", import.meta.url)), contents: `
     export {convertToOutput, createJsonFilterCapability} from "./packages/safe-bash-command-pandoc/dist/index.js";
     export {MemoryFileSystem} from "./packages/safe-fs/src/core.ts";
     export {createR2PagedFixture} from "./scripts/pandoc-r2-storage.fixture.mjs";
-  `}, bundle: true, platform: "browser", conditions: ["workerd"], format: "cjs", write: false, logLevel: "silent"});
-  const runtime = new Miniflare({modules: true, compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], script: `
-    const api = (() => {const module = {exports: {}}; ${bundle.outputFiles[0]!.text}; return module.exports;})();
+  `}, bundle: true, platform: "browser", conditions: ["workerd"], format: "esm", loader: { ".wasm": "copy" }, outdir: "out/workerd-fixture", write: false, logLevel: "silent"});
+  const runtime = new Miniflare({compatibilityDate: "2026-07-01", cf: false, r2Buckets: ["PAGES"], ...workerdBundle(bundle, `
     export default {async fetch(request, env) {
       const namespace = new api.MemoryFileSystem(); await namespace.mkdir('/spill');
       const {fs: backing, events} = api.createR2PagedFixture(namespace, env.PAGES);
@@ -33,7 +61,7 @@ it("retains a zero-input SDK filter response in caller R2 storage", async () => 
       });
       return Response.json({length, largest, closed, files: await namespace.readdir('/spill'), events});
     }};
-  `});
+  `) });
   try {
     const response = await runtime.dispatchFetch("http://worker.test/");
     expect(response.status).toBe(200);

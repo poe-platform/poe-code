@@ -1,3 +1,4 @@
+import { workerdBundle } from "./workerd-bundle.fixture.js";
 import {fileURLToPath} from "node:url";
 import {build} from "esbuild";
 import {Miniflare} from "miniflare";
@@ -11,9 +12,8 @@ it.each(["json", "rtf"])("runs shipped %s Lua SDK with caller R2 pages and no No
     export {createPandocCommand} from "./packages/safe-bash-command-pandoc/dist/command.js";
     export {MemoryFileSystem} from "./packages/safe-fs/src/core.ts";
     export {createR2PagedFixture} from "./scripts/pandoc-r2-storage.fixture.mjs";
-  `},bundle:true,platform:"browser",conditions:["workerd"],format:"cjs",write:false,logLevel:"silent"});
-  const runtime=new Miniflare({modules:true,compatibilityDate:"2026-07-01",cf:false,r2Buckets:["PAGES"],script:`
-    const api=(()=>{const module={exports:{}};${bundle.outputFiles[0]!.text};return module.exports;})();
+  `},bundle:true,platform:"browser",conditions:["workerd"],format: "esm", loader: { ".wasm": "copy" }, outdir: "out/workerd-fixture",write:false,logLevel:"silent"});
+  const runtime=new Miniflare({compatibilityDate:"2026-07-01",cf:false,r2Buckets:["PAGES"],...workerdBundle(bundle, `
     export default {async fetch(request,env){
       const namespace=new api.MemoryFileSystem();await namespace.mkdir('/spill');
       const {fs,events}=api.createR2PagedFixture(namespace,env.PAGES),encoder=new TextEncoder();
@@ -43,7 +43,7 @@ it.each(["json", "rtf"])("runs shipped %s Lua SDK with caller R2 pages and no No
       catch(error){code=error.code;if(!(cancelled && code==='E_CANCELLED') && error!==delivered)throw error;}
       return Response.json({text,length,largest,errorBytes,errorText,code,closed,reused,pulls,readerClosed,events,remaining:(await env.PAGES.list({limit:1})).objects.length,namespace:await namespace.readdir('/spill')});
     }};
-  `});
+  `) });
   try {
     for(const mode of ['success','error','command','borrowed','cancelled','source-error']) {
       const response=await runtime.dispatchFetch('https://lua.test/'+mode);

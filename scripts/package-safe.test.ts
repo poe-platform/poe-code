@@ -770,7 +770,7 @@ it.each([false, true])("admits asset-only contract owners against the full priva
 });
 
 describe("isolated private command consumers", () => {
-  const privatePackages = ["safe-bash-command-find", "safe-bash-command-xq", "safe-bash-command-jq", "safe-bash-xml-engine", "safe-bash-command-html-to-markdown", "safe-bash-command-shuf", "safe-bash-command-expr", "safe-bash-command-wget", "safe-bash-network-engine", "safe-bash-command-sed", "safe-bash-io-engine", "safe-bash-query-engine", "safe-bash-byte-engine", "safe-bash-calendar-engine", "safe-bash-contracts", "safe-bash-command-exiftool", "safe-bash-csv-engine", "safe-bash-command-csvgrep", "safe-bash-command-csvcut", "safe-bash-command-dos2unix", "safe-bash-command-unix2dos", "safe-bash-line-ending-engine", "safe-bash-command-mdq", "safe-bash-markdown-engine", "safe-bash-regex-engine"];
+  const privatePackages = ["safe-bash-command-find", "safe-bash-command-xq", "safe-bash-command-jq", "safe-bash-xml-engine", "safe-bash-command-html-to-markdown", "safe-bash-command-shuf", "safe-bash-command-expr", "safe-bash-command-wget", "safe-bash-network-engine", "safe-bash-command-sed", "safe-bash-io-engine", "safe-bash-query-engine", "safe-bash-byte-engine", "safe-bash-calendar-engine", "safe-bash-contracts", "safe-bash-command-exiftool", "safe-bash-csv-engine", "safe-bash-command-csvgrep", "safe-bash-command-csvcut", "safe-bash-command-dos2unix", "safe-bash-command-unix2dos", "safe-bash-line-ending-engine", "safe-bash-command-mdq", "safe-bash-markdown-engine", "safe-bash-regex-engine", "document-converter-rust"];
 
   // Build the package fixture separately from its consumer type and runtime checks.
     const fixture = optionalLeftovers();
@@ -790,7 +790,7 @@ describe("isolated private command consumers", () => {
     for (const name of privatePackages) {
       const directory = path.join(repository, "packages", name);
       const pkg = JSON.parse(readFileSync(path.join(directory, "package.json"), "utf8"));
-      manifest.poeCode.integration.privateWorkspaces[name] = {
+      manifest.poeCode.integration.privateWorkspaces[pkg.name] = {
         version: pkg.version, dependencies: pkg.dependencies ?? {}, devDependencies: pkg.devDependencies ?? {},
         ...(bashManifest.poeCode.integration.privateWorkspaces[name]?.portable === true ? { portable: true } : {}),
       };
@@ -798,10 +798,11 @@ describe("isolated private command consumers", () => {
       volume.writeFileSync(`/repo/packages/${name}/package.json`, JSON.stringify(pkg));
       volume.writeFileSync(`/repo/packages/${name}/LICENSE`, readFileSync(path.join(directory, "LICENSE")));
       for (const filename of readdirSync(path.join(directory, "dist"))) {
-        if (filename.startsWith("chunk-") && filename.endsWith(".js")) {
+        if (pkg.poeCode?.bundle?.prebuilt || filename.startsWith("chunk-") && filename.endsWith(".js")) {
           volume.writeFileSync(`/repo/packages/${name}/dist/${filename}`, readFileSync(path.join(directory, "dist", filename)));
         }
       }
+      if (pkg.poeCode?.bundle?.prebuilt) continue;
       for (const filename of readdirSync(path.join(directory, "src"), { recursive: true, encoding: "utf8" })) {
         if (!filename.endsWith(".ts") || filename.endsWith(".test.ts") || filename === "fixtures.ts") continue;
         const source = readFileSync(path.join(directory, "src", filename), "utf8");

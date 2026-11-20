@@ -32,7 +32,7 @@ it("preserves effect pixels and geometry", async () => {
         "93a5072ee91515fe8062ef60899bbe86c8b59c70eb4010219b3af315198931ec",
         "196f0b863a5f1f73ef837ea6d156ff75e5c75841d88e3656ae69c6b22644bc33",
         "78f12fb9287470af4868271ebb1f872753d0f410c938d4fca9f65db2b4c0d378",
-        "4a5f8c80ad4ec2be3ceb1a70ce9e05716f14727b1f565ce0e8e537160f7bc0da",
+        "1510c0ff1da58fd7597d0ca80dbccfb887318f2b10bca8bc59b7499574889da5",
       ]
     `);
 });

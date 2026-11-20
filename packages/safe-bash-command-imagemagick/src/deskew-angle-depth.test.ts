@@ -30,3 +30,10 @@ it.each(["buffered", "retained", "sync"])("estimates deskew from full 16-bit sou
         }
     }
 });
+
+it.each([513, 1031])("reads wide HDRI deskew inputs in bounded spans (%i pixels)", async width => {
+    const args = ["-size", `${width}x3`, "gradient:white-black", "-deskew", "40%", "-format", "%w|%h|%[deskew:angle]", "info:"];
+    const expected = await runConvertCli(args, new Map());
+    expect(expected.exitCode).toBe(0);
+    expect(await runConvertCli(args, { filesystem: new MemoryFileSystem(), cwd: "/" })).toEqual(expected);
+});

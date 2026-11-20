@@ -48,9 +48,9 @@ function* deskewAngle(width: number, height: number, spec: string, range: number
     while (columns < groups) columns *= 2;
     const counts = new Uint16Array(columns * height);
     for (let y = 0; y < height; y++) {
-        for (let x = 0; x < width; x += 1024) {
+        for (let x = 0; x < width; x += 512) {
             yield;
-            const length = Math.min(1024, width - x) * 4;
+            const length = Math.min(512, width - x) * 4;
             const bytes = yield { position: (y * width + x) * 4, length };
             if (!bytes || bytes.length !== length) throw new Error("Truncated deskew pixels");
             for (let i = 0; i < length; i += 4) {

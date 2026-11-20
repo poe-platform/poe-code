@@ -26,7 +26,8 @@ export async function readRetainedEpubDocument(input: InputSource, context: Exec
     if ("bytes" in input) {context.charge("inputBytes", input.bytes.length); context.charge("compressedBytes", input.bytes.length);}
     book = await readRetainedEpubBook(input, storage, context);
     // XHTML produces the internal AST: convert only contextual enum positions
-    // to Pandoc wire constructors, leaving authored strings untouched.
+    // to Pandoc wire constructors during serialization, leaving authored
+    // strings untouched and avoiding a separate caller-backed tree walk.
     const ast = book.ast;
     const enumeration = async (tuple: RtfValue, index: number) => {
       const source = (await ast.at(tuple, index))!;
@@ -38,9 +39,7 @@ export async function readRetainedEpubDocument(input: InputSource, context: Exec
     const rows = async (value: RtfValue) => {
       for await (const row of ast.children(value)) for await (const cell of ast.children((await ast.at(row, 1))!)) await enumeration(cell, 1);
     };
-    for (const root of [book.blocks, book.metadata]) await ast.walk(root, async (node, _depth, leaving) => {
-      if (leaving) return;
-      const name = await ast.name(node);
+    const wireEnums = async (node: RtfValue, name: string) => {
       if (name !== "Table" && name !== "OrderedList") return;
       const content = (await ast.content(node))!;
       if (name === "OrderedList") {
@@ -53,11 +52,11 @@ export async function readRetainedEpubDocument(input: InputSource, context: Exec
           await rows((await ast.at(body, 2))!); await rows((await ast.at(body, 3))!);
         }
       }
-    });
+    };
     const tree = new BackedJson(wire, units => context.cooperate(units));
     await tree.begin("object"); await tree.key("pandoc-api-version"); await tree.value([1, 23, 1, 2]);
-    await tree.key("meta"); await book.ast.write(book.metadata, tree);
-    await tree.key("blocks"); await book.ast.write(book.blocks, tree); await tree.end();
+    await tree.key("meta"); await book.ast.write(book.metadata, tree, undefined, wireEnums);
+    await tree.key("blocks"); await book.ast.write(book.blocks, tree, undefined, wireEnums); await tree.end();
     document = await readRetainedJson({chunks: tree.chunks()}, context, working, false);
     const reserve = async (usage?: RetainedAstUsage, aggregate = false): Promise<void> => {
       let total = 0, nodes = usage?.nodes, text = usage?.text;

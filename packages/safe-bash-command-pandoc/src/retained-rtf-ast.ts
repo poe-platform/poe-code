@@ -180,8 +180,10 @@ export class RetainedRtfAst {
   }
   /** Target tape must use a different store: its records are contiguous, while
    * this store also receives traversal frames during serialization. The optional
-   * string observer transfers parser identities to their wire positions. */
-  async write(value: RtfValue, target: BackedJson, onString?: (value: RtfValue, position: number) => Promise<void>): Promise<void> {
+   * string observer transfers parser identities to their wire positions. A tag
+   * visitor can normalize its content before serialization without a second
+   * traversal of the caller-backed tree. */
+  async write(value: RtfValue, target: BackedJson, onString?: (value: RtfValue, position: number) => Promise<void>, beforeTag?: (value: RtfValue, name: string) => Promise<void>): Promise<void> {
     let frame: number[] | undefined;
     const begin = async (value: RtfValue) => {
       await this.cooperate();
@@ -190,6 +192,7 @@ export class RetainedRtfAst {
       if (kind === 0 || kind === 4) {
         await target.begin(kind === 0 ? "array" : "object"); frame = [parent, fields[1]!, kind === 4 ? 2 : 0];
       } else if (kind === 3) {
+        await beforeTag?.(value, tags[fields[1]!]!);
         await target.begin("object"); await target.key("t"); await target.value(tags[fields[1]!]!);
         if (fields[2]) await target.key("c");
         frame = [parent, fields[2]!, 1];

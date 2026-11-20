@@ -21,7 +21,7 @@ for (const sample of samples) {
     const filesystem = new MemoryFileSystem();
     const settings = [...(value === undefined ? [] : ["-define", `compose:args=${value}`]), "-compose", "Mathematics"];
     const inputs = route === "composite" ? [`xc:${sample.src}`, `xc:${sample.dst}`] : [`xc:${sample.dst}`, `xc:${sample.src}`];
-    const args = [...(before ? [...settings, ...inputs] : [...inputs, ...settings]), ...(route === "composite" ? [] : ["-composite"]), "out.png"];
+    const args = [...(before ? [...settings, ...inputs] : [...inputs, ...settings]), ...(route === "composite" ? [] : ["-composite"]), "-depth", "8", "out.png"];
     const result = route === "sync" ? runConvertCliSync(args, files)
       : route === "composite" ? await runCompositeCli(args, { filesystem, cwd: "/" })
       : await runConvertCli(args, route === "retained" ? { filesystem, cwd: "/" } : files);

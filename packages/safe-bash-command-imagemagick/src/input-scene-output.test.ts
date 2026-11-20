@@ -5,9 +5,11 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runMagickCli, runConvertCliSync } from "./index.js";
 
-const fixture = spawnSync("magick", ["-size", "2x1", "-delay", "4", "xc:red", "-delay", "8", "xc:lime", "-delay", "12", "xc:blue", "gif:-"]);
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
+const fixture = spawnSync(magick, ["-size", "2x1", "-delay", "4", "xc:red", "-delay", "8", "xc:lime", "-delay", "12", "xc:blue", "gif:-"]);
 if (fixture.status !== 0) throw new Error(fixture.stderr.toString());
-const seed = spawnSync("magick", ["-size", "1x1", "xc:magenta", "png:-"]);
+const seed = spawnSync(magick, ["-size", "1x1", "xc:magenta", "png:-"]);
 if (seed.status !== 0) throw new Error(seed.stderr.toString());
 
 for (const mode of ["sync", "buffered", "retained", "command"] as const)

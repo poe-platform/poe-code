@@ -4,8 +4,10 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createMagickCommand, runConvertCli } from "./index.js";
 
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
 for (const extension of ["png", "jpg", "tiff"]) {
-  const fixture = spawnSync("magick", ["-size", "2x1", "xc:red", "-units", "PixelsPerInch", "-density", "144x72", "-orient", "RightTop", `${extension}:-`]);
+  const fixture = spawnSync(magick, ["-size", "2x1", "xc:red", "-units", "PixelsPerInch", "-density", "144x72", "-orient", "RightTop", `${extension}:-`]);
   for (const mode of ["buffered", "retained", "command"]) {
     it.each([false, true])(`preserves both density axes in ${extension} (${mode}, flop=%s)`, async flop => {
       expect(fixture.status, fixture.stderr.toString()).toBe(0);
@@ -22,7 +24,7 @@ for (const extension of ["png", "jpg", "tiff"]) {
         expect(await runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files)).toEqual({ exitCode: 0, stdout: "", stderr: "" });
       }
       const output = mode === "buffered" ? files.get(path)! : await fs.readFile(path);
-      const inspect = (input: Uint8Array) => spawnSync("magick", ["identify", "-quiet", "-format", "%x,%y,%U", "-"], { input, encoding: "utf8" });
+      const inspect = (input: Uint8Array) => spawnSync(magick, ["identify", "-quiet", "-format", "%x,%y,%U", "-"], { input, encoding: "utf8" });
       const actual = inspect(output), expected = inspect(fixture.stdout);
       expect(actual.status, actual.stderr).toBe(0);
       expect(actual.stdout).toBe(expected.stdout);

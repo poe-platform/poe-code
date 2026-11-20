@@ -4,9 +4,11 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runMagickCli, runConvertCliSync } from "./index.js";
 
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
 for (const format of ["gif", "tiff"] as const) {
     const input = `input.${format}`, output = `output.${format}`;
-    const fixture = spawnSync("magick", ["-size", "4x3", "-delay", "7", "xc:red", "-delay", "11", "xc:lime", "-delay", "17", "xc:blue", "-delay", "23", "xc:yellow", `${format}:-`]);
+    const fixture = spawnSync(magick, ["-size", "4x3", "-delay", "7", "xc:red", "-delay", "11", "xc:lime", "-delay", "17", "xc:blue", "-delay", "23", "xc:yellow", `${format}:-`]);
     if (fixture.status !== 0) throw new Error(fixture.stderr.toString());
     for (const mode of ["buffered", "retained", "command", "sync"] as const)
     for (const spec of format === "tiff" ? ["9", "-9", "1,9", "5-2", "-9-2"] : ["9", "-9", "1,9", "5-2", "-9-2", "1-9", "-1", "3-1", ""]) {
@@ -33,9 +35,9 @@ for (const format of ["gif", "tiff"] as const) {
                 expect(actual).toEqual(bytes);
             } else {
                 const expected = spec === "1-9" ? [1, 2, 3] : spec === "-1" ? [3] : spec === "3-1" ? [3, 2, 1] : [0, 1, 2, 3];
-                const inspected = spawnSync("magick", ["identify", "-format", "%wx%h %[pixel:p{0,0}] %T;", "-"], { input: actual, encoding: "utf8" });
+                const inspected = spawnSync(magick, ["identify", "-format", "%wx%h %[pixel:p{0,0}] %T;", "-"], { input: actual, encoding: "utf8" });
                 expect(inspected.status, inspected.stderr).toBe(0);
-                const original = spawnSync("magick", ["identify", "-format", "%wx%h %[pixel:p{0,0}] %T;", "-"], { input: bytes, encoding: "utf8" });
+                const original = spawnSync(magick, ["identify", "-format", "%wx%h %[pixel:p{0,0}] %T;", "-"], { input: bytes, encoding: "utf8" });
                 expect(original.status, original.stderr).toBe(0);
                 const frames = original.stdout.split(";").filter(Boolean);
                 expect(frames).toHaveLength(4);

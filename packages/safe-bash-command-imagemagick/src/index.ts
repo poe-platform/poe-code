@@ -17552,21 +17552,24 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Pick
                 next = steps.next(indices && indices.width === source.width && indices.height === source.height ? await backend.storage.read(indices.position + request.position, request.length) : new Uint8Array());
                 continue;
             }
-            if (request.hue) {
-                next = steps.next(source.storedHueSamples === undefined ? new Uint8Array() : await backend.storage.read(source.storedHueSamples + request.position * 8, request.length * 8));
+            const working = request.hue ? source.storedHueSamples : request.evaluate ? source.storedEvaluateSamples : undefined;
+            if ((request.hue || request.evaluate) && working === undefined) {
+                next = steps.next(new Uint8Array());
                 continue;
             }
-            if (request.evaluate) {
-                next = steps.next(source.storedEvaluateSamples === undefined ? new Uint8Array() : await backend.storage.read(source.storedEvaluateSamples + request.position * 8, request.length * 8));
-                continue;
-            }
-            const highDepth = request.highDepth && source.storedData16, stride = highDepth ? 2 : 1;
-            const base = highDepth ? highDepth.position : source.position;
+            const highDepth = request.highDepth && source.storedData16, stride = working !== undefined ? 8 : highDepth ? 2 : 1;
+            const base = working ?? (highDepth ? highDepth.position : source.position);
             const offset = request.position * stride, length = request.length * stride;
             let bytes: Uint8Array;
-            if (request.length !== 4) bytes = await backend.storage.read(base + offset, length);
+            if (request.length !== 4) {
+                bytes = new Uint8Array(length);
+                for (let start = 0; start < length; start += 16384) {
+                    signal.throwIfAborted();
+                    bytes.set(await backend.storage.read(base + offset + start, Math.min(16384, length - start)), start);
+                }
+            }
             else {
-                const sourceSize = source.width * source.height * 4 * stride, page = Math.floor(offset / 4096) * 4096, key = (request.image ?? 0) + ":" + stride + ":" + page;
+                const sourceSize = source.width * source.height * 4 * stride, page = Math.floor(offset / 4096) * 4096, key = base + ":" + page;
                 let cached = cache.get(key);
                 if (!cached) {
                     cached = new Uint8Array(await backend.storage.read(base + page, Math.min(4096, sourceSize - page)));
@@ -17575,7 +17578,7 @@ async function transformStoredMagickRaster(image: StoredRgbaImage, backend: Pick
                 }
                 bytes = cached.subarray(offset - page, offset - page + length);
             }
-            next = steps.next(request.highDepth && !highDepth ? new Uint8Array(Uint16Array.from(bytes, value => value * 257).buffer) : bytes);
+            next = steps.next(request.highDepth && working === undefined && !highDepth ? new Uint8Array(Uint16Array.from(bytes, value => value * 257).buffer) : bytes);
         }
     }
     const { storedData16: ignoredData16, storedEvaluateSamples: ignoredEvaluateSamples, ...metadata } = image;
@@ -22342,9 +22345,9 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   const {x:cx,y:cy}=gradientCenter(width,height,state.gradientDirection,state.gradientCenter,state.gradientVector),axes=gradientRadii(width,height,state.gradientExtent,state.gradientRadii),box=state.gradientBoundingBox;
   const projection=radial?gradientRadialProjection(cx,cy,axes,state.gradientAngle):gradientProjection(width,height,state.gradientDirection??(state.gradientExtent===undefined?undefined:"southeast"),state.gradientAngle);
   const vectorFactor=gradientVector(width,height,(radial&&state.gradientCenter)?undefined:radial||state.gradientAngle===undefined?state.gradientVector:undefined,radial,axes,state.gradientAngle);
-  for(let start=0;start<width*height;start+=4096){
+  for(let start=0;start<width*height;start+=512){
    if(start%262144===0)await yieldTurn(signal);
-   const count=Math.min(4096,width*height-start),bytes=new Uint8Array(count*4),samples=checker?undefined:new Uint16Array(count*4),evaluateSamples=checker?undefined:new Float64Array(count*4),hueSamples=a.cmyk?new Float64Array(count*4):undefined;
+   const count=Math.min(512,width*height-start),bytes=new Uint8Array(count*4),samples=checker?undefined:new Uint16Array(count*4),evaluateSamples=checker?undefined:new Float64Array(count*4),hueSamples=a.cmyk?new Float64Array(count*4):undefined;
    for(let i=0;i<count;i++){
     const x=(start+i)%width,y=Math.floor((start+i)/width),offset=i*4;
     if(pattern){const sx=x-(state.tileOffset?.x??0),sy=y-(state.tileOffset?.y??0);const cell=sx<0||sy<0||sx>=Math.ceil(width/pattern.width)*pattern.width||sy>=Math.ceil(height/pattern.height)*pattern.height?255:pattern.gray(sx,sy);bytes[offset]=cell;bytes[offset+1]=cell;bytes[offset+2]=cell;bytes[offset+3]=255;}

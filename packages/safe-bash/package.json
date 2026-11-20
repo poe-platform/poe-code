@@ -1125,7 +1125,9 @@
         },
         "safe-bash-markdown-engine": {
           "version": "0.0.1",
-          "dependencies": {},
+          "dependencies": {
+            "@poe-code/document-converter-rust": "*"
+          },
           "devDependencies": {},
           "portable": true
         },

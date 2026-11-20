@@ -58,7 +58,7 @@ describe(`${tool}, input=${format}`, () => {
             doc.addPage([73, 59]).drawImage(doc.embedPng(png), { x: 0, y: 0, width: 73, height: 59 });
             bytes = doc.save();
         }
-        if (tool === "convert-malformed") bytes.fill(0);
+        if (tool === "convert-malformed") bytes.fill(255);
         expect(bytes.length).toBeGreaterThan(1048576);
         const generated = ["label", "gradient", "radial-gradient", "pattern", "tile"].includes(format);
         const operand = format === "label" ? "label:" + "x<&😀".repeat(600) : format === "gradient" || format === "radial-gradient" ? format + ":red-blue" : format === "pattern" ? "pattern:checkerboard" : format === "tile" ? "tile:rose:" : "/input";

@@ -5,6 +5,8 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
 // Native Q16: raw RGBA 12344567789a8001abcdef015678c003, -channel R/G/B/A -separate -strip.
 const planes = [
     "89504e470d0a1a0a0000000d494844520000000200000001100000000081d9fc150000000d4944415408d7631032597d1600030c01bf95bca9270000000049454e44ae426082",
@@ -37,7 +39,7 @@ it(`preserves external 16-bit channel planes (${mode}, planes=${count})`, async 
     const decoded = decodeImage(output);
     expect([decoded.width, decoded.height]).toEqual([2, 1]);
     expect(Array.from(decoded.data16 ?? [])).toEqual(expected);
-    const native = spawnSync("magick", ["png:-", "-depth", "16", "-endian", "MSB", "rgba:-"], { input: output });
+    const native = spawnSync(magick, ["png:-", "-depth", "16", "-endian", "MSB", "rgba:-"], { input: output });
     if (native.error && "code" in native.error && native.error.code === "ENOENT") return;
     expect(native.status).toBe(0);
     expect(native.stdout.toString("hex")).toBe(expected.map(value => value.toString(16).padStart(4, "0")).join(""));

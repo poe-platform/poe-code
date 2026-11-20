@@ -4,6 +4,8 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createMagickCommand, runConvertCli } from "./index.js";
 
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
 for (const mode of ["buffered", "retained", "command"]) {
   for (const [name, blocks, expected] of [
     ["embedded NUL", [3, 97, 0, 98, 0], [97]],
@@ -12,11 +14,11 @@ for (const mode of ["buffered", "retained", "command"]) {
     ["leading NUL", [2, 0, 98, 0], []]
   ] as const) {
     it(`rewrites GIF comment bytes: ${name} (${mode})`, async () => {
-      const fixture = spawnSync("magick", ["-size", "2x1", "-delay", "7", "xc:red", "-delay", "13", "xc:blue", "-loop", "4", "gif:-"]);
+      const fixture = spawnSync(magick, ["-size", "2x1", "-delay", "7", "xc:red", "-delay", "13", "xc:blue", "-loop", "4", "gif:-"]);
       expect(fixture.status, fixture.stderr.toString()).toBe(0);
       const offset = 13 + 3 * (1 << ((fixture.stdout[10]! & 7) + 1));
       const bytes = Buffer.concat([fixture.stdout.subarray(0, offset), Buffer.from([33, 254, ...blocks]), fixture.stdout.subarray(offset)]);
-      const native = spawnSync("magick", ["gif:-", "gif:-"], { input: bytes });
+      const native = spawnSync(magick, ["gif:-", "gif:-"], { input: bytes });
       expect(native.status, native.stderr.toString()).toBe(0);
       const fs = new MemoryFileSystem();
       await fs.writeFile("/in.gif", bytes);

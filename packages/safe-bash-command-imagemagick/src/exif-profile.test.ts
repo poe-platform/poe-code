@@ -5,6 +5,8 @@ import { encodeImage } from "@poe-code/image-ast/portable";
 import { crc32 } from "node:zlib";
 import { runConvertCli } from "./index.js";
 
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
 // TIFF IFD0 with out-of-line ASCII values, independent of the EXIF encoder.
 function profile(little: boolean): Uint8Array {
   const tags = [[271, "AuditMake"], [272, "AuditCam"], [306, "2024:03:07 01:02:03"], [315, "Example Author"]] as const;
@@ -42,7 +44,7 @@ for (const little of [false, true]) for (const input of ["jpeg", "png"] as const
       const options = operation === "orient" ? ["-auto-orient"] : operation === "strip" ? ["-strip"] : operation === "remove" ? ["+profile", "exif"] : operation === "remove-all" ? ["+profile", "*"] : [];
       expect(await runConvertCli(["/input", ...options, path], mode === "buffered" ? files : { filesystem: fs, cwd: "/" })).toEqual({ exitCode: 0, stdout: "", stderr: "" });
       const bytes = mode === "buffered" ? files.get(path)! : await fs.readFile(path);
-      const native = spawnSync("magick", ["identify", "-quiet", "-format", "%[EXIF:Make]|%[EXIF:Model]|%[EXIF:Artist]|%[EXIF:DateTime]|%[orientation]|%wx%h", "-"], { input: bytes, encoding: "utf8" });
+      const native = spawnSync(magick, ["identify", "-quiet", "-format", "%[EXIF:Make]|%[EXIF:Model]|%[EXIF:Artist]|%[EXIF:DateTime]|%[orientation]|%wx%h", "-"], { input: bytes, encoding: "utf8" });
       expect(native.status, native.stderr).toBe(0);
       if (operation === "strip" || operation.startsWith("remove")) {
         expect(native.stdout.split("|").slice(0, 4)).toEqual(["", "", "", ""]);

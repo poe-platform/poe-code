@@ -5,6 +5,8 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createMagickCommand, runConvertCli, runMogrifyCli } from "./index.js";
 
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
 const cases = [
   { edits: ["+set", "NoTe"], note: undefined },
   { edits: ["+set", "note"], note: undefined },
@@ -40,9 +42,9 @@ function textProperties(bytes: Uint8Array): Record<string, string> {
 for (const mode of ["buffered", "retained", "command", "mogrify"]) {
   for (const { edits, note } of cases) {
     it(`updates property names case-insensitively: ${edits.join(" ")} through ${mode}`, async () => {
-      const fixture = spawnSync("magick", ["-size", "3x2", "xc:#c8591e", "-set", "note", "original", "-set", "comment", "hello", "png:-"]);
+      const fixture = spawnSync(magick, ["-size", "3x2", "xc:#c8591e", "-set", "note", "original", "-set", "comment", "hello", "png:-"]);
       expect(fixture.status).toBe(0);
-      const native = spawnSync("magick", ["-", ...edits, "png:-"], { input: fixture.stdout });
+      const native = spawnSync(magick, ["-", ...edits, "png:-"], { input: fixture.stdout });
       expect(native.status).toBe(0);
       const fs = new MemoryFileSystem();
       await fs.writeFile("/in.png", fixture.stdout);
@@ -65,7 +67,7 @@ for (const mode of ["buffered", "retained", "command", "mogrify"]) {
         expect(Object.entries(properties).filter(([key]) => key.toLowerCase() === "note"))
           .toEqual(note === undefined ? [] : [["NoTe", note]]);
         expect(properties.comment).toBe("hello");
-        const pixels = spawnSync("magick", ["-", "-depth", "8", "rgb:-"], { input });
+        const pixels = spawnSync(magick, ["-", "-depth", "8", "rgb:-"], { input });
         expect(pixels.status).toBe(0);
         expect([...pixels.stdout]).toEqual(Array.from({ length: 6 }, () => [200, 89, 30]).flat());
       }

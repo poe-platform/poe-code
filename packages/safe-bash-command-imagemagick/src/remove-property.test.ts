@@ -4,10 +4,12 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createMagickCommand, runConvertCli, runMogrifyCli } from "./index.js";
 
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
 for (const mode of ["buffered", "retained", "command", "mogrify"]) {
   for (const property of ["comment", "label", "asset", "missing"]) {
     it(`removes only ${property} through ${mode}`, async () => {
-      const fixture = spawnSync("magick", ["-size", "2x1", "xc:red", "-set", "comment", "old-note", "-set", "label", "old-label", "-set", "asset", "old-code", "png:-"]);
+      const fixture = spawnSync(magick, ["-size", "2x1", "xc:red", "-set", "comment", "old-note", "-set", "label", "old-label", "-set", "asset", "old-code", "png:-"]);
       expect(fixture.status).toBe(0);
       const fs = new MemoryFileSystem();
       await fs.writeFile("/input.png", fixture.stdout);
@@ -27,7 +29,7 @@ for (const mode of ["buffered", "retained", "command", "mogrify"]) {
         expect(result).toEqual({ exitCode: 0, stdout: "", stderr: "" });
       }
       const output = mode === "buffered" ? files.get(outputPath)! : await fs.readFile(outputPath);
-      const native = spawnSync("magick", ["identify", "-quiet", "-format", "%wx%h|%[comment]|%[label]|%[asset]", "-"], { input: output, encoding: "utf8" });
+      const native = spawnSync(magick, ["identify", "-quiet", "-format", "%wx%h|%[comment]|%[label]|%[asset]", "-"], { input: output, encoding: "utf8" });
       expect(native.status, native.stderr).toBe(0);
       expect(native.stdout).toBe(`2x1|${property === "comment" ? "" : "old-note"}|${property === "label" ? "" : "old-label"}|${property === "asset" ? "" : "old-code"}`);
     });

@@ -4,6 +4,8 @@ import { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli, runConvertCliSync } from "./index.js";
 
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
 for (const mode of ["buffered", "retained", "sync"] as const) {
     for (const alpha of [false, true]) {
         for (const gray of [false, true]) {
@@ -26,7 +28,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
                 expect([output.width, output.height]).toEqual([1, 1]);
                 // Normalize full 16-bit samples like native -depth 8, rather than truncating their high byte.
                 expect(output.data16 ? Array.from(output.data16, value => Math.round(value / 257)) : [...output.data]).toEqual(expected);
-                const native = spawnSync("magick", ["-size", "1x1", "xc:red", "xc:lime", "xc:blue", ...(alpha ? ["xc:red"] : []), ...options, "-depth", "8", "rgba:-"]);
+                const native = spawnSync(magick, ["-size", "1x1", "xc:red", "xc:lime", "xc:blue", ...(alpha ? ["xc:red"] : []), ...options, "-depth", "8", "rgba:-"]);
                 if (native.error && "code" in native.error && native.error.code === "ENOENT") return;
                 expect(native.status).toBe(0);
                 expect([...native.stdout]).toEqual(expected);

@@ -3,6 +3,8 @@ import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runMagickCli, runMagickCliSync } from "./index.js";
 
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
 // Uncompressed 4x3 RGB TIFFs with inline Artist and offset Model/Copyright ASCII tags.
 const fixtures = [
   "SUkqACwAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAANAAABBAABAAAABAAAAAEBBAABAAAAAwAAAAIBAwADAAAAzgAAAAMBAwABAAAAAQAAAAYBAwABAAAAAgAAAA4BAgAFAAAA1AAAABABAgAIAAAA2QAAABEBBAABAAAACAAAABUBAwABAAAAAwAAABYBBAABAAAAAwAAABcBBAABAAAAJAAAADsBAgAEAAAAUGF0AJiCAgAMAAAA4QAAAAAAAAAIAAgACABMZWFmAE1vZGVsNDIAQ29weXJpZ2h0IEEA",
@@ -14,7 +16,7 @@ const expected = "Pat|Model42|3|RGB|Copyright A|Leaf";
 for (const [index, fixture] of fixtures.entries()) {
   const bytes = Uint8Array.from(Buffer.from(fixture, "base64"));
   it(`matches native TIFF tag formatting (${index})`, () => {
-    const native = spawnSync("magick", ["identify", "-format", format, "-"], { input: bytes, encoding: "utf8" });
+    const native = spawnSync(magick, ["identify", "-format", format, "-"], { input: bytes, encoding: "utf8" });
     expect(native.status, native.stderr).toBe(0);
     expect(native.stdout).toBe(expected);
   });

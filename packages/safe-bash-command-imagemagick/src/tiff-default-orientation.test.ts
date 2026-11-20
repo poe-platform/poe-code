@@ -4,6 +4,8 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { decodeImage, encodeImage } from "@poe-code/image-ast/portable";
 import { runConvertCli, runConvertCliSync, runIdentifyCli } from "./index.js";
 
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
 for (const mode of ["sync", "buffered", "retained"] as const) {
   it.each([undefined, 8])(`preserves native TIFF orientation %s through PNG conversion (${mode})`, async orientation => {
     const pixels = Uint8Array.from([10, 40, 70, 100, 130, 160].flatMap(value => [value, value, value, 255]));
@@ -20,7 +22,7 @@ for (const mode of ["sync", "buffered", "retained"] as const) {
       expect(Array.from({ length: count - 1 }, (_, i) => view.getUint16(ifd + 2 + i * 12, true))).not.toContain(274);
     }
     const expected = orientation === undefined ? "TopLeft" : "LeftBottom";
-    const native = spawnSync("magick", ["identify", "-format", "%[orientation]", "-"], { input: data, encoding: "utf8" });
+    const native = spawnSync(magick, ["identify", "-format", "%[orientation]", "-"], { input: data, encoding: "utf8" });
     expect(native.status, native.stderr).toBe(0);
     expect(native.stdout).toBe(expected);
     const files = new Map([["/input.tif", data]]), filesystem = new MemoryFileSystem();
@@ -31,7 +33,7 @@ for (const mode of ["sync", "buffered", "retained"] as const) {
     expect(mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, input)).toEqual({ exitCode: 0, stdout: "", stderr: "" });
     const output = mode === "retained" ? await filesystem.readFile("/output.png") : files.get("/output.png")!;
     expect(decodeImage(output)).toMatchObject({ width: 3, height: 2, data: pixels, orientation: orientation ?? 1 });
-    const converted = spawnSync("magick", ["identify", "-format", "%[orientation]", "-"], { input: output, encoding: "utf8" });
+    const converted = spawnSync(magick, ["identify", "-format", "%[orientation]", "-"], { input: output, encoding: "utf8" });
     expect(converted.status, converted.stderr).toBe(0);
     expect(converted.stdout).toBe(expected);
   });

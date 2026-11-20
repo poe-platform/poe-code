@@ -4,6 +4,8 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createMagickCommand, runConvertCli } from "./index.js";
 
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
 const cases = [
   { edits: ["-set", "option:thing", "CAT", "-set", "label", "%[option:thing]"], label: "CAT" },
   { edits: ["-set", "option:thing", "CAT", "-set", "label", "%[thing]"], label: "CAT" },
@@ -18,9 +20,9 @@ const cases = [
 for (const mode of ["buffered", "retained", "command"]) {
   for (const { edits, label } of cases) {
     it(`expands ${edits.join(" ")} through ${mode}`, async () => {
-      const fixture = spawnSync("magick", ["-size", "3x2", "xc:#c8591e", "-set", "note", "original", "-set", "comment", "hello", "png:-"]);
+      const fixture = spawnSync(magick, ["-size", "3x2", "xc:#c8591e", "-set", "note", "original", "-set", "comment", "hello", "png:-"]);
       expect(fixture.status).toBe(0);
-      const native = spawnSync("magick", ["-", ...edits, "png:-"], { input: fixture.stdout });
+      const native = spawnSync(magick, ["-", ...edits, "png:-"], { input: fixture.stdout });
       expect(native.status).toBe(0);
       const fs = new MemoryFileSystem();
       await fs.writeFile("/in.png", fixture.stdout);
@@ -39,10 +41,10 @@ for (const mode of ["buffered", "retained", "command"]) {
       }
       const output = mode === "buffered" ? files.get("/out.png")! : await fs.readFile("/out.png");
       for (const input of [native.stdout, output]) {
-        const saved = spawnSync("magick", ["identify", "-quiet", "-format", "%[label]", "-"], { input, encoding: "utf8" });
+        const saved = spawnSync(magick, ["identify", "-quiet", "-format", "%[label]", "-"], { input, encoding: "utf8" });
         expect(saved.status, saved.stderr).toBe(0);
         expect(saved.stdout).toBe(label);
-        const pixels = spawnSync("magick", ["-", "-depth", "8", "rgb:-"], { input });
+        const pixels = spawnSync(magick, ["-", "-depth", "8", "rgb:-"], { input });
         expect(pixels.status).toBe(0);
         expect([...pixels.stdout]).toEqual(Array.from({ length: 6 }, () => [200, 89, 30]).flat());
       }

@@ -5,6 +5,8 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createMagickCommand, runConvertCli, runConvertCliSync } from "./index.js";
 
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
 for (const mode of ["buffered", "retained", "sync", "command"] as const) {
     for (const operation of [["-flatten"], ["-layers", "flatten"]]) {
         it.each([undefined, 1, 2, 3, 4, 5, 6, 7, 8])(`${mode} ${operation.join(" ")} preserves input orientation %s without rotating pixels`, async orientation => {
@@ -14,7 +16,7 @@ for (const mode of ["buffered", "retained", "sync", "command"] as const) {
             const input = decodeImage(bytes);
             expect(input.orientation).toBe(orientation);
             if (mode === "command") {
-                const native = spawnSync("magick", ["jpeg:-", "-background", "black", ...operation, "png:-"], { input: bytes });
+                const native = spawnSync(magick, ["jpeg:-", "-background", "black", ...operation, "png:-"], { input: bytes });
                 expect(native.status, native.stderr.toString()).toBe(0);
                 expect(decodeImage(native.stdout)).toMatchObject({ width: 3, height: 2, data: input.data });
                 expect(decodeImage(native.stdout).orientation).toBe(orientation);

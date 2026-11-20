@@ -5,6 +5,8 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createMagickCommand, runConvertCli } from "./index.js";
 
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
 // Native ImageMagick PNG24: red then blue, with RightTop in an orNT chunk.
 const input = Buffer.from("iVBORw0KGgoAAAANSUhEUgAAAAIAAAABCAIAAAB7QOjdAAAAAW9yTlQGUcbiOQAAAA9JREFUCNdj+M/AwMDwHwAHAAH/dtWnYAAAAABJRU5ErkJggg==", "base64");
 
@@ -32,7 +34,7 @@ for (const mode of ["buffered", "retained", "command"]) {
     const decoded = decodeImage(output);
     expect(decoded).toMatchObject({ width: autoOrient ? 1 : 2, height: autoOrient ? 2 : 1, orientation: autoOrient ? 1 : 6 });
     expect(Array.from(decoded.data)).toEqual([255, 0, 0, 255, 0, 0, 255, 255]);
-    const native = spawnSync("magick", ["identify", "-format", "%wx%h|%[orientation]", "-"], { input: output, encoding: "utf8" });
+    const native = spawnSync(magick, ["identify", "-format", "%wx%h|%[orientation]", "-"], { input: output, encoding: "utf8" });
     expect(native.status, native.stderr).toBe(0);
     expect(native.stdout).toBe(autoOrient ? "1x2|TopLeft" : "2x1|RightTop");
   });

@@ -4,6 +4,8 @@ import { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli, runConvertCliSync } from "./index.js";
 
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
 for (const mode of ["buffered", "retained", "sync"] as const) {
     for (const direction of ["-append", "+append"]) {
         for (const background of ["white", "#00ff0040"]) {
@@ -23,7 +25,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
                     : [padding, padding, padding, blue, blue, red, red, red, blue, blue, red, red, red, blue, blue].flat();
                 expect([output.width, output.height]).toEqual(direction === "-append" ? [3, 5] : [5, 3]);
                 expect([...output.data]).toEqual(expected);
-                const native = spawnSync("magick", [...args, "-depth", "8", "rgba:-"]);
+                const native = spawnSync(magick, [...args, "-depth", "8", "rgba:-"]);
                 if (native.error && "code" in native.error && native.error.code === "ENOENT") return;
                 expect(native.status).toBe(0);
                 expect([...native.stdout]).toEqual(expected);

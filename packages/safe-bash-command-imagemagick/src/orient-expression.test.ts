@@ -5,6 +5,8 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createMagickCommand, runConvertCli, runConvertCliSync, runIdentifyCli } from "./index.js";
 
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
 const data16 = Uint16Array.from({ length: 24 }, (_, index) => 1234 + index * 2571);
 const inputs = [1, 6].map(orientation => encodeImage({ width: 3, height: 2,
   data: Uint8Array.from(data16, value => Math.round(value / 257)), data16,
@@ -68,13 +70,13 @@ it.each([
   [1, ["-orient", "%[orientation]"]]
 ] as const)("matches native orientation expansion for input %s", async (index, options) => {
   const input = inputs[index]!;
-  const native = spawnSync("magick", ["-", ...options, "PNG64:-"], { input });
+  const native = spawnSync(magick, ["-", ...options, "PNG64:-"], { input });
   expect(native.status, native.stderr.toString()).toBe(0);
   const files = new Map([["/input.png", input]]);
   expect(await runConvertCli(["/input.png", ...options, "PNG64:/output.png"], files)).toMatchObject({ exitCode: 0 });
   const output = files.get("/output.png")!;
   expect(decodeImage(output)).toMatchObject({ width: 3, height: 2, orientation: 6, data16: decodeImage(native.stdout).data16 });
-  const tag = spawnSync("magick", ["identify", "-format", "%[orientation]", "-"], { input: output, encoding: "utf8" });
+  const tag = spawnSync(magick, ["identify", "-format", "%[orientation]", "-"], { input: output, encoding: "utf8" });
   expect(tag.status, tag.stderr).toBe(0);
   expect(tag.stdout).toBe("RightTop");
 });

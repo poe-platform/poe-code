@@ -5,6 +5,8 @@ import { createCommandArguments } from "safe-bash-contracts";
 import { decodeImage, encodeImage, readImageMetadata } from "@poe-code/image-ast/portable";
 import { createMagickCommand, runConvertCli } from "./index.js";
 
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
 const base = Buffer.from("R0lGODlhAgABAPAAAP8AAAAAACH/C05FVFNDQVBFMi4wAwEDAAAh+QQABwAAACwAAAAAAgABAAACAgQKACH5BAANAAAALAAAAAACAAEAgAAA/wAAAAICBAoAOw==", "base64");
 const profiles = [0, 1].map(frame => Uint8Array.from({ length: 588 }, (_, i) => (i + frame) % 256));
 const extension = (profile: Uint8Array) => {
@@ -38,11 +40,11 @@ for (const mode of ["buffered", "retained", "command"]) {
       if (!selected) expect(readImageMetadata(output).loop).toBe(4);
       expect(readImageMetadata(output).delay).toEqual(selected ? [130] : [70, 130]);
       expect(decodeImage(output, { animated: true }).data).toEqual(decodeImage(base, selected ? { page: 1 } : { animated: true }).data);
-      const native = spawnSync("magick", ["identify", "-quiet", "-format", "%[profiles]|", "-"], { input: output, encoding: "utf8" });
+      const native = spawnSync(magick, ["identify", "-quiet", "-format", "%[profiles]|", "-"], { input: output, encoding: "utf8" });
       expect(native.status, native.stderr).toBe(0);
       expect(native.stdout).toBe((strip ? "|" : "icc|").repeat(selected ? 1 : 2));
       if (!strip) {
-        const extracted = spawnSync("magick", ["-[0]", "icc:-"], { input: output });
+        const extracted = spawnSync(magick, ["-[0]", "icc:-"], { input: output });
         expect(extracted.status).toBe(0);
         expect(new Uint8Array(extracted.stdout)).toEqual(profiles[selected ? 1 : 0]);
       }

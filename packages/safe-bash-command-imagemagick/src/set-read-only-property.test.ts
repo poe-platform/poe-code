@@ -4,6 +4,8 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts";
 import { createMagickCommand, runConvertCli } from "./index.js";
 
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
 for (const mode of ["buffered", "retained", "command"]) {
   for (const [key, expected] of [["k", "24"], ["w", "6"], ["h", "4"], ["n", "1"], ["t", "in"], ["custom:key", "77"]] as const) {
     it(`preserves computed ${key} through ${mode}`, async () => {
@@ -32,11 +34,11 @@ for (const mode of ["buffered", "retained", "command"]) {
   }
   for (const key of ["width", "height", "size", "HEIGHT", "%[note]"]) {
     it(`warns without storing read-only ${key} through ${mode}`, async () => {
-      const fixture = spawnSync("magick", ["-size", "3x2", "xc:#c8591e", "-set", "note", "width", "-set", "comment", "hello", "png:-"]);
+      const fixture = spawnSync(magick, ["-size", "3x2", "xc:#c8591e", "-set", "note", "width", "-set", "comment", "hello", "png:-"]);
       expect(fixture.status).toBe(0);
       const value = key === "size" ? "50x40" : "99";
       const edits = ["-set", key, value, "-set", "note", "new"];
-      const native = spawnSync("magick", ["png:-", ...edits, "png:-"], { input: fixture.stdout });
+      const native = spawnSync(magick, ["png:-", ...edits, "png:-"], { input: fixture.stdout });
       expect(native.status).toBe(0);
       const expandedKey = key === "%[note]" ? "width" : key;
       expect(native.stderr.toString()).toContain(`attempt to set read-only property \`${expandedKey}'`);
@@ -69,10 +71,10 @@ for (const mode of ["buffered", "retained", "command"]) {
         offset += length + 12;
       }
       for (const name of ["width", "height", "size"]) expect(textKeys).not.toContain(name);
-      const properties = spawnSync("magick", ["identify", "-quiet", "-format", "%wx%h|%[note]|%[comment]", "-"], { input: output, encoding: "utf8" });
+      const properties = spawnSync(magick, ["identify", "-quiet", "-format", "%wx%h|%[note]|%[comment]", "-"], { input: output, encoding: "utf8" });
       expect(properties.status).toBe(0);
       expect(properties.stdout).toBe("3x2|new|hello");
-      const pixels = spawnSync("magick", ["-", "-depth", "8", "rgb:-"], { input: output });
+      const pixels = spawnSync(magick, ["-", "-depth", "8", "rgb:-"], { input: output });
       expect(pixels.status).toBe(0);
       expect([...pixels.stdout]).toEqual(Array.from({ length: 6 }, () => [200, 89, 30]).flat());
     });

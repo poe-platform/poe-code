@@ -4,6 +4,8 @@ import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { createMagickCommand, runConvertCli, runMagickCliSync } from "./index.js";
 
+const magick = process.env.IMAGEMAGICK_TEST_BINARY ?? "magick";
+
 const cases = [
     { name: "CMYK", input: ["xc:cmyk(10%,20%,30%,40%)"], hex: "2f9a" },
     { name: "HSL", input: ["xc:#4682b4", "-colorspace", "HSL"], hex: "78f5" },
@@ -18,7 +20,7 @@ for (const mode of ["command", "buffered", "retained", "sync"] as const) {
     for (const depth of [4, 16]) for (const ascii of [false, true]) {
         it.each(cases)(`${mode}: writes $name working intensity at depth ${depth}, ascii=${ascii}`, async ({ input, hex }) => {
             const args = [...input, "-depth", String(depth), ...(ascii ? ["-compress", "none"] : []), "pgm:-"];
-            const native = spawnSync("magick", args);
+            const native = spawnSync(magick, args);
             expect(native.status).toBe(0);
             if (depth === 16 && !ascii) expect(native.stdout.subarray(-2).toString("hex")).toBe(hex);
             const fs = new MemoryFileSystem();
@@ -55,7 +57,7 @@ it.each(["buffered", "retained", "sync"] as const)("%s: handles adjoined PGM fra
     expect(after.stderr).toBe("");
     expect(after.exitCode).toBe(0);
     expect(after.stdout).toBe(before.stdout);
-    const native = spawnSync("magick", [...input, "pgm:-"]);
+    const native = spawnSync(magick, [...input, "pgm:-"]);
     expect(native.status).toBe(0);
     expect(Buffer.from(mode === "retained" ? await fs.readFile("/out.pgm") : files.get("out.pgm")!)).toEqual(native.stdout);
 });

@@ -16,7 +16,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         const files = new Map<string, Uint8Array>(), filesystem = new MemoryFileSystem();
         const backend = mode === "retained" ? { filesystem, cwd: "/" } : files;
         for (const [spec, output] of [[geometry, "/actual.png"], [explicit, "/expected.png"]] as const) {
-            const args = ["-size", "5x4", "xc:none", "-fill", "red", "-draw", "rectangle 1,1 3,2", "-background", "blue", "-shadow", spec, output];
+            const args = ["-size", "5x4", "xc:none", "-fill", "red", "-draw", "rectangle 1,1 3,2", "-background", "blue", "-shadow", spec, "-depth", "8", output];
             const result = mode === "sync" ? runMagickCliSync(args, files) : await runMagickCli(args, backend);
             expect(result.exitCode, result.stderr).toBe(0);
         }
@@ -26,7 +26,7 @@ for (const mode of ["buffered", "retained", "sync"] as const) {
         expect(actual.virtualCanvas ?? { width: actual.width, height: actual.height, x: 0, y: 0 }).toEqual({ width: pageWidth, height: pageHeight, x, y });
         expect(actual.data).toEqual(expected.data);
         if (width === 9) {
-            // RGBA8 pixels captured from native ImageMagick for -shadow 60.
+            // ImageMagick 7.1.2-31 Q16-HDRI: -shadow 60 -depth 8 rgba:-.
             const alpha = [
                 0, 0, 0, 1, 1, 1, 0, 0, 0,
                 0, 1, 3, 7, 9, 7, 3, 1, 0,

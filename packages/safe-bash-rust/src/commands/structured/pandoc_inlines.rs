@@ -336,14 +336,10 @@ fn parse_inner(
         })
         .peekable();
     while i < bytes.len() {
-        if active_spans
-            .last()
-            .is_some_and(|span: &NativeSpan| span.close_start == i)
-        {
+        if let Some(span) = active_spans.pop_if(|span: &mut NativeSpan| span.close_start == i) {
             if !cur.is_empty() {
                 out.push(PandocInline::Text(std::mem::take(&mut cur)));
             }
-            let span = active_spans.pop().unwrap();
             let mut children = std::mem::take(&mut out);
             out = containers.pop().expect("matched span opener");
             if depth + containers.len() + span.smallcaps >= 64 {

@@ -14,8 +14,8 @@ for (const mode of ["buffered", "sync", "retained", "command"] as const) {
         [["xc:red", "-exit", "-not-an-option", "later.ppm"], [], ""],
         [["(", "xc:red", "-write", "saved.ppm", "-exit", ")", "later.ppm"], ["saved.ppm"], ""],
         [["xc:red", "-set", "comment", "-exit", "-depth", "8", "rgb:-"], [], "ff0000"],
-        [["xc:red", "--", "-exit"], ["-exit"], ""],
-    ] as const)(`stops only at an exit option (${mode}): %j`, async (args, names, hex) => {
+        [["xc:red", "--", "-exit"], [], "", "magick: no encode delegate for this image format 'XC'\n"],
+    ] as const)(`stops only at an exit option (${mode}): %j`, async (args, names, hex, error = "") => {
         const files = new Map<string, Uint8Array>();
         const filesystem = new MemoryFileSystem();
         const argumentValues = createCommandArguments(args);
@@ -28,8 +28,8 @@ for (const mode of ["buffered", "sync", "retained", "command"] as const) {
             stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } },
         }), stdout: "", stdoutBytes: Buffer.concat(chunks), stderr } : mode === "sync" ? runMagickCliSync(args, files)
             : await runMagickCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
-        expect(result.exitCode).toBe(0);
-        expect(result.stderr).toBe("");
+        expect(result.exitCode).toBe(error ? 1 : 0);
+        expect(result.stderr).toBe(error);
         const stdout = result.stdoutBytes ?? new TextEncoder().encode(result.stdout);
         expect(Buffer.from(stdout).toString("hex")).toBe(hex);
         const actualNames = mode === "command" || mode === "retained"

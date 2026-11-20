@@ -20,7 +20,8 @@ it.each(["sync", "buffered", "retained"] as const)("reads native MNG frames, tim
         const selected = input.endsWith("[1]");
         expect([decoded.width, decoded.height]).toEqual([16, selected ? 16 : 48]);
         expect(decoded.delay).toEqual(selected ? [400] : [200, 400, 400]);
-        expect(decoded.loop).toBe(2);
+        // Native omits the GIF animation loop extension for a single frame.
+        expect(decoded.loop).toBe(selected ? undefined : 2);
         const colors = Array.from({ length: selected ? 1 : 3 }, (_, i) => [...decoded.data.slice(i * 16 * 16 * 4, i * 16 * 16 * 4 + 4)]);
         expect(colors).toEqual(selected ? [[0, 255, 0, 255]] : [[255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255]]);
     }

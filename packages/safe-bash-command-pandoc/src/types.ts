@@ -107,7 +107,7 @@ export interface PdfOptions {
   readonly pageSize?: "a4" | "letter";
   readonly orientation?: "portrait" | "landscape";
   readonly margin?: number;
-  /** Only mono is currently supplied; other named families fail E_CAPABILITY. */
+  /** Sans and mono are bundled; serif requires an explicit font resource. */
   readonly font?: "serif" | "sans" | "mono";
   readonly fontSize?: number;
   readonly lineHeight?: number;

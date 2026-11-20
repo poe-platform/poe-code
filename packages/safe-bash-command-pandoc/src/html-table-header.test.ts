@@ -26,13 +26,14 @@ it.each(["json", "markdown"])("reads a leading th row like an explicit table hea
 });
 
 it.each([
-  ['<tr><th>A</th></tr><tr><td>x</td></tr>', 1, 1],
-  ['<tr><th>A</th></tr><tr><th>B</th></tr><tr><td>x</td></tr>', 1, 2],
-  ['<tr><td>A</td></tr><tr><th>x</th></tr>', 0, 2],
-  ['<tr><th>A</th><td>B</td></tr><tr><td>x</td><td>y</td></tr>', 0, 2],
-  ['<thead><tr><th>A</th></tr></thead><tbody><tr><th>x</th></tr></tbody>', 1, 1]
-])("preserves header and body row boundaries: %s", async (rows, heads, bodies) => {
+  ['<tr><th>A</th></tr><tr><td>x</td></tr>', 1, 0, 1],
+  ['<tr><th>A</th></tr><tr><th>B</th></tr><tr><td>x</td></tr>', 1, 0, 2],
+  ['<tr><td>A</td></tr><tr><th>x</th></tr>', 0, 0, 2],
+  ['<tr><th>A</th><td>B</td></tr><tr><td>x</td><td>y</td></tr>', 0, 0, 2],
+  ['<thead><tr><th>A</th></tr></thead><tbody><tr><th>x</th></tr></tbody>', 1, 1, 0]
+])("preserves header and body row boundaries: %s", async (rows, heads, sections, bodies) => {
   const table = JSON.parse(await convert(`<table>${rows}</table>`)).blocks[0].c;
   expect(table[3][1]).toHaveLength(heads);
+  expect(table[4][0][2]).toHaveLength(sections);
   expect(table[4][0][3]).toHaveLength(bodies);
 });

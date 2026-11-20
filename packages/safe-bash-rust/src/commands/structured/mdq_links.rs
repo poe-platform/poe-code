@@ -100,7 +100,7 @@ impl Target {
         }
     }
 
-    fn encode_uri(url: &str) -> String {
+    pub(super) fn encode_uri(url: &str) -> String {
         let mut encoded = String::new();
         for b in url.bytes() {
             if b.is_ascii_alphanumeric() || b";/?:@&=+$,-_.!~*'()#%".contains(&b) {
@@ -294,6 +294,21 @@ pub(super) enum Style {
 pub(super) struct Definitions {
     links: HashMap<String, Target>,
     pub last_link_wins: bool,
+    pub footnotes: bool,
+    pub pandoc_header_attributes: bool,
+    pub pandoc_auto_identifiers: bool,
+    pub pandoc_gfm_auto_identifiers: bool,
+    pub pandoc_bare_autolinks: bool,
+    pub pandoc_strikeout: bool,
+    pub pandoc_subscript: bool,
+    pub pandoc_superscript: bool,
+    pub pandoc_smart: bool,
+    pub pandoc_native_divs: bool,
+    pub pandoc_native_spans: bool,
+    pub pandoc_bracketed_spans: bool,
+    pub pandoc_link_attributes: bool,
+    pub pandoc_implicit_figures: bool,
+    pub pandoc_autolink_classes: bool,
     pub notes: HashMap<String, Vec<super::MdqBlock>>,
     pub note_keys: HashSet<String>,
 }
@@ -345,11 +360,12 @@ fn label(raw: &str) -> Option<(&str, usize)> {
     None
 }
 
-pub(super) fn definition(raw: &str) -> Option<(String, Target, usize)> {
+pub(super) fn definition(raw: &str, footnotes: bool) -> Option<(String, Target, usize)> {
     let (key, after) = label(raw)?;
-    if key
-        .strip_prefix('^')
-        .is_some_and(|note| !note.is_empty() && !note.contains([' ', '\t', '\n']))
+    if footnotes
+        && key
+            .strip_prefix('^')
+            .is_some_and(|note| !note.is_empty() && !note.contains([' ', '\t', '\n']))
     {
         return None;
     }
@@ -390,7 +406,7 @@ pub(super) fn definition(raw: &str) -> Option<(String, Target, usize)> {
 }
 
 pub(super) fn extract<'a>(mut paragraph: &'a str, defs: &mut Definitions) -> &'a str {
-    while let Some((key, target, used)) = definition(paragraph) {
+    while let Some((key, target, used)) = definition(paragraph, defs.footnotes) {
         if defs.last_link_wins { defs.links.insert(key, target); }
         else { defs.links.entry(key).or_insert(target); }
         paragraph = &paragraph[used..];
@@ -540,7 +556,7 @@ impl<'a> References<'a> {
                     };
                     for s in src.into_iter().chain(b.table_rows.iter().flatten()) {
                         pending.extend(
-                            super::mdq_inline_atoms(defs, &s.text, false)
+                            super::mdq_inline_atoms(defs, &s.text, false, true)
                                 .into_iter()
                                 .rev()
                                 .map(|(_, a)| Visit::Atom(a)),

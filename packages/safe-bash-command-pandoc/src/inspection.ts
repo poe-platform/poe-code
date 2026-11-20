@@ -21,7 +21,7 @@ export function inspectCommand(args: readonly string[], context: ConversionConte
       "--resource-path DIR[:DIR] --extract-media DIR --raw-content=reject|escape|retain\n" +
       "--pdf-page-size a4|letter --pdf-orientation portrait|landscape --pdf-margin POINTS\n" +
       "--pdf-font FAMILY|PATH --pdf-font-size POINTS --pdf-line-height MULTIPLIER\n" +
-      "PDF families: mono bundled; serif/sans unavailable (E_CAPABILITY). Font paths use only the admitted VFS.\n" +
+      "PDF families: sans/mono bundled; serif unavailable (E_CAPABILITY). Font paths use only the admitted VFS.\n" +
       "--epub-title TEXT --epub-language TEXT --epub-identifier TEXT --epub-chapter-level 1..6\n" +
       "--list-input-formats --list-output-formats --list-extensions FORMAT --help/-h --version/-v\n" +
       "--list-highlight-languages --list-highlight-styles --print-highlight-style STYLE\n" +

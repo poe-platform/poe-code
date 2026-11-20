@@ -22,7 +22,13 @@ it("delivers built-in PDF bytes without an injected writer", async () => {
 it("uses shared PDF budgets and reports unsupported AST rather than projection", async () => {
   await expect(writeDocument(document, {to: "pdf"}, {limits: {glyphs: 1}})).rejects.toMatchObject({code: "E_LIMIT"});
   await expect(writeDocument(document, {to: "pdf"}, {limits: {fonts: 0}})).rejects.toMatchObject({code: "E_LIMIT"});
-  await expect(writeDocument({...document, blocks: [{t: "RawBlock", c: ["html", "<b>x</b>"]}]}, {to: "pdf"}, {})).rejects.toMatchObject({code: "E_CAPABILITY"});
+  await expect(writeDocument({...document, blocks: [{t: "RawBlock", c: ["html", "<custom>x</custom>"]}]}, {to: "pdf"}, {})).rejects.toMatchObject({code: "E_CAPABILITY"});
+});
+it("preserves supported raw HTML emphasis in PDF", async () => {
+  const result = await writeDocument({...document, blocks: [{t: "RawBlock", c: ["html", "<b>x</b>"]}]}, {to: "pdf"}, {});
+  if (result.kind !== "binary") throw Error("Expected PDF");
+  expect((await PDFDocument.load(result.bytes)).getPageCount()).toBe(1);
+  expect(new TextDecoder().decode(result.bytes)).toContain("/BaseFont /LiberationSans-Bold");
 });
 it("publishes PDF through the thin safe-bash adapter into memfs", async () => {
   const volume = Volume.fromJSON({"/input.md": "Hello PDF"});
@@ -31,13 +37,39 @@ it("publishes PDF through the thin safe-bash adapter into memfs", async () => {
   expect(result.exitCode).toBe(0); expect(stderr).toHaveLength(0); expect(stdout).toHaveLength(0);
   expect((await PDFDocument.load(new Uint8Array(volume.readFileSync("/output.pdf") as Buffer))).getPageCount()).toBe(1);
 });
-it("adapts rectangular tables and rejects spanning cells", async () => {
+it("adapts rectangular tables and rejects row spans beyond the source grid", async () => {
   const cell = [ ["", [], []], "AlignLeft", 1, 1, document.blocks ] as const;
   const table = {t: "Table", c: [["", [], []], [null, []], [["AlignLeft", {t: "ColWidthDefault"}]], [["", [], []], [[["", [], []], [cell]]]], [], [["", [], []], []]]} as const;
   const result = await writeDocument({...document, blocks: [table]}, {to: "pdf"}, {});
   expect(result.kind).toBe("binary");
   const spanning = {...table, c: [...table.c.slice(0, 3), [["", [], []], [[["", [], []], [[cell[0], cell[1], 2, 1, cell[4]]]]]], table.c[4], table.c[5]]} as unknown as Document["blocks"][number];
   await expect(writeDocument({...document, blocks: [spanning]}, {to: "pdf"}, {})).rejects.toMatchObject({code: "E_AST"});
+});
+
+it.each([["a", "c.", "d."], ["A", "C.", "D."], ["i", "iii.", "iv."], ["I", "III.", "IV."]])("preserves %s ordered-list markers in PDF", async (type, first, second) => {
+  const source = `<ol type="${type}" start="3"><li>First item</li><li>Second item</li></ol>`;
+  const output = await convert([{bytes: new TextEncoder().encode(source)}], {from: "html", to: "pdf"}, {});
+  if (output.kind !== "binary") throw Error("Expected PDF");
+  const readback = await convert([{bytes: output.bytes}], {from: "pdf", to: "plain"}, {});
+  if (readback.kind !== "text") throw Error("Expected text");
+  const text = readback.text.replace(/\s+/gu, " ");
+  expect(text).toContain(`${first} First item`);
+  expect(text).toContain(`${second} Second item`);
+});
+
+it.each([
+  ["rich cell blocks", '<table><tr><td><h2>Cell heading</h2><pre><code>Code line\n  Indented line</code></pre><ol type="I" start="3"><li>List first</li><li>List second</li></ol><blockquote><p>Quoted cell</p></blockquote><hr><p>After rule</p></td></tr></table>', ["Cell heading", "Code line", "Indented line", "III. List first", "IV. List second", "Quoted cell", "After rule"]],
+  ["nested table cells", '<table><tr><td>Outer cell<table><tr><td>Nested left</td><td>Nested right</td></tr></table></td></tr></table>', ["Outer cell", "Nested left", "Nested right"]],
+  ["merged cells", '<table><thead><tr><th colspan="2">Wide header</th><th>Side header</th></tr></thead><tbody><tr><td rowspan="2">Tall cell</td><td>Middle cell</td><td>Right cell</td></tr><tr><td colspan="2">Bottom cell</td></tr></tbody></table>', ["Wide header", "Side header", "Tall cell", "Middle cell", "Right cell", "Bottom cell"]],
+] as const)("preserves PDF content for %s through the public HTML reader", async (_name, source, labels) => {
+  const output = await convert([{bytes: new TextEncoder().encode(source)}], {from: "html", to: "pdf"}, {});
+  if (output.kind !== "binary") throw Error("Expected PDF");
+  expect(output.diagnostics).toEqual([]);
+  expect((await PDFDocument.load(output.bytes)).getPageCount()).toBe(1);
+  const readback = await convert([{bytes: output.bytes}], {from: "pdf", to: "plain"}, {});
+  if (readback.kind !== "text") throw Error("Expected text");
+  const text = readback.text.replace(/\s+/gu, " ");
+  for (const label of labels) expect(text).toContain(label);
 });
 it("advertises only applicable PDF writer options", () => {
   expect(() => createFormatRegistry().validateOptions("pdf", "write", ["pdf"])).not.toThrow();

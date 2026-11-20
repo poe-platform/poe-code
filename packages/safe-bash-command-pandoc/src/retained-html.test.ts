@@ -26,6 +26,32 @@ async function compare(blocks: Block[], options: Partial<ConversionOptions> = {}
   return text;
 }
 
+it.each(["direction:rtl;direction:ltr;unicode-bidi:isolate", " Unicode-bidi : ISOLATE-OVERRIDE ; ", " ; ", "direction:" + " ".repeat(9000) + "rtl", "direction:rtl;".repeat(1400)])("retains bounded safe bidi styles: %s", async style => {
+  await compare([para({t: "Span", c: [["", [], [["style", style]]], [str("text")]]})]);
+});
+
+it.each(["color:red;direction:rtl", "direction:url(secret)", "unicode-bidi:unknown", "dire ction:rtl", "direction:rtl;broken"])("rejects unsupported styles in both HTML writers: %s", async style => {
+  const wire = await writeDocument({blocks: [para({t: "Span", c: [["", [], [["style", style]]], [str("text")]]})], metadata: {}, resources: []}, {to: "json"}, {});
+  if (wire.kind !== "text") throw new Error("Expected JSON");
+  const input = {bytes: new TextEncoder().encode(wire.text)}, options = {from: "json", to: "html"};
+  await expect(convert([input], options, {})).rejects.toMatchObject({code: "E_CAPABILITY", message: "Unsupported HTML style"});
+  const fs = new MemoryFileSystem(), write = vi.fn(async () => {});
+  await expect(convertToOutput([input], options, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {write, async close() {}, async abort() {}}})).rejects.toMatchObject({code: "E_CAPABILITY", message: "Unsupported HTML style"});
+  expect(write).not.toHaveBeenCalled(); expect(await fs.readdir("/")).toEqual([]);
+});
+
+it.each([
+  [[["role", "rowheader"]], true],
+  [[["role", " ".repeat(9000) + "columnheader "]], true],
+  [[["scope", "COL"]], true],
+  [[["role", "cell"], ["scope", "row"]], true],
+  [[["role", "cell rowheader"]], false],
+  [[["scope", "auto"]], false]
+] as const)("preserves cell header hints in both HTML writers: %j", async (pairs, header) => {
+  const text = await compare([{t: "Table", c: [attr, [null, []], [["AlignDefault", {t: "ColWidthDefault"}]], [attr, []], [[attr, 0, [], [[attr, [[["", [], pairs], "AlignDefault", 1, 1, [{t: "CodeBlock", c: [attr, "cell code"]}]]]]]]], [attr, []]]}]);
+  expect(text).toContain(header ? "<th " : "<td ");
+});
+
 it("renders Pandoc JSON checkboxes only at the start of a list item", async () => {
   const task: Block = {t: "Plain", c: [str("☐"), {t: "Space"}, {t: "Emph", c: [str("todo")]}]};
   const nested: Block = {t: "BulletList", c: [[task]]};

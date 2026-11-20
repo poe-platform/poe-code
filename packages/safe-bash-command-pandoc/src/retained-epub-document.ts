@@ -3,6 +3,7 @@ import {BackedJson} from "./backed-json.js";
 import {readRetainedEpubBook} from "./epub-retained-book.js";
 import {readRetainedJson} from "./retained-json.js";
 import {PandocError} from "./errors.js";
+import type {RtfValue} from "./retained-rtf-ast.js";
 import type {RetainedAstUsage} from "./retained-ast-budgets.js";
 import type {ExecutionContext} from "./execution.js";
 import type {InputSource, WorkingStorageOptions} from "./types.js";
@@ -24,6 +25,35 @@ export async function readRetainedEpubDocument(input: InputSource, context: Exec
   try {
     if ("bytes" in input) {context.charge("inputBytes", input.bytes.length); context.charge("compressedBytes", input.bytes.length);}
     book = await readRetainedEpubBook(input, storage, context);
+    // XHTML produces the internal AST: convert only contextual enum positions
+    // to Pandoc wire constructors, leaving authored strings untouched.
+    const ast = book.ast;
+    const enumeration = async (tuple: RtfValue, index: number) => {
+      const source = (await ast.at(tuple, index))!;
+      if (await ast.kind(source) !== "string") return;
+      const value = await ast.object();
+      await ast.push(value, await ast.value(["t", source]));
+      await ast.set(tuple, index, value);
+    };
+    const rows = async (value: RtfValue) => {
+      for await (const row of ast.children(value)) for await (const cell of ast.children((await ast.at(row, 1))!)) await enumeration(cell, 1);
+    };
+    for (const root of [book.blocks, book.metadata]) await ast.walk(root, async (node, _depth, leaving) => {
+      if (leaving) return;
+      const name = await ast.name(node);
+      if (name !== "Table" && name !== "OrderedList") return;
+      const content = (await ast.content(node))!;
+      if (name === "OrderedList") {
+        const attributes = (await ast.at(content, 0))!;
+        await enumeration(attributes, 1); await enumeration(attributes, 2);
+      } else {
+        for await (const column of ast.children((await ast.at(content, 2))!)) await enumeration(column, 0);
+        for (const index of [3, 5]) await rows((await ast.at((await ast.at(content, index))!, 1))!);
+        for await (const body of ast.children((await ast.at(content, 4))!)) {
+          await rows((await ast.at(body, 2))!); await rows((await ast.at(body, 3))!);
+        }
+      }
+    });
     const tree = new BackedJson(wire, units => context.cooperate(units));
     await tree.begin("object"); await tree.key("pandoc-api-version"); await tree.value([1, 23, 1, 2]);
     await tree.key("meta"); await book.ast.write(book.metadata, tree);

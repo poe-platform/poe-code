@@ -62,7 +62,17 @@ class HtmlWriter {
     const seen = new Set(["id", "class"]);
     const imageStyles: string[] = [];
     for(const [name, value] of attr[2]) {
-      const allowed = ["title", "lang", "dir", "role"].includes(name) || name.startsWith("data-") || name.startsWith("aria-");
+      if (name === "style" && !seen.has(name)) {
+        seen.add(name);
+        for (const declaration of value.split(";")) {
+          if (!declaration.trim()) continue;
+          const colon = declaration.indexOf(":"), property = declaration.slice(0, colon).trim().toLowerCase(), setting = declaration.slice(colon + 1).trim().toLowerCase();
+          if (colon < 0 || !(property === "direction" && ["ltr", "rtl"].includes(setting) || property === "unicode-bidi" && ["isolate", "isolate-override"].includes(setting))) this.fail("Unsupported HTML style");
+          imageStyles.push(`${property}:${setting}`);
+        }
+        continue;
+      }
+      const allowed = ["title", "lang", "dir", "role", "scope"].includes(name) || name.startsWith("data-") || name.startsWith("aria-");
       const key = codeBlock && !allowed ? `data-${name}` : name;
       if (image && (key === "width" || key === "height") && !seen.has(key)) {
         seen.add(key);
@@ -215,7 +225,7 @@ class HtmlWriter {
     for(const placed of placeRows(rows, cols.length, path, rowHeads)) {
       if (this.context.sinceYield !== undefined && this.context.sinceYield < 255) this.context.checkpoint(); else await this.context.cooperate(); if(!placed) continue;
       while(current < placed.row) {if(current >= 0) this.add("</tr>\n"); current++; this.add("<tr"); this.attrs(rows[current]![0]); this.add(">\n");}
-      const cell = placed.cell, head = header || placed.column < rowHeads, tag = head ? "th" : "td";
+      const cell = placed.cell, head = header || placed.column < rowHeads || cell[0][2].some(([name, value]) => name === "role" && ["rowheader", "columnheader"].includes(value.trim()) || name === "scope" && ["row", "col", "rowgroup", "colgroup"].includes(value.trim().toLowerCase())), tag = head ? "th" : "td";
       this.add(`<${tag}`);
       if(cell[3] !== 1) this.attribute("colspan", String(cell[3]));
       if(cell[2] !== 1) this.attribute("rowspan", String(cell[2]));

@@ -50,3 +50,34 @@ vectors and native image/codec checks. Representative dimensions match the SDK;
 mean channel differences stay below 3/255, with inspected styles and box borders.
 Rasterization is not pixel-identical. Full malformed/getter, general SVG,
 cross-platform, aggregate and performance acceptance remain unfinished.
+
+Rust callers can also use `png::decode(bytes, limit)` and `jpeg::decode(bytes, limit)`
+to obtain owned RGBA pixels and image metadata. The bounded PNG decoder preserves
+palette transparency, 16-bit samples and Adam7 interlacing; the JPEG decoder
+supports baseline and progressive images. These are the same extracted codecs
+used by the shell and the standalone PDF writer.
+
+`png::decode_async`, `jpeg::decode_async` and `png::deflate_async` expose the same
+codecs as cooperative futures. Their synchronous counterparts drive those same
+implementations. CRC, inflation, filtering, pixel reconstruction and compression
+yield in bounded batches, allowing a browser host to cancel between polls.
+
+`office_image::characterize` admits PNG, JPEG, GIF, BMP and TIFF headers for Office embedding and preserves independent horizontal/vertical resolution. It validates the container header without decoding pixels.
+
+`gif::decode_async`, `bmp::decode_async` and `tiff::decode_async` share the shell's
+first-party Rust raster decoders with the PDF writer. GIF exports the first
+frame on its logical canvas, with unpainted pixels transparent as in browsers;
+its animation callback preserves subsequent frame disposal. BMP supports CORE
+and Windows RGB/bitfield headers, indexed pixels and bounded RLE8. TIFF exports
+the first page and supports chunky bilevel/gray/RGB samples, 8/16-bit channels,
+straight/associated alpha, strips/tiles, horizontal prediction, raw, PackBits,
+LZW, Deflate, JPEG and CCITT compression. Unsupported BMP color profiles/RLE4
+and TIFF palette/CMYK/separate-plane/color-profile encodings fail explicitly.
+Truncated pixel data is never replaced with blank pixels. Office embedding
+characterizes headers and retains original bytes, including profiles that the
+PDF raster decoder does not support; it does not validate compressed payloads.
+
+Independent Pillow/libtiff fixtures test decoded pixels, dimensions, alpha,
+compression, memory boundaries and cooperative cancellation. Pandoc is a
+comparison, with explicit exceptions where its TeX route crops GIF canvases,
+misplaces BMP RLE8 deltas or mishandles associated-alpha/JPEG TIFFs.

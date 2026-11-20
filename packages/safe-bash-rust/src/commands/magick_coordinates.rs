@@ -365,27 +365,11 @@ impl Raster {
         Ok(())
     }
     pub fn orient(&mut self, code: u8) {
-        match code {
-            2 | 4 => {
-                if code == 4 {
-                    self.pixels.reverse();
-                }
-                for row in self.pixels.chunks_exact_mut(self.width.max(1)) {
-                    row.reverse();
-                }
-            }
-            3 => self.pixels.reverse(),
-            5..=8 => self.remap(self.height, self.width, |im, x, y| {
-                let sx = if code >= 7 { im.width - 1 - y } else { y };
-                let sy = if matches!(code, 6 | 7) {
-                    im.height - 1 - x
-                } else {
-                    x
-                };
-                im.pixels[sy * im.width + sx]
-            }),
-            _ => {}
-        }
+        (self.width, self.height) = mcp_protocol_rust::cooperate::block_on(
+            terminal_png_rust::image::orient_async(
+                self.width, self.height, &mut self.pixels, code, usize::MAX,
+            ),
+        ).expect("valid raster dimensions");
     }
 
     pub fn rotate(&mut self, degrees: f64, bg: [u8; 4], limit: usize) -> Result<(), &'static str> {

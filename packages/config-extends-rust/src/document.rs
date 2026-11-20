@@ -207,6 +207,7 @@ pub fn parse_document(
             yaml::ParseOptions {
                 unique_keys: true,
                 object_root: false,
+                ..Default::default()
             },
         )
         .map_err(|diagnostic| error(diagnostic.to_string()))?,

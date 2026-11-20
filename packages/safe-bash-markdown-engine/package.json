@@ -63,6 +63,6 @@
     "test": "node --import tsx --test src/*.test.ts",
     "test:unit": "node --import tsx --test src/*.test.ts"
   },
-  "dependencies": {},
+  "dependencies": {"@poe-code/document-converter-rust": "*"},
   "devDependencies": {}
 }

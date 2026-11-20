@@ -1,7 +1,8 @@
 import {validateEpubFallbacks} from "./epub-fallbacks.js";
+import {epubDirectionStyle} from "./epub-direction-style.js";
 import {selectEpubTokens} from "./epub-control-tokens.js";
 import type {RetainedXmlDocument, RetainedXmlNode} from "@poe-code/office-xml/retained-xml-document";
-import {equal, literal} from "@poe-code/office-xml/retained-values";
+import {characters, equal, literal} from "@poe-code/office-xml/retained-values";
 import {ZipDirectoryIndex} from "@poe-code/office-package/zip";
 import {IntegerTable, type PagedStorage} from "safe-bash-io-engine/storage";
 import {EpubManifest, type ManifestItem} from "./epub-manifest.js";
@@ -128,7 +129,10 @@ export async function readRetainedEpubBook(input: InputSource, storage: PagedSto
         }
         if (type.includes("noteref")) {const target = resolve(await attr(document, node, "href"), part, ctx); const key = identity(target.part, target.fragment); await noteRefs.add(key); await notes.reference(key);}
         const name = await text(document.raw(node.localName));
-        if (name === "style" || await attr(document, node, "style") || name === "link" && (await selectEpubTokens(attrSource(document, node, "rel"), ["stylesheet"], async () => ctx.cooperate())).includes("stylesheet")) warn(part, "Unsupported EPUB CSS styling/layout loss");
+        const inlineStyle = epubDirectionStyle(characters(attrSource(document, node, "style")));
+        let style = await inlineStyle.next();
+        while (!style.done) style = await inlineStyle.next();
+        if (name === "style" || style.value || name === "link" && (await selectEpubTokens(attrSource(document, node, "rel"), ["stylesheet"], async () => ctx.cooperate())).includes("stylesheet")) warn(part, "Unsupported EPUB CSS styling/layout loss");
         if (["audio", "video", "object", "embed", "svg", "math"].includes(name)) warn(part, `Unsupported EPUB media loss: ${name}`);
         if (name === "script" || await attr(document, node, "onload") || await attr(document, node, "onclick")) warn(part, "EPUB script content ignored");
         if (await attr(document, node, "base", "http://www.w3.org/XML/1998/namespace")) fail(part, "Unsupported XHTML xml:base resource identity");
@@ -155,6 +159,7 @@ export async function readRetainedEpubBook(input: InputSource, storage: PagedSto
       const pairs = await ast.value([["data-epub-source", item.part], ["data-epub-item-id", item.id], ["data-epub-linear", linear]]);
       const lang = mapped.language ?? language;
       if (lang && (await ast.range(lang)).units) await ast.push(pairs, await ast.value(["lang", lang]));
+      if (mapped.direction) await ast.push(pairs, await ast.value(["dir", mapped.direction]));
       await ast.push(chapters, await ast.tag("Div", await ast.value([[identity(item.part), ["epub-chapter"], pairs], mapped.blocks])));
       await chapterParts.add(item.part);
     }
@@ -201,7 +206,12 @@ export async function readRetainedEpubBook(input: InputSource, storage: PagedSto
             for await (const pair of ast.children(third)) {
               const key = await valueText((await ast.at(pair, 0))!);
               if (key === "epub:type" || key === "xml:lang") {await ast.set(pair, 0, await ast.value(key === "epub:type" ? "data-epub-type" : "lang")); await ast.push(pairs, pair);}
-              else if (["title", "lang", "dir", "role"].includes(key) || key.startsWith("data-") || key.startsWith("aria-")) await ast.push(pairs, pair);
+              else if (["title", "lang", "dir", "role", "scope"].includes(key) || key.startsWith("data-") || key.startsWith("aria-")) await ast.push(pairs, pair);
+              else if (key === "style") {
+                const style = await ast.text.from(epubDirectionStyle(ast.text.chunks(await ast.range((await ast.at(pair, 1))!))));
+                if (style.units) await ast.push(pairs, await ast.value([key, await ast.string(style)]));
+                else warn(part, `Unsupported EPUB XHTML attribute loss: ${key}`);
+              }
               else warn(part, `Unsupported EPUB XHTML attribute loss: ${key}`);
             }
             await ast.set(value, 2, pairs);

@@ -12,7 +12,7 @@ import { collectPackageFiles, findBundleIssues, canonicalFs, canonicalFsRoutes, 
 import { publishDeclarations } from "./publish-declarations.mjs";
 import { resolveCanonicalFsBuilds, resolveWorkerdRuntimeBuild } from "./bundle-fs.mjs";
 import { readBuiltNativeAssets, copyNativeAssets } from "../packages/safe-fs/scripts/native-assets.mjs";
-import { resolveBrowserShellBuild, resolvePortableBufferBuild } from "./bundle-safe-bash.mjs";
+import { resolveBrowserShellBuild, resolvePortableBufferBuild, publishDocumentConverterLicenses } from "./bundle-safe-bash.mjs";
 import { resolveSpreadsheetSdkBuilds } from "./bundle-spreadsheets.mjs";
 import { publishRootImagePackage } from "./bundle-image.mjs";
 
@@ -171,6 +171,7 @@ await publishBundleOutputs(browserShellBuild, {
   outdir: browserShellOptions.outdir, entryPoints: Object.values(browserShellOptions.entryPoints), workingDirectory: rootDir,
 });
 consumerBuilds.push(browserShellBuild);
+await publishDocumentConverterLicenses(rootDir);
 const portableBufferOptions = resolvePortableBufferBuild(rootDir);
 const portableBufferBuild = await esbuild.build(portableBufferOptions);
 await publishBundleOutputs(portableBufferBuild, {

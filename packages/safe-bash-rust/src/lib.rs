@@ -46,9 +46,11 @@ pub mod backend;
 pub mod budget;
 mod intl;
 pub mod commands;
+pub use commands::document;
 pub mod fs;
 pub mod shell;
 pub mod vfs;
+#[cfg(feature = "shell-wasm")]
 pub mod wasm;
 
 pub use agent::{

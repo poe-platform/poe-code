@@ -15,7 +15,8 @@
   "files": [
     "dist",
     "LICENSE",
-    "OFL.txt"
+    "OFL.txt",
+    "LICENSE.DejaVu"
   ],
   "scripts": {
     "build": "node ../../scripts/guard-package-dist.mjs && tsc",
@@ -30,5 +31,13 @@
   },
   "devDependencies": {
     "@poe-code/compression": "*"
+  },
+  "poeCode": {
+    "safeLibraryNotices": {
+      "safe-bash": [
+        "./OFL.txt",
+        "./LICENSE.DejaVu"
+      ]
+    }
   }
 }

@@ -130,7 +130,7 @@ export async function prepareRetainedImageResources(tree: BackedJson, order: Awa
   };
   const dataPrefix = (url: string): number => {
     const comma = url.indexOf(",");
-    return comma >= 0 && ["data:image/png;base64", "data:image/jpg;base64", "data:image/jpeg;base64"].includes(url.slice(0, comma).toLowerCase()) ? comma + 1 : 0;
+    return comma >= 0 && ["data:image/png;base64", "data:image/jpg;base64", "data:image/jpeg;base64", "data:image/gif;base64", "data:image/bmp;base64", "data:image/x-ms-bmp;base64", "data:image/tif;base64", "data:image/tiff;base64"].includes(url.slice(0, comma).toLowerCase()) ? comma + 1 : 0;
   };
   const admitEmbedded = async (): Promise<number> => {
     context.charge("references", 1);

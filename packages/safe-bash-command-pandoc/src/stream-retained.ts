@@ -167,6 +167,19 @@ export async function streamRetainedDocument(load: () => Promise<Awaited<ReturnT
       finally {release();}
       if (filterFailure) throw filterFailure.reason;
     }
+    if (target !== "json") {
+      const tree = document.tree, end = (await tree.describe(tree.rootPosition)).end;
+      for (let position = tree.rootPosition; position < end;) {
+        await context.cooperate();
+        const header = await tree.describe(position);
+        if (header.kind === "object") {
+          const tag = await tree.property(position, "t");
+          if (tag !== undefined && await tree.smallText(tag, 6) === "Vector")
+            throw new PandocError("E_UNSUPPORTED_FEATURE", "convert", "Vector requires JSON, DOCX, or PDF output");
+        }
+        position = header.kind === "object" || header.kind === "array" ? position + 32 : header.end;
+      }
+    }
     if (["plain", "commonmark", "gfm", "rtf", "odt"].includes(target) && !(target === "gfm" && createFormatRegistry().resolve(options.to, "write").extensions.tex_math_dollars)) await assertRetainedPlainMath(document.tree, document.order, context);
     if (options.shiftHeadingLevelBy || options.stripComments) {
       const next = await transformRetainedJson(document.tree, context, working, options, origins?.copy());

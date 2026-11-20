@@ -1,3 +1,5 @@
+pub(super) use document_converter_rust::html::dom::{HtmlElement, HtmlNode, bounded_html_dom};
+use document_converter_rust::html::dom::{is_void_html_tag, parse_html_dom};
 mod csvkit_calendar;
 #[cfg(test)]
 mod xlsx_rows_tests;
@@ -35,8 +37,15 @@ mod pandoc_docx;
 mod pandoc_epub;
 mod pandoc_plain_table;
 mod pandoc_raw_inline;
+mod pandoc_binary_json;
+mod pandoc_headings;
+mod pandoc_metadata;
 mod pandoc_table;
 mod pandoc_list;
+mod pandoc_notes;
+mod pandoc_blocks;
+mod pandoc_inlines;
+use pandoc_inlines::parse as parse_pandoc_md_inlines;
 #[cfg(test)]
 mod pandoc_reference_tests;
 #[cfg(test)]
@@ -49,8 +58,7 @@ use mdq_writer::{Block as MdqLayout, Writer as MdqWriter};
 use jq_input::JqInputs;
 mod json_format;
 use json_format::{JsonFormat, JsonStrings, escape_json_str};
-#[path = "mermaid.rs"]
-mod mermaid;
+use diagram_renderer_rust::mermaid;
 use crate::commands::search::ZeroRegex;
 use std::cell::{Cell, RefCell};
 use std::rc::Rc;
@@ -14622,22 +14630,6 @@ fn cmd_xan(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
 }
 
-fn find_tag_close_gt(s: &str) -> Option<usize> {
-    let mut in_q: Option<char> = None;
-    for (idx, ch) in s.char_indices() {
-        if let Some(q) = in_q {
-            if ch == q {
-                in_q = None;
-            }
-        } else if ch == '"' || ch == '\'' {
-            in_q = Some(ch);
-        } else if ch == '>' {
-            return Some(idx);
-        }
-    }
-    None
-}
-
 fn apply_xml_transforms(
     nodes: &mut Vec<XmlNode>,
     noblanks: bool,
@@ -25035,19 +25027,6 @@ fn cmd_htmlq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
     ok_out(&out)
 }
 #[derive(Clone, Debug)]
-pub(super) enum HtmlNode {
-    Text(String),
-    Element(HtmlElement),
-}
-
-#[derive(Clone, Debug)]
-pub(super) struct HtmlElement {
-    pub(super) tag: String,
-    pub(super) attrs: Vec<(String, String)>,
-    pub(super) children: Vec<HtmlNode>,
-}
-
-#[derive(Clone, Debug)]
 struct HtmlAnc {
     tag: String,
     attrs: Vec<(String, String)>,
@@ -25057,238 +25036,6 @@ struct HtmlAnc {
     elem_count: usize,
     type_count: usize,
     prev_siblings: Vec<HtmlAnc>,
-}
-
-fn is_void_html_tag(tag: &str) -> bool {
-    matches!(
-        tag,
-        "area"
-            | "base"
-            | "br"
-            | "col"
-            | "embed"
-            | "hr"
-            | "img"
-            | "input"
-            | "link"
-            | "meta"
-            | "param"
-            | "source"
-            | "track"
-            | "wbr"
-    )
-}
-
-fn parse_html_dom(src: &str) -> Vec<HtmlNode> {
-    let mut pos = 0usize;
-    parse_html_children(src, &mut pos, None, usize::MAX)
-}
-
-pub(super) fn bounded_html_dom(src: &str) -> Option<Vec<HtmlNode>> {
-    let mut pos = 0usize;
-    let nodes = parse_html_children(src, &mut pos, None, 96);
-    (pos <= src.len()).then_some(nodes)
-}
-
-fn parse_html_children(src: &str, pos: &mut usize, stop_tag: Option<&str>, depth: usize) -> Vec<HtmlNode> {
-    if depth == 0 {
-        *pos = src.len() + 1;
-        return vec![];
-    }
-    let mut out = Vec::new();
-    let bytes = src.as_bytes();
-    while *pos < bytes.len() {
-        if let Some(rel_lt) = src[*pos..].find('<') {
-            if rel_lt > 0 {
-                let text = &src[*pos..*pos + rel_lt];
-                out.push(HtmlNode::Text(unescape_xml_entities(text)));
-                *pos += rel_lt;
-            }
-            let rest = &src[*pos..];
-            if rest.starts_with("<!--") {
-                if let Some(end) = rest.find("-->") {
-                    *pos += end + 3;
-                } else {
-                    *pos = bytes.len();
-                }
-                continue;
-            }
-            if rest.len() > 2 && (rest.starts_with("<!") || rest.starts_with("<?")) {
-                if let Some(end) = rest.find('>') {
-                    *pos += end + 1;
-                } else {
-                    *pos = bytes.len();
-                }
-                continue;
-            }
-            if let Some(after_slash) = rest.strip_prefix("</") {
-                let end_gt = after_slash.find('>').unwrap_or(after_slash.len());
-                let close_name = after_slash[..end_gt].trim().to_ascii_lowercase();
-                if let Some(st) = stop_tag
-                    && close_name == st
-                {
-                    *pos += (2 + end_gt + 1).min(rest.len());
-                    break;
-                }
-                if let Some(st) = stop_tag
-                    && (matches!(st, "p" | "li") || matches!((st, close_name.as_str()),
-                        ("dt" | "dd", "dl") | ("td" | "th", "tr") |
-                        ("td" | "th" | "tr", "thead" | "tbody" | "tfoot") |
-                        ("td" | "th" | "tr" | "thead" | "tbody" | "tfoot", "table")))
-                {
-                    break;
-                }
-                *pos += (2 + end_gt + 1).min(rest.len());
-                continue;
-            }
-            if let Some(gt) = find_tag_close_gt(rest) {
-                let inside = &rest[1..gt];
-                let self_closing = inside.trim_end().ends_with('/');
-                let clean = inside.trim_end().trim_end_matches('/').trim();
-                let mut name_end = 0usize;
-                for (idx, ch) in clean.char_indices() {
-                    if ch.is_whitespace() {
-                        break;
-                    }
-                    name_end = idx + ch.len_utf8();
-                }
-                let tag_name = clean[..name_end].to_ascii_lowercase();
-                if let Some(st) = stop_tag
-                    && matches!((st, tag_name.as_str()),
-                        ("p", "p") | ("li", "li") | ("dt" | "dd", "dt" | "dd") |
-                        ("td" | "th", "td" | "th" | "tr") | ("tr", "tr") |
-                        ("td" | "th" | "tr" | "thead" | "tbody" | "tfoot", "thead" | "tbody" | "tfoot"))
-                {
-                    break;
-                }
-                let attr_str = clean[name_end..].trim();
-                let attrs = parse_html_attrs(attr_str);
-                *pos += gt + 1;
-                if tag_name.is_empty() {
-                    continue;
-                }
-                if self_closing || is_void_html_tag(&tag_name) {
-                    out.push(HtmlNode::Element(HtmlElement {
-                        tag: tag_name,
-                        attrs,
-                        children: Vec::new(),
-                    }));
-                    continue;
-                }
-                if tag_name == "script" || tag_name == "style" {
-                    let close_pat = format!("</{tag_name}>");
-                    let lower_rem = src[*pos..].to_ascii_lowercase();
-                    if let Some(c_rel) = lower_rem.find(&close_pat) {
-                        let raw_body = &src[*pos..*pos + c_rel];
-                        *pos += c_rel + close_pat.len();
-                        out.push(HtmlNode::Element(HtmlElement {
-                            tag: tag_name,
-                            attrs,
-                            children: vec![HtmlNode::Text(raw_body.to_string())],
-                        }));
-                    } else {
-                        let raw_body = &src[*pos..];
-                        *pos = bytes.len();
-                        out.push(HtmlNode::Element(HtmlElement {
-                            tag: tag_name,
-                            attrs,
-                            children: vec![HtmlNode::Text(raw_body.to_string())],
-                        }));
-                    }
-                    continue;
-                }
-                let mut children = parse_html_children(src, pos, Some(&tag_name), depth - 1);
-                if tag_name == "table"
-                    && children.iter().any(|c| matches!(c, HtmlNode::Element(el) if el.tag == "tr"))
-                {
-                    let mut implicit: Option<HtmlElement> = None;
-                    for child in std::mem::take(&mut children) {
-                        if matches!(&child, HtmlNode::Element(el) if el.tag == "tr") {
-                            implicit.get_or_insert_with(|| HtmlElement {
-                                tag: "tbody".into(), attrs: Vec::new(), children: Vec::new()
-                            }).children.push(child);
-                        } else if let Some(group) = &mut implicit
-                            && matches!(&child, HtmlNode::Text(t) if t.trim().is_empty()) {
-                            group.children.push(child);
-                        } else {
-                            if let Some(group) = implicit.take() { children.push(HtmlNode::Element(group)); }
-                            children.push(child);
-                        }
-                    }
-                    if let Some(group) = implicit { children.push(HtmlNode::Element(group)); }
-                }
-                out.push(HtmlNode::Element(HtmlElement {
-                    tag: tag_name,
-                    attrs,
-                    children,
-                }));
-            } else {
-                out.push(HtmlNode::Text(rest.to_string()));
-                *pos = bytes.len();
-            }
-        } else {
-            let text = &src[*pos..];
-            if !text.is_empty() {
-                out.push(HtmlNode::Text(unescape_xml_entities(text)));
-            }
-            *pos = bytes.len();
-        }
-    }
-    out
-}
-
-fn parse_html_attrs(s: &str) -> Vec<(String, String)> {
-    let mut attrs: Vec<(String, String)> = Vec::new();
-    let bytes = s.as_bytes();
-    let mut i = 0usize;
-    while i < bytes.len() {
-        while i < bytes.len() && bytes[i].is_ascii_whitespace() {
-            i += 1;
-        }
-        if i >= bytes.len() {
-            break;
-        }
-        let k_start = i;
-        while i < bytes.len() && !bytes[i].is_ascii_whitespace() && bytes[i] != b'=' {
-            i += 1;
-        }
-        let key = s[k_start..i].to_string();
-        while i < bytes.len() && bytes[i].is_ascii_whitespace() {
-            i += 1;
-        }
-        if i < bytes.len() && bytes[i] == b'=' {
-            i += 1;
-            while i < bytes.len() && bytes[i].is_ascii_whitespace() {
-                i += 1;
-            }
-            if i < bytes.len() && (bytes[i] == b'"' || bytes[i] == b'\'') {
-                let q = bytes[i];
-                i += 1;
-                let v_start = i;
-                while i < bytes.len() && bytes[i] != q {
-                    i += 1;
-                }
-                let val = unescape_xml_entities(&s[v_start..i]);
-                if i < bytes.len() {
-                    i += 1;
-                }
-                if !attrs.iter().any(|(k, _)| k.eq_ignore_ascii_case(&key)) {
-                    attrs.push((key, val));
-                }
-            } else {
-                let v_start = i;
-                while i < bytes.len() && !bytes[i].is_ascii_whitespace() {
-                    i += 1;
-                }
-                if !attrs.iter().any(|(k, _)| k.eq_ignore_ascii_case(&key)) {
-                    attrs.push((key, unescape_xml_entities(&s[v_start..i])));
-                }
-            }
-        } else if !key.is_empty() && !attrs.iter().any(|(k, _)| k.eq_ignore_ascii_case(&key)) {
-            attrs.push((key, String::new()));
-        }
-    }
-    attrs
 }
 
 fn find_html_base_href(nodes: &[HtmlNode]) -> Option<String> {
@@ -26748,7 +26495,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let resolved_theme = source_cfg.theme.as_deref()
         .or(cfg.theme.as_deref()).or(cli_theme.as_deref()).unwrap_or("light");
     let bg_color = cli_bg.as_deref().or(cfg.background.as_deref())
-        .or(source_cfg.background.as_deref()).unwrap_or("white");
+        .or(source_cfg.background.as_deref());
     let tokens = mermaid::config::theme_tokens(source_cfg, &cfg, resolved_theme);
     let num_token = |key: &str| tokens.as_ref().ok().and_then(|t| t.numbers.get(key).copied());
     let wrapping_width = cfg.wrapping_width.or(source_cfg.wrapping_width)
@@ -26793,7 +26540,7 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         }
     }
     let theme = match tokens { Ok(t)=>t, Err(message)=>return err_out(&message,2) };
-    let (bg_color, bg_rgba) = match mermaid::css_color(bg_color) {
+    let (bg_color, bg_rgba) = match mermaid::css_color(bg_color.unwrap_or(theme.background())) {
         Ok(color) => color,
         Err(error) => return err_out(&error, 2),
     };
@@ -26816,7 +26563,18 @@ fn cmd_mmdc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         (None,None)=>(vw,vh),
     };
     let out_bytes = if output_format!="svg" {
-        match scene.raster(width,height,scale,bg_rgba,&output_format,limit) {Ok(bytes)=>bytes,Err(e)=>return err_out(&e,1)}
+        let (w, h, pixels) = match scene.raster_pixels(width,height,scale,bg_rgba,limit) {
+            Ok(pixels) => pixels,
+            Err(e) => return err_out(&e,1),
+        };
+        if output_format == "png" {
+            crate::commands::archive::pixel_png(w, h, crate::commands::archive::PngEncoding::Mermaid, |x, y| pixels[y*w+x])
+        } else {
+            match crate::commands::archive::image_pdf(&pixels, w, h, width*0.75, height*0.75, limit) {
+                Some(bytes) => bytes,
+                None => return err_out("mmdc: E_LIMIT: Output byte budget exceeded\n", 1),
+            }
+        }
     } else {
         let mut parts = vec![format!(r#"<svg xmlns="http://www.w3.org/2000/svg"{id_attr} width="{width}" height="{height}" viewBox="0 0 {vw} {vh}" role="img">"#)];
         if let Some(ref t) = acc_title {
@@ -27004,6 +26762,9 @@ struct MdqBlock {
     metadata: String,
     index: Option<usize>,
     checked: Option<bool>,
+    list_marker: u8,
+    loose: bool,
+    blank_after: bool,
     target: MdqTarget,
     children: Vec<MdqBlock>,
     table_aligns: Vec<String>,
@@ -27137,7 +26898,7 @@ fn mdq_decode_syntax(src: &str) -> String {
 }
 
 fn mdq_text_span(s: &str, plain: bool) -> String {
-    let marks = if s.contains(['_', '*', '~']) { mdq_emphasis::resolve(s, std::iter::empty()) } else { BTreeMap::new() };
+    let marks = if s.contains(['_', '*', '~']) { mdq_emphasis::resolve(s, std::iter::empty(), true, true, false, false, false) } else { BTreeMap::new() };
     mdq_render_span(s, plain, &marks, 0, |_| {})
 }
 
@@ -27297,10 +27058,10 @@ fn mdq_list_marker(line: &str) -> Option<(u8, Option<usize>, &str)> {
     Some((marker, index, rest.trim_start_matches([' ', '\t'])))
 }
 
-fn mdq_interrupts_paragraph(line: &str) -> bool {
+fn mdq_interrupts_paragraph(line: &str, raw_html: bool) -> bool {
     let at = line.trim_start_matches(' ');
     line.len() - at.len() <= 3 && (mdq_thematic_break(line) || mdq_heading(line).is_some()
-        || mdq_fence(line).is_some() || mdq_html_block_end(line, true).is_some() || at.starts_with('>')
+        || mdq_fence(line).is_some() || raw_html && mdq_html_block_end(line, true).is_some() || at.starts_with('>')
         || mdq_list_marker(line).is_some_and(|(_, n, text)| !text.is_empty() && matches!(n, None | Some(1))))
 }
 
@@ -27481,10 +27242,10 @@ type MdqAtoms<'a> = Vec<(std::ops::Range<usize>, MdqInlineAtom<'a>)>;
 enum MdqInlineAtom<'a> {
     Footnote(&'a str),
     Html(&'a str),
-    Link { image: bool, display: std::borrow::Cow<'a, str>, target: MdqTarget, children: MdqAtoms<'a> },
+    Link { image: bool, display: std::borrow::Cow<'a, str>, target: MdqTarget, attributes: Result<PandocAttr, ()>, children: MdqAtoms<'a> },
 }
 
-fn mdq_inline_atoms<'a>(defs: &MdqDefinitions, src: &'a str, in_label: bool) -> MdqAtoms<'a> {
+fn mdq_inline_atoms<'a>(defs: &MdqDefinitions, src: &'a str, in_label: bool, plain_images: bool) -> MdqAtoms<'a> {
     let bytes = src.as_bytes();
     let ticks = mdq_backtick_runs(bytes);
     let mut k = 0usize;
@@ -27492,6 +27253,7 @@ fn mdq_inline_atoms<'a>(defs: &MdqDefinitions, src: &'a str, in_label: bool) -> 
     let mut atoms = Vec::new();
     // Closing a link deactivates all pending link openers, but not images.
     let mut generation = 0usize;
+    let mut attribute_work = src.len().saturating_mul(4);
     while k < bytes.len() {
         if bytes[k] == b'\\' && bytes.get(k + 1).is_some_and(u8::is_ascii_punctuation) {
             k += 2;
@@ -27504,7 +27266,7 @@ fn mdq_inline_atoms<'a>(defs: &MdqDefinitions, src: &'a str, in_label: bool) -> 
         }
         if (bytes[k] == b'<' || bytes[k].is_ascii_alphanumeric() || b".-+".contains(&bytes[k]))
             && let Some((display, target, used)) = mdq_links::autolink(src, k, in_label || !brackets.is_empty()) {
-            atoms.push((k..k+used, MdqInlineAtom::Link { image: false, display: display.into(), target, children: Vec::new() }));
+            atoms.push((k..k+used, MdqInlineAtom::Link { image: false, display: display.into(), target, attributes: Ok(PandocAttr::default()), children: Vec::new() }));
             generation += 1;
             k += used;
             continue;
@@ -27525,24 +27287,33 @@ fn mdq_inline_atoms<'a>(defs: &MdqDefinitions, src: &'a str, in_label: bool) -> 
             k += if image { 2 } else { 1 };
             continue;
         }
-        if bytes[k] == b']' && let Some((open, image, child_start, opened)) = brackets.pop()
-            && (image || opened == generation) {
+        if bytes[k] == b']' && let Some((open, image, child_start, opened)) = brackets.pop() {
+            if !image && defs.pandoc_bracketed_spans
+                && let Some((_, end)) = pandoc_inlines::bracketed_attributes(src, k + 1, &mut attribute_work) {
+                k = end;
+                continue;
+            }
+            if !image && opened != generation { k += 1; continue; }
             let begin = open + if image { 2 } else { 1 };
             let tail = &src[k+1..];
             let parsed = tail.strip_prefix('(').and_then(MdqTarget::inline).map(|(t,n)| (t,n+1))
                 .or_else(|| mdq_links::reference(tail, &src[begin-1..=k], defs));
             if let Some((target, used)) = parsed {
-                let end = k + 1 + used;
+                let mut end = k + 1 + used;
+                let attributes = if defs.pandoc_link_attributes {
+                    pandoc_inlines::bracketed_attributes(src, end, &mut attribute_work).map(|(attributes, stop)| { end = stop; attributes })
+                } else { None };
+                let attributes = if attribute_work == 0 { Err(()) } else { Ok(attributes.unwrap_or_default()) };
                 let raw = &src[begin..k];
                 let mut children = atoms.split_off(child_start);
                 for (range, _) in &mut children { range.start -= begin; range.end -= begin; }
-                let display = if image {
-                    // Production stores just the plain description on an image; its descendants are not selectable.
+                let display = if image && plain_images {
+                    // mdq selects image descriptions as plain leaves; Pandoc retains the parsed label.
                     let mut alt = String::new();
                     mdq_emit_atoms(defs, raw, std::mem::take(&mut children), None, &mut |s, _| alt.push_str(s));
                     alt.into()
                 } else { raw.into() };
-                atoms.push((open..end, MdqInlineAtom::Link { image, display, target, children }));
+                atoms.push((open..end, MdqInlineAtom::Link { image, display, target, attributes, children }));
                 if !image { generation += 1; }
                 k = end;
                 continue;
@@ -27568,13 +27339,13 @@ fn mdq_inline_parts(defs: &MdqDefinitions, src: &str, refs: Option<&mut MdqRefer
         emit(&mdq_text_span(src, refs.is_none()), true);
         return;
     }
-    let atoms = mdq_inline_atoms(defs, src, false);
+    let atoms = mdq_inline_atoms(defs, src, false, true);
     mdq_emit_atoms(defs, src, atoms, refs, &mut emit);
 }
 
 fn mdq_emit_atoms(defs: &MdqDefinitions, src: &str, atoms: MdqAtoms<'_>, mut refs: Option<&mut MdqReferences>, emit: &mut dyn FnMut(&str, bool)) {
     let plain = refs.is_none();
-    let marks = if src.contains(['_', '*', '~']) { mdq_emphasis::resolve(src, atoms.iter().map(|(r, _)| r)) } else { BTreeMap::new() };
+    let marks = if src.contains(['_', '*', '~']) { mdq_emphasis::resolve(src, atoms.iter().map(|(r, _)| r), true, true, false, false, false) } else { BTreeMap::new() };
     let mut at = 0;
     for (range, atom) in atoms {
         if at < range.start { emit(&mdq_render_span(&src[at..range.start], plain, &marks, at, |_| {}), true); }
@@ -27583,7 +27354,7 @@ fn mdq_emit_atoms(defs: &MdqDefinitions, src: &str, atoms: MdqAtoms<'_>, mut ref
                 if let Some(refs)=refs.as_deref_mut() { emit(&format!("[^{}]", refs.note_id(label, defs)),true); }
             }
             MdqInlineAtom::Html(text) => emit(text, true),
-            MdqInlineAtom::Link { image, display, target, children } => {
+            MdqInlineAtom::Link { image, display, target, children, .. } => {
                 let label = if image || target.auto.is_some() { display.into_owned() }
                     else if children.is_empty() { mdq_text_span(&display, plain) }
                     else {
@@ -28912,79 +28683,7 @@ fn cmd_mdq(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Buil
     }
 }
 
-fn crc32_ieee(data: &[u8]) -> u32 {
-    let mut crc = 0xFFFF_FFFFu32;
-    for &b in data {
-        crc ^= b as u32;
-        for _ in 0..8 {
-            if (crc & 1) != 0 {
-                crc = (crc >> 1) ^ 0xEDB8_8320;
-            } else {
-                crc >>= 1;
-            }
-        }
-    }
-    !crc
-}
-
-pub(super) fn write_zip_stored(entries: &[(&str, &[u8])]) -> Vec<u8> {
-    let mut out: Vec<u8> = Vec::new();
-    let mut cd: Vec<u8> = Vec::new();
-    for &(name, data) in entries {
-        let name_bytes = name.as_bytes();
-        let crc = crc32_ieee(data);
-        let len = data.len() as u32;
-        let offset = out.len() as u32;
-
-        out.extend_from_slice(b"PK\x03\x04");
-        out.extend_from_slice(&20u16.to_le_bytes());
-        out.extend_from_slice(&0u16.to_le_bytes());
-        out.extend_from_slice(&0u16.to_le_bytes());
-        out.extend_from_slice(&0u16.to_le_bytes());
-        out.extend_from_slice(&0u16.to_le_bytes());
-        out.extend_from_slice(&crc.to_le_bytes());
-        out.extend_from_slice(&len.to_le_bytes());
-        out.extend_from_slice(&len.to_le_bytes());
-        out.extend_from_slice(&(name_bytes.len() as u16).to_le_bytes());
-        out.extend_from_slice(&0u16.to_le_bytes());
-        out.extend_from_slice(name_bytes);
-        out.extend_from_slice(data);
-
-        cd.extend_from_slice(b"PK\x01\x02");
-        cd.extend_from_slice(&20u16.to_le_bytes());
-        cd.extend_from_slice(&20u16.to_le_bytes());
-        cd.extend_from_slice(&0u16.to_le_bytes());
-        cd.extend_from_slice(&0u16.to_le_bytes());
-        cd.extend_from_slice(&0u16.to_le_bytes());
-        cd.extend_from_slice(&0u16.to_le_bytes());
-        cd.extend_from_slice(&crc.to_le_bytes());
-        cd.extend_from_slice(&len.to_le_bytes());
-        cd.extend_from_slice(&len.to_le_bytes());
-        cd.extend_from_slice(&(name_bytes.len() as u16).to_le_bytes());
-        cd.extend_from_slice(&0u16.to_le_bytes());
-        cd.extend_from_slice(&0u16.to_le_bytes());
-        cd.extend_from_slice(&0u16.to_le_bytes());
-        cd.extend_from_slice(&0u16.to_le_bytes());
-        cd.extend_from_slice(&0u32.to_le_bytes());
-        cd.extend_from_slice(&offset.to_le_bytes());
-        cd.extend_from_slice(name_bytes);
-    }
-
-    let cd_offset = out.len() as u32;
-    let cd_size = cd.len() as u32;
-    let count = entries.len() as u16;
-    out.extend_from_slice(&cd);
-
-    out.extend_from_slice(b"PK\x05\x06");
-    out.extend_from_slice(&0u16.to_le_bytes());
-    out.extend_from_slice(&0u16.to_le_bytes());
-    out.extend_from_slice(&count.to_le_bytes());
-    out.extend_from_slice(&count.to_le_bytes());
-    out.extend_from_slice(&cd_size.to_le_bytes());
-    out.extend_from_slice(&cd_offset.to_le_bytes());
-    out.extend_from_slice(&0u16.to_le_bytes());
-    out
-}
+pub(super) use office_package_rust::write_zip_stored;
 
 #[derive(Clone, Debug)]
 struct WorkbookSheet {
@@ -30036,10 +29735,17 @@ enum PandocInline {
     Strong(Vec<PandocInline>),
     Emph(Vec<PandocInline>),
     Strikeout(Vec<PandocInline>),
+    Subscript(Vec<PandocInline>),
+    Superscript(Vec<PandocInline>),
+    SmallCaps(Vec<PandocInline>),
+    Quoted(&'static str, Vec<PandocInline>),
+    Span(PandocAttr, Vec<PandocInline>),
     Code(PandocAttr, String),
     Raw(String, String),
     Link(PandocAttr, Vec<PandocInline>, String, String),
     Image(PandocAttr, Vec<PandocInline>, String, String),
+    Note(Vec<PandocBlock>),
+    NoteReference(String),
 }
 
 #[derive(Clone, Debug, Default)]
@@ -30053,6 +29759,13 @@ impl PandocAttr {
     fn write_html_id_classes(&self, out: &mut String, ascii: bool) {
         if !self.id.is_empty() { out.push_str(&format!(" id=\"{}\"", html_escape_pandoc(&self.id, ascii))); }
         if !self.classes.is_empty() { out.push_str(&format!(" class=\"{}\"", html_escape_pandoc(&self.classes.join(" "), ascii))); }
+    }
+
+    fn write_html(&self, out: &mut String, ascii: bool) {
+        self.write_html_id_classes(out, ascii);
+        for (key, value) in &self.properties {
+            out.push_str(&format!(" {}=\"{}\"", html_escape_pandoc(key, ascii), html_escape_pandoc(value, ascii)));
+        }
     }
 
     fn json(&self) -> JVal {
@@ -30080,12 +29793,16 @@ impl PandocAttr {
 
 #[derive(Clone, Debug)]
 enum PandocBlock {
-    Header(usize, String, Vec<PandocInline>),
+    Header(usize, PandocAttr, Vec<PandocInline>),
     Para(Vec<PandocInline>),
     Plain(Vec<PandocInline>),
     List(Option<pandoc_list::Numbering>, Vec<Vec<PandocBlock>>),
     BlockQuote(Vec<PandocBlock>),
+    Div(PandocAttr, Vec<PandocBlock>),
+    Figure(PandocAttr, Option<Vec<PandocInline>>, Vec<PandocBlock>, Vec<PandocBlock>),
     CodeBlock(PandocAttr, String),
+    Raw(String, String),
+    Vector(Box<JVal>),
     Table(pandoc_table::Table),
     HorizontalRule,
 }
@@ -30115,291 +29832,52 @@ fn inlines_plain_text(inlines: &[PandocInline]) -> String {
             PandocInline::Space | PandocInline::SoftBreak => out.push(' '),
             PandocInline::LineBreak => out.push('\n'),
             PandocInline::Text(s) | PandocInline::Code(_, s) => out.push_str(s),
-            PandocInline::Raw(..) => {},
+            PandocInline::Raw(..) | PandocInline::Note(_) | PandocInline::NoteReference(_) => {},
             PandocInline::Image(_, c, _, _) => out.push_str(&format!("[{}]", inlines_plain_text(c))),
             PandocInline::Strong(c)
             | PandocInline::Emph(c)
+            | PandocInline::Subscript(c)
+            | PandocInline::Superscript(c)
+            | PandocInline::SmallCaps(c)
+            | PandocInline::Span(_, c)
             | PandocInline::Link(_, c, _, _) => out.push_str(&inlines_plain_text(c)),
+            PandocInline::Quoted(kind, children) => {
+                let quote = if *kind == "SingleQuote" { '\'' } else { '"' };
+                out.push(quote); out.push_str(&inlines_plain_text(children)); out.push(quote);
+            }
             PandocInline::Strikeout(c) => { if !c.is_empty() { out.push_str(&format!("~~{}~~", inlines_plain_text(c))); } }
         }
     }
     out
 }
 
-fn parse_pandoc_md_inlines(s: &str, definitions: Option<&MdqDefinitions>, raw_html: bool) -> Vec<PandocInline> {
-    let mut out: Vec<PandocInline> = Vec::new();
-    let mut cur = String::new();
-    let mut i = 0usize;
-    let bytes = s.as_bytes();
-    let ticks = mdq_backtick_runs(bytes);
-    let empty = MdqDefinitions::default();
-    let defs = definitions.unwrap_or(&empty);
-    let atoms = mdq_inline_atoms(defs, s, false);
-    let mut marks = mdq_emphasis::resolve(s, atoms.iter().map(|(range, _)| range));
-    let mut containers = Vec::new();
-    let mut links = atoms.into_iter().filter(|(_, atom)|
-        matches!(atom, MdqInlineAtom::Link { target, .. } if target.auto.is_none())).peekable();
-    while i < bytes.len() {
-        if let Some(run) = marks.remove(&i) {
-            if !run.closing.is_empty() && !cur.is_empty() {
-                out.push(PandocInline::Text(std::mem::take(&mut cur)));
-            }
-            for marker in run.closing {
-                let children = std::mem::take(&mut out);
-                out = containers.pop().expect("matched emphasis opener");
-                out.push(match marker {
-                    "**" => PandocInline::Strong(children),
-                    "~~" => PandocInline::Strikeout(children),
-                    _ => PandocInline::Emph(children),
-                });
-            }
-            cur.extend(std::iter::repeat_n(bytes[i] as char, run.remaining));
-            if !run.opening.is_empty() && !cur.is_empty() {
-                out.push(PandocInline::Text(std::mem::take(&mut cur)));
-            }
-            for _ in run.opening.into_iter().rev() {
-                containers.push(std::mem::take(&mut out));
-            }
-            i += run.width;
-            continue;
-        }
-        if bytes[i] == b'\n' || bytes[i] == b'\\' && bytes.get(i + 1) == Some(&b'\n') {
-            if !cur.is_empty() { out.push(PandocInline::Text(std::mem::take(&mut cur))); }
-            let spaces = out.iter().rev().take_while(|node| matches!(node, PandocInline::Space)).count();
-            out.truncate(out.len() - spaces);
-            let hard = bytes[i] == b'\\' || spaces >= 2;
-            out.push(if hard { PandocInline::LineBreak } else { PandocInline::SoftBreak });
-            i += if bytes[i] == b'\\' { 2 } else { 1 };
-            while bytes.get(i).is_some_and(|b| matches!(b, b' ' | b'\t')) { i += 1; }
-            continue;
-        }
-        if definitions.is_some() && bytes[i] == b'\\' && bytes.get(i + 1).is_some_and(u8::is_ascii_punctuation) {
-            cur.push(bytes[i + 1] as char); i += 2; continue;
-        }
-        if definitions.is_some() && bytes[i] == b'&' {
-            if let Some(width) = mdq_decode_escape(&s[i..], &mut cur) {
-                i += width;
-                continue;
-            }
-        }
-        if raw_html && bytes[i] == b'<' && let Some(len) = mdq_inline_html_len(&s[i..]) {
-            if !cur.is_empty() { out.push(PandocInline::Text(std::mem::take(&mut cur))); }
-            out.push(PandocInline::Raw("html".into(), s[i..i + len].into()));
-            i += len;
-            continue;
-        }
-        while links.peek().is_some_and(|(range, _)| range.start < i) { links.next(); }
-        if links.peek().is_some_and(|(range, _)| range.start == i) {
-            let (range, MdqInlineAtom::Link { image, display, target, .. }) = links.next().unwrap() else { unreachable!() };
-            if !cur.is_empty() { out.push(PandocInline::Text(std::mem::take(&mut cur))); }
-            let children = parse_pandoc_md_inlines(&display, definitions, raw_html);
-            out.push(if image { PandocInline::Image(PandocAttr::default(), children, target.url, target.title) }
-                else { PandocInline::Link(PandocAttr::default(), children, target.url, target.title) });
-            i = range.end; continue;
-        }
-        if bytes[i] == b'`' {
-            let (width, close) = mdq_code_delimiters(bytes, i, &ticks);
-            i += width;
-            if let Some(close) = close {
-                if !cur.is_empty() { out.push(PandocInline::Text(std::mem::take(&mut cur))); }
-                let content = s[i..close].replace('\n', " ");
-                let text = if content.starts_with(' ') && content.ends_with(' ') && content.bytes().any(|b| b != b' ') {
-                    &content[1..content.len() - 1]
-                } else { &content };
-                out.push(PandocInline::Code(PandocAttr::default(), text.to_owned()));
-                i = close + width;
-                if width == 2 && s[i..].starts_with("\\ ") {
-                    out.push(PandocInline::Space);
-                    i += 2;
-                }
-            } else {
-                cur.extend(std::iter::repeat_n('`', width));
-            }
-            continue;
-        }
-        if bytes[i] == b' ' {
-            if !cur.is_empty() { out.push(PandocInline::Text(std::mem::take(&mut cur))); }
-            out.push(PandocInline::Space);
-            i += 1;
-            continue;
-        }
-        let ch = s[i..].chars().next().unwrap();
-        cur.push(ch);
-        i += ch.len_utf8();
-    }
-    if !cur.is_empty() {
-        out.push(PandocInline::Text(cur));
-    }
-    out
-}
 
 #[derive(Clone, Copy, PartialEq)]
 enum PandocPipeTables { Disabled, CommonMark, Markdown }
 
-fn parse_pandoc_markdown(input: &str, pipe_tables: PandocPipeTables, depth: usize, tasks: pandoc_list::Tasks, last_reference_wins: bool, raw_html: bool) -> Option<Vec<PandocBlock>> {
-    let mut defs = MdqDefinitions::default();
-    defs.last_link_wins = last_reference_wins;
-    mdq_blocks::parse(&mut defs, input).ok()?;
-    parse_pandoc_markdown_with_defs(input, pipe_tables, depth, tasks, &defs, raw_html)
+fn parse_pandoc_markdown(input: &str, pipe_tables: PandocPipeTables, depth: usize, tasks: pandoc_list::Tasks, mut defs: MdqDefinitions, raw_html: bool, limits: &crate::ShellLimits) -> Option<Vec<PandocBlock>> {
+    let footnotes = defs.footnotes;
+    let native_divs = defs.pandoc_native_divs;
+    let (source, notes) = mdq_blocks::note_sources(&mut defs, input, footnotes, pipe_tables, raw_html, native_divs).ok()?;
+    let mut blocks = parse_pandoc_markdown_with_defs(&source, pipe_tables, depth, tasks, &defs, raw_html)?;
+    if !notes.is_empty() || defs.pandoc_native_divs || defs.pandoc_native_spans || defs.pandoc_implicit_figures {
+        pandoc_notes::Resolver {
+            sources: &notes, definitions: &defs, tables: pipe_tables, tasks, raw_html,
+            nodes: limits.max_parse_units, bytes: limits.max_memory_bytes, active: Default::default(),
+        }.blocks(&mut blocks, depth)?;
+    }
+    pandoc_headings::assign(&mut blocks, &defs);
+    Some(blocks)
 }
 
 fn parse_pandoc_markdown_with_defs(input: &str, pipe_tables: PandocPipeTables, depth: usize, tasks: pandoc_list::Tasks, defs: &MdqDefinitions, raw_html: bool) -> Option<Vec<PandocBlock>> {
     if depth > 64 { return None; }
-    let cleaned = if input.contains('\t') {
-        let mut expanded = String::with_capacity(input.len());
-        let mut column = 0;
-        for ch in input.chars() {
-            if ch == '\t' {
-                let width = 4 - column % 4;
-                expanded.extend(std::iter::repeat_n(' ', width));
-                column += width;
-            } else {
-                expanded.push(ch);
-                column = if matches!(ch, '\r' | '\n') { 0 } else { column + 1 };
-            }
-        }
-        std::borrow::Cow::Owned(expanded)
-    } else { std::borrow::Cow::Borrowed(input) };
-    let lines: Vec<&str> = cleaned.lines().collect();
-    let heading = |line: &str| {
-        let level = line.bytes().take_while(|&b| b == b'#').count();
-        ((1..=6).contains(&level) && (line.len() == level || line[level..].starts_with([' ', '\t']))).then_some(level)
-    };
-    let mut blocks = Vec::new();
-    let mut i = 0usize;
-    while i < lines.len() {
-        let line = lines[i];
-        let trimmed = line.trim();
-        if trimmed.is_empty() {
-            i += 1;
-            continue;
-        }
-        if line.starts_with("    ") {
-            let mut code = String::new();
-            let mut end = 0;
-            while i < lines.len() {
-                let content = lines[i].strip_prefix("    ");
-                let blank = lines[i].trim_matches(' ').is_empty();
-                if content.is_none() && !blank { break; }
-                code.push_str(content.unwrap_or(""));
-                code.push('\n');
-                if !blank { end = code.len(); }
-                i += 1;
-            }
-            code.truncate(end.saturating_sub(1));
-            blocks.push(PandocBlock::CodeBlock(PandocAttr::default(), code));
-            continue;
-        }
-        if trimmed.starts_with("<!--") && trimmed.ends_with("-->") {
-            i += 1;
-            continue;
-        }
-        if let Some((indent, marker, width, info)) = mdq_fence(line) {
-            i += 1;
-            let mut code = String::new();
-            while i < lines.len() {
-                let line = lines[i];
-                i += 1;
-                if mdq_fence(line).is_some_and(|(_, m, n, tail)| m == marker && n >= width && tail.is_empty()) {
-                    code.pop(); // Only a closing fence consumes the final newline.
-                    break;
-                }
-                let skip = line.bytes().take(indent).take_while(|&b| b == b' ').count();
-                code.push_str(&line[skip..]);
-                code.push('\n');
-            }
-            let classes = info.split_whitespace().take(1).map(str::to_owned).collect();
-            blocks.push(PandocBlock::CodeBlock(PandocAttr { classes, ..Default::default() }, code));
-            continue;
-        }
-        if mdq_thematic_break(line) {
-            blocks.push(PandocBlock::HorizontalRule);
-            i += 1;
-            continue;
-        }
-        if let Some(level) = heading(trimmed) {
-            let inlines = parse_pandoc_md_inlines(trimmed[level..].trim(), Some(defs), raw_html);
-            let id = pandoc_slug(&inlines_plain_text(&inlines));
-            blocks.push(PandocBlock::Header(level, id, inlines));
-            i += 1;
-            continue;
-        }
-        if let Some(level) = lines.get(i + 1).and_then(|line| mdq_setext(line)) {
-            let inlines = parse_pandoc_md_inlines(trimmed, Some(defs), raw_html);
-            let id = pandoc_slug(&inlines_plain_text(&inlines));
-            blocks.push(PandocBlock::Header(level, id, inlines));
-            i += 2;
-            continue;
-        }
-        if pipe_tables != PandocPipeTables::Disabled
-            && let Some(delimiter) = lines.get(i + 1)
-            && !(pipe_tables == PandocPipeTables::CommonMark && delimiter.trim_start().starts_with("- "))
-            && let Some(mut headers) = mdq_pipe_row(trimmed)
-            && let Some(columns) = mdq_pipe_row(delimiter)
-            && !columns.is_empty()
-            && (pipe_tables == PandocPipeTables::Markdown || headers.len() == columns.len())
-            && let Some(align) = columns.iter().map(|s| pipe_cell_alignment(s).map(|a| (s.starts_with(':') || s.ends_with(':')).then_some(a))).collect::<Option<Vec<_>>>()
-        {
-            headers.resize_with(align.len(), String::new);
-            i += 2;
-            let mut rows = Vec::new();
-            while let Some(mut row) = lines.get(i).and_then(|line| mdq_pipe_row(line)) {
-                row.truncate(align.len());
-                rows.push(row);
-                i += 1;
-            }
-            blocks.push(PandocBlock::Table(pandoc_table::Table::simple(headers, rows, Some(align), Some(defs), raw_html)));
-            continue;
-        }
-        if trimmed.starts_with("> ") || trimmed == ">" {
-            let mut q_lines = Vec::new();
-            while i < lines.len() {
-                let lt = lines[i].trim_start();
-                if let Some(rest) = lt.strip_prefix("> ") {
-                    q_lines.push(rest);
-                    i += 1;
-                } else if lt == ">" {
-                    q_lines.push("");
-                    i += 1;
-                } else {
-                    break;
-                }
-            }
-            blocks.push(PandocBlock::BlockQuote(parse_pandoc_markdown_with_defs(
-                &q_lines.join("\n"),
-                pipe_tables, depth + 1, tasks, defs, raw_html,
-            )?));
-            continue;
-        }
-        if let Some((marker, start, _)) = mdq_list_marker(line) {
-            blocks.push(pandoc_list::read(&lines, &mut i, (marker, start), pipe_tables, depth, tasks, defs, raw_html)?);
-            continue;
-        }
-        let mut p_lines = vec![line.trim_start()];
-        i += 1;
-        while i < lines.len() {
-            let lt = lines[i].trim();
-            if lt.is_empty()
-                || !lines[i].starts_with("    ") && (heading(lt).is_some()
-                    || mdq_fence(lines[i]).is_some()
-                    || mdq_list_marker(lines[i]).is_some_and(|(_, n, text)| !text.is_empty() && matches!(n, None | Some(1)))
-                    || lt.starts_with("> ")
-                    || lt == "---")
-            {
-                break;
-            }
-            p_lines.push(lines[i].trim_start());
-            i += 1;
-        }
-        let paragraph = p_lines.join("\n");
-        let mut text = paragraph.as_str();
-        while let Some((_, _, used)) = mdq_links::definition(text) { text = &text[used..]; }
-        if !text.is_empty() { blocks.push(PandocBlock::Para(parse_pandoc_md_inlines(text.trim_end(), Some(defs), raw_html))); }
-    }
-    Some(blocks)
+    let mut local = MdqDefinitions::default();
+    let blocks = mdq_blocks::pandoc(&mut local, input, defs.footnotes, pipe_tables, raw_html, defs.pandoc_native_divs).ok()?;
+    pandoc_blocks::lower(&blocks, defs, tasks, raw_html, depth)
 }
 
-fn parse_pandoc_html_inlines(html: &str) -> Vec<PandocInline> {
+fn parse_pandoc_html_inlines(html: &str) -> Option<Vec<PandocInline>> {
     let mut md_equiv = String::new();
     let mut scan = html;
     while let Some(lt) = scan.find('<') {
@@ -30434,7 +29912,7 @@ fn parse_pandoc_html_inlines(html: &str) -> Vec<PandocInline> {
     parse_pandoc_md_inlines(&md_equiv, None, false)
 }
 
-fn parse_pandoc_html(input: &str) -> Vec<PandocBlock> {
+fn parse_pandoc_html(input: &str) -> Option<Vec<PandocBlock>> {
     let mut blocks = Vec::new();
     let mut scan = input;
     while let Some(lt) = scan.find('<') {
@@ -30454,17 +29932,17 @@ fn parse_pandoc_html(input: &str) -> Vec<PandocBlock> {
             let close_tag = format!("</{tag_name}>");
             let rest = &after[gt + 1..];
             if let Some(end_pos) = rest.to_ascii_lowercase().find(&close_tag) {
-                let inlines = parse_pandoc_html_inlines(&rest[..end_pos]);
+                let inlines = parse_pandoc_html_inlines(&rest[..end_pos])?;
                 let id = extract_xml_attr(&after[..=gt], "id")
                     .unwrap_or_else(|| pandoc_slug(&inlines_plain_text(&inlines)));
-                blocks.push(PandocBlock::Header(level, id, inlines));
+                blocks.push(PandocBlock::Header(level, PandocAttr { id, ..Default::default() }, inlines));
                 scan = &rest[end_pos + close_tag.len()..];
                 continue;
             }
         } else if tag_name == "p" {
             let rest = &after[gt + 1..];
             if let Some(end_pos) = rest.to_ascii_lowercase().find("</p>") {
-                let inlines = parse_pandoc_html_inlines(&rest[..end_pos]);
+                let inlines = parse_pandoc_html_inlines(&rest[..end_pos])?;
                 if !inlines.is_empty() {
                     blocks.push(PandocBlock::Para(inlines));
                 }
@@ -30485,7 +29963,7 @@ fn parse_pandoc_html(input: &str) -> Vec<PandocBlock> {
                     };
                     let lrest = &lafter[lgt + 1..];
                     if let Some(lend) = lrest.to_ascii_lowercase().find("</li>") {
-                        items.push(vec![PandocBlock::Plain(parse_pandoc_html_inlines(&lrest[..lend]))]);
+                        items.push(vec![PandocBlock::Plain(parse_pandoc_html_inlines(&lrest[..lend])?)]);
                         lscan = &lrest[lend + 5..];
                     } else {
                         break;
@@ -30506,7 +29984,7 @@ fn parse_pandoc_html(input: &str) -> Vec<PandocBlock> {
         }
         scan = &after[gt + 1..];
     }
-    blocks
+    Some(blocks)
 }
 
 fn parse_pandoc_latex(input: &str) -> Option<Vec<PandocBlock>> {
@@ -30551,7 +30029,11 @@ fn parse_pandoc_latex(input: &str) -> Option<Vec<PandocBlock>> {
         }
         md_lines.push(s);
     }
-    parse_pandoc_markdown(&md_lines.join("\n"), PandocPipeTables::Markdown, 0, pandoc_list::Tasks::Markdown, true, false)
+    let mut defs = MdqDefinitions::default();
+    defs.last_link_wins = true;
+    defs.pandoc_auto_identifiers = true;
+    defs.pandoc_strikeout = true;
+    parse_pandoc_markdown(&md_lines.join("\n"), PandocPipeTables::Markdown, 0, pandoc_list::Tasks::Markdown, defs, false, &Default::default())
 }
 
 fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
@@ -30592,13 +30074,19 @@ fn parse_pandoc_rtf(input: &str) -> Option<Vec<PandocBlock>> {
             i += 1;
         }
     }
-    parse_pandoc_markdown(&cleaned, PandocPipeTables::Markdown, 0, pandoc_list::Tasks::Markdown, true, false)
+    let mut defs = MdqDefinitions::default();
+    defs.last_link_wins = true;
+    defs.pandoc_auto_identifiers = true;
+    defs.pandoc_strikeout = true;
+    parse_pandoc_markdown(&cleaned, PandocPipeTables::Markdown, 0, pandoc_list::Tasks::Markdown, defs, false, &Default::default())
 }
 
 fn pandoc_inlines_to_json(inlines: &[PandocInline]) -> JVal {
     let mut arr = Vec::new();
     for inl in inlines {
         match inl {
+            PandocInline::Note(blocks) => arr.push(JVal::Object(vec![("t".into(), JVal::Str("Note".into())), ("c".into(), pandoc_blocks_to_json(blocks))])),
+            PandocInline::NoteReference(label) => arr.push(JVal::Object(vec![("t".into(), JVal::Str("Str".into())), ("c".into(), JVal::Str(format!("[^{label}]")))])),
             PandocInline::Space => arr.push(JVal::Object(vec![("t".into(), JVal::Str("Space".into()))])),
             PandocInline::SoftBreak => arr.push(JVal::Object(vec![("t".into(), JVal::Str("SoftBreak".into()))])),
             PandocInline::LineBreak => arr.push(JVal::Object(vec![("t".into(), JVal::Str("LineBreak".into()))])),
@@ -30617,12 +30105,24 @@ fn pandoc_inlines_to_json(inlines: &[PandocInline]) -> JVal {
                     ("c".to_string(), pandoc_inlines_to_json(c)),
                 ]));
             }
+            PandocInline::Subscript(c) | PandocInline::Superscript(c) => {
+                arr.push(JVal::Object(vec![("t".into(), JVal::Str(if matches!(inl, PandocInline::Subscript(_)) { "Subscript" } else { "Superscript" }.into())), ("c".into(), pandoc_inlines_to_json(c))]));
+            }
             PandocInline::Strikeout(c) => {
                 arr.push(JVal::Object(vec![
                     ("t".to_string(), JVal::Str("Strikeout".to_string())),
                     ("c".to_string(), pandoc_inlines_to_json(c)),
                 ]));
             }
+            PandocInline::Quoted(kind, children) => arr.push(JVal::Object(vec![
+                ("t".into(), JVal::Str("Quoted".into())),
+                ("c".into(), JVal::Array(vec![JVal::Object(vec![("t".into(), JVal::Str((*kind).into()))]), pandoc_inlines_to_json(children)])),
+            ])),
+            PandocInline::SmallCaps(children) => arr.push(JVal::Object(vec![("t".into(), JVal::Str("SmallCaps".into())), ("c".into(), pandoc_inlines_to_json(children))])),
+            PandocInline::Span(attr, children) => arr.push(JVal::Object(vec![
+                ("t".into(), JVal::Str("Span".into())),
+                ("c".into(), JVal::Array(vec![attr.json(), pandoc_inlines_to_json(children)])),
+            ])),
             PandocInline::Raw(format, text) => arr.push(JVal::Object(vec![
                 ("t".into(), JVal::Str("RawInline".into())),
                 ("c".into(), JVal::Array(vec![JVal::Str(format.clone()), JVal::Str(text.clone())])),
@@ -30645,18 +30145,14 @@ fn pandoc_blocks_to_json(blocks: &[PandocBlock]) -> JVal {
     let mut b_arr = Vec::new();
     for b in blocks {
         match b {
-            PandocBlock::Header(lvl, _id, inlines) => {
+            PandocBlock::Header(lvl, id, inlines) => {
                 b_arr.push(JVal::Object(vec![
                     ("t".to_string(), JVal::Str("Header".to_string())),
                     (
                         "c".to_string(),
                         JVal::Array(vec![
                             JVal::Number(*lvl as f64, None),
-                            JVal::Array(vec![
-                                JVal::Str(String::new()),
-                                JVal::Array(vec![]),
-                                JVal::Array(vec![]),
-                            ]),
+                            id.json(),
                             pandoc_inlines_to_json(inlines),
                         ]),
                     ),
@@ -30672,6 +30168,14 @@ fn pandoc_blocks_to_json(blocks: &[PandocBlock]) -> JVal {
                 ("t".into(), JVal::Str("CodeBlock".into())),
                 ("c".into(), JVal::Array(vec![attr.json(), JVal::Str(code.clone())])),
             ])),
+            PandocBlock::Figure(attr, short, caption, children) => b_arr.push(JVal::Object(vec![
+                ("t".into(), JVal::Str("Figure".into())),
+                ("c".into(), JVal::Array(vec![attr.json(), JVal::Array(vec![short.as_ref().map_or(JVal::Null, |nodes| pandoc_inlines_to_json(nodes)), pandoc_blocks_to_json(caption)]), pandoc_blocks_to_json(children)])),
+            ])),
+            PandocBlock::Div(attr, children) => b_arr.push(JVal::Object(vec![
+                ("t".into(), JVal::Str("Div".into())),
+                ("c".into(), JVal::Array(vec![attr.json(), pandoc_blocks_to_json(children)])),
+            ])),
             PandocBlock::BlockQuote(children) => b_arr.push(JVal::Object(vec![
                 ("t".into(), JVal::Str("BlockQuote".into())),
                 ("c".into(), pandoc_blocks_to_json(children)),
@@ -30685,73 +30189,100 @@ fn pandoc_blocks_to_json(blocks: &[PandocBlock]) -> JVal {
                 };
                 b_arr.push(JVal::Object(vec![("t".into(), JVal::Str(tag.into())), ("c".into(), content)]));
             }
+            PandocBlock::Raw(format, text) => b_arr.push(JVal::Object(vec![
+                ("t".into(), JVal::Str("RawBlock".into())),
+                ("c".into(), JVal::Array(vec![JVal::Str(format.clone()), JVal::Str(text.clone())])),
+            ])),
+            PandocBlock::Vector(scene) => b_arr.push(JVal::Object(vec![("t".into(), JVal::Str("Vector".into())), ("c".into(), scene.as_ref().clone())])),
             PandocBlock::Table(table) => b_arr.push(table.json()),
         }
     }
     JVal::Array(b_arr)
 }
 
-fn pandoc_doc_to_json(blocks: &[PandocBlock]) -> String {
+fn pandoc_doc_to_json(blocks: &[PandocBlock], metadata: &[(String, JVal)]) -> String {
+    let metadata_json = JVal::Object(metadata.to_vec()).to_json_string(true, false, 0);
     let blocks_json = pandoc_blocks_to_json(blocks).to_json_string(true, false, 0);
-    format!("{{\"pandoc-api-version\":[1,23,1,2],\"meta\":{{}},\"blocks\":{blocks_json}}}\n")
+    format!("{{\"pandoc-api-version\":[1,23,1,2],\"meta\":{metadata_json},\"blocks\":{blocks_json}}}\n")
 }
 
 fn jval_obj_get<'a>(pairs: &'a [(String, JVal)], key: &str) -> Option<&'a JVal> {
     pairs.iter().find(|(k, _)| k == key).map(|(_, v)| v)
 }
 
-fn parse_pandoc_json_inlines(val: &JVal) -> Vec<PandocInline> {
-    let JVal::Array(items) = val else {
-        return Vec::new();
-    };
+fn parse_pandoc_json_inlines(val: &JVal) -> Result<Vec<PandocInline>, String> {
+    let JVal::Array(items) = val else { return Err("Invalid Pandoc JSON inline array".into()) };
     let mut out = Vec::new();
     for item in items {
-        if let JVal::Object(m) = item {
-            let t = match jval_obj_get(m, "t") {
-                Some(JVal::Str(s)) => s.as_str(),
-                _ => "",
-            };
-            match t {
-                "Str" => {
-                    if let Some(JVal::Str(s)) = jval_obj_get(m, "c") {
-                        out.push(PandocInline::Text(s.clone()));
-                    }
-                }
-                "Space" => out.push(PandocInline::Space),
-                "SoftBreak" => out.push(PandocInline::SoftBreak),
-                "LineBreak" => out.push(PandocInline::LineBreak),
-                _ => {
-                    let Some(c) = jval_obj_get(m, "c") else { continue };
-                    match t {
-                        "Strong" => out.push(PandocInline::Strong(parse_pandoc_json_inlines(c))),
-                        "Emph" => out.push(PandocInline::Emph(parse_pandoc_json_inlines(c))),
-                        "Strikeout" => out.push(PandocInline::Strikeout(parse_pandoc_json_inlines(c))),
-                        "RawInline" => {
-                            if let JVal::Array(fields) = c
-                                && let [JVal::Str(format), JVal::Str(text)] = fields.as_slice()
-                            { out.push(PandocInline::Raw(format.clone(), text.clone())); }
-                        }
-                        "Code" => {
-                            if let JVal::Array(fields) = c
-                                && let [attr, JVal::Str(text)] = fields.as_slice()
-                                && let Some(attr) = PandocAttr::from_json(attr)
-                            { out.push(PandocInline::Code(attr, text.clone())); }
-                        }
-                        "Link" | "Image" => {
-                            if let JVal::Array(fields) = c
-                                && let [attr, children, JVal::Array(target)] = fields.as_slice()
-                                && let [JVal::Str(url), JVal::Str(title)] = target.as_slice()
-                                && let Some(attr) = PandocAttr::from_json(attr)
-                            { out.push(if t == "Image" { PandocInline::Image(attr, parse_pandoc_json_inlines(children), url.clone(), title.clone()) }
-                                else { PandocInline::Link(attr, parse_pandoc_json_inlines(children), url.clone(), title.clone()) }); }
-                        }
-                        _ => {}
-                    }
+        let JVal::Object(m) = item else { return Err("Invalid Pandoc JSON inline".into()) };
+        let Some(JVal::Str(t)) = jval_obj_get(m, "t") else { return Err("Missing Pandoc JSON inline tag".into()) };
+        let invalid = || format!("Invalid Pandoc JSON inline {t}");
+        let c = jval_obj_get(m, "c");
+        let inline = match t.as_str() {
+            "Space" => PandocInline::Space,
+            "SoftBreak" => PandocInline::SoftBreak,
+            "LineBreak" => PandocInline::LineBreak,
+            "Str" => {
+                let Some(JVal::Str(text)) = c else { return Err(invalid()) };
+                PandocInline::Text(text.clone())
+            }
+            "Strong" | "Emph" | "Strikeout" | "Subscript" | "Superscript" | "SmallCaps" => {
+                let content = parse_pandoc_json_inlines(c.ok_or_else(invalid)?)?;
+                match t.as_str() {
+                    "Strong" => PandocInline::Strong(content),
+                    "Emph" => PandocInline::Emph(content),
+                    "Subscript" => PandocInline::Subscript(content),
+                    "Superscript" => PandocInline::Superscript(content),
+                    "SmallCaps" => PandocInline::SmallCaps(content),
+                    _ => PandocInline::Strikeout(content),
                 }
             }
-        }
+            "Quoted" => {
+                let Some(JVal::Array(fields)) = c else { return Err(invalid()) };
+                let [kind, children] = fields.as_slice() else { return Err(invalid()) };
+                let JVal::Object(kind) = kind else { return Err(invalid()) };
+                if kind.len() != 1 { return Err(invalid()) }
+                let Some(JVal::Str(kind)) = jval_obj_get(kind, "t") else { return Err(invalid()) };
+                let kind = match kind.as_str() {
+                    "SingleQuote" => "SingleQuote",
+                    "DoubleQuote" => "DoubleQuote",
+                    _ => return Err(invalid()),
+                };
+                PandocInline::Quoted(kind, parse_pandoc_json_inlines(children)?)
+            }
+            "Span" => {
+                let Some(JVal::Array(fields)) = c else { return Err(invalid()) };
+                let [attr, children] = fields.as_slice() else { return Err(invalid()) };
+                PandocInline::Span(PandocAttr::from_json(attr).ok_or_else(invalid)?, parse_pandoc_json_inlines(children)?)
+            }
+            "Note" => {
+                let Some(JVal::Array(blocks)) = c else { return Err(invalid()) };
+                PandocInline::Note(parse_pandoc_json_blocks(blocks)?)
+            }
+            "RawInline" => {
+                let Some(JVal::Array(fields)) = c else { return Err(invalid()) };
+                let [JVal::Str(format), JVal::Str(text)] = fields.as_slice() else { return Err(invalid()) };
+                PandocInline::Raw(format.clone(), text.clone())
+            }
+            "Code" => {
+                let Some(JVal::Array(fields)) = c else { return Err(invalid()) };
+                let [attr, JVal::Str(text)] = fields.as_slice() else { return Err(invalid()) };
+                PandocInline::Code(PandocAttr::from_json(attr).ok_or_else(invalid)?, text.clone())
+            }
+            "Link" | "Image" => {
+                let Some(JVal::Array(fields)) = c else { return Err(invalid()) };
+                let [attr, children, JVal::Array(target)] = fields.as_slice() else { return Err(invalid()) };
+                let [JVal::Str(url), JVal::Str(title)] = target.as_slice() else { return Err(invalid()) };
+                let attr = PandocAttr::from_json(attr).ok_or_else(invalid)?;
+                let content = parse_pandoc_json_inlines(children)?;
+                if t == "Image" { PandocInline::Image(attr, content, url.clone(), title.clone()) }
+                else { PandocInline::Link(attr, content, url.clone(), title.clone()) }
+            }
+            _ => return Err(format!("Unsupported Pandoc JSON inline: {t}")),
+        };
+        out.push(inline);
     }
-    out
+    Ok(out)
 }
 
 fn parse_pandoc_json(input: &str) -> Result<Vec<PandocBlock>, String> {
@@ -30763,61 +30294,82 @@ fn parse_pandoc_json(input: &str) -> Result<Vec<PandocBlock>, String> {
     let Some(JVal::Array(blocks)) = jval_obj_get(&root, "blocks") else {
         return Err("missing blocks".into());
     };
-    Ok(parse_pandoc_json_blocks(blocks))
+    parse_pandoc_json_blocks(blocks)
 }
 
-fn parse_pandoc_json_blocks(blocks: &[JVal]) -> Vec<PandocBlock> {
+fn parse_pandoc_json_blocks(blocks: &[JVal]) -> Result<Vec<PandocBlock>, String> {
     let mut out = Vec::new();
     for b in blocks {
-        if let JVal::Object(m) = b {
-            let t = match jval_obj_get(m, "t") {
-                Some(JVal::Str(s)) => s.as_str(),
-                _ => "",
-            };
-            if t == "HorizontalRule" {
-                out.push(PandocBlock::HorizontalRule);
-            } else if t == "OrderedList" || t == "BulletList" {
-                let Some(JVal::Array(c)) = jval_obj_get(m, "c") else { continue };
-                let (numbering, items) = if t == "OrderedList" {
-                    let [JVal::Array(attributes), JVal::Array(items)] = c.as_slice() else { continue };
-                    let Some(n) = pandoc_list::Numbering::from_json(attributes) else { continue };
-                    (Some(n), items)
-                } else { (None, c) };
-                if let Some(items) = items.iter().map(|item| match item {
-                    JVal::Array(children) => Some(parse_pandoc_json_blocks(children)), _ => None,
-                }).collect::<Option<Vec<_>>>() { out.push(PandocBlock::List(numbering, items)); }
-            } else if t == "BlockQuote" {
-                if let Some(JVal::Array(children)) = jval_obj_get(m, "c") {
-                    out.push(PandocBlock::BlockQuote(parse_pandoc_json_blocks(children)));
-                }
-            } else if t == "CodeBlock" {
-                if let Some(JVal::Array(fields)) = jval_obj_get(m, "c")
-                    && let [attr, JVal::Str(code)] = fields.as_slice()
-                    && let Some(attr) = PandocAttr::from_json(attr)
-                {
-                    out.push(PandocBlock::CodeBlock(attr, code.clone()));
-                }
-            } else if t == "Header" {
-                if let Some(JVal::Array(c)) = jval_obj_get(m, "c")
-                    && c.len() >= 3
-                {
-                    let lvl = match c.first() {
-                        Some(JVal::Number(n, _)) => *n as usize,
-                        _ => 1,
-                    };
-                    let inlines = parse_pandoc_json_inlines(&c[2]);
-                    let id = pandoc_slug(&inlines_plain_text(&inlines));
-                    out.push(PandocBlock::Header(lvl, id, inlines));
-                }
-            } else if t == "Para" || t == "Plain" {
-                if let Some(c) = jval_obj_get(m, "c") {
-                    let content = parse_pandoc_json_inlines(c);
-                    out.push(if t == "Para" { PandocBlock::Para(content) } else { PandocBlock::Plain(content) });
-                }
+        let JVal::Object(m) = b else { return Err("Invalid Pandoc JSON block".into()) };
+        let Some(JVal::Str(t)) = jval_obj_get(m, "t") else { return Err("Missing Pandoc JSON block tag".into()) };
+        let invalid = || format!("Invalid Pandoc JSON block {t}");
+        let c = jval_obj_get(m, "c");
+        let block = match t.as_str() {
+            "Null" => continue,
+            "Vector" => {
+                let scene = c.ok_or_else(invalid)?;
+                let canonical = pandoc_binary_json::canonical_value(scene.clone());
+                document_ast_rust::cooperate::block_on(document_converter_rust::vector::from_json(&canonical))
+                    .map_err(|error| format!("{}: {}", error.code, error.message))?;
+                PandocBlock::Vector(Box::new(scene.clone()))
             }
-        }
+            "HorizontalRule" => PandocBlock::HorizontalRule,
+            "OrderedList" | "BulletList" => {
+                let Some(JVal::Array(c)) = c else { return Err(invalid()) };
+                let (numbering, items) = if t == "OrderedList" {
+                    let [JVal::Array(attributes), JVal::Array(items)] = c.as_slice() else { return Err(invalid()) };
+                    (Some(pandoc_list::Numbering::from_json(attributes).ok_or_else(invalid)?), items)
+                } else { (None, c) };
+                let mut children = Vec::new();
+                for item in items {
+                    let JVal::Array(blocks) = item else { return Err(invalid()) };
+                    children.push(parse_pandoc_json_blocks(blocks)?);
+                }
+                PandocBlock::List(numbering, children)
+            }
+            "Figure" => {
+                let Some(JVal::Array(fields)) = c else { return Err(invalid()) };
+                let [attr, JVal::Array(caption), JVal::Array(children)] = fields.as_slice() else { return Err(invalid()) };
+                let [short, JVal::Array(long)] = caption.as_slice() else { return Err(invalid()) };
+                let short = if matches!(short, JVal::Null) { None } else { Some(parse_pandoc_json_inlines(short)?) };
+                PandocBlock::Figure(PandocAttr::from_json(attr).ok_or_else(invalid)?, short, parse_pandoc_json_blocks(long)?, parse_pandoc_json_blocks(children)?)
+            }
+            "Div" => {
+                let Some(JVal::Array(fields)) = c else { return Err(invalid()) };
+                let [attr, JVal::Array(children)] = fields.as_slice() else { return Err(invalid()) };
+                PandocBlock::Div(PandocAttr::from_json(attr).ok_or_else(invalid)?, parse_pandoc_json_blocks(children)?)
+            }
+            "BlockQuote" => {
+                let Some(JVal::Array(children)) = c else { return Err(invalid()) };
+                PandocBlock::BlockQuote(parse_pandoc_json_blocks(children)?)
+            }
+            "CodeBlock" => {
+                let Some(JVal::Array(fields)) = c else { return Err(invalid()) };
+                let [attr, JVal::Str(code)] = fields.as_slice() else { return Err(invalid()) };
+                PandocBlock::CodeBlock(PandocAttr::from_json(attr).ok_or_else(invalid)?, code.clone())
+            }
+            "RawBlock" => {
+                let Some(JVal::Array(fields)) = c else { return Err(invalid()) };
+                let [JVal::Str(format), JVal::Str(text)] = fields.as_slice() else { return Err(invalid()) };
+                PandocBlock::Raw(format.clone(), text.clone())
+            }
+            "Header" => {
+                let Some(JVal::Array(fields)) = c else { return Err(invalid()) };
+                let [JVal::Number(level, _), attr, content] = fields.as_slice() else { return Err(invalid()) };
+                if !(1. ..=6.).contains(level) || level.fract() != 0. { return Err(invalid()) }
+                let attr = PandocAttr::from_json(attr).ok_or_else(invalid)?;
+                let content = parse_pandoc_json_inlines(content)?;
+                PandocBlock::Header(*level as usize, attr, content)
+            }
+            "Para" | "Plain" => {
+                let content = parse_pandoc_json_inlines(c.ok_or_else(invalid)?)?;
+                if t == "Para" { PandocBlock::Para(content) } else { PandocBlock::Plain(content) }
+            }
+            _ => return Err(format!("Unsupported Pandoc JSON block: {t}")),
+        };
+        out.push(block);
     }
-    out
+    Ok(out)
 }
 
 fn html_escape_pandoc(s: &str, ascii: bool) -> String {
@@ -30841,6 +30393,8 @@ fn render_pandoc_inlines_html(inlines: &[PandocInline], ascii: bool) -> String {
     let mut out = String::new();
     for inl in inlines {
         match inl {
+            PandocInline::Note(_) => unreachable!("footnotes require a supported writer"),
+            PandocInline::NoteReference(label) => out.push_str(&format!("[^{label}]")),
             PandocInline::Space => out.push(' '),
             PandocInline::SoftBreak => out.push('\n'),
             PandocInline::LineBreak => out.push_str("<br>"),
@@ -30858,10 +30412,27 @@ fn render_pandoc_inlines_html(inlines: &[PandocInline], ascii: bool) -> String {
                 out.push_str(&render_pandoc_inlines_html(c, ascii));
                 out.push_str("</em>");
             }
+            PandocInline::Subscript(c) | PandocInline::Superscript(c) => {
+                let tag = if matches!(inl, PandocInline::Subscript(_)) { "sub" } else { "sup" };
+                out.push_str(&format!("<{tag}>{}</{tag}>", render_pandoc_inlines_html(c, ascii)));
+            }
             PandocInline::Strikeout(c) => {
                 out.push_str("<del>");
                 out.push_str(&render_pandoc_inlines_html(c, ascii));
                 out.push_str("</del>");
+            }
+            PandocInline::Quoted(kind, children) => {
+                out.push_str(&html_escape_pandoc(if *kind == "SingleQuote" { "‘" } else { "“" }, ascii));
+                out.push_str(&render_pandoc_inlines_html(children, ascii));
+                out.push_str(&html_escape_pandoc(if *kind == "SingleQuote" { "’" } else { "”" }, ascii));
+            }
+            PandocInline::SmallCaps(children) => out.push_str(&format!("<span class=\"smallcaps\">{}</span>", render_pandoc_inlines_html(children, ascii))),
+            PandocInline::Span(attr, children) => {
+                out.push_str("<span");
+                attr.write_html(&mut out, ascii);
+                out.push('>');
+                out.push_str(&render_pandoc_inlines_html(children, ascii));
+                out.push_str("</span>");
             }
             PandocInline::Code(attr, c) => {
                 out.push_str("<code");
@@ -30899,6 +30470,7 @@ fn render_pandoc_html(
     header_inc: &str,
     before_inc: &str,
     after_inc: &str,
+    portable: bool,
 ) -> String {
     let mut counts = [0usize; 6];
     let mut numbered_headers: Vec<(usize, String, String, String)> = Vec::new();
@@ -30916,7 +30488,7 @@ fn render_pandoc_html(
                 }
             }
             let sec_num = num_parts.join(".");
-            numbered_headers.push((*lvl, id.clone(), sec_num, render_pandoc_inlines_html(inlines, ascii)));
+            numbered_headers.push((*lvl, id.id.clone(), sec_num, render_pandoc_inlines_html(inlines, ascii)));
         }
     }
 
@@ -30924,18 +30496,23 @@ fn render_pandoc_html(
     let mut h_cursor = 0usize;
     for b in blocks {
         match b {
+            PandocBlock::Vector(_) => unreachable!("Vector requires JSON, DOCX, or PDF output"),
+            PandocBlock::Raw(_, text) => { body.push_str(text); body.push('\n'); }
             PandocBlock::Header(lvl, id, inlines) => {
                 let (_, _, sec_num, rendered_inl) = numbered_headers
                     .get(h_cursor)
                     .cloned()
-                    .unwrap_or_else(|| (*lvl, id.clone(), String::new(), render_pandoc_inlines_html(inlines, ascii)));
+                    .unwrap_or_else(|| (*lvl, id.id.clone(), String::new(), render_pandoc_inlines_html(inlines, ascii)));
                 h_cursor += 1;
+                body.push_str(&format!("<h{lvl}"));
+                id.write_html_id_classes(&mut body, ascii);
+                for (key, value) in &id.properties {
+                    body.push_str(&format!(" {}=\"{}\"", html_escape_pandoc(key, ascii), html_escape_pandoc(value, ascii)));
+                }
                 if number_sections {
-                    body.push_str(&format!(
-                        "<h{lvl} id=\"{id}\" data-number=\"{sec_num}\"><span class=\"header-section-number\">{sec_num}</span> {rendered_inl}</h{lvl}>\n"
-                    ));
+                    body.push_str(&format!(" data-number=\"{sec_num}\"><span class=\"header-section-number\">{sec_num}</span> {rendered_inl}</h{lvl}>\n"));
                 } else {
-                    body.push_str(&format!("<h{lvl} id=\"{id}\">{rendered_inl}</h{lvl}>\n"));
+                    body.push_str(&format!(">{rendered_inl}</h{lvl}>\n"));
                 }
             }
             PandocBlock::Para(inlines) => {
@@ -30953,6 +30530,9 @@ fn render_pandoc_html(
                 if let Some(n) = numbering {
                     if n.start != 1 { body.push_str(&format!(" start=\"{}\"", n.start)); }
                     if let Some(t) = n.html_type() { body.push_str(&format!(" type=\"{t}\"")); }
+                    if portable && matches!(n.delimiter.as_str(), "OneParen" | "TwoParens") {
+                        body.push_str(&format!(" data-list-delimiter=\"{}\"", n.delimiter));
+                    }
                 }
                 if numbering.is_none() && items.iter().all(|item| pandoc_list::label(item, false).is_some()) {
                     body.push_str(" class=\"task-list\"");
@@ -30971,14 +30551,50 @@ fn render_pandoc_html(
                         if item.len() > 1 { body.push('\n'); }
                         &item[1..]
                     } else { item.as_slice() };
-                    let value = render_pandoc_html(rest, false, false, false, ascii, "", "", "", "");
+                    let value = render_pandoc_html(rest, false, false, false, ascii, "", "", "", "", portable);
                     body.push_str(value.strip_suffix('\n').unwrap_or(&value));
                     body.push_str("</li>\n");
                 }
                 body.push_str(&format!("</{tag}>\n"));
             }
+            PandocBlock::Figure(attr, short, caption, children) => {
+                let duplicate = match children.as_slice() {
+                    [PandocBlock::Plain(nodes)] => match nodes.as_slice() {
+                        [PandocInline::Image(_, alt, _, _)] if !caption.is_empty() => {
+                            let label = caption.iter().map(|block| match block {
+                                PandocBlock::Plain(nodes) | PandocBlock::Para(nodes) => Some(inlines_plain_text(nodes)),
+                                _ => None,
+                            }).collect::<Option<String>>();
+                            label.is_some_and(|label| label == inlines_plain_text(alt))
+                        }
+                        _ => false,
+                    },
+                    _ => false,
+                };
+                body.push_str("<figure"); attr.write_html(&mut body, ascii); body.push('>');
+                let content = render_pandoc_html(children, false, false, false, ascii, "", "", "", "", portable);
+                body.push_str(if matches!(children.last(), Some(PandocBlock::Plain(_))) { content.trim_end_matches('\n') } else { &content });
+                body.push_str(if duplicate { "<figcaption aria-hidden=\"true\">" } else { "<figcaption>" });
+                if caption.is_empty() {
+                    if let Some(short) = short { body.push_str(&render_pandoc_inlines_html(short, ascii)); }
+                } else {
+                    for block in caption {
+                        let content = render_pandoc_html(std::slice::from_ref(block), false, false, false, ascii, "", "", "", "", portable);
+                        body.push_str(if matches!(block, PandocBlock::Plain(_)) { content.trim_end_matches('\n') } else { &content });
+                    }
+                }
+                body.push_str("</figcaption></figure>\n");
+            }
+            PandocBlock::Div(attr, children) => {
+                body.push_str("<div");
+                attr.write_html(&mut body, ascii);
+                body.push('>');
+                let value = render_pandoc_html(children, false, false, false, ascii, "", "", "", "", portable);
+                body.push_str(if matches!(children.last(), Some(PandocBlock::Plain(_))) { value.trim_end_matches('\n') } else { &value });
+                body.push_str("</div>\n");
+            }
             PandocBlock::BlockQuote(inner) => {
-                let inner_html = render_pandoc_html(inner, false, false, false, ascii, "", "", "", "");
+                let inner_html = render_pandoc_html(inner, false, false, false, ascii, "", "", "", "", portable);
                 body.push_str("<blockquote>\n");
                 body.push_str(if inner_html.is_empty() { "\n" } else { &inner_html });
                 body.push_str("</blockquote>\n");
@@ -31009,7 +30625,7 @@ fn render_pandoc_html(
                     for row in rows {
                         body.push_str("<tr>\n");
                         for c in row {
-                            let content = render_pandoc_html(&c.blocks, false,false,false,ascii,"","","","");
+                            let content = render_pandoc_html(&c.blocks, false,false,false,ascii,"","","","",portable);
                             body.push_str(&format!("<{cell}"));
                             if c.span.1>1 {body.push_str(&format!(" colspan=\"{}\"",c.span.1));}
                             if c.span.0>1 {body.push_str(&format!(" rowspan=\"{}\"",c.span.0));}
@@ -31056,17 +30672,38 @@ fn render_pandoc_html(
     )
 }
 
-fn render_pandoc_inlines_md(inlines: &[PandocInline], bracket_links: bool, raw_attribute: bool) -> String {
+fn render_pandoc_inlines_md(inlines: &[PandocInline], bracket_links: bool, raw_attribute: bool, bracketed_spans: bool) -> String {
     let mut out = String::new();
     for inl in inlines {
         match inl {
+            PandocInline::Note(_) => unreachable!("footnotes require a supported writer"),
+            PandocInline::NoteReference(label) => out.push_str(&format!("[^{label}]")),
             PandocInline::Space => out.push(' '),
             PandocInline::SoftBreak => out.push('\n'),
             PandocInline::LineBreak => out.push_str("\\\n"),
             PandocInline::Text(s) => out.push_str(&s.replace('\\', "\\\\")),
-            PandocInline::Strong(c) => out.push_str(&format!("**{}**", render_pandoc_inlines_md(c, bracket_links, raw_attribute))),
-            PandocInline::Emph(c) => out.push_str(&format!("*{}*", render_pandoc_inlines_md(c, bracket_links, raw_attribute))),
-            PandocInline::Strikeout(c) => out.push_str(&format!("~~{}~~", render_pandoc_inlines_md(c, bracket_links, raw_attribute))),
+            PandocInline::Strong(c) => out.push_str(&format!("**{}**", render_pandoc_inlines_md(c, bracket_links, raw_attribute, bracketed_spans))),
+            PandocInline::Emph(c) => out.push_str(&format!("*{}*", render_pandoc_inlines_md(c, bracket_links, raw_attribute, bracketed_spans))),
+            PandocInline::Strikeout(c) => out.push_str(&format!("~~{}~~", render_pandoc_inlines_md(c, bracket_links, raw_attribute, bracketed_spans))),
+            PandocInline::Subscript(c) | PandocInline::Superscript(c) => {
+                let marker = if matches!(inl, PandocInline::Subscript(_)) { '~' } else { '^' };
+                out.push_str(&format!("{marker}{}{marker}", render_pandoc_inlines_md(c, bracket_links, raw_attribute, bracketed_spans).replace(' ', "\\ ")));
+            }
+            PandocInline::Quoted(kind, children) => {
+                let quote = if *kind == "SingleQuote" { '\'' } else { '"' };
+                out.push(quote); out.push_str(&render_pandoc_inlines_md(children, bracket_links, raw_attribute, bracketed_spans)); out.push(quote);
+            }
+            PandocInline::SmallCaps(_) => unreachable!("SmallCaps requires a supported writer"),
+            PandocInline::Span(attr, children) => {
+                let content = render_pandoc_inlines_md(children, bracket_links, raw_attribute, bracketed_spans);
+                if bracketed_spans {
+                    let mut attrs = Vec::new();
+                    if !attr.id.is_empty() { attrs.push(format!("#{}", attr.id)); }
+                    attrs.extend(attr.classes.iter().map(|name| format!(".{name}")));
+                    attrs.extend(attr.properties.iter().map(|(key, value)| format!("{key}=\"{}\"", value.replace('\\', "\\\\").replace('"', "\\\""))));
+                    out.push_str(&format!("[{content}]{{{}}}", attrs.join(" ")));
+                } else { out.push_str(&content); }
+            },
             PandocInline::Code(_, c) => out.push_str(&format!("`{c}`")),
             PandocInline::Raw(format, text) => {
                 if raw_attribute {
@@ -31087,7 +30724,7 @@ fn render_pandoc_inlines_md(inlines: &[PandocInline], bracket_links: bool, raw_a
             PandocInline::Link(_, c, url, title) | PandocInline::Image(_, c, url, title) => {
                 if matches!(inl, PandocInline::Image(..)) { out.push('!'); }
                 let title = if title.is_empty() { String::new() } else { format!(" \"{}\"", title.replace('\\', "\\\\").replace('"', "\\\"")) };
-                let label = render_pandoc_inlines_md(c, bracket_links, raw_attribute);
+                let label = render_pandoc_inlines_md(c, bracket_links, raw_attribute, bracketed_spans);
                 if bracket_links { out.push_str(&format!("[{label}](<{url}>{title})")); }
                 else { out.push_str(&format!("[{label}]({url}{title})")); }
             }
@@ -31096,20 +30733,22 @@ fn render_pandoc_inlines_md(inlines: &[PandocInline], bracket_links: bool, raw_a
     out
 }
 
-fn render_pandoc_markdown(blocks: &[PandocBlock], bracket_links: bool, tasks: bool, raw_attribute: bool) -> String {
+fn render_pandoc_markdown(blocks: &[PandocBlock], bracket_links: bool, tasks: bool, raw_attribute: bool, bracketed_spans: bool) -> String {
     let mut parts = Vec::new();
     for b in blocks {
         match b {
+            PandocBlock::Vector(_) => unreachable!("Vector requires JSON, DOCX, or PDF output"),
+            PandocBlock::Raw(_, text) => parts.push(text.clone()),
             PandocBlock::Header(lvl, _, inlines) => {
-                parts.push(format!("{} {}", "#".repeat(*lvl), render_pandoc_inlines_md(inlines, bracket_links, raw_attribute)));
+                parts.push(format!("{} {}", "#".repeat(*lvl), render_pandoc_inlines_md(inlines, bracket_links, raw_attribute, bracketed_spans)));
             }
             PandocBlock::Para(inlines) | PandocBlock::Plain(inlines) => {
-                parts.push(render_pandoc_inlines_md(inlines, bracket_links, raw_attribute));
+                parts.push(render_pandoc_inlines_md(inlines, bracket_links, raw_attribute, bracketed_spans));
             }
             PandocBlock::List(numbering, items) => {
                 parts.push(pandoc_list::text(numbering.as_ref(), items, true, usize::MAX,
                     |item, _| {
-                        let mut value = render_pandoc_markdown(item, bracket_links, tasks, raw_attribute);
+                        let mut value = render_pandoc_markdown(item, bracket_links, tasks, raw_attribute, bracketed_spans);
                         if tasks && let Some((_, checked, _)) = pandoc_list::label(item, true) {
                             value.replace_range(.."☐".len(), if checked { "[x]" } else { "[ ]" });
                         }
@@ -31117,7 +30756,7 @@ fn render_pandoc_markdown(blocks: &[PandocBlock], bracket_links: bool, tasks: bo
                     }).unwrap());
             }
             PandocBlock::Table(table) => {
-                let row = |cells: &[pandoc_table::Cell]| format!("| {} |", cells.iter().map(|c| render_pandoc_markdown(&c.blocks, bracket_links,tasks, raw_attribute).trim_end_matches('\n').replace('|', "\\|")).collect::<Vec<_>>().join(" | "));
+                let row = |cells: &[pandoc_table::Cell]| format!("| {} |", cells.iter().map(|c| render_pandoc_markdown(&c.blocks, bracket_links,tasks, raw_attribute, bracketed_spans).trim_end_matches('\n').replace('|', "\\|")).collect::<Vec<_>>().join(" | "));
                 let mut t: Vec<_> = table.head.iter().map(|r|row(r)).collect();
                 let markers = table.cols.iter().map(|(a,_)| match a {
                     Some(std::fmt::Alignment::Right) => "---:",
@@ -31136,8 +30775,26 @@ fn render_pandoc_markdown(blocks: &[PandocBlock], bracket_links: bool, tasks: bo
                 let lang = attr.classes.first().map_or("", String::as_str);
                 parts.push(format!("```{lang}\n{code}\n```"));
             }
+            PandocBlock::Figure(_, _, caption, children) => {
+                let image = match (children.as_slice(), caption.as_slice()) {
+                    ([PandocBlock::Plain(nodes) | PandocBlock::Para(nodes)], [PandocBlock::Plain(label) | PandocBlock::Para(label)]) => match nodes.as_slice() {
+                        [PandocInline::Image(attr, _, url, title)] => Some(PandocInline::Image(attr.clone(), label.clone(), url.clone(), title.clone())),
+                        _ => None,
+                    },
+                    _ => None,
+                };
+                if let Some(image) = image {
+                    parts.push(render_pandoc_inlines_md(&[image], bracket_links, raw_attribute, bracketed_spans));
+                } else {
+                    for blocks in [children, caption] {
+                        let content = render_pandoc_markdown(blocks, bracket_links, tasks, raw_attribute, bracketed_spans);
+                        if !content.is_empty() { parts.push(content.trim_end_matches('\n').into()); }
+                    }
+                }
+            }
+            PandocBlock::Div(_, children) => parts.push(render_pandoc_markdown(children, bracket_links, tasks, raw_attribute, bracketed_spans).trim_end_matches('\n').into()),
             PandocBlock::BlockQuote(inner) => {
-                let inner_md = render_pandoc_markdown(inner, bracket_links, tasks, raw_attribute);
+                let inner_md = render_pandoc_markdown(inner, bracket_links, tasks, raw_attribute, bracketed_spans);
                 let q: Vec<String> = inner_md.lines().map(|l| format!("> {l}")).collect();
                 parts.push(q.join("\n"));
             }
@@ -31174,6 +30831,8 @@ fn render_pandoc_plain(blocks: &[PandocBlock], mut limit: usize) -> Option<Strin
     let mut after_plain = false;
     for b in blocks {
         let part = match b {
+            PandocBlock::Vector(_) => unreachable!("Vector requires JSON, DOCX, or PDF output"),
+            PandocBlock::Raw(_, text) => text.clone(),
             PandocBlock::Header(_, _, inlines) | PandocBlock::Para(inlines) | PandocBlock::Plain(inlines) => {
                 inlines_plain_text(inlines)
             }
@@ -31182,6 +30841,13 @@ fn render_pandoc_plain(blocks: &[PandocBlock], mut limit: usize) -> Option<Strin
                 "-".repeat(72)
             }
             PandocBlock::CodeBlock(_, code) => indent(code.trim_end_matches('\n'), "    "),
+            PandocBlock::Figure(attr, _, caption, children) => {
+                let implicit = matches!(children.as_slice(), [PandocBlock::Plain(nodes)] if matches!(nodes.as_slice(), [PandocInline::Image(image_attr, _, _, _)] if image_attr.id.is_empty()))
+                    && attr.classes.is_empty() && attr.properties.is_empty();
+                if implicit { format!("[{}]", render_pandoc_plain(caption, limit.checked_sub(2)?)?) }
+                else { render_pandoc_plain(children, limit)? }
+            }
+            PandocBlock::Div(_, children) => render_pandoc_plain(children, limit)?,
             PandocBlock::BlockQuote(inner) => {
                 let text = render_pandoc_plain(inner, limit)?;
                 let mut quoted = indent(&text, "  ");
@@ -31204,43 +30870,83 @@ fn render_pandoc_plain(blocks: &[PandocBlock], mut limit: usize) -> Option<Strin
     Some(out)
 }
 
-fn render_pandoc_rst(blocks: &[PandocBlock]) -> String {
-    let mut parts = Vec::new();
-    for b in blocks {
-        match b {
-            PandocBlock::Header(lvl, _, inlines) => {
-                let text = render_pandoc_inlines_md(inlines, false, false);
-                let ch = match lvl {
-                    1 => '=',
-                    2 => '-',
-                    _ => '~',
-                };
-                parts.push(format!("{text}\n{}", ch.to_string().repeat(text.chars().count().max(3))));
-            }
-            PandocBlock::Para(inlines) | PandocBlock::Plain(inlines) => {
-                let mut out = String::new();
-                for inl in inlines {
-                    match inl {
-                        PandocInline::Code(_, c) => out.push_str(&format!("``{c}``")),
-                        _ => out.push_str(&render_pandoc_inlines_md(std::slice::from_ref(inl), false, false)),
+fn render_pandoc_rst(blocks: &[PandocBlock]) -> Result<String, &'static str> {
+    fn inlines(nodes: &[PandocInline]) -> Result<String, &'static str> {
+        let mut out = String::new();
+        let mut previous_script = false;
+        for node in nodes {
+            let script = matches!(node, PandocInline::Subscript(_) | PandocInline::Superscript(_));
+            let text = match node {
+                PandocInline::Subscript(children) | PandocInline::Superscript(children) => {
+                    let mut content = String::new();
+                    for child in children {
+                        match child {
+                            PandocInline::Text(text) => for character in text.chars() {
+                                if character <= '\u{1f}' || character == '\u{7f}' { return Err("E_UNSUPPORTED_FEATURE: Control character in RST script text\n"); }
+                                if "\\`*_|<>[]".contains(character) { content.push('\\'); }
+                                content.push(character);
+                            },
+                            PandocInline::Space | PandocInline::SoftBreak => content.push(' '),
+                            _ => return Err("E_UNSUPPORTED_FEATURE: Nested RST script formatting\n"),
+                        }
                     }
+                    if content.is_empty() || content.trim() != content { return Err("E_UNSUPPORTED_FEATURE: Empty or whitespace-bounded RST script\n"); }
+                    format!(":{}:`{content}`", if matches!(node, PandocInline::Subscript(_)) { "sub" } else { "sup" })
                 }
-                parts.push(out);
+                _ if pandoc_inlines::has_scripts(std::slice::from_ref(node)) => return Err("E_UNSUPPORTED_FEATURE: Nested RST script formatting\n"),
+                PandocInline::Quoted(kind, children) => format!("{}{}{}", if *kind == "SingleQuote" { "‘" } else { "“" }, inlines(children)?, if *kind == "SingleQuote" { "’" } else { "”" }),
+                PandocInline::Strong(children) => format!("**{}**", inlines(children)?),
+                PandocInline::Emph(children) => format!("*{}*", inlines(children)?),
+                PandocInline::Code(_, code) => format!("``{code}``"),
+                _ => render_pandoc_inlines_md(std::slice::from_ref(node), false, false, false),
+            };
+            if (script || previous_script) && !out.is_empty() && !text.is_empty() && !out.ends_with(' ') && !text.starts_with(' ') { out.push_str("\\ "); }
+            out.push_str(&text);
+            previous_script = script;
+        }
+        Ok(out)
+    }
+    let mut parts = Vec::new();
+    for block in blocks {
+        match block {
+            PandocBlock::Figure(_, _, caption, children) => {
+                if let [PandocBlock::Plain(nodes)] = children.as_slice()
+                    && let [PandocInline::Image(_, _, url, _)] = nodes.as_slice()
+                {
+                    let label = render_pandoc_rst(caption)?;
+                    parts.push(format!(".. figure:: {url}\n\n{}", label.trim_end_matches('\n').lines().map(|line| format!("   {line}")).collect::<Vec<_>>().join("\n")));
+                } else {
+                    for blocks in [children, caption] { parts.push(render_pandoc_rst(blocks)?.trim_end_matches('\n').into()); }
+                }
             }
-            _ => {}
+            PandocBlock::Div(attr, children) => {
+                let mut text = String::new();
+                if !attr.id.is_empty() { text.push_str(&format!(".. _{}:\n\n", attr.id)); }
+                text.push_str(&format!(".. container::{}\n\n", if attr.classes.is_empty() { String::new() } else { format!(" {}", attr.classes.join(" ")) }));
+                text.push_str(&render_pandoc_rst(children)?.trim_end_matches('\n').lines().map(|line| if line.is_empty() { String::new() } else { format!("   {line}") }).collect::<Vec<_>>().join("\n"));
+                parts.push(text);
+            }
+            PandocBlock::Vector(_) => unreachable!("Vector requires JSON, DOCX, or PDF output"),
+            PandocBlock::Raw(_, text) => parts.push(text.clone()),
+            PandocBlock::Header(level, _, nodes) => {
+                let text = inlines(nodes)?;
+                let marker = match level { 1 => '=', 2 => '-', _ => '~' };
+                parts.push(format!("{text}\n{}", marker.to_string().repeat(text.chars().count().max(3))));
+            }
+            PandocBlock::Para(nodes) | PandocBlock::Plain(nodes) => parts.push(inlines(nodes)?),
+            _ if pandoc_inlines::blocks_have_scripts(std::slice::from_ref(block)) => return Err("E_UNSUPPORTED_FEATURE: RST scripts in unsupported block container\n"),
+            _ => {},
         }
     }
-    if parts.is_empty() {
-        String::new()
-    } else {
-        format!("{}\n", parts.join("\n\n"))
-    }
+    Ok(if parts.is_empty() { String::new() } else { format!("{}\n", parts.join("\n\n")) })
 }
 
 fn render_pandoc_inlines_latex(inlines: &[PandocInline]) -> String {
     let mut out = String::new();
     for inl in inlines {
         match inl {
+            PandocInline::Note(_) => unreachable!("footnotes require a supported writer"),
+            PandocInline::NoteReference(label) => out.push_str(&format!("[^{label}]")),
             PandocInline::Space => out.push(' '),
             PandocInline::SoftBreak => out.push('\n'),
             PandocInline::LineBreak => out.push_str("\\\\\n"),
@@ -31251,6 +30957,17 @@ fn render_pandoc_inlines_latex(inlines: &[PandocInline]) -> String {
             PandocInline::Raw(format, text) => {
                 if matches!(format.as_str(), "latex" | "tex") { out.push_str(text); }
             },
+            PandocInline::Subscript(c) | PandocInline::Superscript(c) => {
+                let command = if matches!(inl, PandocInline::Subscript(_)) { "textsubscript" } else { "textsuperscript" };
+                out.push_str(&format!("\\{command}{{{}}}", render_pandoc_inlines_latex(c)));
+            }
+            PandocInline::Quoted(kind, children) => {
+                out.push_str(if *kind == "SingleQuote" { "`" } else { "``" });
+                out.push_str(&render_pandoc_inlines_latex(children));
+                out.push_str(if *kind == "SingleQuote" { "'" } else { "''" });
+            }
+            PandocInline::SmallCaps(children) => out.push_str(&format!("\\textsc{{{}}}", render_pandoc_inlines_latex(children))),
+            PandocInline::Span(_, children) => out.push_str(&format!("{{{}}}", render_pandoc_inlines_latex(children))),
             PandocInline::Strikeout(c) => out.push_str(&render_pandoc_inlines_latex(c)),
             PandocInline::Link(_, c, url, _) => out.push_str(&format!("\\href{{{url}}}{{{}}}", render_pandoc_inlines_latex(c))),
             PandocInline::Image(_, _, url, _) => out.push_str(&format!("\\includegraphics{{{url}}}")),
@@ -31263,6 +30980,13 @@ fn render_pandoc_latex(blocks: &[PandocBlock]) -> String {
     let mut parts = Vec::new();
     for b in blocks {
         match b {
+            PandocBlock::Vector(_) => unreachable!("Vector requires JSON, DOCX, or PDF output"),
+            PandocBlock::Raw(_, text) => parts.push(text.clone()),
+            PandocBlock::Figure(_, short, caption, children) => {
+                let caption = if caption.is_empty() { short.as_ref().map_or_else(String::new, |nodes| render_pandoc_inlines_latex(nodes)) } else { render_pandoc_latex(caption).trim_end_matches('\n').into() };
+                parts.push(format!("\\begin{{figure}}\n{}\\caption{{{caption}}}\n\\end{{figure}}", render_pandoc_latex(children)));
+            }
+            PandocBlock::Div(_, children) => parts.push(format!("{{\n{}\n}}", render_pandoc_latex(children))),
             PandocBlock::Header(lvl, _, inlines) => {
                 let cmd = match lvl {
                     1 => "section",
@@ -31288,12 +31012,25 @@ fn render_pandoc_inlines_rtf(inlines: &[PandocInline]) -> String {
     let mut out = String::new();
     for inl in inlines {
         match inl {
+            PandocInline::Note(_) => unreachable!("footnotes require a supported writer"),
+            PandocInline::NoteReference(label) => out.push_str(&format!("[^{label}]")),
             PandocInline::Space | PandocInline::SoftBreak => out.push(' '),
             PandocInline::LineBreak => out.push_str("\\line "),
             PandocInline::Text(s) | PandocInline::Code(_, s) => out.push_str(s),
             PandocInline::Raw(format, text) => { if format == "rtf" { out.push_str(text); } },
             PandocInline::Strong(c) => out.push_str(&format!("{{\\b {}}}", render_pandoc_inlines_rtf(c))),
             PandocInline::Emph(c) => out.push_str(&format!("{{\\i {}}}", render_pandoc_inlines_rtf(c))),
+            PandocInline::Subscript(c) | PandocInline::Superscript(c) => {
+                let command = if matches!(inl, PandocInline::Subscript(_)) { "sub" } else { "super" };
+                out.push_str(&format!("{{\\{command} {}}}", render_pandoc_inlines_rtf(c)));
+            }
+            PandocInline::Quoted(kind, children) => {
+                out.push_str(if *kind == "SingleQuote" { "\\u8216 ?" } else { "\\u8220 ?" });
+                out.push_str(&render_pandoc_inlines_rtf(children));
+                out.push_str(if *kind == "SingleQuote" { "\\u8217 ?" } else { "\\u8221 ?" });
+            }
+            PandocInline::SmallCaps(children) => out.push_str(&format!("{{\\scaps {}}}", render_pandoc_inlines_rtf(children))),
+            PandocInline::Span(_, children) => out.push_str(&format!("{{{}}}", render_pandoc_inlines_rtf(children))),
             PandocInline::Strikeout(c) | PandocInline::Link(_, c, _, _) => out.push_str(&render_pandoc_inlines_rtf(c)),
             PandocInline::Image(_, c, _, _) => out.push_str(&format!("[{}]", render_pandoc_inlines_rtf(c))),
         }
@@ -31305,6 +31042,18 @@ fn render_pandoc_rtf(blocks: &[PandocBlock]) -> String {
     let mut out = String::from("{\\rtf1\\ansi\\deff0\n");
     for b in blocks {
         match b {
+            PandocBlock::Figure(_, _, caption, children) => {
+                for blocks in [children, caption] {
+                    let value = render_pandoc_rtf(blocks);
+                    out.push_str(value.strip_prefix("{\\rtf1\\ansi\\deff0\n").unwrap().strip_suffix("}\n").unwrap());
+                }
+            }
+            PandocBlock::Div(_, children) => {
+                let value = render_pandoc_rtf(children);
+                out.push_str(value.strip_prefix("{\\rtf1\\ansi\\deff0\n").unwrap().strip_suffix("}\n").unwrap());
+            }
+            PandocBlock::Vector(_) => unreachable!("Vector requires JSON, DOCX, or PDF output"),
+            PandocBlock::Raw(_, text) => { out.push_str(text); out.push('\n'); }
             PandocBlock::Header(_, _, inlines) => {
                 out.push_str(&format!("{{\\pard\\b {}\\par}}\n", render_pandoc_inlines_rtf(inlines)));
             }
@@ -31316,14 +31065,6 @@ fn render_pandoc_rtf(blocks: &[PandocBlock]) -> String {
     }
     out.push_str("}\n");
     out
-}
-
-fn hex_enc_bytes(bytes: &[u8]) -> String {
-    let mut s = String::with_capacity(bytes.len() * 2);
-    for b in bytes {
-        s.push_str(&format!("{b:02x}"));
-    }
-    s
 }
 
 fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
@@ -31350,7 +31091,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         "--resource-path DIR[:DIR] --extract-media DIR --raw-content=reject|escape|retain\n",
         "--pdf-page-size a4|letter --pdf-orientation portrait|landscape --pdf-margin POINTS\n",
         "--pdf-font FAMILY|PATH --pdf-font-size POINTS --pdf-line-height MULTIPLIER\n",
-        "PDF families: mono bundled; serif/sans unavailable (E_CAPABILITY). Font paths use only the admitted VFS.\n",
+        "Portable PDF output embeds bundled sans and monospace fonts; images use only the admitted VFS.\n",
         "--epub-title TEXT --epub-language TEXT --epub-identifier TEXT --epub-chapter-level 1..6\n",
         "--list-input-formats --list-output-formats --list-extensions FORMAT --help/-h --version/-v\n",
         "--list-highlight-languages --list-highlight-styles --print-highlight-style STYLE\n",
@@ -31371,7 +31112,11 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         return err_out("E_OPTION: Arguments must be valid UTF-8 without NUL\n", 2);
     }
     let extension = |format: Option<&str>, base: &str, name: &str| {
-        let mut enabled = if name == "raw_attribute" { matches!(base, "markdown" | "md" | "commonmark_x") }
+        let mut enabled = if matches!(name, "footnotes" | "header_attributes" | "auto_identifiers" | "smart") { matches!(base, "markdown" | "md") }
+            else if name == "gfm_auto_identifiers" { base == "gfm" }
+            else if matches!(name, "subscript" | "superscript" | "native_divs" | "native_spans" | "bracketed_spans" | "link_attributes" | "implicit_figures") { matches!(base, "markdown" | "md") }
+            else if name == "autolink_bare_uris" { !matches!(base, "markdown" | "md" | "commonmark" | "markdown_strict") }
+            else if name == "raw_attribute" { matches!(base, "markdown" | "md" | "commonmark_x") }
             else { name == "raw_html" || !(matches!(base, "commonmark" | "markdown_strict")
             || name == "task_lists" && matches!(base, "markdown_mmd" | "markdown_phpextra")) };
         if let Some(format) = format {
@@ -31507,10 +31252,16 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             strip_comments = true;
             i += 1;
         } else if a == "--shift-heading-level-by" && i + 1 < args.len() {
-            shift_heading = args[i + 1].parse().unwrap_or(0);
+            let Some(value) = args[i + 1].parse::<i32>().ok().filter(|value| (-6..=6).contains(value)) else {
+                return err_out("E_OPTION: heading shift must be between -6 and 6\n", 2);
+            };
+            shift_heading = value;
             i += 2;
         } else if let Some(v) = a.strip_prefix("--shift-heading-level-by=") {
-            shift_heading = v.parse().unwrap_or(0);
+            let Some(value) = v.parse::<i32>().ok().filter(|value| (-6..=6).contains(value)) else {
+                return err_out("E_OPTION: heading shift must be between -6 and 6\n", 2);
+            };
+            shift_heading = value;
             i += 1;
         } else if (a == "-M" || a == "--metadata") && i + 1 < args.len() {
             let kv = &args[i + 1];
@@ -31796,6 +31547,10 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         .or_else(|| out_path.as_deref().and_then(infer_fmt))
         .unwrap_or_else(|| "html".to_string());
 
+    let markdown_binary = matches!(in_fmt.as_str(), "markdown" | "md" | "markdown_github" | "markdown_mmd"
+        | "markdown_phpextra" | "markdown_strict" | "commonmark" | "commonmark_x" | "gfm")
+        && matches!(out_fmt.as_str(), "docx" | "pdf");
+    let canonical_binary = in_fmt == "json" && matches!(out_fmt.as_str(), "docx" | "pdf");
     let join_text = matches!(in_fmt.as_str(), "markdown" | "markdown_github" | "markdown_mmd"
         | "markdown_phpextra" | "markdown_strict" | "md" | "commonmark" | "commonmark_x"
         | "gfm" | "plain" | "rst" | "latex" | "html" | "html5");
@@ -31818,7 +31573,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                     Err(_) => return err_out("E_IO: Capability failed\n", 9),
                 }
             };
-            if !file_scope && let Some(buf) = inputs.last_mut() {
+            if !file_scope && !canonical_binary && let Some(buf) = inputs.last_mut() {
                 if join_text {
                     if !buf.ends_with(b"\n") { buf.push(b'\n'); }
                     buf.push(b'\n');
@@ -31832,10 +31587,57 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
     };
 
     let input_from_html = matches!(in_fmt.as_str(), "html" | "html5");
+    let html_binary = input_from_html && matches!(out_fmt.as_str(), "docx" | "pdf");
+    if input_from_html
+        && raw_inputs.iter().try_fold(0usize, |sum, input| sum.checked_add(input.len()))
+            .is_none_or(|bytes| bytes > fs.shell_limits().max_input_bytes)
+    {
+        return err_out(&fs.limit_error("maxInputBytes", fs.shell_limits().max_input_bytes), 1);
+    }
+    let mut portable_html_nodes = Vec::new();
+    if let Some(format) = from_fmt.as_deref() {
+        for name in format.split(['+', '-']).skip(1) {
+            if in_fmt == "commonmark" && matches!(name, "smart" | "footnotes" | "subscript" | "superscript" | "native_divs" | "native_spans" | "auto_identifiers" | "header_attributes" | "yaml_metadata_block" | "implicit_figures")
+                || name == "gfm_auto_identifiers" && in_fmt != "gfm" {
+                return err_out(&format!("E_FORMAT: Unsupported extension: {name}\n"), 1);
+            }
+        }
+    }
     let mut blocks = Vec::new();
-    for raw_bytes in raw_inputs {
+    let mut source_metadata = Vec::new();
+    let parse_inputs = if canonical_binary { &[][..] } else { raw_inputs.as_slice() };
+    for raw_bytes in parse_inputs {
         let Some(input_blocks) = (match in_fmt.as_str() {
-            "html" | "html5" => Some(parse_pandoc_html(&String::from_utf8_lossy(&raw_bytes))),
+            "html" | "html5" => {
+                if raw_bytes.len() > fs.shell_limits().max_memory_bytes {
+                    return err_out("E_LIMIT: HTML source memory limit exceeded\n", 1);
+                }
+                let Some(mut nodes) = bounded_html_dom(&String::from_utf8_lossy(&raw_bytes)) else {
+                    return err_out("E_LIMIT: HTML nesting limit exceeded\n", 1);
+                };
+                let metadata = match pandoc_metadata::html(&mut nodes, &fs.shell_limits()) {
+                    Ok(metadata) => metadata,
+                    Err(message) => return err_out(&format!("pandoc: {message}\n"), 1),
+                };
+                for (key, value) in metadata {
+                    if let Some((_, prior)) = source_metadata.iter_mut().find(|(name, _)| name == &key) { *prior = value; }
+                    else { source_metadata.push((key, value)); }
+                }
+                if html_binary {
+                    portable_html_nodes.extend(nodes);
+                    Some(Vec::new())
+                } else {
+                    let limits=fs.shell_limits();
+                    let notes=match document_ast_rust::cooperate::block_on(document_converter_rust::html::html_notes(&nodes,&document_ast_rust::TextStyle::default(),limits.max_parse_units,95,limits.max_memory_bytes)) {
+                        Ok(notes)=>notes,
+                        Err(message)=>return err_out(&format!("pandoc: {message}\n"),1),
+                    };
+                    match pandoc_blocks::html_blocks(&nodes, Some(&notes), false) {
+                        Some(blocks) => Some(blocks),
+                        None => return err_out("E_CAPABILITY: Unsupported HTML element in native text/JSON output\n", 1),
+                    }
+                }
+            },
             "latex" => parse_pandoc_latex(&String::from_utf8_lossy(&raw_bytes)),
             "rtf" => parse_pandoc_rtf(&String::from_utf8_lossy(&raw_bytes)),
             "json" => match parse_pandoc_json(&String::from_utf8_lossy(&raw_bytes)) {
@@ -31848,7 +31650,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 if recs.is_empty() {
                     Some(Vec::new())
                 } else {
-                    Some(vec![PandocBlock::Table(pandoc_table::Table::simple(recs[0].clone(), recs[1..].to_vec(), None, None, false))])
+                    pandoc_table::Table::simple(recs[0].clone(), recs[1..].to_vec(), None, None, false).map(|table| vec![PandocBlock::Table(table)])
                 }
             }
             "xlsx" => {
@@ -31864,14 +31666,15 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 for sh in sheets {
                     b.push(PandocBlock::Header(
                         1,
-                        pandoc_slug(&sh.name),
+                        PandocAttr { id: pandoc_slug(&sh.name), ..Default::default() },
                         vec![PandocInline::Text(sh.name)],
                     ));
                     if !sh.rows.is_empty() {
-                        b.push(PandocBlock::Table(pandoc_table::Table::simple(
+                        let Some(table) = pandoc_table::Table::simple(
                             sh.rows[0].clone(),
                             sh.rows[1..].to_vec(), None, None, false,
-                        )));
+                        ) else { return err_out("pandoc: document nesting limit exceeded\n", 1); };
+                        b.push(PandocBlock::Table(table));
                     }
                 }
                 Some(b)
@@ -31887,13 +31690,27 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             "odt" => {
                 let entries = read_office_archive(&raw_bytes);
                 if let Some(md_bytes) = entries.get("__pandoc_source.md") {
-                    parse_pandoc_markdown(&String::from_utf8_lossy(md_bytes), PandocPipeTables::Markdown, 0, pandoc_list::Tasks::Markdown, true, true)
+                    let mut defs = MdqDefinitions::default();
+                    defs.last_link_wins = true;
+                    defs.footnotes = true;
+                    defs.pandoc_auto_identifiers = true;
+                    defs.pandoc_header_attributes = true;
+                    defs.pandoc_strikeout = true;
+                    defs.pandoc_autolink_classes = true;
+                    parse_pandoc_markdown(&String::from_utf8_lossy(md_bytes), PandocPipeTables::Markdown, 0, pandoc_list::Tasks::Markdown, defs, true, &fs.shell_limits())
                 } else if let Some(content_xml) = entries.get("content.xml") {
-                    Some(parse_pandoc_html(&String::from_utf8_lossy(content_xml)))
+                    parse_pandoc_html(&String::from_utf8_lossy(content_xml))
                 } else if let Some(ch_xml) = entries.get("EPUB/ch1.xhtml") {
-                    Some(parse_pandoc_html(&String::from_utf8_lossy(ch_xml)))
+                    parse_pandoc_html(&String::from_utf8_lossy(ch_xml))
                 } else {
-                    parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), PandocPipeTables::Markdown, 0, pandoc_list::Tasks::Markdown, true, true)
+                    let mut defs = MdqDefinitions::default();
+                    defs.last_link_wins = true;
+                    defs.footnotes = true;
+                    defs.pandoc_auto_identifiers = true;
+                    defs.pandoc_header_attributes = true;
+                    defs.pandoc_strikeout = true;
+                    defs.pandoc_autolink_classes = true;
+                    parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), PandocPipeTables::Markdown, 0, pandoc_list::Tasks::Markdown, defs, true, &fs.shell_limits())
                 }
             }
             _ => {
@@ -31904,23 +31721,82 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
                 let tables = if !pipe_tables { PandocPipeTables::Disabled }
                     else if matches!(in_fmt.as_str(), "commonmark" | "commonmark_x" | "gfm") { PandocPipeTables::CommonMark }
                     else { PandocPipeTables::Markdown };
-                parse_pandoc_markdown(&String::from_utf8_lossy(&raw_bytes), tables, 0, tasks, !matches!(in_fmt.as_str(), "commonmark" | "commonmark_x" | "gfm"), extension(from_fmt.as_deref(), &in_fmt, "raw_html"))
+                let mut defs = MdqDefinitions::default();
+                defs.last_link_wins = !matches!(in_fmt.as_str(), "commonmark" | "commonmark_x" | "gfm");
+                defs.footnotes = extension(from_fmt.as_deref(), &in_fmt, "footnotes");
+                defs.pandoc_header_attributes = extension(from_fmt.as_deref(), &in_fmt, "header_attributes");
+                defs.pandoc_auto_identifiers = extension(from_fmt.as_deref(), &in_fmt, "auto_identifiers");
+                defs.pandoc_gfm_auto_identifiers = extension(from_fmt.as_deref(), &in_fmt, "gfm_auto_identifiers");
+                defs.pandoc_bare_autolinks = extension(from_fmt.as_deref(), &in_fmt, "autolink_bare_uris");
+                defs.pandoc_strikeout = extension(from_fmt.as_deref(), &in_fmt, "strikeout");
+                defs.pandoc_subscript = extension(from_fmt.as_deref(), &in_fmt, "subscript");
+                defs.pandoc_superscript = extension(from_fmt.as_deref(), &in_fmt, "superscript");
+                defs.pandoc_smart = extension(from_fmt.as_deref(), &in_fmt, "smart");
+                defs.pandoc_implicit_figures = extension(from_fmt.as_deref(), &in_fmt, "implicit_figures");
+                defs.pandoc_native_divs = extension(from_fmt.as_deref(), &in_fmt, "native_divs");
+                defs.pandoc_native_spans = extension(from_fmt.as_deref(), &in_fmt, "native_spans");
+                defs.pandoc_bracketed_spans = extension(from_fmt.as_deref(), &in_fmt, "bracketed_spans");
+                defs.pandoc_link_attributes = extension(from_fmt.as_deref(), &in_fmt, "link_attributes");
+                defs.pandoc_autolink_classes = matches!(in_fmt.as_str(), "markdown" | "md");
+                let source = String::from_utf8_lossy(&raw_bytes);
+                // Normalize Markdown source before YAML, code, raw HTML and
+                // containers observe its line boundaries and column positions.
+                let source = if source.contains(['\t', '\r', '\0']) {
+                    let maximum = fs.shell_limits().max_memory_bytes;
+                    let mut expanded = String::with_capacity(source.len().min(maximum));
+                    let mut column = 0;
+                    let mut characters = source.chars().peekable();
+                    while let Some(character) = characters.next() {
+                        let character = match character {
+                            '\r' => { if characters.peek() == Some(&'\n') { characters.next(); } '\n' }
+                            '\0' => '\u{fffd}',
+                            _ => character,
+                        };
+                        let width = if character == '\t' { 4 - column % 4 } else { character.len_utf8() };
+                        if expanded.len().saturating_add(width) > maximum { return err_out("E_LIMIT: Markdown normalization exceeds memory limit\n", 1); }
+                        match character {
+                            '\t' => { let spaces = 4 - column % 4; expanded.extend(std::iter::repeat_n(' ', spaces)); column += spaces; }
+                            '\n' => { expanded.push(character); column = 0; }
+                            _ => { expanded.push(character); column += 1; }
+                        }
+                    }
+                    std::borrow::Cow::Owned(expanded)
+                } else { source };
+                let raw_html = extension(from_fmt.as_deref(), &in_fmt, "raw_html");
+                let (body, metadata) = match pandoc_metadata::read(&source, &defs, raw_html, &fs.shell_limits()) {
+                    Ok(document) => document,
+                    Err(message) => return err_out(&format!("pandoc: {message}\n"), 1),
+                };
+                for (key, value) in metadata {
+                    if let Some((_, prior)) = source_metadata.iter_mut().find(|(name, _)| name == &key) { *prior = value; }
+                    else { source_metadata.push((key, value)); }
+                }
+                parse_pandoc_markdown(body, tables, 0, tasks, defs, raw_html, &fs.shell_limits())
             }
         }) else { return err_out("pandoc: document nesting limit exceeded\n", 1) };
         blocks.extend(input_blocks);
     }
 
+    if matches!(out_fmt.as_str(), "markdown" | "md" | "commonmark" | "commonmark_x" | "gfm") && pandoc_inlines::blocks_have_scripts(&blocks) {
+        return err_out("E_UNSUPPORTED_FEATURE: Markdown cannot represent Subscript or Superscript\n", 1);
+    }
+    let bracketed_spans = extension(to_fmt.as_deref(), &out_fmt, "bracketed_spans");
+    if let Err(message) = pandoc_blocks::check_writer(&blocks, &out_fmt, bracketed_spans) { return err_out(message, 1); }
+    pandoc_metadata::overrides(&mut source_metadata, &meta);
+    let has_notes = pandoc_notes::contains(&blocks);
+    if has_notes && !matches!(out_fmt.as_str(), "json" | "docx" | "pdf") {
+        return err_out("E_CAPABILITY: Footnotes require JSON, DOCX, or PDF output\n", 1);
+    }
+    if has_notes && matches!(out_fmt.as_str(), "docx" | "pdf")
+        && (toc || !header_inc.is_empty() || !before_inc.is_empty() || !after_inc.is_empty()) {
+        return err_out("E_CAPABILITY: Footnotes cannot be combined with TOC or HTML include options\n", 1);
+    }
     if let Err(message) = pandoc_raw_inline::prepare(&mut blocks, &out_fmt, raw_content, strip_comments) {
         return err_out(message, 1);
     }
 
     if shift_heading != 0 {
-        for b in &mut blocks {
-            if let PandocBlock::Header(lvl, _, _) = b {
-                let shifted = (((*lvl) as i32) + shift_heading).clamp(1, 6) as usize;
-                *lvl = shifted;
-            }
-        }
+        pandoc_headings::shift(&mut blocks, shift_heading);
     }
 
     let title = meta.get("title").cloned().unwrap_or_else(|| "Document".to_string());
@@ -31937,10 +31813,11 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             &header_inc,
             &before_inc,
             &after_inc,
+            false,
         )
         .into_bytes(),
         "markdown" | "gfm" | "commonmark" | "commonmark_x" | "md" => {
-            render_pandoc_markdown(&blocks, input_from_html, extension(to_fmt.as_deref(), &out_fmt, "task_lists"), extension(to_fmt.as_deref(), &out_fmt, "raw_attribute")).into_bytes()
+            render_pandoc_markdown(&blocks, input_from_html, extension(to_fmt.as_deref(), &out_fmt, "task_lists"), extension(to_fmt.as_deref(), &out_fmt, "raw_attribute"), bracketed_spans).into_bytes()
         }
         "plain" => {
             let Some(mut text) = plain_limit.checked_sub(1).and_then(|n| render_pandoc_plain(&blocks, n)) else {
@@ -31949,23 +31826,74 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             text.push('\n');
             text.into_bytes()
         }
-        "rst" => render_pandoc_rst(&blocks).into_bytes(),
+        "rst" => match render_pandoc_rst(&blocks) { Ok(text) => text.into_bytes(), Err(message) => return err_out(message, 1) },
         "latex" => render_pandoc_latex(&blocks).into_bytes(),
         "rtf" => render_pandoc_rtf(&blocks).into_bytes(),
-        "json" => pandoc_doc_to_json(&blocks).into_bytes(),
-        "docx" => match pandoc_docx::write(&blocks, if out_path.as_deref().is_none_or(|p| p == "-") {
-            plain_limit
-        } else {
-            fs.shell_limits().max_memory_bytes
-        }) {
-            Some(bytes) => bytes,
-            None if out_path.as_deref().is_some_and(|p| p != "-") =>
-                return err_out(&fs.limit_error("maxMemoryBytes", fs.shell_limits().max_memory_bytes), 1),
-            None => return output_limit_error(),
+        "json" => pandoc_doc_to_json(&blocks, &source_metadata).into_bytes(),
+        "docx" | "pdf" => {
+            let limit = if out_path.as_deref().is_none_or(|p| p == "-") { plain_limit }
+                else { fs.shell_limits().max_memory_bytes };
+            let bytes = if canonical_binary {
+                match pandoc_binary_json::convert(&raw_inputs, &out_fmt, &meta, raw_content, strip_comments, shift_heading, number_sections, cwd, fs, limit) {
+                    Ok(bytes) => bytes,
+                    Err(message) => return err_out(&format!("pandoc: {message}\n"), 1),
+                }
+            } else if markdown_binary {
+                match pandoc_binary_json::write_document(pandoc_binary_json::binary_document(&blocks, &source_metadata), &out_fmt, &meta, raw_content, strip_comments, 0, number_sections, cwd, fs, limit) {
+                    Ok(bytes) => bytes,
+                    Err(message) => return err_out(&format!("pandoc: {message}\n"), 1),
+                }
+            } else {
+                let nodes = if html_binary { portable_html_nodes } else {
+                    let html = render_pandoc_html(&blocks, false, toc, number_sections, ascii, &title, &header_inc, &before_inc, &after_inc, true);
+                    let Some(nodes) = bounded_html_dom(&html) else { return err_out("E_LIMIT: HTML nesting limit exceeded\n", 1); };
+                    nodes
+                };
+                let mut document = match portable_html_document(&nodes, cwd, fs) {
+                    Ok(document) => document,
+                    Err(message) => return err_out(&format!("pandoc: {message}\n"), 1),
+                };
+                document.title = title.clone();
+                if input_from_html && shift_heading != 0 {
+                    shift_html_headings(&mut document.blocks, shift_heading);
+                }
+                let limits = fs.shell_limits();
+                let mut options = crate::document::pdf::PdfOptions { line_height: 1.2, ..Default::default() };
+                options.limits.output_bytes = limit;
+                options.limits.image_bytes = limits.max_memory_bytes;
+                options.limits.decoded_image_bytes = limits.max_memory_bytes;
+                options.limits.layout_work = limits.max_parse_units;
+                options.limits.images = limits.max_parse_units;
+                if html_binary {
+                    let (mut metadata, configured) = match pandoc_binary_json::map_document(
+                        pandoc_binary_json::binary_document(&[], &source_metadata), &out_fmt, &meta,
+                        raw_content, strip_comments, 0, false, cwd, fs, limit,
+                    ) {
+                        Ok(document) => document,
+                        Err(message) => return err_out(&format!("pandoc: {message}\n"), 1),
+                    };
+                    metadata.blocks.append(&mut document.blocks);
+                    document = metadata;
+                    options = configured;
+                }
+                let result = if out_fmt == "docx" { crate::document::write_docx(&document) }
+                    else { crate::document::pdf::write_pdf_with_options(&document, &options) };
+                match result {
+                    Ok(bytes) => bytes,
+                    Err(message) => return err_out(&format!("pandoc: {message}\n"), 1),
+                }
+            };
+            if bytes.len() > limit {
+                if out_path.as_deref().is_some_and(|p| p != "-") {
+                    return err_out(&fs.limit_error("maxMemoryBytes", fs.shell_limits().max_memory_bytes), 1);
+                }
+                return output_limit_error();
+            }
+            bytes
         },
         "odt" => {
-            let md_src = render_pandoc_markdown(&blocks, false, true, true);
-            let html_src = render_pandoc_html(&blocks, false, false, false, false, &title, "", "", "");
+            let md_src = render_pandoc_markdown(&blocks, false, true, true, true);
+            let html_src = render_pandoc_html(&blocks, false, false, false, false, &title, "", "", "", false);
             let entries: Vec<(&str, &[u8])> = vec![
                 ("mimetype", b"application/vnd.oasis.opendocument.text"),
                 ("content.xml", html_src.as_bytes()),
@@ -31974,8 +31902,8 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             write_zip_stored(&entries)
         }
         "epub" | "epub3" => {
-            let md_src = render_pandoc_markdown(&blocks, false, true, true);
-            let html_src = render_pandoc_html(&blocks, true, false, false, false, &title, "", "", "");
+            let md_src = render_pandoc_markdown(&blocks, false, true, true, true);
+            let html_src = render_pandoc_html(&blocks, true, false, false, false, &title, "", "", "", false);
             let entries: Vec<(&str, &[u8])> = vec![
                 ("mimetype", b"application/epub+zip"),
                 ("EPUB/ch1.xhtml", html_src.as_bytes()),
@@ -31983,18 +31911,7 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
             ];
             write_zip_stored(&entries)
         }
-        "pdf" => {
-            let Some(plain) = render_pandoc_plain(&blocks, plain_limit) else { return output_limit_error() };
-            let html = render_pandoc_html(&blocks, false, false, false, false, &title, "", "", "");
-            let pdf_str = format!(
-                "%PDF-1.4\n%%SAFE_PDF_V2%%\nVER:1.4\nTITLE:{}\nPAGE:0:{}:{}::\n%%EOF\n",
-                hex_enc_bytes(title.as_bytes()),
-                hex_enc_bytes(plain.trim_end().as_bytes()),
-                hex_enc_bytes(html.as_bytes()),
-            );
-            pdf_str.into_bytes()
-        }
-        _ => render_pandoc_html(&blocks, standalone, toc, number_sections, ascii, &title, "", "", "").into_bytes(),
+        _ => render_pandoc_html(&blocks, standalone, toc, number_sections, ascii, &title, "", "", "", false).into_bytes(),
     };
 
     if let Some(ref p) = out_path
@@ -32007,6 +31924,84 @@ fn cmd_pandoc(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> B
         return ok_out("");
     }
     ok_out(&crate::vfs::bytes_to_stream_string(&out_bytes))
+}
+
+// Resource reads remain inside the command's explicit VFS. The portable writers
+// only see embedded media and cannot fetch URLs or consult an ambient directory.
+fn portable_html_document(nodes: &[HtmlNode], cwd: &str, fs: &dyn SafeBashFs) -> Result<crate::document::Document, String> {
+    let limits = fs.shell_limits();
+    let notes = document_ast_rust::cooperate::block_on(document_converter_rust::html::html_notes(nodes, &document_ast_rust::TextStyle::default(), limits.max_parse_units, 95, limits.max_memory_bytes))?;
+    let mut pending: Vec<_> = nodes.iter().map(|node| (node, false)).collect();
+    let mut count = 0usize;
+    let mut sources = BTreeSet::new();
+    while let Some((node, in_note)) = pending.pop() {
+        count = count.saturating_add(1);
+        if count > limits.max_parse_units { return Err("E_LIMIT: HTML node limit exceeded".into()); }
+        let HtmlNode::Element(element) = node else { continue };
+        if matches!(element.tag.as_str(), "head" | "script" | "style" | "template" | "meta" | "link") { continue; }
+        let role = element.attrs.iter().find(|(key, _)| key.eq_ignore_ascii_case("role")).map(|(_, value)| value.as_str());
+        if role == Some("doc-endnotes") || in_note && role == Some("doc-backlink") { continue; }
+        if role == Some("doc-noteref") {
+            let (definition, _, _, _) = &notes[document_converter_rust::html::note_id(element, &notes)?];
+            pending.extend(definition.children.iter().map(|child| (child, true)));
+            continue;
+        }
+        if element.tag == "img" {
+            if let Some((_, source)) = element.attrs.iter().find(|(key, _)| key.eq_ignore_ascii_case("src")) {
+                sources.insert(source.clone());
+            }
+        }
+        pending.extend(element.children.iter().map(|child| (child, in_note)));
+    }
+    let resources = pandoc_binary_json::read_resources(sources, cwd, fs)?;
+    document_converter_rust::html::from_html_nodes(nodes, &resources, limits.max_parse_units, limits.max_memory_bytes)
+}
+
+fn shift_html_headings(blocks: &mut [crate::document::Block], shift: i32) {
+    use crate::document::{Block, Inline, Paragraph};
+    fn inlines(runs: &mut [Inline], shift: i32) {
+        for inline in runs {
+            match inline {
+                Inline::Note(blocks) => shift_html_headings(blocks, shift),
+                Inline::Direction { inlines: runs, .. } => inlines(runs, shift),
+                _ => {},
+            }
+        }
+    }
+    for block in blocks {
+        if let Block::Heading { level, .. } = block {
+            let shifted = i32::from(*level) + shift;
+            if shifted < 1 {
+                if let Block::Heading { inlines, .. } = std::mem::replace(block, Block::Rule) {
+                    *block = Block::Paragraph(Paragraph { inlines, ..Default::default() });
+                }
+            } else { *level = shifted.min(6) as u8; }
+        }
+        match block {
+            Block::Paragraph(paragraph) => inlines(&mut paragraph.inlines, shift),
+            Block::Heading { inlines: runs, .. } => inlines(runs, shift),
+            Block::Direction { blocks, .. } | Block::Quote { blocks, .. } => shift_html_headings(blocks, shift),
+            Block::List { items, .. } => { for item in items { shift_html_headings(item, shift); } },
+            Block::Table { rows, .. } => { for row in rows { for cell in &mut row.cells { shift_html_headings(&mut cell.blocks, shift); } } },
+            _ => {},
+        }
+    }
+}
+
+#[test]
+fn html_heading_shift_reaches_notes_inside_inline_direction() {
+    use crate::document::{Block, Direction, Inline, Paragraph};
+    let mut blocks = vec![Block::Paragraph(Paragraph {
+        inlines: vec![Inline::Direction { direction: Direction::Ltr, override_order: false,
+            inlines: vec![Inline::Note(vec![Block::Heading { level: 1, id: "note-heading".into(), inlines: vec![] }])],
+        }],
+        ..Default::default()
+    })];
+    shift_html_headings(&mut blocks, -1);
+    let Block::Paragraph(paragraph) = &blocks[0] else { panic!() };
+    let Inline::Direction { inlines, .. } = &paragraph.inlines[0] else { panic!() };
+    let Inline::Note(note) = &inlines[0] else { panic!() };
+    assert!(matches!(&note[0], Block::Paragraph(paragraph) if paragraph.id.is_empty()));
 }
 
 const AST_GREP_HELP: &str = "Usage: ast-grep [run] -p PATTERN [-r REWRITE] [-l LANG] [PATH ...]\n       ast-grep scan [-r RULE.yml] [--inline-rules YAML] [PATH ...]\nAliases: sg\nLanguages: ts, tsx, js, jsx, json, yaml, html, css\n--json[=pretty|compact|stream]  Emit structural matches as JSON\n-U, --update-all               Apply rewrites to virtual files\n--stdin                       Search stdin (run requires --lang)\n--globs GLOB                  Include glob, or !GLOB to exclude (repeatable)\n--heading[=always|never|auto]   Group text matches by file\n-A N / -B N / -C N             Lines after / before / around matches\nExit status: 0 matches, 1 no matches, 2 invalid arguments or execution error.\n";
@@ -35179,6 +35174,16 @@ mod tests {
     use super::*;
     use crate::vfs::MemoryVfs;
 
+    #[test]
+    fn html_entity_rules_do_not_change_xml_or_ods_decoding() {
+        let source = "&copy &eacute; &#128; &amp;nbsp;";
+        assert_eq!(unescape_xml_entities(source), "&copy &eacute; \u{80} &nbsp;");
+        let xml = format!("<table:table table:name=\"S\"><table:table-row><table:table-cell><text:p>{source}</text:p></table:table-cell></table:table-row></table:table>");
+        let bytes = write_zip_stored(&[("content.xml", xml.as_bytes())]);
+        let sheets = ods::read(&bytes, "S", 8192).unwrap();
+        assert_eq!(sheets[0].rows[0][0], "&copy &eacute; \u{80} &nbsp;");
+    }
+
     fn args(list: &[&str]) -> Vec<String> {
         list.iter().map(|s| s.to_string()).collect()
     }
@@ -35684,7 +35689,7 @@ mod tests {
             ("gfm", "a | b\n-- | :-:\nx\\|y | z\nx | 3\nend", "  a      b\n  ----- ---\n  x|y    z\n  x      3\n\nend\n"),
             ("gfm", "| a | b |\n| nope--- | --- |", "| a | b | | nope--- | --- |\n"),
             ("gfm", "| a | b |\n| --- |", "| a | b | | --- |\n"),
-            ("gfm", "a | b\n- | -", "a | b\n\n- | -\n"),
+            ("gfm", "a | b\n- | -", "  a   b\n  --- ---\n"),
             ("markdown", "| a | b |\n| --- |", "  a\n  ---\n"),
             ("markdown", "| a |\n| --- | --- |\n| x | yy |", "  a   \n  --- ----\n  x   yy\n"),
         ] {
@@ -36322,7 +36327,7 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             (";pie; \"x\":1; \"y\":2", "svg", "c78cac945aff1a90697f5cc1d5d45f9764ddf2bfcfa7aea5aad56510299dfda6"),
             ("pie\n\"A\r\nB\":2\n\"C\":1", "svg", "24c70a594020a012f5cdca432928d80d11d55e1523efd24b6b9dbda54733ffbf"),
             ("pie\n  %% one\n    invalid", "svg", "mmdc: E_SYNTAX (line 3, column 5): Pie labels must be quoted\n"),
-            ("pie; %%{init:{theme: dark}}%% \"A\":2", "svg", "e3bf647845aa4aaf6414b269ab3a897f9b7e360ac34ff30dc6f094847bf7c3a2"),
+            ("pie; %%{init:{theme: dark}}%% \"A\":2", "svg", "f68ba8208f3065f4ef64ab86d8477467a39b92ae35115c1877a331627cd2b10c"),
             ("pie; [x;z] : bad", "svg", "mmdc: E_SYNTAX (line 1, column 6): Pie labels must be quoted\n"),
         ]);
     }
@@ -36343,11 +36348,33 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
     }
 
     #[test]
+    fn mmdc_uses_shared_dark_canvas_and_preserves_explicit_backgrounds() {
+        let fs = MemoryVfs::new();
+        for source in ["%%{init:{theme: dark}}%%\nflowchart LR; A-->B", "pie; %%{init:{theme: dark}}%% \"A\":2"] {
+            let render = |extra: &[&str]| {
+                let mut argv = args(&["-i", "-", "-o", "-"]);
+                argv.extend(args(extra));
+                let out = try_run_structured_command("mmdc", &argv, source, "/", &BTreeMap::new(), &fs).unwrap();
+                assert_eq!(out.exit_code, 0, "{}", out.stderr);
+                out.stdout
+            };
+            let dark = render(&[]);
+            let white = render(&["-b", "white"]);
+            let changed: Vec<_> = dark.lines().zip(white.lines()).filter(|(a,b)| a != b).collect();
+            assert_eq!(dark.lines().count(), white.lines().count());
+            assert_eq!(changed.len(), 1, "Only the page background should change");
+            assert!(changed[0].0.starts_with("<rect width="));
+            assert!(changed[0].0.contains("#0b1120"));
+            assert!(changed[0].1.contains("white"));
+        }
+    }
+
+    #[test]
     fn mmdc_validates_active_theme_tokens_and_resolves_layout_overrides() {
         let fs=MemoryVfs::new();
         for (config,source,expected) in [
             (r#"{"theme":{"mode":"light","light":{"zebra":true}}}"#, "flowchart LR; A-->B", "mmdc: E_CONFIG: Unknown theme token 'zebra'\n"),
-            (r#"{"theme":{"mode":"dark","light":{"zebra":true}}}"#, "flowchart LR; A-->B", "21bdf392b3dfac5db93984452939fc8a517eca420009753baf1ab2f6f6f5a0e5"),
+            (r#"{"theme":{"mode":"dark","light":{"zebra":true}}}"#, "flowchart LR; A-->B", "ea055533a6ad5b1652e89cc8391aa28472f6f3609f1fb388d4d650e915be7d68"),
             (r#"{"theme":{"mode":"light","light":{"surface":1}}}"#, "flowchart LR; A-->B", "mmdc: E_CONFIG: Theme token 'surface' must be a valid color string\n"),
             (r#"{"theme":{"mode":"light","light":{"canvas":"rgb(-1, 2, 2)"}}}"#, "flowchart LR; A-->B", "mmdc: E_CONFIG: Out-of-range RGB/RGBA color 'rgb(-1, 2, 2)'\n"),
             (r#"{"theme":{"mode":"light","light":{"fontFamily":""}}}"#, "flowchart LR; A-->B", "mmdc: E_CONFIG: Theme token 'fontFamily' must be a non-empty string\n"),
@@ -36970,7 +36997,7 @@ SELECT id || ':' || owner || ':' || pinned || ':' || COUNT(*) OVER (PARTITION BY
             ("---\ntitle: Example\n---\n  notDiagram foo",1,"mmdc: E_UNSUPPORTED (line 4, column 3): Unsupported or unrecognized Mermaid diagram family 'notDiagram'\n"),
             ("---\ntitle: Ship\n---\npie\n\"A\":3\n\"B\":1",0,"5dac237225b856092ed1a1d19f6ea209b6d1f23b9b4ae90374870bb3bdcda157"),
             ("---\ntitle: Test ü\nconfig: {rankGap: 95, theme: forest}\n---\nflowchart TD; A[Build release] -->|review| B{Ship?}; B --> C & D",0,"938a4e4a3b9c802b6e7888f78a3d150c3cda6d688eeb157d448359b730c6a6b3"),
-            ("---\ntitle: metadata\nconfig: {theme: forest}\n---\n%%{init: {theme: dark}}%%\nflowchart TD; title body overrides; A-->B",0,"953609ca74d2e706ee352a1ef7a721dfd3fba683f8465e998ba65b081a627ea2"),
+            ("---\ntitle: metadata\nconfig: {theme: forest}\n---\n%%{init: {theme: dark}}%%\nflowchart TD; title body overrides; A-->B",0,"641ab38b61e876808ca4f3fa7c19c6cfb9613e8802ebc60ab3649ad0dca565f5"),
             ("---\ntitle: 😀\n---\nflowchart TD; A-->",1,"mmdc: E_SYNTAX (line 4, column 19): Expected node identifier at ''\n"),
             ("---\ntitle: \"<img src=X>\"\n---\nflowchart TD; A[Build release] -->|review| B{Ship?}; B --> C & D",1,"mmdc: E_UNSUPPORTED: Unsupported HTML or active content '<img' in diagram label\n"),
             ("---\ntitle: Hello\nflowchart TD; A[Build release] -->|review| B{Ship?}; B --> C & D",1,"mmdc: E_SYNTAX: Unclosed YAML frontmatter\n"),

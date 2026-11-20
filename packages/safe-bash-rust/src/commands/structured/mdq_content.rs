@@ -24,7 +24,7 @@ impl Content {
         label: bool,
     ) -> Result<bool, String> {
         let parsed = self.events.is_none().then(|| {
-            mdq_emphasis::projection(&self.text, mdq_inline_atoms(defs, &self.text, label))
+            mdq_emphasis::projection(&self.text, mdq_inline_atoms(defs, &self.text, label, true))
         });
         let text = parsed.as_ref().map_or(&self.text, |(s, _)| s);
         let Some(result) = super::mdq_match_text(m, text) else {
@@ -53,7 +53,7 @@ impl Content {
                 super::mdq_emit_atoms(
                     defs,
                     &self.text,
-                    mdq_inline_atoms(defs, &self.text, true),
+                    mdq_inline_atoms(defs, &self.text, true, true),
                     refs,
                     &mut emit,
                 );
@@ -156,7 +156,7 @@ impl Content {
 
     pub fn children(&self, defs: &MdqDefinitions, label: bool, out: &mut Vec<MdqBlock>) {
         let Some(events) = &self.events else {
-            for (_, atom) in mdq_inline_atoms(defs, &self.text, label) {
+            for (_, atom) in mdq_inline_atoms(defs, &self.text, label, true) {
                 use super::MdqInlineAtom::*;
                 let n = match atom {
                     Html(text) => MdqBlock {

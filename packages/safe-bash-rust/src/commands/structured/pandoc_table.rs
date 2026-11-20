@@ -1,5 +1,6 @@
 use super::{
-    JVal, PandocAttr, PandocBlock, PandocInline, MdqDefinitions, pandoc_blocks_to_json, parse_pandoc_md_inlines,
+    JVal, MdqDefinitions, PandocAttr, PandocBlock, PandocInline, pandoc_blocks_to_json,
+    parse_pandoc_md_inlines,
 };
 use std::fmt::Alignment;
 
@@ -25,7 +26,7 @@ impl Table {
         align: Option<Vec<Option<Alignment>>>,
         definitions: Option<&MdqDefinitions>,
         raw_html: bool,
-    ) -> Self {
+    ) -> Option<Self> {
         let cols = (0..header.len())
             .map(|i| (align.as_ref().and_then(|v| v[i]), 0.))
             .collect();
@@ -34,7 +35,7 @@ impl Table {
                 .enumerate()
                 .map(|(column, text)| {
                     let nodes = if align.is_some() {
-                        parse_pandoc_md_inlines(&text, definitions, raw_html)
+                        parse_pandoc_md_inlines(&text, definitions, raw_html)?
                     } else {
                         let mut nodes = Vec::new();
                         for (i, word) in text.split(' ').enumerate() {
@@ -47,7 +48,7 @@ impl Table {
                         }
                         nodes
                     };
-                    Cell {
+                    Some(Cell {
                         align: None,
                         column,
                         span: (1, 1),
@@ -56,15 +57,15 @@ impl Table {
                         } else {
                             vec![PandocBlock::Plain(nodes)]
                         },
-                    }
+                    })
                 })
-                .collect()
+                .collect::<Option<Vec<_>>>()
         };
-        Self {
+        Some(Self {
             cols,
-            head: vec![row(header)],
-            body: rows.into_iter().map(row).collect(),
-        }
+            head: vec![row(header)?],
+            body: rows.into_iter().map(row).collect::<Option<Vec<_>>>()?,
+        })
     }
 
     pub fn json(&self) -> JVal {

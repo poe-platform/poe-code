@@ -86,7 +86,8 @@
     "safe-bash-io-engine": "*",
     "@poe-code/json-ast": "*",
     "@poe-code/office-xml": "*",
-    "highlight.js": "^11.11.1"
+    "highlight.js": "^11.11.1",
+    "@poe-code/document-converter-rust": "*"
   },
   "private": true,
   "types": "dist/index.d.ts",

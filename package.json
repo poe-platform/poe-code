@@ -732,7 +732,8 @@
     "safe-bash-command-ast-grep": "*",
     "@poe-code/ts-ast": "*",
     "@poe-code/compression": "*",
-    "safe-bash-command-sort": "*"
+    "safe-bash-command-sort": "*",
+    "@poe-code/document-converter-rust": "*"
   },
   "version": "0.0.0-dev",
   "repository": {
@@ -955,7 +956,9 @@
     "packages/safe-bash-command-svgo/LICENSE",
     "packages/safe-bash-command-ast-grep/dist",
     "packages/safe-bash-command-ast-grep/LICENSE",
-    "packages/image-ast/LICENSE.jpeg"
+    "packages/image-ast/LICENSE.jpeg",
+    "packages/document-converter-rust/dist",
+    "packages/document-converter-rust/LICENSE"
   ],
   "license": "MIT",
   "imports": {
@@ -1005,6 +1008,10 @@
         "default": "./dist/types/safe-fs/fs/s3/http/request-node.d.ts"
       },
       "default": null
+    },
+    "#document-converter-wasm": {
+      "workerd": "./packages/document-converter-rust/dist/module.workerd.js",
+      "default": "./packages/document-converter-rust/dist/module.js"
     }
   },
   "main": "./dist/index.js",

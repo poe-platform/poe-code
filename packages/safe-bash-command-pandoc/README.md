@@ -22,17 +22,36 @@ accepts explicit read/write callbacks for conversion without a Shell.
 The SDK exposes `convert`, `readDocument`, `writeDocument`, `inspectFormats`,
 `inspectCommand`, `formatCapabilities`, and `PandocError`. Inspect format
 capabilities before conversion: support is format-specific and does not imply full native Pandoc
-compatibility. DOCX output accepts raw `openxml` inlines and omits raw inlines for other formats.
-DOCX output preserves table column alignment and explicit widths, including cell alignment overrides.
-DOCX output preserves footnotes, including formatted paragraphs, links, lists, tables, and images in notes.
+compatibility. DOCX output accepts raw `openxml` inlines. DOCX and PDF also preserve
+supported semantic HTML embedded in Markdown: inline emphasis, breaks, links and images,
+complete tables and code blocks, and containers around typed Markdown content.
+Raw images use the same supplied resources, input-folder origins, limits and cancellation
+as ordinary Markdown images. Comments are omitted. Unknown or interactive elements,
+malformed scopes and presentation that the document model cannot preserve fail explicitly;
+use a filter or export plugin to supply their document representation.
+DOCX output preserves table column alignment and explicit widths, including cell alignment overrides. DOCX and PDF distinguish repeating column headers from section and row headings, including merged and mixed heading cells.
+DOCX output preserves footnotes, including formatted paragraphs, links, lists, tables, and images in notes. Nested footnotes fail explicitly because Word does not permit them.
 DOCX input preserves footnote references and note text, including formatted paragraphs, hyperlinks, and tables. Embedded images retain their position, alt text, title, dimensions, and media bytes for extraction or further conversion. JSON output includes image references; the SDK document retains the media bytes.
-Built-in DOCX conversion preserves headings, bold/italic text, inline code, hyperlinks, lists,
+DOCX and PDF writing use the shared Rust engines through WebAssembly. PDF embeds
+PNG, JPEG, GIF, BMP and supported TIFF images using the same bounded Rust codecs
+as native Safe Bash. GIF uses its first frame on the logical canvas; TIFF uses
+its first page. BMP RLE8 and TIFF raw, PackBits, LZW, Deflate, JPEG and CCITT
+compression are supported. Unsupported color profiles and malformed pixel data
+fail explicitly. DOCX preserves original raster bytes after container validation;
+it supports Office image profiles that the PDF decoder cannot render.
+Both formats accept these raster types as embedded base64 image URLs in Markdown,
+HTML and JSON, including streamed conversions. PDF applies PNG, JPEG and TIFF
+orientation metadata to pixels and natural dimensions; authored display sizes remain intact.
+DOCX uses Times New Roman for body text and Courier New for code, with explicit heading styles, paragraph spacing,
+table padding, highlighting, and working internal bookmarks. It preserves headings, bold/italic text, inline code, hyperlinks, lists,
 tables, blockquotes, horizontal rules, strikeout, superscript, subscript, quotes,
 and embedded raster images (including inline images in table cells). PPTX renders blockquotes as indented
 content, preserves code, strikeout, superscript, subscript and quotes, and accepts
 Div containers. PPTX table paragraphs preserve rich text and hyperlinks. RST writes Divs as containers and strikeout as a declared role
-with the `strikeout` CSS class. PDF uses standard Helvetica bold/oblique and Courier fonts for styled
-text and inline code by default; supplied fonts retain their explicit styling.
+with the `strikeout` CSS class. PDF embeds Liberation Sans for body text, JetBrains Mono for code, and DejaVu Sans for additional glyph coverage. Bold, italic,
+highlighting, super/subscripts, inline images, and internal links preserve their layout without system fonts.
+DOCX preserves explicit LTR/RTL scopes and HTML inline direction overrides. PDF accepts ordinary LTR scopes; RTL scopes and directional overrides fail explicitly, including ASCII-only content. Unresolved HTML `dir=auto` and unsupported CSS bidi modes require an export plugin or explicit supported direction.
+PDF text shaping is not available: scripts requiring shaping or bidirectional layout, and combining-mark sequences, return `E_CAPABILITY` instead of producing incorrect text. Precomposed Latin, Greek, Cyrillic, and supported symbols remain available; this PDF restriction does not apply to DOCX text.
 ODT reads and writes headings, rich text, links, lists, simple tables, quotations,
 code, rules, sections, and embedded raster images. The CLI infers `.odt` in both
 directions; the SDK uses `from: "odt"` or `to: "odt"`. ODT preserves named text
@@ -201,10 +220,14 @@ can also supply embedded resources or an explicit resolver. No media is download
 implicitly. PDF options are `pdf`
 (`pageSize`: `a4` or `letter`; `orientation`: `portrait` or `landscape`; `margin`,
 `font`, `fontSize`, `lineHeight`), `pdfPage` (`width`, `height`, `margin`, in points),
-and `pdfFonts` (ordered supplied font inputs). The packaged named font is `mono`;
-other named families are unsupported. PDF preserves bold, italic, underline,
+and `pdfFonts` (ordered supplied font inputs). The packaged named fonts are `sans` (default) and `mono`;
+`serif` requires an explicit supplied font. PDF preserves bold, italic, underline,
 strikeout, horizontal rules, and left/center/right table alignment. Bold and
-italic use synthetic styling of the supplied font. EPUB options are `epub.title`,
+italic use synthetic styling of the supplied font. PDF also preserves alphabetic
+and Roman list numbering, merged cells, and nested tables with headings, code,
+lists, quotations, and rules inside cells. Tables support at most 64 columns;
+vertically merged groups must fit a printable page. Intermediate table-body
+headers and row-header columns retain header emphasis without repeating as leading table headers. EPUB options are `epub.title`,
 `epub.language`, `epub.identifier`, and `epub.chapterLevel` (1–6).
 EPUB conversion requires no `--yes`: missing metadata defaults to the first
 heading (or `Untitled`), language `en-US`, and a deterministic content identifier.

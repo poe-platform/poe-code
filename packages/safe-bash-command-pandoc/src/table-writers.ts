@@ -7,6 +7,7 @@ import { placeRows, type Table } from "./tables.js";
 type CellWriter = (nodes: readonly Inline[], path: string) => string;
 
 const delimiters: Record<Alignment, string> = {AlignLeft: ":---", AlignRight: "---:", AlignCenter: ":---:", AlignDefault: "---"};
+const headerAttribute = ([name, value]: readonly [string, string]) => name === "role" && ["rowheader", "columnheader"].includes(value.trim()) || name === "scope" && ["row", "col", "rowgroup", "colgroup"].includes(value.trim().toLowerCase());
 
 /** Every retained fragment is reserved before concatenation or array growth. */
 class Projection {
@@ -153,26 +154,27 @@ function blocks(nodes: readonly Block[], out: Projection, path: string, html: bo
     }
   }
 }
-async function rectangularRows(rows: readonly Row[], out: Projection, columns: number, path: string): Promise<void> {
-  let current = -1, nextColumn = 0;
+async function rectangularRows(rows: readonly Row[], out: Projection, columns: number, path: string, header = false, rowHeads = 0, start = 0): Promise<void> {
+  let current = start - 1, nextColumn = 0;
   function separator(): void { out.add(nextColumn + 1 === columns ? " |" : " | "); nextColumn++; }
   function endRow(): void { while(nextColumn < columns) separator(); out.add("\n"); }
   for(const placed of placeRows(rows, columns, path)) {
-    await out.context.cooperate(); if(!placed) continue;
-    while(current < placed.row) {if(current >= 0) endRow(); current++; nextColumn = 0; out.add("| ");}
+    await out.context.cooperate(); if(!placed || placed.row < start) continue;
+    while(current < placed.row) {if(current >= start) endRow(); current++; nextColumn = 0; out.add("| ");}
     while(nextColumn < placed.column) separator();
     const cell = placed.cell;
-    out.attributeLoss(cell[0], `${placed.path}[0]`);
+    const heading = header || placed.column < rowHeads || cell[0][2].some(headerAttribute);
+    out.attributeLoss([cell[0][0], cell[0][1], cell[0][2].filter(pair => !headerAttribute(pair))], `${placed.path}[0]`);
     if(cell[2] !== 1 || cell[3] !== 1) out.loss(placed.path, "Flattened cell span");
     if(cell[1] !== "AlignDefault") out.loss(`${placed.path}[1]`, "Flattened cell alignment");
     if(!simpleCell(cell[4])) {out.loss(`${placed.path}[4]`, "Flattened complex cell blocks");
       // Use a bounded temporary projection, then escape its plain text for GFM.
       out.textProjection(text => textBlocks(cell[4], text), false);
-    } else {const block = cell[4][0]; if(block?.t === "Plain" || block?.t === "Para") inline(block.c, out, `${placed.path}[4][0].c`, false);}
+    } else {const block = cell[4][0]; if(block?.t === "Plain" || block?.t === "Para") inline(heading && block.c.length && !(block.c.length === 1 && block.c[0]?.t === "Strong") ? [{t: "Strong", c: block.c}] : block.c, out, `${placed.path}[4][0].c`, false);}
     separator();
   }
-  while(current < rows.length - 1) {if(current >= 0) endRow(); current++; nextColumn = 0; out.add("| ");}
-  if(current >= 0) endRow();
+  while(current < rows.length - 1) {if(current >= start) endRow(); current++; nextColumn = 0; out.add("| ");}
+  if(current >= start) endRow();
 }
 async function gfmTable(t: Table, out: Projection, p: string): Promise<void> {
   const columns = t.c[2].length;
@@ -181,14 +183,14 @@ async function gfmTable(t: Table, out: Projection, p: string): Promise<void> {
   if(t.c[1][0]?.length || t.c[1][1].length) {out.loss(`${p}.c[1]`, "Flattened table caption"); const text = new Projection(out.context, out.format, out.cellWriter); textBlocks(t.c[1][1], text); if(t.c[1][0]?.length && !t.c[1][1].length) textInlines(t.c[1][0], text); const value = text.finish(); if(value.kind === "text") out.escaped(value.text, false); out.add("\n\n");}
   for(const [i, col] of t.c[2].entries()) if(col[1].t !== "ColWidthDefault") out.loss(`${p}.c[2][${i}][1]`, "Flattened column width");
   out.attributeLoss(t.c[3][0], `${p}.c[3][0]`);
-  if(t.c[3][1].length !== 1) out.loss(`${p}.c[3][1]`, "Flattened table header to a single row");
+  const bodyHead = !t.c[3][1].length && !!t.c[4][0]?.[2].length && t.c[4][0]![2][0]![1].every(cell => cell[2] === 1);
+  const headRows = bodyHead ? t.c[4][0]![2].slice(0, 1) : t.c[3][1];
+  if(headRows.length !== 1) out.loss(`${p}.c[3][1]`, "Flattened table header to a single row");
   if(t.c[4].length !== 1) out.loss(`${p}.c[4]`, "Flattened multiple table bodies");
   out.attributeLoss(t.c[5][0], `${p}.c[5][0]`);
   if(t.c[5][1].length) out.loss(`${p}.c[5][1]`, "Flattened table footer");
   for(const [i, body] of t.c[4].entries()) {
     out.attributeLoss(body[0], `${p}.c[4][${i}][0]`);
-    if(body[1]) out.loss(`${p}.c[4][${i}][1]`, "Flattened row header columns");
-    if(body[2].length) out.loss(`${p}.c[4][${i}][2]`, "Flattened body header");
   }
   const sections: readonly (readonly [readonly Row[], string])[] = [[t.c[3][1], `${p}.c[3][1]`], ...t.c[4].flatMap((b, i) => [[b[2], `${p}.c[4][${i}][2]`] as const, [b[3], `${p}.c[4][${i}][3]`] as const]), [t.c[5][1], `${p}.c[5][1]`]];
   for(const [rows, path] of sections)
@@ -196,7 +198,7 @@ async function gfmTable(t: Table, out: Projection, p: string): Promise<void> {
   // Serialize the whole head first to keep rowspan coordinates valid, then insert
   // the separator after its first physical row. No rectangular array is needed.
   const head = new Projection(out.context, out.format, out.cellWriter);
-  if(t.c[3][1].length) await rectangularRows(t.c[3][1], head, columns, `${p}.c[3][1]`);
+  if(headRows.length) await rectangularRows(headRows, head, columns, bodyHead ? `${p}.c[4][0][2]` : `${p}.c[3][1]`);
   else {out.context.charge("tableCells", columns); head.add("| "); for(let i = 0; i < columns; i++) head.add(i + 1 === columns ? " |" : " | "); head.add("\n");}
   const serialized = head.finish();
   if(serialized.kind !== "text") return;
@@ -204,7 +206,7 @@ async function gfmTable(t: Table, out: Projection, p: string): Promise<void> {
   out.add(serialized.text.slice(0, end));
   out.add("| "); for(const [i, col] of t.c[2].entries()) {if(i) out.add(" | "); out.add(delimiters[col[0]]);} out.add(" |\n");
   out.add(serialized.text.slice(end));
-  for(const [i, body] of t.c[4].entries()) {await rectangularRows(body[2], out, columns, `${p}.c[4][${i}][2]`); await rectangularRows(body[3], out, columns, `${p}.c[4][${i}][3]`);}
+  for(const [i, body] of t.c[4].entries()) {await rectangularRows(body[2], out, columns, `${p}.c[4][${i}][2]`, true, 0, bodyHead && i === 0 ? 1 : 0); await rectangularRows(body[3], out, columns, `${p}.c[4][${i}][3]`, false, body[1]);}
   await rectangularRows(t.c[5][1], out, columns, `${p}.c[5][1]`);
 }
 export async function writeGfm(document: Document, context: AdapterContext, selection?: FormatSelection, cellWriter?: CellWriter): Promise<SerializedDocument> {

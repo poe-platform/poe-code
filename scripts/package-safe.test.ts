@@ -9,6 +9,23 @@ import ts from "typescript";
 import { build, transformSync, type BuildOptions, type Plugin } from "esbuild";
 import { packageSafeLibraries, parsePackageSafeArguments, rewriteModuleSpecifiers } from "./package-safe.mjs";
 
+it("retains document converter font and data notices with the conditional runtime", async () => {
+  const { volume, options } = optionalLeftovers();
+  const directory = "/repo/packages/safe-bash/dist/document-converter";
+  volume.mkdirSync(directory, { recursive: true });
+  volume.writeFileSync("/repo/packages/safe-bash/dist/index.js", 'export { loadWasm } from "#document-converter-wasm";');
+  for (const name of ["module.js", "module.workerd.js"]) volume.writeFileSync(directory + "/" + name, "export async function loadWasm() {}\n");
+  const notices = ["Liberation", "DejaVu", "NotoSansSC", "JetBrainsMono", "Unicode", "Python"];
+  for (const name of notices) {
+    volume.writeFileSync(directory + "/LICENSE." + name, readFileSync(new URL(`../packages/document-converter-rust/dist/LICENSE.${name}`, import.meta.url)));
+  }
+  await packageSafeLibraries({ ...options, outDir: "/output" });
+  for (const name of notices) {
+    expect(volume.readFileSync("/output/safe-bash/dist/safe-bash/document-converter/LICENSE." + name))
+      .toEqual(volume.readFileSync(directory + "/LICENSE." + name));
+  }
+});
+
 it.each(["retained-inspection", "retained-diff", "retained-media", "retained-fonts", "retained-object-extraction", "retained-run-formatting", "retained-paragraph-formatting", "retained-objects", "retained-shape-geometry"])("resolves emitted presentation %s types without checkout aliases", entry => {
   const filename = fileURLToPath(new URL(`../packages/safe-bash-presentation-engine/dist/${entry}.d.ts`, import.meta.url));
   const specifiers: string[] = [];

@@ -14,6 +14,11 @@ mod pdf_markup;
 #[path = "pdf_widget.rs"]
 mod pdf_widget;
 use super::Objects;
+#[path = "pdf_unicode.rs"]
+mod pdf_unicode;
+#[cfg(test)]
+#[path = "pdf_font_cache_tests.rs"]
+mod font_cache_tests;
 pub(super) use pdf_soft_mask::SoftMask;
 fn shift(m: &mut Matrix, x: f64, y: f64) {
     m[4] += m[0] * x + m[2] * y;
@@ -34,7 +39,7 @@ pub(super) enum Program {
     CidTrueType { bytes: Vec<u8>, map: Option<Vec<u8>> },
     Unsupported,
 }
-struct Font {
+pub(super) struct Font {
     metrics: [f64; 2],
     extractable: bool,
     program: Program,
@@ -42,6 +47,7 @@ struct Font {
     start: usize,
     widths: Vec<f64>,
     cid_widths: Option<(BTreeMap<u16, f64>, f64)>,
+    unicode: Option<BTreeMap<u16, String>>,
 }
 impl Font {
     fn advance(&self, b: u16) -> f64 {
@@ -105,6 +111,7 @@ pub(super) enum Draw<'a, 'b> {
     Operator(&'a [u8], &'a [Value<'b>], Matrix),
     Glyph {
         code: u16,
+        unicode: Option<&'a str>,
         family: &'a Rc<str>,
         program: &'a Program,
         bounds: [f64; 4],
@@ -116,7 +123,7 @@ pub(super) enum Draw<'a, 'b> {
     },
 }
 impl<'a> Resources<'a> {
-    fn load(&mut self, objects: &mut super::Objects<'a>, res: &Value<'a>) -> Option<()> {
+    fn load(&mut self, objects: &mut super::Objects<'a>, res: &Value<'a>, fonts: &mut BTreeMap<super::ObjectId, Rc<Font>>) -> Option<()> {
         let res = objects.resolve(res)?;
         if let Some(value) = res.get(b"ColorSpace") {
             self.colors = Some(value.clone());
@@ -138,12 +145,22 @@ impl<'a> Resources<'a> {
         }
         if let Some(Value::Dict(entries)) = res.get(b"Font").and_then(|v| objects.resolve(v)) {
             for (key, v) in entries {
+                let id=v.reference();
+                if let Some(font)=id.and_then(|id|fonts.get(&id)) {
+                    self.fonts.insert(key,Rc::clone(font));
+                    continue;
+                }
                 let dict = objects.resolve(&v)?;
                 let family = dict
                     .get(b"BaseFont")
                     .and_then(Value::word)
                     .and_then(|w| w.strip_prefix(b"/"))
                     .unwrap_or(&key);
+                // Font programs/maps are already charged by their decoders. Reserve
+                // the retained font/name and identity-cache entry before allocation.
+                objects.remaining_bytes=objects.remaining_bytes.checked_sub(
+                    std::mem::size_of::<Font>().checked_add(family.len())?.checked_add(96)?
+                )?;
                 if dict.get(b"Subtype").and_then(Value::word) == Some(b"/Type0") {
                     let mut font = Font {
                         metrics: [-0.207, 0.718],
@@ -153,6 +170,7 @@ impl<'a> Resources<'a> {
                         start: 0,
                         widths: vec![],
                         cid_widths: None,
+                        unicode: None,
                     };
                     if dict.get(b"Encoding").and_then(|v| objects.resolve(v)).as_ref().and_then(Value::word) == Some(b"/Identity-H") {
                         let Value::Array(descendants) = objects.resolve(dict.get(b"DescendantFonts")?)? else { return None; };
@@ -186,6 +204,7 @@ impl<'a> Resources<'a> {
                                         Value::Array(entries) => {
                                             if usize::from(first) + entries.len() > 65536 { return None; }
                                             objects.tokens = objects.tokens.checked_sub(entries.len())?;
+                                            objects.remaining_bytes=objects.remaining_bytes.checked_sub(entries.len().checked_mul(64)?)?;
                                             for (i, value) in entries.iter().enumerate() {
                                                 let width = objects.resolve(value)?.number()?;
                                                 if !width.is_finite() { return None; }
@@ -196,6 +215,7 @@ impl<'a> Resources<'a> {
                                             let last = cid_number(&last)?;
                                             let count = usize::from(last.checked_sub(first)?) + 1;
                                             objects.tokens = objects.tokens.checked_sub(count)?;
+                                            objects.remaining_bytes=objects.remaining_bytes.checked_sub(count.checked_mul(64)?)?;
                                             let width = objects.resolve(values.next()?)?.number()?;
                                             if !width.is_finite() { return None; }
                                             for code in first..=last { widths.insert(code, width); }
@@ -205,14 +225,27 @@ impl<'a> Resources<'a> {
                             }
                             font.program = Program::CidTrueType { bytes, map };
                             font.cid_widths = Some((widths, default));
+                            font.unicode = dict.get(b"ToUnicode").and_then(Value::reference)
+                                .and_then(|id| objects.decoded_stream(id))
+                                .and_then(|bytes| pdf_unicode::read(&bytes, &mut objects.tokens, &mut objects.remaining_bytes));
+                            font.extractable = font.unicode.is_some();
+                            for (i,key) in [b"Descent".as_slice(),b"Ascent".as_slice()].into_iter().enumerate() {
+                                if let Some(n)=descriptor.get(key).and_then(|v|objects.resolve(v)).and_then(|v|v.number())
+                                    && n.is_finite() && n!=0. {
+                                    font.metrics[i]=n.abs()/1000.*if i==0 {-1.}else{1.};
+                                }
+                            }
                         }
                     }
-                    self.fonts.insert(key, Rc::new(font));
+                    let font=Rc::new(font);
+                    if let Some(id)=id {fonts.insert(id,Rc::clone(&font));}
+                    self.fonts.insert(key, font);
                     continue;
                 }
                 let start = dict.get(b"FirstChar").and_then(Value::number).unwrap_or(0.) as usize;
                 let widths = match dict.get(b"Widths").and_then(|w| objects.resolve(w)) {
                     Some(Value::Array(a)) => {
+                        objects.remaining_bytes=objects.remaining_bytes.checked_sub(a.len().checked_mul(std::mem::size_of::<f64>())?)?;
                         a.iter().map(Value::number).collect::<Option<Vec<_>>>()?
                     }
                     _ => vec![],
@@ -253,9 +286,7 @@ impl<'a> Resources<'a> {
                     && encoding.as_ref().is_none_or(|v| v.word() == Some(b"/WinAnsiEncoding"))
                     && !matches!(family, b"Symbol" | b"ZapfDingbats");
                 let name = Rc::from(String::from_utf8_lossy(family).as_ref());
-                self.fonts.insert(
-                    key,
-                    Rc::new(Font {
+                let font=Rc::new(Font {
                         metrics,
                         extractable,
                         program,
@@ -263,8 +294,10 @@ impl<'a> Resources<'a> {
                         start,
                         widths,
                         cid_widths: None,
-                    }),
-                );
+                        unicode: None,
+                    });
+                if let Some(id)=id {fonts.insert(id,Rc::clone(&font));}
+                self.fonts.insert(key,font);
             }
         }
         Some(())
@@ -281,7 +314,7 @@ impl<'a> PageSource<'a> {
         let mut resources = Resources::default();
         for _ in 0..128 {
             if let Some(res) = node.get(b"Resources") {
-                resources.load(&mut self.objects, res)?;
+                resources.load(&mut self.objects, res, &mut self.fonts)?;
                 break;
             }
             let Some(parent) = node
@@ -415,7 +448,7 @@ impl<'a> PageSource<'a> {
             child.ctm = concat(m, child.ctm);
         }
         let mut local = Resources { form: Some(id), ..Resources::default() };
-        if let Some(res) = dict.get(b"Resources") { local.load(&mut self.objects, res)?; }
+        if let Some(res) = dict.get(b"Resources") { local.load(&mut self.objects, res, &mut self.fonts)?; }
         scopes.push(local);
         let group = dict.get(b"Group").map(|v| v.clone().into_owned());
         if mask.is_some() && group.is_none() { return None; }
@@ -441,6 +474,7 @@ impl<'a> PageSource<'a> {
             start: 0,
             widths: vec![],
             cid_widths: None,
+            unicode: None,
         };
         let (mut tm, mut lm) = (ID, ID);
         let mut stack = Vec::new();
@@ -634,11 +668,12 @@ impl<'a> PageSource<'a> {
                                 emit(
                                     Draw::Glyph {
                                         code: b,
+                                        unicode: font.unicode.as_ref().and_then(|map|map.get(&b)).map(String::as_str),
                                         family: &font.name,
                                         program: &font.program,
                                         size,
                                         bounds: [x, y - size * 0.2, right, y + size * 0.8],
-                                        text_bounds: (font.extractable && !composite).then_some([matrix[4], matrix[5] + size * font.metrics[0], matrix[4] + scale * (advance * st.hscale).abs().max(advance), matrix[5] + size * font.metrics[1]]),
+                                        text_bounds: font.extractable.then_some([matrix[4], matrix[5] + size * font.metrics[0], matrix[4] + scale * (advance * st.hscale).abs().max(advance), matrix[5] + size * font.metrics[1]]),
                                         matrix,
                                         ctm: st.ctm,
                                         mode: st.mode,
@@ -655,76 +690,6 @@ impl<'a> PageSource<'a> {
         }
         Some(())
     }
-    pub(in crate::commands::archive) fn plain_text(
-        &mut self,
-        pno: usize,
-        spacing: Option<f64>,
-        page_width: f64,
-        rejoin: bool,
-        discard_diagonal: bool,
-    ) -> Option<String> {
-        let mut lines = self.text_lines(pno, spacing, discard_diagonal)?;
-        let midpoint = page_width * 0.5;
-        let column = |line: &TextLine| {
-            if line.bounds[2] <= midpoint + 18. {
-                0
-            } else if line.bounds[0] >= midpoint - 18. {
-                1
-            } else {
-                2
-            }
-        };
-        if spacing.is_some() && lines.len() > 2 && lines.iter().all(|l| l.direction == [1., 0.]) {
-            let mut present = [false; 3];
-            for line in &lines {
-                present[column(line)] = true;
-            }
-            if present == [true, true, false] {
-                lines.sort_by(|a, b| {
-                    column(a)
-                        .cmp(&column(b))
-                        .then(b.baseline.total_cmp(&a.baseline))
-                });
-            }
-        }
-        let mut out = String::new();
-        let paragraph = |l: &TextLine| {
-            l.size < 15.
-                && !l.text.starts_with('•')
-                && !["- ", "* ", "-\t", "*\t"]
-                    .iter()
-                    .any(|s| l.text.starts_with(s))
-        };
-        for (i, line) in lines.iter().enumerate() {
-            if let Some(prev) = i.checked_sub(1).map(|j| &lines[j]) {
-                let gap = prev.baseline - line.baseline;
-                if !(paragraph(prev)
-                    && paragraph(line)
-                    && (spacing.is_none() || prev.direction == [1., 0.])
-                    && prev.direction[0] * line.direction[0] + prev.direction[1] * line.direction[1] > 0.85
-                    && gap > 0.
-                    && gap <= prev.size * 1.9
-                    && (line.along[0] - prev.along[0]).abs() < prev.size * 5.)
-                {
-                    out.push_str("\n\n");
-                } else if rejoin
-                    && out.ends_with('-')
-                    && line
-                        .text
-                        .as_bytes()
-                        .first()
-                        .is_some_and(u8::is_ascii_lowercase)
-                {
-                    out.pop();
-                } else {
-                    out.push('\n');
-                }
-            }
-            out.push_str(&line.text);
-        }
-        Some(out)
-    }
-
     pub(in crate::commands::archive) fn text_lines(
         &mut self,
         pno: usize,
@@ -739,7 +704,7 @@ impl<'a> PageSource<'a> {
         let mut space = false;
         let mut forms = Vec::new();
         let mut in_mask = false;
-        self.draw_page(&page, false, |event, _| {
+        self.draw_page(&page, false, |event, objects| {
             match &event {
                 Draw::BeginForm(_, _, _, mask) => {
                     forms.push(in_mask);
@@ -751,17 +716,21 @@ impl<'a> PageSource<'a> {
             if in_mask { return Some(()); }
             if let Draw::Glyph {
                 code,
+                unicode,
                 program,
                 family,
                 size,
                 bounds,
                 matrix,
+                text_bounds,
                 ..
             } = event
             {
-                // CID glyph IDs are not Unicode; extraction needs a ToUnicode CMap.
-                if matches!(program, Program::CidTrueType { .. }) { return None; }
-                let b = u8::try_from(code).ok()?;
+                text_bounds?;
+                let decoded = if let Some(value)=unicode {std::borrow::Cow::Borrowed(value)}
+                    else if matches!(program,Program::CidTrueType{..}) {return None;}
+                    else {std::borrow::Cow::Owned(text(&[u8::try_from(code).ok()?]))};
+                objects.remaining_bytes=objects.remaining_bytes.checked_sub(decoded.len())?;
                 // Group along the text axis, independently of the page's /Rotate.
                 let scale = matrix[0].hypot(matrix[1]);
                 if scale == 0. { return Some(()); }
@@ -777,7 +746,7 @@ impl<'a> PageSource<'a> {
                     || py.max(ey) < media[1].min(media[3]) || py.min(ey) > media[1].max(media[3]) {
                     return Some(());
                 }
-                if matches!(b, b' ' | b'\t') {
+                if matches!(decoded.as_ref(), " " | "\t") {
                     space = true;
                     return Some(());
                 }
@@ -805,7 +774,7 @@ impl<'a> PageSource<'a> {
                     && x - run.along[1] <= size * 0.22
                     && !space
                 {
-                    run.text.push_str(&text(&[b]));
+                    run.text.push_str(&decoded);
                     run.along[1] = run.along[1].max(right);
                     for i in 0..4 {
                         run.bounds[i] = if i < 2 {run.bounds[i].min(bounds[i])} else {run.bounds[i].max(bounds[i])};
@@ -815,7 +784,7 @@ impl<'a> PageSource<'a> {
                         return None;
                     }
                     runs.push(TextLine {
-                        text: text(&[b]),
+                        text: decoded.into_owned(),
                         family: Rc::clone(family),
                         size,
                         bounds,

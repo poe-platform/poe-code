@@ -14,12 +14,12 @@ vi.mock("../../office-package/src/runtime.js", async importOriginal => {
   };
 });
 const encode = (text: string) => new TextEncoder().encode(text);
-const document: Document = {blocks: [{t: "Header", c: [1, ["owned", [], []], [{t: "Str", c: "Owned heading"}]]}, {t: "Para", c: [{t: "Str", c: "Owned PDF text"}]}], metadata: {title: {t: "MetaString", c: "Café 東京"}, author: {t: "MetaList", c: [{t: "MetaString", c: "Zoë"}, {t: "MetaString", c: "René"}]}}, resources: []};
+const document: Document = {blocks: [{t: "Header", c: [1, ["owned", [], []], [{t: "Str", c: "Owned heading"}]]}, {t: "Para", c: [{t: "Str", c: "Owned PDF text"}]}], metadata: {title: {t: "MetaString", c: "Café report"}, subject: {t: "MetaString", c: "Café 東京"}, author: {t: "MetaList", c: [{t: "MetaString", c: "Zoë"}, {t: "MetaString", c: "René"}]}}, resources: []};
 it("projects supported metadata and heading outlines through the SDK", async () => {
   const result = await writeDocument(document, {to: "pdf"}, {yield: async () => {}});
   expect(result.kind).toBe("binary"); if (result.kind !== "binary") throw new Error("PDF expected");
   const pdf = await PDFDocument.load(result.bytes, {updateMetadata: false});
-  expect(pdf.getTitle()).toBe("Café 東京"); expect(pdf.getAuthor()).toBe("Zoë; René");
+  expect(pdf.getTitle()).toBe("Café report"); expect(pdf.getSubject()).toBe("Café 東京"); expect(pdf.getAuthor()).toBe("Zoë; René");
   expect(pdf.catalog.lookup(PDFName.of("Outlines"), PDFDict).get(PDFName.of("Count"))!.toString()).toBe("1");
 });
 it("awaits PDF streaming sink writes and close before resolving", async () => {

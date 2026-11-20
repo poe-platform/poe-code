@@ -73,15 +73,16 @@ it.each(["cycle", "sparse", "mixed", "boolean-key", "nonfinite", "invalid-utf8",
 });
 
 
-it.each(["read", "write"])("observes timer cancellation during a long retained string %s and cleans storage", async operation => {
+it.each(["read", "write"])("observes event-loop cancellation during a long retained string %s and cleans storage", async operation => {
   const controller = new AbortController();
   await usingBridge(async (bridge, _heap, input, output) => {
     await input.value("x".repeat(100000));
     const value = operation === "write" ? await bridge.read(input) : undefined;
-    const timer = setTimeout(() => controller.abort(), 0);
+    // Match the host yield queue: a zero-delay timer can outlast a submillisecond write.
+    const abortTurn = setImmediate(() => controller.abort());
     try {
       await expect(operation === "read" ? bridge.read(input) : bridge.write(value, output)).rejects.toMatchObject({code: "E_CANCELLED"});
-    } finally {clearTimeout(timer);}
+    } finally {clearImmediate(abortTurn);}
   }, controller.signal);
 });
 it.each(["\ud800", "\udc00", "x\ud800y"])("rejects invalid Unicode at the JSON-to-Lua boundary", async text => {

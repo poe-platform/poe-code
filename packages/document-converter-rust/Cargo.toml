@@ -1,0 +1,33 @@
+[package]
+name = "document-converter-rust"
+version = "0.1.0"
+edition = "2024"
+license = "MIT"
+description = "Portable Pandoc AST and semantic HTML to Rust document writers"
+
+[lib]
+crate-type = ["rlib"]
+
+[features]
+default = ["wasm-abi"]
+wasm-abi = []
+
+[dependencies]
+diagram-renderer-rust = { path = "../diagram-renderer-rust" }
+document-ast-rust = { path = "../document-ast-rust" }
+docx-ast-rust = { path = "../docx-ast-rust" }
+pdf-ast-rust = { path = "../pdf-ast-rust" }
+mcp-protocol-rust = { path = "../mcp-protocol-rust" }
+poe-agent-rust = { path = "../poe-agent-rust" }
+
+terminal-png-rust = { path = "../terminal-png-rust" }
+office-package-rust = { path = "../office-package-rust" }
+
+[workspace]
+resolver = "3"
+
+[profile.release]
+opt-level = "s"
+lto = true
+strip = true
+panic = "abort"

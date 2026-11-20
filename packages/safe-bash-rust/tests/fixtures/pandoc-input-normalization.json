@@ -1,0 +1,4212 @@
+[
+  {
+    "from": "markdown-smart",
+    "source": "a\nb",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "a\r\nb",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "a\rb",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "# x\ny",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "x",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "x"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "# x\r\ny",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "x",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "x"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "# x\ry",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "x",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "x"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "# x\n\ny",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "x",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "x"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "# x\r\n\r\ny",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "x",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "x"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "# x\r\ry",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "x",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "x"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "a\n---",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "a",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "a"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "a\r\n---",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "a",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "a"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "a\r---",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "a",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "a"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "```text\na\nb\n```",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "text"
+            ],
+            []
+          ],
+          "a\nb"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "```text\r\na\r\nb\r\n```",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "text"
+            ],
+            []
+          ],
+          "a\nb"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "```text\ra\rb\r```",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "text"
+            ],
+            []
+          ],
+          "a\nb"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "    a\n    b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "a\nb"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "    a\r\n    b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "a\nb"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "    a\r    b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "a\nb"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "> a\n> b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "> a\r\n> b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "> a\r> b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "- a\n- b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "b"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "- a\r\n- b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "b"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "- a\r- b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "b"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "[x](url)\n\n[url]: /u",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Link",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "x"
+                }
+              ],
+              [
+                "url",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "[x](url)\r\n\r\n[url]: /u",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Link",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "x"
+                }
+              ],
+              [
+                "url",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "[x](url)\r\r[url]: /u",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Link",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "x"
+                }
+              ],
+              [
+                "url",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "---\ntitle: Test\nauthor: Name\n---\n\n# Body",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Test"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Name"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "body",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "Body"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "---\r\ntitle: Test\r\nauthor: Name\r\n---\r\n\r\n# Body",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Test"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Name"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "body",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "Body"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "---\rtitle: Test\rauthor: Name\r---\r\r# Body",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Test"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Name"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "body",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "Body"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "[x]{#a key=\"L\nR\"}",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Span",
+            "c": [
+              [
+                "a",
+                [],
+                [
+                  [
+                    "key",
+                    "L\nR"
+                  ]
+                ]
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "x"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "[x]{#a key=\"L\r\nR\"}",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Span",
+            "c": [
+              [
+                "a",
+                [],
+                [
+                  [
+                    "key",
+                    "L\nR"
+                  ]
+                ]
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "x"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "[x]{#a key=\"L\rR\"}",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Span",
+            "c": [
+              [
+                "a",
+                [],
+                [
+                  [
+                    "key",
+                    "L\nR"
+                  ]
+                ]
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "x"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "<div>\n\na\nb\n\n</div>",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Div",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                },
+                {
+                  "t": "SoftBreak"
+                },
+                {
+                  "t": "Str",
+                  "c": "b"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "<div>\r\n\r\na\r\nb\r\n\r\n</div>",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Div",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                },
+                {
+                  "t": "SoftBreak"
+                },
+                {
+                  "t": "Str",
+                  "c": "b"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "<div>\r\ra\rb\r\r</div>",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Div",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                },
+                {
+                  "t": "SoftBreak"
+                },
+                {
+                  "t": "Str",
+                  "c": "b"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "a\n\tb",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "a\r\n\tb",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "a\r\tb",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "a\u0000b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a�b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "`a\u0000b`",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a�b"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "```\na\u0000b\n```",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "a�b"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "# a\u0000b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "ab",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "a�b"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "[x]{#a\u0000b}",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Span",
+            "c": [
+              [
+                "a�b",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "x"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "<span>a\u0000b</span>",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Span",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a�b"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "---\ntitle: \"a\u0000b\"\n---\n\nBody",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a�b"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "﻿# Header",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "header",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "Header"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "﻿---\ntitle: Title\n---\n\nBody",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Title"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\n﻿# Header",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "﻿#"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Header"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "﻿﻿# Header",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "﻿#"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Header"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "a﻿b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a﻿b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "a\nb",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "a\r\nb",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "a\rb",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "# x\ny",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "x",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "x"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "# x\r\ny",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "x",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "x"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "# x\ry",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "x",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "x"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "# x\n\ny",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "x",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "x"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "# x\r\n\r\ny",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "x",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "x"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "# x\r\ry",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "x",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "x"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "a\n---",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "a",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "a"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "a\r\n---",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "a",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "a"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "a\r---",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "a",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "a"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "```text\na\nb\n```",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "text"
+            ],
+            []
+          ],
+          "a\nb"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "```text\r\na\r\nb\r\n```",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "text"
+            ],
+            []
+          ],
+          "a\nb"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "```text\ra\rb\r```",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "text"
+            ],
+            []
+          ],
+          "a\nb"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "    a\n    b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "a\nb"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "    a\r\n    b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "a\nb"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "    a\r    b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "a\nb"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "> a\n> b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "> a\r\n> b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "> a\r> b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "- a\n- b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "b"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "- a\r\n- b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "b"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "- a\r- b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "b"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "[x](url)\n\n[url]: /u",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Link",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "x"
+                }
+              ],
+              [
+                "url",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "[x](url)\r\n\r\n[url]: /u",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Link",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "x"
+                }
+              ],
+              [
+                "url",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "[x](url)\r\r[url]: /u",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Link",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "x"
+                }
+              ],
+              [
+                "url",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "---\ntitle: Test\nauthor: Name\n---\n\n# Body",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Test"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Name"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "body",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "Body"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "---\r\ntitle: Test\r\nauthor: Name\r\n---\r\n\r\n# Body",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Test"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Name"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "body",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "Body"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "---\rtitle: Test\rauthor: Name\r---\r\r# Body",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Test"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Name"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "body",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "Body"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "[x]{#a key=\"L\nR\"}",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "[x]{#a"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "key=\"L"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "R\"}"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "[x]{#a key=\"L\r\nR\"}",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "[x]{#a"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "key=\"L"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "R\"}"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "[x]{#a key=\"L\rR\"}",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "[x]{#a"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "key=\"L"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "R\"}"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "<div>\n\na\nb\n\n</div>",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<div>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</div>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "<div>\r\n\r\na\r\nb\r\n\r\n</div>",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<div>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</div>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "<div>\r\ra\rb\r\r</div>",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<div>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</div>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "a\n\tb",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "a\r\n\tb",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "a\r\tb",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "a\u0000b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a�b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "`a\u0000b`",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a�b"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "```\na\u0000b\n```",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "a�b"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "# a\u0000b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "ab",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "a�b"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "[x]{#a\u0000b}",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "[x]{#a�b}"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "<span>a\u0000b</span>",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "RawInline",
+            "c": [
+              "html",
+              "<span>"
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "a�b"
+          },
+          {
+            "t": "RawInline",
+            "c": [
+              "html",
+              "</span>"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "---\ntitle: \"a\u0000b\"\n---\n\nBody",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a�b"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "﻿# Header",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "header",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "Header"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "﻿---\ntitle: Title\n---\n\nBody",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Title"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "\n﻿# Header",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "﻿#"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Header"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "﻿﻿# Header",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "﻿#"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Header"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm",
+    "source": "a﻿b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a﻿b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "a\nb",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "a\r\nb",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "a\rb",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "# x\ny",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "x"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "# x\r\ny",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "x"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "# x\ry",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "x"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "# x\n\ny",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "x"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "# x\r\n\r\ny",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "x"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "# x\r\ry",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "x"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "a\n---",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "a"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "a\r\n---",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "a"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "a\r---",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "a"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "```text\na\nb\n```",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "text"
+            ],
+            []
+          ],
+          "a\nb"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "```text\r\na\r\nb\r\n```",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "text"
+            ],
+            []
+          ],
+          "a\nb"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "```text\ra\rb\r```",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "text"
+            ],
+            []
+          ],
+          "a\nb"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "    a\n    b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "a\nb"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "    a\r\n    b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "a\nb"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "    a\r    b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "a\nb"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "> a\n> b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "> a\r\n> b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "> a\r> b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "- a\n- b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "b"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "- a\r\n- b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "b"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "- a\r- b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "b"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "[x](url)\n\n[url]: /u",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Link",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "x"
+                }
+              ],
+              [
+                "url",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "[x](url)\r\n\r\n[url]: /u",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Link",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "x"
+                }
+              ],
+              [
+                "url",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "[x](url)\r\r[url]: /u",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Link",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "x"
+                }
+              ],
+              [
+                "url",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "---\ntitle: Test\nauthor: Name\n---\n\n# Body",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Test"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Name"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "Body"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "---\r\ntitle: Test\r\nauthor: Name\r\n---\r\n\r\n# Body",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Test"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Name"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "Body"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "---\rtitle: Test\rauthor: Name\r---\r\r# Body",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Test"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Name"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "Body"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "[x]{#a key=\"L\nR\"}",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "[x]{#a"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "key=\"L"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "R\"}"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "[x]{#a key=\"L\r\nR\"}",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "[x]{#a"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "key=\"L"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "R\"}"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "[x]{#a key=\"L\rR\"}",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "[x]{#a"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "key=\"L"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "R\"}"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "<div>\n\na\nb\n\n</div>",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<div>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</div>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "<div>\r\n\r\na\r\nb\r\n\r\n</div>",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<div>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</div>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "<div>\r\ra\rb\r\r</div>",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<div>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</div>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "a\n\tb",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "a\r\n\tb",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "a\r\tb",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "a\u0000b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a�b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "`a\u0000b`",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a�b"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "```\na\u0000b\n```",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "a�b"
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "# a\u0000b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "a�b"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "[x]{#a\u0000b}",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "[x]{#a�b}"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "<span>a\u0000b</span>",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "RawInline",
+            "c": [
+              "html",
+              "<span>"
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "a�b"
+          },
+          {
+            "t": "RawInline",
+            "c": [
+              "html",
+              "</span>"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "---\ntitle: \"a\u0000b\"\n---\n\nBody",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a�b"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "﻿# Header",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "Header"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "﻿---\ntitle: Title\n---\n\nBody",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Title"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "\n﻿# Header",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "﻿#"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Header"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "﻿﻿# Header",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "﻿#"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Header"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "commonmark",
+    "source": "a﻿b",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a﻿b"
+          }
+        ]
+      }
+    ]
+  }
+]

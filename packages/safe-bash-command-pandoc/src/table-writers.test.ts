@@ -61,7 +61,7 @@ it("strict GFM rejects multiple sections; lossy chooses the first header and kee
   const d = change(doc([]), t => ({...t, c: [a, [null, []], t.c[2], [a, [r(c("H1"), c("H2")), r(c("extra"), c("head"))]],
     [[a, 1, [r(c("body"), c("head"))], [r(c("row"), c("value"))]], [a, 0, [], [r(c("next"), c("body"))]]], [a, [r(c("foot"), c("end"))]]] }));
   await expect(output(d, "gfm")).rejects.toMatchObject({code: "E_CAPABILITY"});
-  expect(await output(d, "gfm", true)).toMatchObject({text: "| H1 | H2 |\n| :--- | ---: |\n| extra | head |\n| body | head |\n| row | value |\n| next | body |\n| foot | end |\n"});
+  expect(await output(d, "gfm", true)).toMatchObject({text: "| H1 | H2 |\n| :--- | ---: |\n| extra | head |\n| **body** | **head** |\n| **row** | value |\n| next | body |\n| foot | end |\n"});
 });
 it("Plain projects captions and physical rows in source order with tabs; spans require explicit loss", async () => {
   const d = change(doc([r(c("A", 2, 2)), r()]), t => ({...t, c: [a, [null, [{t: "Plain", c: [{t: "Str", c: "Caption"}]}]], t.c[2], t.c[3], t.c[4], t.c[5]]}));

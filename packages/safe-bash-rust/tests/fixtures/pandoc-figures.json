@@ -1,0 +1,8992 @@
+[
+  {
+    "id": "minimal",
+    "source": "![a]()",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "a"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "a"
+                      }
+                    ],
+                    [
+                      "",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "minimal",
+    "source": "![a]()",
+    "from": "md",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "a"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "a"
+                      }
+                    ],
+                    [
+                      "",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "minimal",
+    "source": "![a]()",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ],
+              [
+                "",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "minimal",
+    "source": "![a]()",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ],
+              [
+                "",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "minimal",
+    "source": "![a]()",
+    "from": "commonmark_x",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ],
+              [
+                "",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "minimal",
+    "source": "![a]()",
+    "from": "markdown_strict",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ],
+              [
+                "",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "minimal",
+    "source": "![a]()",
+    "from": "markdown_mmd",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ],
+              [
+                "",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "minimal",
+    "source": "![a]()",
+    "from": "markdown_phpextra",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ],
+              [
+                "",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "minimal",
+    "source": "![a]()",
+    "from": "markdown+implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "a"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "a"
+                      }
+                    ],
+                    [
+                      "",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "minimal",
+    "source": "![a]()",
+    "from": "markdown-implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ],
+              [
+                "",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "minimal",
+    "source": "![a]()",
+    "from": "gfm+implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "a"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "a"
+                      }
+                    ],
+                    [
+                      "",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "minimal",
+    "source": "![a]()",
+    "from": "commonmark+implicit_figures",
+    "error": "PandocError: Unsupported extension: implicit_figures"
+  },
+  {
+    "id": "minimal",
+    "source": "![a]()",
+    "from": "markdown-implicit_figures+implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "a"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "a"
+                      }
+                    ],
+                    [
+                      "",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "minimal",
+    "source": "![a]()",
+    "from": "markdown+implicit_figures-implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "a"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "a"
+                      }
+                    ],
+                    [
+                      "",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "caption",
+    "source": "![Caption](image.png \"Title\")",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Caption"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      "Title"
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "caption",
+    "source": "![Caption](image.png \"Title\")",
+    "from": "md",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Caption"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      "Title"
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "caption",
+    "source": "![Caption](image.png \"Title\")",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                "Title"
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "caption",
+    "source": "![Caption](image.png \"Title\")",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                "Title"
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "caption",
+    "source": "![Caption](image.png \"Title\")",
+    "from": "commonmark_x",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                "Title"
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "caption",
+    "source": "![Caption](image.png \"Title\")",
+    "from": "markdown_strict",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                "Title"
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "caption",
+    "source": "![Caption](image.png \"Title\")",
+    "from": "markdown_mmd",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                "Title"
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "caption",
+    "source": "![Caption](image.png \"Title\")",
+    "from": "markdown_phpextra",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                "Title"
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "caption",
+    "source": "![Caption](image.png \"Title\")",
+    "from": "markdown+implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Caption"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      "Title"
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "caption",
+    "source": "![Caption](image.png \"Title\")",
+    "from": "markdown-implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                "Title"
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "caption",
+    "source": "![Caption](image.png \"Title\")",
+    "from": "gfm+implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Caption"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      "Title"
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "caption",
+    "source": "![Caption](image.png \"Title\")",
+    "from": "commonmark+implicit_figures",
+    "error": "PandocError: Unsupported extension: implicit_figures"
+  },
+  {
+    "id": "caption",
+    "source": "![Caption](image.png \"Title\")",
+    "from": "markdown-implicit_figures+implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Caption"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      "Title"
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "caption",
+    "source": "![Caption](image.png \"Title\")",
+    "from": "markdown+implicit_figures-implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Caption"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      "Title"
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rich",
+    "source": "![*Caption* **bold** `code`](image.png)",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Emph",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ]
+                  },
+                  {
+                    "t": "Space"
+                  },
+                  {
+                    "t": "Strong",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "bold"
+                      }
+                    ]
+                  },
+                  {
+                    "t": "Space"
+                  },
+                  {
+                    "t": "Code",
+                    "c": [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      "code"
+                    ]
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Emph",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Caption"
+                          }
+                        ]
+                      },
+                      {
+                        "t": "Space"
+                      },
+                      {
+                        "t": "Strong",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "bold"
+                          }
+                        ]
+                      },
+                      {
+                        "t": "Space"
+                      },
+                      {
+                        "t": "Code",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          "code"
+                        ]
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rich",
+    "source": "![*Caption* **bold** `code`](image.png)",
+    "from": "md",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Emph",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ]
+                  },
+                  {
+                    "t": "Space"
+                  },
+                  {
+                    "t": "Strong",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "bold"
+                      }
+                    ]
+                  },
+                  {
+                    "t": "Space"
+                  },
+                  {
+                    "t": "Code",
+                    "c": [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      "code"
+                    ]
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Emph",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Caption"
+                          }
+                        ]
+                      },
+                      {
+                        "t": "Space"
+                      },
+                      {
+                        "t": "Strong",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "bold"
+                          }
+                        ]
+                      },
+                      {
+                        "t": "Space"
+                      },
+                      {
+                        "t": "Code",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          "code"
+                        ]
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rich",
+    "source": "![*Caption* **bold** `code`](image.png)",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Emph",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "Caption"
+                    }
+                  ]
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Strong",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "bold"
+                    }
+                  ]
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "code"
+                  ]
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rich",
+    "source": "![*Caption* **bold** `code`](image.png)",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Emph",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "Caption"
+                    }
+                  ]
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Strong",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "bold"
+                    }
+                  ]
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "code"
+                  ]
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rich",
+    "source": "![*Caption* **bold** `code`](image.png)",
+    "from": "commonmark_x",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Emph",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "Caption"
+                    }
+                  ]
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Strong",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "bold"
+                    }
+                  ]
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "code"
+                  ]
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rich",
+    "source": "![*Caption* **bold** `code`](image.png)",
+    "from": "markdown_strict",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Emph",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "Caption"
+                    }
+                  ]
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Strong",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "bold"
+                    }
+                  ]
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "code"
+                  ]
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rich",
+    "source": "![*Caption* **bold** `code`](image.png)",
+    "from": "markdown_mmd",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Emph",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "Caption"
+                    }
+                  ]
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Strong",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "bold"
+                    }
+                  ]
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "code"
+                  ]
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rich",
+    "source": "![*Caption* **bold** `code`](image.png)",
+    "from": "markdown_phpextra",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Emph",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "Caption"
+                    }
+                  ]
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Strong",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "bold"
+                    }
+                  ]
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "code"
+                  ]
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rich",
+    "source": "![*Caption* **bold** `code`](image.png)",
+    "from": "markdown+implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Emph",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ]
+                  },
+                  {
+                    "t": "Space"
+                  },
+                  {
+                    "t": "Strong",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "bold"
+                      }
+                    ]
+                  },
+                  {
+                    "t": "Space"
+                  },
+                  {
+                    "t": "Code",
+                    "c": [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      "code"
+                    ]
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Emph",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Caption"
+                          }
+                        ]
+                      },
+                      {
+                        "t": "Space"
+                      },
+                      {
+                        "t": "Strong",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "bold"
+                          }
+                        ]
+                      },
+                      {
+                        "t": "Space"
+                      },
+                      {
+                        "t": "Code",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          "code"
+                        ]
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rich",
+    "source": "![*Caption* **bold** `code`](image.png)",
+    "from": "markdown-implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Emph",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "Caption"
+                    }
+                  ]
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Strong",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "bold"
+                    }
+                  ]
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "code"
+                  ]
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rich",
+    "source": "![*Caption* **bold** `code`](image.png)",
+    "from": "gfm+implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Emph",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ]
+                  },
+                  {
+                    "t": "Space"
+                  },
+                  {
+                    "t": "Strong",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "bold"
+                      }
+                    ]
+                  },
+                  {
+                    "t": "Space"
+                  },
+                  {
+                    "t": "Code",
+                    "c": [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      "code"
+                    ]
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Emph",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Caption"
+                          }
+                        ]
+                      },
+                      {
+                        "t": "Space"
+                      },
+                      {
+                        "t": "Strong",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "bold"
+                          }
+                        ]
+                      },
+                      {
+                        "t": "Space"
+                      },
+                      {
+                        "t": "Code",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          "code"
+                        ]
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rich",
+    "source": "![*Caption* **bold** `code`](image.png)",
+    "from": "commonmark+implicit_figures",
+    "error": "PandocError: Unsupported extension: implicit_figures"
+  },
+  {
+    "id": "rich",
+    "source": "![*Caption* **bold** `code`](image.png)",
+    "from": "markdown-implicit_figures+implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Emph",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ]
+                  },
+                  {
+                    "t": "Space"
+                  },
+                  {
+                    "t": "Strong",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "bold"
+                      }
+                    ]
+                  },
+                  {
+                    "t": "Space"
+                  },
+                  {
+                    "t": "Code",
+                    "c": [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      "code"
+                    ]
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Emph",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Caption"
+                          }
+                        ]
+                      },
+                      {
+                        "t": "Space"
+                      },
+                      {
+                        "t": "Strong",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "bold"
+                          }
+                        ]
+                      },
+                      {
+                        "t": "Space"
+                      },
+                      {
+                        "t": "Code",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          "code"
+                        ]
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "rich",
+    "source": "![*Caption* **bold** `code`](image.png)",
+    "from": "markdown+implicit_figures-implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Emph",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ]
+                  },
+                  {
+                    "t": "Space"
+                  },
+                  {
+                    "t": "Strong",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "bold"
+                      }
+                    ]
+                  },
+                  {
+                    "t": "Space"
+                  },
+                  {
+                    "t": "Code",
+                    "c": [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      "code"
+                    ]
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Emph",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Caption"
+                          }
+                        ]
+                      },
+                      {
+                        "t": "Space"
+                      },
+                      {
+                        "t": "Strong",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "bold"
+                          }
+                        ]
+                      },
+                      {
+                        "t": "Space"
+                      },
+                      {
+                        "t": "Code",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          "code"
+                        ]
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty",
+    "source": "![](image.png)",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty",
+    "source": "![](image.png)",
+    "from": "md",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty",
+    "source": "![](image.png)",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty",
+    "source": "![](image.png)",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty",
+    "source": "![](image.png)",
+    "from": "commonmark_x",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty",
+    "source": "![](image.png)",
+    "from": "markdown_strict",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty",
+    "source": "![](image.png)",
+    "from": "markdown_mmd",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty",
+    "source": "![](image.png)",
+    "from": "markdown_phpextra",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty",
+    "source": "![](image.png)",
+    "from": "markdown+implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty",
+    "source": "![](image.png)",
+    "from": "markdown-implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty",
+    "source": "![](image.png)",
+    "from": "gfm+implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty",
+    "source": "![](image.png)",
+    "from": "commonmark+implicit_figures",
+    "error": "PandocError: Unsupported extension: implicit_figures"
+  },
+  {
+    "id": "empty",
+    "source": "![](image.png)",
+    "from": "markdown-implicit_figures+implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty",
+    "source": "![](image.png)",
+    "from": "markdown+implicit_figures-implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "inline",
+    "source": "before ![Caption](image.png)",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "before"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "inline",
+    "source": "before ![Caption](image.png)",
+    "from": "md",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "before"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "inline",
+    "source": "before ![Caption](image.png)",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "before"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "inline",
+    "source": "before ![Caption](image.png)",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "before"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "inline",
+    "source": "before ![Caption](image.png)",
+    "from": "commonmark_x",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "before"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "inline",
+    "source": "before ![Caption](image.png)",
+    "from": "markdown_strict",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "before"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "inline",
+    "source": "before ![Caption](image.png)",
+    "from": "markdown_mmd",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "before"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "inline",
+    "source": "before ![Caption](image.png)",
+    "from": "markdown_phpextra",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "before"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "inline",
+    "source": "before ![Caption](image.png)",
+    "from": "markdown+implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "before"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "inline",
+    "source": "before ![Caption](image.png)",
+    "from": "markdown-implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "before"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "inline",
+    "source": "before ![Caption](image.png)",
+    "from": "gfm+implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "before"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "inline",
+    "source": "before ![Caption](image.png)",
+    "from": "commonmark+implicit_figures",
+    "error": "PandocError: Unsupported extension: implicit_figures"
+  },
+  {
+    "id": "inline",
+    "source": "before ![Caption](image.png)",
+    "from": "markdown-implicit_figures+implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "before"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "inline",
+    "source": "before ![Caption](image.png)",
+    "from": "markdown+implicit_figures-implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "before"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "two",
+    "source": "![A](a.png) ![B](b.png)",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "A"
+                }
+              ],
+              [
+                "a.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "B"
+                }
+              ],
+              [
+                "b.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "two",
+    "source": "![A](a.png) ![B](b.png)",
+    "from": "md",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "A"
+                }
+              ],
+              [
+                "a.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "B"
+                }
+              ],
+              [
+                "b.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "two",
+    "source": "![A](a.png) ![B](b.png)",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "A"
+                }
+              ],
+              [
+                "a.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "B"
+                }
+              ],
+              [
+                "b.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "two",
+    "source": "![A](a.png) ![B](b.png)",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "A"
+                }
+              ],
+              [
+                "a.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "B"
+                }
+              ],
+              [
+                "b.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "two",
+    "source": "![A](a.png) ![B](b.png)",
+    "from": "commonmark_x",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "A"
+                }
+              ],
+              [
+                "a.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "B"
+                }
+              ],
+              [
+                "b.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "two",
+    "source": "![A](a.png) ![B](b.png)",
+    "from": "markdown_strict",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "A"
+                }
+              ],
+              [
+                "a.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "B"
+                }
+              ],
+              [
+                "b.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "two",
+    "source": "![A](a.png) ![B](b.png)",
+    "from": "markdown_mmd",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "A"
+                }
+              ],
+              [
+                "a.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "B"
+                }
+              ],
+              [
+                "b.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "two",
+    "source": "![A](a.png) ![B](b.png)",
+    "from": "markdown_phpextra",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "A"
+                }
+              ],
+              [
+                "a.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "B"
+                }
+              ],
+              [
+                "b.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "two",
+    "source": "![A](a.png) ![B](b.png)",
+    "from": "markdown+implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "A"
+                }
+              ],
+              [
+                "a.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "B"
+                }
+              ],
+              [
+                "b.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "two",
+    "source": "![A](a.png) ![B](b.png)",
+    "from": "markdown-implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "A"
+                }
+              ],
+              [
+                "a.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "B"
+                }
+              ],
+              [
+                "b.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "two",
+    "source": "![A](a.png) ![B](b.png)",
+    "from": "gfm+implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "A"
+                }
+              ],
+              [
+                "a.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "B"
+                }
+              ],
+              [
+                "b.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "two",
+    "source": "![A](a.png) ![B](b.png)",
+    "from": "commonmark+implicit_figures",
+    "error": "PandocError: Unsupported extension: implicit_figures"
+  },
+  {
+    "id": "two",
+    "source": "![A](a.png) ![B](b.png)",
+    "from": "markdown-implicit_figures+implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "A"
+                }
+              ],
+              [
+                "a.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "B"
+                }
+              ],
+              [
+                "b.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "two",
+    "source": "![A](a.png) ![B](b.png)",
+    "from": "markdown+implicit_figures-implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "A"
+                }
+              ],
+              [
+                "a.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "B"
+                }
+              ],
+              [
+                "b.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote",
+    "source": "> ![Caption](image.png)",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Figure",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ]
+                  }
+                ]
+              ],
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Image",
+                      "c": [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        [
+                          {
+                            "t": "Str",
+                            "c": "Caption"
+                          }
+                        ],
+                        [
+                          "image.png",
+                          ""
+                        ]
+                      ]
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote",
+    "source": "> ![Caption](image.png)",
+    "from": "md",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Figure",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ]
+                  }
+                ]
+              ],
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Image",
+                      "c": [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        [
+                          {
+                            "t": "Str",
+                            "c": "Caption"
+                          }
+                        ],
+                        [
+                          "image.png",
+                          ""
+                        ]
+                      ]
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote",
+    "source": "> ![Caption](image.png)",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Image",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "Caption"
+                    }
+                  ],
+                  [
+                    "image.png",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote",
+    "source": "> ![Caption](image.png)",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Image",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "Caption"
+                    }
+                  ],
+                  [
+                    "image.png",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote",
+    "source": "> ![Caption](image.png)",
+    "from": "commonmark_x",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Image",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "Caption"
+                    }
+                  ],
+                  [
+                    "image.png",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote",
+    "source": "> ![Caption](image.png)",
+    "from": "markdown_strict",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Image",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "Caption"
+                    }
+                  ],
+                  [
+                    "image.png",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote",
+    "source": "> ![Caption](image.png)",
+    "from": "markdown_mmd",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Image",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "Caption"
+                    }
+                  ],
+                  [
+                    "image.png",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote",
+    "source": "> ![Caption](image.png)",
+    "from": "markdown_phpextra",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Image",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "Caption"
+                    }
+                  ],
+                  [
+                    "image.png",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote",
+    "source": "> ![Caption](image.png)",
+    "from": "markdown+implicit_figures",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Figure",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ]
+                  }
+                ]
+              ],
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Image",
+                      "c": [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        [
+                          {
+                            "t": "Str",
+                            "c": "Caption"
+                          }
+                        ],
+                        [
+                          "image.png",
+                          ""
+                        ]
+                      ]
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote",
+    "source": "> ![Caption](image.png)",
+    "from": "markdown-implicit_figures",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Image",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "Caption"
+                    }
+                  ],
+                  [
+                    "image.png",
+                    ""
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote",
+    "source": "> ![Caption](image.png)",
+    "from": "gfm+implicit_figures",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Figure",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ]
+                  }
+                ]
+              ],
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Image",
+                      "c": [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        [
+                          {
+                            "t": "Str",
+                            "c": "Caption"
+                          }
+                        ],
+                        [
+                          "image.png",
+                          ""
+                        ]
+                      ]
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote",
+    "source": "> ![Caption](image.png)",
+    "from": "commonmark+implicit_figures",
+    "error": "PandocError: Unsupported extension: implicit_figures"
+  },
+  {
+    "id": "quote",
+    "source": "> ![Caption](image.png)",
+    "from": "markdown-implicit_figures+implicit_figures",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Figure",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ]
+                  }
+                ]
+              ],
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Image",
+                      "c": [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        [
+                          {
+                            "t": "Str",
+                            "c": "Caption"
+                          }
+                        ],
+                        [
+                          "image.png",
+                          ""
+                        ]
+                      ]
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote",
+    "source": "> ![Caption](image.png)",
+    "from": "markdown+implicit_figures-implicit_figures",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Figure",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ]
+                  }
+                ]
+              ],
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Image",
+                      "c": [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        [
+                          {
+                            "t": "Str",
+                            "c": "Caption"
+                          }
+                        ],
+                        [
+                          "image.png",
+                          ""
+                        ]
+                      ]
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list",
+    "source": "- ![Caption](image.png)\n- after",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Figure",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  null,
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Caption"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Image",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          [
+                            {
+                              "t": "Str",
+                              "c": "Caption"
+                            }
+                          ],
+                          [
+                            "image.png",
+                            ""
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list",
+    "source": "- ![Caption](image.png)\n- after",
+    "from": "md",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Figure",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  null,
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Caption"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Image",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          [
+                            {
+                              "t": "Str",
+                              "c": "Caption"
+                            }
+                          ],
+                          [
+                            "image.png",
+                            ""
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list",
+    "source": "- ![Caption](image.png)\n- after",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list",
+    "source": "- ![Caption](image.png)\n- after",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list",
+    "source": "- ![Caption](image.png)\n- after",
+    "from": "commonmark_x",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list",
+    "source": "- ![Caption](image.png)\n- after",
+    "from": "markdown_strict",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list",
+    "source": "- ![Caption](image.png)\n- after",
+    "from": "markdown_mmd",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list",
+    "source": "- ![Caption](image.png)\n- after",
+    "from": "markdown_phpextra",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list",
+    "source": "- ![Caption](image.png)\n- after",
+    "from": "markdown+implicit_figures",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Figure",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  null,
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Caption"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Image",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          [
+                            {
+                              "t": "Str",
+                              "c": "Caption"
+                            }
+                          ],
+                          [
+                            "image.png",
+                            ""
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list",
+    "source": "- ![Caption](image.png)\n- after",
+    "from": "markdown-implicit_figures",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list",
+    "source": "- ![Caption](image.png)\n- after",
+    "from": "gfm+implicit_figures",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Figure",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  null,
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Caption"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Image",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          [
+                            {
+                              "t": "Str",
+                              "c": "Caption"
+                            }
+                          ],
+                          [
+                            "image.png",
+                            ""
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list",
+    "source": "- ![Caption](image.png)\n- after",
+    "from": "commonmark+implicit_figures",
+    "error": "PandocError: Unsupported extension: implicit_figures"
+  },
+  {
+    "id": "list",
+    "source": "- ![Caption](image.png)\n- after",
+    "from": "markdown-implicit_figures+implicit_figures",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Figure",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  null,
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Caption"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Image",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          [
+                            {
+                              "t": "Str",
+                              "c": "Caption"
+                            }
+                          ],
+                          [
+                            "image.png",
+                            ""
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list",
+    "source": "- ![Caption](image.png)\n- after",
+    "from": "markdown+implicit_figures-implicit_figures",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Figure",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  null,
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Caption"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Image",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          [
+                            {
+                              "t": "Str",
+                              "c": "Caption"
+                            }
+                          ],
+                          [
+                            "image.png",
+                            ""
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loose",
+    "source": "- ![Caption](image.png)\n\n- after",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Figure",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  null,
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Caption"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Image",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          [
+                            {
+                              "t": "Str",
+                              "c": "Caption"
+                            }
+                          ],
+                          [
+                            "image.png",
+                            ""
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loose",
+    "source": "- ![Caption](image.png)\n\n- after",
+    "from": "md",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Figure",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  null,
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Caption"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Image",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          [
+                            {
+                              "t": "Str",
+                              "c": "Caption"
+                            }
+                          ],
+                          [
+                            "image.png",
+                            ""
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loose",
+    "source": "- ![Caption](image.png)\n\n- after",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loose",
+    "source": "- ![Caption](image.png)\n\n- after",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loose",
+    "source": "- ![Caption](image.png)\n\n- after",
+    "from": "commonmark_x",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loose",
+    "source": "- ![Caption](image.png)\n\n- after",
+    "from": "markdown_strict",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loose",
+    "source": "- ![Caption](image.png)\n\n- after",
+    "from": "markdown_mmd",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loose",
+    "source": "- ![Caption](image.png)\n\n- after",
+    "from": "markdown_phpextra",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loose",
+    "source": "- ![Caption](image.png)\n\n- after",
+    "from": "markdown+implicit_figures",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Figure",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  null,
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Caption"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Image",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          [
+                            {
+                              "t": "Str",
+                              "c": "Caption"
+                            }
+                          ],
+                          [
+                            "image.png",
+                            ""
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loose",
+    "source": "- ![Caption](image.png)\n\n- after",
+    "from": "markdown-implicit_figures",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loose",
+    "source": "- ![Caption](image.png)\n\n- after",
+    "from": "gfm+implicit_figures",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Figure",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  null,
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Caption"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Image",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          [
+                            {
+                              "t": "Str",
+                              "c": "Caption"
+                            }
+                          ],
+                          [
+                            "image.png",
+                            ""
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loose",
+    "source": "- ![Caption](image.png)\n\n- after",
+    "from": "commonmark+implicit_figures",
+    "error": "PandocError: Unsupported extension: implicit_figures"
+  },
+  {
+    "id": "loose",
+    "source": "- ![Caption](image.png)\n\n- after",
+    "from": "markdown-implicit_figures+implicit_figures",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Figure",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  null,
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Caption"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Image",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          [
+                            {
+                              "t": "Str",
+                              "c": "Caption"
+                            }
+                          ],
+                          [
+                            "image.png",
+                            ""
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loose",
+    "source": "- ![Caption](image.png)\n\n- after",
+    "from": "markdown+implicit_figures-implicit_figures",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Figure",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  null,
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Caption"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Image",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          [
+                            {
+                              "t": "Str",
+                              "c": "Caption"
+                            }
+                          ],
+                          [
+                            "image.png",
+                            ""
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "after"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "div",
+    "source": "<div>\n\n![Caption](image.png)\n\n</div>",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "Div",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Figure",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  null,
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Caption"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Image",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          [
+                            {
+                              "t": "Str",
+                              "c": "Caption"
+                            }
+                          ],
+                          [
+                            "image.png",
+                            ""
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "div",
+    "source": "<div>\n\n![Caption](image.png)\n\n</div>",
+    "from": "md",
+    "blocks": [
+      {
+        "t": "Div",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Figure",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  null,
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Caption"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Image",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          [
+                            {
+                              "t": "Str",
+                              "c": "Caption"
+                            }
+                          ],
+                          [
+                            "image.png",
+                            ""
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "div",
+    "source": "<div>\n\n![Caption](image.png)\n\n</div>",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<div>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</div>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "div",
+    "source": "<div>\n\n![Caption](image.png)\n\n</div>",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<div>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</div>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "div",
+    "source": "<div>\n\n![Caption](image.png)\n\n</div>",
+    "from": "commonmark_x",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<div>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</div>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "div",
+    "source": "<div>\n\n![Caption](image.png)\n\n</div>",
+    "from": "markdown_strict",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<div>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</div>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "div",
+    "source": "<div>\n\n![Caption](image.png)\n\n</div>",
+    "from": "markdown_mmd",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<div>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</div>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "div",
+    "source": "<div>\n\n![Caption](image.png)\n\n</div>",
+    "from": "markdown_phpextra",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<div>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</div>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "div",
+    "source": "<div>\n\n![Caption](image.png)\n\n</div>",
+    "from": "markdown+implicit_figures",
+    "blocks": [
+      {
+        "t": "Div",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Figure",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  null,
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Caption"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Image",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          [
+                            {
+                              "t": "Str",
+                              "c": "Caption"
+                            }
+                          ],
+                          [
+                            "image.png",
+                            ""
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "div",
+    "source": "<div>\n\n![Caption](image.png)\n\n</div>",
+    "from": "markdown-implicit_figures",
+    "blocks": [
+      {
+        "t": "Div",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "div",
+    "source": "<div>\n\n![Caption](image.png)\n\n</div>",
+    "from": "gfm+implicit_figures",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<div>\n"
+        ]
+      },
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Caption"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</div>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "div",
+    "source": "<div>\n\n![Caption](image.png)\n\n</div>",
+    "from": "commonmark+implicit_figures",
+    "error": "PandocError: Unsupported extension: implicit_figures"
+  },
+  {
+    "id": "div",
+    "source": "<div>\n\n![Caption](image.png)\n\n</div>",
+    "from": "markdown-implicit_figures+implicit_figures",
+    "blocks": [
+      {
+        "t": "Div",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Figure",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  null,
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Caption"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Image",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          [
+                            {
+                              "t": "Str",
+                              "c": "Caption"
+                            }
+                          ],
+                          [
+                            "image.png",
+                            ""
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "div",
+    "source": "<div>\n\n![Caption](image.png)\n\n</div>",
+    "from": "markdown+implicit_figures-implicit_figures",
+    "blocks": [
+      {
+        "t": "Div",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Figure",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  null,
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Caption"
+                        }
+                      ]
+                    }
+                  ]
+                ],
+                [
+                  {
+                    "t": "Plain",
+                    "c": [
+                      {
+                        "t": "Image",
+                        "c": [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          [
+                            {
+                              "t": "Str",
+                              "c": "Caption"
+                            }
+                          ],
+                          [
+                            "image.png",
+                            ""
+                          ]
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "note",
+    "source": "![Caption[^n]](image.png)\n\n[^n]: Note body",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Caption"
+                  },
+                  {
+                    "t": "Note",
+                    "c": [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Note"
+                          },
+                          {
+                            "t": "Space"
+                          },
+                          {
+                            "t": "Str",
+                            "c": "body"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      },
+                      {
+                        "t": "Note",
+                        "c": [
+                          {
+                            "t": "Para",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "Note"
+                              },
+                              {
+                                "t": "Space"
+                              },
+                              {
+                                "t": "Str",
+                                "c": "body"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "note",
+    "source": "![Caption[^n]](image.png)\n\n[^n]: Note body",
+    "from": "md",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Caption"
+                  },
+                  {
+                    "t": "Note",
+                    "c": [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Note"
+                          },
+                          {
+                            "t": "Space"
+                          },
+                          {
+                            "t": "Str",
+                            "c": "body"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      },
+                      {
+                        "t": "Note",
+                        "c": [
+                          {
+                            "t": "Para",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "Note"
+                              },
+                              {
+                                "t": "Space"
+                              },
+                              {
+                                "t": "Str",
+                                "c": "body"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "note",
+    "source": "![Caption[^n]](image.png)\n\n[^n]: Note body",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption[^n]"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "[^n]:"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Note"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "note",
+    "source": "![Caption[^n]](image.png)\n\n[^n]: Note body",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption[^n]"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "[^n]:"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Note"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "note",
+    "source": "![Caption[^n]](image.png)\n\n[^n]: Note body",
+    "from": "commonmark_x",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption[^n]"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "[^n]:"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Note"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "note",
+    "source": "![Caption[^n]](image.png)\n\n[^n]: Note body",
+    "from": "markdown_strict",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption[^n]"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "[^n]:"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Note"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "note",
+    "source": "![Caption[^n]](image.png)\n\n[^n]: Note body",
+    "from": "markdown_mmd",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption[^n]"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "[^n]:"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Note"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "note",
+    "source": "![Caption[^n]](image.png)\n\n[^n]: Note body",
+    "from": "markdown_phpextra",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption[^n]"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "[^n]:"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Note"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "note",
+    "source": "![Caption[^n]](image.png)\n\n[^n]: Note body",
+    "from": "markdown+implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Caption"
+                  },
+                  {
+                    "t": "Note",
+                    "c": [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Note"
+                          },
+                          {
+                            "t": "Space"
+                          },
+                          {
+                            "t": "Str",
+                            "c": "body"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      },
+                      {
+                        "t": "Note",
+                        "c": [
+                          {
+                            "t": "Para",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "Note"
+                              },
+                              {
+                                "t": "Space"
+                              },
+                              {
+                                "t": "Str",
+                                "c": "body"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "note",
+    "source": "![Caption[^n]](image.png)\n\n[^n]: Note body",
+    "from": "markdown-implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                },
+                {
+                  "t": "Note",
+                  "c": [
+                    {
+                      "t": "Para",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "Note"
+                        },
+                        {
+                          "t": "Space"
+                        },
+                        {
+                          "t": "Str",
+                          "c": "body"
+                        }
+                      ]
+                    }
+                  ]
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "note",
+    "source": "![Caption[^n]](image.png)\n\n[^n]: Note body",
+    "from": "gfm+implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Caption[^n]"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption[^n]"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "[^n]:"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Note"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "note",
+    "source": "![Caption[^n]](image.png)\n\n[^n]: Note body",
+    "from": "commonmark+implicit_figures",
+    "error": "PandocError: Unsupported extension: implicit_figures"
+  },
+  {
+    "id": "note",
+    "source": "![Caption[^n]](image.png)\n\n[^n]: Note body",
+    "from": "markdown-implicit_figures+implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Caption"
+                  },
+                  {
+                    "t": "Note",
+                    "c": [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Note"
+                          },
+                          {
+                            "t": "Space"
+                          },
+                          {
+                            "t": "Str",
+                            "c": "body"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      },
+                      {
+                        "t": "Note",
+                        "c": [
+                          {
+                            "t": "Para",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "Note"
+                              },
+                              {
+                                "t": "Space"
+                              },
+                              {
+                                "t": "Str",
+                                "c": "body"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "note",
+    "source": "![Caption[^n]](image.png)\n\n[^n]: Note body",
+    "from": "markdown+implicit_figures-implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Caption"
+                  },
+                  {
+                    "t": "Note",
+                    "c": [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Note"
+                          },
+                          {
+                            "t": "Space"
+                          },
+                          {
+                            "t": "Str",
+                            "c": "body"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      },
+                      {
+                        "t": "Note",
+                        "c": [
+                          {
+                            "t": "Para",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "Note"
+                              },
+                              {
+                                "t": "Space"
+                              },
+                              {
+                                "t": "Str",
+                                "c": "body"
+                              }
+                            ]
+                          }
+                        ]
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "reference",
+    "source": "![Caption][a]\n\n[a]: image.png",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Caption"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "reference",
+    "source": "![Caption][a]\n\n[a]: image.png",
+    "from": "md",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Caption"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "reference",
+    "source": "![Caption][a]\n\n[a]: image.png",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "reference",
+    "source": "![Caption][a]\n\n[a]: image.png",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "reference",
+    "source": "![Caption][a]\n\n[a]: image.png",
+    "from": "commonmark_x",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "reference",
+    "source": "![Caption][a]\n\n[a]: image.png",
+    "from": "markdown_strict",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "reference",
+    "source": "![Caption][a]\n\n[a]: image.png",
+    "from": "markdown_mmd",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "reference",
+    "source": "![Caption][a]\n\n[a]: image.png",
+    "from": "markdown_phpextra",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "reference",
+    "source": "![Caption][a]\n\n[a]: image.png",
+    "from": "markdown+implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Caption"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "reference",
+    "source": "![Caption][a]\n\n[a]: image.png",
+    "from": "markdown-implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "reference",
+    "source": "![Caption][a]\n\n[a]: image.png",
+    "from": "gfm+implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Caption"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "reference",
+    "source": "![Caption][a]\n\n[a]: image.png",
+    "from": "commonmark+implicit_figures",
+    "error": "PandocError: Unsupported extension: implicit_figures"
+  },
+  {
+    "id": "reference",
+    "source": "![Caption][a]\n\n[a]: image.png",
+    "from": "markdown-implicit_figures+implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Caption"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "reference",
+    "source": "![Caption][a]\n\n[a]: image.png",
+    "from": "markdown+implicit_figures-implicit_figures",
+    "blocks": [
+      {
+        "t": "Figure",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "Caption"
+                  }
+                ]
+              }
+            ]
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Image",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "Caption"
+                      }
+                    ],
+                    [
+                      "image.png",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "line",
+    "source": "![Caption](image.png)\nnext",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "next"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "line",
+    "source": "![Caption](image.png)\nnext",
+    "from": "md",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "next"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "line",
+    "source": "![Caption](image.png)\nnext",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "next"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "line",
+    "source": "![Caption](image.png)\nnext",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "next"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "line",
+    "source": "![Caption](image.png)\nnext",
+    "from": "commonmark_x",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "next"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "line",
+    "source": "![Caption](image.png)\nnext",
+    "from": "markdown_strict",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "next"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "line",
+    "source": "![Caption](image.png)\nnext",
+    "from": "markdown_mmd",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "next"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "line",
+    "source": "![Caption](image.png)\nnext",
+    "from": "markdown_phpextra",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "next"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "line",
+    "source": "![Caption](image.png)\nnext",
+    "from": "markdown+implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "next"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "line",
+    "source": "![Caption](image.png)\nnext",
+    "from": "markdown-implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "next"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "line",
+    "source": "![Caption](image.png)\nnext",
+    "from": "gfm+implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "next"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "line",
+    "source": "![Caption](image.png)\nnext",
+    "from": "commonmark+implicit_figures",
+    "error": "PandocError: Unsupported extension: implicit_figures"
+  },
+  {
+    "id": "line",
+    "source": "![Caption](image.png)\nnext",
+    "from": "markdown-implicit_figures+implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "next"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "line",
+    "source": "![Caption](image.png)\nnext",
+    "from": "markdown+implicit_figures-implicit_figures",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Caption"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "next"
+          }
+        ]
+      }
+    ]
+  }
+]

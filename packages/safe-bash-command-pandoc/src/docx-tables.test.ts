@@ -3,6 +3,7 @@ import {expect, it} from "vitest";
 import {readZipArchiveEntries} from "@poe-code/office-package/zip-sync";
 import {SaxesParser} from "saxes";
 import {convert, writeDocument} from "./engine.js";
+import {convert as convertPortableDocument} from "@poe-code/document-converter-rust";
 import type {Block, Row} from "./ast-types.js";
 
 const attr = ["", [], []] as const;
@@ -44,4 +45,19 @@ it("keeps nested table formatting independent and leaves following paragraphs un
   expect(elements(result.bytes, "w:tblW")[0]).toEqual({"w:w": "2500", "w:type": "pct"});
   expect(elements(result.bytes, "w:tblW")[1]!["w:type"]).toBe("auto");
   expect(new TextDecoder().decode(readZipArchiveEntries(result.bytes).get("word/document.xml"))).toContain(">nested</w:t>");
+});
+
+
+it.each([1, 2])("keeps a rowspan continuation after an omitted grid cell (colspan %s)", async span => {
+  const html = `<table><tr><td>A</td><td>B</td><td rowspan="2" colspan="${span}">C</td></tr><tr><td>D</td></tr></table>`;
+  const result = await convertPortableDocument({mode: "html", format: "docx", html});
+  const xml = new TextDecoder().decode(readZipArchiveEntries(result.bytes).get("word/document.xml"));
+  const row = xml.split("<w:tr>")[2]!.split("</w:tr>")[0]!;
+  const cells = row.split("<w:tc>").slice(1);
+  expect(cells).toHaveLength(3);
+  expect(cells[0]).toContain(">D</w:t>");
+  expect(cells[1]).not.toContain("<w:vMerge");
+  expect(cells[1]).not.toContain("<w:t ");
+  expect(cells[2]).toContain("<w:vMerge/>");
+  if (span === 2) expect(cells[2]).toContain('<w:gridSpan w:val="2"/>');
 });

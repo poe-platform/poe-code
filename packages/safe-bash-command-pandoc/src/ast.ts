@@ -123,7 +123,19 @@ const tableShape = tuple(
   array(tuple(attr, integer, array(row), array(row))),
   head
 );
+// The Rust document writer owns detailed scene geometry and embedded-image validation.
+// Legacy readers preserve the shared scene JSON under normal AST resource budgets.
+const vectorScene: Check = (v, p) => {
+  const scene = record(v, p);
+  if (Object.keys(scene).length !== 3) fail(p);
+  for (const key of ["width", "height"]) {
+    const n = scene[key];
+    if (typeof n !== "number" || !Number.isFinite(n) || n <= 0 || n > 1e9) fail(`${p}.${key}`);
+  }
+  array((node, path) => {record(node, path);})(scene.nodes, `${p}.nodes`);
+};
 const block: Check = tagged({
+  Vector: vectorScene,
   Plain: inlines,
   Para: inlines,
   LineBlock: array(inlines),

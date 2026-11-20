@@ -2240,9 +2240,8 @@ export function* evaluateContentSteps(params: Omit<PdfContentEvaluationOptions, 
                     ...(st.blendMode && st.blendMode !== "Normal" ? { blendMode: st.blendMode } : {}),
                     ...(st.clipRect ? { clipRect: [...st.clipRect] as [number, number, number, number] } : {}),
                   };
-                  if (font.standardOutlines || font.embeddedCff) glyphPaint = paint;
-                  else yield* emit({ kind: "path", value: paint });
-                  evaluatedType3 = !font.standardOutlines && !font.embeddedCff;
+                  glyphPaint = paint;
+                  evaluatedType3 = false;
                 }
               }
               const advUser = ((advance1000 * st.fontSize) / 1000 + st.charSpace + (item.isSpace ? st.wordSpace : 0)) * scaleH;

@@ -71,7 +71,8 @@ export async function parseRetainedCommonMarkInlines(
       while (opener) {
         await context.cooperate(); open = await get(opener, 11);
         if (open[6]! <= floor) break;
-        if (open[1] === close[1] && open[4] && (close[1] === 34 || close[1] === 39 ? true : close[10] !== -2 ? open[10] === close[9] : close[1] === 126 ? open[3] === close[3] : !((close[4] || open[5]) && (open[3]! + close[3]!) % 3 === 0 && (open[3]! % 3 !== 0 || close[3]! % 3 !== 0)))) break;
+        if ((close[1] === 34 || close[1] === 39) && open[4] && [42, 95, 126, 94].includes(open[1]!)) {opener = 0; break;}
+        if (open[1] === close[1] && open[4] && (close[1] === 34 || close[1] === 39 ? (await get(open[0]!, 5))[4] !== close[0] : close[10] !== -2 ? open[10] === close[9] : close[1] === 126 ? open[3] === close[3] : !((close[4] || open[5]) && (open[3]! + close[3]!) % 3 === 0 && (open[3]! % 3 !== 0 || close[3]! % 3 !== 0)))) break;
         opener = open[7]!;
       }
       if (!opener || !open || open[6]! <= floor) {

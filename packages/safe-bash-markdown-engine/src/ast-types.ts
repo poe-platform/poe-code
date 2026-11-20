@@ -1,3 +1,4 @@
+import type {VectorScene} from "@poe-code/document-converter-rust";
 export type Attr = readonly [string, readonly string[], readonly (readonly [string, string])[]];
 export type Target = readonly [string, string];
 type Tagged<T extends string, C> = { readonly t: T; readonly c: C };
@@ -33,6 +34,7 @@ export type Row = readonly [Attr, readonly Cell[]];
 export type TableHead = readonly [Attr, readonly Row[]];
 export type TableBody = readonly [Attr, number, readonly Row[], readonly Row[]];
 export type Block =
+  | Tagged<"Vector", VectorScene>
   | Tagged<"Plain" | "Para", readonly Inline[]>
   | Tagged<"LineBlock", readonly (readonly Inline[])[]>
   | Tagged<"CodeBlock", readonly [Attr, string]>

@@ -14,9 +14,9 @@ import {readRtfFontSize, RtfFontSizeError} from "./rtf-font-size.js";
 
 
 type ListSpec = {id: number; level: number; nfc: number; start: number; delim: string};
-type Paragraph = {indent: number; direction: "ltr" | "rtl"; marker?: string | undefined; style?: number; cell?: string; list?: ListSpec};
+type Paragraph = {indent: number; direction: "ltr" | "rtl"; marker?: string | undefined; style?: number; cell?: string; header?: boolean; list?: ListSpec};
 type Job = {op: string; node: number; path: number; cursor?: number; end?: number; index?: number; mode?: string; value?: string;
-  depth?: number; state?: Paragraph; columns?: number; width?: number; start?: number; style?: string; delim?: string};
+  depth?: number; state?: Paragraph; columns?: number; rowHeads?: number; width?: number; start?: number; style?: string; delim?: string};
 export type RetainedRtfImage = {size: number; width: number; height: number; encoding: "png" | "jpeg"; chunks: AsyncIterable<Uint8Array>};
 const formatting: Readonly<Record<string, string>> = {Emph: "i", Strong: "b", Underline: "ul", Strikeout: "strike", Superscript: "super", Subscript: "sub", SmallCaps: "scaps"};
 const alignments: Readonly<Record<string, string>> = {AlignDefault: "ql", AlignLeft: "ql", AlignRight: "qr", AlignCenter: "qc"};
@@ -198,6 +198,7 @@ class RtfTape {
   private async paragraph(state: Paragraph, attr?: number): Promise<void> {
     await this.add("{\\pard\\plain\\s" + (state.style ?? 0));
     if (state.style) await this.add("\\b\\fs" + (40 - state.style * 2));
+    else if (state.header) await this.add("\\b");
     await this.add("\\li" + state.indent + "\\fi" + (state.marker ? -360 : 0) + (state.direction === "rtl" ? "\\rtlpar" : "\\ltrpar"));
     if (state.cell) await this.add("\\intbl\\" + alignments[state.cell]);
     if (attr !== undefined) await this.attrs(attr, true);
@@ -403,13 +404,12 @@ class RtfTape {
       if (!width || !Number.isFinite(total) || total <= 0) this.fail("Invalid RTF table widths");
       for (let i = 0; i < width; i++) await this.put(columns + i * 16 + 8, await this.pointer(columns + i * 16 + 8) / total * 8640);
       const bodies = await this.at(job.node, 4);
-      for await (const body of this.tree.children(bodies)) if (await this.number(await this.at(body, 1))) this.fail("RTF row headers unsupported");
       const extra = {columns, width, state: job.state!};
-      await this.sequence(this.list(await this.at(await this.at(job.node, 3), 1), 0, "row", extra), this.list(bodies, 0, "body", extra), this.list(await this.at(await this.at(job.node, 5), 1), 0, "row", extra)); return;
+      await this.sequence(this.list(await this.at(await this.at(job.node, 3), 1), 0, "row", {...extra, rowHeads: width}), this.list(bodies, 0, "body", extra), this.list(await this.at(await this.at(job.node, 5), 1), 0, "row", {...extra, rowHeads: 0})); return;
     }
     if (job.op === "body") {
       const extra = {columns: job.columns!, width: job.width!, state: job.state!};
-      await this.sequence(this.list(await this.at(job.node, 2), 0, "row", extra), this.list(await this.at(job.node, 3), 0, "row", extra)); return;
+      await this.sequence(this.list(await this.at(job.node, 2), 0, "row", {...extra, rowHeads: job.width!}), this.list(await this.at(job.node, 3), 0, "row", {...extra, rowHeads: await this.number(await this.at(job.node, 1))})); return;
     }
     if (job.op === "row") {
       const cells = await this.at(job.node, 1);
@@ -421,12 +421,27 @@ class RtfTape {
         await this.add("\\cellx" + end); previous = end;
       }
       await this.add("\\intbl ");
-      await this.sequence(this.list(cells, 0, "cell", {columns: job.columns!, state: job.state!}), this.literal("\\row}\n")); return;
+      await this.sequence(this.list(cells, 0, "cell", {columns: job.columns!, rowHeads: job.rowHeads!, state: job.state!}), this.literal("\\row}\n")); return;
     }
     if (job.op === "cell") {
-      if (await this.number(await this.at(job.node, 2)) !== 1 || await this.number(await this.at(job.node, 3)) !== 1 || await this.present(job.node + 32)) this.fail("RTF merged or attributed cells unsupported");
+      const attr = job.node + 32;
+      if (await this.number(await this.at(job.node, 2)) !== 1 || await this.number(await this.at(job.node, 3)) !== 1 ||
+        (await this.tree.describe(attr + 32)).end > attr + 64 || await this.count(await this.at(attr, 1))) this.fail("RTF merged or attributed cells unsupported");
+      let header = job.index! < job.rowHeads!;
+      for await (const pair of this.tree.children(await this.at(attr, 2))) {
+        const name = await this.tree.smallText(pair + 32, 5);
+        if (name !== "role" && name !== "scope") this.fail("RTF merged or attributed cells unsupported");
+        let word = "", trailing = false, invalid = false;
+        for await (const chunk of this.tree.scalarChunks(await this.at(pair, 1))) for (const char of chunk) {
+          if (!char.trim()) {if (word) trailing = true;}
+          else if (trailing || word.length >= 12) invalid = true;
+          else word += char;
+        }
+        if (!invalid && (name === "role" ? ["rowheader", "columnheader"].includes(word) : ["row", "col", "rowgroup", "colgroup"].includes(word.toLowerCase()))) header = true;
+        else this.fail("RTF merged or attributed cells unsupported");
+      }
       const col = await this.pointer(job.columns! + job.index! * 16), align = await this.tag(await this.at(job.node, 1)), blocks = await this.at(job.node, 4);
-      const state = {...job.state!, indent: 0, cell: align === "AlignDefault" ? await this.tag(col + 32) : align};
+      const state = {...job.state!, header, indent: 0, cell: align === "AlignDefault" ? await this.tag(col + 32) : align};
       await this.push(this.literal("\\cell "));
       if (await this.count(blocks)) await this.push(this.list(blocks, 0, "block", {state}));
       else {await this.paragraph(state); await this.add("\\par}\n");}

@@ -171,7 +171,7 @@ impl<'a> PageSource<'a> {
         };
         let mut resources = Resources::default();
         if let Some(res) = form.as_ref().and_then(|v| v.get(b"DR")) {
-            resources.load(&mut self.objects, res)?;
+            resources.load(&mut self.objects, res, &mut self.fonts)?;
         }
         let mut da = inherited(&mut self.objects, annot, b"DA")?;
         if da.is_none() {
@@ -257,6 +257,7 @@ impl<'a> PageSource<'a> {
                 start: 0,
                 widths: vec![],
                 cid_widths: None,
+                unicode: None,
             })
         });
         let align = if button {
@@ -813,6 +814,7 @@ impl<'a> PageSource<'a> {
                         emit(
                             Draw::Glyph {
                                 code: code.into(),
+                                unicode: None,
                                 family: &font.name,
                                 program: &font.program,
                                 bounds: [at, y - size * 0.2, at + advance, y + size * 0.8],
@@ -971,6 +973,7 @@ impl<'a> PageSource<'a> {
                 emit(
                     Draw::Glyph {
                         code: code.into(),
+                        unicode: None,
                         family: &font.name,
                         program: &font.program,
                         bounds: [at, y - size * 0.2, at + advance, y + size * 0.8],

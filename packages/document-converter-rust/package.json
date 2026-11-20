@@ -1,0 +1,38 @@
+{
+  "name": "@poe-code/document-converter-rust",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "LICENSE"
+  ],
+  "imports": {
+    "#document-converter-wasm": {
+      "types": "./src/module.d.ts",
+      "workerd": "./dist/module.workerd.js",
+      "default": "./dist/module.js"
+    }
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test:unit": "cargo test --locked --offline -p document-converter-rust -p document-ast-rust -p docx-ast-rust -p pdf-ast-rust -p office-package-rust -p diagram-renderer-rust && cd ../.. && vitest run packages/document-converter-rust/src"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.1"
+  },
+  "poeCode": {
+    "bundle": {
+      "prebuilt": true
+    }
+  }
+}

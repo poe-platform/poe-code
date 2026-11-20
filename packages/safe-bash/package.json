@@ -557,7 +557,8 @@
             "safe-bash-io-engine": "*",
             "@poe-code/json-ast": "*",
             "@poe-code/office-xml": "*",
-            "highlight.js": "^11.11.1"
+            "highlight.js": "^11.11.1",
+            "@poe-code/document-converter-rust": "*"
           },
           "devDependencies": {
             "safe-bash-contracts": "*",
@@ -3786,6 +3787,10 @@
       "workerd": "./dist/commands/network/platform-portable.js",
       "browser": "./dist/commands/network/platform-portable.js",
       "default": "./dist/commands/network/platform.js"
+    },
+    "#document-converter-wasm": {
+      "workerd": "./dist/document-converter/module.workerd.js",
+      "default": "./dist/document-converter/module.js"
     }
   },
   "name": "@poe-platform/safe-bash",

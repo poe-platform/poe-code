@@ -1,3 +1,5 @@
+#[path = "../document/mod.rs"]
+pub mod document;
 pub mod codecs;
 mod gh_config;
 pub mod integrations;

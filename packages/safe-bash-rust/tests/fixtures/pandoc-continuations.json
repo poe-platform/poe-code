@@ -1,0 +1,7182 @@
+[
+  {
+    "id": "commonmark-5",
+    "from": "commonmark",
+    "source": "- foo\n\n\t\tbar\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "foo"
+                }
+              ]
+            },
+            {
+              "t": "CodeBlock",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                "  bar"
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-229",
+    "from": "commonmark",
+    "source": "># Foo\n>bar\n> baz\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Header",
+            "c": [
+              1,
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Foo"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "bar"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "baz"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-232",
+    "from": "commonmark",
+    "source": "> # Foo\n> bar\nbaz\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Header",
+            "c": [
+              1,
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "Foo"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "bar"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "baz"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-233",
+    "from": "commonmark",
+    "source": "> bar\nbaz\n> foo\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "bar"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "baz"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "foo"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-238",
+    "from": "commonmark",
+    "source": "> foo\n    - bar\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "foo"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "-"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "bar"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-247",
+    "from": "commonmark",
+    "source": "> bar\nbaz\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "bar"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "baz"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-250",
+    "from": "commonmark",
+    "source": "> > > foo\nbar\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "BlockQuote",
+            "c": [
+              {
+                "t": "BlockQuote",
+                "c": [
+                  {
+                    "t": "Para",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "foo"
+                      },
+                      {
+                        "t": "SoftBreak"
+                      },
+                      {
+                        "t": "Str",
+                        "c": "bar"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-251",
+    "from": "commonmark",
+    "source": ">>> foo\n> bar\n>>baz\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "BlockQuote",
+            "c": [
+              {
+                "t": "BlockQuote",
+                "c": [
+                  {
+                    "t": "Para",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "foo"
+                      },
+                      {
+                        "t": "SoftBreak"
+                      },
+                      {
+                        "t": "Str",
+                        "c": "bar"
+                      },
+                      {
+                        "t": "SoftBreak"
+                      },
+                      {
+                        "t": "Str",
+                        "c": "baz"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-259",
+    "from": "commonmark",
+    "source": "   > > 1.  one\n>>\n>>     two\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "BlockQuote",
+            "c": [
+              {
+                "t": "OrderedList",
+                "c": [
+                  [
+                    1,
+                    {
+                      "t": "Decimal"
+                    },
+                    {
+                      "t": "Period"
+                    }
+                  ],
+                  [
+                    [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "one"
+                          }
+                        ]
+                      },
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "two"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-260",
+    "from": "commonmark",
+    "source": ">>- one\n>>\n  >  > two\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "BlockQuote",
+            "c": [
+              {
+                "t": "BulletList",
+                "c": [
+                  [
+                    {
+                      "t": "Plain",
+                      "c": [
+                        {
+                          "t": "Str",
+                          "c": "one"
+                        }
+                      ]
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "Para",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "two"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-264",
+    "from": "commonmark",
+    "source": "- Foo\n\n      bar\n\n\n      baz\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "Foo"
+                }
+              ]
+            },
+            {
+              "t": "CodeBlock",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                "bar\n\n\nbaz"
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-270",
+    "from": "commonmark",
+    "source": "- foo\n\n      bar\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "foo"
+                }
+              ]
+            },
+            {
+              "t": "CodeBlock",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                "bar"
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-271",
+    "from": "commonmark",
+    "source": "  10.  foo\n\n           bar\n",
+    "blocks": [
+      {
+        "t": "OrderedList",
+        "c": [
+          [
+            10,
+            {
+              "t": "Decimal"
+            },
+            {
+              "t": "Period"
+            }
+          ],
+          [
+            [
+              {
+                "t": "Para",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "foo"
+                  }
+                ]
+              },
+              {
+                "t": "CodeBlock",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  "bar"
+                ]
+              }
+            ]
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-279",
+    "from": "commonmark",
+    "source": "-   \n  foo\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "foo"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-280",
+    "from": "commonmark",
+    "source": "-\n\n  foo\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          []
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "foo"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-292",
+    "from": "commonmark",
+    "source": "> 1. > Blockquote\ncontinued here.\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "OrderedList",
+            "c": [
+              [
+                1,
+                {
+                  "t": "Decimal"
+                },
+                {
+                  "t": "Period"
+                }
+              ],
+              [
+                [
+                  {
+                    "t": "BlockQuote",
+                    "c": [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Blockquote"
+                          },
+                          {
+                            "t": "SoftBreak"
+                          },
+                          {
+                            "t": "Str",
+                            "c": "continued"
+                          },
+                          {
+                            "t": "Space"
+                          },
+                          {
+                            "t": "Str",
+                            "c": "here."
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-293",
+    "from": "commonmark",
+    "source": "> 1. > Blockquote\n> continued here.\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "OrderedList",
+            "c": [
+              [
+                1,
+                {
+                  "t": "Decimal"
+                },
+                {
+                  "t": "Period"
+                }
+              ],
+              [
+                [
+                  {
+                    "t": "BlockQuote",
+                    "c": [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "Blockquote"
+                          },
+                          {
+                            "t": "SoftBreak"
+                          },
+                          {
+                            "t": "Str",
+                            "c": "continued"
+                          },
+                          {
+                            "t": "Space"
+                          },
+                          {
+                            "t": "Str",
+                            "c": "here."
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-318",
+    "from": "commonmark",
+    "source": "- a\n- ```\n  b\n\n\n  ```\n- c\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "CodeBlock",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                "b\n\n"
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "c"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-lazy",
+    "from": "commonmark",
+    "source": "> a\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-lazy",
+    "from": "gfm",
+    "source": "> a\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-lazy",
+    "from": "markdown",
+    "source": "> a\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-spaced",
+    "from": "commonmark",
+    "source": "> a\n    - b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "-"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-spaced",
+    "from": "gfm",
+    "source": "> a\n    - b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "-"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-spaced",
+    "from": "markdown",
+    "source": "> a\n    - b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "-"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-nested",
+    "from": "commonmark",
+    "source": ">>> a\n> b\n>>c\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "BlockQuote",
+            "c": [
+              {
+                "t": "BlockQuote",
+                "c": [
+                  {
+                    "t": "Para",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "a"
+                      },
+                      {
+                        "t": "SoftBreak"
+                      },
+                      {
+                        "t": "Str",
+                        "c": "b"
+                      },
+                      {
+                        "t": "SoftBreak"
+                      },
+                      {
+                        "t": "Str",
+                        "c": "c"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-nested",
+    "from": "gfm",
+    "source": ">>> a\n> b\n>>c\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "BlockQuote",
+            "c": [
+              {
+                "t": "BlockQuote",
+                "c": [
+                  {
+                    "t": "Para",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "a"
+                      },
+                      {
+                        "t": "SoftBreak"
+                      },
+                      {
+                        "t": "Str",
+                        "c": "b"
+                      },
+                      {
+                        "t": "SoftBreak"
+                      },
+                      {
+                        "t": "Str",
+                        "c": "c"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-nested",
+    "from": "markdown",
+    "source": ">>> a\n> b\n>>c\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "BlockQuote",
+            "c": [
+              {
+                "t": "BlockQuote",
+                "c": [
+                  {
+                    "t": "Para",
+                    "c": [
+                      {
+                        "t": "Str",
+                        "c": "a"
+                      },
+                      {
+                        "t": "SoftBreak"
+                      },
+                      {
+                        "t": "Str",
+                        "c": "b"
+                      },
+                      {
+                        "t": "SoftBreak"
+                      },
+                      {
+                        "t": "Str",
+                        "c": "c"
+                      }
+                    ]
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-nospace",
+    "from": "commonmark",
+    "source": ">a\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-nospace",
+    "from": "gfm",
+    "source": ">a\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-nospace",
+    "from": "markdown",
+    "source": ">a\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-heading-nospace",
+    "from": "commonmark",
+    "source": "># a\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Header",
+            "c": [
+              1,
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-heading-nospace",
+    "from": "gfm",
+    "source": "># a\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Header",
+            "c": [
+              1,
+              [
+                "a",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-heading-nospace",
+    "from": "markdown",
+    "source": "># a\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Header",
+            "c": [
+              1,
+              [
+                "a",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-list",
+    "from": "commonmark",
+    "source": ">- a\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "a"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-list",
+    "from": "gfm",
+    "source": ">- a\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "a"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-list",
+    "from": "markdown",
+    "source": ">- a\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "a"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-code-closed",
+    "from": "commonmark",
+    "source": "> ```\n> a\n> ```\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "CodeBlock",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a"
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-code-closed",
+    "from": "gfm",
+    "source": "> ```\n> a\n> ```\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "CodeBlock",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a"
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-code-closed",
+    "from": "markdown",
+    "source": "> ```\n> a\n> ```\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "CodeBlock",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a"
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-heading-end",
+    "from": "commonmark",
+    "source": "> # a\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Header",
+            "c": [
+              1,
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-heading-end",
+    "from": "gfm",
+    "source": "> # a\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Header",
+            "c": [
+              1,
+              [
+                "a",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-heading-end",
+    "from": "markdown",
+    "source": "> # a\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Header",
+            "c": [
+              1,
+              [
+                "a",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-paragraph-blank",
+    "from": "commonmark",
+    "source": "> a\n\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-paragraph-blank",
+    "from": "gfm",
+    "source": "> a\n\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-paragraph-blank",
+    "from": "markdown",
+    "source": "> a\n\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-lazy-rule",
+    "from": "commonmark",
+    "source": "> a\n***\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "HorizontalRule"
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-lazy-rule",
+    "from": "gfm",
+    "source": "> a\n***\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "HorizontalRule"
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-lazy-rule",
+    "from": "markdown",
+    "source": "> a\n***\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "HorizontalRule"
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-lazy-indented",
+    "from": "commonmark",
+    "source": "> a\n    b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-lazy-indented",
+    "from": "gfm",
+    "source": "> a\n    b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-lazy-indented",
+    "from": "markdown",
+    "source": "> a\n    b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-ordered",
+    "from": "commonmark",
+    "source": "> 1. > a\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "OrderedList",
+            "c": [
+              [
+                1,
+                {
+                  "t": "Decimal"
+                },
+                {
+                  "t": "Period"
+                }
+              ],
+              [
+                [
+                  {
+                    "t": "BlockQuote",
+                    "c": [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "a"
+                          },
+                          {
+                            "t": "SoftBreak"
+                          },
+                          {
+                            "t": "Str",
+                            "c": "b"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-ordered",
+    "from": "gfm",
+    "source": "> 1. > a\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "OrderedList",
+            "c": [
+              [
+                1,
+                {
+                  "t": "Decimal"
+                },
+                {
+                  "t": "Period"
+                }
+              ],
+              [
+                [
+                  {
+                    "t": "BlockQuote",
+                    "c": [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "a"
+                          },
+                          {
+                            "t": "SoftBreak"
+                          },
+                          {
+                            "t": "Str",
+                            "c": "b"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-ordered",
+    "from": "markdown",
+    "source": "> 1. > a\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "OrderedList",
+            "c": [
+              [
+                1,
+                {
+                  "t": "Decimal"
+                },
+                {
+                  "t": "Period"
+                }
+              ],
+              [
+                [
+                  {
+                    "t": "BlockQuote",
+                    "c": [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "a"
+                          },
+                          {
+                            "t": "SoftBreak"
+                          },
+                          {
+                            "t": "Str",
+                            "c": "b"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-ordered-partial",
+    "from": "commonmark",
+    "source": "> 1. > a\n> b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "OrderedList",
+            "c": [
+              [
+                1,
+                {
+                  "t": "Decimal"
+                },
+                {
+                  "t": "Period"
+                }
+              ],
+              [
+                [
+                  {
+                    "t": "BlockQuote",
+                    "c": [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "a"
+                          },
+                          {
+                            "t": "SoftBreak"
+                          },
+                          {
+                            "t": "Str",
+                            "c": "b"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-ordered-partial",
+    "from": "gfm",
+    "source": "> 1. > a\n> b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "OrderedList",
+            "c": [
+              [
+                1,
+                {
+                  "t": "Decimal"
+                },
+                {
+                  "t": "Period"
+                }
+              ],
+              [
+                [
+                  {
+                    "t": "BlockQuote",
+                    "c": [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "a"
+                          },
+                          {
+                            "t": "SoftBreak"
+                          },
+                          {
+                            "t": "Str",
+                            "c": "b"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-ordered-partial",
+    "from": "markdown",
+    "source": "> 1. > a\n> b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "OrderedList",
+            "c": [
+              [
+                1,
+                {
+                  "t": "Decimal"
+                },
+                {
+                  "t": "Period"
+                }
+              ],
+              [
+                [
+                  {
+                    "t": "BlockQuote",
+                    "c": [
+                      {
+                        "t": "Para",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "a"
+                          },
+                          {
+                            "t": "SoftBreak"
+                          },
+                          {
+                            "t": "Str",
+                            "c": "b"
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ]
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty-item-blank",
+    "from": "commonmark",
+    "source": "-\n\n  a\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          []
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty-item-blank",
+    "from": "gfm",
+    "source": "-\n\n  a\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          []
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty-item-blank",
+    "from": "markdown",
+    "source": "-\n\n  a\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          []
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty-item-next",
+    "from": "commonmark",
+    "source": "-\n  a\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty-item-next",
+    "from": "gfm",
+    "source": "-\n  a\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty-item-next",
+    "from": "markdown",
+    "source": "-\n  a\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty-item-spaces",
+    "from": "commonmark",
+    "source": "-   \n  a\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty-item-spaces",
+    "from": "gfm",
+    "source": "-   \n  a\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty-item-spaces",
+    "from": "markdown",
+    "source": "-   \n  a\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty-item-spaces-more",
+    "from": "commonmark",
+    "source": "-   \n    a\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty-item-spaces-more",
+    "from": "gfm",
+    "source": "-   \n    a\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty-item-spaces-more",
+    "from": "markdown",
+    "source": "-   \n    a\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loose-code",
+    "from": "commonmark",
+    "source": "- a\n\n      b\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            },
+            {
+              "t": "CodeBlock",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                "b"
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loose-code",
+    "from": "gfm",
+    "source": "- a\n\n      b\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            },
+            {
+              "t": "CodeBlock",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                "b"
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loose-code",
+    "from": "markdown",
+    "source": "- a\n\n      b\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            },
+            {
+              "t": "CodeBlock",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                "b"
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loose-code-last",
+    "from": "commonmark",
+    "source": "- a\n\n      b\n- c\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            },
+            {
+              "t": "CodeBlock",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                "b"
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "c"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loose-code-last",
+    "from": "gfm",
+    "source": "- a\n\n      b\n- c\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            },
+            {
+              "t": "CodeBlock",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                "b"
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "c"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "loose-code-last",
+    "from": "markdown",
+    "source": "- a\n\n      b\n- c\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            },
+            {
+              "t": "CodeBlock",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                "b"
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "c"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "tight-code-blanks",
+    "from": "commonmark",
+    "source": "- a\n- ```\n  b\n\n  ```\n- c\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "CodeBlock",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                "b\n"
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "c"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "tight-code-blanks",
+    "from": "gfm",
+    "source": "- a\n- ```\n  b\n\n  ```\n- c\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "CodeBlock",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                "b\n"
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "c"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "tight-code-blanks",
+    "from": "markdown",
+    "source": "- a\n- ```\n  b\n\n  ```\n- c\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "CodeBlock",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                "b\n"
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "c"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after-setext",
+    "from": "commonmark",
+    "source": "> a\n> ==\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Header",
+            "c": [
+              1,
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after-setext",
+    "from": "gfm",
+    "source": "> a\n> ==\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Header",
+            "c": [
+              1,
+              [
+                "a",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after-setext",
+    "from": "markdown",
+    "source": "> a\n> ==\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Header",
+            "c": [
+              1,
+              [
+                "a",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after-rule",
+    "from": "commonmark",
+    "source": "> ***\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "HorizontalRule"
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after-rule",
+    "from": "gfm",
+    "source": "> ***\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "HorizontalRule"
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after-rule",
+    "from": "markdown",
+    "source": "> ***\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "HorizontalRule"
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after-open-fence",
+    "from": "commonmark",
+    "source": "> ```\n> a\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "CodeBlock",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a\n"
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after-open-fence",
+    "from": "gfm",
+    "source": "> ```\n> a\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "CodeBlock",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a\n"
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after-open-fence",
+    "from": "markdown",
+    "source": "> ```\n> a\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "CodeBlock",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a\n"
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after-indented-code",
+    "from": "commonmark",
+    "source": ">     a\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "CodeBlock",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a"
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after-indented-code",
+    "from": "gfm",
+    "source": ">     a\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "CodeBlock",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a"
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after-indented-code",
+    "from": "markdown",
+    "source": ">     a\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "CodeBlock",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a"
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after-marked-blank",
+    "from": "commonmark",
+    "source": "> a\n>\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after-marked-blank",
+    "from": "gfm",
+    "source": "> a\n>\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after-marked-blank",
+    "from": "markdown",
+    "source": "> a\n>\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after-quote-blank-inside",
+    "from": "commonmark",
+    "source": "> a\n>\n> b\nc\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "b"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "c"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after-quote-blank-inside",
+    "from": "gfm",
+    "source": "> a\n>\n> b\nc\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "b"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "c"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after-quote-blank-inside",
+    "from": "markdown",
+    "source": "> a\n>\n> b\nc\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "b"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "c"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lazy-after-heading-paragraph",
+    "from": "commonmark",
+    "source": "> # a\n> b\nc\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Header",
+            "c": [
+              1,
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "b"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "c"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lazy-after-heading-paragraph",
+    "from": "gfm",
+    "source": "> # a\n> b\nc\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Header",
+            "c": [
+              1,
+              [
+                "a",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "b"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "c"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "lazy-after-heading-paragraph",
+    "from": "markdown",
+    "source": "> # a\n> b\nc\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Header",
+            "c": [
+              1,
+              [
+                "a",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "b"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "c"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "atx-interrupt",
+    "from": "commonmark",
+    "source": "> a\n# b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "b"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "atx-interrupt",
+    "from": "gfm",
+    "source": "> a\n# b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "b",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "b"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "atx-interrupt",
+    "from": "markdown",
+    "source": "> a\n# b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "b",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "b"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fence-interrupt",
+    "from": "commonmark",
+    "source": "> a\n```\nb\n```\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "b"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fence-interrupt",
+    "from": "gfm",
+    "source": "> a\n```\nb\n```\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "b"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fence-interrupt",
+    "from": "markdown",
+    "source": "> a\n```\nb\n```\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "b"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list-interrupt",
+    "from": "commonmark",
+    "source": "> a\n- b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "b"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list-interrupt",
+    "from": "gfm",
+    "source": "> a\n- b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "b"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list-interrupt",
+    "from": "markdown",
+    "source": "> a\n- b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "b"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty-list-not-interrupt",
+    "from": "commonmark",
+    "source": "> a\n-\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "-"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty-list-not-interrupt",
+    "from": "gfm",
+    "source": "> a\n-\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "-"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty-list-not-interrupt",
+    "from": "markdown",
+    "source": "> a\n-\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "-"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ordered-two-lazy",
+    "from": "commonmark",
+    "source": "> a\n2. b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "2."
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ordered-two-lazy",
+    "from": "gfm",
+    "source": "> a\n2. b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "2."
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ordered-two-lazy",
+    "from": "markdown",
+    "source": "> a\n2. b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "2."
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ordered-one-interrupt",
+    "from": "commonmark",
+    "source": "> a\n1. b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "OrderedList",
+        "c": [
+          [
+            1,
+            {
+              "t": "Decimal"
+            },
+            {
+              "t": "Period"
+            }
+          ],
+          [
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "b"
+                  }
+                ]
+              }
+            ]
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ordered-one-interrupt",
+    "from": "gfm",
+    "source": "> a\n1. b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "OrderedList",
+        "c": [
+          [
+            1,
+            {
+              "t": "Decimal"
+            },
+            {
+              "t": "Period"
+            }
+          ],
+          [
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "b"
+                  }
+                ]
+              }
+            ]
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "ordered-one-interrupt",
+    "from": "markdown",
+    "source": "> a\n1. b\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "OrderedList",
+        "c": [
+          [
+            1,
+            {
+              "t": "Decimal"
+            },
+            {
+              "t": "Period"
+            }
+          ],
+          [
+            [
+              {
+                "t": "Plain",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "b"
+                  }
+                ]
+              }
+            ]
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "setext-outside",
+    "from": "commonmark",
+    "source": "> a\n==\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "=="
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "setext-outside",
+    "from": "gfm",
+    "source": "> a\n==\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "=="
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "setext-outside",
+    "from": "markdown",
+    "source": "> a\n==\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "=="
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-table",
+    "from": "commonmark",
+    "source": "> a | b\n> - | -\nx | y\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "|"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          },
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "|"
+                    },
+                    {
+                      "t": "Space"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "-"
+                    },
+                    {
+                      "t": "SoftBreak"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    },
+                    {
+                      "t": "Space"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "|"
+                    },
+                    {
+                      "t": "Space"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "y"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-table",
+    "from": "gfm",
+    "source": "> a | b\n> - | -\nx | y\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "b"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  []
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "x"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "|"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-table",
+    "from": "markdown",
+    "source": "> a | b\n> - | -\nx | y\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "b"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  []
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "x"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "|"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-table-marked",
+    "from": "commonmark",
+    "source": "> a | b\n> - | -\n> x | y\nz\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "|"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          },
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "|"
+                    },
+                    {
+                      "t": "Space"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "-"
+                    },
+                    {
+                      "t": "SoftBreak"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    },
+                    {
+                      "t": "Space"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "|"
+                    },
+                    {
+                      "t": "Space"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "y"
+                    },
+                    {
+                      "t": "SoftBreak"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "z"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-table-marked",
+    "from": "gfm",
+    "source": "> a | b\n> - | -\n> x | y\nz\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "b"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  [
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      [
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "x"
+                                }
+                              ]
+                            }
+                          ]
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "y"
+                                }
+                              ]
+                            }
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "z"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quote-table-marked",
+    "from": "markdown",
+    "source": "> a | b\n> - | -\n> x | y\nz\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "b"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  [
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      [
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "x"
+                                }
+                              ]
+                            }
+                          ]
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "y"
+                                }
+                              ]
+                            }
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "z"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table-after-blank",
+    "from": "commonmark",
+    "source": "> a | b\n> - | -\n> x | y\n>\nz\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "|"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          },
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "Plain",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "|"
+                    },
+                    {
+                      "t": "Space"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "-"
+                    },
+                    {
+                      "t": "SoftBreak"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    },
+                    {
+                      "t": "Space"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "|"
+                    },
+                    {
+                      "t": "Space"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "y"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "z"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table-after-blank",
+    "from": "gfm",
+    "source": "> a | b\n> - | -\n> x | y\n>\nz\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "b"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  [
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      [
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "x"
+                                }
+                              ]
+                            }
+                          ]
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "y"
+                                }
+                              ]
+                            }
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "z"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "table-after-blank",
+    "from": "markdown",
+    "source": "> a | b\n> - | -\n> x | y\n>\nz\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Table",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                null,
+                []
+              ],
+              [
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ],
+                [
+                  {
+                    "t": "AlignDefault"
+                  },
+                  {
+                    "t": "ColWidthDefault"
+                  }
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "a"
+                              }
+                            ]
+                          }
+                        ]
+                      ],
+                      [
+                        [
+                          "",
+                          [],
+                          []
+                        ],
+                        {
+                          "t": "AlignDefault"
+                        },
+                        1,
+                        1,
+                        [
+                          {
+                            "t": "Plain",
+                            "c": [
+                              {
+                                "t": "Str",
+                                "c": "b"
+                              }
+                            ]
+                          }
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  0,
+                  [],
+                  [
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      [
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "x"
+                                }
+                              ]
+                            }
+                          ]
+                        ],
+                        [
+                          [
+                            "",
+                            [],
+                            []
+                          ],
+                          {
+                            "t": "AlignDefault"
+                          },
+                          1,
+                          1,
+                          [
+                            {
+                              "t": "Plain",
+                              "c": [
+                                {
+                                  "t": "Str",
+                                  "c": "y"
+                                }
+                              ]
+                            }
+                          ]
+                        ]
+                      ]
+                    ]
+                  ]
+                ]
+              ],
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                []
+              ]
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "z"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "html-open",
+    "from": "commonmark",
+    "source": "> <div>\n> a\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "RawBlock",
+            "c": [
+              "html",
+              "<div>\na\n"
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "html-open",
+    "from": "gfm",
+    "source": "> <div>\n> a\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "RawBlock",
+            "c": [
+              "html",
+              "<div>\na\n"
+            ]
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "html-open",
+    "from": "markdown",
+    "source": "> <div>\n> a\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Div",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Para",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "a"
+                    },
+                    {
+                      "t": "SoftBreak"
+                    },
+                    {
+                      "t": "Str",
+                      "c": "b"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "html-inline",
+    "from": "commonmark",
+    "source": "> <span>a</span>\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "RawInline",
+                "c": [
+                  "html",
+                  "<span>"
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "RawInline",
+                "c": [
+                  "html",
+                  "</span>"
+                ]
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "html-inline",
+    "from": "gfm",
+    "source": "> <span>a</span>\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "RawInline",
+                "c": [
+                  "html",
+                  "<span>"
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "a"
+              },
+              {
+                "t": "RawInline",
+                "c": [
+                  "html",
+                  "</span>"
+                ]
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "html-inline",
+    "from": "markdown",
+    "source": "> <span>a</span>\nb\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Span",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "a"
+                    }
+                  ]
+                ]
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "b"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty-item-two-blanks",
+    "from": "commonmark",
+    "source": "-\n\n\n  a\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          []
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty-item-two-blanks",
+    "from": "gfm",
+    "source": "-\n\n\n  a\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          []
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty-item-two-blanks",
+    "from": "markdown",
+    "source": "-\n\n\n  a\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          []
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "nested-list-fenced-blanks",
+    "from": "commonmark",
+    "source": "- a\n  - ```\n    b\n\n    ```\n- c\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            },
+            {
+              "t": "BulletList",
+              "c": [
+                [
+                  {
+                    "t": "CodeBlock",
+                    "c": [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      "b\n"
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "c"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "nested-list-fenced-blanks",
+    "from": "gfm",
+    "source": "- a\n  - ```\n    b\n\n    ```\n- c\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            },
+            {
+              "t": "BulletList",
+              "c": [
+                [
+                  {
+                    "t": "CodeBlock",
+                    "c": [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      "b\n"
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "c"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "nested-list-fenced-blanks",
+    "from": "markdown",
+    "source": "- a\n  - ```\n    b\n\n    ```\n- c\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "a"
+                }
+              ]
+            },
+            {
+              "t": "BulletList",
+              "c": [
+                [
+                  {
+                    "t": "CodeBlock",
+                    "c": [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      "b\n"
+                    ]
+                  }
+                ]
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "c"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list-code-exit",
+    "from": "commonmark",
+    "source": "- ```\n  a\n  ```\nb\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "CodeBlock",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                "a"
+              ]
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list-code-exit",
+    "from": "gfm",
+    "source": "- ```\n  a\n  ```\nb\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "CodeBlock",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                "a"
+              ]
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "list-code-exit",
+    "from": "markdown",
+    "source": "- ```\n  a\n  ```\nb\n",
+    "blocks": [
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "CodeBlock",
+              "c": [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                "a"
+              ]
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "b"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-93",
+    "from": "commonmark",
+    "source": "> foo\nbar\n===\n",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "foo"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "bar"
+              },
+              {
+                "t": "SoftBreak"
+              },
+              {
+                "t": "Str",
+                "c": "==="
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-95",
+    "from": "commonmark",
+    "source": "Foo\nBar\n---\n",
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "Foo"
+            },
+            {
+              "t": "SoftBreak"
+            },
+            {
+              "t": "Str",
+              "c": "Bar"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-82",
+    "from": "commonmark",
+    "source": "  Foo *bar\nbaz*\t\n====\n",
+    "blocks": [
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "Foo"
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Emph",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "bar"
+                },
+                {
+                  "t": "SoftBreak"
+                },
+                {
+                  "t": "Str",
+                  "c": "baz"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark-216",
+    "from": "commonmark",
+    "source": "[foo]: /url\n===\n[foo]\n",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "==="
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Link",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "foo"
+                }
+              ],
+              [
+                "/url",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "gfm-short-and-excess-cells",
+    "from": "gfm",
+    "source": "| a | b | c |\n| :-- | :-: | --: |\n| x |\n| y | z | w | extra |\n",
+    "blocks": [
+      {
+        "t": "Table",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            null,
+            []
+          ],
+          [
+            [
+              {
+                "t": "AlignLeft"
+              },
+              {
+                "t": "ColWidthDefault"
+              }
+            ],
+            [
+              {
+                "t": "AlignCenter"
+              },
+              {
+                "t": "ColWidthDefault"
+              }
+            ],
+            [
+              {
+                "t": "AlignRight"
+              },
+              {
+                "t": "ColWidthDefault"
+              }
+            ]
+          ],
+          [
+            [
+              "",
+              [],
+              []
+            ],
+            [
+              [
+                [
+                  "",
+                  [],
+                  []
+                ],
+                [
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    {
+                      "t": "AlignDefault"
+                    },
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Plain",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "a"
+                          }
+                        ]
+                      }
+                    ]
+                  ],
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    {
+                      "t": "AlignDefault"
+                    },
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Plain",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "b"
+                          }
+                        ]
+                      }
+                    ]
+                  ],
+                  [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    {
+                      "t": "AlignDefault"
+                    },
+                    1,
+                    1,
+                    [
+                      {
+                        "t": "Plain",
+                        "c": [
+                          {
+                            "t": "Str",
+                            "c": "c"
+                          }
+                        ]
+                      }
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ],
+          [
+            [
+              [
+                "",
+                [],
+                []
+              ],
+              0,
+              [],
+              [
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      {
+                        "t": "AlignDefault"
+                      },
+                      1,
+                      1,
+                      [
+                        {
+                          "t": "Plain",
+                          "c": [
+                            {
+                              "t": "Str",
+                              "c": "x"
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      {
+                        "t": "AlignDefault"
+                      },
+                      1,
+                      1,
+                      []
+                    ],
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      {
+                        "t": "AlignDefault"
+                      },
+                      1,
+                      1,
+                      []
+                    ]
+                  ]
+                ],
+                [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      {
+                        "t": "AlignDefault"
+                      },
+                      1,
+                      1,
+                      [
+                        {
+                          "t": "Plain",
+                          "c": [
+                            {
+                              "t": "Str",
+                              "c": "y"
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      {
+                        "t": "AlignDefault"
+                      },
+                      1,
+                      1,
+                      [
+                        {
+                          "t": "Plain",
+                          "c": [
+                            {
+                              "t": "Str",
+                              "c": "z"
+                            }
+                          ]
+                        }
+                      ]
+                    ],
+                    [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      {
+                        "t": "AlignDefault"
+                      },
+                      1,
+                      1,
+                      [
+                        {
+                          "t": "Plain",
+                          "c": [
+                            {
+                              "t": "Str",
+                              "c": "w"
+                            }
+                          ]
+                        }
+                      ]
+                    ]
+                  ]
+                ]
+              ]
+            ]
+          ],
+          [
+            [
+              "",
+              [],
+              []
+            ],
+            []
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-closed-code-literal-tabs",
+    "source": "```rust\na\tb  \n```\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "rust"
+            ],
+            []
+          ],
+          "a   b  "
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-closed-code-literal-tabs",
+    "source": "```rust\na\tb  \n```\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "rust"
+            ],
+            []
+          ],
+          "a   b  "
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-closed-code-literal-tabs",
+    "source": "```rust\na\tb  \n```\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "rust"
+            ],
+            []
+          ],
+          "a   b  "
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-open-code-literal-tabs",
+    "source": "```rust\na\tb  ",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "rust"
+            ],
+            []
+          ],
+          "a   b  \n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-open-code-literal-tabs",
+    "source": "```rust\na\tb  ",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "rust"
+            ],
+            []
+          ],
+          "a   b  \n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-open-code-literal-tabs",
+    "source": "```rust\na\tb  ",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "rust"
+            ],
+            []
+          ],
+          "a   b  \n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-open-code-final-newline",
+    "source": "```rust\na\tb  \n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "rust"
+            ],
+            []
+          ],
+          "a   b  \n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-open-code-final-newline",
+    "source": "```rust\na\tb  \n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "rust"
+            ],
+            []
+          ],
+          "a   b  \n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-open-code-final-newline",
+    "source": "```rust\na\tb  \n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "rust"
+            ],
+            []
+          ],
+          "a   b  \n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-inline-code-literal-tab",
+    "source": "`a\tb`\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a  b"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-inline-code-literal-tab",
+    "source": "`a\tb`\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a  b"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-inline-code-literal-tab",
+    "source": "`a\tb`\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "a  b"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-raw-pre-literal-tabs",
+    "source": "<pre>\na\tb  \n</pre>\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<pre>\na   b  \n</pre>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-raw-pre-literal-tabs",
+    "source": "<pre>\na\tb  \n</pre>\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<pre>\na   b  \n</pre>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-raw-pre-literal-tabs",
+    "source": "<pre>\na\tb  \n</pre>\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<pre>\na   b  \n</pre>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-indented-code-literal-tabs",
+    "source": "    a\tb  \n    c\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "a   b  \nc"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-indented-code-literal-tabs",
+    "source": "    a\tb  \n    c\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "a   b  \nc"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-indented-code-literal-tabs",
+    "source": "    a\tb  \n    c\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "a   b  \nc"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-frontmatter-body",
+    "source": "---\ntitle: heading\n---\n\nBody\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-frontmatter-body",
+    "source": "---\ntitle: heading\n---\n\nBody\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-frontmatter-body",
+    "source": "---\ntitle: heading\n---\n\nBody\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-disabled-pipe-tables",
+    "source": "a | b\n--- | ---\nx | y\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "|"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "---"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "|"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "---"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "x"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "|"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-disabled-pipe-tables",
+    "source": "a | b\n--- | ---\nx | y\n",
+    "from": "gfm-pipe_tables",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "|"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "---"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "|"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "---"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "x"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "|"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-disabled-pipe-tables",
+    "source": "a | b\n--- | ---\nx | y\n",
+    "from": "markdown-pipe_tables-smart",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "a"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "|"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "b"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "---"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "|"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "---"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "x"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "|"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "y"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-nested-fence-literal-tabs",
+    "source": "> - ```\n>   a\tb  \n>   ```\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "CodeBlock",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "a   b  "
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-nested-fence-literal-tabs",
+    "source": "> - ```\n>   a\tb  \n>   ```\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "CodeBlock",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "a   b  "
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "byte-control-nested-fence-literal-tabs",
+    "source": "> - ```\n>   a\tb  \n>   ```\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "BulletList",
+            "c": [
+              [
+                {
+                  "t": "CodeBlock",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "a   b  "
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  }
+]

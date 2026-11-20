@@ -3,6 +3,27 @@ import type { AdapterContext, MetadataObject, MetadataValue } from "./types.js";
 import { PandocError } from "./errors.js";
 import { visit } from "jsonc-parser";
 
+/** Match the Rust/Pandoc title block selection before acquiring resources. */
+export async function renderedDocumentMetadata(metadata: Readonly<Record<string, MetaValue>>, context: AdapterContext): Promise<Record<string, MetaValue>> {
+  const selected: Record<string, MetaValue> = {};
+  const inline = (value: MetaValue, blocks: boolean) => value.t === "MetaString" || value.t === "MetaInlines"
+    || blocks && value.t === "MetaBlocks" && value.c.length === 1 && (value.c[0]!.t === "Para" || value.c[0]!.t === "Plain");
+  for (const key of ["title", "subtitle", "author", "date"]) {
+    await context.cooperate();
+    const value = metadata[key];
+    if (!value) continue;
+    if (key === "author" && value.t === "MetaList") {
+      const authors: MetaValue[] = [];
+      for (const author of value.c) {
+        await context.cooperate();
+        if (inline(author, true)) authors.push(author);
+      }
+      selected[key] = {t: "MetaList", c: authors};
+    } else if (inline(value, key !== "author")) selected[key] = value;
+  }
+  return selected;
+}
+
 /** Admit strict JSON token/depth budgets before materializing parsed objects. */
 export async function parseMetadataJson(text: string, context: AdapterContext, source?: string): Promise<MetadataObject> {
   for (let offset = 0; offset < text.length; offset += 256) await context.cooperate(256);

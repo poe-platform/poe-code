@@ -1,0 +1,9928 @@
+[
+  {
+    "from": "markdown",
+    "source": "\"*x\"*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"*x*\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Emph",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "*\"x\"*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "DoubleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"*x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“*x”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "*\"x*\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "“x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"`*x`\"*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "*x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "*"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"*x\" middle*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"*x [label](url)\"*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "“"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"**x\"**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"**x**\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Strong",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "**\"x\"**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "DoubleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"**x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“**x”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "**\"x**\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "“x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"`**x`\"**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "**x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "**"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"**x\" middle**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"**x [label](url)\"**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "“"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"_x\"_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"_x_\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Emph",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "_\"x\"_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "DoubleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"_x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“_x”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "_\"x_\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "“x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"`_x`\"_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "_x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "_"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"_x\" middle_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"_x [label](url)\"_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "“"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"__x\"__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"__x__\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Strong",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "__\"x\"__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "DoubleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"__x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“__x”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "__\"x__\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "“x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"`__x`\"__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "__x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "__"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"__x\" middle__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"__x [label](url)\"__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "“"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"~~x\"~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"~~x~~\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Strikeout",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "~~\"x\"~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "DoubleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"~~x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“~~x”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "~~\"x~~\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "“x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"`~~x`\"~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "~~x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "~~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"~~x\" middle~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"~~x [label](url)\"~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "“"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"~x\"~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Subscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"~x~\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Subscript",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "~\"x\"~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Subscript",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "DoubleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"~x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "~x"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "~\"x~\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Subscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "“x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"`~x`\"~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "~x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"~x\" middle~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "~x"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "middle~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"~x [label](url)\"~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "~x"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Link",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "label"
+                      }
+                    ],
+                    [
+                      "url",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"^x\"^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Superscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"^x^\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Superscript",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "^\"x\"^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Superscript",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "DoubleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"^x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "^x"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "^\"x^\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Superscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "“x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"`^x`\"^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "^x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"^x\" middle^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "^x"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "middle^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "\"^x [label](url)\"^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "^x"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Link",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "label"
+                      }
+                    ],
+                    [
+                      "url",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'*x'*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'*x*'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Emph",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "*'x'*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "SingleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'*x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’*x’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "*'x*'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "’x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'`*x`'*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "*x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "*"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'*x' middle*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'*x [label](url)'*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'**x'**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'**x**'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Strong",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "**'x'**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "SingleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'**x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’**x’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "**'x**'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "’x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'`**x`'**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "**x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "**"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'**x' middle**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'**x [label](url)'**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'_x'_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'_x_'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Emph",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "_'x'_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "SingleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'_x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’_x’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "_'x_'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "’x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'`_x`'_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "_x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "_"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'_x' middle_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'_x [label](url)'_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'__x'__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'__x__'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Strong",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "__'x'__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "SingleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'__x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’__x’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "__'x__'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "’x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'`__x`'__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "__x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "__"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'__x' middle__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'__x [label](url)'__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'~~x'~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'~~x~~'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Strikeout",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "~~'x'~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "SingleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'~~x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’~~x’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "~~'x~~'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "’x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'`~~x`'~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "~~x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "~~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'~~x' middle~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'~~x [label](url)'~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'~x'~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Subscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'~x~'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Subscript",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "~'x'~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Subscript",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "SingleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'~x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "~x"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "~'x~'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Subscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "’x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'`~x`'~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "~x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'~x' middle~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "~x"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "middle~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'~x [label](url)'~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "~x"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Link",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "label"
+                      }
+                    ],
+                    [
+                      "url",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'^x'^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Superscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'^x^'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Superscript",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "^'x'^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Superscript",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "SingleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'^x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "^x"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "^'x^'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Superscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "’x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'`^x`'^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "^x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'^x' middle^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "^x"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "middle^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown",
+    "source": "'^x [label](url)'^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "^x"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Link",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "label"
+                      }
+                    ],
+                    [
+                      "url",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"*x\"*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x\""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"*x*\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "*\"x\"*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "\"x\""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"*x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\"*x\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "*\"x*\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "\"x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"`*x`\"*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "*x"
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\"*"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"*x\" middle*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x\""
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"*x [label](url)\"*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "\""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"**x\"**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x\""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"**x**\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "**\"x\"**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "\"x\""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"**x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\"**x\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "**\"x**\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "\"x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"`**x`\"**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "**x"
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\"**"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"**x\" middle**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x\""
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"**x [label](url)\"**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "\""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"_x\"_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x\""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"_x_\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "_\"x\"_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "\"x\""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"_x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\"_x\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "_\"x_\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "\"x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"`_x`\"_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "_x"
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\"_"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"_x\" middle_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x\""
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"_x [label](url)\"_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "\""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"__x\"__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x\""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"__x__\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "__\"x\"__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "\"x\""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"__x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\"__x\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "__\"x__\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "\"x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"`__x`\"__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "__x"
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\"__"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"__x\" middle__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x\""
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"__x [label](url)\"__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "\""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"~~x\"~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x\""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"~~x~~\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "~~\"x\"~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "\"x\""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"~~x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\"~~x\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "~~\"x~~\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "\"x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"`~~x`\"~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "~~x"
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\"~~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"~~x\" middle~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x\""
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"~~x [label](url)\"~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "\""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"~x\"~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Subscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x\""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"~x~\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Subscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "~\"x\"~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Subscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "\"x\""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"~x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\"~x\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "~\"x~\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Subscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "\"x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"`~x`\"~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "~x"
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\"~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"~x\" middle~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\"~x\""
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "middle~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"~x [label](url)\"~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\"~x"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Link",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "label"
+                }
+              ],
+              [
+                "url",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\"~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"^x\"^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Superscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x\""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"^x^\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Superscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "^\"x\"^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Superscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "\"x\""
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"^x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\"^x\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "^\"x^\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Superscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "\"x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\""
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"`^x`\"^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\""
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "^x"
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\"^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"^x\" middle^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\"^x\""
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "middle^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "\"^x [label](url)\"^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "\"^x"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Link",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "label"
+                }
+              ],
+              [
+                "url",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "\"^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'*x'*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x'"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'*x*'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "*'x'*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "'x'"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'*x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'*x'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "*'x*'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "'x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'`*x`'*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "*x"
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'*"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'*x' middle*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x'"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'*x [label](url)'*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "'"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'**x'**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x'"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'**x**'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "**'x'**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "'x'"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'**x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'**x'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "**'x**'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "'x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'`**x`'**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "**x"
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'**"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'**x' middle**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x'"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'**x [label](url)'**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "'"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'_x'_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x'"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'_x_'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "_'x'_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "'x'"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'_x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'_x'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "_'x_'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "'x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'`_x`'_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "_x"
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'_"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'_x' middle_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x'"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'_x [label](url)'_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "'"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'__x'__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x'"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'__x__'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "__'x'__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "'x'"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'__x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'__x'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "__'x__'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "'x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'`__x`'__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "__x"
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'__"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'__x' middle__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x'"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'__x [label](url)'__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "'"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'~~x'~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x'"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'~~x~~'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "~~'x'~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "'x'"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'~~x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'~~x'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "~~'x~~'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "'x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'`~~x`'~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "~~x"
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'~~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'~~x' middle~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x'"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'~~x [label](url)'~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "'"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'~x'~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Subscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x'"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'~x~'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Subscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "~'x'~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Subscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "'x'"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'~x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'~x'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "~'x~'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Subscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "'x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'`~x`'~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "~x"
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'~x' middle~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'~x'"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "middle~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'~x [label](url)'~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'~x"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Link",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "label"
+                }
+              ],
+              [
+                "url",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'^x'^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Superscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x'"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'^x^'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Superscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "^'x'^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Superscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "'x'"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'^x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'^x'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "^'x^'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Superscript",
+            "c": [
+              {
+                "t": "Str",
+                "c": "'x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'`^x`'^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'"
+          },
+          {
+            "t": "Code",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              "^x"
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'^x' middle^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'^x'"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "middle^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "markdown-smart",
+    "source": "'^x [label](url)'^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "'^x"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Link",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "label"
+                }
+              ],
+              [
+                "url",
+                ""
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "'^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"*x\"*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"*x*\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Emph",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "*\"x\"*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "DoubleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"*x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“*x”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "*\"x*\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "“x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"`*x`\"*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "*x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "*"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"*x\" middle*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"*x [label](url)\"*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "“"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"**x\"**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"**x**\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Strong",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "**\"x\"**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "DoubleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"**x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“**x”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "**\"x**\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "“x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"`**x`\"**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "**x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "**"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"**x\" middle**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"**x [label](url)\"**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "“"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"_x\"_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"_x_\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Emph",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "_\"x\"_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "DoubleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"_x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“_x”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "_\"x_\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "“x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"`_x`\"_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "_x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "_"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"_x\" middle_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"_x [label](url)\"_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "“"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"__x\"__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"__x__\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Strong",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "__\"x\"__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "DoubleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"__x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“__x”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "__\"x__\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "“x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"`__x`\"__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "__x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "__"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"__x\" middle__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"__x [label](url)\"__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "“"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"~~x\"~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"~~x~~\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Strikeout",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "~~\"x\"~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "DoubleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"~~x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“~~x”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "~~\"x~~\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "“x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "”"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"`~~x`\"~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "~~x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "~~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"~~x\" middle~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x”"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"~~x [label](url)\"~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "“"
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "“"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"~x\"~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "~x"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"~x~\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "~x~"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "~\"x\"~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "~"
+          },
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "x"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"~x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "~x"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "~\"x~\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "~"
+          },
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "x~"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"`~x`\"~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "~x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"~x\" middle~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "~x"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "middle~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"~x [label](url)\"~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "~x"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Link",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "label"
+                      }
+                    ],
+                    [
+                      "url",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"^x\"^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "^x"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"^x^\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "^x^"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "^\"x\"^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "^"
+          },
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "x"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"^x\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "^x"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "^\"x^\"",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "^"
+          },
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "x^"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"`^x`\"^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "^x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"^x\" middle^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "^x"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "middle^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "\"^x [label](url)\"^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "DoubleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "^x"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Link",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "label"
+                      }
+                    ],
+                    [
+                      "url",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'*x'*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'*x*'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Emph",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "*'x'*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "SingleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'*x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’*x’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "*'x*'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "’x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'`*x`'*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "*x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "*"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'*x' middle*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'*x [label](url)'*",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'**x'**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'**x**'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Strong",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "**'x'**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "SingleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'**x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’**x’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "**'x**'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "’x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'`**x`'**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "**x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "**"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'**x' middle**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'**x [label](url)'**",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'_x'_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'_x_'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Emph",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "_'x'_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "SingleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'_x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’_x’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "_'x_'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "’x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'`_x`'_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "_x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "_"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'_x' middle_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'_x [label](url)'_",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'__x'__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'__x__'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Strong",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "__'x'__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "SingleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'__x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’__x’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "__'x__'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "’x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'`__x`'__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "__x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "__"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'__x' middle__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'__x [label](url)'__",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'~~x'~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'~~x~~'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Strikeout",
+                  "c": [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "~~'x'~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Quoted",
+                "c": [
+                  {
+                    "t": "SingleQuote"
+                  },
+                  [
+                    {
+                      "t": "Str",
+                      "c": "x"
+                    }
+                  ]
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'~~x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’~~x’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "~~'x~~'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "’x"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "’"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'`~~x`'~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "~~x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "~~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'~~x' middle~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x’"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Str",
+                "c": "middle"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'~~x [label](url)'~~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "’"
+          },
+          {
+            "t": "Strikeout",
+            "c": [
+              {
+                "t": "Str",
+                "c": "x"
+              },
+              {
+                "t": "Space"
+              },
+              {
+                "t": "Link",
+                "c": [
+                  [
+                    "",
+                    [],
+                    []
+                  ],
+                  [
+                    {
+                      "t": "Str",
+                      "c": "label"
+                    }
+                  ],
+                  [
+                    "url",
+                    ""
+                  ]
+                ]
+              },
+              {
+                "t": "Str",
+                "c": "’"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'~x'~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "~x"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'~x~'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "~x~"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "~'x'~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "~"
+          },
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "x"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'~x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "~x"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "~'x~'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "~"
+          },
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "x~"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'`~x`'~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "~x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'~x' middle~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "~x"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "middle~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'~x [label](url)'~",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "~x"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Link",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "label"
+                      }
+                    ],
+                    [
+                      "url",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "~"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'^x'^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "^x"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'^x^'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "^x^"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "^'x'^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "^"
+          },
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "x"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'^x'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "^x"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "^'x^'",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "^"
+          },
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "x^"
+                }
+              ]
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'`^x`'^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Code",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    "^x"
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'^x' middle^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "^x"
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "middle^"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "from": "gfm+smart",
+    "source": "'^x [label](url)'^",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Quoted",
+            "c": [
+              {
+                "t": "SingleQuote"
+              },
+              [
+                {
+                  "t": "Str",
+                  "c": "^x"
+                },
+                {
+                  "t": "Space"
+                },
+                {
+                  "t": "Link",
+                  "c": [
+                    [
+                      "",
+                      [],
+                      []
+                    ],
+                    [
+                      {
+                        "t": "Str",
+                        "c": "label"
+                      }
+                    ],
+                    [
+                      "url",
+                      ""
+                    ]
+                  ]
+                }
+              ]
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "^"
+          }
+        ]
+      }
+    ]
+  }
+]

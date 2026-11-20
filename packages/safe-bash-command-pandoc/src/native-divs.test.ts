@@ -55,6 +55,27 @@ it("leaves other HTML blocks raw and div-looking code literal", async () => {
 
 const paragraph: Block = {t: "Para", c: [{t: "Str", c: "Inner"}, {t: "Space"}, {t: "Emph", c: [{t: "Str", c: "em"}]}, {t: "Str", c: "."}]};
 const multiline = '<div id="box">\n\nInner *em*.\n\n</div>\n';
+it.each(["markdown", "md", "gfm+native_divs", "commonmark_x+native_divs", "markdown-native_divs+native_divs"])("preserves malformed div source in both %s readers", async from => {
+  const source = '<div title="broken>\na\n</div>\n';
+  const input = {bytes: new TextEncoder().encode(source)};
+  const expected = [{t: "RawBlock", c: ["html", source]}];
+  const result = await convert([input], {from, to: "json"}, {});
+  expect(result.kind === "text" && JSON.parse(result.text).blocks).toEqual(expected);
+  const fs = new MemoryFileSystem(); let text = "";
+  await convertToOutput([input], {from, to: "json"}, {
+    workingFiles: {fs, directory: "/", cacheBytes: 16384},
+    output: {async write(bytes) {text += new TextDecoder().decode(bytes);}, async close() {}, async abort() {}}
+  });
+  expect(JSON.parse(text).blocks).toEqual(expected);
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it.each(["docx", "pdf"])("rejects malformed div markup instead of publishing an empty %s", async to => {
+  const bytes = new TextEncoder().encode('<div title="broken>\na\n</div>\n');
+  await expect(convert([{bytes}], {from: "markdown", to}, {}))
+    .rejects.toThrow("Unclosed raw HTML opening tag or attribute");
+});
+
 it.each<[string, Block[]]>([
   [multiline, [{t: "Div", c: [["box", [], []], [paragraph]]}]],
   ['<div class="outer">\n\n' + multiline + '\n</div>\n\nAfter.\n', [

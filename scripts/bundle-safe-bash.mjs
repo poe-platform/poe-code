@@ -33,6 +33,7 @@ export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alia
       throw new Error("Qualified private workspace profile mismatch: " + name);
     }
     for (const key of Object.keys(pkg.imports ?? {})) subpathImports.add(key);
+    if (Object.hasOwn(pkg.dependencies ?? {}, "@poe-code/document-converter-rust")) subpathImports.add("#document-converter-wasm");
     for (const [route, target] of Object.entries(pkg.exports ?? {})) {
       if (Object.hasOwn(profile.optionalModules ?? {}, route)) continue;
       // This recipe prepares ESM import entries only. Other runtime profiles
@@ -174,6 +175,8 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
     absWorkingDir: rootDir,
     loader: { ".wasm": "copy" },
     entryPoints: {
+      "document-converter/module": path.join(rootDir, "packages/document-converter-rust/dist/module.js"),
+      "document-converter/module.workerd": path.join(rootDir, "packages/document-converter-rust/dist/module.workerd.js"),
       "commands/pandoc/index.browser": path.join(directory, "src/commands/pandoc/index.ts"),
       "commands/csvkit/index.browser": path.join(directory, "src/commands/csvkit/index.ts"),
       "commands/ssconvert/index.browser": path.join(directory, "src/commands/ssconvert/index.ts"),
@@ -253,7 +256,7 @@ export function resolveBrowserShellBuild(rootDir, { alias = {}, external = [], i
     sourcemap: true,
     metafile: true,
     write: false,
-    external: [...new Set(["poe-code/safe-fs/core", ...external, ...runtimeImports])],
+    external: [...new Set(["poe-code/safe-fs/core", "#document-converter-wasm", ...external, ...runtimeImports])],
     alias: aliases,
     plugins: [portableLuaLibraries, {
       name: "portable-shell-capabilities",
@@ -299,5 +302,14 @@ export async function buildBrowserShellOutputs(rootDir, { alias = {}, external =
     );
     if (Object.hasOwn(options.entryPoints, "core.browser")) shell = result;
   }
+  await publishDocumentConverterLicenses(rootDir, files);
   return shell;
+}
+
+export async function publishDocumentConverterLicenses(rootDir, files = fileSystem) {
+  const output = path.join(rootDir, "packages/safe-bash/dist/document-converter");
+  await files.mkdir(output, { recursive: true });
+  for (const name of ["Liberation", "DejaVu", "NotoSansSC", "JetBrainsMono", "Unicode", "Python"]) {
+    await files.copyFile(path.join(rootDir, "packages/document-converter-rust/dist", "LICENSE." + name), path.join(output, "LICENSE." + name));
+  }
 }

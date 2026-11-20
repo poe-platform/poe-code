@@ -305,25 +305,30 @@ export const pptxWriter: WriterCapability = {
                   fail(context, "Explicit table column alignment and widths are unsupported");
                 if (block.c[3][1].length > 1 || block.c[5][1].length)
                   fail(context, "Multiple table header rows and table footers are unsupported");
-                const rows = [...block.c[3][1], ...block.c[4].flatMap(body => {
-                  if (body[1] || body[2].length) fail(context, "Intermediate table headers and row headers are unsupported");
-                  return body[3];
-                }), ...block.c[5][1]];
                 const count = block.c[2].length;
+                const rows = [...block.c[3][1].map(row => ({row, headerColumns: count})), ...block.c[4].flatMap(body => [
+                  ...body[2].map(row => ({row, headerColumns: count})),
+                  ...body[3].map(row => ({row, headerColumns: body[1]}))
+                ])];
                 const h = rows.length * 450000;
                 ensureSpace(h);
                 if (!rows.length || !count || y + h > body.y + body.height) fail(context, "Table geometry overflows the slide");
                 const table = slide.shapes.add_table(rows.length, count, new Emu(body.x), new Emu(y), new Emu(body.width), new Emu(h)).table;
                 table.first_row = block.c[3][1].length > 0;
-                for (const [r, row] of rows.entries()) {
+                for (const [r, {row, headerColumns}] of rows.entries()) {
                   if (row[1].length !== count) fail(context, "PPTX tables require rectangular unmerged rows");
                   for (const [c, cell] of row[1].entries()) {
                     if (cell[2] !== 1 || cell[3] !== 1 || (!context.lossy && cell[1] !== "AlignDefault")) fail(context, "Table spans and explicit alignment are unsupported");
                     const frame = table.cell(r, c).text_frame;
                     frame.clear();
+                    const header = c < headerColumns || cell[0][2].some(([name, value]) =>
+                      name === "role" && ["rowheader", "columnheader"].includes(value.trim()) ||
+                      name === "scope" && ["row", "col", "rowgroup", "colgroup"].includes(value.trim().toLowerCase()));
                     for (const [i, block] of cell[4].entries()) {
                       if (block.t !== "Plain" && block.t !== "Para") fail(context, "Table cells require paragraphs");
-                      writeInline(i ? frame.add_paragraph() : frame.paragraphs[0]!, block.c, context);
+                      const paragraph = i ? frame.add_paragraph() : frame.paragraphs[0]!;
+                      writeInline(paragraph, block.c, context);
+                      if (header) for (const run of paragraph.runs) run.font.bold = true;
                     }
                   }
                 }

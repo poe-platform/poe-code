@@ -41,8 +41,9 @@ it("renders an embedded FontFile3 OpenType program", () => {
   dictSet(page.pageDict, "Resources", cosDict({ Font: cosDict({ F1: doc.cos.allocateObject(font) }) }));
   page.setRawContentStream("BT /F1 100 Tf 10 10 Td (A) Tj ET");
   const display = PdfDocument.load(doc.save()).getPage(0).evaluateDisplayList();
-  expect(display.paths).toHaveLength(1);
-  expect(display.paths[0]!.segments.filter(segment => segment.kind === "line")).toHaveLength(3);
+  expect(display.paths).toHaveLength(0);
+  expect(display.glyphs.filter(glyph => glyph.outline)).toHaveLength(1);
+  expect(display.glyphs[0]!.outline!.segments.filter(segment => segment.kind === "line")).toHaveLength(3);
 });
 
 it("retains original OpenType bytes when PDF.js repairs an embedded charstring", () => {
@@ -81,8 +82,9 @@ it("round trips embedded OpenType CFF text, widths, and outlines", () => {
   page.drawText("AA", { font: doc.embedFont(openTypeFont()), size: 20, x: 10, y: 20 });
   const loaded = PdfDocument.load(doc.save()), display = loaded.getPage(0).evaluateDisplayList();
   expect(loaded.extractText()).toBe("AA");
-  expect(display.paths).toHaveLength(2);
-  expect(display.paths[0]!.segments.filter(segment => segment.kind === "line")).toHaveLength(3);
+  expect(display.paths).toHaveLength(0);
+  expect(display.glyphs.filter(glyph => glyph.outline)).toHaveLength(2);
+  expect(display.glyphs[0]!.outline!.segments.filter(segment => segment.kind === "line")).toHaveLength(3);
   expect(display.glyphs[1]!.matrix[4] - display.glyphs[0]!.matrix[4]).toBeCloseTo(12);
 });
 

@@ -1,4 +1,5 @@
 import {validateEpubFallbacks} from "./epub-fallbacks.js";
+import {epubDirectionStyle} from "./epub-direction-style.js";
 import {identity, resolve, uriPart} from "./epub-uri.js";
 import {EpubManifest, type ManifestItem} from "./epub-manifest.js";
 import {BackedText} from "./backed-text.js";
@@ -10,7 +11,7 @@ import { htmlTreeDocument } from "./html.js";
 import type { Attr, Block, Inline, MetaValue } from "./ast-types.js";
 import type { AdapterContext, Document, Input, StreamingInput, ReaderCapability, Resource } from "./types.js";
 
-interface Chapter {item: ManifestItem; linear: string; xml: XmlElement; blocks: readonly Block[]; language: string}
+interface Chapter {item: ManifestItem; linear: string; xml: XmlElement; blocks: readonly Block[]; language: string; direction?: "ltr" | "rtl" | "auto"}
 const tokens = (s: string) => s.split(" ").filter(Boolean);
 
 export const epubReader: ReaderCapability = {
@@ -101,7 +102,7 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
       const document = await htmlTreeDocument(xhtmlTree(node, ctx, item.part), ctx);
       const linear = a(ref, "linear") || "yes";
       if (!["yes", "no"].includes(linear)) fail(item.part, "Invalid EPUB spine linear value");
-      chapters.push({item, xml: node, blocks: document.blocks, language: document.language ?? (bookLanguage ? xmlText(bookLanguage) : ""), linear});
+      chapters.push({item, xml: node, blocks: document.blocks, language: document.language ?? (bookLanguage ? xmlText(bookLanguage) : ""), ...(document.direction ? {direction: document.direction} : {}), linear});
       chapterParts.add(item.part);
     }
     if (!chapters.length) fail(packagePart, "Empty EPUB spine");
@@ -125,7 +126,10 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
         const target = resolve(a(node, "href"), part, ctx);
         await noteRefs.add(identity(target.part, target.fragment));
       }
-      if (node.name === "style" || a(node, "style") || (node.name === "link" && tokens(a(node, "rel")).includes("stylesheet"))) warn(part, "Unsupported EPUB CSS styling/layout loss");
+      const inlineStyle = epubDirectionStyle([a(node, "style")]);
+      let style = await inlineStyle.next();
+      while (!style.done) style = await inlineStyle.next();
+      if (node.name === "style" || style.value || (node.name === "link" && tokens(a(node, "rel")).includes("stylesheet"))) warn(part, "Unsupported EPUB CSS styling/layout loss");
       if (["audio", "video", "object", "embed", "svg", "math"].includes(node.name)) warn(part, `Unsupported EPUB media loss: ${node.name}`);
       if (node.name === "script" || a(node, "onload") || a(node, "onclick")) warn(part, "EPUB script content ignored");
       if (a(node, "base", "http://www.w3.org/XML/1998/namespace")) fail(part, "Unsupported XHTML xml:base resource identity");
@@ -186,13 +190,18 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
       if (Array.isArray(value)) {
         if (value.length === 3 && typeof value[0] === "string" && Array.isArray(value[1]) && Array.isArray(value[2])) {
           if (value[0]) value[0] = identity(part, value[0]);
-          value[2] = value[2].flatMap(([key, text]: [string, string]) => {
-            if (key === "epub:type") return [["data-epub-type", text]];
-            if (key === "xml:lang") return [["lang", text]];
-            if (["title", "lang", "dir", "role"].includes(key) || key.startsWith("data-") || key.startsWith("aria-")) return [[key, text]];
-            warn(part, `Unsupported EPUB XHTML attribute loss: ${key}`);
-            return [];
-          });
+          const pairs: [string, string][] = [];
+          for (const [key, text] of value[2] as [string, string][]) {
+            if (key === "epub:type") pairs.push(["data-epub-type", text]);
+            else if (key === "xml:lang") pairs.push(["lang", text]);
+            else if (["title", "lang", "dir", "role", "scope"].includes(key) || key.startsWith("data-") || key.startsWith("aria-")) pairs.push([key, text]);
+            else if (key === "style") {
+              let direction = ""; for await (const chunk of epubDirectionStyle([text])) direction += chunk;
+              if (direction) pairs.push([key, direction]);
+              else warn(part, `Unsupported EPUB XHTML attribute loss: ${key}`);
+            } else warn(part, `Unsupported EPUB XHTML attribute loss: ${key}`);
+          }
+          value[2] = pairs;
         }
       } else if ("t" in value && (value.t === "Image" || value.t === "Link")) {
         const node = value as Extract<Inline, {t: "Image" | "Link"}>;
@@ -323,7 +332,7 @@ async function readEpub(input: Input | StreamingInput, ctx: AdapterContext): Pro
     }
     if (toc.length) metadata["epub-toc"] = {t: "MetaList", c: toc};
     return {blocks: chapters.map(chapter => {
-      const attr: Attr = [identity(chapter.item.part), ["epub-chapter"], [["data-epub-source", chapter.item.part], ["data-epub-item-id", chapter.item.id], ["data-epub-linear", chapter.linear], ...(chapter.language ? [["lang", chapter.language] as const] : [])]];
+      const attr: Attr = [identity(chapter.item.part), ["epub-chapter"], [["data-epub-source", chapter.item.part], ["data-epub-item-id", chapter.item.id], ["data-epub-linear", chapter.linear], ...(chapter.language ? [["lang", chapter.language] as const] : []), ...(chapter.direction ? [["dir", chapter.direction] as const] : [])]];
       return {t: "Div", c: [attr, chapter.blocks]};
     }), metadata, resources: [...bag.values()], ...(bookLanguage ? {language: xmlText(bookLanguage)} : {}), ...(["ltr", "rtl"].includes(bookDirection) ? {direction: bookDirection as "ltr" | "rtl"} : {})};
     } catch (reason) {failure = {reason}; throw reason;}

@@ -13,7 +13,8 @@ type Job = {projection?: number | undefined; op: string; node: number; path: num
   text?: TextRange | undefined; parts?: Job[] | undefined; sep?: string | undefined; previous?: string | undefined; previousMarker?: string | undefined; marker?: string | undefined; choice?: string | undefined;
   next?: string | undefined; digits?: boolean | undefined; start?: boolean | undefined; finish?: boolean | undefined; task?: boolean | undefined; cell?: boolean | undefined; first?: string | undefined; rest?: string | undefined;
   begin?: number | undefined; stop?: number | undefined; width?: number | undefined; lineWidth?: number | undefined; gap?: string | undefined; column?: number | undefined; columns?: number | undefined;
-  row?: number | undefined; occupancy?: number | undefined; last?: number | undefined; number?: number | undefined; delimiter?: string | undefined; style?: string | undefined};
+  row?: number | undefined; occupancy?: number | undefined; last?: number | undefined; number?: number | undefined; delimiter?: string | undefined; style?: string | undefined;
+  header?: boolean | undefined; rowHeads?: number | undefined};
 
 /** Stored continuations and text ranges keep nesting, output and references out
  * of the resident heap. Reference collision chains retain exact target identity. */
@@ -81,6 +82,22 @@ class MarkdownTape {
   private async attrs(node: number, path: number, table = false): Promise<void> {
     if ((await this.tree.describe(node + 32)).end > node + 64 || await this.count(await this.at(node, 1)) || await this.count(await this.at(node, 2)))
       await this.loss(path, table ? "Flattened table attributes" : "attributes", table);
+  }
+  private async cellAttrs(node: number, path: number): Promise<boolean> {
+    let unsupported = (await this.tree.describe(node + 32)).end > node + 64 || !!await this.count(await this.at(node, 1)), header = false;
+    for await (const pair of this.tree.children(await this.at(node, 2))) {
+      const name = await this.tree.smallText(pair + 32, 5);
+      let word = "", trailing = false, invalid = false;
+      for await (const chunk of this.tree.scalarChunks(await this.at(pair, 1))) for (const char of chunk) {
+        if (!char.trim()) {if (word) trailing = true;}
+        else if (trailing || word.length >= 12) invalid = true;
+        else word += char;
+      }
+      if (!invalid && (name === "role" && ["rowheader", "columnheader"].includes(word) || name === "scope" && ["row", "col", "rowgroup", "colgroup"].includes(word.toLowerCase()))) header = true;
+      else unsupported = true;
+    }
+    if (unsupported) await this.loss(path, "Flattened table attributes", true);
+    return header;
   }
   private async repeat(char: string, count: number): Promise<TextRange> {
     return this.text.from((async function* () {while (count) {const size = Math.min(4096, count); yield char.repeat(size); count -= size;}})());
@@ -612,8 +629,17 @@ class MarkdownTape {
         index++;
       }
       const head = await element(3, "tableHead"), bodies = await element(4, "tableBodies"), foot = await element(5, "tableFoot");
+      let headRows = await this.at(head.node, 1), bodyHead = false, headPath = await this.path(head.path, "[1]");
+      if (!await this.count(headRows) && await this.count(bodies.node)) {
+        const bodyHeaders = await this.at(bodies.node + 32, 2);
+        if (await this.count(bodyHeaders)) {
+          bodyHead = true;
+          for await (const cell of this.tree.children(await this.at(bodyHeaders + 32, 1))) if (await this.number(await this.at(cell, 2)) !== 1) bodyHead = false;
+          if (bodyHead) {headRows = bodyHeaders; headPath = await this.path(bodies.path, "[0][2]");}
+        }
+      }
       await this.attrs(head.node + 32, await this.path(head.path, "[0]"), true);
-      if (await this.count(await this.at(head.node, 1)) !== 1) await this.loss(await this.path(head.path, "[1]"), "Flattened table header to a single row", true);
+      if (!bodyHead && await this.count(headRows) !== 1) await this.loss(await this.path(head.path, "[1]"), "Flattened table header to a single row", true);
       if (await this.count(bodies.node) !== 1) await this.loss(bodies.path, "Flattened multiple table bodies", true);
       await this.attrs(foot.node + 32, await this.path(foot.path, "[0]"), true);
       if (await this.count(await this.at(foot.node, 1))) await this.loss(await this.path(foot.path, "[1]"), "Flattened table footer", true);
@@ -621,8 +647,6 @@ class MarkdownTape {
       for await (const body of this.tree.children(bodies.node)) {
         const bp = await this.path(bodies.path, `[${index++}]`);
         await this.attrs(body + 32, await this.path(bp, "[0]"), true);
-        if (await this.number(await this.at(body, 1))) await this.loss(await this.path(bp, "[1]"), "Flattened row header columns", true);
-        if (await this.count(await this.at(body, 2))) await this.loss(await this.path(bp, "[2]"), "Flattened body header", true);
       }
       const rowAttrs = async (rows: number, path: number) => {
         let index = 0; for await (const row of this.tree.children(rows)) await this.attrs(row + 32, await this.path(path, `[${index++}][0]`), true);
@@ -634,7 +658,7 @@ class MarkdownTape {
       }
       await rowAttrs(await this.at(foot.node, 1), await this.path(foot.path, "[1]"));
       const captionJob: Job = {op: "savedText", node: 0, path, text: captionText};
-      const parts: Job[] = [{...head, columns, width: count}, {...bodies, width: count}, {...foot, width: count}];
+      const parts: Job[] = [{...head, node: headRows, path: headPath, stop: bodyHead ? 1 : undefined, columns, width: count}, {...bodies, width: count, start: bodyHead}, {...foot, width: count}];
       if (!this.selection.extensions.table_captions) parts.unshift(captionJob);
       if (hasCaption && this.selection.extensions.table_captions) await this.push({op: "markdownTableCaption", node: caption.node, path: caption.path, projection: 0});
       await this.push({op: "post", node: 0, path, mode: "trim"});
@@ -647,9 +671,9 @@ class MarkdownTape {
     }
     if (job.op === "tableHead") {
       if (!job.stage) {
-        const rows = await this.at(job.node, 1); await this.push({...job, stage: 1});
+        const rows = job.node; await this.push({...job, stage: 1});
         this.projection = this.storage.allocate(8);
-        if (await this.count(rows)) await this.push({op: "tableRows", node: rows, path: await this.path(job.path, "[1]"), width: job.width});
+        if (await this.count(rows)) await this.push({op: "tableRows", node: rows, path: job.path, stop: job.stop, width: job.width});
         else {
           this.context.charge("tableCells", job.width!);
           await this.addProjection(2); result = await this.literal("| ");
@@ -691,19 +715,19 @@ class MarkdownTape {
         const node = job.cursor!, path = await this.path(job.path, `[${job.index}]`); job.cursor = (await this.tree.describe(node)).end;
         await this.push({...job, stage: 1});
         await this.push({op: "parts", node: 0, path, parts: [
-          {op: "tableRows", node: await this.at(node, 2), path: await this.path(path, "[2]"), width: job.width},
-          {op: "tableRows", node: await this.at(node, 3), path: await this.path(path, "[3]"), width: job.width}
+          {op: "tableRows", node: await this.at(node, 2), path: await this.path(path, "[2]"), width: job.width, header: true, begin: job.start && job.index === 0 ? 1 : 0},
+          {op: "tableRows", node: await this.at(node, 3), path: await this.path(path, "[3]"), width: job.width, rowHeads: await this.number(await this.at(node, 1))}
         ]});
       } else result = job.text!;
       return result;
     }
     if (job.op === "tableFoot") {await this.push({op: "tableRows", node: await this.at(job.node, 1), path: await this.path(job.path, "[1]"), width: job.width}); return result;}
     if (job.op === "tableRows") {
-      if (!job.stage) {job.text = emptyText(); job.cursor = job.node + 32; job.end = (await this.tree.describe(job.node)).end; job.index = 0; job.occupancy = this.storage.allocate(job.width! * 8);}
+      if (!job.stage) {job.text = emptyText(); job.cursor = job.node + 32; job.end = (await this.tree.describe(job.node)).end; job.index = 0; job.occupancy = this.storage.allocate(job.width! * 8); if (job.begin && job.cursor < job.end) {job.cursor = (await this.tree.describe(job.cursor)).end; job.index = 1;}}
       else {await this.text.append(job.text!, result); job.index!++;}
-      if (job.cursor! < job.end!) {
+      if (job.cursor! < job.end! && (job.stop === undefined || job.index! < job.stop)) {
         const node = job.cursor!, path = await this.path(job.path, `[${job.index}]`); job.cursor = (await this.tree.describe(node)).end;
-        await this.push({...job, stage: 1}); await this.push({op: "tableRow", node: await this.at(node, 1), path: await this.path(path, "[1]"), row: job.index, width: job.width, occupancy: job.occupancy});
+        await this.push({...job, stage: 1}); await this.push({op: "tableRow", node: await this.at(node, 1), path: await this.path(path, "[1]"), row: job.index, width: job.width, occupancy: job.occupancy, header: job.header, rowHeads: job.rowHeads});
       } else result = job.text!;
       return result;
     }
@@ -717,8 +741,8 @@ class MarkdownTape {
         while (job.column! < job.number!) await separator();
         const rows = await this.number(await this.at(node, 2)), span = await this.number(await this.at(node, 3));
         for (let column = 0; column < span; column++) {await this.put(job.occupancy! + (job.number! + column) * 8, job.row! + rows); await this.context.cooperate();}
+        const heading = await this.cellAttrs(node + 32, await this.path(path, "[0]")) || job.header || job.number! < (job.rowHeads ?? 0);
         job.number! += span;
-        await this.attrs(node + 32, await this.path(path, "[0]"), true);
         if (rows !== 1 || span !== 1) await this.loss(path, "Flattened cell span", true);
         if (await this.tag(await this.at(node, 1)) !== "AlignDefault") await this.loss(await this.path(path, "[1]"), "Flattened cell alignment", true);
         const blocks = await this.at(node, 4), bp = await this.path(path, "[4]"), count = await this.count(blocks);
@@ -726,8 +750,11 @@ class MarkdownTape {
         if (count > 1 || count === 1 && !["Plain", "Para"].includes(await this.tag(blocks + 32))) {
           await this.loss(bp, "Flattened complex cell blocks", true); await this.push({op: "tableEscape", node: 0, path: bp}); await this.push(this.list(blocks, bp, "fblock", {sep: " ", projection: this.storage.allocate(8)}));
         } else if (count) {
+          const inlines = (await this.tree.property(blocks + 32, "c"))!;
+          const emphasize = heading && await this.count(inlines) && !(await this.count(inlines) === 1 && await this.tag(inlines + 32) === "Strong");
           await this.push({op: "projectionAdd", node: 0, path: bp});
-          await this.push(this.list((await this.tree.property(blocks + 32, "c"))!, await this.path(bp, "[0].c"), "inline", {cell: true, projection: 0}));
+          if (emphasize) await this.push({op: "post", node: 0, path: bp, mode: "surround", first: "**", rest: "**", projection: 0});
+          await this.push(this.list(inlines, await this.path(bp, "[0].c"), "inline", {cell: true, projection: 0, marker: emphasize ? "*" : ""}));
         }
         else await this.push({op: "empty", node: 0, path: bp});
       } else {while (job.column! < job.width!) await separator(); await this.addProjection(1); await this.text.append(job.text!, await this.literal("\n")); result = job.text!;}

@@ -167,8 +167,30 @@ class HtmlTape {
     const seen = new BackedTextSet(this.storage, this.text);
     await seen.add(await this.text.from(["id"])); await seen.add(await this.text.from(["class"]));
     const imageStyles: string[] = [];
+    const directionStyles = emptyText();
     for await (const pair of this.tree.children(entries)) {
       const keyNode = await this.at(pair, 0), key = await this.scalar(keyNode), value = await this.at(pair, 1);
+      if (await this.matches(keyNode, "style") && !await seen.has(key)) {
+        await seen.add(key);
+        let property = "", setting = "", inValue = false, trailing = false, invalid = false;
+        const finish = async () => {
+          if (property || inValue) {
+            if (invalid || !inValue || !(property === "direction" && ["ltr", "rtl"].includes(setting) || property === "unicode-bidi" && ["isolate", "isolate-override"].includes(setting))) await this.fail("Unsupported HTML style");
+            await this.text.append(directionStyles, await this.text.from([`${directionStyles.units ? ";" : ""}${property}:${setting}`]));
+          }
+          property = ""; setting = ""; inValue = false; trailing = false; invalid = false;
+        };
+        for await (const chunk of this.tree.scalarChunks(value)) for (const char of chunk) {
+          if (char === ";") {await finish(); continue;}
+          if (!inValue && char === ":") {inValue = true; trailing = false; continue;}
+          if (!char.trim()) {if (inValue ? setting : property) trailing = true; continue;}
+          if (trailing || (inValue ? setting.length : property.length) >= 16) invalid = true;
+          else if (inValue) setting += char.toLowerCase();
+          else property += char.toLowerCase();
+        }
+        await finish();
+        continue;
+      }
       const dimension = image ? await this.tree.smallText(keyNode, 6) : undefined;
       if ((dimension === "width" || dimension === "height") && !await seen.has(key)) {
         await seen.add(key);
@@ -182,14 +204,15 @@ class HtmlTape {
         if (prefix.length < 6) prefix += char;
         if (!(char >= "a" && char <= "z") && !(char >= "0" && char <= "9") && char !== "-") valid = false;
       }
-      const allowed = ["title", "lang", "dir", "role"].includes(await this.tree.smallText(keyNode, 5) ?? "") || prefix.startsWith("data-") || prefix.startsWith("aria-");
+      const allowed = ["title", "lang", "dir", "role", "scope"].includes(await this.tree.smallText(keyNode, 5) ?? "") || prefix.startsWith("data-") || prefix.startsWith("aria-");
       const outputKey = codeBlock && !allowed ? await this.text.from(["data-"]) : key;
       if (outputKey !== key) await this.text.append(outputKey, key);
       if (!valid || (!allowed && !codeBlock) || await seen.has(outputKey)) await this.fail("Unsupported HTML attribute");
       if (await this.matches(keyNode, "dir") && !["ltr", "rtl", "auto"].includes(await this.tree.smallText(value, 4) ?? "")) await this.fail("Invalid HTML direction");
       await seen.add(outputKey); await this.attribute(outputKey, await this.scalar(value));
     }
-    if (imageStyles.length) await this.attribute("style", imageStyles.join(";"));
+    if (imageStyles.length) await this.text.append(directionStyles, await this.text.from([`${directionStyles.units ? ";" : ""}${imageStyles.join(";")}`]));
+    if (directionStyles.units) await this.attribute("style", directionStyles);
   }
   private async url(value: TextRange): Promise<TextRange> {
     let first = true, last = "", scheme = "", boundary = false, colon = false;
@@ -369,7 +392,19 @@ class HtmlTape {
         const rows = await this.number(await this.at(cursor, 2)), span = await this.number(await this.at(cursor, 3));
         for (let i = 0; i < span; i++) {await this.put(job.occupancy! + (column + i) * 8, job.row! + rows); await this.context.cooperate();}
         await this.push({...job, cursor: (await this.tree.describe(cursor)).end, column: column + span, index: job.index! + 1});
-        const path = await this.path(job.path, `[${job.index}]`), head = job.header || column < job.rowHeads!, tag = head ? "th" : "td";
+        let head = job.header || column < job.rowHeads!;
+        for await (const pair of this.tree.children(await this.at(cursor + 32, 2))) {
+          const name = await this.tree.smallText(await this.at(pair, 0), 5);
+          if (name !== "role" && name !== "scope") continue;
+          let word = "", trailing = false, invalid = false;
+          for await (const chunk of this.tree.scalarChunks(await this.at(pair, 1))) for (const char of chunk) {
+            if (!char.trim()) {if (word) trailing = true;}
+            else if (trailing || word.length >= 12) invalid = true;
+            else word += char;
+          }
+          if (!invalid && (name === "role" ? ["rowheader", "columnheader"].includes(word) : ["row", "col", "rowgroup", "colgroup"].includes(word.toLowerCase()))) head = true;
+        }
+        const path = await this.path(job.path, `[${job.index}]`), tag = head ? "th" : "td";
         await this.add(`<${tag}`);
         if (span !== 1) await this.attribute("colspan", String(span)); if (rows !== 1) await this.attribute("rowspan", String(rows));
         await this.attrs(cursor + 32);

@@ -172,16 +172,12 @@ export function xhtmlTree(root: XmlElement, ctx: AdapterContext, part: string): 
       if (["ul", "ol", "hr", "dl"].includes(node.name)) tree.appendChild(parent, anchor);
       else if (node.name !== "html" && node.name !== "body") tree.appendChild(element, anchor);
     }
-    if (["abbr", "bdi", "bdo", "mark", "time", "label", "small", "big", "dfn", "kbd"].includes(node.name) && attrs.length) {
+    if (["abbr", "mark", "time", "label", "small", "big", "dfn", "kbd"].includes(node.name) && attrs.length) {
       const wrapper = tree.createElement("span", html.NS.HTML, mappedAttrs);
       tree.appendChild(parent, wrapper);
       tree.appendChild(wrapper, element);
     } else tree.appendChild(parent, element);
-    let contentParent = element;
-    if (node.name === "body" && attrs.length) {
-      contentParent = tree.createElement("div", html.NS.HTML, mappedAttrs);
-      tree.appendChild(element, contentParent);
-    }
+    const contentParent = element;
     if (node.name === "body" && attribute(root, "id")) tree.appendChild(contentParent, tree.createElement("span", html.NS.HTML, [{name: "id", value: attribute(root, "id")}]));
     for (const child of node.children) append(child, contentParent);
   }

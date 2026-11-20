@@ -1,0 +1,1721 @@
+[
+  {
+    "id": "compact-closed",
+    "source": "<details><summary>MORE</summary><p>BODY</p></details>\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details><summary>MORE</summary><p>BODY</p></details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "compact-closed",
+    "source": "<details><summary>MORE</summary><p>BODY</p></details>\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details><summary>MORE</summary><p>BODY</p></details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "compact-closed",
+    "source": "<details><summary>MORE</summary><p>BODY</p></details>\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details><summary>MORE</summary><p>BODY</p></details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "compact-open",
+    "source": "<details open><summary>MORE</summary><p>BODY</p></details>\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details open><summary>MORE</summary><p>BODY</p></details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "compact-open",
+    "source": "<details open><summary>MORE</summary><p>BODY</p></details>\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details open><summary>MORE</summary><p>BODY</p></details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "compact-open",
+    "source": "<details open><summary>MORE</summary><p>BODY</p></details>\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details open><summary>MORE</summary><p>BODY</p></details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "compact-open-false",
+    "source": "<details open=\"false\"><summary>MORE</summary><p>BODY</p></details>\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details open=\"false\"><summary>MORE</summary><p>BODY</p></details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "compact-open-false",
+    "source": "<details open=\"false\"><summary>MORE</summary><p>BODY</p></details>\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details open=\"false\"><summary>MORE</summary><p>BODY</p></details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "compact-open-false",
+    "source": "<details open=\"false\"><summary>MORE</summary><p>BODY</p></details>\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details open=\"false\"><summary>MORE</summary><p>BODY</p></details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "markdown-body",
+    "source": "<details>\n<summary>MORE</summary>\n\nBODY *EMPH* and **STRONG**.\n\n</details>\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details>\n<summary>MORE</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "EMPH"
+              }
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "and"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "STRONG"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "."
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "markdown-body",
+    "source": "<details>\n<summary>MORE</summary>\n\nBODY *EMPH* and **STRONG**.\n\n</details>\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details>\n<summary>MORE</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "EMPH"
+              }
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "and"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "STRONG"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "."
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "markdown-body",
+    "source": "<details>\n<summary>MORE</summary>\n\nBODY *EMPH* and **STRONG**.\n\n</details>\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details>\n<summary>MORE</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "EMPH"
+              }
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "and"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "STRONG"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "."
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "markdown-open",
+    "source": "<details open>\n<summary>MORE</summary>\n\nBODY *EMPH* and **STRONG**.\n\n</details>\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details open>\n<summary>MORE</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "EMPH"
+              }
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "and"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "STRONG"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "."
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "markdown-open",
+    "source": "<details open>\n<summary>MORE</summary>\n\nBODY *EMPH* and **STRONG**.\n\n</details>\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details open>\n<summary>MORE</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "EMPH"
+              }
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "and"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "STRONG"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "."
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "markdown-open",
+    "source": "<details open>\n<summary>MORE</summary>\n\nBODY *EMPH* and **STRONG**.\n\n</details>\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details open>\n<summary>MORE</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "EMPH"
+              }
+            ]
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "and"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "STRONG"
+              }
+            ]
+          },
+          {
+            "t": "Str",
+            "c": "."
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "nested",
+    "source": "<details id=\"outer\">\n<summary id=\"heading\">OUTER</summary>\n\n<details open>\n<summary>INNER</summary>\n\nDEEP *BODY*\n\n</details>\n\nAFTER\n\n</details>\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details id=\"outer\">\n<summary id=\"heading\">OUTER</summary>\n"
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details open>\n<summary>INNER</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "DEEP"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "BODY"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "AFTER"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "nested",
+    "source": "<details id=\"outer\">\n<summary id=\"heading\">OUTER</summary>\n\n<details open>\n<summary>INNER</summary>\n\nDEEP *BODY*\n\n</details>\n\nAFTER\n\n</details>\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details id=\"outer\">\n<summary id=\"heading\">OUTER</summary>\n"
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details open>\n<summary>INNER</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "DEEP"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "BODY"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "AFTER"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "nested",
+    "source": "<details id=\"outer\">\n<summary id=\"heading\">OUTER</summary>\n\n<details open>\n<summary>INNER</summary>\n\nDEEP *BODY*\n\n</details>\n\nAFTER\n\n</details>\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details id=\"outer\">\n<summary id=\"heading\">OUTER</summary>\n"
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details open>\n<summary>INNER</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "DEEP"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "BODY"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "AFTER"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "split-summary",
+    "source": "<details>\n<summary>\n\nSUMMARY **STRONG**\n\n</summary>\n\nBODY\n\n</details>\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details>\n<summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "SUMMARY"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "STRONG"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "split-summary",
+    "source": "<details>\n<summary>\n\nSUMMARY **STRONG**\n\n</summary>\n\nBODY\n\n</details>\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details>\n<summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "SUMMARY"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "STRONG"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "split-summary",
+    "source": "<details>\n<summary>\n\nSUMMARY **STRONG**\n\n</summary>\n\nBODY\n\n</details>\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details>\n<summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "SUMMARY"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Strong",
+            "c": [
+              {
+                "t": "Str",
+                "c": "STRONG"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "typed-blocks",
+    "source": "<details>\n<summary>MORE</summary>\n\n## HEADING\n\n- FIRST\n- SECOND\n\n> QUOTED\n\n```\nCODE\n```\n\n</details>\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details>\n<summary>MORE</summary>\n"
+        ]
+      },
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "heading",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "HEADING"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "FIRST"
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "SECOND"
+                }
+              ]
+            }
+          ]
+        ]
+      },
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "QUOTED"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "CODE"
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "typed-blocks",
+    "source": "<details>\n<summary>MORE</summary>\n\n## HEADING\n\n- FIRST\n- SECOND\n\n> QUOTED\n\n```\nCODE\n```\n\n</details>\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details>\n<summary>MORE</summary>\n"
+        ]
+      },
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "heading",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "HEADING"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "FIRST"
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "SECOND"
+                }
+              ]
+            }
+          ]
+        ]
+      },
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "QUOTED"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "CODE"
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "typed-blocks",
+    "source": "<details>\n<summary>MORE</summary>\n\n## HEADING\n\n- FIRST\n- SECOND\n\n> QUOTED\n\n```\nCODE\n```\n\n</details>\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details>\n<summary>MORE</summary>\n"
+        ]
+      },
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "HEADING"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "BulletList",
+        "c": [
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "FIRST"
+                }
+              ]
+            }
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "SECOND"
+                }
+              ]
+            }
+          ]
+        ]
+      },
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "QUOTED"
+              }
+            ]
+          }
+        ]
+      },
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "CODE"
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "paragraph-interruption",
+    "source": "BEFORE\n<details>\n<summary>MORE</summary>\n\nBODY\n\n</details>\nAFTER\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BEFORE"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details>\n<summary>MORE</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\nAFTER\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "paragraph-interruption",
+    "source": "BEFORE\n<details>\n<summary>MORE</summary>\n\nBODY\n\n</details>\nAFTER\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BEFORE"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details>\n<summary>MORE</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\nAFTER\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "paragraph-interruption",
+    "source": "BEFORE\n<details>\n<summary>MORE</summary>\n\nBODY\n\n</details>\nAFTER\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BEFORE"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details>\n<summary>MORE</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</details>\nAFTER\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quoted",
+    "source": "> <details>\n> <summary>MORE</summary>\n>\n> BODY\n>\n> </details>\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "RawBlock",
+            "c": [
+              "html",
+              "<details>\n<summary>MORE</summary>\n"
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "BODY"
+              }
+            ]
+          },
+          {
+            "t": "RawBlock",
+            "c": [
+              "html",
+              "</details>\n"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quoted",
+    "source": "> <details>\n> <summary>MORE</summary>\n>\n> BODY\n>\n> </details>\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "RawBlock",
+            "c": [
+              "html",
+              "<details>\n<summary>MORE</summary>\n"
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "BODY"
+              }
+            ]
+          },
+          {
+            "t": "RawBlock",
+            "c": [
+              "html",
+              "</details>\n"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quoted",
+    "source": "> <details>\n> <summary>MORE</summary>\n>\n> BODY\n>\n> </details>\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "BlockQuote",
+        "c": [
+          {
+            "t": "RawBlock",
+            "c": [
+              "html",
+              "<details>\n<summary>MORE</summary>\n"
+            ]
+          },
+          {
+            "t": "Para",
+            "c": [
+              {
+                "t": "Str",
+                "c": "BODY"
+              }
+            ]
+          },
+          {
+            "t": "RawBlock",
+            "c": [
+              "html",
+              "</details>\n"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unclosed",
+    "source": "<details>\n<summary>MORE</summary>\n\nBODY\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details>\n<summary>MORE</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unclosed",
+    "source": "<details>\n<summary>MORE</summary>\n\nBODY\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details>\n<summary>MORE</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unclosed",
+    "source": "<details>\n<summary>MORE</summary>\n\nBODY\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details>\n<summary>MORE</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mismatch",
+    "source": "<details>\n<summary>MORE</summary>\n\nBODY\n\n</section>\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details>\n<summary>MORE</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</section>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mismatch",
+    "source": "<details>\n<summary>MORE</summary>\n\nBODY\n\n</section>\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details>\n<summary>MORE</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</section>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "mismatch",
+    "source": "<details>\n<summary>MORE</summary>\n\nBODY\n\n</section>\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details>\n<summary>MORE</summary>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          }
+        ]
+      },
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "</section>\n"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "self-close",
+    "source": "<details/>\n\nBODY\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details/>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "self-close",
+    "source": "<details/>\n\nBODY\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details/>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "self-close",
+    "source": "<details/>\n\nBODY\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "RawBlock",
+        "c": [
+          "html",
+          "<details/>\n"
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BODY"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "indented-code",
+    "source": "    <details><summary>MORE</summary>BODY</details>\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "<details><summary>MORE</summary>BODY</details>"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "indented-code",
+    "source": "    <details><summary>MORE</summary>BODY</details>\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "<details><summary>MORE</summary>BODY</details>"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "indented-code",
+    "source": "    <details><summary>MORE</summary>BODY</details>\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          "<details><summary>MORE</summary>BODY</details>"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fenced-code",
+    "source": "```html\n<details><summary>MORE</summary>BODY</details>\n```\n",
+    "from": "gfm",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "html"
+            ],
+            []
+          ],
+          "<details><summary>MORE</summary>BODY</details>"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fenced-code",
+    "source": "```html\n<details><summary>MORE</summary>BODY</details>\n```\n",
+    "from": "markdown",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "html"
+            ],
+            []
+          ],
+          "<details><summary>MORE</summary>BODY</details>"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fenced-code",
+    "source": "```html\n<details><summary>MORE</summary>BODY</details>\n```\n",
+    "from": "commonmark",
+    "blocks": [
+      {
+        "t": "CodeBlock",
+        "c": [
+          [
+            "",
+            [
+              "html"
+            ],
+            []
+          ],
+          "<details><summary>MORE</summary>BODY</details>"
+        ]
+      }
+    ]
+  }
+]

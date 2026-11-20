@@ -1,0 +1,360 @@
+// Pixel coordinates and sample positions follow the Mermaid rasterizer, including
+// its separate 8x8 coverage grid for embedded-font glyphs.
+use super::{Shape, advance};
+#[path = "raster_shapes.rs"]
+mod shapes;
+pub(super) use shapes::BoxStyle;
+use std::ops::RangeInclusive;
+
+pub(super) enum Paint {
+    Edge {
+        route: super::route::Route,
+        stroke: [u8; 4],
+        width: f64,
+        dashed: bool,
+    },
+    Pie {
+        cx: f64,
+        cy: f64,
+        ends: Vec<(f64, [u8; 4])>,
+    },
+    Box {
+        bounds: [f64; 4],
+        style: BoxStyle,
+        shape: Shape,
+        shadow: Option<[u8; 4]>,
+    },
+    Path {
+        points: Vec<(f64, f64)>,
+        fill: Option<[u8; 4]>,
+        stroke: [u8; 4],
+        width: f64,
+        dashed: bool,
+    },
+    Text {
+        mono: bool,
+        start: f64,
+        baseline: f64,
+        size: f64,
+        weight: u16,
+        color: [u8; 4],
+        text: String,
+    },
+}
+struct Frame {
+    pixels: Vec<[u8; 4]>,
+    width: usize,
+    height: usize,
+    scale: f64,
+}
+const SUB: [f64; 4] = [0.125, 0.375, 0.625, 0.875];
+impl Frame {
+    fn new(
+        width: usize,
+        height: usize,
+        scale: f64,
+        bg: [u8; 4],
+        limit: usize,
+    ) -> Result<Self, String> {
+        let n = width
+            .checked_mul(height)
+            .filter(|n| *n <= limit / 4)
+            .ok_or("mmdc: E_LIMIT: Raster pixel limit exceeded\n")?;
+        Ok(Self {
+            pixels: vec![if bg[3] == 0 { [0; 4] } else { bg }; n],
+            width,
+            height,
+            scale,
+        })
+    }
+    fn bounds(
+        &self,
+        x1: f64,
+        y1: f64,
+        x2: f64,
+        y2: f64,
+    ) -> (RangeInclusive<usize>, RangeInclusive<usize>) {
+        (
+            (x1.floor() as usize)..=(x2.ceil() as usize).min(self.width - 1),
+            (y1.floor() as usize)..=(y2.ceil() as usize).min(self.height - 1),
+        )
+    }
+    fn blend(&mut self, x: usize, y: usize, c: [f64; 4], coverage: f64) {
+        let a = c[3] / 255. * coverage;
+        if a <= 0.001 {
+            return;
+        }
+        let p = &mut self.pixels[y * self.width + x];
+        if a >= 0.999 && c[3] == 255. {
+            *p = c.map(|n| n as u8);
+            return;
+        }
+        let dst = f64::from(p[3]) / 255.;
+        let out = a + dst * (1. - a);
+        for i in 0..3 {
+            p[i] = ((c[i] * a + f64::from(p[i]) * dst * (1. - a)) / out).round() as u8;
+        }
+        p[3] = (out * 255.).round() as u8;
+    }
+    fn draw(&mut self, op: &Paint) {
+        let scale = self.scale;
+        match op {
+            Paint::Pie { cx, cy, ends } => {
+                let (cx, cy, r) = (cx * scale, cy * scale, 120. * scale);
+                let (xs, ys) = self.bounds(cx - r, cy - r, cx + r, cy + r);
+                for y in ys {
+                    for x in xs.clone() {
+                        let (mut rgb, mut n) = ([0u32; 3], 0u32);
+                        for sy in SUB {
+                            for sx in SUB {
+                                let (dx, dy) = (x as f64 + sx - cx, y as f64 + sy - cy);
+                                if dx * dx + dy * dy > r * r {
+                                    continue;
+                                }
+                                let mut a = dy.atan2(dx);
+                                if a < -std::f64::consts::FRAC_PI_2 {
+                                    a += std::f64::consts::TAU;
+                                }
+                                let c = ends[ends
+                                    .partition_point(|(end, _)| *end <= a)
+                                    .min(ends.len() - 1)]
+                                .1;
+                                for i in 0..3 {
+                                    rgb[i] += u32::from(c[i]);
+                                }
+                                n += 1;
+                            }
+                        }
+                        if n > 0 {
+                            let [r, g, b] = rgb.map(|v| f64::from(v) / f64::from(n));
+                            self.blend(x, y, [r, g, b, 255.], f64::from(n) / 16.);
+                        }
+                    }
+                }
+            }
+            Paint::Box {
+                bounds,
+                style,
+                shape,
+                shadow,
+            } => self.box_shape(*bounds, *style, *shape, *shadow),
+            Paint::Edge {
+                route,
+                stroke,
+                width,
+                dashed,
+            } => self.path(&route.pixels(scale), 1., None, *stroke, *width, *dashed),
+            Paint::Path {
+                points,
+                fill,
+                stroke,
+                width,
+                dashed,
+            } => self.path(points, scale, *fill, *stroke, *width, *dashed),
+            Paint::Text {
+                mono,
+                start,
+                baseline,
+                size,
+                weight,
+                color,
+                text,
+            } => {
+                let unit = size * scale / 1000.;
+                let boost = if *weight == 500 { 0.08 * scale } else { 0. };
+                let mut left = start * scale;
+                for c in text.chars() {
+                    self.glyph(
+                        c,
+                        *weight >= 600,
+                        *mono,
+                        left,
+                        baseline * scale,
+                        unit,
+                        boost,
+                        *color,
+                    );
+                    left += f64::from(if *mono {
+                        super::card::mono_advance(c)
+                    } else {
+                        advance(c, *weight >= 600)
+                    }) * unit;
+                }
+            }
+        }
+    }
+    #[allow(clippy::too_many_arguments)]
+    fn glyph(
+        &mut self,
+        c: char,
+        bold: bool,
+        mono: bool,
+        left: f64,
+        baseline: f64,
+        unit: f64,
+        boost: f64,
+        color: [u8; 4],
+    ) {
+        let data: &[u8] = if mono {
+            super::card::MONO
+        } else {
+            include_bytes!("outlines.bin")
+        };
+        let idx = super::glyph_index(c);
+        let ptr = if mono {
+            idx * 6
+        } else {
+            (idx * 2 + usize::from(bold)) * 4
+        };
+        let mut pos = u32::from_le_bytes(data[ptr..ptr + 4].try_into().unwrap()) as usize;
+        let word = |p: &mut usize| {
+            let v = i16::from_le_bytes(data[*p..*p + 2].try_into().unwrap());
+            *p += 2;
+            v
+        };
+        let [xmin, ymin, xmax, ymax] = std::array::from_fn(|_| f64::from(word(&mut pos)));
+        let contours = word(&mut pos);
+        if contours == 0 {
+            return;
+        }
+        let (xs, ys) = self.bounds(
+            left + xmin * unit - boost - 1.,
+            baseline - ymax * unit - 1.,
+            left + xmax * unit + boost + 1.,
+            baseline - ymin * unit + 1.,
+        );
+        if xs.is_empty() || ys.is_empty() {
+            return;
+        }
+        let mut edges = Vec::new();
+        for _ in 0..contours {
+            let n = word(&mut pos) as usize;
+            let mut raw = Vec::with_capacity(n);
+            for _ in 0..n {
+                let x = f64::from(word(&mut pos));
+                let y = f64::from(word(&mut pos));
+                let on = data[pos] != 0;
+                pos += 1;
+                raw.push((x, y, on));
+            }
+            if n < 2 {
+                continue;
+            }
+            let mut pts = Vec::new();
+            for (i, &p) in raw.iter().enumerate() {
+                let q = raw[(i + 1) % n];
+                pts.push(p);
+                if !p.2 && !q.2 {
+                    pts.push(((p.0 + q.0) / 2., (p.1 + q.1) / 2., true));
+                }
+            }
+            let offset = pts.iter().position(|p| p.2).unwrap_or(0);
+            pts.rotate_left(offset);
+            let screen = |i: usize| {
+                let p = pts[i % pts.len()];
+                (left + p.0 * unit, baseline - p.1 * unit)
+            };
+            let mut poly = Vec::new();
+            let mut i = 0;
+            while i < pts.len() {
+                let a = screen(i);
+                poly.push(a);
+                if pts[(i + 1) % pts.len()].2 {
+                    i += 1;
+                    continue;
+                }
+                let b = screen(i + 1);
+                let c = screen(i + 2);
+                for s in 1..12 {
+                    let t = s as f64 / 12.;
+                    let f = 1. - t;
+                    poly.push((
+                        f * f * a.0 + 2. * f * t * b.0 + t * t * c.0,
+                        f * f * a.1 + 2. * f * t * b.1 + t * t * c.1,
+                    ));
+                }
+                i += 2;
+            }
+            if poly.len() >= 3 {
+                for i in 0..poly.len() {
+                    edges.push((poly[(i + poly.len() - 1) % poly.len()], poly[i]));
+                }
+            }
+        }
+        let lo = *xs.start();
+        let hi = *xs.end();
+        let mut hits = vec![0u8; hi - lo + 1];
+        let mut crossings = Vec::new();
+        for y in ys {
+            hits.fill(0);
+            for sy in 0..8 {
+                let sample = y as f64 + (sy as f64 + 0.5) / 8.;
+                crossings.clear();
+                for &(p, q) in &edges {
+                    if (p.1 <= sample && q.1 > sample) || (q.1 <= sample && p.1 > sample) {
+                        crossings.push((
+                            p.0 + ((sample - p.1) / (q.1 - p.1)) * (q.0 - p.0),
+                            if p.1 < q.1 { 1 } else { -1 },
+                        ));
+                    }
+                }
+                crossings.sort_by(|a, b| a.0.total_cmp(&b.0));
+                let mut winding = 0;
+                let mut start = 0.;
+                for &(x, dir) in &crossings {
+                    let before = winding;
+                    winding += dir;
+                    if before == 0 {
+                        start = x - boost;
+                    } else if winding == 0 {
+                        let end = x + boost;
+                        for px in lo.max(start.floor() as usize)..=hi.min(end.ceil() as usize) {
+                            for sx in 0..8 {
+                                let sample = px as f64 + (sx as f64 + 0.5) / 8.;
+                                if sample >= start && sample <= end {
+                                    hits[px - lo] = hits[px - lo].wrapping_add(1);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            for (i, &n) in hits.iter().enumerate() {
+                if n > 0 {
+                    self.blend(
+                        lo + i,
+                        y,
+                        color.map(f64::from),
+                        (f64::from(n) / 64.).min(1.).powf(0.72),
+                    );
+                }
+            }
+        }
+    }
+}
+
+impl super::Scene {
+    pub fn raster_pixels(
+        &self,
+        width: f64,
+        height: f64,
+        scale: f64,
+        bg: [u8; 4],
+        limit: usize,
+    ) -> Result<(usize, usize, Vec<[u8; 4]>), String> {
+        let ops = &self.paint;
+        let w = (width * scale).ceil().max(1.) as usize;
+        let h = (height * scale).ceil().max(1.) as usize;
+        let mut frame = Frame::new(
+            w,
+            h,
+            (w as f64 / self.width).min(h as f64 / self.height),
+            bg,
+            limit,
+        )?;
+        for op in ops {
+            frame.draw(op);
+        }
+        Ok((w, h, frame.pixels))
+    }
+}

@@ -12,6 +12,6 @@ export default {
   extensions: {},
   options: {
     read: [],
-    write: ["standalone", "wrap", "columns"]
+    write: ["standalone", "rawContent", "wrap", "columns"]
   }
 } satisfies FormatDescriptor;

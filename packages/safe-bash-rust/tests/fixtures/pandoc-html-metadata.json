@@ -1,0 +1,1060 @@
+[
+  {
+    "id": "basic",
+    "source": "<html><head><title>Page title</title><meta name=\"author\" content=\"Page author\"></head><body><p>Body</p></body></html>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Page"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "title"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Page"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "author"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "implicit",
+    "source": "<title>Page title</title><meta name=\"author\" content=\"Page author\"><p>Body</p>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Page"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "title"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Page"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "author"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "duplicates",
+    "source": "<head><title>FIRST</title><title>SECOND</title><meta name=author content=Alice><meta name=author content=Bob></head><p>Body</p>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "SECOND"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Bob"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty",
+    "source": "<head><title></title><meta name=author></head><p>Body</p>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": []
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": []
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty_last",
+    "source": "<head><title>FIRST</title><title></title><meta name=author content=Alice><meta name=author></head><p>Body</p>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": []
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": []
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "spaces",
+    "source": "<head><title>  A\n\tB\r\f C  </title><meta name=author content=\" Alice\n\tBob \"></head><p>Body</p>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "A"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "B"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "C"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Alice"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Bob"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "entities",
+    "source": "<head><title>A &amp; B &lt;img&gt; &nbsp; C &#x3a9;</title><meta name=author content=\"A &amp; B &nbsp; C\"></head><p>Body</p>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "A"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "&"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "B"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "<img>"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": " "
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "C"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Ω"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "A"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "&"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "B"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": " "
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "C"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "literals",
+    "source": "<head><title>**literal** _plain_ `code` [link](https://example.org)</title><meta name=author content=\"**Alice** &lt;b&gt;Bob&lt;/b&gt;\"></head><p>Body</p>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "**literal**"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "_plain_"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "`code`"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "[link](https://example.org)"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "**Alice**"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "<b>Bob</b>"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "image_title",
+    "source": "<head><title>Literal <img src=\"missing.png\"> and <b>bold</b></title></head><p>Body</p>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Literal"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "<img"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "src=\"missing.png\">"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "and"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "<b>bold</b>"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "paragraph_title",
+    "source": "<head><title>Literal <p>not body</p></title></head><p>Body</p>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Literal"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "<p>not"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "body</p>"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "case",
+    "source": "<HTML><HEAD><TITLE>Caps</TITLE><META NAME=\"AUTHOR\" CONTENT=\"A\"></HEAD><BODY><p>Body</p></BODY></HTML>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Caps"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "A"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "author_spaces",
+    "source": "<head><meta name=\" author \" content=Ignored><meta name=Author content=Kept></head><p>Body</p>",
+    "meta": {
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Kept"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "other_meta",
+    "source": "<head><meta name=title content=Ignored><meta name=description content=Ignored><meta property=author content=Ignored><meta name=author content=Kept></head><p>Body</p>",
+    "meta": {
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Kept"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "title_in_body",
+    "source": "<body><title>Ignored</title><meta name=author content=Ignored><p>Body</p></body>",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Plain",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Ignored"
+          }
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after_paragraph",
+    "source": "<p>Body</p><title>Ignored</title><meta name=author content=Ignored>",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      },
+      {
+        "t": "Plain",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Ignored"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "after_text",
+    "source": "Body<title>Ignored</title><meta name=author content=Ignored>",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Plain",
+        "c": [
+          {
+            "t": "Str",
+            "c": "BodyIgnored"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "nested_div",
+    "source": "<div><title>Ignored</title><meta name=author content=Ignored><p>Body</p></div>",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Div",
+        "c": [
+          [
+            "",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Plain",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "Ignored"
+                }
+              ]
+            },
+            {
+              "t": "Para",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "Body"
+                }
+              ]
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "nested_template",
+    "source": "<head><template><title>Ignored</title><meta name=author content=Ignored></template><title>Kept</title></head><p>Body</p>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Kept"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "explicit_head_after_body",
+    "source": "<body><p>Body</p></body><head><title>Ignored</title><meta name=author content=Ignored></head>",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      },
+      {
+        "t": "Plain",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Ignored"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "head_omitted_end",
+    "source": "<head><title>Kept</title><meta name=author content=Alice><p>Body</p>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Kept"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Alice"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "head_closed_then_title",
+    "source": "<head><title>FIRST</title></head><title>SECOND</title><p>Body</p>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "SECOND"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "head_in_head",
+    "source": "<head><head><title>Kept</title></head><p>Body</p>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Kept"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "comments",
+    "source": "<!-- comment --><title>Kept<!-- literal --></title><!-- comment --><meta name=author content=Alice><p>Body</p>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Kept<!--"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "literal"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "-->"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Alice"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "script",
+    "source": "<script>\"<title>ignored</title>\"</script><title>Kept</title><p>Body</p>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Kept"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "title_close_space",
+    "source": "<title>Kept</title ><meta name=author content=Alice><p>Body</p>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Kept"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Alice"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "title_close_tab",
+    "source": "<title>Kept</TITLE\t><meta name=author content=Alice><p>Body</p>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Kept"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Alice"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unclosed_title",
+    "source": "<title>Everything <p>Body</p>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Everything"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "<p>Body</p>"
+          }
+        ]
+      }
+    },
+    "blocks": []
+  },
+  {
+    "id": "body_then_author",
+    "source": "<head><title>Kept</title></head><body><meta name=author content=Ignored><p>Body</p></body>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Kept"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "inner_whitespace_unicode",
+    "source": "<title>A B C D</title><meta name=author content=\"A B C D\"><p>Body</p>",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "A B C D"
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "A B C D"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body"
+          }
+        ]
+      }
+    ]
+  }
+]

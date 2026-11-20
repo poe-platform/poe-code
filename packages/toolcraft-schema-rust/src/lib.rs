@@ -10,7 +10,6 @@ pub mod nullability;
 mod pattern;
 pub mod properties;
 pub mod schema_document;
-mod unicode_categories;
 mod uri;
 pub mod validate;
 

@@ -116,6 +116,8 @@ impl PageSource<'_> {
             }
             if let Draw::Glyph {
                 code,
+                unicode,
+                program,
                 text_bounds: bounds,
                 size,
                 matrix,
@@ -161,7 +163,9 @@ impl PageSource<'_> {
                 } else {
                     [ux, uy]
                 };
-                let text = super::super::text(&[u8::try_from(code).ok()?]);
+                let text = if let Some(value)=unicode {std::borrow::Cow::Borrowed(value)}
+                    else if matches!(program,super::pdf_text_layout::Program::CidTrueType{..}) {return None;}
+                    else {std::borrow::Cow::Owned(super::super::text(&[u8::try_from(code).ok()?]))};
                 if !options.raw && diagonal && (text == " " || text == "\t") {
                     return Some(());
                 }
@@ -170,7 +174,7 @@ impl PageSource<'_> {
                     return None;
                 }
                 glyphs.push(Glyph {
-                    text,
+                    text: text.into_owned(),
                     bounds,
                     size,
                     baseline: y,

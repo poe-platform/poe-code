@@ -37,12 +37,12 @@ it("keeps encoding maps bounded in Workerd with external declaration storage", a
   });
   expect(Object.values(bundle.metafile!.outputs).flatMap((output) => output.imports)).toEqual([]);
   const runtime = new Miniflare({
+    cf: false,
     workers: [
       {
         name: "encoding",
         modules: true,
         compatibilityDate: "2026-07-01",
-        cf: false,
         script: bundle.outputFiles[0]!.text,
         serviceBindings: { BACKING: "encoding-store" }
       },
@@ -50,7 +50,6 @@ it("keeps encoding maps bounded in Workerd with external declaration storage", a
         name: "encoding-store",
         modules: true,
         compatibilityDate: "2026-07-01",
-        cf: false,
         script: `
    const data=new Uint8Array(4_000_000);
    export default {async fetch(request){

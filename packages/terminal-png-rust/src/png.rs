@@ -1,4 +1,5 @@
 //! Bounded RGBA PNG encoding with std-only RFC 1950/1951 compression.
+use mcp_protocol_rust::cooperate::{block_on, yield_now};
 const MAX_PIXELS: usize = 32 * 1024 * 1024;
 const LENGTH_BASE: [usize; 29] = [
     3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131,
@@ -52,7 +53,10 @@ fn hash(input: &[u8], i: usize) -> usize {
     let v = (u32::from(input[i]) << 16) | (u32::from(input[i + 1]) << 8) | u32::from(input[i + 2]);
     ((v.wrapping_mul(2654435761) >> 16) & 65535) as usize
 }
-fn adler32(input: &[u8]) -> u32 {
+pub fn adler32(input: &[u8]) -> u32 {
+    block_on(adler32_async(input))
+}
+pub(crate) async fn adler32_async(input: &[u8]) -> u32 {
     let (mut a, mut b) = (1_u32, 0_u32);
     for block in input.chunks(5552) {
         for byte in block {
@@ -61,10 +65,14 @@ fn adler32(input: &[u8]) -> u32 {
         }
         a %= 65521;
         b %= 65521;
+        yield_now().await;
     }
     (b << 16) | a
 }
 pub fn deflate(input: &[u8]) -> Vec<u8> {
+    block_on(deflate_async(input))
+}
+pub async fn deflate_async(input: &[u8]) -> Vec<u8> {
     let mut bits = Bits {
         bytes: vec![0x78, 0x01],
         buffer: 0,
@@ -75,7 +83,12 @@ pub fn deflate(input: &[u8]) -> Vec<u8> {
     let mut head = vec![usize::MAX; 65536];
     let mut previous = vec![usize::MAX; 32768];
     let mut i = 0;
+    let mut last_yield = 0;
     while i < input.len() {
+        if i - last_yield >= 4096 {
+            yield_now().await;
+            last_yield = i;
+        }
         let mut length = 0;
         let mut distance = 0;
         if i + 2 < input.len() {
@@ -138,16 +151,22 @@ pub fn deflate(input: &[u8]) -> Vec<u8> {
     }
     bits.symbol(256);
     let mut output = bits.finish();
-    output.extend(adler32(input).to_be_bytes());
+    output.extend(adler32_async(input).await.to_be_bytes());
     output
 }
-fn crc32(input: &[u8]) -> u32 {
+pub fn crc32(input: &[u8]) -> u32 {
+    block_on(crc32_async(input))
+}
+pub(crate) async fn crc32_async(input: &[u8]) -> u32 {
     let mut crc = !0_u32;
-    for byte in input {
-        crc ^= u32::from(*byte);
-        for _ in 0..8 {
-            crc = (crc >> 1) ^ if crc & 1 != 0 { 0xedb88320 } else { 0 };
+    for chunk in input.chunks(4096) {
+        for byte in chunk {
+            crc ^= u32::from(*byte);
+            for _ in 0..8 {
+                crc = (crc >> 1) ^ if crc & 1 != 0 { 0xedb88320 } else { 0 };
+            }
         }
+        yield_now().await;
     }
     !crc
 }
@@ -188,3 +207,5 @@ pub fn encode(width: u32, height: u32, rgba: &[u8]) -> Result<Vec<u8>, &'static 
     chunk(&mut png, b"IEND", &[]);
     Ok(png)
 }
+
+pub use crate::png_decode::{decode, decode_async, unfilter_row};

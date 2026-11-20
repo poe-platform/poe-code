@@ -424,3 +424,36 @@ it("keeps SQLite out of the stateless LLM command graph", async () => {
   const imports = Object.values(result.metafile.outputs).flatMap(output => output.imports);
   expect(imports.filter(entry => entry.path.startsWith("safe-bash-sqlite-engine"))).toEqual([]);
 });
+
+it("keeps the document converter loader conditional and separates browser bytes from workerd modules", async () => {
+  const root = process.cwd();
+  const options = resolveBrowserShellBuild(root);
+  const common = await build({ ...options, entryPoints: undefined, outdir: undefined,
+    outfile: "/memory/converter.js", splitting: false,
+    stdin: { resolveDir: root, contents: 'export { convert } from "@poe-code/document-converter-rust";' },
+  });
+  expect(Object.values(common.metafile!.outputs).flatMap(output => output.imports))
+    .toEqual([{ path: "#document-converter-wasm", kind: "import-statement", external: true }]);
+  expect(Object.keys(common.metafile!.inputs).some(filename => filename.endsWith(".wasm") || filename.endsWith("/wasm.js"))).toBe(false);
+
+  const result = await build({ ...options, entryPoints: Object.fromEntries(
+    Object.entries(options.entryPoints).filter(([name]) => name.startsWith("document-converter/"))),
+  });
+  const outputs = result.metafile!.outputs;
+  const reachable = (suffix: string) => {
+    const start = Object.keys(outputs).find(filename => filename.endsWith(suffix))!;
+    const seen = new Set<string>(), pending = [start];
+    while (pending.length) {
+      const filename = pending.pop()!;
+      if (seen.has(filename)) continue;
+      seen.add(filename);
+      for (const edge of outputs[filename]?.imports ?? []) if (!edge.external) pending.push(edge.path);
+    }
+    return seen;
+  };
+  const browser = reachable("/document-converter/module.js");
+  const workerd = reachable("/document-converter/module.workerd.js");
+  expect([...browser].some(filename => filename.endsWith(".wasm"))).toBe(false);
+  expect([...workerd].some(filename => filename.endsWith(".wasm"))).toBe(true);
+  expect([...workerd].some(filename => Object.keys(outputs[filename]?.inputs ?? {}).some(input => input.endsWith("/wasm.js")))).toBe(false);
+});

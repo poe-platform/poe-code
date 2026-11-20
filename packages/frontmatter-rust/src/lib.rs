@@ -215,6 +215,7 @@ pub fn parse_document(
         yaml::ParseOptions {
             unique_keys,
             object_root: false,
+            ..Default::default()
         },
     ) {
         Ok(mut parsed) => {

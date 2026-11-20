@@ -58,7 +58,7 @@ struct Entry {
     text: Option<Vec<u16>>,
     alias_name: Option<Vec<u16>>,
 }
-fn check_aliases(nodes: &[Entry]) -> Result<(), Error> {
+fn check_aliases(nodes: &[Entry], maximum: usize) -> Result<(), Error> {
     enum Task {
         Visit(usize),
         Collection(usize),
@@ -96,7 +96,7 @@ fn check_aliases(nodes: &[Entry]) -> Result<(), Error> {
             }
             weights[target] = values.pop().unwrap_or(0);
         }
-        if counts[target].saturating_mul(weights[target]) > 100 {
+        if counts[target].saturating_mul(weights[target]) > maximum {
             return Err(error(
                 "Excessive alias count indicates a resource exhaustion attack",
                 entry.mark,
@@ -116,12 +116,14 @@ pub fn parse(
 pub struct ParseOptions {
     pub unique_keys: bool,
     pub object_root: bool,
+    pub max_alias_count: usize,
 }
 impl Default for ParseOptions {
     fn default() -> Self {
         Self {
             unique_keys: true,
             object_root: true,
+            max_alias_count: 100,
         }
     }
 }
@@ -243,7 +245,7 @@ pub fn parse_with_options(
             parents.push(id);
         }
     }
-    check_aliases(&nodes)?;
+    check_aliases(&nodes, options.max_alias_count)?;
     let (value, date_ids, symbol_ids) = if let Some(root) = root {
         compose::configuration(&nodes, root, date_key, options.unique_keys)?
     } else {

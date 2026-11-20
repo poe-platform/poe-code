@@ -4,6 +4,13 @@ export interface SuppliedFont { readonly id: string; readonly bytes: Uint8Array 
 export type StandardFontName = "Helvetica" | "Helvetica-Bold" | "Helvetica-Oblique" | "Helvetica-BoldOblique" | "Courier" | "Courier-Bold" | "Courier-Oblique" | "Courier-BoldOblique" | "Times-Roman" | "Times-Bold" | "Times-Italic" | "Times-BoldItalic" | "Symbol" | "ZapfDingbats";
 export interface StandardFont {readonly id: string; readonly standard: StandardFontName}
 export interface TextRun {
+  /** Baseline displacement in points; positive values raise the text. */
+  readonly rise?: number;
+  /** Six hexadecimal RGB digits. */
+  readonly background?: string;
+  readonly color?: string;
+  readonly anchor?: string;
+  readonly image?: Omit<ImageBlock, "kind">;
   readonly text: string; readonly font?: string; readonly size?: number; readonly link?: string;
   /** Synthetic weight/oblique apply to supplied fonts, including Unicode fallback; standard fonts use their named face. */
   readonly bold?: boolean; readonly italic?: boolean; readonly strikeout?: boolean; readonly underline?: boolean;
@@ -12,7 +19,8 @@ export interface PaginationConstraints { readonly breakBefore?: boolean; readonl
 export interface Paragraph extends PaginationConstraints {
   /** Optional flat outline entry targeting the first placed line. */
   readonly outline?: string;
-  readonly kind: "paragraph"; readonly runs: readonly TextRun[]; readonly spaceAfter?: number;
+  readonly id?: string;
+  readonly kind: "paragraph"; readonly runs: readonly TextRun[]; readonly spaceAfter?: number; readonly spaceBefore?: number;
   readonly keepWithNext?: boolean;
   readonly indent?: number; readonly widows?: number; readonly orphans?: number;
   readonly align?: "left" | "center" | "right";

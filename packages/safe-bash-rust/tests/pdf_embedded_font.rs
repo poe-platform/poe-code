@@ -87,21 +87,69 @@ fn invalid_or_unsupported_embedded_fonts_preserve_output() {
     }
 }
 
-#[test]
-fn embedded_font_streams_share_the_decoded_byte_budget() {
-    // An incremental page revision refers to the same compressed font under
-    // enough resource names to exceed the aggregate decoded-stream allowance.
+fn font_resources(count: usize, distinct: bool) -> Vec<u8> {
     let mut bytes = PDF.to_vec();
     let offset = bytes.len();
-    let fonts = (0..32).map(|i| format!("/F{i} 4 0 R ")).collect::<String>();
+    let fonts = (0..count)
+        .map(|i| format!("/F{i} {} 0 R ", if distinct { i + 8 } else { 4 }))
+        .collect::<String>();
     bytes.extend_from_slice(format!("3 0 obj\n<< /Type /Page /Parent 2 0 R /MediaBox [0 0 320 160] /Resources << /Font << {fonts} >> >> /Contents 5 0 R >>\nendobj\n").as_bytes());
+    let mut offsets = vec![(3, offset)];
+    if distinct {
+        let start = PDF.windows(7).position(|w| w == b"4 0 obj").unwrap() + 7;
+        let end = start
+            + PDF[start..]
+                .windows(6)
+                .position(|w| w == b"endobj")
+                .unwrap();
+        for id in 8..8 + count {
+            offsets.push((id, bytes.len()));
+            bytes.extend_from_slice(format!("{id} 0 obj").as_bytes());
+            bytes.extend_from_slice(&PDF[start..end]);
+            bytes.extend_from_slice(b"endobj\n");
+        }
+    }
     let xref = bytes.len();
-    bytes.extend_from_slice(format!("xref\n3 1\n{offset:010} 00000 n \ntrailer\n<< /Size 8 /Root 1 0 R /Prev 380391 >>\nstartxref\n{xref}\n%%EOF\n").as_bytes());
+    bytes.extend_from_slice(b"xref\n");
+    for (id, offset) in offsets {
+        bytes.extend_from_slice(format!("{id} 1\n{offset:010} 00000 n \n").as_bytes());
+    }
+    let size = if distinct { 8 + count } else { 8 };
+    bytes.extend_from_slice(
+        format!("trailer\n<< /Size {size} /Root 1 0 R /Prev 380391 >>\nstartxref\n{xref}\n%%EOF\n")
+            .as_bytes(),
+    );
+    bytes
+}
+
+#[test]
+fn shared_font_aliases_reuse_bytes_but_distinct_fonts_obey_aggregate_budget() {
     for command in ["pdftoppm", "pdftocairo"] {
         let fs = MemoryVfs::new();
-        fs.write_file("/input.pdf", &bytes).unwrap();
-        fs.write_file("/page.png", b"existing").unwrap();
         let args = ["-png", "-r", "72", "-singlefile", "/input.pdf", "/page"].map(str::to_owned);
+        fs.write_file("/input.pdf", PDF).unwrap();
+        let result =
+            try_run_archive_command(command, &args, "", "/", &Default::default(), &fs).unwrap();
+        assert_eq!(result.exit_code, 0, "{command}: {}", result.stderr);
+        let expected = fs.read_file("/page.png").unwrap();
+
+        // Thirty-two aliases share one retained font program, so neither the
+        // image nor aggregate font bytes should change.
+        // Two distinct objects also fit, proving their incremental resource
+        // dictionaries are valid before testing aggregate exhaustion.
+        for bytes in [font_resources(32, false), font_resources(2, true)] {
+            fs.write_file("/input.pdf", &bytes).unwrap();
+            let result =
+                try_run_archive_command(command, &args, "", "/", &Default::default(), &fs).unwrap();
+            assert_eq!(result.exit_code, 0, "{command}: {}", result.stderr);
+            assert_eq!(fs.read_file("/page.png").unwrap(), expected);
+        }
+
+        // Separate font dictionaries retain separate decoded programs even
+        // when they reference the same compressed stream.
+        fs.write_file("/input.pdf", &font_resources(32, true))
+            .unwrap();
+        fs.write_file("/page.png", b"existing").unwrap();
         let result =
             try_run_archive_command(command, &args, "", "/", &Default::default(), &fs).unwrap();
         assert_ne!(result.exit_code, 0);

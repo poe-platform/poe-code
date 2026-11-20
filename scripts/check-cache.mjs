@@ -12,7 +12,7 @@ export function checkCacheDirectory(environment = process.env) {
   return path.resolve(environment.POE_CHECK_CACHE_DIR ?? path.join(environment.XDG_CACHE_HOME ?? path.join(os.homedir(), ".cache"), "poe-code", "checks-v1"));
 }
 
-function defaultCheckFiles(plan, environment, fileSystem, selected) {
+function defaultCheckFiles(plan, environment, fileSystem, selected, event) {
   const cached = execFileSync("git", ["ls-files", "--cached", "-z", "--", ".", ":!packages/safe-bash/tests", ":!packages/safe-bash/benchmarks", ":!docs"], { cwd: plan.root, env: environment, encoding: "utf8", maxBuffer: 32 * 1024 * 1024 }).split("\0").filter(Boolean);
   const byName = new Map(plan.workspaces.map(workspace => [workspace.name, workspace]));
   const edges = new Map(plan.workspaces.map(workspace => [workspace.name, []]));
@@ -26,6 +26,15 @@ function defaultCheckFiles(plan, environment, fileSystem, selected) {
   for (const name of selected) visit(name);
   const otherPaths = [
     "src", "tests", "scripts",
+    ...[...closure].flatMap(name => [...new Set(["build", event])].flatMap(task => {
+      const settings = { ...plan.configuration?.tasks?.[task], ...plan.configuration?.tasks?.[name + "#" + task] };
+      return (settings.inputs ?? []).filter(input => input.startsWith("$TURBO_ROOT$/")).map(input => {
+        const relative = input.slice("$TURBO_ROOT$/".length);
+        const wildcard = relative.search(/[*?{[]/u);
+        const slash = relative.lastIndexOf("/", wildcard);
+        return wildcard < 0 ? relative : slash < 0 ? "." : relative.slice(0, slash);
+      });
+    })),
     ...[...closure].map(name => {
       const workspace = byName.get(name);
       return workspace.path === "packages/safe-bash" ? "packages/safe-bash/src" : workspace.path;
@@ -45,9 +54,9 @@ export function createTaskFingerprints(plan, {
   fileSystem = fs,
   environment = process.env,
   selected = plan.workspaces.map(workspace => workspace.name),
-  files = defaultCheckFiles(plan, environment, fileSystem, selected),
-  runtime = { versions: process.versions, platform: process.platform, arch: process.arch },
   event = "test:unit",
+  files = defaultCheckFiles(plan, environment, fileSystem, selected, event),
+  runtime = { versions: process.versions, platform: process.platform, arch: process.arch },
   includeRoot = false
 } = {}) {
   const relevantNames = new Set(event === "build"
@@ -243,6 +252,14 @@ export function createTaskFingerprints(plan, {
     const segments = file.split("/").slice(2);
     return segments[0] === "tests" || segments[0] === "test" || segments.includes("__tests__") || /\.(test|spec)\.[cm]?[jt]sx?$/.test(file);
   };
+  const hashRootInputs = (hash, name, task) => {
+    const settings = { ...turboTasks?.[task], ...turboTasks?.[name + "#" + task] };
+    const patterns = (settings.inputs ?? []).filter(input => input.startsWith("$TURBO_ROOT$/"))
+      .map(input => input.slice("$TURBO_ROOT$/".length))
+      .map(pattern => [pattern, pattern.split(/[*?{[]/u, 1)[0]]);
+    if (patterns.length && typeof path.matchesGlob !== "function") {uncacheable.add(name); return;}
+    for (const file of inputFiles) if (patterns.some(([pattern, prefix]) => file.startsWith(prefix) && path.matchesGlob(file, pattern))) hash.update(read(file));
+  };
   const ownSource = new Map();
   const ownTests = new Map();
   const testDependencies = new Map(plan.workspaces.map(workspace => [workspace.name, new Set()]));
@@ -255,6 +272,7 @@ export function createTaskFingerprints(plan, {
       hash.update(read(file));
       for (const dependency of importedPackages(file, new Set(), hash)) if (dependency !== name) dependencies.get(name).add(dependency);
     }
+    hashRootInputs(hash, name, "build");
     ownSource.set(name, hash.digest("hex"));
     for (const dependency of dependencies.get(name)) prepareSource(dependency);
   };
@@ -268,6 +286,7 @@ export function createTaskFingerprints(plan, {
       hash.update(read(file));
       for (const dependency of importedPackages(file, new Set(), hash)) if (dependency !== name) testDependencies.get(name).add(dependency);
     }
+    hashRootInputs(hash, name, event);
     ownTests.set(name, hash.digest("hex"));
     for (const dependency of testDependencies.get(name)) prepareSource(dependency);
   };

@@ -1,7 +1,7 @@
 import {afterAll, beforeAll, expect, it, vi} from "vitest";
 import {readArchive, readDocumentArchive, DocumentXmlEditor, type XmlElement} from "safe-bash-docx-engine";
 import {SaxesParser} from "saxes";
-import {PDFDocument, PDFArray, PDFRawStream, decodePDFRawStream} from "pdf-lib";
+import {PDFDocument, PDFArray, PDFDict, PDFName, PDFRawStream, decodePDFRawStream} from "pdf-lib";
 import {convert, readDocument} from "./index.js";
 vi.mock("../../office-package/src/runtime.js", async importOriginal => {
   const runtime = await importOriginal<typeof import("../../office-package/src/runtime.js")>();
@@ -36,12 +36,19 @@ it("preserves hyperlink order inside DOCX table cells and after the table", asyn
   expect(text.indexOf("Cell")).toBeLessThan(text.indexOf("Nested"));
   expect(text.indexOf("Nested")).toBeLessThan(text.indexOf("After"));
 });
-it("uses combined standard PDF styles and admits their distinct font count", async () => {
+it("embeds combined PDF styles and admits their distinct font count", async () => {
   const markdown = "***combined*** and **`bold code`** and *`italic code`*";
   const bytes = await convertBytes(markdown, "pdf");
   const source = new TextDecoder().decode(bytes);
-  for (const font of ["Helvetica-BoldOblique", "Courier-Bold", "Courier-Oblique"]) expect(source).toContain(font);
-  expect((await PDFDocument.load(bytes)).getPageCount()).toBe(1);
+  for (const font of ["LiberationSans-BoldItalic", "JetBrainsMono-Bold", "JetBrainsMono-Italic"]) expect(source).toContain(font);
+  const pdf=await PDFDocument.load(bytes);expect(pdf.getPageCount()).toBe(1);
+  const fonts=pdf.getPages()[0]!.node.Resources()!.lookup(PDFName.of("Font"),PDFDict);
+  for(const value of fonts.values()) {
+    const font=pdf.context.lookup(value,PDFDict);
+    const descendant=font.lookup(PDFName.of("DescendantFonts"),PDFArray).lookup(0,PDFDict);
+    const descriptor=descendant.lookup(PDFName.of("FontDescriptor"),PDFDict);
+    expect((pdf.context.lookup(descriptor.get(PDFName.of("FontFile2"))) as PDFRawStream).contents.length).toBeGreaterThan(1000);
+  }
   await expect(convert([{bytes: encode(markdown)}], {from: "gfm", to: "pdf"}, {...context, limits: {fonts: 3}})).rejects.toMatchObject({code: "E_LIMIT"});
 });
 it("does not introduce extra PPTX list items for quoted continuations", async () => {
@@ -75,10 +82,18 @@ it("orders DOCX quoted-list paragraph numbering before indentation", async () =>
   expect(children.indexOf("numPr")).toBeGreaterThanOrEqual(0);
   expect(children.indexOf("numPr")).toBeLessThan(children.indexOf("ind"));
 });
-it("preserves PDF bold styling when Greek text falls back from a standard font", async () => {
+it("preserves Greek text using an embedded bold PDF face", async () => {
   const bytes = await convertBytes("**Ω**", "pdf");
   const pdf = await PDFDocument.load(bytes);
   const contents = pdf.getPages()[0]!.node.Contents() as PDFArray;
   const streams = Array.from({length: contents.size()}, (_, index) => new TextDecoder().decode(decodePDFRawStream(contents.lookup(index, PDFRawStream)).decode()));
-  expect(streams.join("\n")).toContain("2 Tr");
+  const fonts=pdf.getPages()[0]!.node.Resources()!.lookup(PDFName.of("Font"),PDFDict);
+  const key=fonts.keys()[0]!;const font=pdf.context.lookup(fonts.get(key),PDFDict);
+  expect(font.get(PDFName.of("BaseFont"))?.toString()).toContain("LiberationSans-Bold");
+  expect(streams.join("\n")).toContain(`${key.toString()} 12 Tf`);
+  const cmap=pdf.context.lookup(font.get(PDFName.of("ToUnicode"))) as PDFRawStream;
+  expect(new TextDecoder().decode(decodePDFRawStream(cmap).decode())).toContain("<03A9>");
+  const descendant=font.lookup(PDFName.of("DescendantFonts"),PDFArray).lookup(0,PDFDict);
+  const descriptor=descendant.lookup(PDFName.of("FontDescriptor"),PDFDict);
+    expect((pdf.context.lookup(descriptor.get(PDFName.of("FontFile2"))) as PDFRawStream).contents.length).toBeGreaterThan(1000);
 });

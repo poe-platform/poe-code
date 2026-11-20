@@ -1,7 +1,4 @@
-use super::{
-    JVal, PandocBlock, PandocInline, PandocPipeTables, jval_obj_get, mdq_interrupts_paragraph,
-    mdq_list_marker, parse_pandoc_markdown_with_defs, MdqDefinitions,
-};
+use super::{JVal, PandocBlock, PandocInline, jval_obj_get};
 
 #[derive(Debug, Clone)]
 pub(super) struct Numbering {
@@ -116,7 +113,10 @@ pub(super) enum Tasks {
     CommonMark,
 }
 
-pub(super) fn label(item: &[PandocBlock], allow_bare: bool) -> Option<(bool, bool, &[PandocInline])> {
+pub(super) fn label(
+    item: &[PandocBlock],
+    allow_bare: bool,
+) -> Option<(bool, bool, &[PandocInline])> {
     let first = item.first()?;
     let (PandocBlock::Plain(content) | PandocBlock::Para(content)) = first else {
         return None;
@@ -132,130 +132,6 @@ pub(super) fn label(item: &[PandocBlock], allow_bare: bool) -> Option<(bool, boo
         _ => return None,
     };
     Some((matches!(first, PandocBlock::Para(_)), checked, rest))
-}
-
-pub(super) fn read(
-    lines: &[&str],
-    i: &mut usize,
-    (marker, start): (u8, Option<usize>),
-    tables: PandocPipeTables,
-    depth: usize,
-    tasks: Tasks,
-    defs: &MdqDefinitions,
-    raw_html: bool,
-) -> Option<PandocBlock> {
-    let mut items = Vec::new();
-    let mut loose = false;
-    let mut blank_between = false;
-    let mut task_group = None;
-    while let Some(&line) = lines.get(*i) {
-        let Some((m, _, content)) = mdq_list_marker(line) else {
-            break;
-        };
-        if m != marker || super::mdq_thematic_break(line) {
-            break;
-        }
-        let marker_end = line.len() - line.trim_start_matches(' ').len()
-            + line
-                .trim_start()
-                .bytes()
-                .take_while(u8::is_ascii_digit)
-                .count()
-            + 1;
-        let padding = line.len() - content.len() - marker_end;
-        let indent = marker_end
-            + if (1..=4).contains(&padding) {
-                padding
-            } else {
-                1
-            };
-        let first = line.get(indent..).unwrap_or("");
-        let task = if tasks == Tasks::Disabled || tasks == Tasks::CommonMark && start.is_some() {
-            None
-        } else {
-            first
-                .get(..3)
-                .and_then(|prefix| match prefix {
-                    "[x]" | "[X]" => Some("☒"),
-                    "[ ]" => Some("☐"),
-                    _ => None,
-                })
-                .filter(|_| {
-                    first[3..].starts_with(' ') || tasks == Tasks::CommonMark && first.len() == 3
-                })
-        };
-        if tasks == Tasks::CommonMark
-            && task_group
-                .replace(task.is_some())
-                .is_some_and(|was| was != task.is_some())
-        {
-            break;
-        }
-        loose |= blank_between;
-        blank_between = false;
-        let mut content_lines = vec![first];
-        *i += 1;
-        while let Some(&next) = lines.get(*i) {
-            if next.trim().is_empty() {
-                let blanks = *i;
-                while lines.get(*i).is_some_and(|l| l.trim().is_empty()) {
-                    *i += 1;
-                }
-                let Some(&after) = lines.get(*i) else { break };
-                if after.len() - after.trim_start_matches(' ').len() < indent {
-                    blank_between = true;
-                    break;
-                }
-                loose |= after.as_bytes().get(indent) != Some(&b' ');
-                content_lines.extend(std::iter::repeat_n("", *i - blanks));
-            } else if next
-                .as_bytes()
-                .get(..indent)
-                .is_some_and(|s| s.iter().all(|&b| b == b' '))
-            {
-                content_lines.push(&next[indent..]);
-                *i += 1;
-            } else if !first.is_empty()
-                && !mdq_interrupts_paragraph(next)
-                && mdq_list_marker(next).is_none()
-            {
-                content_lines.push(next);
-                *i += 1;
-            } else {
-                break;
-            }
-        }
-        let mut source = content_lines.join("\n");
-        if let Some(mark) = task {
-            let tail = source[3..].trim_start_matches(' ');
-            let prefix_len = source.len() - tail.len();
-            source.replace_range(..prefix_len, mark);
-            if source.len() > mark.len() && !source[mark.len()..].starts_with('\n') {
-                source.insert(mark.len(), ' ');
-            }
-        }
-        items.push(parse_pandoc_markdown_with_defs(
-            &source,
-            tables,
-            depth + 1,
-            tasks,
-            defs,
-            raw_html,
-        )?);
-    }
-    if !loose {
-        for block in items.iter_mut().flatten() {
-            if let PandocBlock::Para(c) = block {
-                *block = PandocBlock::Plain(std::mem::take(c));
-            }
-        }
-    }
-    let numbering = start.map(|n| Numbering {
-        start: n as i64,
-        style: "Decimal".into(),
-        delimiter: if marker == b')' { "OneParen" } else { "Period" }.into(),
-    });
-    Some(PandocBlock::List(numbering, items))
 }
 
 pub(super) fn text(

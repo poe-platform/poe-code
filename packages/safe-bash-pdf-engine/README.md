@@ -1,9 +1,11 @@
-# @poe-code/pdf
+# safe-bash-pdf-engine
 
-Private PDF-rendering workspace used by the document-conversion engine.
+JavaScript PDF layout and serialization helpers used by spreadsheet conversion
+and standalone layout callers. Editor and Safe Bash Pandoc DOCX/PDF writers use
+`document-converter-rust` and the Rust document engines.
 `renderPdf(document, context)` produces PDF 1.7 bytes from explicit layout blocks
 and supplied TrueType or standard PDF fonts. `suppliedDefaultFont()` returns the packaged
-JetBrains Mono font. `pdfCapabilities()` describes the supported profile;
+JetBrains Mono font; `suppliedSansFont()` returns embedded DejaVu Sans. `pdfCapabilities()` describes the supported profile;
 `PdfError` reports capability, budget, and cancellation failures.
 `admitTrueTypeFont(bytes, fail, work)` validates sfnt tables, character maps,
 outline ranges and metrics before a custom PDF painter parses supplied fonts.
@@ -21,8 +23,8 @@ and `metadata` (`title`, `author`, `subject`, `keywords`). The default page is
 is 1.2.
 
 Paragraphs contain `kind: "paragraph"` and `runs` (`text`, optional `font`, `size`,
-`link`, `bold`, `italic`, `strikeout`, `underline`). Bold and italic use synthetic
-weight and oblique styling of the supplied font. Paragraph options are `outline`, `spaceAfter`, `keepWithNext`, `indent`, `align` (`left`, `center`, `right`),
+`link`, `bold`, `italic`, `strikeout`, `underline`, `rise` in points, and six-digit RGB `color`/`background`). A run may carry an `anchor` or an inline `image` with the same fields as an image block. Bold and italic use synthetic
+weight and oblique styling of the supplied font. Paragraph options are `id` (internal link target), `outline`, `spaceBefore`, `spaceAfter`, `keepWithNext`, `indent`, `align` (`left`, `center`, `right`),
 `widows`, `orphans`, and `longWord` (`wrap` or `error`). Images contain
 `kind: "image"`, `bytes`, `media` (`png` or `jpeg`), `width`, `height`, and optional
 `fit` (`contain` or `natural`). Tables contain `kind: "table"`, `rows`, `widths`,
@@ -42,7 +44,7 @@ dimensions and the configured image/work budgets.
 
 `limits` overrides individual ceilings. See [the exported model](src/model.ts)
 for the layout and callback types. The supported profile includes left-to-right
-Latin, Greek, and Cyrillic text with smart quotes, dashes, and ellipses, static images, and rectangular unspanned tables.
+Latin (including Latin Extended), Greek, and Cyrillic text with punctuation, covered symbols and standalone Emoticons (U+1F600–U+1F64F), static images, and rectangular unspanned tables. Emoticons require supplied font coverage and positive advances; the bundled DejaVu font supplies 63 monochrome outlines. Joiner sequences, variation selectors and emoji modifiers remain unsupported.
 Tagged accessibility, PDF/A, encryption, JavaScript, and attachments are unsupported.
 
 ## Environment variables

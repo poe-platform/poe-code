@@ -10,7 +10,8 @@ import { createFormatRegistry } from "./formats.js";
 import { ExecutionContext } from "./execution.js";
 import { ResourceSession } from "./resources.js";
 import { PandocError } from "./errors.js";
-import { mergeMetadata, mergeJsonMetadata, parseMetadataJson } from "./metadata.js";
+import { mergeMetadata, mergeJsonMetadata, parseMetadataJson, renderedDocumentMetadata } from "./metadata.js";
+import {prepareRustDocument} from "./rust-document-writer.js";
 import type { FormatSelection } from "./formats.js";
 export { PandocError } from "./errors.js";
 const defaultPdfLimits = Object.freeze({ fontBytes: Infinity, fonts: Infinity });
@@ -36,6 +37,8 @@ import {readRetainedJson} from "./retained-json.js";
 import {streamDelimited} from "./stream-delimited.js";
 import type {OutputConversionContext, ConversionSummary} from "./types.js";
 import {LocalTemplate} from "./templates.js";
+import {docxWriter} from "./docx.js";
+import {pdfWriter} from "./pdf-writer.js";
 
 class Session extends ExecutionContext {
   localTemplate: LocalTemplate | undefined;
@@ -144,7 +147,7 @@ class Session extends ExecutionContext {
         if (!pdf || typeof pdf !== "object" || Array.isArray(pdf) || Object.keys(pdf).some(key => !["pageSize", "orientation", "margin", "font", "fontSize", "lineHeight"].includes(key))) this.fail("E_OPTION", "Invalid PDF options");
         if (pdf.pageSize !== undefined && !["a4", "letter"].includes(pdf.pageSize) || pdf.orientation !== undefined && !["portrait", "landscape"].includes(pdf.orientation) || pdf.font !== undefined && !["serif", "sans", "mono"].includes(pdf.font)) this.fail("E_OPTION", "Invalid PDF named option");
         for (const [value, min, max] of [[pdf.margin, 0, 144], [pdf.fontSize, 6, 72], [pdf.lineHeight, 1, 3]] as const) if (value !== undefined && (!Number.isFinite(value) || value < min || value > max)) this.fail("E_OPTION", "Invalid PDF numeric option");
-        if (pdf.font !== undefined && pdf.font !== "mono") this.fail("E_CAPABILITY", `Bundled PDF ${pdf.font} family is unavailable; supply an explicit font resource or select mono`);
+        if (pdf.font === "serif") this.fail("E_CAPABILITY", `Bundled PDF ${pdf.font} family is unavailable; supply an explicit font resource or select sans/mono`);
         if (options.pdfPage !== undefined) this.fail("E_OPTION", "pdf and pdfPage geometry cannot be combined");
         const [width, height] = pdf.pageSize === "letter" ? [612, 792] : [595.28, 841.89];
         this.pdfPage = pdf.orientation === "landscape" ? {width: height!, height: width!, margin: pdf.margin ?? 54} : {width: width!, height: height!, margin: pdf.margin ?? 54};
@@ -237,6 +240,10 @@ class Session extends ExecutionContext {
         if (!value || typeof value !== "object" || value instanceof Uint8Array) continue;
         if ("t" in value && value.t === "Image") {
           const target = (value as Extract<import("./ast-types.js").Inline, {t: "Image" | "Link"}>).c[2];
+          if (!this.media.origins.has(target)) this.resourceTarget(target, 1);
+        }
+        if ("t" in value && (value.t === "RawInline" || value.t === "RawBlock")) {
+          const target = (value as {t: "RawInline" | "RawBlock"; c: readonly [string, string]}).c;
           if (!this.media.origins.has(target)) this.resourceTarget(target, 1);
         }
         if (Array.isArray(value)) {
@@ -353,11 +360,18 @@ class Session extends ExecutionContext {
     for (const request of filters ?? []) {
       document = await this.document(await this.call(() => this.context.filters!.apply(document, {...request}, Object.assign(this, {to: to!}))));
     }
-    if (writer.math !== "source") {
+    const rustDocument = writer === docxWriter || writer === pdfWriter;
+    const visibleMetadata = rustDocument ? await renderedDocumentMetadata(document.metadata, this) : document.metadata;
+    {
       const visit = async (value: unknown, path: string): Promise<void> => {
         { const p = this.cooperateFast(); if (p) await p; }
         if (value === null || typeof value !== "object" || value instanceof Uint8Array) return;
-        if ("t" in value && value.t === "Math")
+        if ("t" in value && value.t === "Vector") {
+          if (!rustDocument && writer.format !== "json")
+            throw new PandocError("E_UNSUPPORTED_FEATURE", this.operation, "Vector requires JSON, DOCX, or PDF output", undefined, path);
+          return;
+        }
+        if (writer.math !== "source" && "t" in value && value.t === "Math")
           throw new PandocError(
             "E_CAPABILITY",
             this.operation,
@@ -368,7 +382,7 @@ class Session extends ExecutionContext {
         for (const [key, child] of Object.entries(value)) await visit(child, `${path}.${key}`);
       };
       await visit(document.blocks, "$.blocks");
-      await visit(document.metadata, "$.metadata");
+      await visit(visibleMetadata, "$.metadata");
     }
     if (this.shiftHeadingLevelBy || this.stripComments) {
       const visit = async (value: unknown): Promise<void> => {
@@ -401,8 +415,10 @@ class Session extends ExecutionContext {
         } else for (const child of Object.values(value)) await visit(child);
       };
       await visit(document.blocks);
+      if (rustDocument) await visit(visibleMetadata);
     }
-    return await this.media.prepare(document, this.lossy, writer.imageResources === "embed" || this.embedResources);
+    if (rustDocument) await prepareRustDocument(document, this);
+    return await this.media.prepare(document, this.lossy, writer.imageResources === "embed" || this.embedResources, rustDocument);
   }
   async finish(serialized: SerializedDocument): Promise<ConversionResult> {
     this.checkpoint(0);

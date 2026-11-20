@@ -10,8 +10,18 @@ description = "Zero-dependency Rust @poe-platform/safe-bash runtime with Wasm an
 path = "src/lib.rs"
 crate-type = ["rlib", "cdylib"]
 
+[features]
+default = ["shell-wasm"]
+shell-wasm = []
+
 [dependencies]
+diagram-renderer-rust = { path = "../diagram-renderer-rust" }
+document-converter-rust = { path = "../document-converter-rust", default-features = false }
 mcp-protocol-rust = { path = "../mcp-protocol-rust" }
 poe-agent-rust = { path = "../poe-agent-rust" }
 config-mutations-rust = { path = "../config-mutations-rust" }
 terminal-png-rust = { path = "../terminal-png-rust" }
+document-ast-rust = { path = "../document-ast-rust" }
+docx-ast-rust = { path = "../docx-ast-rust" }
+pdf-ast-rust = { path = "../pdf-ast-rust" }
+office-package-rust = { path = "../office-package-rust" }

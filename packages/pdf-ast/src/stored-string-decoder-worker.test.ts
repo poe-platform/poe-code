@@ -16,9 +16,9 @@ export default {async fetch(request,env){
  }finally{Array.prototype.push=original;}
 }};`},bundle:true,write:false,platform:"browser",conditions:["workerd"],format:"esm",metafile:true,logLevel:"silent"});
  expect(Object.values(bundle.metafile!.outputs).flatMap(output=>output.imports)).toEqual([]);
- const runtime=new Miniflare({workers:[
-  {name:"strings",modules:true,compatibilityDate:"2026-07-01",cf:false,script:bundle.outputFiles[0]!.text,serviceBindings:{BACKING:"string-source"}},
-  {name:"string-source",modules:true,compatibilityDate:"2026-07-01",cf:false,script:`export default {fetch(request){const url=new URL(request.url),at=Number(url.searchParams.get('at')),n=Number(url.searchParams.get('length'));const bytes=new Uint8Array(n);for(let i=0;i<n;i++){const p=at+i;bytes[i]=p===0?254:p===1?255:p%2?65:0;}return new Response(bytes);}};`}
+ const runtime=new Miniflare({cf:false,workers:[
+  {name:"strings",modules:true,compatibilityDate:"2026-07-01",script:bundle.outputFiles[0]!.text,serviceBindings:{BACKING:"string-source"}},
+  {name:"string-source",modules:true,compatibilityDate:"2026-07-01",script:`export default {fetch(request){const url=new URL(request.url),at=Number(url.searchParams.get('at')),n=Number(url.searchParams.get('length'));const bytes=new Uint8Array(n);for(let i=0;i<n;i++){const p=at+i;bytes[i]=p===0?254:p===1?255:p%2?65:0;}return new Response(bytes);}};`}
  ]});
  try{
   for(const count of [65536,524288]){

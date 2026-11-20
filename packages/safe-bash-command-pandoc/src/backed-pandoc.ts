@@ -34,6 +34,7 @@ const shapes: Readonly<Record<string, Rule>> = {
     Image: tuple(attr, inlines, tuple("string", "string")), Note: blocks, Span: tuple(attr, inlines)
   }},
   block: {tag: {
+    Vector: {record: {width: "vector-size", height: "vector-size", nodes: list("vector-node")}},
     Plain: inlines, Para: inlines, LineBlock: list(inlines), CodeBlock: tuple(attr, "string"),
     RawBlock: tuple("string", "string"), BlockQuote: blocks,
     OrderedList: tuple(tuple("integer", enumeration("DefaultStyle", "Example", "Decimal", "LowerRoman", "UpperRoman", "LowerAlpha", "UpperAlpha"), enumeration("DefaultDelim", "Period", "OneParen", "TwoParens")), list(blocks)),
@@ -165,6 +166,16 @@ export async function validateBackedPandoc(tree: BackedJson, scratch: PagedStora
     if (typeof rule === "string") {
       if (Object.hasOwn(shapes, rule)) {await push(position, shapes[rule]!); continue;}
       if (rule === "geometry") {await geometry(position); continue;}
+      // The shared Rust mapper validates scene geometry at DOCX/PDF export.
+      if (rule === "vector-node") {
+        if (header.kind !== "object" || await invalidPrototypes?.get(BigInt(position))) await fail(position);
+        continue;
+      }
+      if (rule === "vector-size") {
+        const value = await number(position);
+        if (!Number.isFinite(value) || value <= 0 || value > 1e9) await fail(position);
+        continue;
+      }
       if (rule === "string") {await string(position); continue;}
       if (rule === "boolean") {
         if (header.kind !== "literal" || !["true", "false"].includes(await tree.smallText(position, 5) ?? "")) await fail(position);

@@ -1,5 +1,5 @@
 import {expect, it, vi} from "vitest";
-import {PDFDocument, PDFArray, PDFRawStream, decodePDFRawStream} from "pdf-lib";
+import {PDFDocument, PDFArray, PDFDict, PDFName, PDFRawStream, decodePDFRawStream} from "pdf-lib";
 import {inflateRawSync} from "node:zlib";
 import {convert, writeDocument} from "./index.js";
 import type {ConversionOptions, Document} from "./types.js";
@@ -14,11 +14,27 @@ it("uses typed PDF geometry and text size options", async () => {
   const content = new TextDecoder().decode(decodePDFRawStream(pdf.context.lookup(streams.get(0)) as PDFRawStream).decode());
   expect(content).toContain("18 Tf");
 });
-it.each([{font: "serif"}, {font: "sans"}, {lineHeight: 4}, {margin: 145}, {fontSize: 5}, {orientation: "diagonal"}])("rejects unavailable or invalid PDF option %j before acquiring input", async pdf => {
+it.each([{font: "serif"}, {lineHeight: 4}, {margin: 145}, {fontSize: 5}, {orientation: "diagonal"}])("rejects unavailable or invalid PDF option %j before acquiring input", async pdf => {
   const acquire = vi.fn();
   const chunks = (async function* () {acquire(); yield new TextEncoder().encode("input");})();
   await expect(convert([{chunks}], {from: "commonmark", to: "pdf", pdf} as ConversionOptions, {})).rejects.toMatchObject({code: ["serif", "sans"].includes(String("font" in pdf ? pdf.font : "")) ? "E_CAPABILITY" : "E_OPTION"});
   expect(acquire).not.toHaveBeenCalled();
+});
+it("admits typed sans typography and embeds its font with Unicode text mapping", async () => {
+  const acquire=vi.fn();
+  const chunks=(async function*(){acquire();yield new TextEncoder().encode("input");})();
+  const result=await convert([{chunks}],{from:"commonmark",to:"pdf",pdf:{font:"sans"}},{});
+  expect(acquire).toHaveBeenCalledOnce();
+  if(result.kind!=="binary")throw Error("Expected PDF");
+  const pdf=await PDFDocument.load(result.bytes);expect(pdf.getPageCount()).toBe(1);
+  const fonts=pdf.getPages()[0]!.node.Resources()!.lookup(PDFName.of("Font"),PDFDict);
+  const font=pdf.context.lookup(fonts.values()[0],PDFDict);
+  expect(font.get(PDFName.of("BaseFont"))?.toString()).toContain("LiberationSans");
+  const descendant=font.lookup(PDFName.of("DescendantFonts"),PDFArray).lookup(0,PDFDict);
+  const descriptor=descendant.lookup(PDFName.of("FontDescriptor"),PDFDict);
+  expect((pdf.context.lookup(descriptor.get(PDFName.of("FontFile2"))) as PDFRawStream).contents.length).toBeGreaterThan(1000);
+  const cmap=pdf.context.lookup(font.get(PDFName.of("ToUnicode"))) as PDFRawStream;
+  expect(new TextDecoder().decode(decodePDFRawStream(cmap).decode())).toContain("<0069>");
 });
 it("passes typed EPUB publication metadata and chapter selection", async () => {
   const book: Document = {...document, blocks: [{t: "Header", c: [2, ["first", [], []], [{t: "Str", c: "First"}]]}, ...document.blocks, {t: "Header", c: [2, ["second", [], []], [{t: "Str", c: "Second"}]]}], metadata: {title: {t: "MetaString", c: "Reader title"}}};

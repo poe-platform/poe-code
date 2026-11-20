@@ -15,7 +15,8 @@ type Job = {op: string; node: number; path: number; mode?: string | undefined; s
   end?: number | undefined; index?: number | undefined; text?: TextRange | undefined; saved?: TextRange | undefined;
   parts?: Job[] | undefined; sep?: string | undefined; previous?: string | undefined; next?: string | undefined; tag?: string | undefined;
   nested?: boolean | undefined; literal?: boolean | undefined; markup?: boolean | undefined; first?: string | undefined; last?: string | undefined;
-  count?: number | undefined; start?: number | undefined; width?: number | undefined; parentPath?: number | undefined};
+  count?: number | undefined; start?: number | undefined; width?: number | undefined; parentPath?: number | undefined;
+  header?: boolean | undefined; rowHeads?: number | undefined; stub?: number | undefined};
 
 /** Explicit writer continuations, names, notes and output all use caller pages. */
 class RstTape {
@@ -68,6 +69,22 @@ class RstTape {
     let first = "", last = ""; for await (const chunk of this.text.unicodeChunks(value)) {first ||= [...chunk.slice(0, 2)][0] ?? ""; last = chunk.slice(-1);} return {first, last};
   }
   private async attrsPresent(node: number): Promise<boolean> {return (await this.tree.describe(node + 32)).end > node + 64 || !!await this.count(await this.at(node, 1)) || !!await this.count(await this.at(node, 2));}
+  private async cellAttrs(node: number, path: number, alignment: string): Promise<boolean> {
+    let unsupported = (await this.tree.describe(node + 32)).end > node + 64 || !!await this.count(await this.at(node, 1)) || alignment !== "AlignDefault", header = false;
+    for await (const pair of this.tree.children(await this.at(node, 2))) {
+      const name = await this.tree.smallText(pair + 32, 5);
+      let word = "", trailing = false, invalid = false;
+      for await (const chunk of this.tree.scalarChunks(await this.at(pair, 1))) for (const char of chunk) {
+        if (!char.trim()) {if (word) trailing = true;}
+        else if (trailing || word.length >= 12) invalid = true;
+        else word += char;
+      }
+      if (!invalid && (name === "role" && ["rowheader", "columnheader"].includes(word) || name === "scope" && ["row", "col", "rowgroup", "colgroup"].includes(word.toLowerCase()))) header = true;
+      else unsupported = true;
+    }
+    if (unsupported) await this.loss("Dropped cell attributes/alignment", path);
+    return header;
+  }
   private async escape(value: TextRange, path: number, literal = false): Promise<TextRange> {
     const output = emptyText(); let buffer = "";
     for await (const chunk of this.text.chunks(value)) for (const char of chunk) {
@@ -240,7 +257,7 @@ class RstTape {
         if (job.op === "parts") child = job.parts![job.index!];
         else if (job.cursor! < job.end!) {
           const node = job.cursor!, after = (await this.tree.describe(node)).end;
-          child = {op: job.mode!, node, path: await this.path(job.path, `[${job.index}]`), index: job.index, nested: job.nested, literal: job.literal, start: job.start, parentPath: job.parentPath}; job.cursor = after;
+          child = {op: job.mode!, node, path: await this.path(job.path, `[${job.index}]`), index: job.index, nested: job.nested, literal: job.literal, start: job.start, parentPath: job.parentPath, header: job.header, rowHeads: job.rowHeads, stub: job.stub}; job.cursor = after;
           if (job.mode === "block") {child.previous = job.previous; child.next = after < job.end! ? await this.tag(after) : ""; job.next = await this.tag(node);}
         }
         if (child) {await this.push({...job, stage: 1}); await this.push(child);} else {
@@ -301,7 +318,12 @@ class RstTape {
           await this.push({op: "target", node: target + 32, path: job.path, tag}); await this.push(await child(1, "inline", {nested: true, literal: tag === "Image"})); continue;
         }
         if (tag === "Note") {if (job.nested) await this.fail("Note nested in inline markup", job.path); result = await this.literal(`[${await this.note(content!, cp)}]_`); markup = true; continue;}
-        if (tag === "Plain" || tag === "Para") {await this.push({op: "post", node: 0, path: job.path, mode: "paragraph"}); await this.push(this.list(content!, cp, "inline")); continue;}
+        if (tag === "Plain" || tag === "Para") {
+          const emphasize = job.header && await this.count(content!) && !(await this.count(content!) === 1 && await this.tag(content! + 32) === "Strong");
+          await this.push({op: "post", node: 0, path: job.path, mode: "paragraph"});
+          if (emphasize) await this.push({op: "post", node: 0, path: job.path, mode: "style", tag: "Strong", first: "**", last: "**"});
+          await this.push(this.list(content!, cp, "inline", {nested: !!emphasize})); continue;
+        }
         if (tag === "Header") {
           if (await this.number(content! + 32) > 9) await this.loss("Heading level projected to level nine", job.path);
           await this.push({op: "heading", node: content!, path: job.path}); await this.push(await child(2, "inline")); continue;
@@ -414,19 +436,22 @@ class RstTape {
       if (await this.attrsPresent(head + 32)) await this.loss("Dropped table section attributes", job.path);
       for await (const body of this.tree.children(bodies)) if (await this.attrsPresent(body + 32)) await this.loss("Dropped table section attributes", job.path);
       if (await this.attrsPresent(foot + 32)) await this.loss("Dropped table section attributes", job.path);
-      for await (const body of this.tree.children(bodies)) if (await this.number(await this.at(body, 1)) || await this.count(await this.at(body, 2))) await this.loss("Dropped body header semantics", job.path);
+      let stub: number | undefined;
+      for await (const body of this.tree.children(bodies)) {const columns = await this.number(await this.at(body, 1)); stub = stub !== undefined && stub !== columns ? 0 : columns;}
+      if (await this.count(await this.at(foot, 1))) stub = 0;
+      stub ??= 0;
       let first = 0, last = 0;
-      const rows = async (node: number) => {
+      const rows = async (node: number, rowHeads: number) => {
         for await (const row of this.tree.children(node)) {
-          const pos = this.storage.allocate(16), bytes = new Uint8Array(16); new DataView(bytes.buffer).setFloat64(8, row, true); await this.storage.write(pos, bytes);
+          const pos = this.storage.allocate(24), bytes = new Uint8Array(24), view = new DataView(bytes.buffer); view.setFloat64(8, row, true); view.setFloat64(16, rowHeads, true); await this.storage.write(pos, bytes);
           if (last) {const link = new Uint8Array(8); new DataView(link.buffer).setFloat64(0, pos, true); await this.storage.write(last, link);} else first = pos;
           last = pos; await this.context.cooperate();
         }
       };
-      await rows(await this.at(head, 1));
-      for await (const body of this.tree.children(bodies)) {await rows(await this.at(body, 2)); await rows(await this.at(body, 3));}
-      await rows(await this.at(foot, 1));
-      await this.push({...job, op: "tableRows", cursor: first, index: 0, width: await this.count(cols), text: await this.literal(`.. list-table::\n   :header-rows: ${headers}\n\n`)});
+      await rows(await this.at(head, 1), -1);
+      for await (const body of this.tree.children(bodies)) {await rows(await this.at(body, 2), await this.count(cols)); await rows(await this.at(body, 3), await this.number(await this.at(body, 1)));}
+      await rows(await this.at(foot, 1), 0);
+      await this.push({...job, op: "tableRows", cursor: first, index: 0, width: await this.count(cols), stub, text: await this.literal(`.. list-table::\n   :header-rows: ${headers}\n${stub ? `   :stub-columns: ${stub}\n` : ""}\n`)});
       return result;
     }
     if (job.op === "tableRows") {
@@ -435,18 +460,21 @@ class RstTape {
         if (!job.index || !job.width) await this.fail("Empty table", job.path);
         return job.text!;
       }
-      const bytes = await this.storage.read(job.cursor, 16), view = new DataView(bytes.buffer, bytes.byteOffset, 16), row = view.getFloat64(8, true), cells = await this.at(row, 1);
+      const bytes = await this.storage.read(job.cursor, 24), view = new DataView(bytes.buffer, bytes.byteOffset, 24), row = view.getFloat64(8, true), cells = await this.at(row, 1);
       if (await this.attrsPresent(row + 32)) await this.loss("Dropped row attributes", job.path);
       if (await this.count(cells) !== job.width) await this.fail("Incomplete or spanning table row", job.path);
       await this.push({...job, stage: 1, cursor: view.getFloat64(0, true)});
-      await this.push(this.list(cells, await this.path(job.path, `.c.rows[${job.index}]`), "tableCell", {sep: "\n", parentPath: job.path}));
+      await this.push(this.list(cells, await this.path(job.path, `.c.rows[${job.index}]`), "tableCell", {sep: "\n", parentPath: job.path, rowHeads: view.getFloat64(16, true), stub: job.stub}));
       return result;
     }
     if (job.op === "tableCell") {
       if (job.stage) return this.marked(job.index ? "     - " : "   * - ", result);
       if (await this.number(await this.at(job.node, 2)) !== 1 || await this.number(await this.at(job.node, 3)) !== 1) await this.fail("Table spans unsupported", job.parentPath!);
-      if (await this.attrsPresent(job.node + 32) || await this.tag(await this.at(job.node, 1)) !== "AlignDefault") await this.loss("Dropped cell attributes/alignment", job.parentPath!);
-      await this.push({...job, stage: 1}); await this.push(this.list(await this.at(job.node, 4), job.path, "block", {sep: "\n\n"})); return result;
+      const hint = await this.cellAttrs(job.node + 32, job.parentPath!, await this.tag(await this.at(job.node, 1)));
+      const header = job.rowHeads! >= 0 && job.index! >= job.stub! && (job.index! < job.rowHeads! || hint);
+      const blocks = await this.at(job.node, 4);
+      if (header) for await (const block of this.tree.children(blocks)) if (!["Plain", "Para"].includes(await this.tag(block))) await this.loss("Unsupported RST header cell formatting", job.parentPath!);
+      await this.push({...job, stage: 1}); await this.push(this.list(blocks, job.path, "block", {sep: "\n\n", header})); return result;
     }
     throw new Error(`Unknown retained RST job: ${job.op}`);
   }

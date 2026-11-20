@@ -3,7 +3,7 @@
 import { readFileSync, writeFileSync } from "node:fs";
 import { getEmbeddedFont, getGlyphOutline } from "../../safe-bash-command-mmdc/src/font.js";
 
-const directory = new URL("../src/commands/mermaid/", import.meta.url);
+const directory = new URL("../../diagram-renderer-rust/src/mermaid/", import.meta.url);
 const advances = readFileSync(new URL("advances.bin", directory));
 const codepoints = Array.from({ length: advances.length / 6 }, (_, i) => advances.readUInt16LE(i * 6));
 // The four synthetic ideograph shapes are selected by codepoint modulo four.

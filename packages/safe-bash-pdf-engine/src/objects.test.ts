@@ -1,8 +1,28 @@
 import {expect, it} from "vitest";
 import {PDFDocument, PDFDict, PDFArray, PDFName, PDFRawStream, PDFRef, PDFNumber, decodePDFRawStream} from "pdf-lib";
-import {renderPdf, suppliedDefaultFont, pdfCapabilities} from "./index.js";
+import {renderPdf, suppliedDefaultFont, suppliedSansFont, pdfCapabilities} from "./index.js";
 const fonts = [suppliedDefaultFont()];
 const paragraph = {kind: "paragraph" as const, runs: [{text: "AéΩЖ()\\"}]};
+it.each(["😀", "😃", "🙀"])("preserves covered standalone Emoticon %s as UTF-16 text", async text => {
+  const bytes = await renderPdf({fonts: [suppliedSansFont()], blocks: [{kind: "paragraph", runs: [{text}]}]});
+  const pdf = await PDFDocument.load(bytes);
+  const font = pdf.context.lookup(pdf.getPages()[0]!.node.Resources()!.lookup(PDFName.of("Font"), PDFDict).values()[0], PDFDict);
+  const cmap = pdf.context.lookup(font.get(PDFName.of("ToUnicode"))) as PDFRawStream;
+  const utf16 = text.split("").map(unit => unit.charCodeAt(0).toString(16).toUpperCase()).join("");
+  expect(new TextDecoder().decode(decodePDFRawStream(cmap).decode())).toContain(`<${utf16}>`);
+});
+it.each(["😀\u200d😀", "😀\ufe0f", "😀\u{1f3fb}", "🙏"])("rejects unsupported Emoticon sequences and missing glyphs: %s", async text => {
+  await expect(renderPdf({fonts: [suppliedSansFont()], blocks: [{kind: "paragraph", runs: [{text}]}]})).rejects.toMatchObject({code: "E_CAPABILITY"});
+});
+it("keeps standalone Emoticons subject to supplied font coverage", async () => {
+  await expect(renderPdf({fonts, blocks: [{kind: "paragraph", runs: [{text: "😀"}]}]})).rejects.toMatchObject({code: "E_CAPABILITY"});
+});
+it.each(["\ufffd", "\u1f50", "\u1fc6"])("preserves normalized HTML and precomposed Greek scalar %s", async text => {
+  const pdf = await PDFDocument.load(await renderPdf({fonts: [suppliedSansFont()], blocks: [{kind: "paragraph", runs: [{text}]}]}));
+  const font = pdf.context.lookup(pdf.getPages()[0]!.node.Resources()!.lookup(PDFName.of("Font"), PDFDict).values()[0], PDFDict);
+  const cmap = pdf.context.lookup(font.get(PDFName.of("ToUnicode"))) as PDFRawStream;
+  expect(new TextDecoder().decode(decodePDFRawStream(cmap).decode())).toContain(`<${text.codePointAt(0)!.toString(16).toUpperCase()}>`);
+});
 it("emits deterministic Unicode metadata, without clock-derived fields", async () => {
   const document = {fonts, blocks: [paragraph], metadata: {title: "Café (東京) \\", author: "Zoë", subject: "Résumé", keywords: ["α", "β"]}};
   const first = await renderPdf(document); const second = await renderPdf(document);
@@ -165,4 +185,17 @@ it("rejects invalid budgets before font buffers or metadata are admitted", async
     expect(await renderPdf({fonts, blocks: []}, {limits: {outputBytes}, charge}).then(() => "accepted", error => error.code as string)).toBe("E_LIMIT");
     expect(charge.mock.calls.length).toBe(0);
   }
+});
+
+it.each(["", "README.md", "../other.md#section", "/docs", "//example.com/docs", "?view=print", "notes/part:two.md", "?next=https:example.com", "notes with spaces.md", "notes/%20.md"])("preserves the PDF URI reference %s without adding a base", async uri => {
+  const bytes = await renderPdf({fonts, blocks: [{kind: "paragraph", runs: [{text: "Related note", link: uri}]}]});
+  const pdf = await PDFDocument.load(bytes);
+  const annotation = pdf.context.lookup(pdf.getPages()[0]!.node.Annots()!.get(0), PDFDict);
+  const action = annotation.lookup(PDFName.of("A"), PDFDict);
+  expect((action.get(PDFName.of("URI")) as import("pdf-lib").PDFString).decodeText()).toBe(uri);
+  expect(pdf.catalog.has(PDFName.of("URI"))).toBe(false);
+});
+
+it.each(["javascript:alert(1)", "JaVaScRiPt:alert(1)", " file:///notes.md", "data:text/html,bad", "ftp://example.com", "1:bad", "bad\npath", "#bad\u007fanchor"])("rejects unsafe or control-bearing PDF URI reference %s", async link => {
+  await expect(renderPdf({fonts, blocks: [{kind: "paragraph", runs: [{text: "Related note", link}]}]})).rejects.toMatchObject({code: "E_CAPABILITY"});
 });

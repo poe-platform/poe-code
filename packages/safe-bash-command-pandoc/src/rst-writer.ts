@@ -15,6 +15,7 @@ function markedBody(marker: string, body: string): string {
   if(body.startsWith(" ")) return marker.trimEnd() + "\n\n" + indent("..\n\n" + body, marker.length);
   return marker + indent(body, marker.length).slice(body ? marker.length : 0);
 }
+const headerAttribute = ([name, value]: readonly [string, string]) => name === "role" && ["rowheader", "columnheader"].includes(value.trim()) || name === "scope" && ["row", "col", "rowgroup", "colgroup"].includes(value.trim().toLowerCase());
 class RstWriter {
   private readonly definitions: string[] = [];
   private strikeout = false;
@@ -223,22 +224,28 @@ class RstWriter {
           for(const col of t[2]) if(col[0] !== "AlignDefault" || col[1].t !== "ColWidthDefault") this.loss("Dropped table alignment/width", p);
           const head = t[3][1];
           if(head.length > 1) this.fail("List-table supports one header row", p);
-          const rows = [...head, ...t[4].flatMap(b => [...b[2], ...b[3]]), ...t[5][1]];
+          const rows = [...head.map(row => ({row, columns: 0})), ...t[4].flatMap(b => [...b[2].map(row => ({row, columns: t[2].length})), ...b[3].map(row => ({row, columns: b[1]}))]), ...t[5][1].map(row => ({row, columns: 0}))];
           for(const section of [t[3][0], ...t[4].map(b => b[0]), t[5][0]]) if(section[0] || section[1].length || section[2].length) this.loss("Dropped table section attributes", p);
-          for(const b of t[4]) if(b[1] || b[2].length) this.loss("Dropped body header semantics", p);
-          text = `.. list-table::\n   :header-rows: ${head.length}\n\n` + rows.map((row, j) => {
+          const stub = !t[5][1].length && t[4].every(body => body[1] === t[4][0]?.[1]) ? t[4][0]?.[1] ?? 0 : 0;
+          text = `.. list-table::\n   :header-rows: ${head.length}\n${stub ? `   :stub-columns: ${stub}\n` : ""}\n` + rows.map(({row, columns}, j) => {
             if(row[0][0] || row[0][1].length || row[0][2].length) this.loss("Dropped row attributes", p);
             if(row[1].length !== t[2].length) this.fail("Incomplete or spanning table row", p);
             return row[1].map((cell, k) => {
               if(cell[2] !== 1 || cell[3] !== 1) this.fail("Table spans unsupported", p);
-              if(cell[0][0] || cell[0][1].length || cell[0][2].length || cell[1] !== "AlignDefault") this.loss("Dropped cell attributes/alignment", p);
-              const body = this.blocks(cell[4], `${p}.c.rows[${j}][${k}]`);
+              if(cell[0][0] || cell[0][1].length || cell[0][2].some(pair => !headerAttribute(pair)) || cell[1] !== "AlignDefault") this.loss("Dropped cell attributes/alignment", p);
+              const heading = j >= head.length && k >= stub && (k < columns || cell[0][2].some(headerAttribute));
+              const blocks = heading ? cell[4].map(block => {
+                if (block.t !== "Plain" && block.t !== "Para") {this.loss("Unsupported RST header cell formatting", p); return block;}
+                return block.c.length && !(block.c.length === 1 && block.c[0]?.t === "Strong") ? {...block, c: [{t: "Strong" as const, c: block.c}]} : block;
+              }) : cell[4];
+              const body = this.blocks(blocks, `${p}.c.rows[${j}][${k}]`);
               return markedBody(k ? "     - " : "   * - ", body);
             }).join("\n");
           }).join("\n");
           if(!rows.length || !t[2].length) this.fail("Empty table", p);
           break;
         }
+        case "Vector": this.fail("Vector requires JSON, DOCX, or PDF output", p);
         default: assertNever(node);
       }
       if(!text && !["Plain", "Para", "Div", "Figure"].includes(node.t)) this.fail("Empty RST structural container", p);

@@ -1,10 +1,10 @@
-import { PDFDocument, StandardFonts, rgb, PDFName, PDFDict, PDFHexString, pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject, beginText, endText, setFontAndSize, setTextMatrix, showText, setFillingRgbColor, type PDFFont, type PDFPage } from "pdf-lib";
+import { PDFDocument, StandardFonts, rgb, PDFName, PDFDict, PDFHexString, pushGraphicsState, popGraphicsState, concatTransformationMatrix, drawObject, beginText, endText, setFontAndSize, setTextMatrix, showText, setFillingRgbColor, type PDFFont, type PDFPage, type PDFRef } from "pdf-lib";
 import type {Font} from "@pdf-lib/fontkit";
 import { setTextRenderingMode, TextRenderingMode, setLineWidth, setStrokingRgbColor } from "pdf-lib";
 import {admitTrueTypeFont} from "./font-admission.js";
 import {decodePng} from "./png.js";
 import {imageBox} from "./image-box.js";
-import type { LayoutDocument, Paragraph, PdfContext, PdfLimits, TextRun } from "./model.js";
+import type { LayoutDocument, Paragraph, PdfContext, PdfLimits, TextRun, ImageBlock } from "./model.js";
 export type * from "./model.js";
 import {PdfError} from "./errors.js";
 import {pdfTextString} from "./text-string.js";
@@ -18,7 +18,7 @@ export function pdfCapabilities() {
 export const defaultPdfLimits: Readonly<PdfLimits> = Object.freeze({fontBytes: Infinity, fonts: Infinity, glyphs: Infinity, pages: Infinity, objects: Infinity, images: Infinity, imageBytes: Infinity, imagePixels: Infinity, decodedImageBytes: Infinity, layoutWork: Infinity, outputBytes: Infinity});
 function unsupported(message: string): never { throw new PdfError("E_CAPABILITY", message); }
 function positive(value: number): boolean { return Number.isFinite(value) && value > 0; }
-interface Glyph { text: string; code: string; font: PDFFont; size: number; width: number; ascent: number; descent: number; link?: string; bold: boolean; italic: boolean; strikeout: boolean; underline: boolean }
+interface Glyph { text: string; code: string; font: PDFFont; size: number; width: number; ascent: number; descent: number; link?: string; bold: boolean; italic: boolean; strikeout: boolean; underline: boolean; rise: number; background?: string; color?: string; anchor?: string; image?: PDFRef }
 interface Line { glyphs: Glyph[]; height: number; ascent: number; descent: number }
 function emptyLine(): Line {return {glyphs: [], height: 14.4, ascent: 0, descent: 0};}
 export async function renderPdf(document: LayoutDocument, context: PdfContext = {}): Promise<Uint8Array> {
@@ -66,6 +66,8 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
     info.set(PDFName.of("Keywords"), textString(document.metadata.keywords.join(" ")));
   }
   charge("objects", 1); pdf.context.trailerInfo.Info = pdf.context.register(info);
+  const anchors = new Map<string, {page: PDFPage; y: number}>();
+  const internalLinks: {node: PDFDict; id: string; page: PDFPage}[] = [];
   const outlines: {title: PDFHexString; page: PDFPage; y: number}[] = [];
   const fonts = new Map<string, PDFFont>();
   const parsedFonts = new Map<PDFFont, Font>();
@@ -86,7 +88,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
   const glyph = (text: string, run: TextRun): Glyph => {
     charge("glyphs", 1); charge("layoutWork", 1);
     const cp = text.codePointAt(0)!;
-    if (!(cp >= 32 && cp <= 126 || cp >= 160 && cp <= 255 || cp >= 0x370 && cp <= 0x52f || "‘’“”–—…".includes(text)) || cp >= 0x483 && cp <= 0x489) unsupported("Unsupported script or combining sequence");
+    if (!(cp >= 32 && cp <= 126 || cp >= 160 && cp <= 0x2af || cp >= 0x370 && cp <= 0x52f || cp >= 0x1e00 && cp <= 0x1fff || cp >= 0x2000 && cp <= 0x2bff || cp >= 0x1f600 && cp <= 0x1f64f || cp === 0xfffd) || cp >= 0x483 && cp <= 0x489) unsupported("Unsupported script or combining sequence");
     const candidates = run.font === undefined ? [...fonts.values()] : [fonts.get(run.font), ...fonts.values()];
     if (run.font !== undefined && !fonts.has(run.font)) unsupported("Unknown font identity");
     const font = candidates.find(candidate => candidate && coverage.get(candidate)!.has(cp) && (!parsedFonts.has(candidate) || parsedFonts.get(candidate)!.glyphForCodePoint(cp).id > 0));
@@ -101,13 +103,43 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
     if (previous !== undefined && previous !== cp) unsupported("Conflicting Unicode scalars share an emitted font glyph");
     scalars.set(encoded, cp);
     const size = run.size ?? 12; if (!positive(size) || size > 144) unsupported("Invalid font size");
-    if (run.link !== undefined) { let url: URL; try { url = new URL(run.link); } catch { unsupported("Invalid link"); } if (!["https:", "http:", "mailto:"].includes(url.protocol)) unsupported("Unsafe link scheme"); }
+    if (run.link !== undefined) {
+      if (/[\u0000-\u001f\u007f]/u.test(run.link)) unsupported("Invalid link");
+      // PDF URI actions preserve references; resolution belongs to the viewer.
+      const first = run.link.split(/[/?#]/u, 1)[0]!;
+      const colon = first.indexOf(":");
+      if (colon >= 0 && !["https", "http", "mailto"].includes(first.slice(0, colon).toLowerCase())) unsupported("Unsafe link scheme");
+    }
     const width = parsedGlyph ? parsedGlyph.advanceWidth / parsed!.unitsPerEm * size : font.widthOfTextAtSize(text, size);
     if (!positive(width)) unsupported(`Nonadvancing glyph U+${cp.toString(16)}`);
     const ascent = parsed ? parsed.ascent / parsed.unitsPerEm * size : font.heightAtSize(size, {descender: false});
     const descent = parsed ? -parsed.descent / parsed.unitsPerEm * size : font.heightAtSize(size) - ascent;
     if (!positive(ascent) || !Number.isFinite(descent) || descent < 0) unsupported("Invalid vertical font metrics");
-    return {text, code: encoded, font, size, width, ascent, descent, bold: parsed ? run.bold ?? false : false, italic: parsed ? run.italic ?? false : false, strikeout: run.strikeout ?? false, underline: run.underline ?? false, ...(run.link === undefined ? {} : {link: run.link})};
+    const rise = run.rise ?? 0;
+    if (!Number.isFinite(rise) || Math.abs(rise) > 144) unsupported("Invalid baseline displacement");
+    for (const color of [run.background, run.color]) if (color !== undefined && (color.length !== 6 || [...color].some(c => !"0123456789abcdefABCDEF".includes(c)))) unsupported("Invalid text color");
+    return {text, code: encoded, font, size, width, ascent: Math.max(0, ascent + rise), descent: Math.max(0, descent - rise), rise, ...(run.background === undefined ? {} : {background: run.background}), ...(run.color === undefined ? {} : {color: run.color}), bold: parsed ? run.bold ?? false : false, italic: parsed ? run.italic ?? false : false, strikeout: run.strikeout ?? false, underline: run.underline ?? false, ...(run.link === undefined ? {} : {link: run.link})};
+  };
+  const embeddedImages = new Map<Uint8Array, PDFRef>();
+  const embedImage = async (block: ImageBlock): Promise<PDFRef> => {
+    const prior = embeddedImages.get(block.bytes);
+    if (prior) return prior;
+      charge("images", 1); charge("imageBytes", block.bytes.length); charge("objects", 3);
+      const bytes = block.bytes;
+      const {pixels} = imageBox(block, box, unsupported, () => charge("layoutWork", 1));
+      charge("imagePixels", pixels);
+      charge("decodedImageBytes", pixels * 16 + 65536);
+      let imageRef;
+      if (block.media === "png") {
+        const decoded = decodePng(bytes, amount => charge("layoutWork", amount));
+        const mask = decoded.alpha === undefined ? undefined : pdf.context.register(pdf.context.flateStream(decoded.alpha, {Type: "XObject", Subtype: "Image", Width: decoded.width, Height: decoded.height, BitsPerComponent: 8, ColorSpace: "DeviceGray"}));
+        imageRef = pdf.context.register(pdf.context.flateStream(decoded.rgb, {Type: "XObject", Subtype: "Image", Width: decoded.width, Height: decoded.height, BitsPerComponent: 8, ColorSpace: "DeviceRGB", SMask: mask}));
+      } else {
+        try {imageRef = (await pdf.embedJpg(new Uint8Array(bytes))).ref;}
+        catch {unsupported("Invalid image bytes");}
+      }
+    embeddedImages.set(block.bytes, imageRef);
+    return imageRef;
   };
   const lines = async (block: Paragraph, width: number): Promise<Line[]> => {
     charge("layoutWork", 1);
@@ -125,7 +157,18 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
       }
       word = []; wordWidth = 0;
     };
-    for (const run of block.runs) for (const scalar of run.text) {
+    for (const run of block.runs) {
+      if (run.image) {
+        flush();
+        const image: ImageBlock = {kind: "image", ...run.image};
+        const dimensions = imageBox(image, box, unsupported, () => charge("layoutWork", 1));
+        const scale = Math.min(1, width / dimensions.width);
+        const g = glyph(" ", run), imageRef = await embedImage(image);
+        word.push({...g, text: "", code: "", width: dimensions.width * scale, ascent: dimensions.height * scale, descent: 0, image: imageRef});
+        wordWidth = dimensions.width * scale; flush();
+      }
+      if (run.anchor) {const g = glyph(" ", run); word.push({...g, text: "", code: "", width: 0, anchor: run.anchor});}
+      for (const scalar of run.text) {
       charge("layoutWork", 1);
       if (scalar === "\n") { flush(); result.push(line); line = emptyLine(); used = 0; continue; }
       const g = glyph(scalar === "\t" ? " " : scalar, run);
@@ -133,6 +176,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
       word.push(g); wordWidth += g.width;
       if (scalar === " " || scalar === "\t") flush();
       if (usage.layoutWork % 256 === 0) await cooperate();
+    }
     }
     flush(); if (line.glyphs.length || !result.length) result.push(line);
     return result;
@@ -146,21 +190,41 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
     x += align === "right" ? width - lineWidth : align === "center" ? (width - lineWidth) / 2 : 0;
     context.onPlacement?.({kind: "text", page: usage.pages, x, y: baselineTop, width: lineWidth, height: line.height, text: line.glyphs.map(g => g.text).join("")});
     for (let i = 0; i < line.glyphs.length;) {
-      const g = line.glyphs[i]!; let codes = ""; let width = 0;
+      const g = line.glyphs[i]!;
+      if (g.image) {
+        const y = box.height - baselineTop - line.ascent;
+        const key = page.node.newXObject("Image", g.image);
+        page.pushOperators(pushGraphicsState(), concatTransformationMatrix(g.width, 0, 0, g.ascent, x, y), drawObject(key), popGraphicsState());
+        context.onPlacement?.({kind: "image", page: usage.pages, x, y: box.height - y - g.ascent, width: g.width, height: g.ascent});
+        x += g.width; i++; continue;
+      }
+      if (g.anchor && !anchors.has(g.anchor)) anchors.set(g.anchor, {page, y: box.height - baselineTop});
+      let codes = ""; let width = 0;
       do {
         charge("layoutWork", 1); const current = line.glyphs[i++]!; codes += current.code; width += current.width;
-      } while (i < line.glyphs.length && line.glyphs[i]!.font === g.font && line.glyphs[i]!.size === g.size && line.glyphs[i]!.link === g.link && line.glyphs[i]!.bold === g.bold && line.glyphs[i]!.italic === g.italic && line.glyphs[i]!.strikeout === g.strikeout && line.glyphs[i]!.underline === g.underline);
+      } while (i < line.glyphs.length && line.glyphs[i]!.font === g.font && line.glyphs[i]!.size === g.size && line.glyphs[i]!.link === g.link && line.glyphs[i]!.bold === g.bold && line.glyphs[i]!.italic === g.italic && line.glyphs[i]!.strikeout === g.strikeout && line.glyphs[i]!.underline === g.underline && line.glyphs[i]!.rise === g.rise && line.glyphs[i]!.background === g.background && line.glyphs[i]!.color === g.color && !line.glyphs[i]!.anchor && !line.glyphs[i]!.image);
       charge("objects", 1);
       let fontKey = fontKeys.get(g.font);
       if (!fontKey) {fontKey = page.node.newFontDictionary("Font", g.font.ref); fontKeys.set(g.font, fontKey);}
       // Use admitted scalar codes directly: no cross-scalar ligatures or shaping.
-      const baseline = box.height - baselineTop - line.ascent;
-      page.pushOperators(pushGraphicsState(), setFillingRgbColor(0, 0, 0), setStrokingRgbColor(0, 0, 0), setLineWidth(g.size / 40), beginText(), setFontAndSize(fontKey, g.size), setTextRenderingMode(g.bold ? TextRenderingMode.FillAndOutline : TextRenderingMode.Fill), setTextMatrix(1, 0, g.italic ? 0.2 : 0, 1, x, baseline), showText(PDFHexString.of(codes)), endText(), popGraphicsState());
+      const baseline = box.height - baselineTop - line.ascent + g.rise;
+      if (g.background && width) {
+        charge("objects", 1);
+        const color = [0, 2, 4].map(offset => parseInt(g.background!.slice(offset, offset + 2), 16) / 255);
+        page.drawRectangle({x, y: box.height - baselineTop - line.height, width, height: line.height, color: rgb(color[0]!, color[1]!, color[2]!)});
+      }
+      const color = [0, 2, 4].map(offset => parseInt((g.color ?? "000000").slice(offset, offset + 2), 16) / 255);
+      page.pushOperators(pushGraphicsState(), setFillingRgbColor(color[0]!, color[1]!, color[2]!), setStrokingRgbColor(color[0]!, color[1]!, color[2]!), setLineWidth(g.size / 40), beginText(), setFontAndSize(fontKey, g.size), setTextRenderingMode(g.bold ? TextRenderingMode.FillAndOutline : TextRenderingMode.Fill), setTextMatrix(1, 0, g.italic ? 0.2 : 0, 1, x, baseline), showText(PDFHexString.of(codes)), endText(), popGraphicsState());
       for (const offset of [...g.strikeout ? [g.size * 0.3] : [], ...g.underline ? [-g.size * 0.15] : []]) {
         charge("objects", 1); charge("layoutWork", 1);
-        page.drawLine({start: {x, y: baseline + offset}, end: {x: x + width, y: baseline + offset}, thickness: g.size / 20, color: rgb(0, 0, 0)});
+        page.drawLine({start: {x, y: baseline + offset}, end: {x: x + width, y: baseline + offset}, thickness: g.size / 20, color: rgb(color[0]!, color[1]!, color[2]!)});
       }
-      if (g.link) { charge("objects", 1); const ref = pdf.context.register(pdf.context.obj({Type: "Annot", Subtype: "Link", Rect: [x, box.height - baselineTop - line.height, x + width, box.height - baselineTop], Border: [0, 0, 0], A: {Type: "Action", S: "URI", URI: textString(g.link)}})); page.node.addAnnot(ref); }
+      if (g.link !== undefined && width) {
+        charge("objects", 1);
+        const node = pdf.context.obj({Type: "Annot", Subtype: "Link", Rect: [x, box.height - baselineTop - line.height, x + width, box.height - baselineTop], Border: [0, 0, 0]});
+        if (g.link.startsWith("#")) internalLinks.push({node, id: g.link.slice(1), page});
+        else {node.set(PDFName.of("A"), pdf.context.obj({Type: "Action", S: "URI", URI: textString(g.link)})); page.node.addAnnot(pdf.context.register(node));}
+      }
       x += width;
     }
   };
@@ -169,6 +233,9 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
     const block = document.blocks[blockIndex]!;
     charge("layoutWork", 1); if (block.breakBefore && top > box.margin) newPage();
     if (block.kind === "paragraph") {
+      const before = block.spaceBefore ?? 0;
+      if (!Number.isFinite(before) || before < 0) unsupported("Invalid paragraph spacing");
+      if (top > box.margin) top += before;
       const indent = block.indent ?? 0; if (!Number.isFinite(indent) || indent < 0) unsupported("Invalid indent");
       const prepared = await lines(block, box.width - 2 * box.margin - indent);
       const height = prepared.reduce((sum, line) => sum + line.height, 0);
@@ -193,7 +260,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
             nextHeight += rowHeight;
           }
         }
-        const needed = height + (block.spaceAfter ?? 8) + nextHeight;
+        const needed = height + (block.spaceAfter ?? 8) + (next.kind === "paragraph" ? next.spaceBefore ?? 0 : 0) + nextHeight;
         room(needed);
       } else if (block.keepTogether) room(height);
       let cursor = 0;
@@ -206,6 +273,7 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
           if (count < orphans && top > box.margin) count = 0;
         }
         if (!count) { if (top > box.margin) {newPage(); continue;} room(prepared[cursor]!.height); count = 1; }
+        if (cursor === 0 && block.id && !anchors.has(block.id)) anchors.set(block.id, {page: page!, y: box.height - top});
         if (cursor === 0 && block.outline !== undefined) {
           charge("objects", outlines.length ? 1 : 2);
           outlines.push({title: textString(block.outline), page: page!, y: box.height - top});
@@ -283,20 +351,8 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
       context.onPlacement?.({kind: "rule", page: usage.pages, x, y, width, height: 0.5});
       top += 16;
     } else if (block.kind === "image") {
-      charge("images", 1); charge("imageBytes", block.bytes.length); charge("objects", 3);
-      const bytes = block.bytes;
-      const {width, height, pixels} = imageBox(block, box, unsupported, () => charge("layoutWork", 1));
-      charge("imagePixels", pixels);
-      charge("decodedImageBytes", pixels * 16 + 65536);
-      let imageRef;
-      if (block.media === "png") {
-        const decoded = decodePng(bytes, amount => charge("layoutWork", amount));
-        const mask = decoded.alpha === undefined ? undefined : pdf.context.register(pdf.context.flateStream(decoded.alpha, {Type: "XObject", Subtype: "Image", Width: decoded.width, Height: decoded.height, BitsPerComponent: 8, ColorSpace: "DeviceGray"}));
-        imageRef = pdf.context.register(pdf.context.flateStream(decoded.rgb, {Type: "XObject", Subtype: "Image", Width: decoded.width, Height: decoded.height, BitsPerComponent: 8, ColorSpace: "DeviceRGB", SMask: mask}));
-      } else {
-        try {imageRef = (await pdf.embedJpg(new Uint8Array(bytes))).ref;}
-        catch {unsupported("Invalid image bytes");}
-      }
+      const {width, height} = imageBox(block, box, unsupported, () => charge("layoutWork", 1));
+      const imageRef = await embedImage(block);
       room(height);
       context.onPlacement?.({kind: "image", page: usage.pages, x: box.margin, y: top, width, height});
       const key = page!.node.newXObject("Image", imageRef);
@@ -306,6 +362,10 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
     await cooperate();
   }
   check();
+  for (const {node, id, page} of internalLinks) {
+    const target = anchors.get(id);
+    if (target) {node.set(PDFName.of("Dest"), pdf.context.obj([target.page.ref, "XYZ", null, target.y, null])); page.node.addAnnot(pdf.context.register(node));}
+  }
   if (outlines.length) {
     const root = pdf.context.obj({Type: "Outlines", Count: outlines.length}); const rootRef = pdf.context.register(root);
     const entries: PDFDict[] = outlines.map(entry => pdf.context.obj({Title: entry.title, Parent: rootRef, Dest: [entry.page.ref, "XYZ", null, entry.y, null]}));
@@ -328,3 +388,5 @@ export async function renderPdf(document: LayoutDocument, context: PdfContext = 
 export { suppliedDefaultFont } from "./default-font.js";
 
 export {admitTrueTypeFont} from "./font-admission.js";
+
+export {suppliedSansFont} from "./sans-font.js";

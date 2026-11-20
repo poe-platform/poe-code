@@ -1,7 +1,59 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { readFile } from "node:fs/promises";
 import { build } from "esbuild";
 import { Miniflare } from "miniflare";
+
+test("public document converter includes its embedded font and data licenses", async () => {
+  for (const name of ["Liberation", "DejaVu", "NotoSansSC", "JetBrainsMono", "Unicode", "Python"]) {
+    const expected = await readFile(new URL(`../../document-converter-rust/dist/LICENSE.${name}`, import.meta.url));
+    const actual = await readFile(new URL(`../dist/document-converter/LICENSE.${name}`, import.meta.url));
+    assert.deepEqual(actual, expected, name);
+  }
+});
+
+test("portable Pandoc exports DOCX and PDF in workerd without runtime compilation", { timeout: 30000 }, async () => {
+  const outdir = new URL("../../../out/workerd-documents/", import.meta.url).pathname;
+  const result = await build({
+    stdin: { resolveDir: new URL("../", import.meta.url).pathname, contents: `
+      import { convert } from "@poe-platform/safe-bash/commands/pandoc";
+      export default { async fetch() {
+        if (typeof Buffer !== "undefined" || typeof process !== "undefined") throw new Error("Node globals present");
+        const outputs = await Promise.all(["docx", "pdf"].map(async to => {
+          const output = await convert([{bytes: new TextEncoder().encode("# Portable export\\n\\nShared **Rust** document.")}],
+            {from: "commonmark", to}, {yield: async () => {}});
+          if (output.kind !== "binary") throw new Error("Expected binary " + to);
+          const signature = [...output.bytes.subarray(0, 4)];
+          const text = await convert([{bytes: output.bytes}], {from: to, to: "plain"}, {yield: async () => {}});
+          if (text.kind !== "text" || !text.text.includes("Portable export") || !text.text.includes("Rust"))
+            throw new Error("Document content did not survive " + to + " readback");
+          return {to, signature};
+        }));
+        return Response.json(outputs);
+      }};
+    ` },
+    bundle: true, platform: "browser", format: "esm", conditions: ["workerd"], write: false, logLevel: "silent",
+    tsconfigRaw: {}, alias: { "poe-code/safe-fs/core": "@poe-code/safe-fs/core" },
+    loader: { ".wasm": "copy" }, outdir,
+  });
+  const worker = new Miniflare({
+    rootPath: new URL("../../../out/", import.meta.url).pathname, modulesRoot: outdir,
+    modules: [...result.outputFiles].sort((a, b) => Number(a.path.endsWith(".wasm")) - Number(b.path.endsWith(".wasm"))).map(file => ({
+      type: file.path.endsWith(".wasm") ? "CompiledWasm" : "ESModule",
+      path: file.path, contents: file.path.endsWith(".wasm") ? file.contents : file.text,
+    })),
+    compatibilityDate: "2026-07-08", compatibilityFlags: [],
+  });
+  try {
+    const response = await worker.dispatchFetch("http://fixture/");
+    const body = await response.text();
+    assert.equal(response.status, 200, body);
+    assert.deepEqual(JSON.parse(body), [
+      {to: "docx", signature: [80, 75, 3, 4]},
+      {to: "pdf", signature: [37, 80, 68, 70]},
+    ]);
+  } finally { await worker.dispose(); }
+});
 
 test("portable shell executes in workerd without Node compatibility", { timeout: 30000 }, async () => {
   const result = await build({

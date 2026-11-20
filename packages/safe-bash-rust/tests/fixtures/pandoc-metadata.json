@@ -1,0 +1,1602 @@
+[
+  {
+    "id": "markdown",
+    "from": "markdown",
+    "source": "---\ntitle: Hello *world*\nauthor: [Alice, Bob]\n---\n\nBody.\n",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Hello"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "world"
+              }
+            ]
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaList",
+        "c": [
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Alice"
+              }
+            ]
+          },
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Bob"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "gfm",
+    "from": "gfm",
+    "source": "---\ntitle: Hello *world*\nauthor: [Alice, Bob]\n---\n\nBody.\n",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Hello"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "world"
+              }
+            ]
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaList",
+        "c": [
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Alice"
+              }
+            ]
+          },
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Bob"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark",
+    "from": "commonmark",
+    "source": "---\ntitle: Hello *world*\nauthor: [Alice, Bob]\n---\n\nBody.\n",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Hello"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "world"
+              }
+            ]
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaList",
+        "c": [
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Alice"
+              }
+            ]
+          },
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Bob"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark_x",
+    "from": "commonmark_x",
+    "source": "---\ntitle: Hello *world*\nauthor: [Alice, Bob]\n---\n\nBody.\n",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Hello"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "world"
+              }
+            ]
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaList",
+        "c": [
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Alice"
+              }
+            ]
+          },
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Bob"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "markdown-yaml_metadata_block",
+    "from": "markdown-yaml_metadata_block",
+    "source": "---\ntitle: Hello *world*\nauthor: [Alice, Bob]\n---\n\nBody.\n",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Hello"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "world"
+              }
+            ]
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaList",
+        "c": [
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Alice"
+              }
+            ]
+          },
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Bob"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "gfm-yaml_metadata_block",
+    "from": "gfm-yaml_metadata_block",
+    "source": "---\ntitle: Hello *world*\nauthor: [Alice, Bob]\n---\n\nBody.\n",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Hello"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "world"
+              }
+            ]
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaList",
+        "c": [
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Alice"
+              }
+            ]
+          },
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Bob"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "commonmark+yaml_metadata_block",
+    "from": "commonmark+yaml_metadata_block",
+    "source": "---\ntitle: Hello *world*\nauthor: [Alice, Bob]\n---\n\nBody.\n",
+    "error": "Unsupported extension: yaml_metadata_block"
+  },
+  {
+    "id": "commonmark-yaml_metadata_block",
+    "from": "commonmark-yaml_metadata_block",
+    "source": "---\ntitle: Hello *world*\nauthor: [Alice, Bob]\n---\n\nBody.\n",
+    "error": "Unsupported extension: yaml_metadata_block"
+  },
+  {
+    "id": "typed",
+    "from": "markdown",
+    "source": "---\ntitle: Hello *world*\nvalues: [\"**bold**\", {label: \"`code`\"}]\nnumber: 12\nflag: true\nquoted_bool: \"true\"\nnullval: null\nnulls: [null, one, null]\n---\n\nBody.\n",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Hello"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "world"
+              }
+            ]
+          }
+        ]
+      },
+      "values": {
+        "t": "MetaList",
+        "c": [
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Strong",
+                "c": [
+                  {
+                    "t": "Str",
+                    "c": "bold"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "t": "MetaMap",
+            "c": {
+              "label": {
+                "t": "MetaInlines",
+                "c": [
+                  {
+                    "t": "Code",
+                    "c": [
+                      [
+                        "",
+                        [],
+                        []
+                      ],
+                      "code"
+                    ]
+                  }
+                ]
+              }
+            }
+          }
+        ]
+      },
+      "number": {
+        "t": "MetaString",
+        "c": "12"
+      },
+      "flag": {
+        "t": "MetaBool",
+        "c": true
+      },
+      "quoted_bool": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "true"
+          }
+        ]
+      },
+      "nulls": {
+        "t": "MetaList",
+        "c": [
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "one"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quoted_escape",
+    "from": "markdown",
+    "source": "---\ntitle: \"Hello \\u263a\"\n---\n\nBody.\n",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Hello"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "☺"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "block",
+    "from": "markdown",
+    "source": "---\ntitle: |\n  one\n  two\n---\n\nBody.\n",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "one"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "two"
+          },
+          {
+            "t": "SoftBreak"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "block_empty",
+    "from": "markdown",
+    "source": "---\ntitle: |\n  one\n\n  two\n---\n\nBody.\n",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "HorizontalRule"
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "title:"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "|"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "one"
+          }
+        ]
+      },
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "two",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "two"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "nested",
+    "from": "markdown",
+    "source": "---\nauthor:\n  - Alice\n  - Bob\ncustom:\n  nested: yes\n  flag: false\n---\n\nBody.\n",
+    "meta": {
+      "author": {
+        "t": "MetaList",
+        "c": [
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Alice"
+              }
+            ]
+          },
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Bob"
+              }
+            ]
+          }
+        ]
+      },
+      "custom": {
+        "t": "MetaMap",
+        "c": {
+          "nested": {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "yes"
+              }
+            ]
+          },
+          "flag": {
+            "t": "MetaBool",
+            "c": false
+          }
+        }
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "alias",
+    "from": "markdown",
+    "source": "---\ntitle: &label Shared\nsubtitle: *label\n---\n\nBody.\n",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Shared"
+          }
+        ]
+      },
+      "subtitle": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Shared"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "duplicate",
+    "from": "markdown",
+    "source": "---\ntitle: one\ntitle: two\n---\n\nBody.\n",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "HorizontalRule"
+      },
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "title-one-title-two",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "title:"
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Str",
+              "c": "one"
+            },
+            {
+              "t": "SoftBreak"
+            },
+            {
+              "t": "Str",
+              "c": "title:"
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Str",
+              "c": "two"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "invalid",
+    "from": "markdown",
+    "source": "---\ntitle: [unterminated\n---\n\nBody.\n",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "HorizontalRule"
+      },
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "title-unterminated",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "title:"
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Str",
+              "c": "[unterminated"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "comment",
+    "from": "markdown",
+    "source": "---\ntitle: Hi\n# comment\n---\n\nBody.\n",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "HorizontalRule"
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "title:"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Hi"
+          }
+        ]
+      },
+      {
+        "t": "Header",
+        "c": [
+          1,
+          [
+            "comment",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "comment"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "HorizontalRule"
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "indented_comment",
+    "from": "markdown",
+    "source": "---\ntitle: Hi\n  # comment\n---\n\nBody.\n",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Hi"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "blank",
+    "from": "markdown",
+    "source": "---\ntitle: Hi\n\nauthor: A\n---\n\nBody.\n",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "HorizontalRule"
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "title:"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Hi"
+          }
+        ]
+      },
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "author-a",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "author:"
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Str",
+              "c": "A"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "quoted_key",
+    "from": "markdown",
+    "source": "---\n\"title\": Hello\n---\n\nBody.\n",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "HorizontalRule"
+      },
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "title-hello",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Quoted",
+              "c": [
+                {
+                  "t": "DoubleQuote"
+                },
+                [
+                  {
+                    "t": "Str",
+                    "c": "title"
+                  }
+                ]
+              ]
+            },
+            {
+              "t": "Str",
+              "c": ":"
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Str",
+              "c": "Hello"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unicode_key",
+    "from": "markdown",
+    "source": "---\nタイトル: Hello\n---\n\nBody.\n",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "HorizontalRule"
+      },
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "タイトル-hello",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "タイトル:"
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Str",
+              "c": "Hello"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "date",
+    "from": "markdown",
+    "source": "---\ndate: 2026-11-20\n---\n\nBody.\n",
+    "meta": {
+      "date": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "2026-11-20"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "infinity",
+    "from": "markdown",
+    "source": "---\nnumber: .inf\n---\n\nBody.\n",
+    "meta": {
+      "number": {
+        "t": "MetaString",
+        "c": "Infinity"
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "image",
+    "from": "markdown",
+    "source": "---\ntitle: \"![title](image.png)\"\ncustom: \"![unused](missing.png)\"\n---\n\nBody.\n",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "title"
+                }
+              ],
+              [
+                "image.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      },
+      "custom": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Image",
+            "c": [
+              [
+                "",
+                [],
+                []
+              ],
+              [
+                {
+                  "t": "Str",
+                  "c": "unused"
+                }
+              ],
+              [
+                "missing.png",
+                ""
+              ]
+            ]
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "body_reference",
+    "from": "markdown",
+    "source": "---\ntitle: \"[Title][target]\"\n---\n\nBody.\n\n[target]: https://example.org\n",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "[Title][target]"
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "empty_object",
+    "from": "markdown",
+    "source": "---\ntitle: {}\n---\n\nBody.\n",
+    "meta": {
+      "title": {
+        "t": "MetaMap",
+        "c": {}
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "leading_blank",
+    "from": "markdown",
+    "source": "\n---\ntitle: Hello *world*\nauthor: [Alice, Bob]\n---\n\nBody.\n",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "HorizontalRule"
+      },
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "title-hello-world-author-alice-bob",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "title:"
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Str",
+              "c": "Hello"
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Emph",
+              "c": [
+                {
+                  "t": "Str",
+                  "c": "world"
+                }
+              ]
+            },
+            {
+              "t": "SoftBreak"
+            },
+            {
+              "t": "Str",
+              "c": "author:"
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Str",
+              "c": "[Alice,"
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Str",
+              "c": "Bob]"
+            }
+          ]
+        ]
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "bom",
+    "from": "markdown",
+    "source": "﻿---\ntitle: Hello *world*\nauthor: [Alice, Bob]\n---\n\nBody.\n",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Hello"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "world"
+              }
+            ]
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaList",
+        "c": [
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Alice"
+              }
+            ]
+          },
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Bob"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "closing_dot",
+    "from": "markdown",
+    "source": "---\ntitle: Hello *world*\nauthor: [Alice, Bob]\n...\n\nBody.\n",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Hello"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "world"
+              }
+            ]
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaList",
+        "c": [
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Alice"
+              }
+            ]
+          },
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Bob"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "no_body",
+    "from": "markdown",
+    "source": "---\ntitle: Hi\n---\n",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "HorizontalRule"
+      },
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "title-hi",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "title:"
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Str",
+              "c": "Hi"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "no_closing_newline",
+    "from": "markdown",
+    "source": "---\ntitle: Hi\n---",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "HorizontalRule"
+      },
+      {
+        "t": "Header",
+        "c": [
+          2,
+          [
+            "title-hi",
+            [],
+            []
+          ],
+          [
+            {
+              "t": "Str",
+              "c": "title:"
+            },
+            {
+              "t": "Space"
+            },
+            {
+              "t": "Str",
+              "c": "Hi"
+            }
+          ]
+        ]
+      }
+    ]
+  },
+  {
+    "id": "crlf",
+    "from": "markdown",
+    "source": "---\r\ntitle: Hello *world*\r\nauthor: [Alice, Bob]\r\n---\r\n\r\nBody.\r\n",
+    "meta": {
+      "title": {
+        "t": "MetaInlines",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Hello"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Emph",
+            "c": [
+              {
+                "t": "Str",
+                "c": "world"
+              }
+            ]
+          }
+        ]
+      },
+      "author": {
+        "t": "MetaList",
+        "c": [
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Alice"
+              }
+            ]
+          },
+          {
+            "t": "MetaInlines",
+            "c": [
+              {
+                "t": "Str",
+                "c": "Bob"
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "blocks": [
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "unclosed",
+    "from": "markdown",
+    "source": "---\ntitle: Hi\nBody.\n",
+    "meta": {},
+    "blocks": [
+      {
+        "t": "HorizontalRule"
+      },
+      {
+        "t": "Para",
+        "c": [
+          {
+            "t": "Str",
+            "c": "title:"
+          },
+          {
+            "t": "Space"
+          },
+          {
+            "t": "Str",
+            "c": "Hi"
+          },
+          {
+            "t": "SoftBreak"
+          },
+          {
+            "t": "Str",
+            "c": "Body."
+          }
+        ]
+      }
+    ]
+  }
+]

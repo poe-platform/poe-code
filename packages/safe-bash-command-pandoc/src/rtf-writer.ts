@@ -1,13 +1,13 @@
 import { taskListState } from "./task-list.js";
 import { PandocError } from "./errors.js";
-import type { Attr, Block, Inline, Alignment } from "./ast-types.js";
+import type { Attr, Block, Inline, Alignment, Row } from "./ast-types.js";
 import type { AdapterContext, Document, SerializedDocument } from "./types.js";
 import { inspectRtfPicture } from "./rtf-pictures.js";
 
 const formatting = {Emph: "i", Strong: "b", Underline: "ul", Strikeout: "strike", Superscript: "super", Subscript: "sub", SmallCaps: "scaps"};
 const alignments = {AlignDefault: "ql", AlignLeft: "ql", AlignRight: "qr", AlignCenter: "qc"};
 interface ListSpec {id: number; level: number; nfc: number; start: number; delim: string}
-interface Paragraph {indent: number; direction: "ltr" | "rtl"; cell?: Alignment; marker?: string | undefined; style?: number; list?: ListSpec}
+interface Paragraph {indent: number; direction: "ltr" | "rtl"; cell?: Alignment; header?: boolean; marker?: string | undefined; style?: number; list?: ListSpec}
 
 class RtfWriter {
   private readonly chunks: string[] = [];
@@ -140,6 +140,7 @@ class RtfWriter {
   async paragraph(nodes: readonly Inline[], state: Paragraph, attr?: Attr): Promise<void> {
     this.add(`{\\pard\\plain\\s${state.style ?? 0}`);
     if(state.style) this.add(`\\b\\fs${40 - state.style * 2}`);
+    else if(state.header) this.add("\\b");
     this.add(`\\li${state.indent}\\fi${state.marker ? -360 : 0}\\${state.direction}par`);
     if(state.cell) this.add(`\\intbl\\${alignments[state.cell]}`);
     if(attr) this.attrs(attr, true);
@@ -199,8 +200,10 @@ class RtfWriter {
           const widths = t[2].map(c => c[1].t === "ColWidth" ? c[1].c : 1 / t[2].length);
           const total = widths.reduce((sum, n) => sum + n, 0);
           if(!widths.length || !Number.isFinite(total) || total <= 0) this.fail("Invalid RTF table widths");
-          for(const body of t[4]) if(body[1]) this.fail("RTF row headers unsupported");
-          for(const section of [t[3][1], ...t[4].flatMap(b => [b[2], b[3]]), t[5][1]]) for(const row of section) {
+          const sections: [readonly Row[], number][] = [[t[3][1], widths.length]];
+          for(const body of t[4]) sections.push([body[2], widths.length], [body[3], body[1]]);
+          sections.push([t[5][1], 0]);
+          for(const [section, rowHeads] of sections) for(const row of section) {
             if(row[0][0] || row[0][1].length || row[0][2].length || row[1].length !== widths.length) this.fail("Unsupported RTF table row");
             this.add("{\\trowd"); let width = 0, previous = 0;
             for(const fraction of widths) {
@@ -210,8 +213,14 @@ class RtfWriter {
             }
             this.add("\\intbl ");
             for(const [j, cell] of row[1].entries()) {
-              if(cell[2] !== 1 || cell[3] !== 1 || cell[0][0] || cell[0][1].length || cell[0][2].length) this.fail("RTF merged or attributed cells unsupported");
-              const cellState = {...state, indent: 0, cell: cell[1] === "AlignDefault" ? t[2][j]![0] : cell[1]};
+              if(cell[2] !== 1 || cell[3] !== 1 || cell[0][0] || cell[0][1].length) this.fail("RTF merged or attributed cells unsupported");
+              let header = j < rowHeads;
+              for(const [name, value] of cell[0][2]) {
+                if(name === "role" && ["rowheader", "columnheader"].includes(value.trim()) ||
+                  name === "scope" && ["row", "col", "rowgroup", "colgroup"].includes(value.trim().toLowerCase())) header = true;
+                else this.fail("RTF merged or attributed cells unsupported");
+              }
+              const cellState = {...state, header, indent: 0, cell: cell[1] === "AlignDefault" ? t[2][j]![0] : cell[1]};
               await this.blocks(cell[4].length ? cell[4] : [{t: "Plain", c: []}], cellState);
               this.add("\\cell ");
             }

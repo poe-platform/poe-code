@@ -11123,6 +11123,15 @@ test("wkhtmltopdf draws inline SVG rectangles and labels in order and reserves t
   }finally{rs.dispose();}
 });
 
+test("wkhtmltopdf preserves text after self-closing inline SVG",async()=>{
+  const rust=new RustWasmBash({cwd:"/",forceNative:true,files:{"/chart.html":Buffer.from('<svg width="100" height="40"><rect x="1" y="2" width="30" height="10"/><text x="2" y="25">Label</text><circle r="3"/></svg><p>After diagram</p>')}});
+  try{
+    const result=await rust.exec("wkhtmltopdf /chart.html /chart.pdf && pdftotext /chart.pdf -");
+    assert.equal(result.exitCode,0,result.stderr);
+    assert.match(result.stdout,/Label\s+After diagram/);
+  }finally{await rust.dispose();}
+});
+
 test("wkhtmltopdf embeds opaque and transparent PNG pixels with per-page image resources",async()=>{
   const {encodePng}=await import("@poe-code/pdf-ast");
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
@@ -17163,6 +17172,8 @@ import "./pandoc-code-spans.wasm.test.mjs";
 
 import "./pandoc-entities.wasm.test.mjs";
 import "./pandoc-raw-inline.wasm.test.mjs";
+import "./pandoc-markdown-inputs.wasm.test.mjs";
+import "./pandoc-pdf-parity.wasm.test.mjs";
 
 import "./uniq-windows.wasm.test.mjs";
 

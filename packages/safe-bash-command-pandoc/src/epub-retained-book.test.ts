@@ -5,6 +5,8 @@ import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {createZipCodec} from "@poe-code/office-package/zip";
 import {createCompressionCodec} from "@poe-code/compression";
+import {readZipArchiveEntries} from "@poe-code/office-package/zip-sync";
+import {PDFArray, PDFDict, PDFDocument, PDFName, PDFNumber} from "pdf-lib";
 import {ExecutionContext} from "./execution.js";
 import {BackedJson} from "./backed-json.js";
 import {convert, convertToOutput} from "./engine.js";
@@ -28,7 +30,49 @@ async function archive(files: Record<string, string>) {
   for (const [name, text] of Object.entries(files)) entries.push(await codec.makeZipEntry(name, new TextEncoder().encode(text), {modified: new Date("1980-01-01T00:00:00Z"), mode: 0o100644, directory: false, symlink: false, compression: "store"}, limits, signal));
   return codec.writeZipArchive({entries, comment: new Uint8Array()}, limits, signal);
 }
+it.each(["docx", "pdf"] as const)("preserves encoded destinations from retained EPUB through %s", async to => {
+  const cases = [["caf%C3%A9", "café"], ["exact%20name", "exact%20name"], ["percent%2520name", "percent%20name"]] as const;
+  const ids = ["exact name", "percent name", ...cases.map(([, target]) => target)];
+  const render = async (resolved: boolean) => {
+    const files = parts();
+    files["book.opf"] = files["book.opf"]!.replace(' page-progression-direction="rtl"', "").replace("<dc:language>fr</dc:language>", "");
+    files["one.xhtml"] = page(cases.map(([fragment], index) => `<p><a href="two.xhtml#${resolved ? `control${index}` : fragment}">Link${index}</a></p>`).join(""));
+    files["two.xhtml"] = page(ids.map((id, index) => `<p id="${id}">${index < 2 ? `Target${index}` : `<span id="control${index - 2}">Target${index}</span>`}</p>`).join(""));
+    files["nav.xhtml"] = page('<nav epub:type="toc"><a href="one.xhtml">Links</a><a href="two.xhtml">Targets</a></nav>');
+    const fs = new MemoryFileSystem();
+    const chunks: Uint8Array[] = [];
+    await convertToOutput([{chunks: [await archive(files)], source: "book.epub"}], {from: "epub", to: "json"}, {yield: async () => {}, workingFiles: {fs, directory: "/", cacheBytes: 16384}, output: {write: async bytes => {chunks.push(bytes.slice());}, close: async () => {}, abort: async () => {}}});
+    expect(await fs.readdir("/")).toEqual([]);
+    const output = await convert([{bytes: Buffer.concat(chunks)}], {from: "json", to}, {yield: async () => {}});
+    if (output.kind !== "binary") throw Error("Expected binary document");
+    return output.bytes;
+  };
+  const output = await render(false);
+  if (to === "docx") {
+    const xml = (bytes: Uint8Array) => new TextDecoder().decode(readZipArchiveEntries(bytes).get("word/document.xml"));
+    const anchors = (text: string) => [...text.matchAll(/<w:hyperlink w:anchor="([^"]*)"/g)].map(match => match[1]!);
+    const actual = xml(output), targets = anchors(actual);
+    expect(targets).toHaveLength(cases.length);
+    expect(new Set(targets).size).toBe(cases.length);
+    const paragraphs = [...actual.matchAll(/<w:p(?:\s[^>]*)?>(.*?)<\/w:p>/gs)].map(match => match[1]!);
+    for (const [index, target] of targets.entries()) expect(paragraphs.find(paragraph => paragraph.includes(`Target${index + 2}`))).toContain(`w:name="${target}"`);
+  } else {
+    const destinations = async (bytes: Uint8Array) => {
+      const pdf = await PDFDocument.load(bytes);
+      return pdf.getPages().flatMap(page => (page.node.Annots()?.asArray() ?? []).map(ref => {
+        const destination = pdf.context.lookup(ref, PDFDict).lookup(PDFName.of("Dest"), PDFArray);
+        return [pdf.getPages().findIndex(candidate => candidate.ref.toString() === destination.get(0).toString()), destination.lookup(3, PDFNumber).asNumber()];
+      }));
+    };
+    const expected = await destinations(await render(true));
+    expect(expected).toHaveLength(cases.length);
+    expect(await destinations(output)).toEqual(expected);
+    expect(new Set(expected.map(target => target.join(":"))).size).toBe(cases.length);
+  }
+});
 const variants: [string, (files: Record<string, string>) => void][] = [
+  ["nested direction and BDO semantics", p => {p["one.xhtml"] = page('<h1 id="same">First</h1><ol dir="rtl" reversed=""><li dir="ltr">First</li><li><bdo dir="rtl">Override</bdo></li></ol><p><span style="direction:rtl;direction:ltr;unicode-bidi:isolate">CSS</span><bdi>Auto</bdi></p>').replace('<html ', '<html dir="rtl" ').replace('<body>', '<body dir="ltr">');}],
+  ["streamed direction CSS with discarded styles", p => {p["one.xhtml"] = page('<h1 id="same">First</h1><p><span style="color:' + 'x'.repeat(9000) + ';  DIRECTION : rtl;unicode-bidi:isolate;direction:' + ' '.repeat(9000) + 'ltr">CSS</span></p>');}],
   ["spine, nested navigation, metadata, notes, resources and direction", () => {}],
   ["NCX and legacy cover", p => {p["book.opf"] = p["book.opf"]!.replace('version="3.0"', 'version="2.0"').replace('properties="cover-image"', '').replace('</metadata>', '<meta name="cover" content="cover"/></metadata>').replace('<spine ', '<spine toc="ncx" ').replace('</manifest>', '<item id="ncx" href="toc.ncx" media-type="application/x-dtbncx+xml"/></manifest>'); p["toc.ncx"] = '<ncx xmlns="http://www.daisy.org/z3986/2005/ncx/"><navMap><navPoint><navLabel><text>First</text></navLabel><content src="one.xhtml"/><navPoint><navLabel><text>Second</text></navLabel><content src="two.xhtml"/></navPoint></navPoint></navMap></ncx>';}],
   ["external note dependencies", p => {p["book.opf"] = p["book.opf"]!.replace('</manifest>', '<item id="notes" href="notes.xhtml" media-type="application/xhtml+xml"/></manifest>'); p["one.xhtml"] = page('<p><a epub:type="noteref" href="notes.xhtml#external">1</a><a epub:type="noteref" href="notes.xhtml#external">2</a></p>'); p["notes.xhtml"] = page('<aside epub:type="footnote" id="external"><p>External <a epub:type="noteref" href="two.xhtml#note">nested</a></p></aside>');}],

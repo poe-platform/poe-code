@@ -3,6 +3,9 @@ import {expect, it} from "vitest";
 import {readZipArchiveEntries} from "@poe-code/office-package/zip-sync";
 import {SaxesParser} from "saxes";
 import {convert} from "./engine.js";
+import {createMemoryFileSystem} from "@poe-code/safe-fs/core";
+import {toByteSource} from "safe-bash-contracts/io";
+import {createPandocCommand} from "./command.js";
 
 it("writes distinct DOCX footnotes with formatted blocks and note relationships", async () => {
   const markdown = "Text with a note[^1] and another[^2].\n\n[^1]: Footnote **text**.\n\n    Second paragraph with [link](https://example.com).\n\n[^2]: Other note.\n";
@@ -71,4 +74,33 @@ it("keeps table-cell note references in the document and note tables in the foot
   expect(notes).toContain("Note header");
   expect(notes).toContain("Note cell");
   expect(notes).not.toContain("Main");
+});
+
+
+it("rejects nested DOCX notes without changing the source or existing destination", async () => {
+  const source = new TextEncoder().encode(JSON.stringify({
+    "pandoc-api-version": [1, 23, 1, 2], meta: {}, blocks: [{t: "Para", c: [
+      {t: "Str", c: "Main"}, {t: "Note", c: [{t: "Para", c: [
+        {t: "Str", c: "Outer"}, {t: "Note", c: [{t: "Para", c: [{t: "Str", c: "Inner"}]}]}
+      ]}]}
+    ]}]
+  }));
+  await expect(convert([{bytes: source}], {from: "json", to: "docx"}, {})).rejects.toMatchObject({
+    code: "E_UNSUPPORTED_FEATURE", message: "Nested footnotes are not supported in Word documents"
+  });
+  const fs = createMemoryFileSystem();
+  await fs.mkdir("/work");
+  await fs.writeFile("/work/input.json", source);
+  const original = new TextEncoder().encode("Existing document must survive");
+  await fs.writeFile("/work/output.docx", original);
+  const errors: string[] = [];
+  const result = await createPandocCommand().execute({
+    command: "pandoc", args: ["input.json", "-f", "json", "-o", "output.docx"], cwd: "/work", env: {}, fs,
+    signal: new AbortController().signal, stdin: toByteSource(""), stdout: {async write() {}},
+    stderr: {async write(bytes: Uint8Array) {errors.push(new TextDecoder().decode(bytes));}}
+  });
+  expect(result.exitCode).toBe(5);
+  expect(errors.join("")).toContain("Nested footnotes are not supported");
+  expect(await fs.readFile("/work/input.json")).toEqual(source);
+  expect(await fs.readFile("/work/output.docx")).toEqual(original);
 });

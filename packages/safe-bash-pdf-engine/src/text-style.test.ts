@@ -52,3 +52,30 @@ it("places a horizontal rule within the page and keeps a preceding heading with 
   expect(boxes.find(box => box.text === "heading")!.page).toBe(rule.page);
   for (const box of boxes) expect(box.y + box.height).toBeLessThanOrEqual(90);
 });
+
+it("positions super/subscripts and paints inline highlights without changing neighboring baselines", async () => {
+  const bytes = await renderPdf({fonts, blocks:[{kind:"paragraph", runs:[
+    {text:"base"}, {text:"up",size:8,rise:4}, {text:"down",size:8,rise:-2}, {text:"mark",background:"FFF3A3"}, {text:"plain"}
+  ]}]}, context);
+  const pdf = await PDFDocument.load(bytes);
+  const contents = pdf.getPages()[0]!.node.Contents() as PDFArray;
+  const operators = Array.from({length:contents.size()},(_,i)=>new TextDecoder().decode(decodePDFRawStream(contents.lookup(i,PDFRawStream)).decode())).join("\n");
+  const baselines = operators.split("\n").filter(line=>line.endsWith(" Tm")).map(line=>Number(line.split(" ")[5]));
+  expect(baselines[1]! - baselines[0]!).toBeCloseTo(4);
+  expect(baselines[2]! - baselines[0]!).toBeCloseTo(-2);
+  expect(baselines.at(-1)).toBe(baselines[0]);
+  expect(operators).toContain("1 0.9529411764705882 0.6392156862745098 rg");
+  expect(operators).toContain("h\nf");
+});
+
+it("keeps inline images between adjacent text on the same line", async () => {
+  const {encode} = await import("jpeg-js");
+  const bytes = new Uint8Array(encode({width:2,height:1,data:new Uint8Array(8).fill(255)},80).data);
+  const boxes: Placement[]=[];
+  await renderPdf({fonts,blocks:[{kind:"paragraph",runs:[{text:"before "},{text:"",image:{bytes,media:"jpeg",width:20,height:10}},{text:" after"}]}]}, {...context,onPlacement:box=>boxes.push(box)});
+  const image=boxes.find(box=>box.kind==="image")!;
+  expect(image).toBeDefined();
+  expect(image.x).toBeGreaterThan(48);
+  expect(boxes.filter(box=>box.kind==="text").map(box=>box.text).join("")).toBe("before  after");
+  expect(new Set(boxes.map(box=>box.page))).toEqual(new Set([1]));
+});

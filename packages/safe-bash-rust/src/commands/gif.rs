@@ -1,14 +1,12 @@
 use super::png_pixels::Raster;
 use std::collections::{BTreeMap, BTreeSet};
 
-pub(super) fn signature(bytes: &[u8]) -> bool {
-    matches!(bytes.get(..6), Some(b"GIF87a" | b"GIF89a"))
-}
+pub(super) use terminal_png_rust::gif::signature;
+
+// Shell geometry operations can pad an empty GIF; export decoding stays strict.
 pub(super) fn dimensions(bytes: &[u8]) -> Result<(u32, u32), &'static str> {
-    if bytes.len() < 13 {
-        return Err("Invalid GIF header");
-    }
-    let dim = |i| u32::from(u16::from_le_bytes([bytes[i], bytes[i + 1]]));
+    let header = bytes.get(..13).ok_or("Invalid GIF header")?;
+    let dim = |i| u32::from(u16::from_le_bytes([header[i], header[i + 1]]));
     Ok((dim(6), dim(8)))
 }
 
@@ -211,232 +209,18 @@ fn blocks<'a>(mut input: &'a [u8]) -> impl Iterator<Item = &'a [u8]> {
     })
 }
 
-fn indices(
-    input: &[u8],
-    minimum: u8,
-    n: usize,
-    mut pixel: impl FnMut(u8),
-) -> Result<(), &'static str> {
-    if minimum > 11 {
-        return Err("Invalid GIF LZW dictionary");
-    }
-    let clear = 1usize << minimum;
-    let mut width = minimum + 1;
-    let mut next = clear + 2;
-    let mut old = None;
-    let mut first = 0;
-    let mut prefix = [0u16; 4096];
-    let mut suffix = [0u8; 4096];
-    let mut stack = [0u8; 4096];
-    let mut bytes = blocks(input).flatten();
-    let (mut buffer, mut bits) = (0u32, 0u8);
-    let mut written = 0;
-    'decode: while written < n {
-        while bits < width {
-            let Some(&v) = bytes.next() else {
-                break 'decode;
-            };
-            buffer |= u32::from(v) << bits;
-            bits += 8;
-        }
-        let code = (buffer as usize) & ((1 << width) - 1);
-        buffer >>= width;
-        bits -= width;
-        if code == clear {
-            width = minimum + 1;
-            next = clear + 2;
-            old = None;
-            continue;
-        }
-        if code == clear + 1 {
-            break;
-        }
-        let mut used = 0;
-        let mut c = code;
-        if c >= next {
-            let Some(prev) = old else { break };
-            stack[0] = first;
-            used = 1;
-            c = prev;
-        }
-        while c >= clear {
-            if used >= 4095 || c >= next {
-                return Err("Invalid GIF LZW dictionary");
-            }
-            stack[used] = suffix[c];
-            used += 1;
-            c = usize::from(prefix[c]);
-        }
-        first = c as u8;
-        stack[used] = first;
-        for &v in stack[..=used].iter().rev().take(n - written) {
-            pixel(v);
-            written += 1;
-        }
-        if let Some(prev) = old
-            && next < 4096
-        {
-            prefix[next] = prev as u16;
-            suffix[next] = first;
-            next += 1;
-            if next == 1 << width && width < 12 {
-                width += 1;
-            }
-        }
-        old = Some(code);
-    }
-    for _ in written..n {
-        pixel(0);
-    }
-    Ok(())
-}
-
 pub(super) fn decode(
     bytes: &[u8],
-    mut remaining_frames: usize,
+    remaining_frames: usize,
     limit: usize,
-    mut visit: impl FnMut(&[[u8; 4]], bool) -> Result<(), &'static str>,
+    visit: impl FnMut(&[[u8; 4]], bool) -> Result<(), &'static str>,
 ) -> Result<Raster, &'static str> {
-    let (w, h) = dimensions(bytes)?;
-    let (w, h) = (w as usize, h as usize);
-    let count = w
-        .checked_mul(h)
-        .filter(|&n| n <= limit / 4)
-        .ok_or("image exceeds memory budget")?;
-    let mut pixels = vec![[0u8; 4]; count];
-    let mut input = &bytes[13..];
-    let global = palette(&mut input, bytes[10]);
-    let mut transparent = None;
-    let mut declared_alpha = false;
-    let mut disposal = 0;
-    let mut prior = None;
-    let mut saved = Vec::new();
-    let mut work = (limit / 4).saturating_mul(32);
-    while let Some((&intro, rest)) = input.split_first() {
-        input = rest;
-        match intro {
-            33 => {
-                let label = byte(&mut input);
-                if label == 249 {
-                    let n = byte(&mut input) as usize;
-                    let gce = take(&mut input, n);
-                    disposal = (gce.first().copied().unwrap_or(0) >> 2) & 7;
-                    transparent = if gce.first().is_some_and(|f| f & 1 != 0) {
-                        gce.get(3).copied()
-                    } else {
-                        None
-                    };
-                    byte(&mut input);
-                } else {
-                    loop {
-                        let len = byte(&mut input);
-                        if len == 0 {
-                            break;
-                        }
-                        take(&mut input, len as usize);
-                    }
-                }
-            }
-            44 => {
-                let head = take(&mut input, 9);
-                let word = |i| {
-                    usize::from(u16::from_le_bytes([
-                        head.get(i).copied().unwrap_or(0),
-                        head.get(i + 1).copied().unwrap_or(0),
-                    ]))
-                };
-                let (left, top, iw, ih) = (word(0), word(2), word(4), word(6));
-                let flags = head.get(8).copied().unwrap_or(0);
-                let colors = if flags & 128 != 0 {
-                    palette(&mut input, flags)
-                } else {
-                    global
-                };
-                let min = byte(&mut input);
-                let n = iw
-                    .checked_mul(ih)
-                    .filter(|&n| n <= limit / 4)
-                    .ok_or("image exceeds memory budget")?;
-                if let Some((op, l, t, r, b)) = prior.take() {
-                    if op == 2 {
-                        for y in t..b {
-                            pixels[y * w + l..y * w + r].fill([0; 4]);
-                        }
-                    } else if op == 3 {
-                        std::mem::swap(&mut saved, &mut pixels);
-                    }
-                }
-                if remaining_frames > 1 {
-                    work = work
-                        .checked_sub(n.saturating_add(if disposal == 3 { count } else { 0 }))
-                        .ok_or("GIF pixel work limit exceeded")?;
-                    if disposal == 3 {
-                        if count > limit / 8 {
-                            return Err("image exceeds memory budget");
-                        }
-                        saved.clone_from(&pixels);
-                    }
-                    prior = Some((
-                        disposal,
-                        left.min(w),
-                        top.min(h),
-                        (left + iw).min(w),
-                        (top + ih).min(h),
-                    ));
-                }
-                let (mut x, mut y, mut pass) = (0, 0, 0);
-                indices(input, min, n, |index| {
-                    if x + left < w && y + top < h && Some(index) != transparent {
-                        let i = usize::from(index) * 3;
-                        pixels[(y + top) * w + x + left] = [
-                            colors.get(i).copied().unwrap_or(0),
-                            colors.get(i + 1).copied().unwrap_or(0),
-                            colors.get(i + 2).copied().unwrap_or(0),
-                            255,
-                        ];
-                    }
-                    x += 1;
-                    if x == iw {
-                        x = 0;
-                        if flags & 64 != 0 {
-                            y += [8, 8, 4, 2][pass];
-                            while y >= ih && pass < 3 {
-                                pass += 1;
-                                y = [0, 4, 2, 1][pass];
-                            }
-                        } else {
-                            y += 1;
-                        }
-                    }
-                })?;
-                declared_alpha |= transparent.is_some();
-                visit(&pixels, declared_alpha)?;
-                remaining_frames -= 1;
-                if remaining_frames == 0 {
-                    break;
-                }
-                loop {
-                    let n = byte(&mut input);
-                    if n == 0 {
-                        break;
-                    }
-                    take(&mut input, n as usize);
-                }
-                transparent = None;
-                disposal = 0;
-            }
-            _ => break,
-        }
+    let (width, height) = dimensions(bytes)?;
+    if width == 0 || height == 0 {
+        return Ok(Raster { width: width as usize, height: height as usize, alpha: false,
+            gray: false, density: 72, orientation: None, pixels: Vec::new() });
     }
-    Ok(Raster {
-        width: w,
-        height: h,
-        alpha: declared_alpha || pixels.iter().any(|p| p[3] < 255),
-        gray: false,
-        density: 72,
-        orientation: None,
-        pixels,
-    })
+    terminal_png_rust::gif::decode(bytes, remaining_frames, limit, visit).map(Into::into)
 }
 
 pub(super) fn scenes(
@@ -716,5 +500,48 @@ impl Animation {
             orientation: None,
             pixels: self.frames[self.frame_index(i)].pixels.clone(),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn shared_gif_decoder_preserves_encoded_animation_packets_and_scenes() {
+        let colors = [[255, 0, 0, 255], [0, 255, 0, 255], [0, 0, 255, 255]];
+        let pixels = colors
+            .into_iter()
+            .flat_map(|color| [color; 4])
+            .collect::<Vec<_>>();
+        let encoded = encode(
+            2,
+            2,
+            &pixels,
+            Timing {
+                delays: &[4, 8, 12],
+                repeat: Some(3),
+                explicit_delay: true,
+            },
+            1 << 20,
+        )
+        .unwrap();
+        let mut delays = Vec::new();
+        let repeat = packets(&encoded, |delay, _| {
+            delays.push(delay);
+            Ok(())
+        })
+        .unwrap();
+        assert_eq!(repeat, Some(3));
+        assert_eq!(delays, [4, 8, 12]);
+        let first = decode(&encoded, 1, 1 << 20, |_, _| Ok(())).unwrap();
+        assert_eq!(first.pixels, vec![colors[0]; 4]);
+        let mut selected = Vec::new();
+        scenes(&encoded, &[0, 2], 1 << 20, |image| {
+            selected.push(image.pixels);
+            Ok(())
+        })
+        .unwrap();
+        assert_eq!(selected, vec![vec![colors[0]; 4], vec![colors[2]; 4]]);
     }
 }

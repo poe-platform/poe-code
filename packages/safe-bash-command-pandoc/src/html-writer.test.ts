@@ -8,6 +8,14 @@ const a: Attr = ["", [], []];
 const s = (c: string): Inline => ({t: "Str", c});
 const p = (...c: Inline[]): Block => ({t: "Para", c});
 const doc = (blocks: readonly Block[]): Document => ({blocks, metadata: {}, resources: []});
+it("round-trips explicit bidi scopes and overrides as passive HTML styles", async () => {
+  const result = await convert([{bytes: new TextEncoder().encode('<p dir="rtl"><bdi dir="ltr">isolate</bdi><bdo dir="rtl">override</bdo><span style="direction:rtl;direction:ltr;unicode-bidi:isolate">css</span></p>')}], {from: "html", to: "html"}, {});
+  expect(result).toMatchObject({kind: "text", text: '<div dir="rtl"><p><span dir="ltr">isolate</span><span dir="rtl" style="unicode-bidi:isolate-override">override</span><span style="direction:rtl;direction:ltr;unicode-bidi:isolate">css</span></p>\n</div>\n'});
+});
+
+it.each(["direction:url(https://example.test)", "unicode-bidi:unknown", "color:red;direction:rtl", "direction:rtl; background:url(secret)"])("rejects unsupported HTML style declarations: %s", async style => {
+  await expect(html([p({t: "Span", c: [["", [], [["style", style]]], [s("text")]]})])).rejects.toMatchObject({code: "E_CAPABILITY"});
+});
 it("retains bounded escape chunks for long publication prose while preserving entities and Unicode", async () => {
   const source = 'Original & <é> 😀\r'.repeat(600);
   const result = await writeDocument(doc([p(s(source))]), {to: "html"}, {limits: {references: 200}});

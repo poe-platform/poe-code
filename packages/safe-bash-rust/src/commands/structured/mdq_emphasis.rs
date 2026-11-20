@@ -9,6 +9,7 @@ pub(super) struct Marks {
     pub(super) remaining: usize,
     pub(super) opening: Vec<&'static str>,
     pub(super) closing: Vec<&'static str>,
+    pub(super) quote: Option<char>,
 }
 
 impl Marks {
@@ -28,6 +29,7 @@ struct Run {
     marker: u8,
     open: bool,
     close: bool,
+    script_end: Option<usize>,
     marks: Marks,
 }
 
@@ -38,6 +40,11 @@ pub(super) fn space(c: char) -> bool {
 pub(super) fn resolve<'a>(
     src: &str,
     opaque: impl Iterator<Item = &'a Range<usize>>,
+    strikeout: bool,
+    single_tilde: bool,
+    subscript: bool,
+    superscript: bool,
+    smart: bool,
 ) -> BTreeMap<usize, Marks> {
     let mut runs: Vec<Run> = Vec::new();
     let mut stack: Vec<usize> = Vec::new();
@@ -67,18 +74,38 @@ pub(super) fn resolve<'a>(
             at += n;
             continue;
         }
-        if !matches!(marker, b'*' | b'_' | b'~') {
+        let quote = smart && matches!(marker, b'\'' | b'"');
+        if !quote && !matches!(marker, b'*' | b'_' | b'~' | b'^') {
             at += 1;
             continue;
         }
         let start = at;
-        while bytes.get(at) == Some(&marker) {
+        while bytes.get(at) == Some(&marker) && (!quote || at == start) {
             at += 1;
         }
         let width = at - start;
-        if marker == b'~' && width > 2 {
+        let script = width == 1 && (marker == b'~' && subscript || marker == b'^' && superscript);
+        if marker == b'^' && !script
+            || marker == b'~' && !script && (!strikeout || width > 2 || width == 1 && !single_tilde)
+        {
             continue;
         }
+        let script_end = if script {
+            let mut end = at;
+            while end < src.len() {
+                let character = src[end..].chars().next().unwrap();
+                if character == marker as char || space(character) {
+                    break;
+                }
+                end += character.len_utf8();
+                if character == '\\' && end < src.len() {
+                    end += src[end..].chars().next().unwrap().len_utf8();
+                }
+            }
+            (end > at && bytes.get(end) == Some(&marker)).then_some(end)
+        } else {
+            None
+        };
         let prev = src[..start].chars().next_back();
         let next = src[at..].chars().next();
         let left = !next.is_none_or(space)
@@ -89,9 +116,19 @@ pub(super) fn resolve<'a>(
             && (!prev.is_some_and(punctuation)
                 || next.is_none_or(space)
                 || next.is_some_and(punctuation));
-        let open = left && (marker != b'_' || !right || prev.is_some_and(punctuation));
-        let close = right && (marker != b'_' || !left || next.is_some_and(punctuation));
-        if !open && !close {
+        let open = if quote {
+            left && (marker != b'\'' || !prev.is_some_and(|ch| ch.is_ascii_alphanumeric()))
+        } else if script {
+            script_end.is_some()
+        } else {
+            left && (marker != b'_' || !right || prev.is_some_and(punctuation))
+        };
+        let close = if quote {
+            right && (marker != b'\'' || !next.is_some_and(|ch| ch.is_ascii_alphanumeric()))
+        } else {
+            script || right && (marker != b'_' || !left || next.is_some_and(punctuation))
+        };
+        if !open && !close && !quote {
             continue;
         }
         let mut run = Run {
@@ -99,9 +136,17 @@ pub(super) fn resolve<'a>(
             marker,
             open,
             close,
+            script_end,
             marks: Marks {
                 width,
                 remaining: width,
+                quote: quote.then_some(if marker == b'\'' {
+                    '’'
+                } else if left {
+                    '“'
+                } else {
+                    '”'
+                }),
                 ..Marks::default()
             },
         };
@@ -113,12 +158,18 @@ pub(super) fn resolve<'a>(
                 .enumerate()
                 .rev()
                 .take_while(|(_, i)| **i >= floor)
+                // Quotes cannot discard an unmatched formatting opener.
+                .take_while(|(_, i)| !quote || !matches!(runs[**i].marker, b'*' | b'_' | b'~' | b'^'))
                 .find(|(_, i)| {
                     let r = &runs[**i];
                     let other = r.marks.width;
                     r.marker == marker
                         && r.open
-                        && if marker == b'~' {
+                        && if quote {
+                            r.at + r.marks.width != start
+                        } else if script {
+                            other == 1 && r.script_end == Some(start)
+                        } else if marker == b'~' {
                             width == other
                         } else {
                             !((open || r.close)
@@ -133,6 +184,10 @@ pub(super) fn resolve<'a>(
             let opening = &mut runs[i].marks;
             let used = opening.remaining.min(run.marks.remaining).min(2);
             let delimiter = match (marker, used) {
+                (b'\'', _) => "'",
+                (b'"', _) => "\"",
+                (b'^', _) => "^",
+                (b'~', _) if script => "~",
                 (b'~', _) => "~~",
                 (_, 2) => "**",
                 _ => "_",
@@ -149,7 +204,7 @@ pub(super) fn resolve<'a>(
         runs.push(run);
     }
     runs.into_iter()
-        .filter(|r| r.marks.width != r.marks.remaining)
+        .filter(|r| r.marks.width != r.marks.remaining || r.marks.quote.is_some())
         .map(|r| (r.at, r.marks))
         .collect()
 }
@@ -193,9 +248,17 @@ pub(super) fn projection(src: &str, atoms: super::MdqAtoms<'_>) -> (String, Vec<
 
 fn flatten(src: &str, atoms: super::MdqAtoms<'_>, text: &mut String, events: &mut Vec<Event>) {
     use super::MdqInlineAtom::*;
-    let mut marks = resolve(src, atoms.iter().map(|(r, _)| r))
-        .into_iter()
-        .peekable();
+    let mut marks = resolve(
+        src,
+        atoms.iter().map(|(r, _)| r),
+        true,
+        true,
+        false,
+        false,
+        false,
+    )
+    .into_iter()
+    .peekable();
     let mut atoms = atoms.into_iter().peekable();
     let mut open: Vec<usize> = Vec::new();
     let mut at = 0;
@@ -237,6 +300,7 @@ fn flatten(src: &str, atoms: super::MdqAtoms<'_>, text: &mut String, events: &mu
                     display,
                     children,
                     image,
+                    ..
                 } => {
                     let nested = !image
                         && !matches!(

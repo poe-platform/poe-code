@@ -171,6 +171,7 @@ pub fn config_yaml_parse(
         yaml::ParseOptions {
             unique_keys: unique_keys.unwrap_or(true),
             object_root: object_root.unwrap_or(true),
+            ..Default::default()
         },
     );
     if let Some(error) = callback_error {

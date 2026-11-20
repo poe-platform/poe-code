@@ -3,12 +3,30 @@ import {MemoryFileSystem} from "@poe-code/safe-fs/fs/memory";
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import {createZipCodec} from "@poe-code/office-package/zip";
 import {createCompressionCodec} from "@poe-code/compression";
-import {readDocument, convert} from "./engine.js";
+import {readDocument, convert, convertToOutput} from "./engine.js";
 import {createPandocCommand} from "./command.js";
 
 const encoder = new TextEncoder();
 const zip = createZipCodec({compression: createCompressionCodec(), yieldTurn: async () => {}, fail(message) {throw new Error(message);}});
 const zipLimits = {maxArchiveBytes: 8 * 1024 * 1024, maxEntryBytes: 8 * 1024 * 1024, maxTotalBytes: 8 * 1024 * 1024, maxMembers: 20, maxPathBytes: 1024, maxDepth: 16, maxPaxBytes: 1024, maxTextBytes: 1024, chunkSize: 4096};
+it.each([
+  ['<p style="direction:rtl">Text</p>', false],
+  ['<p><span style="direction:rtl;unicode-bidi:isolate">Text</span><bdo dir="rtl">Override</bdo></p>', false],
+  ['<p style=" DIRECTION : rtl ; direction: ltr ; unicode-bidi:isolate; ">Text</p>', false],
+  ['<p style=" ; ">Text</p>', false],
+  ['<p style="direction:rtl;color:red">Text</p>', true],
+  ['<p style="direction:rtl;invalid">Text</p>', true],
+  ['<style>p {direction:rtl}</style><p>Text</p>', true],
+  ['<link rel="stylesheet" href="style.css"/><p>Text</p>', true]
+] as const)("reports actual inline CSS loss in buffered and retained EPUB: %s", async (content, loss) => {
+  const bytes = await publication(0, content);
+  for (const retained of [false, true]) {
+    const fs = new MemoryFileSystem();
+    const result = await convert([retained ? {chunks: [bytes]} : {bytes}], {from: "epub", to: "json"}, {yield: async () => {}, ...(retained ? {workingFiles: {fs, directory: "/", cacheBytes: 16384}} : {})});
+    expect(result.diagnostics.some(d => d.message === "Unsupported EPUB CSS styling/layout loss")).toBe(loss);
+    expect(await fs.readdir("/")).toEqual([]);
+  }
+});
 async function publication(size = 256 * 1024, content = "<p>Streamed book.</p>", mimetype = encoder.encode("application/epub+zip"), extraManifest = "", extraFiles: Record<string, Uint8Array> = {}) {
   const files = {
     mimetype,
@@ -447,4 +465,114 @@ it.each([96, 512])("does not retain %i manifest XML nodes while parsing the pack
     expect(await readDocument({chunks: [bytes]}, {from: "epub"}, {workingFiles: {fs, directory: "/", cacheBytes: 16384}, yield: async () => {}}).catch(error => {throw violation ?? error;})).toEqual(expected);
     expect(await fs.readdir("/")).toEqual([]);
   } finally {Array.prototype.push = original;}
+});
+
+
+it.each([
+  ["direct table rows", '<table><tr><th scope="row">Label</th><td>Value</td></tr></table>'],
+  ["table alignment enums", '<table><tbody><tr><th scope="row">Label</th><td>Value</td></tr></tbody></table>'],
+  ["ordered list enums", '<ol start="3"><li>Label</li><li>Value</li></ol>']
+])("serializes retained EPUB %s through the public JSON output route", async (_name, content) => {
+  const bytes = await publication(0, content), fs = new MemoryFileSystem();
+  let output = "";
+  await convertToOutput([{chunks: [bytes]}], {from: "epub", to: "json"}, {
+    yield: async () => {}, workingFiles: {fs, directory: "/", cacheBytes: 16384},
+    output: {write: async bytes => {output += new TextDecoder().decode(bytes);}, close: async () => {}, abort: async () => {}}
+  });
+  expect(output).toContain('"Label"');
+  expect(output).toContain('"Value"');
+  const roundtrip = await convert([{bytes: encoder.encode(output)}], {from: "json", to: "plain"}, {yield: async () => {}});
+  expect(roundtrip).toMatchObject({kind: "text", text: expect.stringContaining("Label")});
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it("preserves direction scopes and overrides through public retained EPUB JSON output", async () => {
+  const content = '<ol dir="rtl" reversed=""><li id="item" dir="ltr">First</li><li><bdo dir="rtl">Second</bdo><bdi>Auto</bdi></li></ol>';
+  const bytes = await publication(0, content), fs = new MemoryFileSystem();
+  let output = "";
+  await convertToOutput([{chunks: [bytes]}], {from: "epub", to: "json"}, {
+    yield: async () => {}, workingFiles: {fs, directory: "/", cacheBytes: 16384},
+    output: {write: async bytes => {output += new TextDecoder().decode(bytes);}, close: async () => {}, abort: async () => {}}
+  });
+  const document = await readDocument({bytes: encoder.encode(output)}, {from: "json"}, {yield: async () => {}});
+  const chapter = document.blocks[0];
+  if (chapter?.t !== "Div") throw new Error("Expected EPUB chapter");
+  const list = chapter.c[1][0];
+  expect(list).toMatchObject({t: "Div", c: [["", [], [["dir", "rtl"]]], [
+    {t: "OrderedList", c: [[2, "DefaultStyle", "DefaultDelim"], [[{t: "Div", c: [["", [], [["dir", "ltr"]]], expect.any(Array)]}]]]},
+    {t: "OrderedList", c: [[1, "DefaultStyle", "DefaultDelim"], [[{t: "Plain", c: [
+      {t: "Span", c: [["", [], [["dir", "rtl"], ["style", "unicode-bidi:isolate-override"]]], [{t: "Str", c: "Second"}]]},
+      {t: "Span", c: [["", [], [["dir", "auto"]]], [{t: "Str", c: "Auto"}]]}
+    ]}]]]}
+  ]]});
+  expect(output.match(/chapter.xhtml#item/g)).toHaveLength(1);
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it("preserves BDO and CSS direction through public retained EPUB HTML output", async () => {
+  const bytes = await publication(0, '<p><bdo dir="rtl">Override</bdo><span style="direction:rtl;direction:ltr;unicode-bidi:isolate">Isolate</span></p>'), fs = new MemoryFileSystem();
+  let output = "";
+  await convertToOutput([{chunks: [bytes]}], {from: "epub", to: "html"}, {
+    yield: async () => {}, workingFiles: {fs, directory: "/", cacheBytes: 16384},
+    output: {write: async bytes => {output += new TextDecoder().decode(bytes);}, close: async () => {}, abort: async () => {}}
+  });
+  expect(output).toContain('<span dir="rtl" style="unicode-bidi:isolate-override">Override</span>');
+  expect(output).toContain('style="direction:rtl;direction:ltr;unicode-bidi:isolate"');
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it("retains body section and arbitrary rich header cells through public EPUB HTML output", async () => {
+  const content = '<table><tbody id="section"><tr><th>Section</th><th>Heading</th></tr><tr><th><pre>Header code</pre></th><td>Regular</td></tr><tr><td scope="row">Data</td><th role="cell"><pre>Other header</pre></th></tr></tbody></table>';
+  const bytes = await publication(0, content), fs = new MemoryFileSystem();
+  let output = "";
+  await convertToOutput([{chunks: [bytes]}], {from: "epub", to: "html"}, {
+    yield: async () => {}, workingFiles: {fs, directory: "/", cacheBytes: 16384},
+    output: {write: async bytes => {output += new TextDecoder().decode(bytes);}, close: async () => {}, abort: async () => {}}
+  });
+  expect(output).not.toContain("<thead");
+  expect(output.match(/<th(?:>| )/g)).toHaveLength(4);
+  expect(output.match(/<td(?:>| )/g)).toHaveLength(2);
+  expect(output).toContain('<th role="cell" scope="col"><pre>');
+  expect(output).toContain('<td>Data');
+  expect(output.match(/id="chapter.xhtml#section"/g)).toHaveLength(1);
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it("omits empty EPUB table rows while preserving group-bounded spans and every row anchor", async () => {
+  const content = '<table><tfoot><tr id="tail"></tr></tfoot><thead><tr><th rowspan="99">Top</th><th>Heading</th></tr><tr id="head-empty"></tr></thead><tbody><tr><th rowspan="0">Label</th><td>First</td></tr><tr id="body-empty"></tr><tr><td>Second</td></tr></tbody></table>';
+  const bytes = await publication(0, content), fs = new MemoryFileSystem();
+  let output = "";
+  await convertToOutput([{chunks: [bytes]}], {from: "epub", to: "json"}, {
+    yield: async () => {}, workingFiles: {fs, directory: "/", cacheBytes: 16384},
+    output: {write: async bytes => {output += new TextDecoder().decode(bytes);}, close: async () => {}, abort: async () => {}}
+  });
+  const document = await readDocument({bytes: encoder.encode(output)}, {from: "json"}, {yield: async () => {}});
+  const chapter = document.blocks[0];
+  if (chapter?.t !== "Div" || chapter.c[1][0]?.t !== "Table") throw new Error("Expected EPUB table");
+  const table = chapter.c[1][0];
+  expect(table.c[3][1]).toHaveLength(1);
+  expect(table.c[3][1][0]?.[1][0]?.[2]).toBe(1);
+  expect(table.c[4][0]?.[3]).toHaveLength(2);
+  expect(table.c[4][0]?.[3][0]?.[1][0]?.[2]).toBe(2);
+  expect(table.c[5][1]).toHaveLength(0);
+  for (const id of ["head-empty", "body-empty", "tail"]) expect(output.split(`chapter.xhtml#${id}`).length - 1).toBe(1);
+  expect(await fs.readdir("/")).toEqual([]);
+});
+
+it.each([
+  ['<ol><li>One</li><li value="5">Five</li><li>Six</li></ol>', [[1, 1], [5, 2]]],
+  ['<ol reversed=""><li>Three</li><li>Two</li><li>One</li></ol>', [[3, 1], [2, 1], [1, 1]]],
+  ['<ol reversed="" start="8"><li>Eight</li><li>Seven</li><li>Six</li></ol>', [[8, 1], [7, 1], [6, 1]]],
+  ['<ol reversed="" start="0"><li>Zero</li><li value="-2">Negative</li><li>Lower</li></ol>', [[0, 1], [-2, 1], [-3, 1]]]
+] as const)("preserves numbering through retained EPUB output: %s", async (content, expected) => {
+  const bytes = await publication(0, content), fs = new MemoryFileSystem();
+  let output = "";
+  await convertToOutput([{chunks: [bytes]}], {from: "epub", to: "json"}, {
+    yield: async () => {}, workingFiles: {fs, directory: "/", cacheBytes: 16384},
+    output: {write: async bytes => {output += new TextDecoder().decode(bytes);}, close: async () => {}, abort: async () => {}}
+  });
+  const document = await readDocument({bytes: encoder.encode(output)}, {from: "json"}, {yield: async () => {}});
+  const lists = document.blocks.flatMap(block => block.t === "Div" ? block.c[1] : [block]);
+  expect(lists.map(block => block.t === "OrderedList" ? [block.c[0][0], block.c[1].length] : block.t)).toEqual(expected);
+  expect(await fs.readdir("/")).toEqual([]);
 });

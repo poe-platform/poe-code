@@ -1,0 +1,75 @@
+# pdf-ast-rust
+
+Lay out portable document content into PDF pages with selectable text, embedded
+fonts and images, rich formatting, tables, links and page breaks. Rendering and
+serialization run in native Rust or WebAssembly without a browser or shell.
+
+```rust
+let document = document_ast_rust::Document::default();
+let bytes = pdf_ast_rust::write_pdf(&document)?;
+# Ok::<(), String>(())
+```
+
+`layout_document(document, options)` returns an editable `PdfDocument` with pages,
+`Paint` operations, fonts, links and outlines. Plugins can inspect or modify this
+layout before `serialize_pdf(layout, limits)` writes the file. Page operations are
+already positioned: font indices select embedded faces, and highlights,
+decorations and hyperlinks have explicit rectangles. To reflow semantic styles,
+edit the shared document tree and run layout again. Display coordinates
+use points (72 per inch), measured from each page's top-left corner.
+`write_pdf_with_options` combines these steps when customization only needs page
+geometry, font faces, metadata or output limits. Semantic notes become numbered
+endnotes; headings supply PDF outline entries and link destinations. URI links
+preserve relative references without inventing a base address, so PDF viewers
+resolve them against the PDF's location. Explicit schemes are limited to HTTP,
+HTTPS and mailto; raw ASCII control characters are rejected. Captions
+marked `keep_with_next` stay with the leading table rows. Nested tables retain
+cell borders, alignment and headers. Long rows split across pages with repeated
+column headers; section and row headings retain their own emphasis and shading
+without repeating. Section headings stay with the next body row or fragment when
+they fit together. Vertically merged groups remain indivisible and fail explicitly when
+they cannot fit on a page.
+
+Vector scenes become native `Paint::Path`, `Paint::Group` and positioned text
+operations. Paths preserve curves, fill rules, dashes, caps and joins. Groups
+preserve affine transforms, clipping and opacity; translucent groups use PDF
+transparency Forms so overlapping children composite once. Text remains searchable
+and uses embedded fonts, with horizontal placement fitted to its measured source
+width. Arial/Helvetica/sans-serif names select Liberation Sans, JetBrains Mono
+selects the bundled mono faces, DejaVu Sans selects its bundled face, and Times or
+serif select the bundled DejaVu Serif fallback. Other unavailable font families
+fail explicitly. Only raster images authored in the scene create image resources.
+Scenes fit the printable area and also work inside table cells.
+
+The matching `*_async` functions cooperatively yield during layout, font
+serialization, image decoding and compression. Native synchronous entry points
+drive those same futures. `write_pdf_with_usage_async` also reports the resources
+charged against `PdfLimits`, so a caller can enforce an aggregate session budget.
+Image pixel and decoded-memory limits are checked before pixel allocation.
+
+The package owns PDF layout and output; `document-ast-rust` supplies semantic
+content and `terminal-png-rust` supplies font parsing and bounded image codecs. None of
+these dependencies includes the shell runtime. Liberation Sans supplies body faces,
+JetBrains Mono supplies code faces, and DejaVu supplies additional glyph coverage.
+Document Symbol Fallback adds symbols from the same pinned Noto Sans SC source
+used by the terminal renderer, including the soccer ball and enclosed letters.
+It is a static weight-400 subset of U+2000–U+2BFF, selected only after the other
+faces lack a glyph. Its source hash and regeneration command are in
+[`scripts/subset-symbol-font.py`](scripts/subset-symbol-font.py).
+Their licenses travel with the font assets. Unsupported glyphs and oversized
+layout groups produce errors instead of silently dropping content.
+
+Text admission uses a scalar-only PDF profile: supported Latin, Greek, Cyrillic,
+symbol ranges and standalone Emoticons (U+1F600–U+1F64F) require font coverage and
+positive advances. The bundled DejaVu font covers 63 Emoticons as monochrome
+outlines. Missing glyphs, variation selectors, emoji modifiers and joiner
+sequences fail explicitly; contextual shaping and color emoji are not supported.
+Ordinary LTR scopes preserve layout. RTL scopes and directional overrides fail
+explicitly, including ASCII content, because bidirectional ordering and contextual
+shaping remain unsupported. This restriction
+also applies to text supplied through the editable PDF display tree.
+
+The public page/operation boundary is informed by
+[printpdf's page operations](https://github.com/fschutt/printpdf) and
+[lopdf's object model](https://github.com/J-F-Liu/lopdf).
+These are design references, not additional dependencies.

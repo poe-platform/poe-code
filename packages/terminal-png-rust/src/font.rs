@@ -39,6 +39,7 @@ fn table<'a>(data: &'a [u8], tag: &[u8; 4]) -> Result<&'a [u8], Error> {
 }
 pub struct Font<'a> {
     head: &'a [u8],
+    hhea: &'a [u8],
     hmtx: &'a [u8],
     loca: &'a [u8],
     glyf: &'a [u8],
@@ -64,7 +65,8 @@ impl<'a> Font<'a> {
             return Err("invalid glyph location format");
         }
         let glyphs = u16(table(data, b"maxp")?, 4)?;
-        let metrics = u16(table(data, b"hhea")?, 34)?;
+        let hhea = table(data, b"hhea")?;
+        let metrics = u16(hhea, 34)?;
         if glyphs == 0 || metrics == 0 || metrics > glyphs {
             return Err("invalid glyph metrics");
         }
@@ -80,11 +82,25 @@ impl<'a> Font<'a> {
             0,
             usize::from(metrics) * 4 + usize::from(glyphs - metrics) * 2,
         )?;
+        let glyf = table(data, b"glyf")?;
+        let mut previous = 0;
+        for index in 0..=usize::from(glyphs) {
+            let offset = if mode == 1 {
+                u32(loca, index * 4)? as usize
+            } else {
+                usize::from(u16(loca, index * 2)?) * 2
+            };
+            if offset < previous || offset > glyf.len() {
+                return Err("invalid glyph location offset");
+            }
+            previous = offset;
+        }
         Ok(Self {
             head,
+            hhea,
             hmtx,
             loca,
-            glyf: table(data, b"glyf")?,
+            glyf,
             cmap: &[],
             format: 0,
             glyphs,
@@ -136,6 +152,21 @@ impl<'a> Font<'a> {
     }
     pub fn units_per_em(&self) -> u16 {
         u16(self.head, 18).unwrap()
+    }
+    /// Font-unit vertical metrics from the admitted hhea table.
+    pub fn ascent(&self) -> i16 {
+        i16(self.hhea, 4).unwrap()
+    }
+    pub fn descent(&self) -> i16 {
+        i16(self.hhea, 6).unwrap()
+    }
+    pub fn bounding_box(&self) -> [i16; 4] {
+        [
+            i16(self.head, 36).unwrap(),
+            i16(self.head, 38).unwrap(),
+            i16(self.head, 40).unwrap(),
+            i16(self.head, 42).unwrap(),
+        ]
     }
     pub fn advance(&self, glyph: u16) -> Result<u16, Error> {
         if glyph >= self.glyphs {

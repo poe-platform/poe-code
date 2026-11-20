@@ -236,7 +236,9 @@ export async function parseCommonMarkInlines(
       let opener = closer.previous;
       while (opener && opener.index > floor) {
         if (context.sinceYield !== undefined && context.sinceYield < 255) context.checkpoint(); else await context.cooperate();
-        if (opener.char === closer.char && opener.open && (closer.char === "'" || closer.char === '"' ? true : closer.scriptEnd !== undefined ? opener.scriptEnd === closer.position : closer.char === "~" ? opener.original === closer.original : !((closer.open || opener.close) && (opener.original + closer.original) % 3 === 0 && (opener.original % 3 !== 0 || closer.original % 3 !== 0)))) break;
+        // A quote must not consume an opener that still belongs to formatting.
+        if ((closer.char === "'" || closer.char === '"') && opener.open && "*_~^".includes(opener.char)) {opener = null; break;}
+        if (opener.char === closer.char && opener.open && (closer.char === "'" || closer.char === '"' ? opener.node.next !== closer.node : closer.scriptEnd !== undefined ? opener.scriptEnd === closer.position : closer.char === "~" ? opener.original === closer.original : !((closer.open || opener.close) && (opener.original + closer.original) % 3 === 0 && (opener.original % 3 !== 0 || closer.original % 3 !== 0)))) break;
         opener = opener.previous;
       }
       if (!opener || opener.index <= floor) {
@@ -570,7 +572,21 @@ export async function parseCommonMarkInlines(
           }
         }
         if (extensions.raw_html === false || Object.hasOwn(extensions, "raw_html") && filterGfmHtml(literal, context) !== literal) append(literal);
-        else append({ t: "RawInline", c: ["html", literal] });
+        else {
+          const raw: Inline = {t: "RawInline", c: ["html", literal]};
+          if (context.resourceTarget) {
+            let offset = 0;
+            let line = pending.lines[0]?.start.line ?? 1;
+            for (const entry of pending.lines) {
+              context.checkpoint();
+              if (offset > i) break;
+              line = entry.start.line;
+              offset += entry.text.length + 1;
+            }
+            context.resourceTarget(raw.c, line);
+          }
+          append(raw);
+        }
         i = end; continue;
       }
     }

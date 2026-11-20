@@ -67,17 +67,43 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
     if (["mark", "section", "aside", "header"].includes(tag)) await ast.push(classes, await ast.value(tag));
     if (tag === "main") await ast.push(pairs, await ast.value(["role", "main"]));
     for await (const item of ast.children(await words(await lookup(raw, "class")))) await ast.push(classes, item);
+    let hasDirection = false, hasStyle = false;
     for await (const pair of ast.children(raw)) {
-      const [key] = await entry(pair); let prefix = "";
+      const [key, value] = await entry(pair); let prefix = "";
       for await (const chunk of ast.text.chunks(await ast.range(key!))) {prefix += chunk.slice(0, 2 - prefix.length); if (prefix.length === 2) break;}
       let excluded = prefix === "on";
       for (const name of ["id", "class", ...omit]) if (await same(key!, name)) excluded = true;
+      if (await same(key!, "dir")) hasDirection = true;
+      if (await same(key!, "style")) {
+        hasStyle = true;
+        if (tag === "bdo") {
+          const style = await ast.string(await ast.text.from((async function* () {yield* ast.text.chunks(await ast.range(value!)); yield ";unicode-bidi:isolate-override";})()));
+          await ast.push(pairs, await ast.value([key!, style]));
+          continue;
+        }
+      }
       if (!excluded) await ast.push(pairs, pair);
+    }
+    if (tag === "bdi" || tag === "bdo") {
+      if (!hasDirection) await ast.push(pairs, await ast.value(["dir", "auto"]));
+      if (tag === "bdo" && !hasStyle) await ast.push(pairs, await ast.value(["style", "unicode-bidi:isolate-override"]));
     }
     return ast.value([id, classes, pairs]);
   };
   const hasAttrs = async (attrs: RtfValue) => {
     let i = 0; for await (const v of ast.children(attrs)) {if (i++ === 0 ? await nonempty(v) : await ast.count(v)) return true;} return false;
+  };
+  const directionAttrs = async (raw: RtfValue) => {
+    const pairs = await ast.array();
+    for await (const pair of ast.children(raw)) {
+      const key = (await entry(pair))[0]!;
+      if (await same(key, "dir") || await same(key, "style")) await ast.push(pairs, pair);
+    }
+    return ast.value(["", [], pairs]);
+  };
+  const directionBlocks = async (raw: RtfValue, blocks: RtfValue) => {
+    const attrs = await directionAttrs(raw);
+    return await hasAttrs(attrs) ? ast.value([await ast.tag("Div", await ast.value([attrs, blocks]))]) : blocks;
   };
   let previous = 0;
   const create = async (tag: string, attrs: RtfValue, parent: number, content = 0) => {
@@ -117,11 +143,11 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
     }
     const id = await lookup(raw, "id"); let target = parent!;
     if (["ul", "ol", "hr", "dl"].includes(tag) && await nonempty(id)) await anchor(target, id);
-    if (["abbr", "bdi", "bdo", "mark", "time", "label", "small", "big", "dfn", "kbd"].includes(tag) && await ast.count(raw)) target = await create("span", raw, target);
+    if (["abbr", "mark", "time", "label", "small", "big", "dfn", "kbd"].includes(tag) && await ast.count(raw)) target = await create("span", raw, target);
     const p = await create(tag, raw, target);
     if (ref === xml.reference(xml.root)) {rootId = id; rootAttributes = raw;}
     target = p;
-    if (tag === "body") {if (ref === bodyReference) body = p; if (await ast.count(raw)) target = await create("div", raw, p); if (await nonempty(rootId)) await anchor(target, rootId);}
+    if (tag === "body") {if (ref === bodyReference) body = p; if (await nonempty(rootId)) await anchor(target, rootId);}
     if (["li", "blockquote", "dt", "dd"].includes(tag) && await nonempty(id)) await anchor(target, id);
     let reverse = 0;
     for await (const child of xml.children(node)) reverse = await record([reverse, xml.reference(child)]);
@@ -146,7 +172,18 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
     await flush(); return result;
   };
   const trim = async (source: RtfValue) => {const result = await ast.array(); await copy(result, source); for (const last of [false, true]) {const edge = await ast.edge(result, last); if (edge && await ast.name(edge) === "Space") await ast.remove(result, last);} return result;};
-  const number = async (s: RtfValue, max = 65534) => {let n = 0, seen = false; for await (const chunk of ast.text.chunks(await ast.range(s))) for (const c of chunk) {if (c < "0" || c > "9") return 1; seen = true; n = n * 10 + Number(c); if (!Number.isSafeInteger(n)) return 1;} return seen && n > 0 ? Math.min(n, max) : 1;};
+  const listNumber = async (source: RtfValue, fallback: number) => {
+    let number = 0, sign = 1, first = true, seen = false;
+    for await (const chunk of ast.text.chunks(await ast.range(source))) for (const char of chunk) {
+      if (first && (char === "+" || char === "-")) {sign = char === "-" ? -1 : 1; first = false; continue;}
+      first = false;
+      if (char < "0" || char > "9") return fallback;
+      seen = true; number = number * 10 + Number(char);
+      if (!Number.isSafeInteger(number)) return fallback;
+    }
+    return seen ? sign * number : fallback;
+  };
+  const number = async (s: RtfValue, max = 65534) => {let n = 0, seen = false; for await (const chunk of ast.text.chunks(await ast.range(s))) for (const c of chunk) {if (c < "0" || c > "9") return 1; seen = true; n = n * 10 + Number(c); if (!Number.isSafeInteger(n)) return 1;} return seen ? Math.min(n, max) : 1;};
   const childFlow = async (p: number, exclude = 0) => {
     const result = await ast.array(); let pending = await ast.array();
     const flush = async () => {const content = await trim(pending); if (await ast.count(content)) await ast.push(result, await ast.tag("Plain", content)); pending = await ast.array();};
@@ -179,7 +216,7 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
       else if (tag === "img") await ast.push(inlines, await ast.tag("Image", await ast.value([await attributes(raw, tag, ["src", "alt", "title"]), await inlineText(await lookup(raw, "alt")), [await lookup(raw, "src"), await lookup(raw, "title")]])));
       else if (Object.hasOwn(styles, tag)) {const styled = await ast.tag(styles[tag as keyof typeof styles], content); await ast.push(inlines, await hasAttrs(attrs) ? await ast.tag("Span", await ast.value([attrs, [styled]])) : styled);}
       else if (tag === "a" && await (async () => {for await (const pair of ast.children(raw)) if (await same((await entry(pair))[0]!, "href")) return true; return false;})()) await ast.push(inlines, await ast.tag("Link", await ast.value([await attributes(raw, tag, ["href", "title"]), content, [await lookup(raw, "href"), await lookup(raw, "title")]])));
-      else if (tag === "span" || tag === "a" || tag === "mark") await ast.push(inlines, await ast.tag("Span", await ast.value([attrs, content])));
+      else if (tag === "span" || tag === "a" || tag === "mark" || tag === "bdi" || tag === "bdo" || (!blocks.has(tag) || tag === "dt") && await hasAttrs(await directionAttrs(raw))) await ast.push(inlines, await ast.tag("Span", await ast.value([tag === "dt" ? await directionAttrs(raw) : attrs, content])));
       else inlines = content;
       if (["details", "article", "footer", "nav"].includes(tag)) flow = await childFlow(p);
       else if (tag === "summary") await ast.push(flow, await ast.tag("Para", await trim(content)));
@@ -207,12 +244,28 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
         await copy(pairs, a[2]!); for await (const pair of ast.children(b[2]!)) {let found = false; for await (const prior of ast.children(a[2]!)) if (await equalText((await entry(prior))[0]!, (await entry(pair))[0]!)) {found = true; break;} if (!found) await ast.push(pairs, pair);}
         await ast.push(flow, await ast.tag("CodeBlock", await ast.value([[await nonempty(a[0]!) ? a[0]! : b[0]!, classes, pairs], lit])));
       } else if (tag === "ul" || tag === "ol") {
-        const items = await ast.array(); for await (const child of children(p)) {const r = await get(child, F.Count); if (names[r[F.Tag]!] === "li") await ast.push(items, value(r[F.Flow]!));}
+        let count = 0, reversed = false;
+        for await (const child of children(p)) if (names[(await get(child, F.Count))[F.Tag]!] === "li") count++;
+        for await (const pair of ast.children(raw)) if (await same((await entry(pair))[0]!, "reversed")) reversed = tag === "ol";
         const listStyles: Readonly<Record<string, string>> = {"1": "Decimal", a: "LowerAlpha", A: "UpperAlpha", i: "LowerRoman", I: "UpperRoman"};
         const type = await lookup(raw, "type");
         let style = "DefaultStyle";
         for (const [key, name] of Object.entries(listStyles)) if (await same(type, key)) {style = name; break;}
-        await ast.push(flow, tag === "ul" ? await ast.tag("BulletList", items) : await ast.tag("OrderedList", await ast.value([[await number(await lookup(raw, "start")), style, "DefaultDelim"], items])));
+        let next = await listNumber(await lookup(raw, "start"), reversed ? count : 1), start = next, items = await ast.array();
+        const flush = async () => {await ast.push(flow, await ast.tag("OrderedList", await ast.value([[start, style, "DefaultDelim"], items]))); items = await ast.array();};
+        for await (const child of children(p)) {
+          const row = await get(child, F.Count);
+          if (names[row[F.Tag]!] !== "li") continue;
+          if (tag === "ol") {
+            const marker = await listNumber(await lookup(value(row[F.Attributes]!), "value"), next);
+            if (await ast.count(items) && (reversed || marker !== next)) await flush();
+            if (!await ast.count(items)) start = marker;
+            next = marker + (reversed ? -1 : 1);
+          }
+          await ast.push(items, value(row[F.Flow]!));
+        }
+        if (tag === "ul") await ast.push(flow, await ast.tag("BulletList", items));
+        else await flush();
       } else if (tag === "dl") {
         const items = await ast.array(); let term = await ast.array(), definitions = await ast.array(), started = false;
         for await (const child of children(p)) {
@@ -230,9 +283,10 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
         await ast.push(flow, await ast.tag("DefinitionList", items));
       } else if (tag === "figure") {
         let caption = 0; for await (const child of children(p)) {const r = await get(child, F.Count); if (names[r[F.Tag]!] === "figcaption") {caption = child; break;}}
-        await ast.push(flow, await ast.tag("Figure", await ast.value([attrs, [null, caption ? await childFlow(caption) : await ast.array()], await childFlow(p, caption)])));
-      } else if (tag === "table") await ast.push(flow, await table(p, attrs));
+        await ast.push(flow, await ast.tag("Figure", await ast.value([attrs, [null, caption ? value((await get(caption, F.Count))[F.Flow]!) : await ast.array()], await childFlow(p, caption)])));
+      } else if (tag === "table") await copy(flow, await table(p, attrs));
       else flow = await childFlow(p);
+      if (["details", "article", "footer", "nav", "summary", "hr", "blockquote", "ul", "ol", "dl", "li", "dt", "dd", "figcaption", "caption"].includes(tag)) flow = await directionBlocks(raw, flow);
     }
     await put(p + F.Inline * 8, [inlines.position, flow.position, lit.position]); p = row[F.Previous]!;
   }
@@ -243,33 +297,134 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
   }
   async function table(p: number, attrs: RtfValue) {
     const heads = await ast.array(), feet = await ast.array(), bodies = await ast.array(); let width = 0, caption = await ast.array();
-    let inferHead = true;
+    let pendingAnchors = await ast.array();
+    let headAttrs = empty, footAttrs = empty;
+    let inferHead = true, directRows = false;
     let complexCells = false;
-    for await (const child of children(p)) if (names[(await get(child, F.Count))[F.Tag]!] === "thead") inferHead = false;
-    const rows = async (parent: number, leadingHead = false) => {
-      const result = await ast.array(), occupied = new IntegerTable(storage, 64); let columns = 0;
+    for await (const child of children(p)) {
+      const tag = names[(await get(child, F.Count))[F.Tag]!];
+      if (tag === "thead") inferHead = false;
+      if (tag === "tr") directRows = true;
+    }
+    const rows = async (parent: number, group: "head" | "body" | "foot", inferred = false): Promise<[number, RtfValue, RtfValue]> => {
+      let count = 0, retainedCount = 0;
+      const retainedRows = new IntegerTable(storage, 64);
+      await retainedRows.set(0n, 0n);
+      for await (const child of children(parent)) if (names[(await get(child, F.Count))[F.Tag]!] === "tr") {
+        for await (const cell of children(child)) if (["td", "th"].includes(names[(await get(cell, F.Count))[F.Tag]!]!)) {retainedCount++; break;}
+        await retainedRows.set(BigInt(++count), BigInt(retainedCount));
+      }
+      const rowSpan = async (raw: RtfValue, index: number) => {
+        const authored = await number(await lookup(raw, "rowspan"));
+        const span = Math.min(authored === 0 ? count - index : authored, count - index);
+        return Math.max(1, Number(await retainedRows.get(BigInt(index + span))) - Number(await retainedRows.get(BigInt(index))));
+      };
+      let headerCount = 0, reach = 0, index = 0;
+      if (group === "body") for await (const child of children(parent)) {
+        if (names[(await get(child, F.Count))[F.Tag]!] !== "tr") continue;
+        let cells = 0, allHead = true, rowReach = 0;
+        for await (const cell of children(child)) {
+          const record = await get(cell, F.Count), tag = names[record[F.Tag]!]!;
+          if (tag !== "th" && tag !== "td") continue;
+          cells++; if (tag === "td") allHead = false;
+          rowReach = Math.max(rowReach, index + await rowSpan(value(record[F.Attributes]!), index));
+        }
+        if (!cells || !allHead || inferred && index > 0) break;
+        reach = Math.max(reach, rowReach); headerCount++; index++;
+      }
+      if (reach > headerCount) headerCount = 0;
+      let rowHeads: number | undefined;
+      index = 0;
+      if (group === "body") for await (const child of children(parent)) {
+        if (names[(await get(child, F.Count))[F.Tag]!] !== "tr") continue;
+        const current = index++;
+        if (current < headerCount) continue;
+        if (await retainedRows.get(BigInt(current)) === await retainedRows.get(BigInt(current + 1))) continue;
+        let prefix = 0, data = false, regular = true;
+        for await (const cell of children(child)) {
+          const record = await get(cell, F.Count), tag = names[record[F.Tag]!]!, raw = value(record[F.Attributes]!);
+          if (tag !== "th" && tag !== "td") continue;
+          if (await rowSpan(raw, current) > 1) regular = false;
+          if (tag === "td") data = true;
+          else if (data) regular = false;
+          else prefix += await number(await lookup(raw, "colspan"), 1000) || 1;
+        }
+        rowHeads = !regular || rowHeads !== undefined && rowHeads !== prefix ? 0 : prefix;
+      }
+      rowHeads ??= 0;
+      const result = await ast.array(), intermediate = await ast.array(), occupied = new IntegerTable(storage, 64); let columns = 0;
+      index = 0;
       for await (const child of children(parent)) {
         const row = await get(child, F.Count); if (names[row[F.Tag]!] !== "tr") continue;
-        const cells = await ast.array(); let column = 0, header = leadingHead;
+        if (await retainedRows.get(BigInt(index)) === await retainedRows.get(BigInt(index + 1))) {
+          const id = await lookup(value(row[F.Attributes]!), "id");
+          if (await nonempty(id)) await ast.push(pendingAnchors, await ast.tag("Span", await ast.value([[id, [], []], []])));
+          index++; continue;
+        }
+        const cells = await ast.array(); let column = 0, data = false;
         for await (const cell of children(child)) {
           const r = await get(cell, F.Count), tag = names[r[F.Tag]!]!; if (tag !== "td" && tag !== "th") continue;
           while ((await occupied.get(BigInt(column)) ?? 0n) > 0n) {column++; ctx.checkpoint();}
-          if (tag === "td") header = false;
-          const raw = value(r[F.Attributes]!), rows = await number(await lookup(raw, "rowspan")), cols = await number(await lookup(raw, "colspan"), 1000);
+          const raw = value(r[F.Attributes]!), rows = await rowSpan(raw, index), cols = await number(await lookup(raw, "colspan"), 1000) || 1;
           ctx.bound("tableCells", column + cols); ctx.charge("references", cols);
           for (let i = 0; i < cols; i++) await occupied.set(BigInt(column + i), BigInt(Math.max(rows, Number(await occupied.get(BigInt(column + i)) ?? 0n))));
           columns = Math.max(columns, column + cols);
-          const content = await childFlow(cell), count = await ast.count(content);
-          if (count > 1 || count === 1 && !["Plain", "Para"].includes((await ast.name((await ast.at(content, 0))!))!)) complexCells = true;
-          column += cols; await ast.push(cells, await ast.value([await attributes(raw, tag, ["rowspan", "colspan"]), "AlignDefault", rows, cols, content]));
+          const attrs = await attributes(raw, tag, ["rowspan", "colspan", ...(tag === "td" ? ["scope"] : [])]);
+          const pairs = (await ast.at(attrs, 2))!;
+          if (tag === "th" && group !== "head" && index >= headerCount && column >= rowHeads) {
+            const short = async (source: RtfValue) => {
+              let word = "", trailing = false;
+              for await (const chunk of ast.text.chunks(await ast.range(source))) for (const c of chunk) {
+                if (ws(c)) {if (word) trailing = true;}
+                else if (trailing || word.length >= 12) return "";
+                else word += c;
+              }
+              return word;
+            };
+            const role = await short(await lookup(raw, "role")), scope = (await short(await lookup(raw, "scope"))).toLowerCase();
+            if (!["rowheader", "columnheader"].includes(role) && !["row", "col", "rowgroup", "colgroup"].includes(scope)) {
+              let authoredRole = false;
+              for await (const pair of ast.children(pairs)) if (await same((await entry(pair))[0]!, "role")) authoredRole = true;
+              if (authoredRole) {
+                const kept = await ast.array();
+                for await (const pair of ast.children(pairs)) if (!await same((await entry(pair))[0]!, "scope")) await ast.push(kept, pair);
+                await ast.push(kept, await ast.value(["scope", data ? "col" : "row"])); await ast.set(attrs, 2, kept);
+              } else await ast.push(pairs, await ast.value(["role", data ? "columnheader" : "rowheader"]));
+            }
+          }
+          if (tag === "td") data = true;
+          let content = await childFlow(cell);
+          if (!await ast.count(cells) && await ast.count(pendingAnchors)) {
+            const first = await ast.edge(content), name = first ? await ast.name(first) : undefined;
+            if (name === "Plain" || name === "Para") {
+              const inlines = await ast.array(); await copy(inlines, pendingAnchors); await copy(inlines, (await ast.content(first!))!);
+              await ast.replaceTag(first!, name, inlines);
+            } else {
+              const prefixed = await ast.value([await ast.tag("Plain", pendingAnchors)]); await copy(prefixed, content); content = prefixed;
+            }
+            pendingAnchors = await ast.array();
+          }
+          const contentCount = await ast.count(content);
+          if (contentCount > 1 || contentCount === 1 && !["Plain", "Para"].includes((await ast.name((await ast.at(content, 0))!))!)) complexCells = true;
+          column += cols; await ast.push(cells, await ast.value([attrs, "AlignDefault", rows, cols, content]));
         }
         width = Math.max(width, column, columns); for (let column = 0; column < columns; column++) await occupied.set(BigInt(column), BigInt(Math.max(0, Number(await occupied.get(BigInt(column)) ?? 0n) - 1)));
-        await ast.push(header && await ast.count(cells) ? heads : result, await ast.value([await attributes(value(row[F.Attributes]!), "tr"), cells]));
-        leadingHead = false;
+        await ast.push(index < headerCount ? inferred ? heads : intermediate : result, await ast.value([await attributes(value(row[F.Attributes]!), "tr"), cells]));
+        index++;
       }
-      return result;
+      return [rowHeads, intermediate, result];
     };
-    for await (const child of children(p)) {const row = await get(child, F.Count), tag = names[row[F.Tag]!]!; if (tag === "caption") caption = await childFlow(child); else if (tag === "thead") await copy(heads, await rows(child)); else if (tag === "tfoot") await copy(feet, await rows(child)); else if (tag === "tbody") {await ast.push(bodies, await ast.value([await attributes(value(row[F.Attributes]!), tag), 0, [], await rows(child, inferHead)])); inferHead = false;}}
+    for (const phase of ["head", "body", "foot"]) {
+    for await (const child of children(p)) {
+      const row = await get(child, F.Count), tag = names[row[F.Tag]!]!;
+      if (tag === "thead" ? phase !== "head" : tag === "tfoot" ? phase !== "foot" : phase !== "body") continue;
+      if (tag === "caption") caption = value(row[F.Flow]!);
+      else if (tag === "thead") {headAttrs = await attributes(value(row[F.Attributes]!), tag); await copy(heads, (await rows(child, "head"))[2]);}
+      else if (tag === "tfoot") {footAttrs = await attributes(value(row[F.Attributes]!), tag); await copy(feet, (await rows(child, "foot"))[2]);}
+      else if (tag === "tbody") {await ast.push(bodies, await ast.value([await attributes(value(row[F.Attributes]!), tag), ...await rows(child, "body")])); inferHead = false;}
+    }
+    if (phase === "body" && directRows) await ast.push(bodies, await ast.value([empty, ...await rows(p, "body", inferHead)]));
+    }
     const specs = await ast.array();
     for await (const child of children(p)) {
       if (names[(await get(child, F.Count))[F.Tag]!] !== "colgroup") continue;
@@ -282,9 +437,14 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
     }
     const equalWidths = complexCells && !await ast.count(specs);
     while (await ast.count(specs) < width) await ast.push(specs, await ast.value(["AlignDefault", equalWidths ? await ast.tag("ColWidth", await ast.value(1 / width)) : await ast.tag("ColWidthDefault")]));
-    return ast.tag("Table", await ast.value([attrs, [null, caption], specs, [empty, heads], bodies, [empty, feet]]));
+    const result = await ast.value([await ast.tag("Table", await ast.value([attrs, [null, caption], specs, [headAttrs, heads], bodies, [footAttrs, feet]]))]);
+    if (await ast.count(pendingAnchors)) await ast.push(result, await ast.tag("Plain", pendingAnchors));
+    return result;
   }
-  const result = await childFlow(body), identifiers = new BackedTextSet(storage, ast.text);
+  let result = await childFlow(body);
+  const bodyAttrs = await attributes(value((await get(body, F.Count))[F.Attributes]!), "body");
+  if (await hasAttrs(bodyAttrs)) result = await ast.value([await ast.tag("Div", await ast.value([bodyAttrs, result]))]);
+  const identifiers = new BackedTextSet(storage, ast.text);
   // Construction is postorder; assign identifiers in document order.
   await ast.walk(result, async (node, _depth, leaving) => {
     if (leaving || await ast.name(node) !== "Header") return;
@@ -308,5 +468,11 @@ export async function readRetainedXhtml(xml: RetainedXmlDocument, ast: RetainedR
   const dir = await lookup(rootAttributes, "dir");
   let direction: "ltr" | "rtl" | "auto" | undefined;
   for (const candidate of ["ltr", "rtl", "auto"] as const) if (await same(dir, candidate)) direction = candidate;
+  let rootScope = false;
+  for await (const pair of ast.children(rootAttributes)) {
+    const key = (await entry(pair))[0]!;
+    if (await same(key, "style") || !direction && await same(key, "dir")) rootScope = true;
+  }
+  if (rootScope) result = await directionBlocks(rootAttributes, result);
   return {blocks: result, ...(await nonempty(language) ? {language} : {}), ...(direction ? {direction} : {})};
 }

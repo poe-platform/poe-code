@@ -96,15 +96,34 @@ it("selects the mapped glyph independently of its ToUnicode text", () => {
   const display = evaluate(2, cosStream(Uint8Array.of(0, 0, 0, 0, 0, 1)));
   expect(display.glyphs[0]!.unicode).toBe("Z");
   expect(display.glyphs[0]!.advanceWidth).toBeCloseTo(90);
-  expect(display.paths).toHaveLength(1);
-  expect(display.paths[0]!.segments.filter(segment => segment.kind === "line")).toHaveLength(2);
+  expect(display.paths).toHaveLength(0);
+  expect(display.glyphs[0]!.outline).toBeDefined();
+  expect(display.glyphs[0]!.outline!.segments.filter(segment => segment.kind === "line")).toHaveLength(2);
+});
+
+it("keeps embedded glyph paint separate from page rules without changing pixels", () => {
+  const display = evaluate(2, cosStream(Uint8Array.of(0, 0, 0, 0, 0, 1)));
+  const glyph = display.glyphs[0]!;
+  const { outline: glyphOutline, ...text } = glyph;
+  const outline = glyphOutline!;
+  const legacyGlyph = { ...text, renderMode: 3 as const };
+  const legacy = {
+    ...display,
+    glyphs: [legacyGlyph],
+    paths: [outline],
+    operations: [{ kind: "path" as const, value: outline }, { kind: "glyph" as const, value: legacyGlyph }],
+  };
+  expect(renderDisplayListToBitmap(display, { dpi: 72 })).toEqual(renderDisplayListToBitmap(legacy, { dpi: 72 }));
+  expect(display.paths).toEqual([]);
+  expect(renderDisplayListToSvg(display)).toContain("<path ");
 });
 
 it.each([cosName("Identity"), cosStream(Uint8Array.of(0, 0, 0, 1))])("renders CID subsets without a cmap table: %s", mapping => {
   const display = evaluate(1, mapping, { withCmap: false });
   expect(display.glyphs[0]!.unicode).toBe("Z");
-  expect(display.paths).toHaveLength(1);
-  expect(display.paths[0]!.segments.filter(segment => segment.kind === "line")).toHaveLength(2);
+  expect(display.paths).toHaveLength(0);
+  expect(display.glyphs[0]!.outline).toBeDefined();
+  expect(display.glyphs[0]!.outline!.segments.filter(segment => segment.kind === "line")).toHaveLength(2);
 });
 
 it("retains glyph metrics and direct outlines when cmap is absent", () => {
@@ -149,14 +168,16 @@ it.each([
   page.setRawContentStream("BT /F1 100 Tf 10 10 Td (A) Tj ET");
   const display = PdfDocument.load(doc.save()).getPage(0).evaluateDisplayList();
   expect(display.glyphs[0]!.unicode).toBe("Z");
-  expect(display.paths).toHaveLength(1);
-  expect(display.paths[0]!.segments.filter(segment => segment.kind === "line")).toHaveLength(2);
+  expect(display.paths).toHaveLength(0);
+  expect(display.glyphs[0]!.outline).toBeDefined();
+  expect(display.glyphs[0]!.outline!.segments.filter(segment => segment.kind === "line")).toHaveLength(2);
 });
 
 it("honors an explicit glyph zero mapping even when ToUnicode matches another glyph", () => {
   const display = evaluate(1, cosStream(Uint8Array.of(0, 0, 0, 0)), { unicode: "A" });
   expect(display.glyphs[0]!.unicode).toBe("A");
   expect(display.paths).toHaveLength(0);
+  expect(display.glyphs[0]!.outline).toBeUndefined();
 });
 
 // PDF.js fonts.js maps a Windows Symbol cmap by character code and clears
@@ -176,8 +197,9 @@ it.each([0x41, 0xf041])("uses symbolic cmap character code %i independently of T
   page.setRawContentStream("BT /F1 100 Tf 10 10 Td (A) Tj ET");
   const display = PdfDocument.load(doc.save()).getPage(0).evaluateDisplayList();
   expect(display.glyphs[0]!.unicode).toBe("Z");
-  expect(display.paths).toHaveLength(1);
-  expect(display.paths[0]!.segments.filter(segment => segment.kind === "line")).toHaveLength(2);
+  expect(display.paths).toHaveLength(0);
+  expect(display.glyphs[0]!.outline).toBeDefined();
+  expect(display.glyphs[0]!.outline!.segments.filter(segment => segment.kind === "line")).toHaveLength(2);
 });
 
 it("renders the first T in PDF.js issue2948 using its embedded symbol cmap", () => {
@@ -187,19 +209,21 @@ it("renders the first T in PDF.js issue2948 using its embedded symbol cmap", () 
   const display = page.evaluateDisplayList();
   expect(display.glyphs[0]!.unicode).toBe("T");
   // The actual capital T is a single contour; .notdef has two rectangular contours.
-  expect(display.paths[0]!.segments.filter(segment => segment.kind === "move")).toHaveLength(1);
+  expect(display.glyphs[0]!.outline!.segments.filter(segment => segment.kind === "move")).toHaveLength(1);
 });
 
 it("uses glyph zero when the CID is outside the mapping stream", () => {
-  expect(evaluate(1, cosStream(Uint8Array.of(0, 0)), { unicode: "A" }).paths).toHaveLength(0);
+  const display = evaluate(1, cosStream(Uint8Array.of(0, 0)), { unicode: "A" });
+  expect(display.paths).toHaveLength(0);
+  expect(display.glyphs[0]!.outline).toBeUndefined();
 });
 
 it.each([undefined, cosName("Identity")])("retains identity CID mapping when CIDToGIDMap is %s", mapping => {
-  expect(evaluate(1, mapping).paths).toHaveLength(1);
+  expect(evaluate(1, mapping).glyphs[0]!.outline).toBeDefined();
 });
 
 it("paints the embedded .notdef outline for an explicit glyph zero mapping", () => {
-  expect(evaluate(1, cosStream(Uint8Array.of(0, 0, 0, 0)), { notdef: true }).paths).toHaveLength(1);
+  expect(evaluate(1, cosStream(Uint8Array.of(0, 0, 0, 0)), { notdef: true }).glyphs[0]!.outline).toBeDefined();
 });
 
 it("does not synthesize a fallback letter for an empty mapped glyph", () => {
@@ -218,7 +242,8 @@ it.each([1, 2, 3, 4])("uses an embedded %i-byte Encoding CMap for CID and width 
   expect(display.glyphs[0]!.charCode).toBe(source);
   expect(display.glyphs[0]!.unicode).toBe("Z");
   expect(display.glyphs[0]!.advanceWidth).toBeCloseTo(90);
-  expect(display.paths).toHaveLength(1);
+  expect(display.paths).toHaveLength(0);
+  expect(display.glyphs[0]!.outline).toBeDefined();
 });
 
 

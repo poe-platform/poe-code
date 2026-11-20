@@ -313,7 +313,7 @@ pub(super) fn still_info(
     let header=if super::bmp::signature(bytes) {
         Some(super::bmp::Bmp::parse(bytes,limit).map(|im|(im.width,im.height,b"bmp ")))
     }else if super::tiff::signature(bytes) {
-        Some(super::tiff::Tiff::parse(bytes,limit).map(|im|(im.width,im.height,b"tiff")))
+        Some(super::tiff::dimensions(bytes,limit).map(|(w,h)|(w,h,b"tiff")))
     }else{None};
     if let Some(header)=header {
         return match header {

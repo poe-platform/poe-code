@@ -32,9 +32,9 @@ export default {async fetch(request,env){
  }finally{Array.prototype.push=push;}
 }};` }, bundle: true, write: false, platform: "browser", conditions: ["workerd"], format: "esm", metafile: true, logLevel: "silent" });
   expect(Object.values(bundle.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
-  const runtime = new Miniflare({ workers: [
-    { name: "dash", modules: true, compatibilityDate: "2026-07-01", cf: false, script: bundle.outputFiles[0]!.text, serviceBindings: { BACKING: "dash-store" } },
-    { name: "dash-store", modules: true, compatibilityDate: "2026-07-01", cf: false, script: `
+  const runtime = new Miniflare({ cf: false, workers: [
+    { name: "dash", modules: true, compatibilityDate: "2026-07-01", script: bundle.outputFiles[0]!.text, serviceBindings: { BACKING: "dash-store" } },
+    { name: "dash-store", modules: true, compatibilityDate: "2026-07-01", script: `
 const data=new Uint8Array(4_000_000);
 export default {async fetch(request){const url=new URL(request.url),at=Number(url.searchParams.get('at'));
 if(request.method==='PUT'){data.set(new Uint8Array(await request.arrayBuffer()),at);return new Response();}

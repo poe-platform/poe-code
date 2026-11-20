@@ -10,8 +10,62 @@ dependencies = [
 ]
 
 [[package]]
+name = "diagram-renderer-rust"
+version = "0.1.0"
+dependencies = [
+ "config-mutations-rust",
+ "document-ast-rust",
+ "mcp-protocol-rust",
+ "terminal-png-rust",
+]
+
+[[package]]
+name = "document-ast-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
+name = "document-converter-rust"
+version = "0.1.0"
+dependencies = [
+ "diagram-renderer-rust",
+ "document-ast-rust",
+ "docx-ast-rust",
+ "mcp-protocol-rust",
+ "office-package-rust",
+ "pdf-ast-rust",
+ "poe-agent-rust",
+ "terminal-png-rust",
+]
+
+[[package]]
+name = "docx-ast-rust"
+version = "0.1.0"
+dependencies = [
+ "document-ast-rust",
+ "office-package-rust",
+]
+
+[[package]]
 name = "mcp-protocol-rust"
 version = "0.1.0"
+
+[[package]]
+name = "office-package-rust"
+version = "0.1.0"
+dependencies = [
+ "mcp-protocol-rust",
+]
+
+[[package]]
+name = "pdf-ast-rust"
+version = "0.1.0"
+dependencies = [
+ "document-ast-rust",
+ "terminal-png-rust",
+]
 
 [[package]]
 name = "poe-agent-rust"
@@ -25,7 +79,13 @@ name = "safe-bash-rust"
 version = "0.1.0"
 dependencies = [
  "config-mutations-rust",
+ "diagram-renderer-rust",
+ "document-ast-rust",
+ "document-converter-rust",
+ "docx-ast-rust",
  "mcp-protocol-rust",
+ "office-package-rust",
+ "pdf-ast-rust",
  "poe-agent-rust",
  "terminal-png-rust",
 ]

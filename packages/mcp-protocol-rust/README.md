@@ -14,6 +14,11 @@ input bytes, nesting, and value count with explicit limits for untrusted message
 | Wire formats    | Canonical base64 and strict absolute resource URI checks                                    |
 | Protocol errors | `mcp-protocol-rust/errors` shares the `ToolError` constructor across native stdio and HTTP servers |
 
+The Rust `unicode::general_category` API and category ranges share Unicode 17.0 data
+with the schema pattern engine and document readers. Regenerate the checked-in table
+with `node scripts/generate-unicode.mjs UnicodeData.txt`; the data license ships as
+`UNICODE-LICENSE.txt`.
+
 JSON-RPC helpers distinguish requests from notifications, preserve legacy IDs,
 enforce modern safe request IDs, and format success/error envelopes.
 

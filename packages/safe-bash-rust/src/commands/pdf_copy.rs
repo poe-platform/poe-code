@@ -61,6 +61,7 @@ fn concat([a, b, c, d, e, f]: Matrix, n: Matrix) -> Matrix {
 
 pub(in super::super) struct PageSource<'a> {
     objects: Objects<'a>,
+    fonts: BTreeMap<ObjectId, std::rc::Rc<pdf_text_layout::Font>>,
     pages: Vec<ObjectId>,
     tree: BTreeMap<ObjectId, Option<Value<'a>>>,
     info: Value<'a>,
@@ -310,6 +311,7 @@ impl<'a> PageSource<'a> {
         }
         Ok(Self {
             objects,
+            fonts: BTreeMap::new(),
             tree,
             pages,
             info: Value::Dict(info),

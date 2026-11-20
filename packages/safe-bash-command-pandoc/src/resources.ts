@@ -1,5 +1,8 @@
 import {PagedStorage} from "safe-bash-io-engine/storage";
 import { PandocError } from "./errors.js";
+import {htmlImageSources, type HtmlImageSource} from "./html.js";
+import {renderedDocumentMetadata} from "./metadata.js";
+import type {Inline} from "./ast-types.js";
 import type { Document, ResourceFileSystem, WriteOptions } from "./types.js";
 import type { ExecutionContext } from "./execution.js";
 
@@ -177,13 +180,15 @@ export class ResourceSession {
     }
   }
 
-  async prepare(document: Document, lossy: boolean, embedImages = false): Promise<Document> {
+  async prepare(document: Document, lossy: boolean, embedImages = false, rawHtmlImages = false): Promise<Document> {
     if (this.destination === undefined && (!embedImages || !this.context.context.resourceFiles || this.context.resources)) return document;
     const fs = this.context.context.resourceFiles!;
     const ctx = this.context;
+    const metadata = rawHtmlImages ? await renderedDocumentMetadata(document.metadata, ctx) : document.metadata;
     const embedded = new Map<string, Uint8Array>();
     const imageResources = new Map<string, Uint8Array>();
     const embeddedEntries = new Map<string, ResourceEntry>();
+    const rawImages = new WeakMap<object, (HtmlImageSource & {image: Extract<Inline, {t: "Image" | "Link"}>})[]>();
     for (const resource of document.resources) {
       if (this.destination !== undefined) mediaKeyBasename(resource.id, ctx);
       const previous = embedded.get(resource.id);
@@ -199,10 +204,26 @@ export class ResourceSession {
     const validate = async (value: unknown): Promise<void> => {
       await ctx.cooperate();
       if (!value || typeof value !== "object" || value instanceof Uint8Array) return;
+      if (rawHtmlImages && "t" in value && (value.t === "RawInline" || value.t === "RawBlock")) {
+        const raw = value as {t: "RawInline" | "RawBlock"; c: readonly [string, string]};
+        if (raw.c[0] === "html" || raw.c[0] === "html5") {
+          const targets = [];
+          for (const target of await htmlImageSources(raw.c[1], ctx)) {
+            ctx.charge("references", 1);
+            ctx.charge("retainedBytes", 128);
+            const image: Extract<Inline, {t: "Image" | "Link"}> = {t: "Image", c: [["", [], []], [], [target.source, ""]]};
+            const origin = this.origins.get(raw.c);
+            if (origin) this.origins.set(image.c[2], origin);
+            targets.push({...target, image});
+            await validate(image);
+          }
+          rawImages.set(value, targets);
+        }
+      }
       if ("t" in value && value.t === "Image") {
         const image = value as Extract<import("./ast-types.js").Inline, {t: "Image" | "Link"}>;
         const url = image.c[2][0];
-        if (this.destination === undefined && embedImages && /^data:image\/(?:png|jpe?g);base64,/i.test(url) && !embedded.has(url)) {
+        if (this.destination === undefined && embedImages && /^data:image\/(?:png|jpe?g|gif|bmp|x-ms-bmp|tiff?);base64,/i.test(url) && !embedded.has(url)) {
           const comma = url.indexOf(",");
           let raw: string;
           try {raw = atob(url.slice(comma + 1));} catch {throw new PandocError("E_RESOURCE", "convert", "Invalid base64 image resource");}
@@ -220,7 +241,7 @@ export class ResourceSession {
       for (const child of Object.values(value)) await validate(child);
     };
     await validate(document.blocks);
-    await validate(document.metadata);
+    await validate(metadata);
     if (this.destination !== undefined) {
       const destinationType = await inspectResourcePath(fs, this.destination, ctx);
       if (destinationType !== undefined && destinationType !== "directory") ctx.fail("E_IO", "Extraction destination is not a directory");
@@ -238,6 +259,26 @@ export class ResourceSession {
     const visit = async (value: unknown, path: string): Promise<unknown> => {
       await ctx.cooperate();
       if (value === null || typeof value !== "object" || value instanceof Uint8Array) return value;
+      const targets = rawImages.get(value);
+      if (targets?.length) {
+        const raw = value as {t: "RawInline" | "RawBlock"; c: readonly [string, string]};
+        const parts = [];
+        let offset = 0;
+        for (const target of targets) {
+          const image = await visit(target.image, path) as Extract<Inline, {t: "Image" | "Link"}>;
+          const source = image.c[2][0].replaceAll("&", "&amp;").replaceAll('"', "&quot;").replaceAll("<", "&lt;");
+          const part = raw.c[1].slice(offset, target.start) + `src="${source}"`;
+          ctx.charge("retainedBytes", part.length * 2);
+          parts.push(part);
+          offset = target.end;
+        }
+        const tail = raw.c[1].slice(offset);
+        ctx.charge("retainedBytes", tail.length * 2);
+        parts.push(tail);
+        const source = parts.join("");
+        ctx.charge("retainedBytes", source.length * 2);
+        return {...value, c: [raw.c[0], source]};
+      }
       if ("t" in value && value.t === "Image") {
         const image = value as Extract<import("./ast-types.js").Inline, {t: "Image" | "Link"}>;
         const [url, title] = image.c[2];
@@ -326,7 +367,7 @@ export class ResourceSession {
       for (const [key, child] of Object.entries(value)) result[key] = await visit(child, `${path}.${key}`);
       return result;
     };
-    const prepared = {...document, blocks: await visit(document.blocks, "$.blocks"), metadata: await visit(document.metadata, "$.metadata")} as Document;
+    const prepared = {...document, blocks: await visit(document.blocks, "$.blocks"), metadata: {...document.metadata, ...await visit(metadata, "$.metadata") as object}} as Document;
     if (this.destination !== undefined) for (const entry of this.plans) if (await inspectResourcePath(fs, entry.path, ctx) !== undefined) ctx.fail("E_IO", `Extraction destination already exists: ${entry.path}`);
     return embedImages ? {...prepared, resources: [...imageResources].map(([id, bytes]) => ({id, bytes}))} : prepared;
   }

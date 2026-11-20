@@ -1,0 +1,11 @@
+[package]
+name = "pdf-ast-rust"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+description = "PDF page display AST and document layout"
+
+[dependencies]
+document-ast-rust = { path = "../document-ast-rust" }
+terminal-png-rust = { path = "../terminal-png-rust" }

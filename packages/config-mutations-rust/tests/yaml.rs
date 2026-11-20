@@ -7,6 +7,7 @@ fn parser_options_allow_frontmatter_duplicates_and_nonobject_roots_without_chang
     let options = yaml::ParseOptions {
         unique_keys: false,
         object_root: false,
+        ..Default::default()
     };
     assert_eq!(
         yaml::parse_with_options(&source, None, options)
@@ -33,6 +34,7 @@ fn parser_options_allow_frontmatter_duplicates_and_nonobject_roots_without_chang
     let strict = yaml::ParseOptions {
         unique_keys: true,
         object_root: false,
+        ..Default::default()
     };
     assert!(yaml::parse_with_options(&source, None, strict).is_err());
 }
@@ -234,4 +236,20 @@ fn serializer_rejects_unresolved_and_forward_alias_snapshots() {
         anchors: vec![None],
     };
     assert!(yaml::stringify_graph(&cycle).is_err());
+}
+
+#[test]
+fn document_alias_limit_preserves_config_defaults() {
+    let source = |count| {
+        format!("a: &a text\nitems: [{}]\n", vec!["*a"; count].join(", "))
+            .encode_utf16()
+            .collect::<Vec<_>>()
+    };
+    let options = yaml::ParseOptions {
+        max_alias_count: 32,
+        ..Default::default()
+    };
+    assert!(yaml::parse_with_options(&source(31), None, options).is_ok());
+    assert!(yaml::parse_with_options(&source(32), None, options).is_err());
+    assert!(yaml::parse(&source(32), None).is_ok());
 }

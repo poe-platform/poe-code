@@ -12,6 +12,44 @@ import {readRetainedXhtml} from "./retained-xhtml-reader.js";
 async function* byteSource(bytes: Uint8Array) {yield bytes;}
 
 it.each([
+  '<table><tbody><tr><td rowspan="00" colspan="00">Span</td><td>First</td></tr><tr><td>Second</td></tr></tbody></table>',
+  '<table><tbody><tr><td rowspan="000" colspan="invalid">Span</td><td>First</td></tr><tr id="empty"></tr><tr><td>Second</td></tr></tbody></table>',
+  '<table><tr id="empty"></tr><tr><th>A</th><th>B</th></tr></table>',
+  '<table><tbody id="empty-group"></tbody><tr><th>A</th><th>B</th></tr></table>',
+  '<table><tfoot><tr id="tail"></tr></tfoot><thead><tr><th rowspan="99">Top</th><th>Heading</th></tr><tr id="head-empty"></tr></thead><tbody><tr><th rowspan="0">Label</th><td>First</td></tr><tr id="body-empty"></tr><tr><td>Second</td></tr></tbody></table>',
+  '<table><tbody><tr id="a"></tr><tr id="b"></tr></tbody></table>',
+  '<table><tbody id="section"><tr><th>A</th><th>B</th></tr><tr><th>Label</th><td>Value</td></tr></tbody></table>',
+  '<table><thead><tr><th>Top</th><td>Top data</td></tr></thead><tbody><tr><th>Section</th><th>Other</th></tr><tr><td>Data</td><th>Nonprefix</th></tr></tbody><tfoot><tr><th>Footer</th><td>Value</td></tr></tfoot></table>',
+  '<table><tbody><tr><th><pre>header code</pre></th><td>Data</td></tr><tr><td scope="row">Data</td><th role="cell"><pre>other header</pre></th></tr></tbody></table>',
+  '<table><tfoot><tr><th rowspan="99" colspan="2">Foot</th></tr></tfoot><tbody id="group"><tr><th rowspan="0">Header</th><th>Second</th></tr><tr><td>Data</td></tr></tbody><tbody><tr><td>Next</td><td>Group</td></tr></tbody></table>',
+  '<table><tbody><tr><th colspan="2">Label</th><td>Data</td></tr><tr><th>A</th><th>B</th><td>Next</td></tr></tbody></table>',
+  '<table><tbody><tr><th rowspan="2" scope="ROW">Label</th><td>Data</td></tr><tr><th role="cell" scope="invalid">Later</th></tr></tbody></table>',
+  '<html xmlns="http://www.w3.org/1999/xhtml" dir="rtl"><body dir="ltr"><p dir="rtl">Text</p></body></html>',
+  '<html xmlns="http://www.w3.org/1999/xhtml" dir="invalid"><body id="body" class="custom" dir="rtl"><p>Text</p></body></html>',
+  '<html xmlns="http://www.w3.org/1999/xhtml" dir="ltr" style="direction:rtl"><body><p>Text</p></body></html>',
+  '<p dir="rtl">Outer <span dir="ltr">Inner</span><bdi>Auto</bdi><bdi dir="ltr">Isolated</bdi><bdo dir="rtl" style="color:red">Override</bdo><bdo>Missing</bdo></p>',
+  '<ol dir="rtl" reversed=""><li id="item" dir="ltr"><p>First</p><ol dir="rtl"><li>Nested</li></ol></li><li value="7">Second</li><li>Third</li></ol>',
+  '<ul style="direction:rtl"><li dir="ltr">Item</li></ul><dl dir="rtl"><dt dir="ltr">Term</dt><dd dir="ltr"><p>Definition</p></dd></dl>',
+  '<article dir="rtl"><nav dir="ltr"><p>Navigation</p></nav><blockquote dir="ltr"><p>Quote</p></blockquote><details dir="ltr"><summary dir="rtl">Summary</summary><p>Details</p></details></article>',
+  '<p><unknown dir="rtl">Unknown</unknown><kbd style="direction:rtl;unicode-bidi:isolate">Keys</kbd><bdo style="color:red" dir="ltr">Order</bdo><bdi dir="auto">Auto</bdi></p>',
+  '<figure><figcaption dir="rtl">Caption</figcaption><p>Body</p></figure><table dir="rtl"><caption dir="ltr">Caption</caption><thead dir="ltr"><tr dir="rtl"><th dir="ltr">Head</th></tr></thead><tbody dir="ltr"><tr><td dir="rtl">Cell</td></tr></tbody></table>',
+  '<p><span dir="sideways">Invalid</span><bdi dir="">Empty</bdi><bdo dir="auto">Auto</bdo></p>',
+  '<ol><li>One</li><li value="5">Five</li><li>Six</li></ol>',
+  '<ol reversed=""><li>Three</li><li>Two</li><li>One</li></ol>',
+  '<ol reversed="" start="8"><li>Eight</li><li value="5">Five</li><li>Four</li></ol>',
+  '<ol start="-2"><li>Negative</li><li value="0">Zero</li><li>One</li></ol>',
+  '<ol reversed="" start="0"><li>Zero</li><li value="-2">Negative</li><li>Lower</li></ol>',
+  '<ol type="I" reversed="" start="8"><li id="item"><p>Outer</p><ol><li>Inner</li></ol></li><li>Next</li></ol>',
+  '<ul reversed="" start="5"><li value="8">One</li><li>Two</li></ul>',
+
+  '<table><tr><th scope="row">Label</th><td>Value</td></tr></table>',
+  '<table><thead><tr><th>First</th><th>Second</th></tr></thead><tr><td rowspan="2">Label</td><td>Value</td></tr><tr><td>Next</td></tr></table>',
+
+  '<table><tr><th scope="row">Label <em>detail</em></th><td>Value</td></tr></table>',
+  '<table><tr><th><p>First</p><div id="inside"><p>Second</p></div><ul><li>Nested</li></ul></th><td><p>Regular</p></td></tr></table>',
+  '<table><tr><th>First</th><th>Second</th></tr><tr><td>Data</td><td>Value</td></tr></table>',
+
+  '<p><a href="#head">HEADLINK</a> <a href="#foot">FOOTLINK</a></p><table><thead id="head" class="heading" data-kind="labels"><tr><th>Head</th></tr></thead><tbody><tr><td>Body</td></tr></tbody><tfoot id="foot" class="summary" title="Totals"><tr><td>Foot</td></tr></tfoot></table>',
   '<table><tbody><tr><td><p>One</p><p>Two</p></td><td>Right</td></tr></tbody></table>',
   '<table><thead><tr><th><p>One</p><p>Two</p></th><th>Right</th></tr></thead><tbody><tr><td>A</td><td>B</td></tr></tbody></table>',
   '<table><tbody><tr><td>A</td><td>B</td></tr></tbody><tfoot><tr><td colspan="2"><p>One</p><p>Two</p></td></tr></tfoot></table>',
@@ -51,7 +89,7 @@ it.each([
   '<p xmlns:f="urn:attr" f:lost="value">a<foreign xmlns="urn:foreign"><x/></foreign>b</p>',
   '<p>before<script>discard</script><foreign xmlns="urn:foreign">lost</foreign>after</p>'
 ])("maps retained XHTML without materializing its document tree: %s", async body => {
-  const bytes = new TextEncoder().encode(`<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="en"><head><title>Book</title></head><body>${body}</body></html>`);
+  const bytes = new TextEncoder().encode(body.startsWith("<html ") ? body : `<html xmlns="http://www.w3.org/1999/xhtml" xmlns:epub="http://www.idpf.org/2007/ops" xml:lang="en"><head><title>Book</title></head><body>${body}</body></html>`);
   const expectedContext = new ExecutionContext("read", {yield: async () => {}});
   const context = new ExecutionContext("read", {yield: async () => {}});
   const fs = new MemoryFileSystem(), owner = {fs, cwd: "/", env: {}, signal: new AbortController().signal};

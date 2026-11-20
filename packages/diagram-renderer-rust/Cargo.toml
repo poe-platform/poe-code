@@ -1,0 +1,16 @@
+[package]
+name = "diagram-renderer-rust"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.88"
+license = "MIT"
+description = "Native Mermaid and Graphviz layout with editable vector scenes"
+
+[dependencies]
+document-ast-rust = { path = "../document-ast-rust" }
+mcp-protocol-rust = { path = "../mcp-protocol-rust" }
+config-mutations-rust = { path = "../config-mutations-rust" }
+terminal-png-rust = { path = "../terminal-png-rust" }
+
+[workspace]
+resolver = "3"

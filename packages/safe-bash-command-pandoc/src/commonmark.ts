@@ -254,7 +254,11 @@ export async function parseCommonMarkSource(rawText: string, base: string | unde
         case "html": {
           const divs = extensions.native_divs ? await nativeDivBlocks(block.literal, context) : undefined;
           if (divs) result.push(...divs);
-          else result.push({ t: "RawBlock", c: ["html", Object.hasOwn(extensions, "raw_html") ? filterGfmHtml(block.literal, context) : block.literal] });
+          else {
+            const raw: Block = {t: "RawBlock", c: ["html", Object.hasOwn(extensions, "raw_html") ? filterGfmHtml(block.literal, context) : block.literal]};
+            context.resourceTarget?.(raw.c, block.source.start.line);
+            result.push(raw);
+          }
           break;
         }
         case "code": {

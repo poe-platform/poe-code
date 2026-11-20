@@ -1,3 +1,6 @@
+import fs from "node:fs";
+import path from "node:path";
+import {execFileSync} from "node:child_process";
 import { createFsFromVolume, Volume } from "memfs";
 import { describe, expect, it } from "vitest";
 import { createCheckCache, createTaskFingerprints, prepareBuildCache } from "./check-cache.mjs";
@@ -41,6 +44,76 @@ describe("content-addressed check cache", () => {
     expect(after.get("alpha")).not.toBe(before.get("alpha"));
     expect(after.get("beta")).not.toBe(before.get("beta"));
     expect(after.get("other")).toBe(before.get("other"));
+  });
+
+  it.each(["build", "test:unit"])("includes declared root inputs in %s dependency fingerprints", event => {
+    const state = fixture();
+    const native = "packages/native/src/lib.rs";
+    const ignored = "packages/native/notes.md";
+    state.fileSystem.mkdirSync("/repo/packages/native/src", {recursive: true});
+    state.fileSystem.writeFileSync("/repo/" + native, "first native implementation");
+    state.fileSystem.writeFileSync("/repo/" + ignored, "notes");
+    state.fileSystem.writeFileSync("/repo/turbo.json", JSON.stringify({tasks: {
+      build: {},
+      "beta#build": {inputs: ["$TURBO_DEFAULT$", "$TURBO_ROOT$/packages/native/src/**"]}
+    }}));
+    const files = [...state.files, "turbo.json", native, ignored];
+    const keys = () => createTaskFingerprints(state.plan, {files, fileSystem: state.fileSystem, environment: {}, runtime: "node-test", event});
+    const before = keys();
+    if (typeof path.matchesGlob !== "function") {
+      expect(before.has("alpha")).toBe(false);
+      expect(before.has("beta")).toBe(false);
+      expect(before.has("other")).toBe(true);
+      return;
+    }
+    state.fileSystem.writeFileSync("/repo/" + ignored, "unrelated notes changed");
+    expect(keys().get("alpha")).toBe(before.get("alpha"));
+    state.fileSystem.writeFileSync("/repo/" + native, "second native implementation");
+    const after = keys();
+    expect(after.get("beta")).not.toBe(before.get("beta"));
+    expect(after.get("alpha")).not.toBe(before.get("alpha"));
+    expect(after.get("other")).toBe(before.get("other"));
+  });
+
+  it("avoids caching declared root inputs when the Node glob matcher is unavailable", () => {
+    const state = fixture();
+    state.fileSystem.writeFileSync("/repo/turbo.json", JSON.stringify({tasks: {
+      build: {}, "beta#build": {inputs: ["$TURBO_ROOT$/packages/native/src/**"]}
+    }}));
+    const descriptor = Object.getOwnPropertyDescriptor(path, "matchesGlob");
+    Object.defineProperty(path, "matchesGlob", {value: undefined, configurable: true});
+    try {
+      const keys = createTaskFingerprints(state.plan, {files: [...state.files, "turbo.json"], fileSystem: state.fileSystem, event: "build"});
+      expect(keys.has("alpha")).toBe(false);
+      expect(keys.has("beta")).toBe(false);
+      expect(keys.has("other")).toBe(true);
+    } finally {
+      if (descriptor) Object.defineProperty(path, "matchesGlob", descriptor);
+      else Reflect.deleteProperty(path, "matchesGlob");
+    }
+  });
+
+  it("discovers untracked files in declared external source directories", () => {
+    const scratch = path.resolve(".work");
+    fs.mkdirSync(scratch, {recursive: true});
+    const root = fs.mkdtempSync(path.join(scratch, "cache-native-"));
+    try {
+      fs.mkdirSync(path.join(root, "packages/consumer/src"), {recursive: true});
+      fs.mkdirSync(path.join(root, "packages/native/src"), {recursive: true});
+      const configuration = {tasks: {build: {}, "consumer#build": {inputs: ["$TURBO_ROOT$/packages/native/src/**"]}}};
+      fs.writeFileSync(path.join(root, "turbo.json"), JSON.stringify(configuration));
+      fs.writeFileSync(path.join(root, "packages/consumer/src/index.ts"), "consumer");
+      const source = path.join(root, "packages/native/src/lib.rs");
+      fs.writeFileSync(source, "first");
+      execFileSync("git", ["init", "--quiet", root]);
+      execFileSync("git", ["-C", root, "add", "turbo.json", "packages/consumer"]);
+      const plan = {root, configuration, workspaces: [{name: "consumer", path: "packages/consumer"}], edges: []};
+      const key = () => createTaskFingerprints(plan, {event: "build", runtime: "node-test"}).get("consumer");
+      const first = key();
+      fs.writeFileSync(source, "second");
+      if (typeof path.matchesGlob === "function") expect(key()).not.toBe(first);
+      else {expect(first).toBeUndefined(); expect(key()).toBeUndefined();}
+    } finally {fs.rmSync(root, {recursive: true});}
   });
 
   it("normalizes npm checkout bin paths while retaining external PATH identity", () => {

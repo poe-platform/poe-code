@@ -2,7 +2,7 @@ import {expect, it} from "vitest";
 import {inspectCommand} from "./inspection.js";
 it("returns help/version without conversion capabilities and rejects mixed modes", () => {
   expect(inspectCommand(["--help", "-h"])).toContain("--yes");
-  expect(inspectCommand(["--help"])).toContain("serif/sans unavailable");
+  expect(inspectCommand(["--help"])).toContain("serif unavailable");
   expect(inspectCommand(["--version"])).toContain("TypeScript");
   expect(inspectCommand(["-v"])).toBe(inspectCommand(["--version"]));
   expect(inspectCommand(["-f", "commonmark"])).toBeUndefined();

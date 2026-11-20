@@ -13,6 +13,6 @@ export default {
   extensions: {},
   options: {
     read: [],
-    write: ["standalone", "pdfPage", "pdfFonts", "pdf"]
+    write: ["standalone", "rawContent", "pdfPage", "pdfFonts", "pdf"]
   }
 } satisfies FormatDescriptor;

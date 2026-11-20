@@ -136,6 +136,9 @@ mod heif;
 mod webp;
 #[path = "png_pixels.rs"]
 mod png_pixels;
+
+
+
 #[path = "magick_stack.rs"]
 mod magick_stack;
 #[path = "magick_coordinates.rs"]
@@ -330,6 +333,8 @@ fn inspect_raster(bytes: &[u8], path: &str, limit: usize) -> Result<(ImageMeta, 
         let h = webp::header(bytes)?;
         (8, if h.alpha { 4 } else { 3 }, h.density)
     } else if tiff::signature(bytes) {
+        let (width, height) = tiff::dimensions(bytes,limit)?;
+        if width == 0 || height == 0 { return Err("Invalid TIFF dimensions"); }
         let im = tiff::Tiff::parse(bytes,limit)?;
         if im.width==0 || im.height==0 {return Err("Invalid TIFF dimensions");}
         meta.w=im.width as u32; meta.h=im.height as u32; meta.fmt="TIFF".into();
@@ -9044,15 +9049,17 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
         }
     }
     let text_options = pdf_reader::TextOptions {resolution,crop,cropbox,spatial:bbox_mode||tsv_mode,raw,layout,colspacing,nodiag,limit:fs.max_input_bytes()};
-    let mut geometry_source = if needs_geometry {
-        match pdf_reader::PageSource::open(&raw_bytes,password) {Ok(source)=>Some(source),Err(e)=>return err_out(if quiet {""}else{e},1)}
-    }else{None};
+    let mut source = match pdf_reader::PageSource::open(&raw_bytes,password) {
+        Ok(source)=>Some(source),
+        Err(_) if is_legacy_pdf(&raw_bytes) && !needs_geometry => None,
+        Err(e)=>return err_out(if quiet {""}else{e},1),
+    };
     let extra_meta = ["Subject","Creator","Producer"].iter().filter_map(|name|doc.info.iter().find(|(key,_)|key==name).filter(|(_,value)|!value.is_empty()).map(|(_,value)|format!("<meta name=\"{name}\" content=\"{}\"/>\n",html_escape_str(value)))).collect::<String>();
     let mut empty_words = false;
     let mut rendered = if bbox_mode {
         let mut pages_xml = String::new();
         for (pno, _) in &selected_pages {
-            let Some(page) = geometry_source.as_mut().and_then(|s|s.spatial_text(*pno,&text_options)) else {return err_out(if quiet {""}else{"PDF text geometry limit or unsupported font encoding\n"},1);};
+            let Some(page) = source.as_mut().and_then(|s|s.spatial_text(*pno,&text_options)) else {return err_out(if quiet {""}else{"PDF text geometry limit or unsupported font encoding\n"},1);};
             empty_words |= page.empty() && !bbox_layout;
             pages_xml.push_str(&page.bbox(bbox_layout,resolution));
             if pages_xml.len() > fs.shell_limits().max_output_bytes {return err_out("PDF text output limit exceeded\n",1);}
@@ -9071,7 +9078,7 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
             "level\tpage_num\tpar_num\tblock_num\tline_num\tword_num\tleft\ttop\twidth\theight\tconf\ttext\n",
         );
         for (pno, _) in &selected_pages {
-            let Some(page) = geometry_source.as_mut().and_then(|s|s.spatial_text(*pno,&text_options)) else {return err_out(if quiet {""}else{"PDF text geometry limit or unsupported font encoding\n"},1);};
+            let Some(page) = source.as_mut().and_then(|s|s.spatial_text(*pno,&text_options)) else {return err_out(if quiet {""}else{"PDF text geometry limit or unsupported font encoding\n"},1);};
             tsv.push_str(&page.tsv(*pno,raw,resolution));
             if tsv.len() > fs.shell_limits().max_output_bytes {return err_out("PDF text output limit exceeded\n",1);}
         }
@@ -9091,24 +9098,18 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
         }
     } else {
         let mut plain = String::new();
-        let mut source = (urls_mode || raw || !layout || nodiag).then(||pdf_reader::PageSource::open(&raw_bytes,password).ok()).flatten();
         for (pno, pg) in &selected_pages {
-            let mut t = if let Some(source) = &mut geometry_source {
+            let mut t = if let Some(source) = &mut source {
                 let Some(page) = source.spatial_text(*pno,&text_options) else {return err_out(if quiet {""}else{"PDF text geometry limit or unsupported font encoding\n"},1);};
                 page.plain(raw,layout,!raw&&rejoin)
-            } else if layout && !raw && !nodiag {
-                pg.text.replace("\n\n", "\n")
-            } else {
-                let width = doc.page_media.get(pno).map_or(doc.page_w, |m|m.0).abs();
-                source.as_mut().and_then(|s| s.plain_text(*pno,(!raw).then_some(colspacing),width,!raw && rejoin,nodiag)).unwrap_or_else(|| pg.text.clone())
-            };
-            if layout && !raw && nodiag { t = t.replace("\n\n", "\n"); }
+            } else { pg.text.clone() };
+            if layout && !raw && source.is_none() { t = t.replace("\n\n", "\n"); }
             if urls_mode {
                 let mut extra = Vec::new();
                 let links;
-                let urls = if let Some(source) = &mut source {
-                    let Some(found) = source.page_links(*pno, fs.shell_limits().max_input_bytes) else {return err_out("PDF link limit exceeded\n",1)};
-                    links = found.into_iter().map(|(_,uri)|uri).collect::<Vec<_>>();
+                let urls = if let Some(source)=&mut source {
+                    let Some(found)=source.page_links(*pno, fs.shell_limits().max_input_bytes) else {return err_out("PDF link limit exceeded\n",1)};
+                    links=found.into_iter().map(|(_,uri)|uri).collect::<Vec<_>>();
                     &links
                 } else {&pg.urls};
                 for u in urls {

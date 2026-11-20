@@ -61,3 +61,7 @@ for (const file of ["index.d.ts", "browser.d.ts"]) {
 copyFileSync(path.join(pkgDir, "LICENSE.UNICODE"), path.join(distDir, "LICENSE.UNICODE"));
 copyFileSync(path.join(pkgDir, "LICENSE.BZIP2"), path.join(distDir, "LICENSE.BZIP2"));
 copyFileSync(path.join(pkgDir, "LICENSE.PDFJS"), path.join(distDir, "LICENSE.PDFJS"));
+for (const license of ["LICENSE.Liberation", "LICENSE.DejaVu", "LICENSE.NotoSansSC"]) {
+  copyFileSync(path.join(pkgDir, "../pdf-ast-rust/src/fonts", license), path.join(distDir, license));
+}
+copyFileSync(path.join(pkgDir, "../terminal-png-rust/LICENSE.FONT"), path.join(distDir, "LICENSE.JetBrainsMono"));

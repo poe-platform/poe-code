@@ -2,7 +2,7 @@
 //! Unsupported ECMAScript features fail compilation rather than losing constraints.
 use std::collections::{HashMap, HashSet};
 
-use super::unicode_categories::{CATEGORY_RANGES, GENERAL_CATEGORIES};
+use mcp_protocol_rust::unicode::{CATEGORY_RANGES, GENERAL_CATEGORIES};
 
 const LIMIT: usize = 262_144;
 

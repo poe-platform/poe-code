@@ -46,7 +46,7 @@ it.each(["docx", "pptx", "pdf"])("converts standard Markdown to %s without injec
   if (to === "pdf") {
     expect((await PDFDocument.load(result.bytes)).getPageCount()).toBe(1);
     const source = new TextDecoder().decode(result.bytes);
-    for (const font of ["Helvetica-Bold", "Helvetica-Oblique", "Courier"]) expect(source).toContain(font);
+    for (const font of ["LiberationSans-Bold", "LiberationSans-Italic", "JetBrainsMono-Regular"]) expect(source).toContain(font);
   }
 });
 it.each(["docx", "pdf"])("supports horizontal rules in %s", async to => {

@@ -5567,13 +5567,13 @@ impl<'a> EvalState<'a> {
             return self.run_sub_shell_command(effective_cmd, argv0_override.as_deref(), args, stdin);
         }
 
-        // Native ls currently implements names only. Long-listing flags must not
-        // silently discard metadata; use the existing implementation in hybrid mode.
+        // Preserve the host's long-listing presentation in hybrid mode. Native
+        // workers use cmd_ls's metadata rendering without requiring a TS host.
         let long_listing = effective_cmd == "ls" && args.iter().take_while(|arg| arg.as_str() != "--")
             .any(|arg| arg.starts_with('-') && !arg.starts_with("--")
                 && arg.chars().skip(1).any(|flag| matches!(flag, 'l' | 'g' | 'o' | 'n')));
         // Keep the host bridge at the individual command boundary.
-        let bridge_only = long_listing || matches!(effective_cmd, "python" | "python3" | "rsvg-convert" | "soffice" | "libreoffice");
+        let bridge_only = (long_listing && self.allow_unported_fallback) || matches!(effective_cmd, "python" | "python3" | "rsvg-convert" | "soffice" | "libreoffice");
         if bridge_only || self.allow_unported_fallback && matches!(effective_cmd,
             "pandoc" | "ffmpeg" | "ffprobe" | "wkhtmltopdf"
             | "pdfunite" | "pdfseparate" | "qpdf" | "pdftk" | "pdfinfo" | "pdffonts"
@@ -5583,7 +5583,7 @@ impl<'a> EvalState<'a> {
             | "montage" | "compare" | "sips" | "exiftool" | "identify")
         {
             if !self.allow_unported_fallback {
-                let unavailable = if long_listing { "native long listings are unavailable" } else if matches!(effective_cmd, "python" | "python3") { "native Python is unavailable" } else { "native document/media processing is unavailable" };
+                let unavailable = if matches!(effective_cmd, "python" | "python3") { "native Python is unavailable" } else { "native document/media processing is unavailable" };
                 return Ok(BuiltinOutcome { stdout: String::new(), stderr: format!("{effective_cmd}: requires the TypeScript safe-bash bridge; {unavailable}\n"), exit_code: 1 });
             }
             self.budget.check_cancelled().map_err(EvalError::Budget)?;

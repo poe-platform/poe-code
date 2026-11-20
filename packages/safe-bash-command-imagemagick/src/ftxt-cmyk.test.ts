@@ -33,13 +33,14 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
 }
 
 for (const mode of ["sync", "buffered", "retained"] as const) {
-    it(`writes CMYK file rows across storage chunks (${mode})`, async () => {
+    it.each(["ftxt:/out.dat", "/out.ftxt"])(`writes CMYK file rows across storage chunks (${mode}): %s`, async target => {
         const fs = new MemoryFileSystem(), files = new Map<string, Uint8Array>();
-        const args = ["-size", "1x4097", "xc:cmyka(255,0,255,255,0)", "-define", "ftxt:format=\\x/\\y=\\c\\n", "ftxt:/out.dat"];
+        const args = ["-size", "1x4097", "xc:cmyka(255,0,255,255,0)", "-define", "ftxt:format=\\x/\\y=\\c\\n", target];
         const result = mode === "sync" ? runConvertCliSync(args, files)
             : await runConvertCli(args, mode === "retained" ? { filesystem: fs, cwd: "/" } : files);
         expect(result).toMatchObject({ exitCode: 0, stderr: "", stdout: "" });
-        const bytes = mode === "retained" ? await fs.readFile("/out.dat") : files.get("/out.dat");
+        const path = target.startsWith("ftxt:") ? target.slice(5) : target;
+        const bytes = mode === "retained" ? await fs.readFile(path) : files.get(path);
         expect(new TextDecoder().decode(bytes)).toBe(Array.from({ length: 4097 }, (_, y) => `0/${y}=65535,0,65535,65535,0\n`).join(""));
     });
 }

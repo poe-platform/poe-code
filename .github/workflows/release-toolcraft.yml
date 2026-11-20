@@ -77,6 +77,8 @@ jobs:
           node-version: ${{ matrix.node-version }}
       - name: Install dependencies
         run: npm clean-install
+      - name: Install Rust WebAssembly target
+        run: rustup target add wasm32-unknown-unknown
       - name: Build toolcraft and bundled dependencies
         run: npx turbo build --filter=toolcraft
       - name: Verify published SDK declaration types
@@ -155,6 +157,8 @@ jobs:
         run: npm install --global npm@^11.5.1
       - name: Install dependencies
         run: npm clean-install
+      - name: Install Rust WebAssembly target
+        run: rustup target add wasm32-unknown-unknown
       - name: Prepare released HTTP transport version
         id: http-version
         run: |

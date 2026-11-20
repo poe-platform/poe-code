@@ -14,7 +14,7 @@ beforeAll(async () => {
     const bundle = await build({ stdin: { resolveDir: fileURLToPath(new URL("../../../", import.meta.url)), sourcefile: "pdf-metadata-worker.ts", contents: `
  import {runCompareCli,runConvertCli,runMogrifyCli,runCompositeCli,runMontageCli} from './packages/safe-bash-command-imagemagick/src/index.ts';
  import {FsError} from '@poe-code/safe-fs/contracts';
- export default {async fetch(request,env){const {size,stdout,operand,tool,args}=await request.json();let outputSize=0;const output={async write(bytes){await env.BACKING.fetch('https://backing/result?position='+outputSize,{method:'PUT',body:bytes});outputSize+=bytes.length;}};let id=0,opened=0,closed=0,removed=0,maxAllocation=0,reads=0;const scope={},files=new Map([['/input',{id:'input',size}]]);
+ export default {async fetch(request,env){const {size,stdout,operand,tool,args}=await request.json();let outputSize=0;const output={async write(bytes){await env.BACKING.fetch('https://backing/result?position='+outputSize,{method:'PUT',body:bytes});outputSize+=bytes.length;}};let id=0,opened=0,closed=0,removed=0,maxAllocation=0,fontHeapViews=0,reads=0;const scope={},files=new Map([['/input',{id:'input',size}]]);
  const stat=(file,type='file')=>({type,size:file.size,mode:420,mtimeMs:1,ctimeMs:1,atimeMs:1,identityScope:scope,opaqueIdentity:file.id,opaqueVersion:'1'}),parent=stat({id:'root',size:0},'directory');
  const fs={capabilities:{atomicFilePublication:true,retainedRead:true,retainedStagingWrite:true,retainedStagingCleanup:true},async stat(path){return files.has(path)?stat(files.get(path)):parent;},async capabilitiesFor(){return this.capabilities;},
  async lstat(path){const file=files.get(path);if(!file)throw new FsError('ENOENT');return stat(file);},
@@ -24,8 +24,9 @@ beforeAll(async () => {
  async openReadFile(path){const file=files.get(path);if(!file)throw new Error('missing retained source');opened++;return {async stat(){return stat(file);},async read(position,length){if(length>65536)throw new Error('large request');reads++;const response=await env.BACKING.fetch('https://backing/'+file.id+'?position='+position+'&length='+length);return new Uint8Array(await response.arrayBuffer());},async close(){closed++;}};},
  async createStagedFile(path,name){const file={id:String(++id),size:0},filePath=path+'/'+name;files.set(filePath,file);return {parent:{path:'/',stat:parent},directory:{path,stat:parent},file:{path:filePath,stat:stat(file)},writer:{async write(chunk){if(chunk.length>65536)throw new Error('large write');await env.BACKING.fetch('https://backing/'+file.id+'?position='+file.size,{method:'PUT',body:chunk});file.size+=chunk.length;},async finish(){return stat(file);}},cleanup:{async remove(){files.delete(filePath);removed++;await env.BACKING.fetch('https://backing/'+file.id,{method:'DELETE'});},async close(){}}};},
  readFile(){throw new Error('whole input');},writeFile(){throw new Error('whole output');}};
- const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;maxAllocation=Math.max(maxAllocation,length);if(length>65536)throw new Error('unbounded compare allocation '+length);return Reflect.construct(target,args);}});
- try{const input={filesystem:fs,cwd:'/',...(stdout?{stdout:output}:{})};const metadata=tool==='montage'?await runMontageCli([...args,stdout?'png:-':'png:/out.bmp'],input):tool==='composite'?await runCompositeCli([...args,stdout?'png:-':'png:/out.bmp'],input):tool==='compare'?await runCompareCli([operand,operand,stdout?'bmp:-':'/out.bmp'],input):tool==='mogrify'?await runMogrifyCli(["-format","png",...args.slice(3),operand],input):await runConvertCli([...args,tool==='convert-text'?(stdout?"txt:-":"txt:/out.bmp"):tool==='convert-animation'?"gif:/out.bmp":stdout?"png:-":"png:/out.bmp"],input);return Response.json({metadata,opened,closed,removed,files:files.size,reads,maxAllocation,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;}
+ // FreeType owns a fixed 4 MiB heap, independent of image dimensions.
+ const Native=Uint8Array;globalThis.Uint8Array=new Proxy(Native,{construct(target,args){const value=args[0],length=typeof value==='number'?value:value?.byteLength??value?.length??0;if(operand.startsWith('label:')&&value instanceof ArrayBuffer&&value.byteLength===4194304){fontHeapViews++;return Reflect.construct(target,args);}maxAllocation=Math.max(maxAllocation,length);if(length>65536)throw new Error('unbounded compare allocation '+length);return Reflect.construct(target,args);}});
+ try{const input={filesystem:fs,cwd:'/',...(stdout?{stdout:output}:{})};const metadata=tool==='montage'?await runMontageCli([...args,stdout?'png:-':'png:/out.bmp'],input):tool==='composite'?await runCompositeCli([...args,stdout?'png:-':'png:/out.bmp'],input):tool==='compare'?await runCompareCli([operand,operand,stdout?'bmp:-':'/out.bmp'],input):tool==='mogrify'?await runMogrifyCli(["-format","png",...args.slice(3),operand],input):await runConvertCli([...args,tool==='convert-text'?(stdout?"txt:-":"txt:/out.bmp"):tool==='convert-animation'?"gif:/out.bmp":stdout?"png:-":"png:/out.bmp"],input);return Response.json({metadata,opened,closed,removed,files:files.size,reads,maxAllocation,fontHeapViews,nodeGlobals:typeof process!=='undefined'||typeof Buffer!=='undefined'});}finally{globalThis.Uint8Array=Native;}
  }};` }, bundle: true, write: false, platform: "browser", conditions: ["workerd"], format: "esm", metafile: true, logLevel: "silent" });
     expect(Object.values(bundle.metafile!.outputs).flatMap(output => output.imports)).toEqual([]);
     workerScript = bundle.outputFiles[0]!.text;
@@ -118,6 +119,7 @@ for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool ===
                 files: number;
                 reads: number;
                 maxAllocation: number;
+                fontHeapViews: number;
                 nodeGlobals: boolean;
             };
             expect(result.metadata).toEqual(expected);
@@ -127,6 +129,7 @@ for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool ===
             expect(result.files).toBe(tool === "convert-write" ? 3 : stdout || tool === "convert-malformed" ? 1 : 2);
             expect(result.reads).toBeGreaterThan(8);
             expect(result.maxAllocation).toBeLessThanOrEqual(65536);
+            expect(result.fontHeapViews).toBeLessThanOrEqual(format === "label" ? 8 : 0);
             expect(result.nodeGlobals).toBe(false);
             expect(await (await backing.fetch("https://backing/")).json()).toEqual(tool === "convert-write" ? ["/input", "/middle", "/result"] : tool === "convert-malformed" ? ["/input"] : ["/input", "/result"]);
             if (tool === "convert-malformed") return;

@@ -3,7 +3,7 @@ import createFontRuntime from "./runtime.js";
 export function measureFontLabel(bytes: Uint8Array, text: string, width: number, height: number, pointsize: number, density: number, strokeWidth: number, signal?: AbortSignal) {
     if (bytes.length > 16 * 1024 * 1024) throw new Error("font exceeds memory limit");
     signal?.throwIfAborted();
-    const runtime = createFontRuntime();
+    const runtime = createFontRuntime({ locateFile: path => path });
     const pointer = runtime._malloc(bytes.length);
     if (!pointer) throw new Error("font exceeds memory limit");
     try {

@@ -16,7 +16,7 @@ import { readExifTextProperties } from "./exif-text.js";
 import { discardDisassociatedAlpha } from "./alpha-state.js";
 import { cropReadMaskSteps, cropStoredReadMask } from "./crop-read-mask.js";
 import { decodeMagickImage as decodeImage } from "./image-raster.js";
-import { renderFontCaption, wrapFontCaption } from "./font/caption.js";
+import { renderFontCaption, renderFontCaptionSpans, blendFontCaptionSpan, wrapFontCaption } from "./font/caption.js";
 import { measureFontLabel } from "./font/label.js";
 import { defaultCaptionFont } from "./font/default.js";
 import { polaroidPixels } from "./polaroid-caption.js";
@@ -9125,9 +9125,9 @@ function* parseInputOperandsSteps(token: string, files: Map<string, Uint8Array>,
         if (!font) throw new Error(`unable to read font '${state.font}'`);
         const image = createFontLabel(text, state, font, lower.startsWith("caption:"));
         const kind = lower.startsWith("caption:") ? "caption" : "label";
-        const properties = { ...image.properties, [kind]: text };
+        const properties = { ...image!.properties, [kind]: text };
         if (kind === "caption") {
-            properties["caption:lines"] = String(wrapFontCaption(font, text, image.width, state.pointsize, state.density, state.strokeWidth, undefined, !state.hasSize || state.captionHeight === 0).length);
+            properties["caption:lines"] = String(wrapFontCaption(font, text, image!.width, state.pointsize, state.density, state.strokeWidth, undefined, !state.hasSize || state.captionHeight === 0).length);
         }
         return yield* applyMod([Object.assign(image, { properties, [magickInput]: { filePath: text, inputFormat: kind.toUpperCase() } })]);
     }
@@ -22369,21 +22369,36 @@ async function parseStoredCompareInput(token:string,state:MagickState,backend:Co
   });
   if (!font) throw new Error(`unable to read font '${state.font}'`);
   {
-   const { data16, evaluateSamples, ...raster } = createFontLabel(text, state, font, kind === "caption", signal);
-   image = await backend.retain(raster);
-   if (data16) {
-    const storedData16 = { position: backend.storage.allocate(data16.byteLength), length: data16.length };
-    await backend.storage.write(storedData16.position, new Uint8Array(data16.buffer));
-    image = { ...image, storedData16 };
-   }
-   if (evaluateSamples) {
-    image.storedEvaluateSamples = backend.storage.allocate(evaluateSamples.byteLength);
-    await backend.storage.write(image.storedEvaluateSamples, new Uint8Array(evaluateSamples.buffer));
+   const geometry = state.sizeGeometry === undefined ? undefined : parseMagickGeometry(state.sizeGeometry);
+   const label = kind === "caption" ? undefined : measureFontLabel(font, text, geometry?.width ? state.sizeWidth : 0, geometry?.height ? state.sizeHeight : 0,
+    state.pointsize, state.density, state.strokeWidth, signal);
+   const spans = renderFontCaptionSpans(font, text, label?.width ?? (state.hasSize ? state.sizeWidth : 0), label?.pointsize ?? state.pointsize, state.density,
+    state.strokeWidth, signal,
+    { wrap: kind === "caption", gravity: state.gravity, ...(label ? { height: label.height } : state.hasSize ? { height: state.captionHeight ?? state.sizeHeight } : {}) });
+   for (const span of spans) {
+    await yieldTurn(signal);
+    if ("width" in span) {
+     image = { ...await createStoredCanvas(span.width, span.height, state.background, backend, signal, true), depth: "ushort", density: state.density, hasAlpha: state.background.a < 255 };
+     image.storedEvaluateSamples = backend.storage.allocate(span.width * span.height * 32);
+     for (let offset = 0; offset < span.width * span.height * 4; offset += 2048) {
+      await yieldTurn(signal);
+      const pixels = new Float64Array(Math.min(2048, span.width * span.height * 4 - offset));
+      for (let i = 0; i < pixels.length; i += 4) pixels.set([state.background.r, state.background.g, state.background.b, state.background.a], i);
+      await backend.storage.write(image.storedEvaluateSamples + offset * 8, new Uint8Array(pixels.buffer));
+     }
+    } else {
+     const bytes = await backend.storage.read(image!.storedEvaluateSamples! + span.position * 8, span.coverage.length * 32);
+     const pixels = new Float64Array(bytes.slice().buffer);
+     blendFontCaptionSpan(pixels, span.coverage, state.fill);
+     await backend.storage.write(image!.storedEvaluateSamples! + span.position * 8, new Uint8Array(pixels.buffer));
+     await backend.storage.write(image!.storedData16!.position + span.position * 2, new Uint8Array(Uint16Array.from(pixels, value => Math.round(value * 257)).buffer));
+     await backend.storage.write(image!.position + span.position, Uint8Array.from(pixels, Math.round));
+    }
    }
   }
-  const properties = { ...image.properties, [kind]: text };
-  if (kind === "caption") properties["caption:lines"] = String(wrapFontCaption(font, text, image.width, state.pointsize, state.density, state.strokeWidth, signal, !state.hasSize || state.captionHeight === 0).length);
-  image = Object.assign(image, { properties, [magickInput]: { filePath: text, inputFormat: kind.toUpperCase() } });
+  const properties = { ...image!.properties, [kind]: text };
+  if (kind === "caption") properties["caption:lines"] = String(wrapFontCaption(font, text, image!.width, state.pointsize, state.density, state.strokeWidth, signal, !state.hasSize || state.captionHeight === 0).length);
+  image = Object.assign(image!, { properties, [magickInput]: { filePath: text, inputFormat: kind.toUpperCase() } });
  }else{
   const generated=await drainSteps(parseInputOperandSteps(baseToken,new Map(),state),signal);
   if(generated)image=await backend.retain(generated);
@@ -23289,8 +23304,12 @@ function* runCompareCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
                   : image.data.subarray(request.position, request.position + request.length));
           } else yield { async run() {
               if (image.storedEvaluateSamples !== undefined) {
-                  const bytes = await backend!.storage.read(image.storedEvaluateSamples + request.position * 8, request.length * 8);
-                  samples = new Float64Array(bytes.slice().buffer);
+                  samples = new Float64Array(request.length);
+                  for (let offset = 0; offset < request.length; offset += 2048) {
+                      const count = Math.min(2048, request.length - offset);
+                      const bytes = await backend!.storage.read(image.storedEvaluateSamples + (request.position + offset) * 8, count * 8);
+                      samples.set(new Float64Array(bytes.slice().buffer), offset);
+                  }
               } else if (image.storedData16) {
                   const bytes = await backend!.storage.read(image.storedData16.position + request.position * 2, request.length * 2);
                   samples = Float64Array.from(new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength / 2), value => value / 257);

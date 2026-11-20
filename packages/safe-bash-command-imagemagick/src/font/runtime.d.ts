@@ -9,4 +9,4 @@ interface FontRuntime {
     _font_kerning(left: number, right: number, unfitted?: number): number;
     _font_close(): void;
 }
-export default function createFontRuntime(): FontRuntime;
+export default function createFontRuntime(options?: { locateFile(path: string): string }): FontRuntime;

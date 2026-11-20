@@ -4,7 +4,7 @@ import createFontRuntime from "./runtime.js";
 export function wrapFontCaption(bytes: Uint8Array, text: string, width: number, pointsize: number, density: number, strokeWidth: number, signal?: AbortSignal, split = false): string[] {
     if (bytes.length > 16 * 1024 * 1024) throw new Error("font exceeds memory limit");
     signal?.throwIfAborted();
-    const runtime = createFontRuntime();
+    const runtime = createFontRuntime({ locateFile: path => path });
     const pointer = runtime._malloc(bytes.length);
     if (!pointer) throw new Error("font exceeds memory limit");
     try {
@@ -48,10 +48,10 @@ export function wrapFontCaption(bytes: Uint8Array, text: string, width: number, 
     } finally { runtime._font_close(); runtime._free(pointer); }
 }
 
-export function renderFontCaption(bytes: Uint8Array, text: string, width: number, pointsize: number, density: number, fill: RgbaColor, background: RgbaColor, strokeWidth: number, signal?: AbortSignal, layout?: { height?: number; wrap: boolean; gravity?: GravityPosition | undefined }) {
+export function* renderFontCaptionSpans(bytes: Uint8Array, text: string, width: number, pointsize: number, density: number, strokeWidth: number, signal?: AbortSignal, layout?: { height?: number; wrap: boolean; gravity?: GravityPosition | undefined }): Generator<{ width: number; height: number } | { position: number; coverage: Uint8Array }, void, void> {
     if (bytes.length > 16 * 1024 * 1024) throw new Error("font exceeds memory limit");
     signal?.throwIfAborted();
-    const runtime = createFontRuntime();
+    const runtime = createFontRuntime({ locateFile: path => path });
     const pointer = runtime._malloc(bytes.length);
     if (!pointer) throw new Error("font exceeds memory limit");
     try {
@@ -86,8 +86,7 @@ export function renderFontCaption(bytes: Uint8Array, text: string, width: number
         // Caption canvases include stroke width per line; baseline spacing does not.
         const height = layout?.height || Math.max(1, Math.floor(lines.length * (lineHeight + (layout?.wrap ? strokeWidth : 0)) + 0.5));
         if (!Number.isSafeInteger(width * height) || width * height > 2 ** 20) throw new Error("font caption exceeds pixel limit");
-        const pixels = new Float64Array(width * height * 4);
-        for (let i = 0; i < pixels.length; i += 4) pixels.set([background.r, background.g, background.b, background.a], i);
+        yield { width, height };
         for (const [row, content] of lines.entries()) {
             const gravity = layout?.gravity;
             const centered = gravity === "center" || gravity === "north" || gravity === "south";
@@ -105,17 +104,42 @@ export function renderFontCaption(bytes: Uint8Array, text: string, width: number
             for (const char of content) {
                 const { width: columns, height: rows, pitch, bitmap, left, top, advance, id } = glyph(char);
                 x += runtime._font_kerning(previous, id) / 64;
-                for (let y = 0; y < rows; y++) for (let column = 0; column < columns; column++) {
-                    const dx = Math.floor(x) + left + column, dy = Math.floor(row * lineHeight + baseline) - top + y;
-                    if (dx < 0 || dx >= width || dy < 0 || dy >= height) continue;
-                    const alpha = runtime.HEAPU8[bitmap + y * pitch + column]! / 255 * fill.a / 255;
-                    const at = (dy * width + dx) * 4, behind = pixels[at + 3]! / 255 * (1 - alpha), combined = alpha + behind;
-                    for (const [channel, value] of [fill.r, fill.g, fill.b].entries()) pixels[at + channel] = combined ? Math.fround((value * alpha + pixels[at + channel]! * behind) / combined * 257) / 257 : 0;
-                    pixels[at + 3] = Math.fround(combined * 65535) / 257;
+                for (let y = 0; y < rows; y++) {
+                    const dy = Math.floor(row * lineHeight + baseline) - top + y;
+                    if (dy < 0 || dy >= height) continue;
+                    const origin = Math.floor(x) + left;
+                    for (let column = Math.max(0, -origin); column < Math.min(columns, width - origin); column += 512) {
+                        signal?.throwIfAborted();
+                        const count = Math.min(512, columns - column, width - origin - column);
+                        const coverage = runtime.HEAPU8.slice(bitmap + y * pitch + column, bitmap + y * pitch + column + count);
+                        yield { position: (dy * width + origin + column) * 4, coverage };
+                    }
                 }
                 x += advance; previous = id;
             }
         }
-        return { width, height, pixels };
+
     } finally { runtime._font_close(); runtime._free(pointer); }
+}
+
+export function blendFontCaptionSpan(pixels: Float64Array, coverage: Uint8Array, fill: RgbaColor): void {
+    for (let i = 0; i < coverage.length; i++) {
+        const at = i * 4, alpha = coverage[i]! / 255 * fill.a / 255;
+        const behind = pixels[at + 3]! / 255 * (1 - alpha), combined = alpha + behind;
+        for (const [channel, value] of [fill.r, fill.g, fill.b].entries())
+            pixels[at + channel] = combined ? Math.fround((value * alpha + pixels[at + channel]! * behind) / combined * 257) / 257 : 0;
+        pixels[at + 3] = Math.fround(combined * 65535) / 257;
+    }
+}
+
+export function renderFontCaption(bytes: Uint8Array, text: string, width: number, pointsize: number, density: number, fill: RgbaColor, background: RgbaColor, strokeWidth: number, signal?: AbortSignal, layout?: { height?: number; wrap: boolean; gravity?: GravityPosition | undefined }) {
+    let height = 0, pixels = new Float64Array();
+    for (const span of renderFontCaptionSpans(bytes, text, width, pointsize, density, strokeWidth, signal, layout)) {
+        if ("width" in span) {
+            width = span.width; height = span.height;
+            pixels = new Float64Array(width * height * 4);
+            for (let i = 0; i < pixels.length; i += 4) pixels.set([background.r, background.g, background.b, background.a], i);
+        } else blendFontCaptionSpan(pixels.subarray(span.position, span.position + span.coverage.length * 4), span.coverage, fill);
+    }
+    return { width, height, pixels };
 }

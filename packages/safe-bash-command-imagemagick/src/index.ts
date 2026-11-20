@@ -17388,7 +17388,10 @@ function* writeConvertOutputSteps(stack: RgbaImage[], state: MagickState, outSpe
         const histogramComment = histogramInfo && state.formatStr === "%c";
         if (histogramInfo) outSpec = outSpec.slice(10);
         if (!histogramComment && (histogramInfo || (outSpec.toLowerCase().startsWith("histogram:") && outSpec.slice(10) !== ""))) {
-            if (!histogramInfo) outSpec = outSpec.slice(10) === "-" ? "miff:-" : outSpec.slice(10);
+            if (!histogramInfo) {
+                outSpec = outSpec.slice(10);
+                if (!outSpec.includes(":") && inferOutputFormat(outSpec, "miff").format === "miff") outSpec = `miff:${outSpec}`;
+            }
             const geometry = parseMagickGeometry(state.densityGeometry ?? "256x200");
             const width = Math.max(1, Math.round(geometry.width ?? 1)), height = Math.max(1, Math.round(geometry.height ?? 1));
             for (let index = 0; index < stack.length; index++) {
@@ -21461,7 +21464,10 @@ async function writeStoredConvertOutput(stack: StoredImageStack, state: MagickSt
         const histogramComment = histogramInfo && state.formatStr === "%c";
         if (histogramInfo) outSpec = outSpec.slice(10);
         if (!histogramComment && (histogramInfo || (outSpec.toLowerCase().startsWith("histogram:") && outSpec.slice(10) !== ""))) {
-            if (!histogramInfo) outSpec = outSpec.slice(10) === "-" ? "miff:-" : outSpec.slice(10);
+            if (!histogramInfo) {
+                outSpec = outSpec.slice(10);
+                if (!outSpec.includes(":") && inferOutputFormat(outSpec, "miff").format === "miff") outSpec = `miff:${outSpec}`;
+            }
             const geometry = parseMagickGeometry(state.densityGeometry ?? "256x200");
             const width = Math.max(1, Math.round(geometry.width ?? 1)), height = Math.max(1, Math.round(geometry.height ?? 1));
             for (let index = 0; index < stack.length; index++) {

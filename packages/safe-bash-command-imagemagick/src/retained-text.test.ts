@@ -1,5 +1,5 @@
 import { expect, it } from "vitest";
-import sharp from "@poe-code/image-ast";
+import sharp, { decodeImage } from "@poe-code/image-ast";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { runConvertCli } from "./index.js";
 
@@ -26,6 +26,11 @@ it.each(pipelines.flatMap(args => [false, true].map(streamed => ({ args, streame
     const actual = await runConvertCli(args, { filesystem, cwd: "/", ...(streamed ? { stdout: { async write(bytes: Uint8Array) { expect(bytes.length).toBeLessThanOrEqual(16384); chunks.push(new Uint8Array(bytes)); } } } : {}) });
     expect(actual).toEqual({ ...expected, stdout: streamed ? "" : expected.stdout });
     if (streamed) expect(chunks.map(chunk => new TextDecoder().decode(chunk)).join("")).toBe(expected.stdout);
+    if (files.has("foo")) {
+        const image = decodeImage(await fs.readFile("/foo"));
+        expect(image).toMatchObject({ format: "miff", width: 256, height: 200 });
+        expect(image).toEqual(decodeImage(files.get("foo")!));
+    }
     if (files.has("pixels.txt")) expect(await fs.readFile("/pixels.txt")).toEqual(files.get("pixels.txt"));
     expect((await fs.readdir("/")).map(entry => entry.name).sort()).toEqual([...files.keys()].sort());
 });

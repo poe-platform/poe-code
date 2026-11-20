@@ -24552,13 +24552,9 @@ function* runMontageCliSteps(argv: readonly string[], files: Map<string, Uint8Ar
     let canvas: RgbaImage;
     function* compositeTile(image: RgbaImage, x: number, y: number): Generator<void, void, void> {
         if ((output.format === "psd" || output.format === "psb") && image.space === "cmyk") image = { ...yield* copyCmykChannelsToRgb(image), evaluateSamples: undefined };
-        if (state.composeRaw.toLowerCase() === "over" && !canvas.evaluateSamples && !image.evaluateSamples) {
-            yield* blitOverRgbaInPlaceSteps(canvas, image, x, y);
-        } else {
-            const previous = canvas;
-            canvas = yield* applyMagickCompositeLayerSteps(canvas, image, state.composeRaw, x, y, undefined, signal, 0, true);
-            if (canvas.data !== previous.data) detachRgbaBuffer(previous.data);
-        }
+        const previous = canvas;
+        canvas = yield* applyMagickCompositeLayerSteps(canvas, image, state.composeRaw, x, y, undefined, signal, 0, true);
+        if (canvas.data !== previous.data) detachRgbaBuffer(previous.data);
     }
     let anyTransparent = state.background.a < 255 || (borderW > 0 && state.borderColor.a < 255);
 

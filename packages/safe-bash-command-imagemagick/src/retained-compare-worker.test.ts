@@ -34,7 +34,10 @@ beforeAll(async () => {
 
 for (const tool of ["compare", "convert", "mogrify", "convert-write", "convert-stack", "convert-animation", "convert-text", "composite", "montage", "convert-sequence", "convert-malformed"] as const)
 for (const format of (tool === "compare" ? ["bmp", "svg", "label"] : (tool === "mogrify" || tool === "convert-write" || tool === "convert-stack" || tool === "convert-animation" || tool === "convert-text" || tool === "composite" || tool === "montage" || tool === "convert-sequence" || tool === "convert-malformed") ? ["bmp"] : ["bmp", "gradient", "radial-gradient", "pattern", "tile", "pdf"]) as ("bmp" | "svg" | "label" | "gradient" | "radial-gradient" | "pattern" | "tile" | "pdf")[])
-describe(`${tool}, input=${format}`, () => {
+// Keep each worker request below the normal test deadline without shrinking the
+// input below the retained-storage threshold or dropping operation coverage.
+for (const pipeline of tool === "convert-sequence" ? ["evaluate", "morph", "layers"] : format === "bmp" && (tool === "convert" || tool === "mogrify" || tool === "convert-write") ? ["color", "geometry", "effects", "drawing"] : ["default"])
+describe(`${tool}, input=${format}, pipeline=${pipeline}`, () => {
     let fixture: {
         bytes: Uint8Array;
         generated: boolean;
@@ -63,21 +66,48 @@ describe(`${tool}, input=${format}`, () => {
         expect(bytes.length).toBeGreaterThan(1048576);
         const generated = ["label", "gradient", "radial-gradient", "pattern", "tile"].includes(format);
         const operand = format === "label" ? "label:" + "x<&😀".repeat(600) : format === "gradient" || format === "radial-gradient" ? format + ":red-blue" : format === "pattern" ? "pattern:checkerboard" : format === "tile" ? "tile:rose:" : "/input";
-        const args = format === "bmp" ? ["-size","601x601",operand,"-flip","-gamma","1.4","-colorspace","gray","-modulate","110,90,70","-function","Polynomial","0.5,0.2","-transparent","red","-level","20%,80%,1.3","-negate","-black-threshold","30%","-normalize","-auto-gamma","-crop","590x590+5+5","-background","#ff00ff80","-gravity","center","-extent","601x601","-alpha","shape","-color-matrix","0,1,0 0,0,1 1,0,0","-splice","3x2+4+5","-chop","2x3+5+4","-roll","+103-77","-emboss","1","-morphology","Open","3x5","-statistic","median","3x5","-shear","3x2","-distort","SRT","1.1,13","-vignette","0x2","-shadow","75x0.5-2+3","-fx","(u+p{w-1-i,h-1-j})/2","-fill","#12345680","-annotate","+3+4","Hello gjpqy","-draw","rectangle 1,2 11,12 circle 15,17 20,21 point 3,4 line 1,2 23,27","-fill","#65432180","-fuzz","100%","-floodfill","+0+0","black","-remap","pattern:checkerboard"] : ["-size", "601x601", operand, "-flip", "-gamma", "1.4", "-colorspace", "gray"];
+        const args = ["-size", "601x601", operand];
+        if (pipeline === "color" || pipeline === "default") args.push("-flip", "-gamma", "1.4", "-colorspace", "gray");
+        else args.push("-colorspace", "gray");
+        if (pipeline === "color") args.push(
+            "-modulate", "110,90,70", "-function", "Polynomial", "0.5,0.2",
+            "-transparent", "red", "-level", "20%,80%,1.3", "-negate",
+            "-black-threshold", "30%", "-normalize", "-auto-gamma",
+        );
+        if (pipeline === "geometry") args.push(
+            "-crop", "590x590+5+5", "-background", "#ff00ff80", "-gravity", "center",
+            "-extent", "601x601", "-alpha", "shape", "-color-matrix", "0,1,0 0,0,1 1,0,0",
+            "-splice", "3x2+4+5", "-chop", "2x3+5+4", "-roll", "+103-77",
+        );
+        if (pipeline === "effects") args.push(
+            "-background", "#ff00ff80", "-gravity", "center", "-alpha", "shape",
+            "-emboss", "1", "-morphology", "Open", "3x5", "-statistic", "median", "3x5",
+            "-shear", "3x2", "-distort", "SRT", "1.1,13", "-vignette", "0x2",
+            "-shadow", "75x0.5-2+3", "-fx", "(u+p{w-1-i,h-1-j})/2",
+        );
+        if (pipeline === "drawing") args.push(
+            "-background", "#ff00ff80", "-gravity", "center", "-alpha", "shape",
+            "-fill", "#12345680", "-annotate", "+3+4", "Hello gjpqy",
+            "-draw", "rectangle 1,2 11,12 circle 15,17 20,21 point 3,4 line 1,2 23,27",
+            "-fill", "#65432180", "-fuzz", "100%", "-floodfill", "+0+0", "black",
+            "-remap", "pattern:checkerboard",
+        );
         if (tool === "convert-write") args.push("-write", "/middle.bmp", "-negate");
         if (tool === "convert-stack") args.splice(0, args.length, "-size", "601x601", operand, "-duplicate", "40", "-reverse", "-delete", "1-39", "(", "+clone", "-negate", ")", "-swap", "0,2", "-fx", "(u+v)/2", "+clone", "-append");
         if (tool === "convert-animation") args.splice(0, args.length, operand, "+clone", "-flop");
         if (tool === "convert-text") args.splice(0, args.length, operand, "-resize", "129x131!");
         if (tool === "composite") args.splice(0, args.length, "-compose", "multiply", "-geometry", "123x97+3+5", operand, operand);
         if (tool === "montage") args.splice(0, args.length, "-tile", "2x1", "-geometry", "307x311+2+3", "-border", "2", "-bordercolor", "#12345680", operand, operand);
-        if (tool === "convert-sequence") args.splice(0, args.length, operand, "+clone", "-flop", "-evaluate-sequence", "Median", "+clone", "-negate", "-clut", "-separate", "-combine", "+clone", "-morph", "1", "-append", "-raise", "3", "-transpose", "-transverse", "-layers", "merge", "-tile", "2x3", "-deskew", "40%");
+        if (pipeline === "evaluate") args.splice(0, args.length, operand, "+clone", "-flop", "-evaluate-sequence", "Median", "+clone", "-negate", "-clut", "-separate", "-combine");
+        if (pipeline === "morph") args.splice(0, args.length, operand, "+clone", "-morph", "1", "-append");
+        if (pipeline === "layers") args.splice(0, args.length, operand, "-raise", "3", "-transpose", "-transverse", "-layers", "merge", "-tile", "2x3", "-deskew", "40%");
         if (tool === "convert-malformed") args.splice(0, args.length, operand);
         const expectedFiles = new Map([["/input", bytes]]), expected = tool === "montage" ? await runMontageCli([...args, "png:/out.bmp"], expectedFiles) : tool === "composite" ? await runCompositeCli([...args, "png:/out.bmp"], expectedFiles) : tool === "compare" ? await runCompareCli([operand, operand, "/out.bmp"], expectedFiles) : tool === "mogrify" ? await runMogrifyCli(["-format", "png", ...args.slice(3), operand], expectedFiles) : await runConvertCli([...args, tool === "convert-text" ? "txt:/out.bmp" : tool === "convert-animation" ? "gif:/out.bmp" : "png:/out.bmp"], expectedFiles);
         fixture = { bytes, generated, operand, args, expectedFiles, expected };
     });
 
 for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool === "convert-stack" || tool === "convert-animation") ? [false] : [false, true])
-    it(`runs ${tool} in Workerd, input=${format}, stdout=${stdout}`, async () => {
+    it(`runs ${tool} in Workerd, input=${format}, pipeline=${pipeline}, stdout=${stdout}`, async () => {
         const { bytes, generated, operand, args, expectedFiles, expected } = fixture;
         const runtime = new Miniflare({ cf: false, workers: [
     { name: "image", modules: true, compatibilityDate: "2026-07-01", script: workerScript, serviceBindings: { BACKING: "backing" } },

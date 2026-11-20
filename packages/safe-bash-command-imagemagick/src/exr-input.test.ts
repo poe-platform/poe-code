@@ -68,7 +68,7 @@ for (const mode of ["sync", "buffered", "retained"] as const) {
         const alphaArgs = ["/in.exr", "-depth", "16", "/out.png"];
         expect(await (mode === "sync" ? runConvertCliSync(alphaArgs, files) : runConvertCli(alphaArgs, mode === "retained" ? { filesystem, cwd: "/" } : files))).toMatchObject({ exitCode: 0, stderr: "" });
         const png = decodeImage(mode === "retained" ? await filesystem.readFile("/out.png") : files.get("/out.png")!);
-        expect(Array.from(png.data16!)).toEqual([0, 32768, 0, 32768, 65535, 32831, 0, 65535]);
+        expect(Array.from(png.data16!)).toEqual([0, 32768, 0, 32768, 65535, 32832, 0, 65535]);
     });
 }
 

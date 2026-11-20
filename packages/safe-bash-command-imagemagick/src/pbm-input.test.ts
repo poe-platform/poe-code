@@ -16,7 +16,7 @@ for (const sync of [false, true]) it.each(fixtures)(`reads one P1 pixel per digi
   await fs.writeFile("/input.pbm", input);
   await fs.writeFile("/out.ppm", Buffer.from("keep"));
   const files = new Map<string, Uint8Array>([["input.pbm", input], ["out.ppm", Buffer.from("keep")]]);
-  const args = createCommandArguments(["input.pbm", "out.ppm"]);
+  const args = createCommandArguments(["input.pbm", "-depth", "8", "out.ppm"]);
   let stderr = "";
   const result = sync ? runMagickCliSync(args.args, files) : await createMagickCommand().execute({
     command: "magick", args: args.args, argumentValues: args, cwd: "/", env: {}, fs,

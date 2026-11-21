@@ -403,15 +403,17 @@ function typedValue(node: XmlElement, legacy: boolean, dateSystem: "1900" | "190
       if (date.length !== 3 || date.some(n => !Number.isInteger(n))) continue;
       const d = gregorian(date[0]!, date[1]!, date[2]!);
       if (d.getUTCFullYear() !== date[0] || d.getUTCMonth() + 1 !== date[1] || d.getUTCDate() !== date[2]) continue;
-      let fraction = 0;
+      let fraction = 0, format = "yyyy/mm/dd";
       if (parts[1]) {
         const time = parts[1].split(":"); const seconds = parseFloat(time[2] ?? "");
         const hour = Number(time[0]), minute = Number(time[1]);
-        if (time.length >= 3 && Number.isInteger(hour) && Number.isInteger(minute) && Number.isFinite(seconds))
+        if (time.length >= 3 && Number.isInteger(hour) && Number.isInteger(minute) && Number.isFinite(seconds)) {
           fraction = (hour + minute / 60 + seconds / 3600) / 24;
+          format = "yyyy/mm/dd hh:mm:ss";
+        }
       }
       return { kind: "number", value: dateSerial(d, { book: { sheets: [], dateSystem } }) + fraction,
-        format: parts[1] ? "yyyy/mm/dd hh:mm:ss" : "yyyy/mm/dd" };
+        format };
     }
     if (a.localName === "time-value") {
       const value = durationValue(a.value, charge);

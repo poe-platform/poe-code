@@ -63,5 +63,6 @@ it("rejects a work budget before any sparse repeat can bypass accounting", async
 it("keeps a valid date when the optional clock cannot be scanned completely", async () => {
   const bytes = await spreadsheet('<t:table-cell o:date-value="1900-03-01Tbad:00:00"/><t:table-cell o:date-value="1900-03-01T12:bad:00"/><t:table-cell o:date-value="1900-03-01T12:00:bad"/><t:table-cell o:date-value="1900-03-01T12:00:00"/>');
   expect((await readOdf(bytes, context)).sheets[0]!.cells.map(cell => cell.value)).toEqual(
-    [61, 61, 61, 61.5].map(value => ({ kind: "number", value, format: "yyyy/mm/dd hh:mm:ss" })));
+    [61, 61, 61, 61.5].map((value, index) => ({ kind: "number", value,
+      format: index < 3 ? "yyyy/mm/dd" : "yyyy/mm/dd hh:mm:ss" })));
 });

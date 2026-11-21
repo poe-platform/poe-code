@@ -16,9 +16,9 @@ it.each(["buffered", "sync", "retained", "command"] as const)("requires a separa
             stdout: { async write(bytes) { stdout += new TextDecoder().decode(bytes); } },
             stderr: { async write(bytes) { stderr += new TextDecoder().decode(bytes); } }
         }), stdout, stderr } : mode === "sync" ? runConvertCliSync(args, files) : await runConvertCli(args, mode === "buffered" ? files : { filesystem: fs, cwd: "/" });
-        expect(result.exitCode).toBe(tail.length ? 0 : 1);
+        expect(result.exitCode).toBe(tail.length ? 0 : 11);
         expect(result.stdout).toBe("");
-        expect(result.stderr).toBe(tail.length ? "" : `magick: missing argument '${option}'\n`);
+        expect(result.stderr).toBe(tail.length ? "" : `magick: missing argument '${option}' at CLI arg 2\n`);
         const buffered = mode === "buffered" || mode === "sync";
         expect(buffered ? [...files.keys()].sort() : (await fs.readdir("/")).map(entry => entry.name).sort()).toEqual(
             tail.length === 0 ? ["r.png"] : tail.length === 1 ? ["mid.png", "r.png"] : ["mid.png", "out.png", "r.png"]

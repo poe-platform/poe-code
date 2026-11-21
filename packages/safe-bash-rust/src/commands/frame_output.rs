@@ -116,6 +116,12 @@ pub(super) fn encode(
         return Err("image exceeds memory budget");
     }
     let data = match format {
+        "rgb" | "rgba" => {
+            let channels = if format == "rgba" { 4 } else { 3 };
+            let mut out = Vec::with_capacity(im.pixels.len() * channels);
+            for pixel in &im.pixels { out.extend_from_slice(&pixel[..channels]); }
+            out
+        }
         "pdf" => pdf(im, limit)?,
         "heic" | "heif" | "avif" => super::heif::encode(im, format, density, limit)?,
         "jpeg" => jpeg::encode(jpeg::Input::Raster(im, quality, density), limit)?,

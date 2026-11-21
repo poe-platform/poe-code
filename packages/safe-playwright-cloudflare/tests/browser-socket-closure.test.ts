@@ -37,13 +37,14 @@ function upstream() {
       socket.readyState = 3;
       onError!(new NativeErrorEvent() as ErrorEvent);
     },
-    disconnect({ code = 1006, trusted = true, state = 3 } = {}) {
+    disconnect({ code = 1006, trusted = true, state = 3, stateAfter = state } = {}) {
       socket.readyState = state;
       onClose!({
         code,
         reason: "WebSocket disconnected without sending Close frame.",
         isTrusted: trusted
       } as CloseEvent);
+      socket.readyState = stateAfter;
     }
   };
 }
@@ -82,13 +83,13 @@ test("client close preceding owner release can be confirmed by successful deleti
   await expect(peer.closed).resolves.toBeUndefined();
 });
 
-test.each(["before", "after"])(
-  "failed deletion %s native 1006 retains the upstream diagnostic",
-  async (order) => {
+test.each([["before", 2], ["after", 2], ["before", 3], ["after", 3]] as const)(
+  "failed deletion %s native 1006 in state %s retains the upstream diagnostic",
+  async (order, state) => {
     const peer = upstream();
     beginBrowserOwnerShutdown([peer.socket]);
     if (order === "before") finalizeBrowserOwnerTermination([peer.socket], false);
-    peer.disconnect();
+    peer.disconnect({ state, stateAfter: 3 });
     if (order === "after") finalizeBrowserOwnerTermination([peer.socket], false);
     await expect(peer.closed).rejects.toThrow(
       "1006 WebSocket disconnected without sending Close frame."
@@ -99,6 +100,35 @@ test.each(["before", "after"])(
 test("active native 1006 cannot be excused by later shutdown and deletion", async () => {
   const peer = upstream();
   peer.disconnect();
+  beginBrowserOwnerShutdown([peer.socket]);
+  finalizeBrowserOwnerTermination([peer.socket], true);
+  await expect(peer.closed).rejects.toThrow("1006");
+});
+
+// workerd dispatches its native 1006 before marking the incoming side closed.
+test.each(["before", "after"])(
+  "owner deletion %s native CLOSING-to-CLOSED dispatch confirms shutdown",
+  async order => {
+    const peer = upstream();
+    beginBrowserOwnerShutdown([peer.socket]);
+    closeBrowserSocket(peer.socket);
+    if (order === "before") finalizeBrowserOwnerTermination([peer.socket], true);
+    peer.disconnect({ state: 2, stateAfter: 3 });
+    if (order === "after") finalizeBrowserOwnerTermination([peer.socket], true);
+    await expect(peer.closed).resolves.toBeUndefined();
+  }
+);
+
+test("local close confirms native CLOSED after close-event dispatch", async () => {
+  const peer = upstream();
+  closeBrowserSocket(peer.socket);
+  peer.disconnect({ state: 2, stateAfter: 3 });
+  await expect(peer.closed).resolves.toBeUndefined();
+});
+
+test("native deferred CLOSED cannot excuse a disconnect preceding shutdown", async () => {
+  const peer = upstream();
+  peer.disconnect({ state: 2, stateAfter: 3 });
   beginBrowserOwnerShutdown([peer.socket]);
   finalizeBrowserOwnerTermination([peer.socket], true);
   await expect(peer.closed).rejects.toThrow("1006");

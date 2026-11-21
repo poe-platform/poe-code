@@ -67,19 +67,28 @@ export function registerBrowserSocketClose(socket: WebSocket, alias = socket) {
 			if (
 				event.code === 1006 &&
 				event.isTrusted &&
-				socket.readyState === WebSocket.CLOSED &&
 				(closure!.ownerClosing || closure!.closing)
 			) {
-				// A deliberately closed client can detach while its owner stays alive
-				// for the next run. Owner shutdown still requires confirmed deletion.
-				if (closure!.closing && !closure!.ownerClosing) {
-					finish();
-					return;
-				}
-				eof = error;
-				eofDuringClose = true;
-				if (closure!.ownerTerminated !== undefined)
-					closure!.finalizeOwnerTermination(closure!.ownerTerminated);
+				const ownerClosing = closure!.ownerClosing;
+				const confirmClosed = () => {
+					if (socket.readyState !== WebSocket.CLOSED) {
+						finish(error);
+						return;
+					}
+					// A deliberately closed client can detach while its owner stays alive
+					// for the next run. Owner shutdown still requires confirmed deletion.
+					if (!ownerClosing) {
+						finish();
+						return;
+					}
+					eof = error;
+					eofDuringClose = true;
+					if (closure!.ownerTerminated !== undefined)
+						closure!.finalizeOwnerTermination(closure!.ownerTerminated);
+				};
+				// workerd marks its incoming side closed after dispatching native 1006.
+				if (socket.readyState === WebSocket.CLOSED) confirmClosed();
+				else queueMicrotask(confirmClosed);
 				return;
 			}
 			finish(error);

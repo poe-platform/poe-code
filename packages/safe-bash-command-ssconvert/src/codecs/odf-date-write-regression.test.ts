@@ -24,5 +24,10 @@ it.each(["strict", "extended"] as const)("matches native date rounding at midnig
     expect(xml).toContain(`office:date-value="${date}"`);
   expect(xml).not.toContain("T24:");
   const reopened = await readOdf(bytes, context);
-  expect(reopened.sheets[0]!.cells.map(cell => cell.value)).toEqual([45292, 45292, 45293, 45292 + 86399 / 86400].map(value => ({ kind: "number", value })));
+  expect(reopened.sheets[0]!.cells.map(cell => cell.value)).toEqual([
+    { kind: "number", value: 45292, format: "yyyy/mm/dd" },
+    { kind: "number", value: 45292, format: "yyyy/mm/dd hh:mm:ss" },
+    { kind: "number", value: 45293, format: "yyyy/mm/dd hh:mm:ss" },
+    { kind: "number", value: 45292 + 86399 / 86400, format: "yyyy/mm/dd hh:mm:ss" }
+  ]);
 });

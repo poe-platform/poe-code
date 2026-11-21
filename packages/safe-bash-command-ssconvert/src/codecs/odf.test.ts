@@ -65,7 +65,8 @@ it("reads typed serials, multiline text, significant spaces, errors and covered 
   const book = await readOdf(await fixture({ mimetype: "application/vnd.oasis.opendocument.spreadsheet", "content.xml": content(
     `<table:table table:name="S"><table:table-row><table:table-cell office:value-type="date" office:date-value="1900-03-01T12:00:00"/><table:table-cell office:value-type="time" office:time-value="PT25H0M0S"/><table:table-cell office:value-type="boolean" office:boolean-value="true"/><table:table-cell office:value-type="string"><text:p>a<text:s text:c="3"/>b<text:tab/>c</text:p><text:p>d</text:p></table:table-cell><table:table-cell table:formula="of:=" office:value-type="string"><text:p>#DIV/0!</text:p></table:table-cell></table:table-row><table:table-row><table:table-cell office:value-type="string" table:number-columns-spanned="2" table:number-rows-spanned="2"><text:p>merge</text:p></table:table-cell><table:covered-table-cell/><table:table-cell office:value-type="float" office:value="4"/></table:table-row></table:table>`) }), context);
   expect(book.sheets[0]!.cells.slice(0, 4).map(c => c.value)).toEqual([
-    { kind: "number", value: 61.5 }, { kind: "number", value: 25 / 24 }, { kind: "boolean", value: true },
+    { kind: "number", value: 61.5, format: "yyyy/mm/dd hh:mm:ss" },
+    { kind: "number", value: 25 / 24, format: "hh:mm:ss" }, { kind: "boolean", value: true },
     { kind: "error", value: "#DIV/0!" }]);
   expect(book.sheets[0]!.cells.filter(c => c.row === 0).map(c => c.column)).toEqual([0, 1, 2, 3]);
   expect(book.sheets[0]!.merges).toEqual([{ startRow: 1, startColumn: 0, endRow: 2, endColumn: 1 }]);

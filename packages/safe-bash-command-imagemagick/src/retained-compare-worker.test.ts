@@ -1,4 +1,5 @@
-import { deepStrictEqual } from "node:assert";
+import { strictEqual } from "node:assert";
+import { isDeepStrictEqual } from "node:util";
 import { PdfDocument } from "@poe-code/pdf-ast";
 import { beforeAll, describe, expect, it } from "vitest";
 import { build } from "esbuild";
@@ -171,12 +172,13 @@ for (const stdout of (tool === "mogrify" || tool === "convert-write" || tool ===
             if (tool === "convert-write") {
                 const middle = new Uint8Array(await (await backing.fetch("https://backing/middle")).arrayBuffer());
                 expect(middle.length).toBeGreaterThan(1048576);
-                deepStrictEqual(decodeImage(middle), decodeImage(expectedFiles.get("/middle.bmp")!));
+                // Keep exact deep equality without attaching large rasters to assertion errors.
+                strictEqual(isDeepStrictEqual(decodeImage(middle), decodeImage(expectedFiles.get("/middle.bmp")!)), true, "intermediate image differs");
             }
             const actual = new Uint8Array(await (await backing.fetch("https://backing/result")).arrayBuffer()), expectedBytes = expectedFiles.get(tool === "mogrify" ? "/input.png" : "/out.bmp")!;
-            if (tool === "convert-text") { expect(actual.length).toBeGreaterThan(65536); deepStrictEqual(actual, expectedBytes); }
-            else deepStrictEqual(decodeImage(actual), decodeImage(expectedBytes));
-            if (tool === "convert-animation") deepStrictEqual(decodeImage(actual, { page: 1 }), decodeImage(expectedBytes, { page: 1 }));
+            if (tool === "convert-text") { expect(actual.length).toBeGreaterThan(65536); strictEqual(isDeepStrictEqual(actual, expectedBytes), true, "text output bytes differ"); }
+            else strictEqual(isDeepStrictEqual(decodeImage(actual), decodeImage(expectedBytes)), true, "output image differs");
+            if (tool === "convert-animation") strictEqual(isDeepStrictEqual(decodeImage(actual, { page: 1 }), decodeImage(expectedBytes, { page: 1 })), true, "animation frame differs");
         }
         finally {
             await runtime.dispose();

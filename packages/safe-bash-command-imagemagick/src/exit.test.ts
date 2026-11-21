@@ -15,7 +15,7 @@ for (const mode of ["buffered", "sync", "retained", "command"] as const) {
         [["(", "xc:red", "-write", "saved.ppm", "-exit", ")", "later.ppm"], ["saved.ppm"], ""],
         [["xc:red", "-set", "comment", "-exit", "-depth", "8", "rgb:-"], [], "ff0000"],
         [["xc:red", "--", "-exit"], [], "", "magick: no encode delegate for this image format 'XC'\n"],
-    ] as const)(`stops only at an exit option (${mode}): %j`, async (args, names, hex, error = "") => {
+    ] as const)(`stops only at an exit option (${mode}): %j`, async (args, names, hex, error: string = "") => {
         const files = new Map<string, Uint8Array>();
         const filesystem = new MemoryFileSystem();
         const argumentValues = createCommandArguments(args);

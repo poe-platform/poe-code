@@ -298,13 +298,17 @@ test("settled native command deadline cannot fail a later pending command", asyn
 test.each(["failure", "timeout", "uncertain"])("owner release retries %s without replaying completed cleanup", async (mode) => {
 	let deletions = 0;
 	const pending = Promise.withResolvers<Response>();
+	const deleteAborted = Promise.withResolvers<void>();
 	const provider = ownedProvider(async signal => {
 		deletions++;
 		if (deletions > 1) return new Response(null, { status: 204 });
 		if (mode === "failure") return new Response(null, { status: 503 });
 		if (mode === "uncertain") return pending.promise;
 		return new Promise<Response>((_resolve, reject) => {
-			signal.addEventListener("abort", () => reject(signal.reason), { once: true });
+			signal.addEventListener("abort", () => {
+				reject(signal.reason);
+				deleteAborted.resolve();
+			}, { once: true });
 		});
 	});
 	const resource = await acquireCloudflareBrowser({
@@ -323,6 +327,7 @@ test.each(["failure", "timeout", "uncertain"])("owner release retries %s without
 		await retry;
 	} else {
 		// The outer deadline may expire just before the DELETE abort settles.
+		if (mode === "timeout") await deleteAborted.promise;
 		await new Promise(resolve => setTimeout(resolve, 0));
 		await resource.release();
 	}

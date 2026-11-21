@@ -57,7 +57,7 @@ for (const mode of ["sync", "buffered", "retained", "command"] as const) {
     });
 }
 
-it("writes the reported two-page TIFF to command stdout", async () => {
+it.each([0, 8])("writes the reported two-page TIFF to command stdout (buffer offset %i)", async (offset) => {
     const chunks: Uint8Array[] = [];
     const result = await createMagickCommand().execute({
         command: "magick", args: ["xc:red", "xc:blue", "-scene", "4", "-depth", "8", "tiff:-"],
@@ -65,5 +65,7 @@ it("writes the reported two-page TIFF to command stdout", async () => {
         stdin: (async function* () {})(), stdout: { async write(bytes) { chunks.push(bytes.slice()); } }, stderr: { async write() {} }
     });
     expect(result.exitCode).toBe(0);
-    inspect(Buffer.concat(chunks), 4, 2);
+    const bytes = Buffer.concat(chunks), padded = Buffer.alloc(bytes.length + offset);
+    padded.set(bytes, offset);
+    inspect(padded.subarray(offset), 4, 2);
 });

@@ -1,6 +1,7 @@
 import { expect, it } from "vitest";
 import { Volume } from "memfs";
 import { createEngine } from "../engine.js";
+import { decodeText } from "../encoding/decode.js";
 import type { CapabilityContext } from "../contracts.js";
 import { probeText, readText } from "./text.js";
 
@@ -151,9 +152,10 @@ it("honors explicit UTF-32 byte ordering and ignores incomplete final units", as
 
 it("keeps native UCS-4 big-endian ordering and iconv Latin-1 aliases", async () => {
   const bytes = new Uint8Array([97, 0, 0, 0, 44, 0, 0, 0, 98, 0, 0, 0]);
+  expect(decodeText(bytes, "UCS-4")).toBe("a\0\0\0,\0\0\0b\0\0\0");
   const book = await readText(bytes, context, "UCS-4");
   expect(book.sheets[0]!.cells.map(cell => cell.value)).toEqual([
-    { kind: "string", value: "a\0\0\0" }, { kind: "string", value: "\0\0\0b\0\0\0" }
+    { kind: "string", value: "a" }, { kind: "string", value: "b" }
   ]);
   expect((await readText(new Uint8Array([128]), context, "ISO8859-1")).sheets[0]!.cells[0]!.value)
     .toEqual({ kind: "string", value: "\u0080" });
@@ -167,14 +169,14 @@ it.each([
   expect(book.sheets[0]!.cells[1]!.value).toEqual({ kind: "string", value: decoded });
 });
 
-it("preserves NULs without reporting a lossy substitution", async () => {
+it("discards decoded NULs without reporting a lossy substitution", async () => {
   const messages: string[] = [];
   const bytes = new Uint8Array([97, 0, 44, 98, 0]);
   const book = await readText(bytes, { ...context,
     async diagnostic(diagnostic) { messages.push(diagnostic.message); }
   });
   expect(book.sheets[0]!.cells.map(cell => cell.value)).toEqual([
-    { kind: "string", value: "a\0" }, { kind: "string", value: "b\0" }
+    { kind: "string", value: "a" }, { kind: "string", value: "b" }
   ]);
   expect(messages).toEqual([]);
 });

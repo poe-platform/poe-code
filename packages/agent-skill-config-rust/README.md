@@ -12,6 +12,7 @@ use the existing own `@poe-code/safe-fs` capability and path contracts.
 | Global and project skill directories | `resolveSkillDir` |
 | Project-first skill reference lookup | `resolveSkillReference`, `resolveSkillReferenceAsync` |
 | Discover ordered, unique skills through a supplied filesystem | `discoverSkillsAsync` |
+| Render escaped skill metadata without instruction bodies | `renderSkillCatalog` |
 | Independent run-owned Git exclude blocks | `appendExcludeBlock`, `removeExcludeBlock`, `appendExcludeBlockAsync`, `removeExcludeBlockAsync` |
 | Install bundled skills without overwriting user files | `configure`, `unconfigure` |
 | Install named skills with explicit overwrite control | `installSkill` |

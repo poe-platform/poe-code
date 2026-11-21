@@ -110,6 +110,7 @@ pub fn task_yaml_spans(
                         };
                     let mut snapshot = config_mutations_rust_napi_core::parsed_yaml_snapshot(
                         config_mutations_rust::yaml::Parsed {
+                            plain_mapping: false,
                             value,
                             date_ids,
                             symbol_ids,

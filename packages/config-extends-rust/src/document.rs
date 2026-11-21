@@ -56,6 +56,7 @@ fn format(source: &[u16], extension: &[u16]) -> Format {
 }
 fn empty(value: Value) -> yaml::Parsed {
     yaml::Parsed {
+        plain_mapping: matches!(value, Value::Object(_)),
         value,
         date_ids: vec![],
         symbol_ids: vec![],

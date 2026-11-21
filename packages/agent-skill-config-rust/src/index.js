@@ -8,3 +8,5 @@ export {bridgeActiveSkillsAsync, cleanupBridgedSkillsAsync} from './bridge-activ
 export {appendExcludeBlockAsync, removeExcludeBlockAsync} from './git-exclude-async.js';
 export {discoverSkillsAsync} from './discover-skills-async.js';
 export {resolveSkillReferenceAsync} from './resolve-skill-reference-async.js';
+import {native} from './native.js';
+export const renderSkillCatalog = native.skillRenderCatalog;

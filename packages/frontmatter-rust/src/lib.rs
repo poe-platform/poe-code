@@ -178,6 +178,7 @@ pub struct Document {
 fn empty_document(body_start: usize) -> Document {
     Document {
         yaml: yaml::Parsed {
+            plain_mapping: false,
             value: Value::Object(vec![]),
             date_ids: vec![],
             symbol_ids: vec![],

@@ -9,3 +9,4 @@ description="Portable coding-agent skill catalog, resolution and bridge policies
 agent-defs-rust={path="../agent-defs-rust"}
 mcp-protocol-rust={path="../mcp-protocol-rust"}
 mcp-oauth-rust={path="../mcp-oauth-rust"}
+config-mutations-rust={path="../config-mutations-rust"}

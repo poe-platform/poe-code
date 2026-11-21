@@ -17,6 +17,28 @@ mod discovery;
 mod exclude_async;
 mod resolve_async;
 mod templates;
+#[napi(object)]
+pub struct DiscoveredSkill {
+    pub name: Utf16String,
+    pub file: Utf16String,
+    pub content: Utf16String,
+}
+
+#[napi]
+pub fn skill_render_catalog(files: Vec<DiscoveredSkill>) -> Either<Utf16String, Undefined> {
+    let files: Vec<_> = files
+        .into_iter()
+        .map(|file| agent_skill_config_rust::skill_catalog::Skill {
+            name: file.name.to_vec(),
+            file: file.file.to_vec(),
+            content: file.content.to_vec(),
+        })
+        .collect();
+    match agent_skill_config_rust::skill_catalog::render(&files) {
+        Some(catalog) => Either::A(Utf16String::from(catalog)),
+        None => Either::B(()),
+    }
+}
 pub use config_mutations_rust_napi_core::*;
 pub use exclude_async::skill_exclude_line_error;
 pub use resolve_async::skill_resolve_plan;

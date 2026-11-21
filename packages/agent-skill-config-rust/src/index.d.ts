@@ -14,3 +14,4 @@ export {appendExcludeBlockAsync, removeExcludeBlockAsync} from './git-exclude-as
 export {discoverSkillsAsync} from './discover-skills-async.js';
 export {resolveSkillReferenceAsync} from './resolve-skill-reference-async.js';
 export type {SkillRuntimeOptions, DiscoveredSkill} from './discover-skills-async.js';
+export declare function renderSkillCatalog(files: readonly import('./discover-skills-async.js').DiscoveredSkill[]): string | undefined;

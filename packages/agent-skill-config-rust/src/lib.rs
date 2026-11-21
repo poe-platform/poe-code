@@ -7,6 +7,7 @@ pub mod exclude;
 pub mod exclude_async;
 pub mod paths;
 pub mod resolve;
+pub mod skill_catalog;
 pub mod templates;
 use agent_defs_rust::Registry;
 use mcp_protocol_rust::{json::Value, strings::trim_ecmascript};

@@ -29,6 +29,8 @@ impl std::error::Error for Error {}
 #[derive(Clone, Debug, PartialEq)]
 pub struct Parsed {
     pub value: Value,
+    /// Distinguish a mapping from collections projected into configuration objects.
+    pub plain_mapping: bool,
     pub date_ids: Vec<usize>,
     pub symbol_ids: Vec<usize>,
 }
@@ -135,6 +137,7 @@ pub fn parse_with_options(
 ) -> Result<Parsed, Error> {
     if source.iter().all(|ch| crate::jsonc::trim_space(*ch)) {
         return Ok(Parsed {
+            plain_mapping: false,
             value: if options.object_root {
                 Value::Object(vec![])
             } else {
@@ -246,6 +249,10 @@ pub fn parse_with_options(
         }
     }
     check_aliases(&nodes, options.max_alias_count)?;
+    let plain_mapping = root.is_some_and(|root| {
+        matches!(nodes[root].node, Node::Mapping(_))
+            && nodes[root].tag.as_deref() != Some(units("tag:yaml.org,2002:set").as_slice())
+    });
     let (value, date_ids, symbol_ids) = if let Some(root) = root {
         compose::configuration(&nodes, root, date_key, options.unique_keys)?
     } else {
@@ -253,11 +260,13 @@ pub fn parse_with_options(
     };
     match value {
         Value::Null if options.object_root => Ok(Parsed {
+            plain_mapping,
             value: Value::Object(vec![]),
             date_ids,
             symbol_ids,
         }),
         value if !options.object_root || matches!(value, Value::Object(_)) => Ok(Parsed {
+            plain_mapping,
             value,
             date_ids,
             symbol_ids,

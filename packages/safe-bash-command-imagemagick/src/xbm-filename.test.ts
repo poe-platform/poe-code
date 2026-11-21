@@ -10,7 +10,7 @@ for (const mode of ["sync", "buffered", "retained"] as const) {
         ["/app-icon.xbm", "/app-icon.xbm", "app_icon", false],
         ["/icons/app.v2-icon.xbm", "/icons/app.v2-icon.xbm", "app_v2_icon", false],
         ["xbm:/9-icon.data", "/9-icon.data", "__icon", false],
-        ["/.xbm", "/.xbm", "_xbm", false],
+        ["xbm:/.xbm", "/.xbm", "_xbm", false],
         ["/é-icon.xbm", "/é-icon.xbm", "___icon", false],
         ["/app-%02d.xbm", "/app-00.xbm", "app_00", false],
         ["/app-icon.xbm", "/app-icon.xbm", "app_icon", true],
@@ -27,6 +27,17 @@ for (const mode of ["sync", "buffered", "retained"] as const) {
         const bytes = path === "-" ? result.stdoutBytes! : mode === "retained" ? await filesystem.readFile(path) : files.get(path)!;
         expect(new TextDecoder().decode(bytes)).toBe(`#define ${name}_width 8\n#define ${name}_height 1\nstatic char ${name}_bits[] = {\n  0x55, };\n`);
         expect(decodeImage(bytes)).toMatchObject({ width: 8, height: 1 });
+    });
+
+    it(`preserves the input format for an unqualified .xbm filename (${mode})`, async () => {
+        const files = new Map([["/alpha.pgm", input]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/alpha.pgm", input);
+        const args = ["/alpha.pgm", "/.xbm"];
+        const result = mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+        const bytes = mode === "retained" ? await filesystem.readFile("/.xbm") : files.get("/.xbm")!;
+        expect(bytes).toEqual(input);
     });
 }
 

@@ -13,7 +13,7 @@ for (const mode of ["sync", "buffered", "retained"] as const) {
         ["/app-icon.xpm", "/app-icon.xpm", "app_icon", false],
         ["/icons/app.v2-icon.xpm", "/icons/app.v2-icon.xpm", "app_v2_icon", false],
         ["xpm:/9-icon.data", "/9-icon.data", "__icon", false],
-        ["/.xpm", "/.xpm", "_xpm", false],
+        ["xpm:/.xpm", "/.xpm", "_xpm", false],
         ["/é-icon.xpm", "/é-icon.xpm", "___icon", false],
         ["/app-%02d.xpm", "/app-00.xpm", "app_00", false],
         ["/app-icon.xpm", "/app-icon.xpm", "app_icon", true],
@@ -30,6 +30,17 @@ for (const mode of ["sync", "buffered", "retained"] as const) {
         const bytes = path === "-" ? result.stdoutBytes! : mode === "retained" ? await filesystem.readFile(path) : files.get(path)!;
         expect(new TextDecoder().decode(bytes).split("\n")[1]).toBe(`static char *${name}[] = {`);
         expect(decodeImage(bytes)).toMatchObject({ width: 6, height: 1 });
+    });
+
+    it(`preserves the input format for an unqualified .xpm filename (${mode})`, async () => {
+        const files = new Map([["/alpha.png", input]]), filesystem = new MemoryFileSystem();
+        await filesystem.writeFile("/alpha.png", input);
+        const args = ["/alpha.png", "/.xpm"];
+        const result = mode === "sync" ? runConvertCliSync(args, files)
+            : await runConvertCli(args, mode === "retained" ? { filesystem, cwd: "/" } : files);
+        expect(result).toMatchObject({ exitCode: 0, stderr: "" });
+        const bytes = mode === "retained" ? await filesystem.readFile("/.xpm") : files.get("/.xpm")!;
+        expect(decodeImage(bytes)).toMatchObject({ format: "png", width: 6, height: 1, data: decodeImage(input).data });
     });
 }
 

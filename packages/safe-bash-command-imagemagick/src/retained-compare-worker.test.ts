@@ -36,7 +36,7 @@ for (const tool of ["compare", "convert", "mogrify", "convert-write", "convert-s
 for (const format of (tool === "compare" ? ["bmp", "svg", "label"] : (tool === "mogrify" || tool === "convert-write" || tool === "convert-stack" || tool === "convert-animation" || tool === "convert-text" || tool === "composite" || tool === "montage" || tool === "convert-sequence" || tool === "convert-malformed") ? ["bmp"] : ["bmp", "gradient", "radial-gradient", "pattern", "tile", "pdf"]) as ("bmp" | "svg" | "label" | "gradient" | "radial-gradient" | "pattern" | "tile" | "pdf")[])
 // Keep each worker request below the normal test deadline without shrinking the
 // input below the retained-storage threshold or dropping operation coverage.
-for (const pipeline of tool === "convert-sequence" ? ["evaluate", "morph", "layers"] : format === "bmp" && (tool === "convert" || tool === "mogrify" || tool === "convert-write") ? ["color", "geometry", "effects", "drawing"] : ["default"])
+for (const pipeline of tool === "convert-sequence" ? ["evaluate", "morph", "layers"] : format === "bmp" && (tool === "convert" || tool === "mogrify" || tool === "convert-write") ? ["color", "geometry", "filters", "effects", "drawing"] : ["default"])
 describe(`${tool}, input=${format}, pipeline=${pipeline}`, () => {
     let fixture: {
         bytes: Uint8Array;
@@ -79,9 +79,14 @@ describe(`${tool}, input=${format}, pipeline=${pipeline}`, () => {
             "-extent", "601x601", "-alpha", "shape", "-color-matrix", "0,1,0 0,0,1 1,0,0",
             "-splice", "3x2+4+5", "-chop", "2x3+5+4", "-roll", "+103-77",
         );
-        if (pipeline === "effects") args.push(
+        if (pipeline === "filters" || pipeline === "effects") args.push(
             "-background", "#ff00ff80", "-gravity", "center", "-alpha", "shape",
+        );
+        if (pipeline === "filters") args.push(
             "-emboss", "1", "-morphology", "Open", "3x5", "-statistic", "median", "3x5",
+        );
+        // Keep virtual-canvas and alpha transitions chained through pixel sampling.
+        if (pipeline === "effects") args.push(
             "-shear", "3x2", "-distort", "SRT", "1.1,13", "-vignette", "0x2",
             "-shadow", "75x0.5-2+3", "-fx", "(u+p{w-1-i,h-1-j})/2",
         );

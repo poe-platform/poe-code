@@ -253,3 +253,31 @@ fn document_alias_limit_preserves_config_defaults() {
     assert!(yaml::parse_with_options(&source(32), None, options).is_err());
     assert!(yaml::parse(&source(32), None).is_ok());
 }
+
+#[test]
+fn plain_mapping_distinguishes_collections_before_configuration_cloning() {
+    let options = yaml::ParseOptions {
+        object_root: false,
+        ..Default::default()
+    };
+    for source in [
+        "!!set {one, two}",
+        "!!omap [one: two]",
+        "[]",
+        "false",
+        "",
+        "null",
+    ] {
+        let parsed =
+            yaml::parse_with_options(&source.encode_utf16().collect::<Vec<_>>(), None, options)
+                .unwrap();
+        assert!(!parsed.plain_mapping, "{source}");
+    }
+    for source in ["{}", "name: skill", "extra: !!set {one, two}"] {
+        let parsed =
+            yaml::parse_with_options(&source.encode_utf16().collect::<Vec<_>>(), None, options)
+                .unwrap();
+        assert!(parsed.plain_mapping, "{source}");
+    }
+    assert!(yaml::parse(&"!!set {one, two}".encode_utf16().collect::<Vec<_>>(), None).is_ok());
+}

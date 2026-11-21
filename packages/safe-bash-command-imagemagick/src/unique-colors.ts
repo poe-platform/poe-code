@@ -67,7 +67,7 @@ export function* uniqueColorsSteps(image: RgbaImage & HueMetadata & { inactiveAl
     for (let offset = 0; offset < samples.length; offset += 4) {
         if (offset % 4096 === 0) yield;
         const order = colorOrder(samples, offset, hasAlpha, inks);
-        if (!seen.add(image.hueSamples ?? image.evaluateSamples ?? samples, offset, order, inks ? (image.evaluateSamples?.[offset + 3] ?? samples[offset + 3]! / (image.data16 ? 257 : 1)) : undefined, !dropAlpha, image.hueSamples !== undefined)) continue;
+        if (!seen.add(image.hueSamples ?? image.evaluateSamples ?? samples, offset, order, inks ? (image.evaluateSamples?.[offset + 3] ?? samples[offset + 3]! / (image.data16 ? 257 : 1)) : undefined, hasAlpha, image.hueSamples !== undefined)) continue;
         pixels.push({ offset, order });
     }
     // Stable radix sorting stays cooperative even for an all-unique raster.
@@ -147,7 +147,7 @@ export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata & 
                     const used = block[1]!;
                     for (let index = 0; index < used; index++) {
                         const record = 2 + index * 5;
-                        if ((!inks || dropAlpha || Math.abs(block[record]! - alpha) < 1e-12 / 257) && equalWorkingColors(block, record + 1, working, offset, !!inks, !dropAlpha, image.storedHueSamples !== undefined)) {
+                        if ((!inks || !hasAlpha || Math.abs(block[record]! - alpha) < 1e-12 / 257) && equalWorkingColors(block, record + 1, working, offset, !!inks, hasAlpha, image.storedHueSamples !== undefined)) {
                             duplicate = true;
                             break;
                         }
@@ -170,7 +170,7 @@ export async function uniqueColorsStored(image: StoredRgbaImage & HueMetadata & 
                 }
                 if (duplicate) continue;
             } else {
-                const key = colorKey(samples, offset, !dropAlpha);
+                const key = colorKey(samples, offset, hasAlpha);
                 if (await seen.get(key) !== undefined) continue;
                 await seen.set(key, BigInt(start + offset));
             }

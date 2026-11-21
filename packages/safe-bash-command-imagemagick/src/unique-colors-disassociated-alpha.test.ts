@@ -13,7 +13,7 @@ for (const mode of ["command", "retained", "buffered", "sync"] as const) {
         { alpha: "Disassociate", operations: ["-alpha", "activate"], coder: "rgba", hex: "ffffaaaa55556060808040402020ffffffffaaaa55556060" },
         { alpha: "Disassociate", operations: ["-unique-colors"], format: "%w", text: "2" },
         { alpha: "Disassociate", operations: ["-unique-colors", "-unique-colors", "-alpha", "activate"], coder: "rgba", hex: "8080404020200000ffffaaaa55550000" },
-        ...[[], ["-evaluate", "multiply", "1"]].map(working => ({
+        ...[[], ["-evaluate", "multiply", "1"], ["-flip"]].map(working => ({
             colors: ["00000060", "000000ff", "00000060"], alpha: "Disassociate", operations: [...working, "-unique-colors"],
             format: "%wx%h|%[channels]|%k", text: "1x1|srgb  3.0|1",
         })),

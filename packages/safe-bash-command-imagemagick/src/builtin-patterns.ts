@@ -62,6 +62,7 @@ export function builtinPattern(name: string) {
     const key = name.toLowerCase();
     if (!Object.hasOwn(patterns, key)) throw new Error(`unrecognized image format 'pattern:${name}'`);
     const tile = patterns[key]!;
+    const shades = key === "checkerboard" ? [102, 153] : [255, 0];
     return {
         width: tile.width,
         height: tile.rows.length,
@@ -70,7 +71,7 @@ export function builtinPattern(name: string) {
         bitsPerSample: key === "checkerboard" ? 8 : 1,
         gray(x: number, y: number): number {
             const bit = (tile.rows[y % tile.rows.length]! >>> (x % tile.width)) & 1;
-            return key === "checkerboard" ? (bit ? 153 : 102) : (bit ? 0 : 255);
+            return shades[bit]!;
         }
     };
 }

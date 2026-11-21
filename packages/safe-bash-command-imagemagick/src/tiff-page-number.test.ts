@@ -24,7 +24,7 @@ function inspect(bytes: Uint8Array, firstScene: number, pageCount: number): void
             pageNumber = [view.getUint16(valueAt, little), view.getUint16(valueAt + 2, little)];
         }
         expect(pageNumber).toEqual([(firstScene + page) & 65535, pageCount]);
-        const selected = bytes.slice(), header = new DataView(selected.buffer);
+        const selected = new Uint8Array(bytes), header = new DataView(selected.buffer);
         if (big) header.setBigUint64(8, BigInt(offset), little);
         else header.setUint32(4, offset, little);
         expect([...decodeImage(selected).data]).toEqual(page === 0 ? [255, 0, 0, 255] : [0, 0, 255, 255]);

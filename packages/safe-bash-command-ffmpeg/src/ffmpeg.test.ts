@@ -6054,7 +6054,26 @@ describe("native ffmpeg parity", () => {
     });
   }
 
-  for (const position of ["x=unknown:y=0", "x=0:y=2garbage", "x=iw/:y=0", "x=1/0:y=0", "x=unknown(1):y=0"]) {
+  for (const existing of [false, true]) {
+    it(`clamps an infinite crop coordinate when output is ${existing ? "existing" : "absent"}`, async () => {
+      const { decodeImage } = await import("@poe-code/image-ast/portable");
+      const input = Uint8Array.from(Array.from({ length: 16 }, (_, i) => [i, 0, 0, 255]).flat());
+      const vfs = createTestVfs({ "/in.rgba": input, ...(existing ? { "/crop.png": "original" } : {}) });
+      const result = await runCmd(createFfmpegCommand(), [
+        "-y", "-f", "rawvideo", "-pixel_format", "rgba", "-video_size", "4x4", "-i", "/in.rgba",
+        "-vf", "crop=2:2:x=1/0:y=0", "-frames:v", "1", "/crop.png"
+      ], vfs);
+      assert.equal(result.exitCode, 0, result.stderr);
+      const output = decodeImage(vfs.store.get("/crop.png")!);
+      assert.equal(output.width, 2);
+      assert.equal(output.height, 2);
+      // Native FFmpeg clamps +Infinity to the rightmost available 2x2 rectangle.
+      assert.deepEqual(output.data, Uint8Array.from([2, 3, 6, 7].flatMap(value => [value, 0, 0, 255])));
+      assert.deepEqual(vfs.store.get("/in.rgba"), input);
+    });
+  }
+
+  for (const position of ["x=unknown:y=0", "x=0:y=2garbage", "x=iw/:y=0", "x=unknown(1):y=0"]) {
     for (const existing of [false, true]) {
       it(`rejects crop position ${position} and preserves ${existing ? "existing" : "absent"} output`, async () => {
         const vfs = createTestVfs(existing ? { "/crop.png": "original" } : {});

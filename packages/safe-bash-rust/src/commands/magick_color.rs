@@ -160,6 +160,14 @@ pub(super) fn gray(r: u8, g: u8, b: u8) -> u8 {
     ))
 }
 
+pub(super) fn luma(r: u8, g: u8, b: u8, rec601: bool) -> u8 {
+    let [red, green, blue] = if rec601 { [0.298839, 0.586811, 0.11435] }
+        else { [0.212656, 0.715158, 0.072186] };
+    // Match ImageMagick's Q16-HDRI quantum rounding before 8-bit output.
+    let quantum = (red * f64::from(r) * 257. + green * f64::from(g) * 257. + blue * f64::from(b) * 257.) as f32;
+    (f64::from(quantum) / 257.).round().clamp(0., 255.) as u8
+}
+
 pub(super) fn channel_mask(spec: &str) -> [bool; 4] {
     let s = spec.trim().to_ascii_lowercase();
     match s.as_str() {

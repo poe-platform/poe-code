@@ -10496,7 +10496,7 @@ fn cmd_magick(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeB
     let mut quality=92.;
     let mut adjoin=true;
     let (mut delay, mut repeat) = (None, None);
-    enum PixelOp<'a> { Modulate([f64;3]), Tint([u8;4]), Replace([u8;4],Option<[u8;4]>,f64,bool), Linear(f64,f64), Sigmoid(&'a str), Level(&'a str,bool), Histogram(magick_histogram::Adjustment<'a>), Sepia(f64), Solarize(f64), Posterize(f64), Raise(Geometry,bool), Vignette([u8;4]), Shadow(Geometry,[u8;4]), Gamma(f64), Trim(f64), Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Flip, Flop, AutoOrient }
+    enum PixelOp<'a> { Modulate([f64;3]), Tint([u8;4]), Replace([u8;4],Option<[u8;4]>,f64,bool), Linear(f64,f64), Sigmoid(&'a str), Level(&'a str,bool), Histogram(magick_histogram::Adjustment<'a>), Sepia(f64), Solarize(f64), Posterize(f64), Raise(Geometry,bool), Vignette([u8;4]), Shadow(Geometry,[u8;4]), Gamma(f64), Trim(f64), Clear, Morph(String,(usize,usize)), Convolve(Vec<f64>,f64), Blur(f64), Sharpen(f64), Alpha(String,[u8;4]), Roll(Geometry), Chop(Geometry,Gravity), Splice(Geometry,Gravity,[u8;4]), Shave(Geometry), Crop(Geometry,Gravity), Extent(Geometry,Gravity,[u8;4]), Border(Geometry,[u8;4]), Rotate(f64,[u8;4]), Resize(&'a str,Kernel), Negate([bool;4],bool), Threshold(f64), ClipThreshold(f64,bool), Gray, Luma(bool), Flip, Flop, AutoOrient }
     let mut ops = Vec::new();
     let mut stack_steps=Vec::new();
     let mut kernel = Kernel::Lanczos3;
@@ -10642,7 +10642,7 @@ fn cmd_magick(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeB
             "-colorspace" | "-grayscale" if i + 1 < args.len() => {
                 let space = args[i + 1].to_ascii_lowercase();
                 if space.contains("gray") || space.contains("grey") || matches!(space.as_str(), "rec709luma" | "rec601luma") {
-                    ops.push(PixelOp::Gray);
+                    ops.push(PixelOp::Luma(space == "rec601luma"));
                 }
                 i += 2;
             }
@@ -10855,7 +10855,7 @@ fn cmd_magick(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeB
                 PixelOp::Negate(ch,only_gray) => for p in &mut image.pixels { magick_color::negate(p,*ch,*only_gray); },
                 PixelOp::Threshold(value) => image.threshold(*value),
                 PixelOp::ClipThreshold(value,white) => image.clip_threshold(*value,*white),
-                PixelOp::Gray => {channels=1;image.gray=true; for p in &mut image.pixels {let v=magick_color::gray(p[0],p[1],p[2]);p[..3].fill(v);}},
+                PixelOp::Gray | PixelOp::Luma(_) => {channels=1;image.gray=true; for p in &mut image.pixels {let v=if let PixelOp::Luma(rec601)=op {magick_color::luma(p[0],p[1],p[2],*rec601)} else {magick_color::gray(p[0],p[1],p[2])};p[..3].fill(v);}},
                 PixelOp::Flip => image.orient(4),
                 PixelOp::Flop => image.orient(2),
                 PixelOp::AutoOrient => {image.orient(image.orientation.unwrap_or(1));image.orientation=Some(1);},
@@ -10980,7 +10980,7 @@ fn cmd_magick(cmd: &str, args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeB
             meta.w = ew;
             meta.h = eh;
         }
-        if ops.iter().any(|op| matches!(op,PixelOp::Gray)) {
+        if ops.iter().any(|op| matches!(op,PixelOp::Gray | PixelOp::Luma(_))) {
             meta.cs = "Gray".to_string();
         }
         if let Some((Canvas::Solid([r, g, b, _]),_)) = canvas {
@@ -15844,7 +15844,7 @@ mod media_unit_tests {
         for (args,hash) in [
             ("-size 7x5 xc:red o.heic","6e6a825a34efe157a8f38e8e63695ca34c56b5f7d84bef3b428150f573dd004c"),
             ("-size 7x5 xc:red -alpha off o.heic","fa1978e12fb293b65c3b970c666baf38ea11b20f3d7803a47517aa44aa629fdc"),
-            ("-size 7x5 xc:red -grayscale Rec709Luma o.heif","9953e3164cdc5c24016f7cca768c681a75299771dec67a5a08114d636f031125"),
+            ("-size 7x5 xc:red -grayscale Rec709Luma o.heif","14deadf46f68de08ea5ddac1b28e82701be82fbddd5f4ef57be1b683d85d37aa"),
             ("-size 7x5 gradient:none-red o.avif","9300b892d2408067db6c2e040fa8449b0000d4bc6a2bf0b916a9887dab90182c"),
             ("-size 7x5 gradient:none-red -extent 9x5 o.avif","98c7d60fffecd3c7c6251ec702cf35c58c6b7d5f0ca609f0f3117e804acfae6b"),
         ] {
@@ -16114,8 +16114,8 @@ mod media_unit_tests {
             (&["-channel","R","-negate"][..],"795cc9a024e6a08a668d8b15ef1d990814ac3c216f05b74e7215a88c83ad0a45"),
             (&["-channel","Alpha","-negate"][..],"4b78289d6b1e3982e7220ee7be36e4d23d26d99023767451055efed4e3129040"),
             (&["-channel","R","-negate","+channel","-negate"][..],"169eede7a6cebfc4a6660c19047a1b1285354bea16a7d72fb61cde8ae85ebfb7"),
-            (&["-colorspace","gray","+negate"][..],"3970752a1ed3680060c7c23da907715b2c1f50fd61ab0b2d5aae83a333def392"),
-            (&["-channel","B","-negate","-colorspace","gray"][..],"8f696b0e910716fb831e32c29e952b28d36b04588bbe49250016c7edb8b56efb")
+            (&["-colorspace","gray","+negate"][..],"4288c6c82a1efb5941175ec79cdef2b327cf35a21e7609e18ae7076d9bd112c8"),
+            (&["-channel","B","-negate","-colorspace","gray"][..],"5ff36cfad09dd33d982a6f9bd044d0b8cadbc26baaddc887636e1c34488688e5")
         ] {
             let args=[&["a.gif"][..],options,&["o.png"]].concat();
             let r=cmd_media_doc("convert",&media_args(&args),"","/",&fs);
@@ -16446,10 +16446,10 @@ mod media_unit_tests {
     fn grayscale_png_preserves_alpha_and_operator_order() {
         let fs = MemoryVfs::new();
         for (operators, hash) in [
-            ("-colorspace gray", "ade7f1024157bb0d84bc2e5d7902327897f1d83d628dced156782ff208e68f45"),
-            ("-colorspace grey", "ade7f1024157bb0d84bc2e5d7902327897f1d83d628dced156782ff208e68f45"),
-            ("-negate -colorspace gray", "4927c66dbc586ff2a0a3b40ad74eeb167cfa56941336a8aa2ee0e95bfb818c68"),
-            ("-colorspace gray -negate", "958d93800f6bf3aef244645798eef9b3b06777b7908ba583d3a156869742e8f3"),
+            ("-colorspace gray", "63dd0bde5c2e284cbf1c1e13e05f8f99c5f69de6252c72336be404cdcebf85e9"),
+            ("-colorspace grey", "63dd0bde5c2e284cbf1c1e13e05f8f99c5f69de6252c72336be404cdcebf85e9"),
+            ("-channel RGB -negate -colorspace gray", "be3ce64d1691ee23aaaf139e393554ecfc48b994d111f1b7d70e58ac3268d8b1"),
+            ("-colorspace gray -channel RGB -negate", "be3ce64d1691ee23aaaf139e393554ecfc48b994d111f1b7d70e58ac3268d8b1"),
         ] {
             let mut args = vec!["-size", "12x8", "xc:#27881e66"];
             args.extend(operators.split_whitespace());

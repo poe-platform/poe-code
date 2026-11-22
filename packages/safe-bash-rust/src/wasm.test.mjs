@@ -8967,7 +8967,7 @@ test("magick writes pixel and alpha streams into a standard PDF from files and c
   const fs = new MemoryFileSystem(), wasm = new RustWasmBash({ cwd: "/" });
   const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(imagemagickCommands({ replace: true }));
   try {
-    for (const runtime of [shell, wasm]) assert.equal((await runtime.exec("magick -size 64x48 gradient:red-blue f.png")).exitCode, 0);
+    for (const runtime of [shell, wasm]) assert.equal((await runtime.exec("magick -size 64x48 gradient:red-blue -depth 8 f.png")).exitCode, 0);
     for (const operands of ["f.png", "-size 3x2 xc:none", "f.png -resize 11x7! -colorspace Gray", "-size 9x3 xc:'#aabbcc77'"]) {
       const script = "magick " + operands + " f.pdf";
       const want = await shell.exec(script), got = await wasm.exec(script);

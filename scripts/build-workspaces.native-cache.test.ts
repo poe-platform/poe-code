@@ -158,8 +158,10 @@ describe("native Vitest workspace result cache", () => {
     for (const stage of plan.buildStages) {
       const prevHits = buildCache.stats.cacheHits;
       const prevMisses = buildCache.stats.cacheMisses;
-      buildCache.restore(stage);
-      expect(buildCache.stats.cacheHits + buildCache.stats.cacheMisses, "Uncached build stage: " + stage.name).toBe(prevHits + prevMisses + 1);
+      const settings = { ...plan.configuration.tasks.build, ...plan.configuration.tasks[stage.name + "#build"] };
+      const restored = buildCache.restore(stage);
+      if (settings.cache === false) expect(restored, "Fresh build stage: " + stage.name).toBe(false);
+      expect(buildCache.stats.cacheHits + buildCache.stats.cacheMisses, "Build cache policy: " + stage.name).toBe(prevHits + prevMisses + (settings.cache === false ? 0 : 1));
     }
 
     const unitCache = prepareNativeUnitCache(plan, stages, { cacheStore: fakeStore, cacheFiles: ["package.json"], environment: {}, fileSystem: realFs });

@@ -886,6 +886,9 @@
         "$TURBO_ROOT$/packages/poe-agent-rust/assets/**"
       ]
     },
+    "@poe-platform/tesseract#test:unit": {
+      "cache": false
+    },
     "@poe-platform/tesseract#build": {
       "cache": false,
       "dependsOn": [

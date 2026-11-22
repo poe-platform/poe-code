@@ -48,12 +48,12 @@ const sdk = new Set([
   ...exportedNames(resolve(root, "packages/safe-bash/src/core.ts")),
   ...exportedNames(resolve(root, "packages/safe-bash/src/optional.ts")),
 ]);
-describe("portable command API", () => {
+describe("public command API", () => {
   for (const { name: workspace, manifest } of commands) {
     const name = workspace.slice("safe-bash-command-".length);
     const title = name.split("-").map(word => word[0]!.toUpperCase() + word.slice(1)).join("");
     const pluginName = title[0]!.toLowerCase() + title.slice(1);
-    it(`${name} exposes its portable public command contract`, () => {
+    it(`${name} exposes its public command contract on supported platforms`, () => {
       // These existing integrations intentionally retain their established APIs.
       // Extraction must not invent factories or reopen a retired command route.
       if (name === "safejs") {
@@ -67,15 +67,19 @@ describe("portable command API", () => {
       const adapter = ({ xmllint: "xml", "playwright-cli": "playwright" } as Record<string, string>)[name] ?? name;
       const source = resolve(root, `packages/safe-bash/src/commands/${adapter}/index.ts`);
       const exported = new Set(sdk);
+      const companion = manifest.poeCode?.safeLibraryExports?.["safe-bash"]?.[`./commands/${adapter}`];
       if (existsSync(source)) {
-        expect(metadata.exports).toHaveProperty(`./commands/${adapter}`);
+        if (companion === undefined) expect(metadata.exports).toHaveProperty(`./commands/${adapter}`);
+        else expect(metadata.exports).not.toHaveProperty(`./commands/${adapter}`);
         for (const symbol of exportedNames(source)) exported.add(symbol);
       }
-      const companion = manifest.poeCode?.safeLibraryExports?.["safe-bash"]?.[`./commands/${adapter}`];
       if (companion !== undefined) {
         const entry = manifest.exports[companion];
-        expect(entry).toMatchObject({ browser: expect.any(String), workerd: expect.any(String) });
-        for (const target of [entry.browser, entry.workerd]) {
+        const nodeOnly = name === "tesseract" || name === "ocrmypdf";
+        expect(entry).toMatchObject(nodeOnly
+          ? { types: "./dist/index.d.ts", import: "./dist/index.js", browser: null, workerd: null }
+          : { browser: expect.any(String), workerd: expect.any(String) });
+        for (const target of nodeOnly ? [entry.import] : [entry.browser, entry.workerd]) {
           const source = resolve(root, `packages/${workspace}`, target.replace("./dist/", "./src/").replace(".js", ".ts"));
           for (const symbol of exportedNames(source)) exported.add(symbol);
         }

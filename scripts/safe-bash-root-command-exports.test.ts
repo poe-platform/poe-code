@@ -46,7 +46,7 @@ const core = exportedNames(resolve(root, "packages/safe-bash/src/core.ts"));
 const index = exportedNames(resolve(root, "packages/safe-bash/src/index.ts"));
 const playwright = exportedNames(resolve(root, "packages/safe-bash/src/commands/playwright/index.ts"));
 describe("root command API", () => {
-  for (const { name: workspace } of commands) {
+  for (const { name: workspace, manifest } of commands) {
     const name = workspace.slice("safe-bash-command-".length);
     const title = name.split("-").map(word => word[0]!.toUpperCase() + word.slice(1)).join("");
     const pluginName = title[0]!.toLowerCase() + title.slice(1);
@@ -62,6 +62,17 @@ describe("root command API", () => {
         : name === "python"
           ? ["pythonCommands", "createPythonCommands", "PythonCommandsOptions", "pythonExecutorCommands", "createPythonExecutorCommands"]
           : [`${pluginName}Commands`, `create${title}Commands`, `create${title}Command`, `${title}CommandsOptions`];
+      if (name === "tesseract" || name === "ocrmypdf") {
+        expect(manifest.poeCode.safeLibraryExports["safe-bash"]).toEqual({ [`./commands/${name}`]: "." });
+        expect(manifest.exports["."]).toEqual({ types: "./dist/index.d.ts", browser: null, workerd: null, import: "./dist/index.js" });
+        const companion = exportedNames(resolve(root, `packages/${workspace}/src/index.ts`));
+        for (const symbol of symbols) {
+          expect(companion.has(symbol), `commands/${name}: ${symbol}`).toBe(true);
+          expect(core.has(symbol), `core must not load optional OCR: ${symbol}`).toBe(false);
+          expect(index.has(symbol), `root must not load optional OCR: ${symbol}`).toBe(false);
+        }
+        return;
+      }
       const surfaces: Record<string, Set<string>> = name === "ast-grep"
         ? {
             "ast-grep": exportedNames(resolve(root, "packages/safe-bash/src/ast-grep.ts")),
@@ -75,11 +86,14 @@ describe("root command API", () => {
   }
 });
 
-it("registers every command and engine as a qualified portable workspace", () => {
+it("registers every command and engine with its qualified platform profile", () => {
   for (const { name, manifest } of createWorkspaceBuildPlan(root).workspaces) {
     if (!name.startsWith("safe-bash-command-") && !(name.startsWith("safe-bash-") && name.endsWith("-engine"))) continue;
-    expect(metadata.poeCode.integration.privateWorkspaces[name], name).toMatchObject({
-      portable: true,
+    const profile = metadata.poeCode.integration.privateWorkspaces[name];
+    if (name === "safe-bash-command-tesseract" || name === "safe-bash-command-ocrmypdf") {
+      expect(profile, name).not.toHaveProperty("portable");
+    } else expect(profile, name).toHaveProperty("portable", true);
+    expect(profile, name).toMatchObject({
       version: manifest.version,
       dependencies: manifest.dependencies ?? {},
       devDependencies: manifest.devDependencies ?? {},

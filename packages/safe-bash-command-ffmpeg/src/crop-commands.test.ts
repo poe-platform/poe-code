@@ -34,15 +34,15 @@ for (const [filter, expected] of [
   ["sendcmd=c='0.25 crop h 4',crop=w=oh:h=2:x=0:y=0", original + input.subarray(64).toString("hex")],
   ["sendcmd=c='bad crop x 2',crop=2:2:0:0", null]
 ] as const) {
-  for (const graph of [false, true]) {
-    it(`timed crop (${graph ? "graph" : "simple"}): ${filter}`, async () => {
+  for (const [graph, autoscale] of [[false, true], [true, true], [false, false], [true, false]]) {
+    it(`timed crop (${graph ? "graph" : "simple"}, ${autoscale ? "autoscale" : "noautoscale"}): ${filter}`, async () => {
       const volume = Volume.fromJSON({ "/in.raw": input, "/out.raw": "KEEP" });
       let stderr = "";
       const result = await createFfmpegCommand().execute({
         args: ["-v", "error", "-y", "-f", "rawvideo", "-pixel_format", "rgba",
           "-video_size", "4x4", "-framerate", "4", "-i", "/in.raw", ...(graph
             ? ["-filter_complex", `[0:v]${filter}[out]`, "-map", "[out]"] : ["-vf", filter]),
-          "-noautoscale", "-fps_mode", "passthrough", "-pix_fmt", "rgba", "-f", "rawvideo", "/out.raw"],
+          ...(autoscale ? [] : ["-noautoscale"]), "-fps_mode", "passthrough", "-pix_fmt", "rgba", "-f", "rawvideo", "/out.raw"],
         cwd: "/", env: {}, signal: new AbortController().signal,
         fs: {
           async readFile(path: string) { return volume.readFileSync(path); },

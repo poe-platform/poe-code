@@ -13341,6 +13341,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             const imagePipe = outputFormat === "image2pipe";
             const imageOutput = imagePipe || (outputFormat ? (registry.findById(outputFormat) ?? registry.findByFormatName(outputFormat)) : registry.findByFilename(outputTarget))?.id === "image2";
             let workingDoc: MediaDocument;
+            const videoAutoscale = new Map<number, boolean>();
             let videoEndTimeSeconds: number | undefined;
             let audioOrdinal = 0;
             let audioSinks: { track: MediaTrack; expression: string }[] = [];
@@ -14460,6 +14461,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                   }
                   const offsetTicks = Math.round(presentationOffset * t.timescale);
                   const decoded = await ensureDecodedFrames(t, workingDoc.timescale, budget, context.signal);
+                  // Native autoscale is inserted when changed input dimensions rebuild the graph.
+                  // Runtime filter commands can change output dimensions without that rebuild.
+                  videoAutoscale.set(t.id, decoded.some(frame =>
+                    frame.width !== decoded[0]!.width || frame.height !== decoded[0]!.height));
                   const diagnostics = {
                     frameDuration: decoded[0]?.durationSeconds ?? 1 / t.timescale,
                     endTimeSeconds: videoEndTimeSeconds === undefined ? undefined : videoEndTimeSeconds - offsetTicks / t.timescale,
@@ -21929,7 +21934,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 if (features.videoTranscode === false) throw new Error("Video transcoding is disabled by consumer feature configuration");
                 track = { ...track, decodedVideoFrames: await ensureDecodedFrames(track, workingDoc.timescale, budget, context.signal, maxVideoFrames) };
               }
-              const bytes = await serializeRawVideo(track, videoCodec, rawPixelFormat, budget, context.signal, autoscale);
+              const bytes = await serializeRawVideo(track, videoCodec, rawPixelFormat, budget, context.signal,
+                autoscale && (videoAutoscale.get(track.id) ?? true));
               if (firstOutput) progressSize = bytes.byteLength;
               context.signal?.throwIfAborted();
               await writeMediaOutput(context, outputTarget, bytes, budget);

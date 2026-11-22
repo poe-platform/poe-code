@@ -8,6 +8,10 @@ for (const source of ["file", "stdin"]) {
   for (const [name, options, expected] of [
     ["original dimensions", ["-noautoscale"], "1122334455"],
     ["default scaling", [], "11223355"],
+    ["default scaling after a filter", ["-vf", "null"], "11223355"],
+    ["original dimensions after a filter", ["-noautoscale", "-vf", "null"], "1122334455"],
+    ["default scaling after a graph", ["-filter_complex", "[0:v]null[out]", "-map", "[out]"], "11223355"],
+    ["original dimensions after a graph", ["-noautoscale", "-filter_complex", "[0:v]null[out]", "-map", "[out]"], "1122334455"],
     ["explicit scaling", ["-noautoscale", "-vf", "scale=2:1"], "11223355"],
     ["scaling reset for the next output", ["-noautoscale", "-pix_fmt", "gray", "-f", "rawvideo", "pipe:1"], "112233445511223355"],
     ["first frame only", ["-noautoscale", "-frames:v", "1"], "1122"],

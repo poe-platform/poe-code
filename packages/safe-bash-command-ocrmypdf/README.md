@@ -1,7 +1,8 @@
 # Searchable PDFs for Safe Bash
 
 Add searchable text to scanned PDF pages in the virtual filesystem.
-Install `@poe-platform/tesseract` and register the optional plugin:
+Build and link the private `@poe-platform/tesseract` workspace, then register the
+optional plugin. The OCR binding is not published separately to npm:
 
 ```js
 import { ocrmypdfCommands } from '@poe-platform/safe-bash/commands/ocrmypdf';

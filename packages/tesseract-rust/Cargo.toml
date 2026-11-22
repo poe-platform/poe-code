@@ -5,6 +5,7 @@ edition = "2024"
 rust-version = "1.91"
 license = "Apache-2.0"
 description = "Optional Tesseract OCR with English data and injectable language models"
+publish = false
 
 [lib]
 path = "src/lib.rs"

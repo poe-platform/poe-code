@@ -3,14 +3,16 @@
 Read images and make scanned PDFs searchable using the original Tesseract engine,
 implemented in Rust with asynchronous Node.js bindings. English is included;
 additional languages are supplied as model bytes. No Python, subprocesses, model
-downloads, or system Tesseract installation are needed at runtime.
+downloads, or system Tesseract installation are needed at runtime. This is a
+private workspace package, not a separately published npm package. Build the
+local binding before using the workspace-linked JavaScript API or CLIs:
 
 ```sh
-npm install @poe-platform/tesseract
-tesseract scan.png stdout
-tesseract scan.png layout tsv
-tesseract scan.png layout hocr
-ocrmypdf scan.pdf searchable.pdf --sidecar text.txt
+npm run build:workspaces -- --workspace=@poe-platform/tesseract
+node packages/tesseract-rust/dist/tesseract-cli.js scan.png stdout
+node packages/tesseract-rust/dist/tesseract-cli.js scan.png layout tsv
+node packages/tesseract-rust/dist/tesseract-cli.js scan.png layout hocr
+node packages/tesseract-rust/dist/ocrmypdf-cli.js scan.pdf searchable.pdf --sidecar text.txt
 ```
 
 | Command | Output |
@@ -99,12 +101,12 @@ const result = await run(`
 For virtual files, register `tesseractCommands()` from
 `@poe-platform/safe-bash/commands/tesseract` and `ocrmypdfCommands()` from
 `@poe-platform/safe-bash/commands/ocrmypdf`. Both accept `models` and `limits`.
-The commands only read and write the configured virtual filesystem.
+The commands only read and write the configured virtual filesystem. They require
+the built private `@poe-platform/tesseract` workspace to be linked locally.
 
 OCR is an optional peer of Safe Bash and is absent from default commands.
 Importing SafeJS or Safe Bash does not install the models or native engine.
 Unused OCR imports can be tree-shaken; native loading happens on the first OCR
-or parser call. The OCR package itself installs one platform binary with English.
-Prebuilt binaries support Node.js 22+, macOS ARM64/x64 and glibc Linux ARM64/x64
-(glibc 2.39+ on ARM64, 2.35+ on x64). Browser, Workers, Windows and musl are not
-supported by these native bindings.
+or parser call, using the local binary with English embedded. Native builds have
+been verified on Node.js 22+, macOS ARM64/x64 and glibc Linux ARM64/x64. Browser,
+Workers, Windows and musl are not supported by these native bindings.

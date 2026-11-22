@@ -1,22 +1,7 @@
 import { createRequire } from 'node:module';
-import { existsSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
 
 const require = createRequire(import.meta.url);
 let native;
-
-function loadNative() {
-  const local = new URL('./poe-tesseract.node', import.meta.url);
-  if (existsSync(local)) return require(fileURLToPath(local));
-  const platform = `${process.platform}-${process.arch}`;
-  if (!['darwin-arm64', 'darwin-x64', 'linux-arm64', 'linux-x64'].includes(platform)) {
-    throw new Error(`Tesseract has no prebuilt binary for ${platform}`);
-  }
-  if (process.platform === 'linux' && !process.report.getReport().header.glibcVersionRuntime) {
-    throw new Error('Tesseract Linux binaries require glibc');
-  }
-  return require(`@poe-platform/tesseract-${platform}`);
-}
 
 function validateNumbers(options) {
   for (const [name, value] of Object.entries({ psm: options.psm, dpi: options.dpi, maxPages: options.maxPages, ...options.limits })) {
@@ -27,19 +12,19 @@ function validateNumbers(options) {
 }
 
 export function parseTesseract(args) {
-  native ??= loadNative();
+  native ??= require('./poe-tesseract.node');
   return native.parseTesseract(args);
 }
 
 export function parseOcrmypdf(args) {
-  native ??= loadNative();
+  native ??= require('./poe-tesseract.node');
   return native.parseOcrmypdf(args);
 }
 
 export async function recognize(image, { signal, ...options } = {}) {
   signal?.throwIfAborted();
   validateNumbers(options);
-  native ??= loadNative();
+  native ??= require('./poe-tesseract.node');
   const cancellation = new native.Cancellation();
   const cancel = () => cancellation.cancel();
   signal?.addEventListener('abort', cancel, { once: true });
@@ -58,7 +43,7 @@ export async function recognize(image, { signal, ...options } = {}) {
 export async function recognizePdf(pdf, { signal, skipText = false, maxPages = 100, ...options } = {}) {
   signal?.throwIfAborted();
   validateNumbers({ ...options, maxPages });
-  native ??= loadNative();
+  native ??= require('./poe-tesseract.node');
   const cancellation = new native.Cancellation();
   const cancel = () => cancellation.cancel();
   signal?.addEventListener('abort', cancel, { once: true });

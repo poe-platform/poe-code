@@ -1,7 +1,8 @@
 # Tesseract for Safe Bash
 
 Recognize image text and block, line and word positions from virtual files.
-Install `@poe-platform/tesseract` and register the optional plugin:
+Build and link the private `@poe-platform/tesseract` workspace, then register the
+optional plugin. The OCR binding is not published separately to npm:
 
 ```js
 import { tesseractCommands } from '@poe-platform/safe-bash/commands/tesseract';

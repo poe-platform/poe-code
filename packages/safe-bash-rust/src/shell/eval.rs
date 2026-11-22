@@ -8502,6 +8502,9 @@ impl<'a> EvalState<'a> {
             if disabled.contains(&'n') {
                 self.env.remove(&format!("\0nameref__{base_name}"));
             }
+            if base_name == "OPTIND" && disabled.contains(&'i') {
+                self.env.insert("\0getopts_int".into(), "0".into());
+            }
 
             if is_nameref {
                 if let Some(target) = val_opt {

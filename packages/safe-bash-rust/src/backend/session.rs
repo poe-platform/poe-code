@@ -10,6 +10,7 @@ use std::collections::{BTreeMap, BTreeSet};
 
 const SET: &[&str] = &[
     "braceexpand",
+    "hashall",
     "noglob",
     "noclobber",
     "allexport",
@@ -19,6 +20,9 @@ const SET: &[&str] = &[
     "nounset",
 ];
 const SHOPT: &[&str] = &[
+    "cdable_vars",
+    "checkhash",
+    "shift_verbose",
     "dotglob",
     "globstar",
     "nullglob",
@@ -35,6 +39,7 @@ const SHOPT: &[&str] = &[
 fn string(s: &str) -> Value {
     Value::String(jstr(&host_text(s)))
 }
+
 fn strings<'a>(items: impl IntoIterator<Item = &'a String>) -> Value {
     Value::Array(items.into_iter().map(|s| string(s)).collect())
 }
@@ -120,6 +125,16 @@ impl HybridBackend {
                 variables.insert(k.as_str(), string(v));
             }
         }
+        if env.contains_key("OPTIND") && env.get("\0getopts_int").is_none_or(|v| v != "0") {
+            let name = jstr("OPTIND");
+            if let Some((_, value)) = attrs.iter_mut().find(|(key, _)| *key == name) {
+                let mut flags = text(value).unwrap_or_default();
+                if !flags.contains('i') { flags.push('i'); }
+                *value = string(&flags);
+            } else {
+                attrs.push((name, string("i")));
+            }
+        }
         // DIRSTACK is a computed view of cwd and directoryStack.
         arrays.remove("DIRSTACK");
         variables.remove("DIRSTACK");
@@ -174,7 +189,7 @@ impl HybridBackend {
                 names.iter().map(move |&name| {
                     let flag = env
                         .get(&format!("\0{prefix}_{name}"))
-                        .map_or(name == "braceexpand", |v| v == "1");
+                        .map_or(matches!(name, "braceexpand" | "hashall"), |v| v == "1");
                     (name, Value::Bool(flag))
                 })
             },
@@ -297,6 +312,10 @@ impl HybridBackend {
                 .or_default()
                 .extend(flags.chars().filter(|c| "ilnu".contains(*c)));
         }
+        if let Some(attrs) = v.get("variableAttributes") {
+            let integer = attrs.get("OPTIND").and_then(text).is_some_and(|s| s.contains('i'));
+            env.insert("\0getopts_int".into(), if integer { "1" } else { "0" }.into());
+        }
         for k in exported.iter().filter(|k| public_name(k)) {
             env.remove(&format!("\0unexported__{k}"));
             env.entry(format!("\0attr__{k}")).or_default().push('x');
@@ -355,5 +374,58 @@ impl HybridBackend {
             exported_functions: list(v.get("exportedFunctions")).into_iter().collect(),
         };
         Ok(host_text(&cwd).into_owned())
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::{MemoryVfs, SafeBashFs, Shell, ShellOptions};
+    use std::sync::Arc;
+
+    #[test]
+    fn cold_session_snapshot_uses_the_hashall_default() {
+        let (mut original, _) = Shell::with_memory_fs();
+        original.exec(":").unwrap();
+        let state = original.session_snapshot(0);
+        let snapshot = super::parse(state.as_bytes(), super::Limits::default()).unwrap();
+        assert_eq!(snapshot.get("options").unwrap().get("hashall"), Some(&super::Value::Bool(true)));
+    }
+
+    #[test]
+    fn cold_session_restore_preserves_supported_shell_options() {
+        let fs = Arc::new(MemoryVfs::new());
+        fs.mkdir_all("/work").unwrap();
+        let mut original = Shell::new(fs.clone(), ShellOptions::default());
+        let setup = original.exec("shopt -s cdable_vars checkhash shift_verbose; set +h; dest=/work").unwrap();
+        assert_eq!(setup.exit_code, 0, "{}", setup.stderr);
+        let snapshot = original.session_snapshot(setup.exit_code);
+        let mut restored = Shell::new(fs, ShellOptions::default());
+        restored.restore_session(snapshot.as_bytes()).unwrap();
+        let result = restored.exec("cd dest; pwd; shopt -q checkhash shift_verbose; echo $?; shopt -qo hashall; echo $?").unwrap();
+        assert_eq!(result.stdout, "/work\n/work\n0\n1\n", "{result:?}");
+        assert_eq!(result.stderr, "");
+    }
+
+    #[test]
+    fn cold_session_preserves_optind_integer_mode() {
+        for (setup, flags, expected) in [
+            (":", Some("i"), "3\n"),
+            ("declare +i OPTIND", None, "1+2\n"),
+            ("unset OPTIND; OPTIND=1", None, "1+2\n"),
+            ("unset OPTIND; declare -i OPTIND=1", Some("i"), "3\n"),
+        ] {
+            let (mut original, fs) = Shell::with_memory_fs();
+            original.exec(setup).unwrap();
+            let state = original.session_snapshot(0);
+            let snapshot = super::parse(state.as_bytes(), super::Limits::default()).unwrap();
+            assert_eq!(snapshot.get("variableAttributes").unwrap().get("OPTIND").and_then(super::text).as_deref(), flags, "{setup}");
+            let mut restored = Shell::new(Arc::new(fs), ShellOptions::default());
+            restored.restore_session(state.as_bytes()).unwrap();
+            for sh in [&mut original, &mut restored] {
+                let result = sh.exec("OPTIND=1+2; echo \"$OPTIND\"").unwrap();
+                assert_eq!(result.stdout, expected, "{setup}: {result:?}");
+                assert_eq!(result.stderr, "");
+            }
+        }
     }
 }

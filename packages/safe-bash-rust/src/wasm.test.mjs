@@ -4717,20 +4717,20 @@ test("JSON session checkpoints restore bindings without repeating filesystem wri
       assert.equal(result.exitCode, 0, result.stderr);
     }
     assert.deepEqual(checkpoint.arrays.sparse.elements, {4: "four"});
-    assert.deepEqual(checkpoint.readonlyVariables, ["fixed"]);
+    assert.deepEqual(checkpoint.readonlyVariables, ["BASHOPTS", "SHELLOPTS", "fixed"]);
     assert.equal(checkpoint.umask, 0o27);
     assert.ok(!("rawHistory" in checkpoint));
   } finally { bash.dispose(); }
 });
 
-test("JavaScript and Rust can exchange cold session snapshots", async () => {
+test("JavaScript and Rust can exchange supported cold session state", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const js = new Shell({ fs: new MemoryFileSystem(), cwd: "/" });
   js.use(agentCommands());
   const rust = new RustWasmBash({ cwd: "/" });
   try {
     const setup = "export E=value; set -- 'two words'; readonly fixed=1; declare -i number=3; declare -A m=([foo]='bar baz'); declare -a sparse=([5]=a); f() { echo ok; } > /output; readonly -f f; export -f f; shopt -s nullglob; umask 027; false";
-    const source = 'echo "$?:$E:$1:${m[foo]}:${sparse[5]}:$fixed"; number=2+3; echo "$number"; f; read -r line < /output; echo "$line"; umask';
+    const source = 'echo "$?:$E:$1:${m[foo]}:${sparse[5]}:$fixed"; number=2+3; echo "$number"; f; read -r line < /output; echo "$line"; umask; set -- /no-matching-files-*; echo "nullglob:$#"; OPTIND=1+2; echo "optind:$OPTIND"';
     const snapshots = [];
     for (const [from, to] of [[js, rust], [rust, js]]) {
       const session = from.createSession();
@@ -4740,12 +4740,28 @@ test("JavaScript and Rust can exchange cold session snapshots", async () => {
       const restored = to.createSession(snapshot);
       const result = await restored.exec(source);
       assert.equal(result.exitCode, 0, result.stderr);
-      assert.equal(result.stdout, "1:value:two words:bar baz:a:1\n5\nok\n0027\n");
+      assert.equal(result.stdout, "1:value:two words:bar baz:a:1\n5\nok\n0027\nnullglob:0\noptind:3\n");
     }
     for (const key of ["exported", "readonlyVariables", "exportedFunctions", "readonlyFunctions"]) {
       for (const s of snapshots) s[key].sort();
     }
-    assert.deepEqual(snapshots[1], snapshots[0]);
+    // Engine-derived variables and JS-only options describe different native capabilities.
+    // Compare every remaining field, including all user state and supported options.
+    const [jsState,rustState]=snapshots;
+    for(const [option,value] of Object.entries({globskipdots:true,sourcepath:true,patsub_replacement:true,varredir_close:false})) {
+      assert.equal(jsState.options[option],value);
+      assert.equal(Object.hasOwn(rustState.options,option),false);
+      const unsupported=await rust.exec("shopt -s "+option);
+      assert.equal(unsupported.exitCode,1);
+      assert.match(unsupported.stderr,/unsupported shell option name/);
+      delete jsState.options[option];
+    }
+    for(const [name,value] of Object.entries({BASH_ARGV0:"virtual-bash",SHELLOPTS:"braceexpand:hashall",BASHOPTS:"globskipdots:nullglob:patsub_replacement:sourcepath"})) {
+      assert.equal(jsState.variables[name],value);
+      assert.equal(Object.hasOwn(rustState.variables,name),false);
+      delete jsState.variables[name];
+    }
+    assert.deepEqual(rustState,jsState);
   } finally { await js.dispose(); rust.dispose(); }
 });
 

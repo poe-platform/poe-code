@@ -8898,13 +8898,13 @@ test("exiftool binary and text rendering preserve selected PDF tag order and val
   } finally { wasm.dispose(); }
 });
 
-test("exiftool prints decimal file sizes with three significant digits", async () => {
+test("exiftool preserves native file-size units and rounding", async () => {
   const { Shell, MemoryFileSystem, agentCommands } = await import("@poe-platform/safe-bash");
   const { exiftoolCommands } = await import("@poe-platform/safe-bash/commands/exiftool");
   const fs = new MemoryFileSystem(), wasm = new RustWasmBash({ cwd: "/" });
   const shell = new Shell({ fs, cwd: "/" }).use(agentCommands()).use(exiftoolCommands({ replace: true }));
   try {
-    for (const size of [999, 1000, 1125, 1245, 10250, 100500, 999999, 1000000]) {
+    for (const size of [999, 1000, 1125, 1245, 1999, 2000, 4023, 9999, 10000, 10250, 100500, 999999, 1000000, 1999999, 2000000]) {
       for (const backend of [fs, wasm.fs]) await backend.writeFile("/f", new Uint8Array(size));
       const script = "exiftool -s3 -FileSize f";
       const expected = await shell.exec(script), actual = await wasm.exec(script);

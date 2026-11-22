@@ -12472,17 +12472,17 @@ fn cmd_exiftool(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) ->
         }
         let size = data.len();
         insert("FileSize", if bin_mode || numeric_size { size.to_string() }
-            else if size < 1000 { format!("{size} bytes") }
+            else if size < 2000 { format!("{size} bytes") }
             else {
-                let exp = (size.ilog10() as usize / 3).min(5);
-                let scaled = size as f64 / 1000f64.powi(exp as i32);
-                let places = 2usize.saturating_sub(scaled.log10().floor() as usize);
-                // toPrecision rounds exact decimal ties upward; Rust formatting uses ties-to-even.
+                let (divisor, unit) = if size < 2_000_000 { (1000., "kB") }
+                    else if size < 2_000_000_000 { (1_000_000., "MB") }
+                    else { (1_000_000_000., "GB") };
+                let scaled = size as f64 / divisor;
+                let places = usize::from(scaled < 10.);
+                // JavaScript toFixed rounds exact decimal ties upward, not to even.
                 let halfway = (scaled * (1 << places) as f64).fract() == 0.5;
                 let display = if halfway { scaled.next_up() } else { scaled };
-                let rounded = format!("{display:.places$}");
-                let number = if places == 0 { &rounded } else { rounded.trim_end_matches('0').trim_end_matches('.') };
-                format!("{number} {}", ["kB", "MB", "GB", "TB", "PB"][exp - 1])
+                format!("{display:.places$} {unit}")
             });
         if full.to_ascii_lowercase().ends_with(".pdf") || data.starts_with(b"%PDF-") {
             let pdf = PdfDoc::parse(data);

@@ -21,8 +21,8 @@ it("writes requested Vorbis stream comments when encoding WAV", async () => {
   assert.equal(result.exitCode, 0, stderr);
   const output = parseAudio(await fs.readFile("/out.ogg"));
   assert.equal(output.streams[0]!.codec, "vorbis");
-  assert.equal(output.streams[0]!.tags?.TITLE, "Review");
-  assert.equal(output.streams[0]!.tags?.ARTIST, "Renée");
+  assert.equal(output.streams[0]!.tags?.title, "Review");
+  assert.equal(output.streams[0]!.tags?.artist, "Renée");
   assert.equal(output.duration, 0.1);
 });
 

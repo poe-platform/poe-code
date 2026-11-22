@@ -3,6 +3,28 @@ import { build } from "esbuild";
 import { resolvePrivateCommandBuild } from "./bundle-safe-bash.mjs";
 import { resolveBrowserShellBuild } from "./bundle-safe-bash.mjs";
 
+it("tree-shakes unused OCR imports without a native or model payload", async () => {
+  const result = await build({
+    stdin: { contents: 'import { recognize } from "@poe-platform/tesseract"; export const answer = 42;', resolveDir: process.cwd() },
+    bundle: true, platform: "node", format: "esm", write: false, metafile: true,
+  });
+  expect(result.outputFiles[0]!.text).not.toContain("tesseract");
+  expect(result.outputFiles[0]!.text).not.toContain("traineddata");
+  expect(result.outputFiles[0]!.text.length).toBeLessThan(100);
+});
+
+it("leaves optional native peers external even when a workspace alias exists", async () => {
+  const name = "safe-bash-command-ocr";
+  const profile = { version: "0.0.1", dependencies: {}, devDependencies: {},
+    peerDependencies: { "native-ocr": "^1.0.0" }, peerDependenciesMeta: { "native-ocr": { optional: true } } };
+  const recipe = resolvePrivateCommandBuild("/repo", { [name]: profile }, [{ dir: name, pkg: {
+    name, ...profile, private: true, type: "module",
+    exports: { ".": { types: "./dist/index.d.ts", browser: null, workerd: null, import: "./dist/index.js" } },
+  } }], { alias: { "native-ocr": "/repo/native/index.js" }, external: [] });
+  expect(recipe!.alias).not.toHaveProperty("native-ocr");
+  expect(recipe!.external).toContain("native-ocr");
+});
+
 it.each(["shell-entry.ts", "core.browser.ts"])("provides a shell and composable registry without optional command engines through %s", async entry => {
   const root = process.cwd();
   const options = resolveBrowserShellBuild(root);
@@ -12,7 +34,7 @@ it.each(["shell-entry.ts", "core.browser.ts"])("provides a shell and composable 
   });
   const inputs = Object.values(result.metafile!.outputs).flatMap(output => Object.entries(output.inputs)
     .filter(([, input]) => input.bytesInOutput > 0).map(([filename]) => filename));
-  const forbidden = ["pdf-ast", "spreadsheet", "ssconvert", "ffmpeg", "git-rust", "wasm.generated", "/commands/python/", "/commands/llm/"];
+  const forbidden = ["tesseract", "ocrmypdf", "pdf-ast", "spreadsheet", "ssconvert", "ffmpeg", "git-rust", "wasm.generated", "/commands/python/", "/commands/llm/"];
   expect(inputs.filter(input => forbidden.some(name => input.includes(name)))).toEqual([]);
   expect(result.outputFiles[0]!.text).toContain("class");
 });

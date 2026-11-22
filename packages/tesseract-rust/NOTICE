@@ -1,0 +1,13 @@
+This package includes the original Tesseract 5.5.2 OCR engine (Apache-2.0)
+and Leptonica 1.87.0 (BSD-2-Clause), built by kreuzberg-tesseract 4.10.4.
+Tesseract is Copyright Google Inc. and other contributors.
+Leptonica is Copyright Dan Bloomberg and other contributors.
+
+English model: tesseract-ocr/tessdata_fast, commit
+87416418657359cb625c412a48b6e1d6d41c29bd, Apache-2.0.
+The model is embedded without modification.
+
+Searchable PDFs embed DejaVu Sans. See licenses/LICENSE.DejaVu.
+Native archives include THIRD_PARTY_NOTICES.txt with Rust dependency licenses.
+The ocrmypdf command is a focused Rust implementation. It does not include
+or require the Python OCRmyPDF application.

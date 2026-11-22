@@ -5,7 +5,7 @@ Run shell scripts and command-line tools in your application against an explicit
 All command plugins and their factories are available from the root entrypoint in Node, browsers, and Cloudflare Workers.
 
 Import `ffmpegCommands` from `@poe-platform/safe-bash` and register
-it with `shell.use(ffmpegCommands())` for in-memory media conversion and probing.
+it with `shell.use(ffmpegCommands())` for in-memory media conversion and probing. Optional `tesseractCommands()` and `ocrmypdfCommands()` from `/commands/tesseract` and `/commands/ocrmypdf` add Rust OCR and searchable PDFs in Node.js; install `@poe-platform/tesseract` separately. See the [OCR guide](../tesseract-rust/README.md).
 Pass `cloudflareWorkerLimits()` explicitly to bound media work in Workers.
 
 ## Quickstart

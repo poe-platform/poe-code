@@ -2189,6 +2189,40 @@
             "@poe-code/safe-fs": "*"
           },
           "portable": true
+        },
+        "safe-bash-command-tesseract": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "@poe-platform/tesseract": "^0.1.0"
+          },
+          "peerDependencies": {
+            "@poe-platform/tesseract": "^0.1.0"
+          },
+          "peerDependenciesMeta": {
+            "@poe-platform/tesseract": {
+              "optional": true
+            }
+          }
+        },
+        "safe-bash-command-ocrmypdf": {
+          "version": "0.0.1",
+          "dependencies": {},
+          "devDependencies": {
+            "safe-bash-contracts": "*",
+            "@poe-code/safe-fs": "*",
+            "@poe-platform/tesseract": "^0.1.0"
+          },
+          "peerDependencies": {
+            "@poe-platform/tesseract": "^0.1.0"
+          },
+          "peerDependenciesMeta": {
+            "@poe-platform/tesseract": {
+              "optional": true
+            }
+          }
         }
       },
       "peerProfile": "checkout-root"
@@ -3562,11 +3596,15 @@
   "peerDependenciesMeta": {
     "yaml": {
       "optional": true
+    },
+    "@poe-platform/tesseract": {
+      "optional": true
     }
   },
   "peerDependencies": {
     "poe-code": ">=13.0.0",
-    "yaml": "2.9.0"
+    "yaml": "2.9.0",
+    "@poe-platform/tesseract": "^0.1.0"
   },
   "devDependencies": {
     "@poe-code/safe-js": "*",
@@ -3780,7 +3818,9 @@
     "safe-bash-command-rgrep": "*",
     "safe-bash-command-ast-grep": "*",
     "@poe-code/ts-ast": "*",
-    "safe-bash-command-sort": "*"
+    "safe-bash-command-sort": "*",
+    "safe-bash-command-tesseract": "*",
+    "safe-bash-command-ocrmypdf": "*"
   },
   "main": "./dist/index.js",
   "imports": {

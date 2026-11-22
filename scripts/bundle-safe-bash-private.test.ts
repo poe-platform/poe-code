@@ -61,7 +61,7 @@ it.each([false, true])("keeps certificate encoding independent of ambient Buffer
   expect(Object.hasOwn(realm, "process")).toBe(false);
 });
 
-it("admits every private workspace into the portable build", () => {
+it("admits portable workspaces and excludes native opt-ins from the portable build", () => {
   const root = process.cwd();
   const manifest = JSON.parse(readFileSync(path.join(root, "packages/safe-bash/package.json"), "utf8"));
   const profiles = manifest.poeCode.integration.privateWorkspaces;
@@ -71,6 +71,13 @@ it("admits every private workspace into the portable build", () => {
   });
   const recipe = resolvePrivateCommandBuild(root, profiles, workspaces, { alias: {}, external: [], portable: true });
   for (const { dir, pkg } of workspaces) {
+    if (["safe-bash-command-tesseract", "safe-bash-command-ocrmypdf"].includes(pkg.name)) {
+      expect(profiles[pkg.name].portable).not.toBe(true);
+      expect(recipe.entryPoints).not.toHaveProperty(dir + "/dist/index");
+      expect(pkg.exports["."].browser).toBeNull();
+      expect(pkg.exports["."].workerd).toBeNull();
+      continue;
+    }
     expect(profiles[pkg.name].portable, pkg.name).toBe(true);
     for (const [route, target] of Object.entries(pkg.exports) as [string, Record<string, string | null>][]) {
       if (Object.hasOwn(profiles[pkg.name].optionalModules ?? {}, route)) continue;
@@ -97,7 +104,7 @@ it("preserves the portable export surface when canonical owners remain external"
       .map(([filename, output]) => [filename, output.exports]));
     const commandExports = Object.keys(manifest.poeCode.integration.privateWorkspaces)
       // Playwright and structural search expose explicit opt-in subpaths outside core.
-      .filter(name => name.startsWith("safe-bash-command-") && !["safe-bash-command-playwright-cli", "safe-bash-command-ast-grep"].includes(name))
+      .filter(name => name.startsWith("safe-bash-command-") && !["safe-bash-command-playwright-cli", "safe-bash-command-ast-grep", "safe-bash-command-tesseract", "safe-bash-command-ocrmypdf"].includes(name))
       .flatMap(name => {
         // Python exposes both python/python3 through its plural factory.
         if (name === "safe-bash-command-python") return ["pythonCommands", "createPythonCommands", "pythonExecutorCommands", "createPythonExecutorCommands"];

@@ -733,7 +733,9 @@
     "@poe-code/ts-ast": "*",
     "@poe-code/compression": "*",
     "safe-bash-command-sort": "*",
-    "@poe-code/document-converter-rust": "*"
+    "@poe-code/document-converter-rust": "*",
+    "safe-bash-command-tesseract": "*",
+    "safe-bash-command-ocrmypdf": "*"
   },
   "version": "0.0.0-dev",
   "repository": {

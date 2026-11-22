@@ -15,6 +15,7 @@ const portableEnvironment = { Buffer: "undefined", "globalThis.Buffer": "undefin
 export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alias, external, portable = false }) {
   const entryPoints = {};
   const subpathImports = new Set();
+  const optionalPeers = new Set();
   for (const [name, profile] of Object.entries(profiles)) {
     if (portable ? profile.portable !== true : profile.portable === true || !name.startsWith("safe-bash-command-")) continue;
     const workspace = workspaces.find(({ pkg }) => pkg.name === name);
@@ -33,6 +34,7 @@ export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alia
       throw new Error("Qualified private workspace profile mismatch: " + name);
     }
     for (const key of Object.keys(pkg.imports ?? {})) subpathImports.add(key);
+    for (const key of Object.keys(pkg.peerDependencies ?? {})) optionalPeers.add(key);
     if (Object.hasOwn(pkg.dependencies ?? {}, "@poe-code/document-converter-rust")) subpathImports.add("#document-converter-wasm");
     for (const [route, target] of Object.entries(pkg.exports ?? {})) {
       if (Object.hasOwn(profile.optionalModules ?? {}, route)) continue;
@@ -40,6 +42,7 @@ export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alia
       // need their own qualified build before they can be admitted here.
       for (const condition of Object.keys(target ?? {})) {
         if (condition !== "types" && condition !== "import" &&
+            !(["workerd", "worker", "browser"].includes(condition) && target[condition] === null) &&
             !(portable && ["workerd", "worker", "browser", "node", "default"].includes(condition))) {
           throw new Error("Unsupported private command export condition: " + name + " " + condition);
         }
@@ -78,8 +81,10 @@ export function resolvePrivateCommandBuild(rootDir, profiles, workspaces, { alia
     }
   }
   if (!Object.keys(entryPoints).length) return undefined;
+  const aliases = Object.fromEntries(Object.entries(alias ?? {}).filter(([specifier]) =>
+    ![...optionalPeers].some(peer => specifier === peer || specifier.startsWith(peer + "/"))));
   return {
-    absWorkingDir: rootDir, entryPoints, alias, external: subpathImports.size ? [...new Set([...(external ?? []), ...subpathImports])] : external,
+    absWorkingDir: rootDir, entryPoints, alias: aliases, external: [...new Set([...(external ?? []), ...subpathImports, ...optionalPeers])],
     outdir: path.join(rootDir, "packages"), allowOverwrite: true,
     bundle: true, splitting: true, chunkNames: "safe-bash/dist/command-chunks/[name]-[hash]",
     assetNames: "safe-bash/dist/command-assets/[name]-[hash]",

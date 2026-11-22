@@ -1,0 +1,25 @@
+[package]
+name = "poe-tesseract-node"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.91"
+license = "Apache-2.0"
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+poe-tesseract = { path = "..", features = ["pdf"] }
+napi = { version = "=3.12.6", default-features = false, features = ["napi6", "async"] }
+napi-derive = "=3.6.7"
+
+[build-dependencies]
+napi-build = "=2.4.3"
+
+[workspace]
+resolver = "3"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"

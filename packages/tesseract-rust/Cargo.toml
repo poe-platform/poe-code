@@ -1,0 +1,32 @@
+[package]
+name = "poe-tesseract"
+version = "0.1.0"
+edition = "2024"
+rust-version = "1.91"
+license = "Apache-2.0"
+description = "Optional Tesseract OCR with English data and injectable language models"
+
+[lib]
+path = "src/lib.rs"
+
+[features]
+default = []
+pdf = ["dep:lopdf", "dep:safe-bash-rust", "dep:ttf-parser"]
+
+[dependencies]
+kreuzberg-tesseract = "=4.10.4"
+image = { version = "0.25.9", default-features = false, features = ["png", "jpeg", "tiff", "pnm", "bmp", "webp"] }
+lopdf = { version = "0.38", default-features = false, optional = true }
+safe-bash-rust = { path = "../safe-bash-rust", default-features = false, optional = true }
+ttf-parser = { version = "0.25", optional = true }
+
+[build-dependencies]
+cc = "1.2"
+
+[workspace]
+resolver = "3"
+
+[profile.release]
+lto = true
+codegen-units = 1
+strip = "symbols"

@@ -1,0 +1,51 @@
+{
+  "name": "@poe-platform/tesseract",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "license": "Apache-2.0",
+  "description": "Optional Rust Tesseract OCR with English and injectable language models",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "browser": null,
+      "import": "./dist/index.js"
+    }
+  },
+  "sideEffects": [
+    "./dist/*-cli.js"
+  ],
+  "files": [
+    "dist",
+    "assets/LICENSE.tessdata",
+    "README.md",
+    "LICENSE",
+    "NOTICE",
+    "licenses"
+  ],
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test:unit": "cargo test --locked --features pdf && node --test tests/*.test.mjs",
+    "lint": "cargo fmt --check && cargo fmt --manifest-path bindings/Cargo.toml --check && cargo clippy --locked --features pdf --all-targets --no-deps -- -D warnings"
+  },
+  "devDependencies": {
+    "@napi-rs/cli": "3.10.4"
+  },
+  "napi": {
+    "binaryName": "poe-tesseract"
+  },
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "tesseract": "dist/tesseract-cli.js",
+    "ocrmypdf": "dist/ocrmypdf-cli.js"
+  },
+  "poeCode": {
+    "bundle": {
+      "prebuilt": true
+    }
+  }
+}

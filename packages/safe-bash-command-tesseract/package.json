@@ -1,0 +1,48 @@
+{
+  "name": "safe-bash-command-tesseract",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "browser": null,
+      "workerd": null,
+      "import": "./dist/index.js"
+    }
+  },
+  "sideEffects": false,
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "node ../../scripts/guard-package-dist.mjs && tsc",
+    "test:unit": "node --import tsx --test src/*.test.ts",
+    "lint": "eslint src && tsc --noEmit"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "safe-bash-contracts": "*",
+    "@poe-code/safe-fs": "*",
+    "@poe-platform/tesseract": "^0.1.0"
+  },
+  "peerDependencies": {
+    "@poe-platform/tesseract": "^0.1.0"
+  },
+  "peerDependenciesMeta": {
+    "@poe-platform/tesseract": {
+      "optional": true
+    }
+  },
+  "poeCode": {
+    "safeLibraryExports": {
+      "safe-bash": {
+        "./commands/tesseract": "."
+      }
+    }
+  }
+}

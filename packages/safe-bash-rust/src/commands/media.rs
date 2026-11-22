@@ -8273,16 +8273,24 @@ fn cmd_pdfdetach(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
     let mut pdf_file = None;
     let mut args = args.iter().map(String::as_str);
     while let Some(arg) = args.next() {
+        if matches!(arg, "-save" | "-savefile" | "-o" | "-upw" | "-opw" | "-enc") && args.len() == 0 {
+            return err_out("Usage: pdfdetach [options] <PDF-file>\n", 99);
+        }
         match arg {
             "-v" | "--version" => return ok_out("pdfdetach version 24.08.0\n"),
             "-h" | "-help" | "--help" | "-?" => return ok_out("Usage: pdfdetach [options] <PDF-file>\n  -list / -save <int> / -savefile <name> / -saveall / -o <path>\n"),
             "-list" => list_mode = true,
             "-saveall" => save_all = true,
             "-save" => {
-                let text = args.next().unwrap_or("").trim_start_matches(|c: char| c.is_whitespace() && c != '\u{85}' || c == '\u{feff}');
+                let text = args.next().unwrap();
                 let sign = usize::from(text.starts_with(['+', '-']));
-                let digits = text[sign..].bytes().take_while(u8::is_ascii_digit).count();
-                save_idx = text[..sign + digits].parse::<f64>().unwrap_or(0.0);
+                let digits = &text[sign..];
+                let number = text.parse::<i64>().ok().filter(|n| *n != 0 && (-9_007_199_254_740_991..=9_007_199_254_740_991).contains(n));
+                let Some(number) = number.filter(|_| !digits.is_empty() && digits.bytes().all(|b| b.is_ascii_digit())) else {
+                    return err_out("Usage: pdfdetach [options] <PDF-file>\n", 99);
+                };
+                if number < 0 { return err_out("Command Line Error: Invalid file number\n", 99); }
+                save_idx = number as f64;
             }
             "-savefile" => save_file = args.next().unwrap_or(""),
             "-o" => dest = args.next().unwrap_or(""),
@@ -8293,8 +8301,10 @@ fn cmd_pdfdetach(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                     return err_out(&format!("Command Line Error: Unknown encoding '{enc}'\n"), 99);
                 }
             }
-            a if a == "-" || !a.starts_with('-') => { pdf_file.get_or_insert(a); }
-            _ => {}
+            a if a == "-" || !a.starts_with('-') => {
+                if pdf_file.replace(a).is_some() { return err_out("Usage: pdfdetach [options] <PDF-file>\n", 99); }
+            }
+            _ => return err_out("Usage: pdfdetach [options] <PDF-file>\n", 99),
         }
     }
     let Some(f) = pdf_file.filter(|f| !f.is_empty()) else {
@@ -16743,6 +16753,18 @@ mod media_unit_tests {
         let merged = pdf_reader::read(&bytes,"").unwrap().0;
         assert_eq!(merged.pages.len(), count);
         assert_eq!(merged.page_media[&count], (300., 410., Some([4., 6., 304., 416.])));
+    }
+
+    #[test]
+    fn pdfdetach_rejects_unknown_options_before_reading_or_writing() {
+        let fs = MemoryVfs::new();
+        fs.write_file("/out", b"preserved").unwrap();
+        for args in [vec!["--bogus", "missing.pdf"], vec!["-saveall", "-o", "out", "--bogus", "missing.pdf"]] {
+            let result = cmd_media_doc("pdfdetach", &media_args(&args), "", "/", &fs);
+            assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()),
+                (99, "", "Usage: pdfdetach [options] <PDF-file>\n"));
+            assert_eq!(fs.read_file("/out").unwrap(), b"preserved");
+        }
     }
 
     #[test]

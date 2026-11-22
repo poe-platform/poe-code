@@ -12,6 +12,7 @@ import {
 } from "./toolcraft-standalone-bundle.mjs";
 
 const rootDirectory = fileURLToPath(new URL("..", import.meta.url));
+const runtime = process.env.TOOLCRAFT_TEST_NODE ?? process.execPath;
 const packDirectory = mkdtempSync(path.join(os.tmpdir(), "toolcraft-bundle-pack-"));
 const consumerDirectory = mkdtempSync(path.join(os.tmpdir(), "toolcraft-bundle-consumer-"));
 
@@ -86,14 +87,15 @@ try {
   writeFileSync(outputFile, canonical.bundle);
   writeFileSync(`${outputFile}.map`, canonical.sourceMap);
 
-  const helpOutput = execFileSync(process.execPath, [outputFile, "--help"], {
+  const helpOutput = execFileSync(runtime, [outputFile, "--help"], {
     cwd: consumerDirectory,
     encoding: "utf8"
   });
   assert(helpOutput.includes("bundle-smoke"), "Expected the bundled CLI help to start.");
   assert(readFileSync(`${outputFile}.map`, "utf8").includes('"sources"'), "Expected a source map.");
 
-  console.log(`Toolcraft standalone CLI bundle passed on ${process.version}.`);
+  const runtimeVersion = execFileSync(runtime, ["--version"], { encoding: "utf8" }).trim();
+  console.log(`Toolcraft standalone CLI bundle passed on ${runtimeVersion}.`);
 } finally {
   rmSync(packDirectory, { recursive: true, force: true });
   rmSync(consumerDirectory, { recursive: true, force: true });

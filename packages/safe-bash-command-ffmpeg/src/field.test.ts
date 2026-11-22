@@ -59,7 +59,10 @@ for (const color of [false, true]) {
   it(`preserves the ${color ? "color" : "gray"} null control`, async () => {
     const result = await run(input, "null");
     assert.equal(result.exitCode, 0, result.stderr);
-    assert.deepEqual(result.output, input);
+    assert.deepEqual(result.output, Buffer.concat([
+      Buffer.from("YUV4MPEG2 W4 H4 F6:1 Ip A1:1 C444 XYSCSS=444\n"),
+      input.subarray(input.indexOf(10) + 1)
+    ]));
   });
 
   it(`retains ${color ? "color" : "gray"} field timestamps and clears interlacing`, async () => {

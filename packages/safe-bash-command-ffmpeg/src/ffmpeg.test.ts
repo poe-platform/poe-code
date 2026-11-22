@@ -3176,6 +3176,35 @@ describe("aliceblue color source", () => {
   }
 });
 
+for (const format of ["rgba", "pix_fmts=rgba"]) {
+  it(`negotiates color source ${format} before chroma alignment and alpha loss`, async () => {
+    const { decodeImage } = await import("@poe-code/image-ast/portable");
+    const vfs = createTestVfs();
+    const result = await runCmd(createFfmpegCommand(), [
+      "-f", "lavfi", "-i", `color=c=aliceblue@0.5:s=3x5:r=1:d=1,format=${format}`,
+      "-frames:v", "1", "/out.png"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const image = decodeImage(vfs.store.get("/out.png")!);
+    assert.equal(image.width, 3);
+    assert.equal(image.height, 5);
+    assert.deepEqual([...image.data], Array.from({ length: 15 }, () => [240, 248, 255, 127]).flat());
+  });
+}
+
+for (const filters of ["format=rgba,format=yuv420p", "hue=h=0,format=rgba"]) {
+  it(`retains YUV color source conversion through ${filters}`, async () => {
+    const vfs = createTestVfs();
+    const result = await runCmd(createFfmpegCommand(), [
+      "-f", "lavfi", "-i", `color=c=aliceblue@0.5:s=4x4:r=1:d=1,${filters}`,
+      "-frames:v", "1", "-pix_fmt", "rgba", "-f", "rawvideo", "/out.raw"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    // Native FFmpeg 9: these graphs require opaque YUV conversion.
+    assert.deepEqual([...vfs.store.get("/out.raw")!], Array.from({ length: 16 }, () => [239, 247, 254, 255]).flat());
+  });
+}
+
 describe("pad omitted named parameters", () => {
   for (const [options, width, height, left, top, border] of [
     ["height=8", 6, 8, 0, 0, [0, 0, 0, 255]],
@@ -6277,6 +6306,19 @@ describe("native ffmpeg parity", () => {
       });
     }
   }
+
+  it("preserves destination alpha when blending drawbox", async () => {
+    const { decodeImage } = await import("@poe-code/image-ast/portable");
+    const vfs = createTestVfs();
+    const result = await runCmd(createFfmpegCommand(), [
+      "-f", "lavfi", "-i", "color=c=blue@0.5:s=4x4:r=1:d=1,format=rgba",
+      "-vf", "drawbox=x=1:y=1:w=2:h=2:color=red@0.5:t=fill",
+      "-frames:v", "1", "/out.png"
+    ], vfs);
+    assert.equal(result.exitCode, 0, result.stderr);
+    const image = decodeImage(vfs.store.get("/out.png")!);
+    assert.deepEqual(Array.from(image.data.slice(20, 24)), [127, 0, 127, 127]);
+  });
 
   it("keeps the default lavfi color source opaque when blending drawbox", async () => {
     const { decodeImage } = await import("@poe-code/image-ast/portable");

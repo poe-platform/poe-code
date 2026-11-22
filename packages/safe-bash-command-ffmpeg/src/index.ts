@@ -808,8 +808,12 @@ function* lavfiSteps(
   const duration =
     durationOverride ?? (parseHlsDuration(kv.duration ?? kv.d ?? "1") || 1);
   const frameCount = Math.max(1, Math.ceil(duration * fps));
+  const sourceFormat = sourceFilters.slice(1).find(filter => filter.startsWith("format="))?.slice(7);
   const color = parseColorRgba(kv.color ?? kv.c ?? kv._0 ?? "black");
-  if (filterName === "color") {
+  // A direct format constraint selects RGBA at the source. A later format in a
+  // longer graph does not establish the source's negotiated pixel format.
+  const rgbaSource = sourceFilters.length === 2 && (sourceFormat === "rgba" || sourceFormat === "pix_fmts=rgba");
+  if (filterName === "color" && !rgbaSource) {
     // Align the default YUV420P source to its 2x2 chroma grid.
     width = Math.floor(width / 2) * 2;
     height = Math.floor(height / 2) * 2;
@@ -829,7 +833,6 @@ function* lavfiSteps(
   }
 
   const frames: MediaVideoFrame[] = [];
-  const sourceFormat = sourceFilters.slice(1).find(filter => filter.startsWith("format="))?.slice(7);
   const alpha = filterName === "testsrc2" &&
     (sourceFormat === "yuva420p" || sourceFormat === "pix_fmts=yuva420p")
     ? roundToEven(parseFilterExpression(kv.alpha ?? "255", "testsrc2", { min: 0, max: 255, default: 255 })) : 255;

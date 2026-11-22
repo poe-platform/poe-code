@@ -31,7 +31,7 @@ for (const sync of [false, true]) {
           stdout: { async write(bytes: Uint8Array) { stdout += new TextDecoder().decode(bytes); } },
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
-        assert.equal(result.exitCode, valid ? 0 : 1, stderr);
+        assert.equal(result.exitCode, valid ? 0 : format === "not_a_muxer" ? 234 : 1, stderr);
         if (valid) assert.equal(stderr, "");
         else assert.ok(stderr.includes("Unable to find a suitable output format"), stderr);
         assert.equal(stdout, "");

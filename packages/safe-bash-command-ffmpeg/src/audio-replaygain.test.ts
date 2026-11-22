@@ -62,7 +62,7 @@ it("respects the log level", async () => {
 
 it("rejects unsupported options without replacing output", async () => {
   const { result, fs } = await run("mix", "replaygain=track_gain=3");
-  assert.equal(result.exitCode, 1);
+  assert.equal(result.exitCode, 8);
   assert.equal(fs.readFileSync("/out.wav", "utf8"), "keep");
 });
 

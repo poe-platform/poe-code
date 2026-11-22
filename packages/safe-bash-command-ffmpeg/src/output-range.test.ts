@@ -30,7 +30,11 @@ for (const sync of [false, true]) {
           const result = evalSyncFfmpeg(args, undefined,
             path => volume.existsSync(path) ? volume.readFileSync(path) as Buffer : undefined,
             (path, bytes) => { volume.writeFileSync(path, bytes); return true; });
-          assert.equal(result, samples === undefined ? undefined : "");
+          // Decoded PCM cuts defer to the async path before writing anything.
+          assert.equal(result, undefined);
+          if (existing) assert.deepEqual(volume.readFileSync("/out.wav"), original);
+          else assert.equal(volume.existsSync("/out.wav"), false);
+          return;
         } else {
           let stderr = "";
           const result = await createFfmpegCommand().execute({

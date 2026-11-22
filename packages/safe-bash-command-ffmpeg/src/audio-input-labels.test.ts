@@ -17,15 +17,15 @@ for (const mixed of [false, true]) {
         }
         let stderr = "";
         // A typed control branch identifies mixed-input graphs as audio graphs.
-      const wav = wavAst();
+        const wav = wavAst();
         const result = await createFfmpegCommand({ asts: mixed ? [{ ...wav, parse(bytes, options) {
           const doc = wav.parse(bytes, options);
           const video = parseMp4(createSyntheticMp4({ width: 16, height: 16, frameCount: 1 })).tracks[0]!;
           return { ...doc, tracks: [video, ...doc.tracks] };
         } }, ...allMediaAsts().filter(ast => ast.id !== wav.id)] : undefined }).execute({
           args: ["-v", "error", "-y", "-i", "/a.wav", "-i", "/b.wav", "-filter_complex",
-            `[${label}]${split ? "channelsplit=stereo:FR," : ""}areverse[out]${mixed ? ";[0:a]anull[control]" : ""}`,
-            "-map", "[out]", ...(mixed ? ["-map", "[control]"] : []),
+            `[${label}]${split ? "channelsplit=stereo:FR," : ""}areverse[out]${mixed ? ";[0:a]anullsink" : ""}`,
+            "-map", "[out]",
             "-c:a", "pcm_s16le", "-f", "s16le", "/out.raw"],
           cwd: "/", env: {}, signal: new AbortController().signal,
           fs: {

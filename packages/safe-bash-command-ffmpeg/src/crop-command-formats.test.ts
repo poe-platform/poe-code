@@ -37,7 +37,7 @@ for (const format of ["rgba", "gray16be", "rgb48be", "rgba64be", "yuv444p", "yuv
         args: ["-v", "error", "-y", "-f", "rawvideo", "-pixel_format", format,
           "-video_size", "4x4", "-framerate", "4", "-i", "/in.raw", "-vf",
           `sendcmd=c='0.25 crop@c ${action} ${value}',crop@c=2:2:0:0`,
-          "-fps_mode", "passthrough", "-pix_fmt", format, "-f", "rawvideo", "/out.raw"],
+          "-noautoscale", "-fps_mode", "passthrough", "-pix_fmt", format, "-f", "rawvideo", "/out.raw"],
         cwd: "/", env: {}, signal: new AbortController().signal,
         fs: {
           async readFile(path: string) { return volume.readFileSync(path); },

@@ -42,7 +42,7 @@ for (const [filter, expected] of [
         args: ["-v", "error", "-y", "-f", "rawvideo", "-pixel_format", "rgba",
           "-video_size", "4x4", "-framerate", "4", "-i", "/in.raw", ...(graph
             ? ["-filter_complex", `[0:v]${filter}[out]`, "-map", "[out]"] : ["-vf", filter]),
-          "-fps_mode", "passthrough", "-pix_fmt", "rgba", "-f", "rawvideo", "/out.raw"],
+          "-noautoscale", "-fps_mode", "passthrough", "-pix_fmt", "rgba", "-f", "rawvideo", "/out.raw"],
         cwd: "/", env: {}, signal: new AbortController().signal,
         fs: {
           async readFile(path: string) { return volume.readFileSync(path); },

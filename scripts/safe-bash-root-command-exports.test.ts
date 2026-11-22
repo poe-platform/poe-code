@@ -92,6 +92,10 @@ it("registers every command and engine with its qualified platform profile", () 
     const profile = metadata.poeCode.integration.privateWorkspaces[name];
     if (name === "safe-bash-command-tesseract" || name === "safe-bash-command-ocrmypdf") {
       expect(profile, name).not.toHaveProperty("portable");
+      expect(profile.peerDependencies).toEqual({ "@poe-platform/tesseract": "^0.1.0" });
+      expect(profile.peerDependenciesMeta).toEqual({ "@poe-platform/tesseract": { optional: true } });
+      expect(manifest.peerDependencies).toEqual(profile.peerDependencies);
+      expect(manifest.peerDependenciesMeta).toEqual(profile.peerDependenciesMeta);
     } else expect(profile, name).toHaveProperty("portable", true);
     expect(profile, name).toMatchObject({
       version: manifest.version,

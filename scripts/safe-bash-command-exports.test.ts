@@ -99,7 +99,7 @@ describe("public command API", () => {
   }
 });
 
-const factoryNames = ["csvcut", "csvgrep", "csvkit", "diff3", "exiftool", "fmt", "fold", "htmlq", "imagemagick", "mmdc", "op", "pandoc", "pdfimages", "pdfinfo", "pdftk", "pdftoppm", "pdftotext", "qpdf", "sips", "soffice", "ssconvert", "unrtf", "wkhtmltopdf", "xmllint", "xz"];
+const factoryNames = ["csvcut", "csvgrep", "csvkit", "diff3", "exiftool", "fmt", "fold", "htmlq", "imagemagick", "mmdc", "ocrmypdf", "op", "pandoc", "pdfimages", "pdfinfo", "pdftk", "pdftoppm", "pdftotext", "qpdf", "sips", "soffice", "ssconvert", "tesseract", "unrtf", "wkhtmltopdf", "xmllint", "xz"];
 const factoryModules = await Promise.all(factoryNames.map(name => import(`../packages/safe-bash-command-${name}/src/index.ts`)));
 describe("command factories agree with plugin registration", () => {
   for (const [index, name] of factoryNames.entries()) {

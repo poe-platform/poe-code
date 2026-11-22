@@ -404,19 +404,27 @@ mod tests {
     }
 
     #[test]
-    fn unit_native_ls_rejects_unimplemented_long_listings() {
+    fn unit_native_ls_preserves_long_listing_metadata() {
         let vfs = MemoryVfs::new();
         vfs.mkdir_all("/work").unwrap();
         vfs.write_file("/work/file.txt", b"twelve bytes").unwrap();
+        vfs.chmod("/work/file.txt", 0o640).unwrap();
+        vfs.set_mtime("/work/file.txt", 0).unwrap();
         let mut shell = Shell::new(Arc::new(vfs), ShellOptions {
             cwd: Some("/work".into()), mode: BackendMode::NativeOnly,
             ..Default::default()
         });
-        for flags in ["-l", "-la", "-ld", "-lh", "-g", "-o", "-n"] {
+        for flags in ["-l", "-la", "-ld", "-lh"] {
             let result = shell.exec(&format!("ls {flags} file.txt")).unwrap();
-            assert_ne!(result.exit_code, 0, "{flags} silently discarded metadata");
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            assert_eq!(result.stdout, "-rw-r----- 1 0 0 12 1970-01-01 00:00 file.txt\n", "{flags}");
+            assert!(result.stderr.is_empty());
+        }
+        for flag in ['g', 'o', 'n'] {
+            let result = shell.exec(&format!("ls -{flag} file.txt")).unwrap();
+            assert_eq!(result.exit_code, 2);
             assert!(result.stdout.is_empty());
-            assert!(result.stderr.contains("requires the TypeScript safe-bash bridge"));
+            assert_eq!(result.stderr, format!("ls: invalid option -- '{flag}'\n"));
         }
     }
 

@@ -227,12 +227,20 @@ fn read_pax<'a>(
         if key.is_empty() || key.contains(['\0', '\n']) {
             return Err("invalid PAX key/value".into());
         }
-        if matches!(key, "SCHILY.fflags" | "LIBARCHIVE.creationtime")
-            || ["LIBARCHIVE.xattr.", "SCHILY.xattr."]
-                .iter()
-                .any(|p| key.strip_prefix(p).is_some_and(|s| !s.is_empty()))
+        if matches!(
+            key,
+            "SCHILY.realsize"
+                | "SCHILY.filetype"
+                | "SCHILY.offset"
+                | "SCHILY.dev"
+                | "SCHILY.ino"
+                | "SCHILY.nlink"
+                | "SUN.holesdata"
+                | "LIBARCHIVE.symlinktype"
+        ) || key.starts_with("GNU.sparse.")
+            || key.starts_with("GNU.volume.")
         {
-            continue;
+            return Err(format!("unsupported PAX keyword: {key}"));
         }
         if !matches!(
             key,
@@ -250,7 +258,7 @@ fn read_pax<'a>(
                 | "charset"
                 | "hdrcharset"
         ) {
-            return Err(format!("unsupported PAX keyword: {key}"));
+            continue;
         }
         let value = text(&record[eq + 1..])?;
         if value.contains('\0') {

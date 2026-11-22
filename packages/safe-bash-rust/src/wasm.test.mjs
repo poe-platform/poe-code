@@ -2439,7 +2439,7 @@ test("unzip consumes a binary archive from stdin for listing, piping and extract
   }finally{await js.dispose();await rust.dispose();}
 });
 
-test("unzip update and freshen compare DOS timestamps before prompting and skip absent freshen paths",async () => {
+for (const extended of [false, true]) test(`unzip update and freshen compare ${extended ? "extended" : "DOS"} timestamps before prompting and skip absent freshen paths`,async () => {
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(), js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()), rust=new RustWasmBash({cwd:"/"});
   const base=1700000000000;
@@ -2448,7 +2448,7 @@ test("unzip update and freshen compare DOS timestamps before prompting and skip 
     for(const name of ["rounded","old","new","nested/missing"]){
       await ref.writeFile("/"+name,Uint8Array.of(65));await ref.utimes("/"+name,base,base);
     }
-    const zip=await js.exec("zip -0q seed.zip rounded old new nested/missing");assert.equal(zip.exitCode,0,zip.stderr);
+    const zip=await js.exec("zip -0q"+(extended?"":"X")+" seed.zip rounded old new nested/missing");assert.equal(zip.exitCode,0,zip.stderr);
     await rust.fs.writeFile("/seed.zip",await ref.readFile("/seed.zip"));
     for(const [sh,fs] of [[js,ref],[rust,rust.fs]])for(const [flags,missing] of [["uf",false],["fu",true]]) {
       const dest="/"+flags;
@@ -2456,9 +2456,11 @@ test("unzip update and freshen compare DOS timestamps before prompting and skip 
       for(const [name,delta] of [["rounded",-1],["old",-2000],["new",2000]]) {
         await fs.writeFile(dest+"/"+name,Uint8Array.of(66));await fs.utimes(dest+"/"+name,base+delta,base+delta);
       }
-      const result=await sh.exec("unzip -q"+flags+" -d "+flags+" seed.zip",{stdin:"r\nrenamed\n"});
+      const result=await sh.exec("unzip -q"+flags+" -d "+flags+" seed.zip",{stdin:(extended?"r\nrounded-copy\n":"")+"r\nrenamed\n"});
       assert.equal(result.exitCode,0,result.stderr);
-      assert.equal(result.stderr,"replace "+flags+"/old? [y]es, [n]o, [A]ll, [N]one, [r]ename: new name: ");
+      const prompt=name=>"replace "+flags+"/"+name+"? [y]es, [n]o, [A]ll, [N]one, [r]ename: new name: ";
+      assert.equal(result.stderr,(extended?prompt("rounded"):"")+prompt("old"));
+      if(extended)assert.deepEqual(await fs.readFile(dest+"/rounded-copy"),Uint8Array.of(65));
       for(const name of ["rounded","old","new"])assert.deepEqual(await fs.readFile(dest+"/"+name),Uint8Array.of(66));
       assert.deepEqual(await fs.readFile(dest+"/renamed"),Uint8Array.of(65));
       if(missing)assert.deepEqual(await fs.readFile(dest+"/nested/missing"),Uint8Array.of(65));
@@ -11389,7 +11391,8 @@ test("tar validates raw mutation records and preserves untouched member bytes", 
       [Buffer.concat([optional, zeros]), "orphan extended header at end of archive"],
       [Buffer.concat([extension("g", "21 SCHILY.fflags=foo\n"), tar]), "global PAX headers are unsupported for archive mutation"],
       [Buffer.concat([extension("x", "20 SCHILY.fflags=foo\n"), tar]), "invalid PAX record framing"],
-      [Buffer.concat([extension("x", "11 alien=x\n"), tar]), "unsupported PAX keyword: alien"],
+      [Buffer.concat([extension("x", "11 alien=x\n"), tar]), undefined],
+      [Buffer.concat([extension("x", "22 GNU.sparse.major=1\n"), tar]), "unsupported PAX keyword: GNU.sparse.major"],
       [extended, undefined],
     ];
     for (const [input, error] of cases) {

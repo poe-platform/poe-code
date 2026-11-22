@@ -3253,14 +3253,22 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
         extra[2..4].copy_from_slice(&5u16.to_le_bytes());
         extra[4] = 1;
         extra[5..9].copy_from_slice(&(e.mtime as u64 as i32).to_le_bytes());
+        let mut local_extra = extra.clone();
+        if let Some(atime) = e.atime {
+            local_extra[2..4].copy_from_slice(&9u16.to_le_bytes());
+            local_extra[4] = 3;
+            local_extra.extend_from_slice(&(atime.floor() as i64 as i32).to_le_bytes());
+        }
         if let Some((uid,gid)) = owners.get(&e.name) {
             extra.extend_from_slice(&[0x75,0x78,11,0,1,4]);
             extra.extend_from_slice(&uid.to_le_bytes());
             extra.push(4);
             extra.extend_from_slice(&gid.to_le_bytes());
+            local_extra.extend_from_slice(&extra[9..]);
         }
 
         let extra=if stdin_member || strip_extra {&[][..]} else {&extra[..]};
+        let local_extra=if stdin_member || strip_extra {&[][..]} else {&local_extra[..]};
         let local_offset = out.len() as u32;
         out.extend_from_slice(&0x0403_4b50u32.to_le_bytes());
         out.extend_from_slice(&version.to_le_bytes());
@@ -3278,9 +3286,9 @@ pub(super) fn encode_zip_members(entries: &[crate::commands::archive::TarEntry],
             out.extend_from_slice(&sz.to_le_bytes());
         }
         out.extend_from_slice(&(name_bytes.len() as u16).to_le_bytes());
-        out.extend_from_slice(&((extra.len() + if wide {20} else {0}) as u16).to_le_bytes());
+        out.extend_from_slice(&((local_extra.len() + if wide {20} else {0}) as u16).to_le_bytes());
         out.extend_from_slice(name_bytes);
-        out.extend_from_slice(extra);
+        out.extend_from_slice(local_extra);
         if wide {
             out.extend_from_slice(&[1,0,16,0]);
             out.extend_from_slice(&(if descriptor && pipe_member {0} else {u64::from(sz)}).to_le_bytes());
@@ -3467,6 +3475,7 @@ pub(super) struct ZipMember {
     pub typeflag: u8,
     pub mode: u32,
     pub mtime: f64,
+    pub extended_timestamp: bool,
 }
 
 impl ZipMember {
@@ -3731,6 +3740,7 @@ pub(super) fn zip_directory<'a>(size: usize, read: impl Fn(std::ops::Range<usize
         out.push(ZipMember { offset64,end:stop,name,method,size:uncomp_size,crc,local_start:local_off,central:central_offset+central_start..central_offset+pos,aes,lzma_eos:flags&2!=0,verifier:encrypted.then_some(if descriptor {(dos_time>>8) as u8} else {(crc>>24) as u8}),
             payload:payload_start..payload_start+comp_size,comment:central[central.len()-entry_cmt_len..].to_vec(),
             typeflag:if is_dir {b'5'} else if is_symlink {b'2'} else {b'0'}, mode,mtime:mtime as f64,
+            extended_timestamp: modified.is_some() || local_modified.is_some(),
         });
     }
 

@@ -4744,6 +4744,7 @@ pub(super) fn cmd_gzip(
     let mut list_mode = false;
     let mut robot_mode = false;
     let mut test_mode = false;
+    let mut quiet = false;
     let mut recursive = false;
     let mut help_mode = false;
     let mut small_mode = false;
@@ -4811,6 +4812,7 @@ pub(super) fn cmd_gzip(
                         }
                         return err_out(&format!("{invoked}: invalid option -- 'q'\n"), 2);
                     }
+                    quiet = true;
                 }
                 "-n" | "--no-name" => {
                     if !is_gzip {
@@ -5156,6 +5158,7 @@ pub(super) fn cmd_gzip(
                                 if is_bzip2 {
                                     return err_out(&format!("{invoked}: invalid option -- 'q'\n"), 2);
                                 }
+                                quiet = true;
                             }
                             'n' => {
                                 if !is_gzip {
@@ -5428,30 +5431,36 @@ pub(super) fn cmd_gzip(
             false
         };
         if pass { return Ok(data.to_vec()); }
+        if is_bzip2 && !super::codecs::bzip2_header_prefix(data) {
+            return Err("bad magic number (file not created by bzip2)".into());
+        }
         decompress_for_invoked(invoked, data, &xz_format)
     };
     let decode_error = |error: &str, source: &str| {
-        if is_gzip {
-            let mut display = String::new();
-            for c in source.chars() {
-                match c {
-                    '\x08' => display.push_str("\\b"),
-                    '\x0b' => display.push_str("\\v"),
-                    '\x0c' => display.push_str("\\f"),
-                    '\r' => display.push_str("\\r"),
-                    '\n' | '\t' => display.push(c),
-                    c if c.is_control() => {
-                        for byte in c.encode_utf8(&mut [0; 4]).bytes() {
-                            display.push_str(&format!("\\{byte:03o}"));
-                        }
+        let mut display = String::new();
+        for c in source.chars() {
+            match c {
+                '\x08' => display.push_str("\\b"),
+                '\x0b' => display.push_str("\\v"),
+                '\x0c' => display.push_str("\\f"),
+                '\r' => display.push_str("\\r"),
+                '\n' | '\t' => display.push(c),
+                c if c.is_control() => {
+                    for byte in c.encode_utf8(&mut [0; 4]).bytes() {
+                        display.push_str(&format!("\\{byte:03o}"));
                     }
-                    c => display.push(c),
                 }
+                c => display.push(c),
             }
+        }
+        if is_gzip {
             err_out(&format!("{invoked}: {display}: {error}\n"), 1)
         } else if is_bzip2 {
-            let msg = if error == "unexpected end of file" { error } else { "invalid compressed data or codec memory limit exceeded" };
-            err_out(&format!("{invoked}: {msg}\n"), 2)
+            let msg = match error {
+                "unexpected end of file" | "bad magic number (file not created by bzip2)" => error,
+                _ => "data integrity (CRC) error",
+            };
+            err_out(&format!("{invoked}: {display}: {msg}\n"), 2)
         } else if is_zstd {
             let msg = match error {
                 "Src size is incorrect" => "unexpected end of file",
@@ -5460,7 +5469,7 @@ pub(super) fn cmd_gzip(
                     "invalid compressed data or codec memory limit exceeded",
                 _ => error,
             };
-            err_out(&format!("{invoked}: {msg}\n"), 1)
+            err_out(&format!("{invoked}: {display}: {msg}\n"), 1)
         } else {
             let msg = if is_xz && error != "unexpected end of file"
                 && !(xz_format == "xz" && error == "File format not recognized") {
@@ -5536,6 +5545,8 @@ pub(super) fn cmd_gzip(
         ".lz4", ".zip", ".7z", ".rar", ".lz", ".br", ".cab"];
     let mut plans = Vec::new();
     let mut result = ok_out("");
+    let multiple_files = files.len() > 1;
+    let test_source = files.first().filter(|s| s.as_str() != "-").cloned().unwrap_or_else(|| "/*stdin*\\".into());
     files.reverse();
     while let Some(f) = files.pop() {
         if f == "-" { plans.push(None); continue; }
@@ -5602,6 +5613,8 @@ pub(super) fn cmd_gzip(
             return result;
         }
     }
+    let multiple_files = multiple_files || plans.len() > 1;
+    let (mut tested_files, mut tested_bytes) = (0usize, 0usize);
     for plan in plans {
         let failure = |e: String| err_out(&format!("{invoked}: {e}\n"), 1);
         let run = (|| {
@@ -5616,10 +5629,18 @@ pub(super) fn cmd_gzip(
             };
             check_source().map_err(failure)?;
             let data = read(plan.as_ref().map(|p| p.real.as_str()))?;
-            let output = if decompress || test_mode { decode(&data, plan.as_ref().is_some_and(|p| p.destination.is_some())).map_err(|e| decode_error(&e, plan.as_ref().map_or("stdin", |p| p.operand.as_str())))? }
+            let output = if decompress || test_mode { decode(&data, plan.as_ref().is_some_and(|p| p.destination.is_some())).map_err(|e| decode_error(&e, plan.as_ref().map_or(if is_bzip2 {"(stdin)"} else {"stdin"}, |p| p.operand.as_str())))? }
                 else { compress_for_invoked(invoked, &data, level, &xz_format, xz_check, zstd_check) };
             let version = fs.generation();
             check_source().map_err(failure)?;
+            if is_zstd && test_mode {
+                tested_files += 1;
+                tested_bytes += output.len();
+                if !quiet && !multiple_files {
+                    let padding = " ".repeat(20usize.saturating_sub(test_source.encode_utf16().count()));
+                    result.stderr.push_str(&format!("{test_source}{padding}: {tested_bytes} bytes \n"));
+                }
+            }
             if let Some(p) = &plan && let Some((target, expected)) = &p.destination {
                 let current = existing(target).map_err(failure)?;
                 if !match (expected, &current) {
@@ -5639,6 +5660,9 @@ pub(super) fn cmd_gzip(
             result.exit_code = e.exit_code;
             if e.stderr.starts_with("Execution aborted: Shell limit exceeded:") { break; }
         }
+    }
+    if is_zstd && test_mode && !quiet && multiple_files && tested_files != 0 {
+        result.stderr.push_str(&format!("{tested_files} files decompressed :   {tested_bytes} bytes total \n"));
     }
     result
 }
@@ -6943,9 +6967,10 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         return BuiltinOutcome {stdout:out,stderr:format!("warning [{}]:  zipfile is empty\n",unzip_filtered(&arch)),exit_code:1};
     }
     let mut matched_patterns = vec![false; members.len()];
+    let mut matched_exclusions = vec![false; excludes.len()];
     let fold = |name:&String| if case_insensitive { name.to_lowercase() } else { name.clone() };
     let includes:Vec<_>=members.iter().map(fold).collect();
-    let excludes:Vec<_>=excludes.iter().map(fold).collect();
+    let folded_excludes:Vec<_>=excludes.iter().map(fold).collect();
     let selected:Vec<_>=entries.iter().filter(|entry| {
         if includes.is_empty() && excludes.is_empty() {return true;}
         let folded;
@@ -6955,11 +6980,18 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             let Some(first)=includes.iter().position(matches) else {return false;};
             matched_patterns[first]=true;
         }
-        !excludes.iter().any(matches)
+        if let Some(first) = folded_excludes.iter().position(matches) {
+            matched_exclusions[first] = true;
+            false
+        } else { true }
     }).collect();
     let mut unmatched = String::new();
     for (pat,matched) in members.iter().zip(matched_patterns) {
         if !matched { unmatched.push_str(&format!("caution: filename not matched:  {}\n",unzip_filtered(pat))); }
+    }
+    let mut unmatched_exclusions = String::new();
+    for (pat, matched) in excludes.iter().zip(matched_exclusions) {
+        if !matched { unmatched_exclusions.push_str(&format!("caution: excluded filename not matched:  {}\n",unzip_filtered(pat))); }
     }
     let selection_status = if selected.is_empty() || !unmatched.is_empty() && !(names_only || list_table && !effective_pipe) { 11 } else { 0 };
     let count=selected.len();
@@ -6982,7 +7014,10 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                 let size = entry.size as u64;
                 let compressed = entry.payload.len() as u64;
                 total += size; stored += compressed;
-                let date = format_tar_mtime(entry.mtime,false,true);
+                let seconds = entry.mtime.floor() as i64;
+                let (year, month, day) = crate::commands::coreutils::civil_from_days(seconds.div_euclid(86400));
+                let time = seconds.rem_euclid(86400);
+                let date = format!("{month:02}-{day:02}-{year:04} {:02}:{:02}", time / 3600, time % 3600 / 60);
                 let name = unzip_filtered(&entry.name);
                 if verbose_list {
                     let method = match entry.method { 0=>"Stored".into(),8=>"Defl:N".into(),12=>"BZip2".into(),14=>"LZMA".into(),n=>format!("m{n}") };
@@ -7014,13 +7049,14 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
         let status=password_status(bad_passwords,selection_status);
         if test_only {
             out.push_str(&unmatched);
+            out.push_str(&unmatched_exclusions);
             if quiet_level < 2 {
                 if count == 0 && unmatched.is_empty() { writeln!(out,"Caution:  zero files tested in {}.",unzip_filtered(&arch)).unwrap(); }
                 else if status != 0 { writeln!(out,"At least one error was detected in {}.",unzip_filtered(&arch)).unwrap(); }
                 else if !members.is_empty() || !excludes.is_empty() { writeln!(out,"No errors detected in {} for the {count} file{} tested.",unzip_filtered(&arch),if count == 1 { "" } else { "s" }).unwrap(); }
                 else { writeln!(out,"No errors detected in compressed data of {}.",unzip_filtered(&arch)).unwrap(); }
             }
-        } else if !list { stderr.push_str(&unmatched); }
+        } else if !list { stderr.push_str(&unmatched); stderr.push_str(&unmatched_exclusions); }
         return BuiltinOutcome {stdout:out,stderr,exit_code:status};
     }
     {
@@ -7113,8 +7149,10 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
                     if let Some(st) = &existing {
                         if st.kind != File { return Err(format!("unsafe non-regular destination: {}",tar_format::display(&dest))); }
                         if file.as_ref().is_some_and(|(_,input)| st.identity.is_none() || input.identity.is_none()) { return Err("cannot overwrite file with unknown input-archive backing identity".into()); }
-                        // ZIP compares the destination rounded up to the next DOS two-second tick.
-                        if never_overwrite || !renamed && update_mode.is_some() && ((st.mtime_ms / 1000.).floor() / 2.).ceil() * 2. >= entry.mtime {
+                        // Only DOS timestamps require rounding up to the next two-second tick.
+                        let seconds = (st.mtime_ms / 1000.).floor();
+                        let modified = if entry.extended_timestamp { seconds } else { (seconds / 2.).ceil() * 2. };
+                        if never_overwrite || !renamed && update_mode.is_some() && modified >= entry.mtime {
                             continue 'member;
                         }
                         let mut prompt = |text: &str| -> Result<(),String> {
@@ -7197,6 +7235,7 @@ fn cmd_unzip(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bu
             return BuiltinOutcome { stdout: out,stderr,exit_code:2 };
         }
         stderr.push_str(&unmatched);
+        stderr.push_str(&unmatched_exclusions);
         if selection_status != 0 { exit_code = selection_status; }
         exit_code=password_status(bad_passwords,exit_code);
         BuiltinOutcome {

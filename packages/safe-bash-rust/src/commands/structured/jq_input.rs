@@ -13,6 +13,7 @@ pub(super) struct JqInputs<'a> {
     pub remaining_output: usize,
     pub reads_input: bool,
     pub file_error: Option<String>,
+    pub file_input_failed: bool,
 }
 
 struct Diagnostic {
@@ -75,9 +76,38 @@ impl JqInputs<'_> {
         let Some(values) = &mut self.reader else {
             return Ok(None);
         };
-        let result = values.pull(&mut self.warnings, &mut self.remaining_output, &mut self.publish);
+        let mut result = values.pull(&mut self.warnings, &mut self.remaining_output, &mut self.publish);
         if result.is_err() {
             values.done = true;
+        }
+        if let Err((2, error)) = &result
+            && matches!(values.bytes.stdin, Source::Xml(_))
+            && let Some(name) = &values.bytes.name
+            && name != "<stdin>"
+        {
+            let description = match error.split_once(':').map(|(code, _)| code) {
+                Some("ENOENT") => Some("No such file or directory"),
+                Some("EACCES") => Some("Permission denied"),
+                Some("ENOTDIR") => Some("Not a directory"),
+                Some("EISDIR") => Some("Illegal operation on a directory"),
+                Some("ELOOP") => Some("Too many symbolic links encountered"),
+                _ => None,
+            };
+            if let Some(description) = description {
+                let warning = format!("jq: error: Could not open file {}: {description}\n", diagnostic(name, usize::MAX));
+                let fs = values.bytes.fs;
+                self.remaining_output = self.remaining_output.checked_sub(warning.len())
+                    .ok_or_else(|| (5, fs.limit_error("maxOutputBytes", fs.shell_limits().max_output_bytes)))?;
+                self.warnings.push_str(&warning);
+                self.file_input_failed = true;
+                if let Some(publish) = &mut self.publish {
+                    let ok = publish(2, &self.warnings);
+                    self.warnings.clear();
+                    if !ok { return Err((2, String::new())); }
+                }
+                // jq's input source reports an open failure, then XML sees an empty document.
+                result = Err((1, "Invalid XML: incomplete document".into()));
+            }
         }
         match result {
             Err((2, e)) => {
@@ -476,6 +506,7 @@ pub(super) fn files<'a>(
         publish: None,
         reader: Some(values),
         file_error: None,
+        file_input_failed: false,
         warnings: String::new(),
         errors: VecDeque::new(),
         remaining_output,

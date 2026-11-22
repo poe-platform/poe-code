@@ -437,7 +437,7 @@ fn builtin(name: &str, arity: usize) -> bool {
         "abs" | "add" | "arrays" | "ascii_downcase" | "ascii_upcase" | "booleans" | "ceil"
         | "empty" | "env" | "explode" | "fabs" | "floor" | "from_entries" | "fromdate"
         | "fromdateiso8601" | "fromjson" | "gmtime" | "halt" | "implode" | "infinite"
-        | "inputs" | "isfinite" | "isinfinite" | "isnan" | "iterables" | "keys"
+        | "input" | "inputs" | "isfinite" | "isinfinite" | "isnan" | "iterables" | "keys"
         | "keys_unsorted" | "leaf_paths" | "length" | "ltrim" | "max" | "min" | "mktime"
         | "nan" | "not" | "nulls" | "numbers" | "objects" | "reverse" | "round" | "rtrim"
         | "scalars" | "sort" | "sqrt" | "strings" | "to_entries" | "todate" | "todateiso8601"
@@ -830,7 +830,7 @@ impl<'a> Parser<'a, '_> {
                     } else {
                         Cow::Borrowed(tok.text)
                     };
-                    self.reads_input |= name == "inputs";
+                    self.reads_input |= name == "input" || name == "inputs";
                     let mark = self.missing.len();
                     let mut arity = 0;
                     if self.accept("(")? && !self.accept(")")? {

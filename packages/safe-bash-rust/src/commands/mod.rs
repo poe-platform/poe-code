@@ -956,11 +956,8 @@ where
     if matches!(cmd, "awk" | "gawk" | "mawk") {
         return Ok(Some(text::cmd_awk(args, CommandInput { text: stdin, file }, cwd, env, fs, write)));
     }
-    if cmd == "jq" {
-        return structured::cmd_jq(args, CommandInput { text: stdin, file }, cwd, env, fs, write).map(Some);
-    }
-    if cmd == "xq" {
-        return Ok(Some(structured::cmd_xq(args, CommandInput { text: stdin, file }, cwd, env, fs)));
+    if matches!(cmd, "jq" | "xq") {
+        return structured::cmd_jq(cmd, args, CommandInput { text: stdin, file }, cwd, env, fs, write).map(Some);
     }
     if cmd == "ssh" {
         return Ok(Some(archive::cmd_ssh(args, fs)));

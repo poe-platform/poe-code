@@ -800,9 +800,13 @@ pub(crate) fn cmd_jq_with_env(
     utf8_output(cmd_jq_core(args, jq_input::Source::ShellJson(Some(stdin)), cwd, env, fs, None, None))
 }
 
-pub(super) fn cmd_jq(args: &[String], mut stdin: super::CommandInput, cwd: &str, env: &BTreeMap<String,String>, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> Result<BuiltinOutcome, super::CommandFailure> {
+pub(super) fn cmd_jq(cmd: &str, args: &[String], mut stdin: super::CommandInput, cwd: &str, env: &BTreeMap<String,String>, fs: &dyn SafeBashFs, write: &mut super::CommandWriter) -> Result<BuiltinOutcome, super::CommandFailure> {
+    if cmd == "xq" && args.iter().any(|a| crate::vfs::stream_utf8(a).is_err()) {
+        return Ok(err_out("xq: filters and filenames require valid UTF-8\n", 2));
+    }
     let failure = std::cell::RefCell::new(None);
-    let source = if let Some(file) = stdin.file {
+    let source = if cmd == "xq" { jq_input::Source::Xml(Some(stdin)) }
+    else if let Some(file) = stdin.file {
         let failure = &failure;
         jq_input::Source::Stream(Some(Box::new(move |buf| stdin.next_stdin_chunk(buf).inspect_err(|e| {
             if matches!(file.source, super::InputSource::Chunks(_)) { failure.replace(Some(e.clone())); }
@@ -1087,7 +1091,9 @@ fn cmd_jq_core(
             if first_null_done {
                 if drain_xml {
                     loop {
-                        match vars.pop_input() {
+                        let next = vars.pop_input();
+                        stderr.push_str(&std::mem::take(&mut inputs.borrow_mut().warnings));
+                        match next {
                             Ok(Some(_)) => {}
                             Ok(None) => break,
                             Err((code, msg)) => { terminal = diagnostic(&msg); status = code; break; }
@@ -1164,6 +1170,7 @@ fn cmd_jq_core(
                 status = code;
             }
         }
+        if inputs.borrow().file_input_failed { status = 2; }
         if inputs.borrow_mut().flush_errors(&mut stderr, false).is_err() { return err_out(&output_error(), 5); }
         if !inputs.borrow_mut().publish_staged(2, &mut stderr) { return err_out("", 1); }
     }
@@ -2129,7 +2136,7 @@ fn try_eval_jq_builtin(
             return Ok(Some(vec![JVal::Str(res.to_string())]));
         }
         "input" => {
-            if let Some(v) = vars.pop_input().map_err(|(_, e)| e)? {
+            if let Some(v) = vars.pop_input().map_err(|(code, e)| JqFault::Error(code, JVal::Str(e)))? {
                 return Ok(Some(vec![v]));
             }
             return Err("break".into());
@@ -15334,6 +15341,9 @@ async fn eval_xpath_expr<'a>(doc: &XPathDocument<'a>, ctx: usize, pos: usize, la
                 match op {
                     "+" => XPathVal::Num(lhs.to_num_val() + rhs.to_num_val()),
                     "-" => XPathVal::Num(lhs.to_num_val() - rhs.to_num_val()),
+                    "*" => XPathVal::Num(lhs.to_num_val() * rhs.to_num_val()),
+                    "div" => XPathVal::Num(lhs.to_num_val() / rhs.to_num_val()),
+                    "mod" => XPathVal::Num(lhs.to_num_val() % rhs.to_num_val()),
                     "and" => XPathVal::Bool(lhs.to_bool_val() && rhs.to_bool_val()),
                     "or" => XPathVal::Bool(lhs.to_bool_val() || rhs.to_bool_val()),
                     _ => XPathVal::Bool(compare_xpath_vals(&lhs,op,&rhs)),

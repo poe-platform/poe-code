@@ -177,6 +177,9 @@ fn query<'a>(
                     c.skip();
                     let i = c.i;
                     c.name()?;
+                    if !attr && s[c.i..].starts_with("::") {
+                        return Err(c.error());
+                    }
                     if c.take(b':') {
                         c.name()?;
                         if c.byte() == b':' {
@@ -232,6 +235,9 @@ fn query<'a>(
         if !c.take(b'|') {
             break;
         }
+    }
+    if c.byte() == b'*' || s[c.i..].starts_with("div") || s[c.i..].starts_with("mod") {
+        return Ok(Query::Expression(expression(s, spans, link)?));
     }
     if c.i != s.len() {
         return Err(c.error());
@@ -325,7 +331,7 @@ fn expression<'a>(
         if !expecting {
             let begin = c.i;
             match b {
-                b'+' | b'-' => c.i += 1,
+                b'+' | b'-' | b'*' => c.i += 1,
                 b'=' | b'!' | b'<' | b'>' => {
                     c.i += 1;
                     c.take(b'=');
@@ -341,6 +347,7 @@ fn expression<'a>(
                 "=" | "!=" => 3,
                 "<" | "<=" | ">" | ">=" => 4,
                 "+" | "-" => 5,
+                "*" | "div" | "mod" => 6,
                 _ => return Err(c.error()),
             };
             flush(&mut stack, &mut out, p);
@@ -354,7 +361,7 @@ fn expression<'a>(
         }
         let begin = c.i;
         let path = match b {
-            b'/' | b'@' => true,
+            b'/' | b'@' | b'*' => true,
             b'.' => !s.as_bytes().get(c.i + 1).is_some_and(u8::is_ascii_digit),
             b if start(b) => {
                 c.name()?;
@@ -396,6 +403,15 @@ fn expression<'a>(
                     }
                     parens -= 1;
                 } else if brackets == 0 && parens == 0 {
+                    if ch == b'*' {
+                        let mut previous = c.i;
+                        while previous > begin && space(s.as_bytes()[previous - 1]) {
+                            previous -= 1;
+                        }
+                        if previous > begin && !matches!(s.as_bytes()[previous - 1], b'/' | b'@' | b':' | b'|') {
+                            break;
+                        }
+                    }
                     if matches!(ch, b'+' | b',' | b'=' | b'!' | b'<' | b'>') {
                         break;
                     }
@@ -467,4 +483,15 @@ fn expression<'a>(
         return Err(c.error());
     }
     Ok(out)
+}
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn unknown_xpath_axis_reports_its_separator() {
+        for source in ["//a::b", "count(//a::b)"] {
+            assert_eq!(super::compile(source).err().as_deref(), Some("unsupported XPath syntax at offset 3"), "{source}");
+        }
+        assert!(super::compile("//a:b").is_ok());
+    }
 }

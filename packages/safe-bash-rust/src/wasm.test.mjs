@@ -15669,7 +15669,8 @@ test("xmllint compiles XPath paths and predicates before opening XML operands", 
   try {
     for (const store of [fs, rs.fs]) await store.writeFile("/doc", Buffer.from('<r><a n="2"/><a n="4"/></r>'));
     for (const xp of ["/", "//a/@n/b", "//a |", "//a[1", "//:a", "//a::b", " //comment()",
-      "count(//a::b)", "concat(//:q,/)", "string(1,2)", 'concat("🌻",)', "1 mod 2", "(1 + 2) - 3",
+      "count(//a::b)", "concat(//:q,/)", "string(1,2)", 'concat("🌻",)', "1 mod 2", "5 div 2", "3+4*2", "(1 + 2) - 3",
+      "8 div 2 * 3", "-5 mod 2", "5 mod -2", "count(//a[@n*2=4])", "//a[1]/@n*2", "count(/r/*)",
       "1-2-3", "1--2", "not(not(true()))", "count(//a[-number(@n) + 2 = 0])",
       "count( /r / a [ position() = last() ] )", "substring('abcdef', (1+1), 3)"]) {
       for (const file of ["doc", "missing"]) {
@@ -16230,7 +16231,7 @@ test("XML and Markdown queries render private-use text once in results and diagn
       ["xq -r env.V " + n, 0, n + "\n", ""],
       ["xq -c --arg " + n + " val '$ARGS.named' " + n, 0, '{"' + n + '":"val"}\n', ""],
       ["xq --" + n, 2, "", "jq: unsupported option --" + n + "\n"],
-      ["xq . missing" + n, 2, "", "jq: ENOENT: no such file or directory, readStream '/missing" + n + "'\n"],
+      ["xq . missing" + n, 1, "", "jq: error: Could not open file missing" + n + ": No such file or directory\njq: Invalid XML: incomplete document\n"],
       ["mdq . missing" + n, 1, "", 'entity not found while reading file "missing' + n + '"\n'],
     ]) {
       const r = await sh.exec(script);
@@ -16284,7 +16285,7 @@ test("XPath traverses deep document text and restores namespace bindings for lat
     '</n>'.repeat(depth) + '</r>';
   const sh = new RustWasmBash({files: {"/doc": xml}});
   try {
-    for (const [query, expected] of [["count(//n)", String(depth)], ["count(//p:x)", "2"], ["string(/r)", "alphabetawrongomega"]]) {
+    for (const [query, expected] of [["count(//n)", String(depth)], ['count(//*[local-name()="x" and namespace-uri()="urn:outer"])', "2"], ["string(/r)", "alphabetawrongomega"]]) {
       const r = await sh.exec("xmllint --xpath '" + query + "' /doc");
       assert.deepEqual([r.exitCode, r.stdout, r.stderr], [0, expected + "\n", ""], query);
     }

@@ -2284,7 +2284,7 @@ fn cmd_readlink(args: &[String], cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutco
             match result {
                 Ok(t) => { out.push_str(&t); out.push_str(term); }
                 Err(e) => {
-                    if verbose_mode == "verbose" || verbose_mode == "default" && !e.contains("EINVAL") && !e.contains("ENOENT") {
+                    if verbose_mode == "verbose" {
                         err_buf.push_str(&format!("readlink: {e}\n"));
                     }
                     exit_code = 1;

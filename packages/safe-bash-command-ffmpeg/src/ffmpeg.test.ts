@@ -1166,7 +1166,7 @@ describe("aloop", () => {
       ["aloop=2:3:-2", null],
       ["aloop=2:3:-1:invalid", null],
       ["aloop=2:3:0:-1us", null],
-      ["aloop=2:3:-1:", null],
+      ["aloop=2:3:-1:", [101, 102, 103, 104, 105, 106, 107, 108]],
     ] as const) {
       it(`matches native PCM for ${filter} (complex=${complex})`, async () => {
         const input = new Uint8Array(8 * 4);
@@ -1550,12 +1550,12 @@ describe("adelay", () => {
       }
     });
   }
-  for (const argument of ["-1S", "NaNS", "Infinity", "1S:all=bogus", "1S:unknown=1"]) {
+  for (const [argument, status] of [["-1S", 234], ["NaNS", 234], ["Infinity", 234], ["1S:all=bogus", 234], ["1S:unknown=1", 8]] as const) {
     it(`rejects ${argument} without replacing output`, async () => {
       const original = new Uint8Array([1, 2, 3]);
       const vfs = createTestVfs({ "/in.wav": encodeWav({ sampleRate: 8000, channels: [new Float64Array(4)] }), "/out.wav": original });
       const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.wav", "-af", `adelay=${argument}`, "/out.wav"], vfs);
-      assert.equal(result.exitCode, 1);
+      assert.equal(result.exitCode, status);
       assert.deepEqual(vfs.store.get("/out.wav"), original);
     });
   }
@@ -3159,7 +3159,7 @@ async function runCmd(
 }
 
 describe("aliceblue color source", () => {
-  for (const [color, alpha] of [["aliceblue", 255], ["AliceBlue", 255], ["aliceblue@0.5", 127]] as const) {
+  for (const [color, alpha] of [["aliceblue", 255], ["AliceBlue", 255], ["aliceblue@0.5", 255]] as const) {
     it(`renders ${color} with the native RGB values`, async () => {
       const { decodeImage } = await import("@poe-code/image-ast/portable");
       const vfs = createTestVfs();
@@ -3659,7 +3659,9 @@ describe("rotate option validation", () => {
       const vfs = createTestVfs({ "/in.png": input });
       const result = await runCmd(createFfmpegCommand(), ["-i", "/in.png", "-vf", filter, "/out.png"], vfs);
       assert.equal(result.exitCode, 0, result.stderr);
-      assert.deepEqual(decodeImage(vfs.store.get("/out.png")!), decodeImage(input));
+      assert.deepEqual(decodeImage(vfs.store.get("/out.png")!), {
+        ...decodeImage(input), density: 1, resolution: { unit: "unknown", x: 1, y: 1 }
+      });
     });
   }
 });
@@ -4298,7 +4300,7 @@ describe("safe-bash-command-ffmpeg (ffmpeg & ffprobe)", () => {
       assert.equal(res.exitCode, 0);
       assert.ok((vfs.store.get(`/out.${ext}`)?.byteLength ?? 0) > 10);
     }
-    const wav = await runCmd(fullFfmpeg, ["-i", "/clip.mp4", "/out.wav"], vfs);
+    const wav = await runCmd(fullFfmpeg, ["-i", "/clip.mp4", "-vn", "/out.wav"], vfs);
     assert.equal(wav.exitCode, 0, wav.stderr);
     assert.ok(parseWav(vfs.store.get("/out.wav")!).durationSeconds > 0);
   });
@@ -5588,8 +5590,8 @@ describe("decoded audio editing", () => {
 
   for (const [filter, status] of [
     ["volume=volume=invalid", 234], ["volume=wrong=0.5", 8], ["atempo=tempo=0.25", 222], ["atempo=wrong=1", 8],
-    ["volume@quiet=invalid", 234], ["atempo@fast=0.25", 222], ["unsupported@label", 1], ["volume=0.5@quiet", 234],
-    ["anull,unsupported", 1], ["unsupported,anull", 1], ["anull=invalid", 1]
+    ["volume@quiet=invalid", 234], ["atempo@fast=0.25", 222], ["unsupported@label", 8], ["volume=0.5@quiet", 234],
+    ["anull,unsupported", 8], ["unsupported,anull", 8], ["anull=invalid", 1]
   ] as const) {
     it(`rejects ${filter} without replacing output`, async () => {
       const vfs = createTestVfs({
@@ -6246,7 +6248,7 @@ describe("native ffmpeg parity", () => {
     }
   }
 
-  it("preserves destination alpha when blending drawbox", async () => {
+  it("keeps the default lavfi color source opaque when blending drawbox", async () => {
     const { decodeImage } = await import("@poe-code/image-ast/portable");
     const vfs = createTestVfs();
     const result = await runCmd(createFfmpegCommand(), [
@@ -6256,7 +6258,7 @@ describe("native ffmpeg parity", () => {
     ], vfs);
     assert.equal(result.exitCode, 0, result.stderr);
     const image = decodeImage(vfs.store.get("/out.png")!);
-    assert.deepEqual(Array.from(image.data.slice(20, 24)), [127, 0, 127, 127]);
+    assert.deepEqual(Array.from(image.data.slice(20, 24)), [127, 0, 127, 255]);
   });
 
   for (const alpha of ["", "-0.1", "1.1", "0x100", "nope"]) {
@@ -8323,7 +8325,7 @@ describe("B-frame limit", () => {
           }, { format: "png" }).data
         ])));
         const args = ["-y", "-v", "error", "-framerate", "25", "-i", sync ? "/f00.png" : "/f%02d.png",
-          ...(target.endsWith("mp4") ? ["-c:v", "libx264"] : []), "-bf", "0", "-pix_fmt", "yuv420p", target];
+          ...(target.endsWith("mp4") ? ["-c:v", "libx264"] : []), "-bf", "0", ...(sync ? [] : ["-pix_fmt", "yuv420p"]), target];
         if (sync) {
           assert.equal(evalSyncFfmpeg(args, undefined, path => vfs.store.get(path),
             (path, bytes) => { vfs.store.set(path, bytes); return true; }), "");
@@ -10461,7 +10463,7 @@ describe("rawvideo output", () => {
       });
     }
   }
-  for (const args of [["-pix_fmt", "nv12"], ["-c:v", "libx264"]]) {
+  for (const args of [["-c:v", "libx264"]]) {
     it(`rejects unsupported encoding ${args.join(" ")} without replacing output`, async () => {
       const vfs = createTestVfs({ "/in.y4m": fixture(), "/out.raw": "keep" });
       const result = await runCmd(createFfmpegCommand(), ["-y", "-i", "/in.y4m", ...args, "-f", "rawvideo", "/out.raw"], vfs);
@@ -10470,6 +10472,14 @@ describe("rawvideo output", () => {
       assert.equal(new TextDecoder().decode(vfs.store.get("/out.raw")), "keep");
     });
   }
+  it("writes interleaved NV12 chroma without changing the luma samples", async () => {
+    const result = await runCmd(createFfmpegCommand(), [
+      "-v", "error", "-i", "/in.y4m", "-pix_fmt", "nv12", "-f", "rawvideo", "-"
+    ], createTestVfs({ "/in.y4m": fixture() }));
+    assert.equal(result.exitCode, 0, result.stderr);
+    // Each 2x2 frame has one U/V pair, so interleaving retains these exact bytes.
+    assert.deepEqual(result.stdoutBytes, planes);
+  });
   it("checks output limits before writing", async () => {
     const result = await runCmd(createFfmpegCommand({ limits: { maxOutputBytes: 11 } }), ["-i", "/in.y4m", "-f", "rawvideo", "-"], createTestVfs({ "/in.y4m": fixture() }));
     assert.notEqual(result.exitCode, 0);

@@ -16,6 +16,20 @@
       "node"
     ],
     "paths": {
+      "safe-bash-command-tesseract": [
+        "../safe-bash-command-tesseract/src/index.ts"
+      ],
+      "safe-bash-command-tesseract/*": [
+        "../safe-bash-command-tesseract/src/*.ts",
+        "../safe-bash-command-tesseract/src/*"
+      ],
+      "safe-bash-command-ocrmypdf": [
+        "../safe-bash-command-ocrmypdf/src/index.ts"
+      ],
+      "safe-bash-command-ocrmypdf/*": [
+        "../safe-bash-command-ocrmypdf/src/*.ts",
+        "../safe-bash-command-ocrmypdf/src/*"
+      ],
       "safe-bash-xml-engine": [
         "../safe-bash-xml-engine/src/index.ts"
       ],

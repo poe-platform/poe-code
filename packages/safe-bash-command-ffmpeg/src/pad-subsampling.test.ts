@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { it } from "node:test";
 import { Volume } from "memfs";
@@ -54,17 +54,11 @@ it("preserves odd pad offsets for RGBA video and PNG images", async () => {
   }
 });
 
-const nativeAvailable = spawnSync("ffmpeg", ["-version"]).status === 0;
-it("matches native FFmpeg for odd YUV420 pad offsets", { skip: !nativeAvailable }, async () => {
-  const filter = "pad=80:60:5:5:black";
-  const output = await pad(filter);
-  const native = spawnSync("ffmpeg", [
-    "-v", "error", "-i", "pipe:0", "-vf", filter,
-    "-frames:v", "1", "-pix_fmt", "rgba", "-f", "rawvideo", "pipe:1"
-  ], { input });
-  assert.equal(native.status, 0, native.stderr.toString());
-  assert.equal(output.data.length, native.stdout.length);
-  for (let i = 0; i < output.data.length; i++) {
-    assert.ok(Math.abs(output.data[i]! - native.stdout[i]!) <= 1, `channel ${i}`);
-  }
+// FFmpeg n9.0.2-61-gd59078794d linuxarm64-gpl-9.0, raw RGBA output.
+// Archive SHA-256: beed6cce0226be087e78c691c15ec91e48f78ab2ca6aca0a017365ad9b19eb92.
+it("matches native AArch64 FFmpeg for odd YUV420 pad offsets", async () => {
+  const output = await pad("pad=80:60:5:5:black");
+  assert.equal(output.data.length, 80 * 60 * 4);
+  assert.equal(createHash("sha256").update(output.data).digest("hex"),
+    "91ef47d9cee84c1c65ebb9a6ee1bf2a2d70a5f2c5bf76b86cd57e702171033db");
 });

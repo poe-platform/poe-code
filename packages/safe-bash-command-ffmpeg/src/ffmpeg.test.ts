@@ -3393,6 +3393,17 @@ describe("pad chroma dimensions", () => {
         const grid = source === "yuv420p" ? 2 : 1;
         assert.equal(output.width, Math.floor(width / grid) * grid);
         assert.equal(output.height, Math.floor(height / grid) * grid);
+        if (source === "yuv420p") {
+          // AArch64 FFmpeg 9.0.2-61 raw RGBA. Changing the padded width can
+          // select a different swscale conversion kernel; compare the full result.
+          const digest = {
+            "65:49:0:0": "68986c03462fedd147eef9959cb52a43873aaf4e114e500e0021fd849da2d00d",
+            "68:52:1:1": "2c599cb2bd8daaf03d8a487eb88e050bb900825ed95a4cdfe0a4f91eb2a12d1e",
+            "69:53:(ow-iw)/2:(oh-ih)/2": "752de5c189a4abc8c7b5f35f70f8781f242c9acdea2c2abd817bee81c7cbfb88"
+          }[size];
+          assert.equal(createHash("sha256").update(output.data).digest("hex"), digest);
+          return;
+        }
         const offset = Math.floor(position / grid) * grid;
         const decoded = decodeImage(vfs.store.get("/original.png")!);
         for (let y = 0; y < output.height; y++) {

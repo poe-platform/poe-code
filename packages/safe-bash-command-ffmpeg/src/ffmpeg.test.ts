@@ -1390,6 +1390,7 @@ describe("asetnsamples", () => {
       const result = await runCmd(createFfmpegCommand(), ["-i", "/in.wav", "-af", filter, "/out.wav"], vfs);
       assert.equal(result.exitCode, 0, result.stderr);
       const lines = result.stderr.trim().split("\n");
+      assert.equal(lines.shift(), "ffmpeg: Guessed Channel Layout: mono");
       assert.equal(lines.length, frames.length);
       for (const [n, [pts, size]] of frames.entries()) {
         assert.ok(lines[n]!.includes(`n:${n} pts:${pts} `), lines[n]);
@@ -2236,7 +2237,7 @@ it("detects incomplete multichannel and floating-point PCM frames", async () => 
       assert.equal(parseWav(bytes).tracks[0]!.decodedAudio!.channelData[0]!.length, 3);
       const copied = await runCmd(createFfmpegCommand(), ["-i", "/input.wav", "-c:a", "copy", "-f", "null", "-"], vfs);
       assert.equal(copied.exitCode, 0);
-      assert.equal(copied.stderr, "");
+      assert.equal(copied.stderr, channels === 1 ? "ffmpeg: Guessed Channel Layout: mono\n" : "");
     }
   }
 });

@@ -13128,16 +13128,19 @@ test("awk keeps source-file bytes and parses the program before opening debugger
   } finally { sh.dispose(); }
 });
 
-test("awk rejects non-finite arithmetic and math functions before subsequent writes", async () => {
+test("awk rejects non-finite arithmetic but preserves non-finite math function results", async () => {
   const sh = new RustWasmBash();
   try {
     for (const [expr, error] of [
       ["2^1024","non-finite arithmetic result"], ["x=1e308; x*=10","non-finite arithmetic result"],
-      ["(-1)^0.5","non-finite arithmetic result"], ["sqrt(-1)","invalid mathematical result in 'sqrt'"],
-      ["log(0)","invalid mathematical result in 'log'"], ["exp(1000)","invalid mathematical result in 'exp'"],
+      ["(-1)^0.5","non-finite arithmetic result"],
     ]) {
       const r = await sh.exec("awk 'BEGIN{print 1;"+expr+";print 2}END{print 3}'");
       assert.deepEqual([r.exitCode,r.stdout,r.stderr],[2,"1\n","awk: "+error+"\n"],expr);
+    }
+    for (const [expr,value] of [["sqrt(-1)","nan"],["log(0)","-inf"],["exp(1000)","inf"]]) {
+      const r=await sh.exec("awk 'BEGIN{print 1;print "+expr+";print 2}END{print 3}'");
+      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,"1\n"+value+"\n2\n3\n",""],expr);
     }
   } finally { sh.dispose(); }
 });

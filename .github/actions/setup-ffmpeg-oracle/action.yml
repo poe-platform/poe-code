@@ -1,0 +1,30 @@
+name: Set up FFmpeg oracle
+description: Extract the checksum-pinned native media FFmpeg distribution for fresh reference tests
+runs:
+  using: composite
+  steps:
+    - name: Verify and extract FFmpeg
+      shell: bash
+      run: |
+        set -euo pipefail
+        oracle_root="$GITHUB_WORKSPACE/out/ffmpeg-oracle"
+        mkdir -p "$oracle_root"
+        node --input-type=module <<'JS'
+        import { createHash } from 'node:crypto';
+        import { readFileSync, writeFileSync } from 'node:fs';
+        const lock = JSON.parse(readFileSync('packages/safe-bash-media-engine/server/container-lock.json', 'utf8'));
+        const artifact = lock.artifacts.find(item => item.path.endsWith('/ffmpeg.tar.xz'));
+        const response = await fetch(artifact.url);
+        if (!response.ok) throw new Error(`FFmpeg oracle download failed: ${response.status} ${response.statusText}`);
+        const bytes = Buffer.from(await response.arrayBuffer());
+        if (bytes.length !== artifact.bytes || createHash('sha256').update(bytes).digest('hex') !== artifact.sha256) {
+          throw new Error('FFmpeg oracle digest/length mismatch');
+        }
+        writeFileSync('out/ffmpeg-oracle/ffmpeg.tar.xz', bytes);
+        JS
+        tar -xJf "$oracle_root/ffmpeg.tar.xz" --wildcards --strip-components=2 \
+          -C "$oracle_root" '*/bin/ffmpeg' '*/bin/ffprobe'
+        rm "$oracle_root/ffmpeg.tar.xz"
+        "$oracle_root/ffmpeg" -version
+        "$oracle_root/ffprobe" -version
+        echo "$oracle_root" >> "$GITHUB_PATH"

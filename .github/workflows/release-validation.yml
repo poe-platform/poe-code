@@ -223,17 +223,12 @@ jobs:
           printf '%s  %s\n' "$BUILD_SHA256" "$RUNNER_TEMP/poe-build/build.tar" | sha256sum --check --status
           tar -xf "$RUNNER_TEMP/poe-build/build.tar"
           npm --workspace=safe-bash-contracts run build
-      - name: Install native test tools
+      - name: Install Zsh for native completion tests
         run: |
           sudo apt-get update
           sudo apt-get install --yes zsh
           test -x /bin/zsh
-          mkdir -p out/ffmpeg-oracle
-          curl --fail --location --retry 3 https://github.com/FFmpeg-Builds/FFmpeg-Builds/releases/download/autobuild-2026-11-21-12-37/ffmpeg-n9.0.2-61-gd59078794d-linux64-gpl-9.0.tar.xz -o out/ffmpeg-oracle/archive.tar.xz
-          echo '010499a8a9855e477b1a0ebfa9602832526ec80eb306b58213a2b6cda7149607  out/ffmpeg-oracle/archive.tar.xz' | sha256sum --check --status
-          tar -xJf out/ffmpeg-oracle/archive.tar.xz -C out/ffmpeg-oracle --strip-components=1
-          "$PWD/out/ffmpeg-oracle/bin/ffmpeg" -version
-          echo "$PWD/out/ffmpeg-oracle/bin" >> "$GITHUB_PATH"
+      - uses: ./.github/actions/setup-ffmpeg-oracle
       - uses: ./.github/actions/setup-imagemagick-oracle
       - name: Identify cache runtime
         run: node -e 'console.log("POE_CI_RUNTIME=" + JSON.stringify({versions:process.versions,platform:process.platform,arch:process.arch,image:process.env.ImageOS,imageVersion:process.env.ImageVersion}))' >> "$GITHUB_ENV"

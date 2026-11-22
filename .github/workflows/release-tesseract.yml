@@ -66,24 +66,29 @@ jobs:
         with:
           node-version: 22
           registry-url: https://registry.npmjs.org
+      - name: Use npm with trusted publishing support
+        run: npm install --global npm@^11.5.1
       - uses: actions/download-artifact@v4
         with:
           pattern: tesseract-*
           path: out/tesseract-release
       - name: Publish native packages, then bindings and CLIs
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # Bootstrap only: remove this secret once all five packages trust this workflow.
+          NODE_AUTH_TOKEN: ${{ secrets.TESSERACT_NPM_TOKEN }}
         shell: bash
         run: |
           set -euo pipefail
           for platform in darwin-arm64 darwin-x64 linux-arm64 linux-x64 js; do
             directory="out/tesseract-release/tesseract-$platform"
-            package=$(node -p "const p=require('./$directory/package.json'); p.name+'@'+p.version")
-            if npm view "$package" version >/dev/null 2>&1; then
-              echo "$package is already published"
-            else
-              npm publish "./$directory" --provenance --access public
-            fi
+            name=$(node -p "require('./$directory/package.json').name")
+            version=$(node -p "require('./$directory/package.json').version")
+            status=$(curl --silent --show-error --output /dev/null --write-out '%{http_code}' "https://registry.npmjs.org/$name/$version")
+            case "$status" in
+              200) echo "$name@$version is already published" ;;
+              404) npm publish "./$directory" --provenance --access public ;;
+              *) echo "::error::Registry lookup failed for $name@$version (HTTP $status)"; exit 1 ;;
+            esac
           done
       - name: Verify fresh public install and both CLIs
         shell: bash

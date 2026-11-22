@@ -4930,15 +4930,21 @@ test("gzip compresses repeated bytes and interoperates with an independent decod
   }
 });
 
-test("WASM Bash forceNative rejects incomplete long listings but preserves literal -l filenames", async () => {
+test("WASM Bash forceNative returns long listings and preserves literal -l filenames", async () => {
   const bash = new RustWasmBash({ forceNative: true, cwd: "/work" });
   await bash.fs.mkdir("/work", { recursive: true });
   await bash.fs.writeFile("/work/-l", "twelve bytes");
-  for (const flags of ["-l", "-la", "-lh", "-g", "-o", "-n"]) {
+  for (const flags of ["-l", "-la", "-ld", "-lh"]) {
     const result = await bash.exec(`ls ${flags} -- -l`);
-    assert.notEqual(result.exitCode, 0);
+    assert.equal(result.exitCode, 0, result.stderr);
+    assert.equal(result.stderr, "");
+    assert.match(result.stdout, /^-[rwx-]{9} 1 0 0 12 \d{4}-\d{2}-\d{2} \d{2}:\d{2} -l\n$/);
+  }
+  for (const flag of ["g", "o", "n"]) {
+    const result = await bash.exec(`ls -${flag} -- -l`);
+    assert.equal(result.exitCode, 2);
     assert.equal(result.stdout, "");
-    assert.match(result.stderr, /requires the TypeScript safe-bash bridge/);
+    assert.equal(result.stderr, `ls: invalid option -- '${flag}'\n`);
   }
   const result = await bash.exec("ls -- -l");
   assert.equal(result.exitCode, 0, result.stderr);

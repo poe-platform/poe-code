@@ -887,7 +887,10 @@
       ]
     },
     "@poe-platform/tesseract#build": {
-      "cache": false
+      "cache": false,
+      "dependsOn": [
+        "^build"
+      ]
     }
   }
 }

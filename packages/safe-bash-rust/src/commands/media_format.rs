@@ -14,7 +14,7 @@ pub(super) const FORMATS: &[(&str, &str, &str, &[&str])] = &[
     ("avi", "avi", "AVI (Audio Video Interleaved)", &["avi"]),
     ("flv", "flv", "FLV (Flash Video)", &["flv"]),
     ("y4m", "yuv4mpegpipe", "YUV4MPEG pipe", &["y4m"]),
-    ("aac", "aac", "raw ADTS AAC (Advanced Audio Coding)", &["aac"]),
+    ("aac", "aac,adts", "raw ADTS AAC (Advanced Audio Coding)", &["aac"]),
     ("wav", "wav", "WAV / WAVE (Waveform Audio)", &["wav", "wave"]),
     ("mp3", "mp3", "MP2/3 (MPEG audio layer 2/3)", &["mp3"]),
     ("flac", "flac", "raw FLAC", &["flac"]),

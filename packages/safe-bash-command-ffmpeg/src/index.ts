@@ -2889,7 +2889,7 @@ async function resolveAudioGraph(graph: string, docs: MediaDocument[], maps: str
     throw new Error("Unsupported audio filter output map");
   }
   if (!outputs.length && unlabeled.length && !maps.length) {
-    return { outputs: selectAutomaticStreams(docs).flatMap(doc => doc.tracks)
+    return { outputs: selectAutomaticStreams(docs, undefined).flatMap(doc => doc.tracks)
       .filter(track => track.type === "audio").map(track => ({ track, expression: "" })),
       sinks: await Promise.all(sinks.map(label => resolve(label))), invalidData };
   }
@@ -7931,7 +7931,7 @@ function applyStreamDispositions(tracks: readonly MediaTrack[], dispositions: re
   return tracks;
 }
 
-function selectAutomaticStreams(documents: readonly MediaDocument[]): MediaDocument[] {
+function selectAutomaticStreams(documents: readonly MediaDocument[], output: MediaAstPlugin | undefined): MediaDocument[] {
   let selected: MediaTrack | undefined;
   let bestScore = -1;
   let video: MediaTrack | undefined;
@@ -7955,7 +7955,11 @@ function selectAutomaticStreams(documents: readonly MediaDocument[]): MediaDocum
   return documents.map(document => ({
     ...document,
     attachments: [],
-    tracks: document.tracks.filter(track => track.type === "video" ? track === video : track.type !== "audio" || track === selected)
+    tracks: document.tracks.filter(track => {
+      if (track.type === "video") return output?.supportedVideoCodecs.length !== 0 && track === video;
+      if (track.type === "audio") return output?.supportedAudioCodecs.length !== 0 && track === selected;
+      return true;
+    })
   }));
 }
 
@@ -9811,7 +9815,7 @@ export function evalSyncFfmpeg(
     if (outPlugin?.id === "image2" && outputStartNumber !== undefined && outputStartNumber > 2147483647) return undefined;
     // These formats have no usable default subtitle encoder for automatic selection.
     if (subtitleCodec === undefined && (outPlugin?.id === "mp4" || outPlugin?.id === "mov" || outPlugin?.id === "microdvd")) stripSubtitles = true;
-    let workingDoc = muxMp4(selectAutomaticStreams(loadedDocs), { stripAudio, stripVideo, stripSubtitles });
+    let workingDoc = muxMp4(selectAutomaticStreams(loadedDocs, outPlugin), { stripAudio, stripVideo, stripSubtitles });
     if (shortest) workingDoc = limitCopyPackets(workingDoc, [], { video: videoCodec, audio: audioCodec, subtitle: subtitleCodec }, true);
     if (workingDoc.tracks.length === 0 && outPlugin?.id !== "ffmetadata") return undefined;
     validateAudioEncoder(audioCodec, workingDoc, astPlugins);
@@ -13394,7 +13398,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                 vfFilters.push(decimateGraph.expression);
               } else if (filterComplex.includes("showwavespic")) {
                 const automaticAudio = frameChecksumOutput && !maps.length && !stripAudio
-                  ? selectAutomaticStreams(loadedDocs).flatMap(doc => doc.tracks).find(track => track.type === "audio")
+                  ? selectAutomaticStreams(loadedDocs, outPlugin).flatMap(doc => doc.tracks).find(track => track.type === "audio")
                   : undefined;
                 let expression = filterComplex.trim();
                 let input: string;
@@ -14215,7 +14219,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
               const attachments = streams.filter((stream): stream is MediaAttachment => !("samples" in stream));
               if (!mapped) {
                 // Ignored optional maps leave automatic video/audio selection enabled.
-                const tracks = selectAutomaticStreams(loadedDocs).flatMap(doc => doc.tracks);
+                const tracks = selectAutomaticStreams(loadedDocs, outPlugin).flatMap(doc => doc.tracks);
                 for (const type of ["video", "audio"] as const) {
                   const track = tracks.find(track => track.type === type);
                   if (track) filteredTracks.push(track);
@@ -14229,7 +14233,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             } else {
               // Explicit maps retain their requested streams.
               if (subtitleCodec === undefined && (outPlugin?.id === "mp4" || outPlugin?.id === "mov" || outPlugin?.id === "microdvd")) stripSubtitles = true;
-              workingDoc = await muxMp4Cooperatively(selectAutomaticStreams(loadedDocs), {
+              workingDoc = await muxMp4Cooperatively(selectAutomaticStreams(loadedDocs, outPlugin), {
                 stripAudio,
                 stripVideo,
                 stripSubtitles

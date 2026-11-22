@@ -245,7 +245,7 @@ class RstWriter {
           if(!rows.length || !t[2].length) this.fail("Empty table", p);
           break;
         }
-        case "Vector": this.fail("Vector requires JSON, DOCX, or PDF output", p);
+        case "Vector": return this.fail("Vector requires JSON, DOCX, or PDF output", p);
         default: assertNever(node);
       }
       if(!text && !["Plain", "Para", "Div", "Figure"].includes(node.t)) this.fail("Empty RST structural container", p);

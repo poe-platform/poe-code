@@ -3,7 +3,7 @@ import type { MediaBudgetTracker } from "@poe-code/mp4-ast";
 
 import { parseFilterExpression } from "./filter-expression.js";
 import { transform } from "./audio-fft.js";
-import doubleTables from "./audio-dialogue-double-tables.json" with { type: "json" };
+import { decodeDialogueTable } from "./audio-dialogue-double-tables.js";
 import { dialogueDoubleTransform } from "./audio-dialogue-double-fft.js";
 import { dialogueSpectrum } from "./audio-dialogue-fft.js";
 
@@ -27,9 +27,7 @@ export async function enhanceDialogue(
   const window = double ? new Float64Array(size) : Float32Array.from({ length: size }, (_, i) => Math.sin(Math.fround(Math.PI * i / (size - 1))));
   const doubleCosine = double ? new Float64Array(size / 4 + 1) : undefined;
   if (double) {
-    const windowBytes = Uint8Array.from(atob(doubleTables[size]), character => character.charCodeAt(0));
-    const cosineBytes = Uint8Array.from(atob(doubleTables.cosine), character => character.charCodeAt(0));
-    const windowData = new DataView(windowBytes.buffer), cosineData = new DataView(cosineBytes.buffer);
+    const windowData = decodeDialogueTable(size), cosineData = decodeDialogueTable("cosine");
     for (let i = 0; i < size; i++) window[i] = windowData.getFloat64(i * 8, true);
     for (let i = 0; i <= size / 4; i++) doubleCosine![i] = cosineData.getFloat64(i * (8192 / size) * 8, true);
   }

@@ -11,6 +11,7 @@ fn union(a: Rect, b: Rect) -> Rect {
         a[3].max(b[3]),
     ]
 }
+
 pub(in crate::commands::archive) struct TextOptions {
     pub resolution: f64,
     pub crop: [Option<f64>; 4],
@@ -500,7 +501,7 @@ impl TextPage {
         &self,
         raw: bool,
         layout: bool,
-        rejoin: bool,
+        rejoin: &str,
     ) -> String {
         if layout && !raw {
             let mut lines: Vec<_> = self.blocks.iter().flat_map(|b| &b.lines).collect();
@@ -589,8 +590,8 @@ impl TextPage {
             }
             for (l, line) in block.lines.iter().enumerate() {
                 if l > 0 {
-                    if rejoin
-                        && out.ends_with('-')
+                    if rejoin != "none"
+                        && (out.ends_with('\u{ad}') || (rejoin == "all" && out.ends_with('-')))
                         && line.words[0]
                             .text
                             .as_bytes()
@@ -611,5 +612,39 @@ impl TextPage {
             }
         }
         out
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::{Block, Line, TextPage, Word};
+
+    #[test]
+    fn logical_hyphens_respect_mode_case_and_block_boundaries() {
+        for hyphen in ["-", "\u{ad}"] {
+            for mode in ["none", "soft", "all"] {
+                for next in ["ation", "Ation"] {
+                    for separate_blocks in [false, true] {
+                        let line = |text: String| Line {
+                            words: vec![Word { text, bounds: [0.; 4] }],
+                            bounds: [0.; 4], baseline: 0., size: 12.,
+                        };
+                        let mut first = Block { lines: vec![line(format!("hyphen{hyphen}"))], bounds: [0.; 4] };
+                        let second = line(next.to_owned());
+                        let blocks = if separate_blocks {
+                            vec![first, Block { lines: vec![second], bounds: [0.; 4] }]
+                        } else {
+                            first.lines.push(second);
+                            vec![first]
+                        };
+                        let page = TextPage { width: 100., height: 100., blocks };
+                        let joined = !separate_blocks && next == "ation" && (mode == "all" || (mode == "soft" && hyphen == "\u{ad}"));
+                        let expected = if joined { "hyphenation".to_owned() }
+                            else { format!("hyphen{hyphen}{}{next}", if separate_blocks { "\n\n" } else { "\n" }) };
+                        assert_eq!(page.plain(false, false, mode), expected, "{hyphen:?} {mode} {next} blocks={separate_blocks}");
+                    }
+                }
+            }
+        }
     }
 }

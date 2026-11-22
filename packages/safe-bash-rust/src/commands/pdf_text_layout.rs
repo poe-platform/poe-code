@@ -726,7 +726,7 @@ impl<'a> PageSource<'a> {
                 ..
             } = event
             {
-                text_bounds?;
+                let text_bounds = text_bounds?;
                 let decoded = if let Some(value)=unicode {std::borrow::Cow::Borrowed(value)}
                     else if matches!(program,Program::CidTrueType{..}) {return None;}
                     else {std::borrow::Cow::Owned(text(&[u8::try_from(code).ok()?]))};
@@ -755,11 +755,13 @@ impl<'a> PageSource<'a> {
                 let y = if y == 0. {0.} else {y};
                 let right = x + advance;
                 // Keep page-space bounds for HTML and other layout consumers.
+                let descent = text_bounds[1] - py;
+                let ascent = text_bounds[3] - py;
                 let corners = [
-                    [px + uy * size * 0.2, py - ux * size * 0.2],
-                    [px - uy * size * 0.8, py + ux * size * 0.8],
-                    [ex + uy * size * 0.2, ey - ux * size * 0.2],
-                    [ex - uy * size * 0.8, ey + ux * size * 0.8],
+                    [px - uy * descent, py + ux * descent],
+                    [px - uy * ascent, py + ux * ascent],
+                    [ex - uy * descent, ey + ux * descent],
+                    [ex - uy * ascent, ey + ux * ascent],
                 ];
                 let bounds = [
                     corners.iter().map(|p| p[0]).fold(f64::INFINITY, f64::min),

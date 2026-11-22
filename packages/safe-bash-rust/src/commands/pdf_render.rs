@@ -1067,7 +1067,10 @@ pub(in super::super) fn render_html(
                 PageResource::Font(font) => {
                     fonts += 1;
                     write!(resources, "\n/F{fonts} {id} 0 R").unwrap();
-                    bodies.push(format!("<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /{font}\n/Encoding /WinAnsiEncoding\n>>").into_bytes());
+                    let widths = (32..=255).map(|code| {
+                        if *font == "Courier" { 600 } else { super::pdf_copy::WIDTHS[usize::from(font.contains("Bold"))][code] }
+                    }).map(|width| width.to_string()).collect::<Vec<_>>().join(" ");
+                    bodies.push(format!("<<\n/Type /Font\n/Subtype /Type1\n/BaseFont /{font}\n/Encoding /WinAnsiEncoding\n/FirstChar 32\n/LastChar 255\n/Widths [ {widths} ]\n>>").into_bytes());
                 }
                 PageResource::Link(body) => {
                     write!(annots, "{id} 0 R ").unwrap();

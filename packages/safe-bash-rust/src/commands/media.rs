@@ -8783,7 +8783,8 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
     let mut bbox_layout = false;
     let mut tsv_mode = false;
     let mut htmlmeta = false;
-    let mut rejoin = true;
+    let mut rejoin = "all";
+    let mut invalid_remove_hyphens = false;
     let mut urls_mode = false;
     let mut layout = false;
     let mut raw = false;
@@ -8884,15 +8885,12 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                 i += 2;
             }
             "-remove-hyphens" => {
-                if let Some(nxt) = args.get(i + 1) && !nxt.starts_with('-') {
-                    rejoin = nxt != "no";
-                    if !matches!(nxt.as_str(), "yes" | "no" | "auto") {
-                        return err_out("Bad '-remove-hyphens' value on command line\n", 99);
-                    }
-                    i += 2;
+                if let Some(mode @ ("all" | "none" | "soft")) = args.get(i + 1).map(String::as_str) {
+                    rejoin = mode;
                 } else {
-                    rejoin = true; i += 1;
+                    invalid_remove_hyphens = true;
                 }
+                i += 2;
             }
             "-bbox" => {
                 bbox_mode = true;
@@ -8963,6 +8961,9 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
     }
     if urls_mode && (htmlmeta || bbox_mode || tsv_mode) {
         return err_out(&format!("{warn_prefix}Command Line Error: '-urls' is not supported with HTML or TSV output\n"), 99);
+    }
+    if invalid_remove_hyphens && !help && !version && !listenc {
+        return err_out(if quiet { warn_prefix.to_string() } else { format!("{warn_prefix}Command Line Error: Invalid '-remove-hyphens' value\n") }.as_str(), 99);
     }
     if pos.len() > 2 {
         return err_out(if quiet { warn_prefix.to_string() } else { format!("{warn_prefix}Usage: pdftotext [options] [PDF-file [text-file]]\n") }.as_str(), 99);
@@ -9101,7 +9102,7 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
         for (pno, pg) in &selected_pages {
             let mut t = if let Some(source) = &mut source {
                 let Some(page) = source.spatial_text(*pno,&text_options) else {return err_out(if quiet {""}else{"PDF text geometry limit or unsupported font encoding\n"},1);};
-                page.plain(raw,layout,!raw&&rejoin)
+                page.plain(raw,layout,if raw { "none" } else { rejoin })
             } else { pg.text.clone() };
             if layout && !raw && source.is_none() { t = t.replace("\n\n", "\n"); }
             if urls_mode {
@@ -9200,12 +9201,14 @@ fn cmd_pdftotext(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
 
 fn cmd_pdftohtml(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
     let mut xml_mode = false;
+    let mut single_document = false;
+    let mut font_full_name = false;
     let mut to_stdout = false;
     let mut ignore_images = false;
     let mut data_urls = false;
     let mut first_p = 1.0;
     let mut last_p = 0.0;
-    let mut zoom = 1.0f64;
+    let mut zoom = 1.5f64;
     let mut image_fmt = "png";
     let mut pos: Vec<String> = Vec::new();
     let mut after_dd = false;
@@ -9230,6 +9233,8 @@ fn cmd_pdftohtml(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
         }
         match a {
             "-xml" => xml_mode = true,
+            "-s" => single_document = true,
+            "-fontfullname" => font_full_name = true,
             "-stdout" => to_stdout = true,
             "-i" => ignore_images = true,
             "-dataurls" => data_urls = true,
@@ -9268,7 +9273,7 @@ fn cmd_pdftohtml(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
             "-upw" | "-opw" => {
                 i += 1;
             }
-            "-s" | "-noframes" | "-c" | "-p" | "-q" | "-hidden" | "-nomerge" | "-nodrm" => {}
+            "-noframes" | "-c" | "-p" | "-q" | "-hidden" | "-nomerge" | "-nodrm" => {}
             _ if !a.starts_with('-') || a == "-" => {
                 pos.push(a.to_string());
             }
@@ -9397,8 +9402,10 @@ fn cmd_pdftohtml(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                     let key = (run.family.to_string(), (run.size * zoom).round().max(1.) as i64);
                     let id = font_ids.entry(key.clone()).or_insert_with(|| { fonts.push(key); fonts.len()-1 });
                     format!(r#"    <text top="{top}" left="{left}" width="{width}" height="{height}" font="{id}">{inner}</text>"#)
-                } else {
+                } else if single_document {
                     format!(r#"  <p style="position:absolute;top:{top}pt;left:{left}pt;margin:0;">{inner}</p>"#)
+                } else {
+                    format!("{inner}<br/>")
                 });
             }
         } else if let Some(pg) = doc.pages.get(pno - 1) {
@@ -9410,8 +9417,10 @@ fn cmd_pdftohtml(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                 let top = 50 + i * 20;
                 markup.push(if xml_mode {
                     format!(r#"    <text top="{top}" left="50" width="200" height="20" font="0">{inner}</text>"#)
-                } else {
+                } else if single_document {
                     format!(r#"  <p style="position:absolute;top:{top}pt;left:50pt;margin:0;">{inner}</p>"#)
+                } else {
+                    format!("{inner}<br/>")
                 });
             }
         }
@@ -9431,6 +9440,10 @@ fn cmd_pdftohtml(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
                 "  <page number=\"{pno}\" position=\"absolute\" top=\"0\" left=\"0\" height=\"{ph}\" width=\"{pw}\">"
             ));
             for (id, (family, size)) in fonts.iter().enumerate() {
+                let family = if font_full_name { family.as_str() } else {
+                    ["-Regular", "-Bold", "-BoldOblique", "-BoldItalic", "-Oblique", "-Italic", "-Roman"].into_iter()
+                        .find_map(|suffix| family.rfind(suffix).map(|at| &family[..at])).unwrap_or(family)
+                };
                 lines.push(format!(r##"    <fontspec id="{id}" size="{size}" family="{}" color="#000000"/>"##, html_escape_str(family)));
             }
             lines.extend(markup);
@@ -9453,11 +9466,11 @@ fn cmd_pdftohtml(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -
             let (pw, ph) = dimensions(pno);
             let (pw, ph) = ((pw * zoom).round() as i64, (ph * zoom).round() as i64);
             let (_, markup) = match page_content(pno) { Ok(page)=>page, Err(e)=>return err_out(e,1) };
-            lines.push(format!(
+            lines.push(if single_document { format!(
                 "<div class=\"page\" id=\"page{pno}\" style=\"position:relative;width:{pw}pt;height:{ph}pt;\">"
-            ));
+            ) } else { format!("<a id=\"page{pno}\"></a>") });
             lines.extend(markup);
-            lines.push("</div>".to_string());
+            lines.push(if single_document { "</div>" } else { "<hr/>" }.to_string());
         }
         lines
     };
@@ -17687,12 +17700,12 @@ mod media_unit_tests {
         ], "");
         let fs = MemoryVfs::new();
         fs.write_file("/page.pdf", pdf.as_bytes()).unwrap();
-        let html = cmd_media_doc("pdftohtml", &media_args(&["-stdout", "-zoom", "2", "page.pdf"]), "", "/", &fs);
-        assert!(html.stdout.contains("top:76pt;left:57pt;margin:0;\">Hello</p>"), "{}", html.stdout);
+        let html = cmd_media_doc("pdftohtml", &media_args(&["-s", "-stdout", "-zoom", "2", "page.pdf"]), "", "/", &fs);
+        assert!(html.stdout.contains("top:78pt;left:57pt;margin:0;\">Hello</p>"), "{}", html.stdout);
         let xml = cmd_media_doc("pdftohtml", &media_args(&["-stdout", "-xml", "page.pdf"]), "", "/", &fs);
-        assert!(xml.stdout.contains(r#"<fontspec id="1" size="11" family="Helvetica""#), "{}", xml.stdout);
-        assert!(xml.stdout.contains(r#"<text top="38" left="28" width="25" height="11" font="1">Hello</text>"#));
-        assert!(xml.stdout.contains(r#"<text top="58" left="28" width="29" height="11" font="1">World</text>"#));
+        assert!(xml.stdout.contains(r#"<fontspec id="1" size="17" family="Helvetica""#), "{}", xml.stdout);
+        assert!(xml.stdout.contains(r#"<text top="59" left="43" width="38" height="15" font="1">Hello</text>"#));
+        assert!(xml.stdout.contains(r#"<text top="89" left="43" width="43" height="15" font="1">World</text>"#));
     }
 
     #[test]

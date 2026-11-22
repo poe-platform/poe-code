@@ -997,17 +997,21 @@ for (const defect of ["name", "private", "types"]) test(`guarded compiler reject
   assert.ok(!owned.reads.some(path => path.startsWith("/owned/safe-bash-command-op/src/")));
 });
 
-function checkoutPeerFixture(optionalYaml = false) {
+function checkoutPeerFixture(optionalYaml = false, optionalTesseract = false) {
   const checkout = "/checkout", packageRoot = checkout + "/packages/safe-bash";
   const manifest = { name: "@poe-platform/safe-bash", private: true, peerDependencies: { "poe-code": ">=13.0.0" }, devDependencies: { "poe-code": "file:../.." }, poeCode: { integration: { peerProfile: "checkout-root" } } };
   if (optionalYaml) {
     manifest.peerDependencies.yaml = "2.9.0";
     manifest.peerDependenciesMeta = { yaml: { optional: true } };
   }
+  if (optionalTesseract) {
+    manifest.peerDependencies["@poe-platform/tesseract"] = "^0.1.0";
+    manifest.peerDependenciesMeta = { ...manifest.peerDependenciesMeta, "@poe-platform/tesseract": { optional: true } };
+  }
   const peer = { name: "poe-code", version: "0.0.0-dev", type: "module", devDependencies: { "poe-code": "file:." }, exports: { "./safe-fs": { types: { default: "./packages/safe-fs/dist/index.d.ts" }, import: "./dist/shared/safe-js/safe-fs.js" } } };
   const lock = { packages: { "packages/safe-bash": {
     peerDependencies: structuredClone(manifest.peerDependencies),
-    ...(optionalYaml ? { peerDependenciesMeta: structuredClone(manifest.peerDependenciesMeta) } : {}),
+    ...(optionalYaml || optionalTesseract ? { peerDependenciesMeta: structuredClone(manifest.peerDependenciesMeta) } : {}),
     devDependencies: { "poe-code": "file:../.." },
   }, "node_modules/poe-code": { resolved: "", link: true } } };
   const declaration = "export interface Canonical {}\n";
@@ -1023,8 +1027,8 @@ function checkoutPeerFixture(optionalYaml = false) {
   return { checkout, root: packageRoot, io, manifest, peer, lock, declarations, lockPath: checkout + "/package-lock.json", lockEntry: "packages/safe-bash" };
 }
 
-function registryPeerFixture(optionalYaml = false) {
-  const original = checkoutPeerFixture(optionalYaml);
+function registryPeerFixture(optionalYaml = false, optionalTesseract = false) {
+  const original = checkoutPeerFixture(optionalYaml, optionalTesseract);
   const packageRoot = "/registry/candidate", directory = packageRoot + "/node_modules/poe-code";
   const manifest = structuredClone(original.manifest), peer = structuredClone(original.peer);
   delete manifest.poeCode;
@@ -1056,7 +1060,7 @@ function registryPeerFixture(optionalYaml = false) {
   const integrity = "sha512-" + createHash("sha512").update(archive).digest("base64");
   const lock = { packages: {
     "": { peerDependencies: structuredClone(manifest.peerDependencies), devDependencies: { ...manifest.devDependencies },
-      ...(optionalYaml ? { peerDependenciesMeta: structuredClone(manifest.peerDependenciesMeta) } : {}) },
+      ...(optionalYaml || optionalTesseract ? { peerDependenciesMeta: structuredClone(manifest.peerDependenciesMeta) } : {}) },
     "node_modules/poe-code": { version: "13.0.0", resolved: "https://registry.npmjs.org/poe-code/-/poe-code-13.0.0.tgz", integrity },
   } };
   const lockPath = packageRoot + "/package-lock.json";
@@ -1070,6 +1074,32 @@ function registryPeerFixture(optionalYaml = false) {
 }
 
 for (const [profile, create] of [["checkout-root", checkoutPeerFixture], ["registry-release", registryPeerFixture]]) {
+  test(`peer metadata ${profile} admits optional Tesseract without changing canonical artifact requirements`, () => {
+    const owned = create(true, true);
+    assert.equal(resolvePeerProfile(owned.root, owned.io).profile, profile);
+    const binding = bindPeerArtifact({ ...owned, checkout: profile === "checkout-root" });
+    owned.io.mkdirSync("/consumer");
+    stagePeerArtifact(binding, "/consumer");
+    assertPeerArtifact(binding, "/consumer");
+    assert.deepEqual(owned.io.readdirSync("/consumer/node_modules"), ["poe-code"]);
+    assert.throws(() => bindPeerArtifact({ root: owned.root, io: owned.io, declarations: owned.declarations }), /explicit canonical peer artifact/);
+  });
+
+  for (const location of ["manifest", "lock"]) for (const defect of ["range", "required", "missing metadata", "extra metadata", "unknown peer", "unbound metadata"]) {
+    test(`peer metadata ${profile} rejects Tesseract ${location} ${defect}`, () => {
+      const owned = create(true, true);
+      const target = location === "manifest" ? owned.manifest : owned.lock.packages[owned.lockEntry];
+      if (defect === "range") target.peerDependencies["@poe-platform/tesseract"] = "*";
+      if (defect === "required") target.peerDependenciesMeta["@poe-platform/tesseract"].optional = false;
+      if (defect === "missing metadata") delete target.peerDependenciesMeta["@poe-platform/tesseract"];
+      if (defect === "extra metadata") target.peerDependenciesMeta["@poe-platform/tesseract"].extra = true;
+      if (defect === "unknown peer") target.peerDependencies.unapproved = "^0.1.0";
+      if (defect === "unbound metadata") delete target.peerDependencies["@poe-platform/tesseract"];
+      owned.io.writeFileSync(location === "manifest" ? owned.root + "/package.json" : owned.lockPath, JSON.stringify(location === "manifest" ? owned.manifest : owned.lock));
+      assert.throws(() => resolvePeerProfile(owned.root, owned.io), /Tesseract|peer|metadata/i);
+    });
+  }
+
   for (const operation of ["resolve", "bind"]) for (const missing of ["nothing", "peer path", "lock"]) {
     test(`peer admission ordering ${profile} rejects unknown required peers before ${operation} inputs with missing ${missing}`, () => {
       const owned = create(true), manifestPath = owned.root + "/package.json";
@@ -1230,9 +1260,9 @@ for (const [profile, create] of [["checkout-root", checkoutPeerFixture], ["regis
   }
 }
 
-for (const defect of ["archive", "declaration", "installed declaration", "foreign runtime closure", "profile selector"]) {
-  test(`peer metadata optional YAML does not bypass registry ${defect} authentication`, () => {
-    const owned = registryPeerFixture(true);
+for (const optionalTesseract of [false, true]) for (const defect of ["archive", "declaration", "installed declaration", "foreign runtime closure", "profile selector"]) {
+  test(`peer metadata optional YAML${optionalTesseract ? " and Tesseract" : ""} does not bypass registry ${defect} authentication`, () => {
+    const owned = registryPeerFixture(true, optionalTesseract);
     if (defect === "archive") {
       const bytes = owned.io.readFileSync(owned.artifact);
       bytes[bytes.length - 1] ^= 1;
@@ -1240,7 +1270,7 @@ for (const defect of ["archive", "declaration", "installed declaration", "foreig
     }
     if (defect === "declaration") owned.declarations.peer.declarations.set("packages/safe-fs/dist/index.d.ts", "0".repeat(64));
     if (defect === "installed declaration") owned.io.writeFileSync(owned.directory + "/packages/safe-fs/dist/index.d.ts", "forged");
-    if (defect === "foreign runtime closure") owned.declarations.peer.publicEntries.set("yaml", "packages/safe-fs/dist/index.d.ts");
+    if (defect === "foreign runtime closure") owned.declarations.peer.publicEntries.set(optionalTesseract ? "@poe-platform/tesseract" : "yaml", "packages/safe-fs/dist/index.d.ts");
     assert.throws(() => bindPeerArtifact({ ...owned, checkout: defect === "profile selector" }), /SRI|declaration|differs|public|checkout/i);
   });
 }

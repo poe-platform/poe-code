@@ -60,7 +60,7 @@ fn long_documents_have_a_valid_page_tree() {
     let bytes = text_pdf(&source);
     let raw = String::from_utf8_lossy(&bytes);
     let count = raw.matches("/Type /Page ").count();
-    assert!(count >= 4 && count <= 6, "unexpected page count {count}");
+    assert!((4..=6).contains(&count), "unexpected page count {count}");
     assert!(raw.contains(&format!("/Count {count}")));
     let metadata = info(&bytes);
     assert!(metadata.lines().any(|line| line.starts_with("Pages:") && line.trim_end().ends_with(&count.to_string())), "{metadata}");

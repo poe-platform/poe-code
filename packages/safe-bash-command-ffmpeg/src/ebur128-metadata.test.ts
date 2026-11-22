@@ -48,7 +48,7 @@ it("attaches native loudness and sample peak tags to each complete 100 ms frame"
 it("accepts metadata alone, preserves the summary and uses verbose measurement logs", async () => {
   const baseline = await run("ebur128=peak=sample");
   const enabled = await run("ebur128=metadata=1:peak=sample");
-  assert.equal(enabled.stderr, baseline.stderr.slice(baseline.stderr.indexOf("Summary:")));
+  assert.equal(enabled.stderr, "ffmpeg: Guessed Channel Layout: mono\n" + baseline.stderr.slice(baseline.stderr.indexOf("Summary:")));
   assert.match(enabled.stderr, /Peak: +?-0.8 dBFS/);
   const verbose = await run("ebur128=metadata=1:peak=sample", "verbose");
   assert.equal(verbose.stderr, baseline.stderr);

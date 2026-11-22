@@ -37,7 +37,7 @@ for (const [level, frameLog, count, summary] of [
     if (summary) {
       assert.ok(stderr.includes("Integrated loudness:"));
       assert.ok(stderr.includes("Loudness range:"));
-    } else assert.equal(stderr, "");
+    } else assert.equal(stderr, level === "warning" ? "ffmpeg: Guessed Channel Layout: mono\n" : "");
     assert.deepEqual(parseWav(fs.readFileSync("/out.wav") as Buffer).tracks[0]!.decodedAudio,
       parseWav(input).tracks[0]!.decodedAudio);
   });

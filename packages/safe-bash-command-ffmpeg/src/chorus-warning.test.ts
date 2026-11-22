@@ -42,7 +42,7 @@ for (const graph of [false, true]) {
           stderr: { async write(bytes: Uint8Array) { stderr += new TextDecoder().decode(bytes); } }
         } as never);
         assert.equal(result.exitCode, 0, stderr);
-        assert.equal(stderr, warns && clips ? warning : "", filter);
+        assert.equal(stderr, warns ? "ffmpeg: Guessed Channel Layout: mono\n" + (clips ? warning : "") : "", filter);
         const output = volume.readFileSync("/out.pcm") as Buffer;
         assert.equal(output.length, bytes, filter);
         assert.equal(createHash("sha256").update(output).digest("hex"), hash, filter);

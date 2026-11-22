@@ -32,7 +32,7 @@ for (const [algorithm, expected] of [
             channels: [Float64Array.from({ length: 1600 }, (_, i) => (i * 8 - 6000) / 32768)] }));
           let stdout = "", stderr = "";
           const result = await createFfmpegCommand().execute({
-            args: ["-y", "-v", "error", "-i", "/in.wav", "-hash", spelling, "-f", format, target],
+            args: ["-y", "-v", "error", "-i", "/in.wav", "-bitexact", "-hash", spelling, "-f", format, target],
             cwd: "/", env: {}, signal: new AbortController().signal,
             fs: {
               async readFile(path: string) { return volume.readFileSync(path); },

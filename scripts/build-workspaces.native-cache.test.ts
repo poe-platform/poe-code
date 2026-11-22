@@ -123,6 +123,15 @@ describe("native Vitest workspace result cache", () => {
     const second = await buildWorkspaces("/repo", { ...state, spawn: buildSpawn, workspace: "sample-rust" });
     expect(second).toMatchObject({ builds: 1, cacheHits: 1, cacheMisses: 0 });
     expect(buildSpawn).toHaveBeenCalledTimes(1);
+    state.fileSystem.writeFileSync("/repo/turbo.json", JSON.stringify({ tasks: {
+      build: { dependsOn: ["^build"], outputs: ["dist/**"] },
+      "sample-rust#build": { dependsOn: ["^build"], cache: false }
+    } }));
+    for (let run = 0; run < 2; run++) {
+      const fresh = await buildWorkspaces("/repo", { ...state, spawn: buildSpawn, workspace: "sample-rust" });
+      expect(fresh).toMatchObject({ builds: 1, cacheHits: 0, cacheMisses: 0 });
+      expect(buildSpawn).toHaveBeenCalledTimes(2 + run);
+    }
   });
 
   it("caches CI Bash shard execution per shard and oracle digest via runCiBashShard", () => {

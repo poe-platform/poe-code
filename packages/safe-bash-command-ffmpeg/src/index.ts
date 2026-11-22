@@ -4201,9 +4201,9 @@ async function applyVideoFilterChain(
         throw new Error("pad: eval must be init or frame");
       }
       const aspectExpression = named.aspect ?? (positional[6]?.includes("=") ? undefined : positional[6]) ?? "0";
-      const aspect = parseFilterExpression(aspectExpression, "pad", {});
+      const aspect = parseFilterExpression(aspectExpression, "pad: aspect", {});
       if (!Number.isFinite(aspect) || aspect < 0) {
-        throw new Error("pad: aspect must be a finite nonnegative ratio");
+        throw new RangeError("pad: aspect must be a finite nonnegative ratio");
       }
       const iw = current[0]!.width;
       const ih = current[0]!.height;
@@ -22506,6 +22506,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "surround: invalid expression" || msg === "surround: invalid or unsupported expression") return { exitCode: 234 };
             if (msg.startsWith("asubboost: unsupported option ")) return { exitCode: 8 };
             if (msg.startsWith("asubboost: invalid ")) return { exitCode: err instanceof RangeError ? 222 : 234 };
+            if (msg.startsWith("pad: aspect")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("pad: generic option")) return { exitCode: err instanceof RangeError ? 222 : 234 };
             if (msg.startsWith("pad: unsupported option ")) return { exitCode: 8 };
             if (msg === "pad: eval must be init or frame" || msg.startsWith("pad: Invalid color") ||

@@ -3257,7 +3257,7 @@ describe("pad display aspect ratio", () => {
     });
   }
 
-  for (const aspect of ["-1", "1/0", "garbage"]) {
+  for (const [aspect, status] of [["-1", 222], ["1/0", 222], ["garbage", 234]] as const) {
     it(`rejects invalid aspect ${aspect} without replacing output`, async () => {
       const vfs = createTestVfs({ "/pad.png": "original" });
       const original = vfs.store.get("/pad.png");
@@ -3265,7 +3265,7 @@ describe("pad display aspect ratio", () => {
         "-y", "-f", "lavfi", "-i", "color=red:s=6x4:d=1",
         "-vf", `pad=iw:ih:aspect=${aspect}`, "-frames:v", "1", "/pad.png"
       ], vfs);
-      assert.equal(result.exitCode, 1);
+      assert.equal(result.exitCode, status);
       assert.ok(result.stderr.includes("pad:"), result.stderr);
       assert.deepEqual(vfs.store.get("/pad.png"), original);
     });

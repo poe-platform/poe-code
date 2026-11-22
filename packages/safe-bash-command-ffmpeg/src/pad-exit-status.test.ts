@@ -7,6 +7,9 @@ import { createFfmpegCommand } from "./index.js";
 // Native Linux FFmpeg 7.0.2 statuses and output for the same RGBA input.
 for (const [filter, exitCode, diagnostic] of [
   ["pad=eval=foo", 234, "pad:"],
+  ["pad=aspect=-1", 222, "pad:"],
+  ["pad=aspect=1/0", 222, "pad:"],
+  ["pad=aspect=garbage", 234, "pad:"],
   ["pad=4:4:color=bogus", 234, "Invalid color: bogus"],
   ["pad=oops=1", 8, "pad: unsupported option oops"],
   ["pad=4:4:eval=frame", 0, ""]

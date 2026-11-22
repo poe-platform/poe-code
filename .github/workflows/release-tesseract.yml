@@ -1,7 +1,7 @@
 name: Release Tesseract
 on:
   push:
-    branches: [main]
+    branches: [ main ]
     paths:
       - packages/tesseract-rust/**
       - .github/workflows/release-tesseract.yml
@@ -18,7 +18,7 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - runner: macos-14
+          - runner: macos-15
             platform: darwin-arm64
           - runner: macos-15-intel
             platform: darwin-x64

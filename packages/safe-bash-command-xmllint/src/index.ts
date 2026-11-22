@@ -170,6 +170,14 @@ async function executeDocument(
     }
     for (const message of recoveryMessages)
       await runtime.writeDiagnostic(context.stderr, `xmllint: ${message} (recovered)\n`, context.signal);
+    let encoding = options.encoding;
+    const declaration = parsedRoot.declaration;
+    const encodingStart = declaration?.indexOf("encoding") ?? -1;
+    if (encoding === undefined && options.mode === "format" && declaration && encodingStart >= 0) {
+      let at = declaration.indexOf("=", encodingStart) + 1;
+      while (at < declaration.length && " \t\r\n".includes(declaration[at]!)) at++;
+      encoding = outputEncoding(declaration.slice(at + 1, declaration.indexOf(declaration[at]!, at + 1)));
+    }
     const root = await prepareDocument(parsedRoot, options.noblanks ?? false, options.encoding, budget, options.nocdata ?? false);
     if (options.output !== undefined && options.query === undefined && !options.noout)
       fileOutput = new XmlFileOutput(context, runtime.pathOf(context, options.output));
@@ -213,7 +221,7 @@ async function executeDocument(
           end--;
         { const _p = budget.tick(end - offset); if (_p) await _p; }
         const slice = part.slice(offset, end);
-        const bytes = encodeOutput(slice, options.query || options.mode !== "format" ? undefined : options.encoding, !encodingStarted);
+        const bytes = encodeOutput(slice, options.query || options.mode !== "format" ? undefined : encoding, !encodingStarted);
         encodingStarted = true;
         const size = bytes.byteLength;
         if (size > limits.maxOutputBytes - budget.outputBytes) {

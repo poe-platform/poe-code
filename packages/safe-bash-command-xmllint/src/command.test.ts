@@ -4,7 +4,7 @@ import { createMemoryFileSystem } from "@poe-code/safe-fs";
 import { CommandRegistry, createCommandArguments, toByteSource, type CommandContext } from "safe-bash-contracts";
 import { createXmllintCommand, xmllintCommands } from "./index.js";
 
-for (const little of [true, false]) for (const args of [[], ["--format"], ["--c14n"], ["--exc-c14n"], ["--noout"], ["--xpath", "string(/r)"]]) {
+for (const little of [true, false]) for (const args of [[], ["--format"], ["--encode", "UTF-8"], ["--c14n"], ["--exc-c14n"], ["--noout"], ["--xpath", "string(/r)"]]) {
   test(`xmllint reads UTF-16 input (little=${little}, args=${args})`, async () => {
     const xml = '<?xml version="1.0" encoding="UTF-16"?><r>é😀</r>';
     const input = Buffer.from('\ufeff' + xml, "utf16le");
@@ -21,11 +21,34 @@ for (const little of [true, false]) for (const args of [[], ["--format"], ["--c1
     const expected = args.includes("--noout") ? Buffer.alloc(0)
       : args.includes("--xpath") ? Buffer.from("é😀\n")
       : args.some(arg => arg.includes("c14n")) ? Buffer.from("<r>é😀</r>")
+      : args.includes("--encode") ? Buffer.from('<?xml version="1.0" encoding="UTF-8"?>\n<r>é😀</r>\n')
       : Buffer.from('\ufeff<?xml version="1.0" encoding="UTF-16"?>\n<r>é😀</r>\n', "utf16le");
     assert.deepEqual(Buffer.concat(chunks), expected);
     assert.equal(errors, "");
   });
 }
+
+test("xmllint chooses the declared output encoding separately for each file", async () => {
+  const fs = createMemoryFileSystem();
+  const utf16 = '<?xml version="1.0" encoding="UTF-16"?>\n<r>é😀</r>\n';
+  const utf8 = '<?xml version="1.0" encoding="UTF-8"?>\n<r>é😀</r>\n';
+  await fs.writeFile("/utf16.xml", Buffer.from('\ufeff' + utf16, "utf16le"));
+  await fs.writeFile("/utf8.xml", Buffer.from(utf8));
+  const chunks: Uint8Array[] = [];
+  let errors = "";
+  const context: CommandContext = {
+    ...createCommandArguments(["/utf16.xml", "/utf8.xml", "/utf16.xml"]),
+    command: "xmllint", cwd: "/", env: {}, fs,
+    signal: new AbortController().signal, stdin: toByteSource(""),
+    stdout: { async write(bytes) { chunks.push(bytes.slice()); } },
+    stderr: { async write(bytes) { errors += new TextDecoder().decode(bytes); } },
+  };
+  assert.equal((await createXmllintCommand().execute(context)).exitCode, 0, errors);
+  assert.deepEqual(Buffer.concat(chunks), Buffer.concat([
+    Buffer.from('\ufeff' + utf16, "utf16le"), Buffer.from(utf8), Buffer.from('\ufeff' + utf16, "utf16le"),
+  ]));
+  assert.equal(errors, "");
+});
 for (const [declarationEncoding, maxInputBytes, expectedCode] of [["UTF-8", Infinity, 1], ["UTF-16", 10, 5]] as const) {
   test(`UTF-16 input enforces declaration and byte limits (${declarationEncoding}, ${maxInputBytes})`, async () => {
     let errors = "";

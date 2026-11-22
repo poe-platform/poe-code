@@ -14475,8 +14475,8 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                       else await writeFileOutput(context, encodeUtf8(text), data => context.fs.writeFile(resolvePath(context.cwd, file), data, { signal: context.signal }));
                     }
                   };
-                  // Filters use the displayed timeline; retain media coordinates for the existing edit list.
-                  const displayed = decoded.map(frame => ({ ...frame, interlaced: ["tt", "bb", "tb", "bt"].includes(t.codecDescriptions[0]?.fieldOrder ?? ""), topFieldFirst: ["tt", "bt"].includes(t.codecDescriptions[0]?.fieldOrder ?? ""), ptsSeconds: Math.round(frame.ptsSeconds * diagnostics.timescale) / diagnostics.timescale - offsetTicks / t.timescale }));
+                  // Subtract edit-list offsets in integer ticks to preserve exact seek boundaries.
+                  const displayed = decoded.map(frame => ({ ...frame, interlaced: ["tt", "bb", "tb", "bt"].includes(t.codecDescriptions[0]?.fieldOrder ?? ""), topFieldFirst: ["tt", "bt"].includes(t.codecDescriptions[0]?.fieldOrder ?? ""), ptsSeconds: (Math.round(frame.ptsSeconds * diagnostics.timescale) - Math.round(offsetTicks * diagnostics.timescale / t.timescale)) / diagnostics.timescale }));
                   const inputFrames = feedback
                     ? await applyFeedback(displayed, feedback.rectangle, tiles => applyVideoFilterChain(
                       tiles, feedback.filter, budget, { ...diagnostics }, filename => readInput(resolvePath(context.cwd, filename)), registry, context.signal

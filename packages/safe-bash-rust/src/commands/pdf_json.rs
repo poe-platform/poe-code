@@ -219,6 +219,10 @@ impl<'a> PageSource<'a> {
             highest=next-1;
             edited_pages.extend(self.pages.iter().copied());
         }
+        let mut pages = Vec::new();
+        if include("pages") {
+            for index in 0..self.pages.len() { pages.push(self.json_page(index, version, &edits).ok_or(INVALID)?); }
+        }
         let mut objects = Vec::new();
         let mut object_info = Vec::new();
         let mut files = Vec::new();
@@ -318,16 +322,18 @@ impl<'a> PageSource<'a> {
                 "/Size".encode_utf16().collect(),
                 J::Number((highest + 1) as f64),
             ));
+            if let Some(Value::Array(ids)) = self.trailer.get(b"ID") {
+                entries.push(("/ID".encode_utf16().collect(), J::Array(ids.iter().map(|id| match id {
+                    Value::String { bytes, .. } => string(&format!("b:{}", crate::commands::archive::hex_encode(bytes))),
+                    _ => cos(id, version),
+                }).collect())));
+            }
             objects.push((
                 "trailer".encode_utf16().collect(),
                 if version == 1 { cos(&self.trailer, version) } else { record([("value", J::Object(entries))]) },
             ));
         }
         let version_text = super::super::header_version(self.objects.bytes).ok_or(INVALID)?;
-        let mut pages = Vec::new();
-        if include("pages") {
-            for index in 0..self.pages.len() { pages.push(self.json_page(index, version).ok_or(INVALID)?); }
-        }
         let mut labels = Vec::new();
         for (index, label) in if include("pagelabels") { self
             .objects
@@ -340,7 +346,16 @@ impl<'a> PageSource<'a> {
             let Some(v @ Value::Dict(_)) = self.objects.resolve(&label) else {
                 continue;
             };
-            labels.push(record([("index", J::Number(i)), ("label", cos(&v, version))]));
+            let start = v.get(b"St").and_then(|v| self.objects.resolve(v)).and_then(|v| v.number()).unwrap_or(1.);
+            let mut label = vec![("/St".encode_utf16().collect(), J::Number(start))];
+            if let Some(prefix @ Value::String { .. }) = v.get(b"P").and_then(|v| self.objects.resolve(v)) {
+                label.push(("/P".encode_utf16().collect(), cos(&prefix, version)));
+            }
+            if let Some(style @ Value::Word(_)) = v.get(b"S").and_then(|v| self.objects.resolve(v))
+                && style.word().is_some_and(|w| w.starts_with(b"/")) {
+                label.push(("/S".encode_utf16().collect(), cos(&style, version)));
+            }
+            labels.push(record([("index", J::Number(i)), ("label", J::Object(label))]));
         }
         let mut attachments = Vec::new();
         let mut seen = BTreeSet::new();
@@ -367,8 +382,8 @@ impl<'a> PageSource<'a> {
                 .collect(),
         );
         let outlines = if include("outlines") { self.json_outlines(version).ok_or(INVALID)? } else { J::Array(Vec::new()) };
-        let form = if include("acroform") { self.json_form().ok_or(INVALID)? } else { J::Null };
-        let encrypt = if self.objects.security.is_some() { record([("encrypted", J::Bool(true))]) } else {
+        let form = if include("acroform") { self.json_form(version).ok_or(INVALID)? } else { J::Null };
+        let encrypt = if let Some(security) = &self.objects.security { security.json_report(version) } else {
             record([
                 ("capabilities", record([
                     ("accessibility", J::Bool(true)), ("extract", J::Bool(true)),
@@ -415,7 +430,7 @@ impl<'a> PageSource<'a> {
 }
 
 impl<'a> PageSource<'a> {
-    fn json_form(&mut self) -> Option<J> {
+    fn json_form(&mut self, version: u32) -> Option<J> {
         let form = self
             .catalog
             .get(b"AcroForm")
@@ -425,20 +440,20 @@ impl<'a> PageSource<'a> {
             .and_then(|v| v.get(b"NeedAppearances"))
             .and_then(|v| self.objects.resolve(v))
             .is_some_and(|v| v.word() == Some(b"true"));
-        let roots = form
-            .as_ref()
-            .and_then(|v| v.get(b"Fields"))
-            .and_then(|v| self.objects.resolve(v));
         let mut fields = Vec::new();
-        if let Some(Value::Array(roots)) = roots {
-            let mut active = BTreeSet::new();
-            for node in &roots {
-                self.objects
-                    .json_field(node, "", "", &mut active, &mut fields, 0)?;
+        if let Some(form @ Value::Dict(_)) = &form {
+            for (index, &id) in self.pages.iter().enumerate() {
+                let page = self.objects.page_dict(id, &self.tree)?;
+                if let Some(Value::Array(annotations)) = page.get(b"Annots").and_then(|v| self.objects.resolve(v)) {
+                    for annotation in annotations {
+                        let field = self.objects.json_field(&annotation, index + 1, form, version)?;
+                        if !matches!(field, J::Null) { fields.push(field); }
+                    }
+                }
             }
         }
         Some(record([
-            ("hasacroform", J::Bool(!fields.is_empty())),
+            ("hasacroform", J::Bool(matches!(form, Some(Value::Dict(_))))),
             ("needappearances", J::Bool(need)),
             ("fields", J::Array(fields)),
         ]))
@@ -572,116 +587,75 @@ impl<'a> Objects<'a> {
         }
         Some(rows)
     }
-    fn json_field(
-        &mut self,
-        node: &Value<'a>,
-        prefix: &str,
-        inherited_type: &str,
-        active: &mut BTreeSet<ObjectId>,
-        out: &mut Vec<J>,
-        depth: usize,
-    ) -> Option<()> {
-        self.tokens = self.tokens.checked_sub(1)?;
-        if depth > 64 {
-            return None;
+    fn json_field(&mut self, node: &Value<'a>, page: usize, form: &Value<'a>, version: u32) -> Option<J> {
+        let Some(field @ Value::Dict(_)) = self.resolve(node) else { return Some(J::Null); };
+        if field.get(b"Subtype").and_then(|v| self.resolve(v)).as_ref().and_then(Value::word) != Some(b"/Widget") {
+            return Some(J::Null);
         }
-        let Some(dict @ Value::Dict(_)) = self.resolve(node) else {
-            return Some(());
-        };
-        if let Some(r) = node.reference()
-            && !active.insert(r)
-        {
-            return Some(());
+        let mut chain = vec![field];
+        let mut seen = BTreeSet::new();
+        if let Some(id) = node.reference() { seen.insert(id); }
+        while let Some(parent) = chain.last()?.get(b"Parent") {
+            if parent.reference().is_some_and(|id| !seen.insert(id)) { break; }
+            if chain.len() >= 64 { return None; }
+            self.tokens = self.tokens.checked_sub(1)?;
+            let Some(parent @ Value::Dict(_)) = self.resolve(parent) else { break; };
+            chain.push(parent);
         }
-        let part = dict
-            .get(b"T")
-            .and_then(|v| self.resolve(v))
-            .and_then(|v| text(&v))
-            .unwrap_or_default();
-        let key = if prefix.is_empty() {
-            part
-        } else if part.is_empty() {
-            prefix.to_owned()
-        } else {
-            format!("{prefix}.{part}")
+        let field_text = |value: Option<Value<'a>>| match value {
+            Some(Value::String { bytes, .. }) => pdf_string::decode(&bytes),
+            _ => String::new(),
         };
-        self.remaining_bytes = self.remaining_bytes.checked_sub(key.len())?;
-        let kind = dict
-            .get(b"FT")
-            .and_then(|v| self.resolve(v))
-            .and_then(|v| text(&v))
-            .unwrap_or_else(|| inherited_type.to_owned());
-        let mut leaf = true;
-        if let Some(Value::Array(kids)) = dict.get(b"Kids").and_then(|v| self.resolve(v))
-            && !kids.is_empty()
-            && (kind.is_empty()
-                || key.is_empty()
-                || kids
-                    .iter()
-                    .any(|kid| self.resolve(kid).is_some_and(|v| v.get(b"T").is_some())))
-        {
-            leaf = false;
-            for kid in &kids {
-                self.json_field(kid, &key, &kind, active, out, depth + 1)?;
+        let field_name = |value: Option<Value<'a>>| value.as_ref().and_then(Value::word)
+            .filter(|w| w.starts_with(b"/")).map(name).unwrap_or_default();
+        let mut names = Vec::new();
+        for field in chain.iter().rev() {
+            let part = field_text(field.get(b"T").and_then(|v| self.resolve(v)));
+            if !part.is_empty() { names.push(part); }
+        }
+        let fullname = names.join(".");
+        self.remaining_bytes = self.remaining_bytes.checked_sub(fullname.len())?;
+        let mut inherited = |key: &[u8]| chain.iter().chain(std::iter::once(form))
+            .find_map(|field| field.get(key).and_then(|v| self.resolve(v)).filter(|v| v.word() != Some(b"null")));
+        let fieldtype = field_name(inherited(b"FT"));
+        let flags = inherited(b"Ff").as_ref().and_then(Value::number).unwrap_or(0.);
+        let quadding = inherited(b"Q").as_ref().and_then(Value::number).unwrap_or(0.);
+        let default = inherited(b"DV").as_ref().map_or(J::Null, |v| cos(v, version));
+        let value = inherited(b"V").as_ref().map_or(J::Null, |v| cos(v, version));
+        let options = if fieldtype == "/Ch" { inherited(b"Opt") } else { None };
+        let mut choices = Vec::new();
+        if let Some(Value::Array(options)) = options {
+            for option in options {
+                let option = self.resolve(&option);
+                let display = match option {
+                    Some(Value::Array(pair)) => pair.get(1).and_then(|v| self.resolve(v)),
+                    other => other,
+                };
+                choices.push(string(&field_text(display)));
             }
         }
-        if leaf && !key.is_empty() {
-            let mut parent = dict;
-            let mut seen = BTreeSet::new();
-            let value = loop {
-                if let Some(v) = parent.get(b"V") {
-                    break self.resolve(v);
-                }
-                let Some(next) = parent.get(b"Parent") else {
-                    break None;
-                };
-                if next.reference().is_some_and(|id| !seen.insert(id)) {
-                    break None;
-                }
-                let Some(v) = self.resolve(next) else {
-                    break None;
-                };
-                parent = v;
-            };
-            let (ty, value) = if kind == "Btn" {
-                (
-                    "checkbox",
-                    J::Bool(
-                        value
-                            .as_ref()
-                            .and_then(Value::word)
-                            .is_some_and(|w| w == b"true" || w.starts_with(b"/") && w != b"/Off"),
-                    ),
-                )
-            } else {
-                let s = match &value {
-                    Some(Value::Array(a)) => a
-                        .iter()
-                        .filter_map(|v| self.resolve(v).and_then(|v| text(&v)))
-                        .collect::<Vec<_>>()
-                        .join(", "),
-                    _ => value.as_ref().and_then(text).unwrap_or_default(),
-                };
-                (
-                    match kind.as_str() {
-                        "Tx" => "text",
-                        "Ch" => "choice",
-                        _ => "unknown",
-                    },
-                    string(&s),
-                )
-            };
-            out.push(record([
-                ("name", string(&key)),
-                ("type", string(ty)),
-                ("value", value),
-            ]));
-        }
-        if let Some(id) = node.reference() {
-            active.remove(&id);
-        }
-        Some(())
+        let field = &chain[0];
+        let alternative = field_text(field.get(b"TU").and_then(|v| self.resolve(v)));
+        let mapping = field_text(field.get(b"TM").and_then(|v| self.resolve(v)));
+        let annotationflags = field.get(b"F").and_then(|v| self.resolve(v)).as_ref().and_then(Value::number).unwrap_or(0.);
+        let appearance = field_name(field.get(b"AS").and_then(|v| self.resolve(v)));
+        let partial = field_text(field.get(b"T").and_then(|v| self.resolve(v)));
+        let button_flags = flags as i64 as i32;
+        Some(record([
+            ("alternativename", string(if alternative.is_empty() { &fullname } else { &alternative })),
+            ("annotation", record([("annotationflags", J::Number(annotationflags)), ("appearancestate", string(&appearance)), ("object", cos(node, version))])),
+            ("choices", J::Array(choices)), ("defaultvalue", default), ("fieldflags", J::Number(flags)),
+            ("fieldtype", string(&fieldtype)), ("fullname", string(&fullname)),
+            ("ischeckbox", J::Bool(fieldtype == "/Btn" && button_flags & (32768 | 65536) == 0)),
+            ("ischoice", J::Bool(fieldtype == "/Ch")), ("isradiobutton", J::Bool(fieldtype == "/Btn" && button_flags & 32768 != 0)),
+            ("istext", J::Bool(fieldtype == "/Tx")),
+            ("mappingname", string(if mapping.is_empty() { &fullname } else { &mapping })),
+            ("object", cos(node, version)), ("pageposfrom1", J::Number(page as f64)),
+            ("parent", field.get(b"Parent").map_or(J::Null, |v| cos(v, version))), ("partialname", string(&partial)),
+            ("quadding", J::Number(quadding)), ("value", value),
+        ]))
     }
+
 }
 
 #[cfg(test)]

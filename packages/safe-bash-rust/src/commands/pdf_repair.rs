@@ -114,6 +114,7 @@ pub(super) fn recover<'a>(
     let protected = trailers.iter().any(|t| t.get(b"Encrypt").is_some());
     let mut selected = None;
     let mut score = None;
+    let mut missing_page_tree = false;
     for t in trailers {
         let Some(id) = t.get(b"Root").and_then(Value::reference) else {
             continue;
@@ -126,7 +127,10 @@ pub(super) fn recover<'a>(
                     None if !packed.is_empty() => (),
                     _ => continue,
                 },
-                _ => continue,
+                _ => {
+                    missing_page_tree |= matches!(catalog, Value::Dict(_));
+                    continue;
+                }
             },
             None if !packed.is_empty() => (),
             _ => continue,
@@ -180,6 +184,9 @@ pub(super) fn recover<'a>(
         }
         root = root.or(member_root);
         info = info.or(member_info);
+    }
+    if root.is_none() && missing_page_tree && !trailer.iter().any(|(key, _)| key.as_ref() == b"Root") {
+        return Err(super::NO_PAGE_TREE);
     }
     for (k, id) in [(b"Root".as_slice(), root), (b"Info", info)] {
         if let Some(id) = id

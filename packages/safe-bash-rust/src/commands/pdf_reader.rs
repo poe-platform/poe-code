@@ -64,7 +64,7 @@ pub(super) use pdf_encrypt::encrypt_document;
 
 #[path = "pdf_security.rs"]
 mod pdf_security;
-pub(super) use pdf_security::{PASSWORD, UNSUPPORTED, accepts_password};
+pub(super) use pdf_security::{PASSWORD, UNSUPPORTED, qpdf_password_report};
 use std::borrow::Cow;
 type Dict<'a> = Vec<(Cow<'a, [u8]>, Value<'a>)>;
 
@@ -477,6 +477,9 @@ struct Objects<'a> {
     tokens: usize,
     remaining_bytes: usize,
     preserve_hex: bool,
+    recovered_xref: bool,
+    recovered_objects: BTreeSet<usize>,
+    recovered_streams: BTreeSet<usize>,
 }
 
 impl<'a> Objects<'a> {
@@ -491,6 +494,9 @@ impl<'a> Objects<'a> {
             tokens: 1_000_000,
             remaining_bytes: crate::budget::ShellLimits::default().max_input_bytes,
             preserve_hex: false,
+            recovered_xref: false,
+            recovered_objects: BTreeSet::new(),
+            recovered_streams: BTreeSet::new(),
         }
     }
 
@@ -595,8 +601,9 @@ impl<'a> Objects<'a> {
         }
         let OffsetRepair::Scanned(offsets) = &self.offset_repair else { return None; };
         let fixed = *offsets.get(&id)?;
-        self.xref.get_mut(&id)?.0 = Location::File(fixed);
-        parse(fixed, &mut self.tokens)
+        let object = parse(fixed, &mut self.tokens)?;
+        self.recovered_objects.insert(id.0);
+        Some(object)
     }
 
     // Return the terminal (non-stream) value and its owner while preserving
@@ -709,6 +716,11 @@ impl<'a> Objects<'a> {
             }
         }
         let data = &payload[..first?];
+        let offset = self.bytes.len().checked_sub(payload.len())?;
+        if !self.recovered_streams.contains(&offset) {
+            self.remaining_bytes = self.remaining_bytes.checked_sub(std::mem::size_of::<usize>() * 4)?;
+            self.recovered_streams.insert(offset);
+        }
         Some(data.strip_suffix(b"\r\n").or_else(|| data.strip_suffix(b"\n"))
             .or_else(|| data.strip_suffix(b"\r")).unwrap_or(data))
     }
@@ -828,21 +840,52 @@ fn last_xref(bytes: &[u8]) -> Option<usize> {
 #[path = "pdf_repair.rs"]
 mod pdf_repair;
 
+pub(super) const NO_PAGE_TREE: &str = "unable to find page tree";
 pub(super) const NO_CATALOG: &str = "Unable to repair PDF: no /Type /Catalog object found";
+pub(super) fn encryption_status(bytes: &[u8], password: &str) -> Result<bool, &'static str> {
+    header_version(bytes).ok_or("Invalid PDF header: missing %PDF- signature")?;
+    let (objects, _) = index(bytes, password)?;
+    Ok(objects.security.is_some())
+}
+
 fn index<'a>(bytes: &'a [u8], password: &str) -> Result<(Objects<'a>, Value<'a>), &'static str> {
     if let Some((mut objects, trailer)) = strict_index(bytes) {
         objects.authenticate(&trailer,password)?;
         objects.offset_repair = OffsetRepair::OnError;
         if let Some(catalog) = trailer.get(b"Root").and_then(Value::reference)
                 .and_then(|id| objects.object(id)).map(|(value, _)| value)
-            && matches!(catalog.get(b"Pages"), Some(Value::Ref(_) | Value::Dict(_)))
+            && matches!(catalog, Value::Dict(_))
         {
             return Ok((objects, trailer));
         }
     }
-    let (objects, trailer) = pdf_repair::recover(bytes,password)?;
+    let (mut objects, trailer) = pdf_repair::recover(bytes,password)?;
+    objects.recovered_xref = true;
     trailer.get(b"Root").and_then(Value::reference).ok_or(NO_CATALOG)?;
     Ok((objects, trailer))
+}
+
+pub(super) fn recovery_warnings(bytes: &[u8], password: &str) -> Vec<String> {
+    let Ok((mut objects, trailer)) = index(bytes, password) else { return Vec::new(); };
+    let Some((catalog, _)) = trailer.get(b"Root").and_then(Value::reference)
+        .and_then(|id| objects.object(id)) else { return Vec::new(); };
+    if objects.require_page_tree(&catalog).is_err() { return Vec::new(); }
+    let ids: Vec<_> = objects.xref.keys().copied().collect();
+    for id in ids {
+        let Some((node, mut cursor)) = objects.object(id) else { continue; };
+        cursor.skip();
+        if cursor.0.starts_with(b"stream") {
+            // Only inspect encoded framing. Bad unused filters must remain inspectable.
+            objects.stream(&node, cursor);
+        }
+    }
+    let mut warnings = Vec::new();
+    if objects.recovered_xref {
+        warnings.push("Damaged cross-reference data; reconstructing cross-reference table".into());
+    }
+    warnings.extend(objects.recovered_objects.into_iter().map(|id| format!("Recovered object {id} from damaged cross-reference data")));
+    warnings.extend(objects.recovered_streams.into_iter().map(|offset| format!("Recovered stream length at byte offset {offset}")));
+    warnings
 }
 
 fn strict_index(bytes: &[u8]) -> Option<(Objects<'_>, Value<'_>)> {
@@ -1084,8 +1127,19 @@ mod tests {
             ..Objects::new(bytes)
         };
         assert!(objects.stream(&dict, Cursor(bytes)).is_none());
+        assert!(objects.recovered_streams.is_empty());
+        // Scanning and retaining a new recovery diagnostic both consume the budget.
+        objects.remaining_bytes = bytes.len();
+        assert!(objects.stream(&dict, Cursor(bytes)).is_none());
+        assert!(objects.recovered_streams.is_empty());
+        objects.remaining_bytes = bytes.len() + std::mem::size_of::<usize>() * 4;
+        assert_eq!(objects.stream(&dict, Cursor(bytes)), Some(b"x\rendstream junk ".as_slice()));
+        assert_eq!(objects.recovered_streams.len(), 1);
+        // Reading the same recovered stream again does not allocate another record.
         objects.remaining_bytes = bytes.len();
         assert_eq!(objects.stream(&dict, Cursor(bytes)), Some(b"x\rendstream junk ".as_slice()));
+        assert_eq!(objects.recovered_streams.len(), 1);
+        objects.remaining_bytes = bytes.len() + std::mem::size_of::<usize>() * 4;
         assert_eq!(objects.stream(&dict, Cursor(b"stream\r\nx\rendstream junk")), Some(b"x".as_slice()));
     }
 

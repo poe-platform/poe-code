@@ -48,6 +48,48 @@ pub(super) fn write_stream(out:&mut Vec<u8>,mut dict:Value,bytes:&[u8],mode:Opti
     Ok(())
 }
 
+pub(super) fn compress_unfiltered_body(body: &[u8], limit: usize, tokens: &mut usize) -> Result<Option<Vec<u8>>, String> {
+    let mut cursor = super::Cursor(body);
+    let mut dict = cursor.value(0, tokens, true).ok_or(INVALID)?;
+    cursor.skip();
+    if !cursor.0.starts_with(b"stream") || dict.get(b"Filter").or_else(|| dict.get(b"F")).is_some() {
+        return Ok(None);
+    }
+    let data = super::Objects::new(body).stream(&dict, cursor).ok_or(INVALID)?;
+    if let Value::Dict(fields) = &mut dict { fields.retain(|(key, _)| key.as_ref() != b"Length"); }
+    let mut out = Vec::new();
+    write_stream(&mut out, dict, data, Some(true), limit)?;
+    Ok(Some(out))
+}
+
+fn normalize_content(data: &[u8], tokens: &mut usize) -> Result<Vec<u8>, String> {
+    if !data.contains(&b'\r') { return Ok(data.to_vec()); }
+    fn text(data: &[u8], out: &mut Vec<u8>) {
+        let mut cr = false;
+        for &byte in data {
+            if !cr || byte != b'\n' { out.push(if byte == b'\r' { b'\n' } else { byte }); }
+            cr = byte == b'\r';
+        }
+    }
+    let mut out = Vec::with_capacity(data.len());
+    let mut cursor = super::Cursor(data);
+    let mut start = 0;
+    loop {
+        cursor.skip();
+        if cursor.0.is_empty() { break; }
+        let value = cursor.value(0, tokens, true).ok_or(INVALID)?;
+        if value.word() == Some(b"BI") {
+            let (_, image) = super::pdf_copy::pdf_content_edit::inline(&mut cursor, tokens)?;
+            let offset = image.as_ptr() as usize - data.as_ptr() as usize;
+            text(&data[start..offset], &mut out);
+            out.extend_from_slice(image);
+            start = offset + image.len();
+        }
+    }
+    text(&data[start..], &mut out);
+    Ok(out)
+}
+
 pub(in super::super) fn empty_pdf(limit: usize) -> Option<Vec<u8>> {
     write_objects(
         &[
@@ -82,8 +124,10 @@ pub(in super::super) struct PageEdits<'a> {
     pub attachment_page: Option<usize>,
     pub update: Option<&'a super::Updates>,
     pub compress_streams: Option<bool>,
+    pub compress_unfiltered: bool,
     pub decrypt: bool,
     pub linearize: bool,
+    pub qdf: bool,
     pub inline_images: Option<(u64,bool)>,
     pub prune_resources: bool,
     pub flatten_rotation: bool,
@@ -103,7 +147,7 @@ pub(in super::super) struct PageEdits<'a> {
     pub normalize_content: bool,
 }
 
-fn page_labels(specs: &[&str], limit: usize) -> Result<Vec<u8>, String> {
+fn page_labels(specs: &[&str], page_count: usize, limit: usize) -> Result<Vec<u8>, String> {
     let number = |n: f64| {
         if n.abs() >= 1e21 {
             format!("{n:e}").replace('e', "e+")
@@ -111,44 +155,45 @@ fn page_labels(specs: &[&str], limit: usize) -> Result<Vec<u8>, String> {
             n.to_string()
         }
     };
-    let name = |s: &str| {
-        let mut out = Vec::new();
-        for unit in s.encode_utf16() {
-            if !(33..=126).contains(&unit) || b"()<>[]{}/%#".contains(&(unit as u8)) {
-                write!(out, "#{unit:02X}").unwrap();
-            } else {
-                out.push(unit as u8);
-            }
-        }
-        out
+    let integer = |s: &str| {
+        s.parse::<i64>().map(|n| n as f64)
+            .map_err(|_| format!("overflow/underflow converting {s} to 64-bit integer"))
     };
     let mut body = b"<<\n/Nums [ ".to_vec();
+    let mut previous = None;
     for spec in specs {
-        let Some((page, label)) = spec.split_once(':').filter(|(p, _)| !p.is_empty()) else {
-            continue;
-        };
-        let index = super::super::qpdf_decimal(page).unwrap_or(1.).max(1.) - 1.;
-        if !index.is_finite() {
-            return Err("invalid page label".into());
-        }
-        let mut parts = label.split('/');
+        let syntax = "page label spec must be n:[D|a|A|r|R][/start[/prefix]]";
+        let (page, label) = spec.split_once(':').ok_or(syntax)?;
+        let digits = if page == "z" { "1" } else { page.strip_prefix('r').unwrap_or(page) };
+        let mut parts = label.splitn(3, '/');
         let style = parts.next().unwrap();
         let second = parts.next().unwrap_or("");
-        let start = super::super::qpdf_decimal(second).filter(|n| n.is_finite());
-        let prefix = parts.next().unwrap_or(if start.is_none() { second } else { "" });
-        let mut fields = Vec::new();
-        if style != "n" {
-            // The retained writer serializes the label tree, then reads it back before saving.
-            let mut token = vec![b'/'];
-            if style.is_ascii() {
-                token.extend(name(style));
-            } else {
-                token.extend(name(&super::pdf_string::name(&name(style))));
-            }
-            set(&mut fields, b"S", Value::Word(token.into()));
+        if digits.is_empty() || !digits.bytes().chain(second.bytes()).all(|b| b.is_ascii_digit())
+            || !matches!(style, "" | "D" | "a" | "A" | "r" | "R") {
+            return Err(syntax.into());
         }
-        if let Some(n) = start.filter(|&n| n != 0. && n != 1.) {
-            set(&mut fields, b"St", Value::Word(number(n).into_bytes().into()));
+        let page_number = integer(digits)?;
+        let start = if second.is_empty() { 1. } else { integer(second)? };
+        let index = if page == "z" { page_count as f64 - 1. }
+            else if page.starts_with('r') { page_count as f64 - page_number }
+            else { page_number - 1. };
+        if previous.is_none() && index != 0. {
+            return Err("the first page label specification must start with page 1".into());
+        }
+        if start < 1. {
+            return Err("starting page number must be >= 1".into());
+        }
+        if previous.is_some_and(|p| index <= p) {
+            return Err("page label specifications must be in order by first page".into());
+        }
+        previous = Some(index);
+        let prefix = parts.next().unwrap_or("");
+        let mut fields = Vec::new();
+        if !style.is_empty() {
+            set(&mut fields, b"S", Value::Word(format!("/{style}").into_bytes().into()));
+        }
+        if start != 1. {
+            set(&mut fields, b"St", Value::Word(number(start).into_bytes().into()));
         }
         if !prefix.is_empty() {
             set(&mut fields, b"P", super::pdf_string::encode(prefix));
@@ -180,6 +225,7 @@ pub(in super::super) fn rewrite(
         .and_then(Value::reference)
         .ok_or(INVALID)?;
     let mut catalog = objects.object(root).ok_or(INVALID)?.0;
+    objects.require_page_tree(&catalog)?;
     let mut first_new = objects.xref.keys().next_back().ok_or(INVALID)?.0.checked_add(1).ok_or(TOO_LARGE)?;
     let mut changed=BTreeMap::new();
     let mut edited_tree =
@@ -236,10 +282,10 @@ pub(in super::super) fn rewrite(
             } else {
                 Some(list(layer.repeat, source.len()).map_err(source_error)?)
             };
-            if !from.is_empty() {
+            if !from.is_empty() || repeats.as_ref().is_some_and(|r| !r.is_empty()) {
                 let pairs = to.into_iter().zip(
                     from.iter()
-                        .chain(repeats.as_ref().unwrap_or(&from).iter().cycle())
+                        .chain(repeats.as_deref().unwrap_or(&[]).iter().cycle())
                         .copied(),
                 );
                 (first_new, edit_limit) = source
@@ -290,7 +336,8 @@ pub(in super::super) fn rewrite(
             return Err(INVALID.into());
         };
         set(cat, b"PageLabels", Value::Ref((next_edit, 0)));
-        changed.insert((next_edit, 0), page_labels(&edits.label_specs, limit)?);
+        let count = edited_tree.as_ref().ok_or(INVALID)?.0.len();
+        changed.insert((next_edit, 0), page_labels(&edits.label_specs, count, limit)?);
         next_edit = next_edit.checked_add(1).ok_or(TOO_LARGE)?;
     }
     if edits.generate_appearances && !edits.acroform && let Some((pages,tree))=&mut edited_tree {
@@ -357,6 +404,36 @@ pub(in super::super) fn rewrite(
     let mut info=trailer.get(b"Info");
     if edits.linearize {
         changed.insert((first_new,0), format!("<<\n/Linearized 1\n/N {}\n>>", pages.len()).into_bytes());
+    }
+    let mut content_streams = BTreeSet::new();
+    if edits.normalize_content {
+        let mut visited = BTreeSet::new();
+        let mut pending = Vec::new();
+        for &id in &pages {
+            if let Some(value) = objects.page_dict(id, &tree).and_then(|p| p.get(b"Contents").cloned()) {
+                pending.push((value, 0usize));
+            }
+        }
+        while let Some((value, depth)) = pending.pop() {
+            if depth > 128 { return Err(INVALID.into()); }
+            match value {
+                Value::Ref(id) if visited.insert(id) => {
+                    if let Some(body) = changed.get(&id) {
+                        let mut c = super::Cursor(body);
+                        let value = c.value(0, &mut objects.tokens, true).ok_or(INVALID)?;
+                        c.skip();
+                        if c.0.starts_with(b"stream") { content_streams.insert(id); }
+                        else { pending.push((value.into_owned(), depth + 1)); }
+                    } else if let Some((value, mut c)) = objects.object(id) {
+                        c.skip();
+                        if c.0.starts_with(b"stream") { content_streams.insert(id); }
+                        else { pending.push((value, depth + 1)); }
+                    }
+                }
+                Value::Array(items) => pending.extend(items.into_iter().map(|v| (v, depth + 1))),
+                _ => (),
+            }
+        }
     }
     let rotations=if edits.flatten_rotation || !edits.layers.is_empty() {vec![]} else {super::rotations(&edits.rotations,pages.len())?};
     let (page_root, mut page_node, flatten_tree) = match catalog.get(b"Pages")
@@ -485,10 +562,20 @@ pub(in super::super) fn rewrite(
         store(page_root, &Value::Dict(page_node))?;
     }
     store(root, &catalog)?;
+    let mut containers = BTreeSet::new();
+    let mut linearized = edits.linearize;
+    for id in objects.xref.keys().copied().collect::<Vec<_>>() {
+        let (value, mut c) = objects.object(id).ok_or(INVALID)?;
+        c.skip();
+        if c.0.starts_with(b"stream") {
+            if value.get(b"Type").and_then(Value::word) == Some(b"/ObjStm") { containers.insert(id); }
+        } else if value.get(b"Linearized").is_some() { linearized = true; }
+    }
     let next = objects
         .xref
         .keys()
         .chain(changed.keys())
+        .filter(|id| !containers.contains(id))
         .max()
         .ok_or(INVALID)?
         .0
@@ -496,7 +583,7 @@ pub(in super::super) fn rewrite(
         .ok_or(TOO_LARGE)?;
     let decrypt = edits.decrypt && objects.security.is_some();
     let generate = !decrypt && edits.generate_object_streams && edits.split_pages.is_none();
-    let mut packed = (generate && !edits.normalize_content).then(Packed::default);
+    let mut packed = (generate && !edits.normalize_content && !edits.qdf && !linearized).then(Packed::default);
     let version = if decrypt { "1.7".into() } else { super::header_version(bytes).ok_or(INVALID)? };
     let mut out = b"%PDF-".to_vec();
     out.extend_from_slice(if generate && super::super::parse_float_prefix(&version) < 1.5 { b"1.5" } else { version.as_bytes() });
@@ -512,14 +599,28 @@ pub(in super::super) fn rewrite(
             .next()
             .map(|(&id, _)| id);
         let id = original.unwrap_or((n, 0));
-        if original.is_none() && !changed.contains_key(&id) {
+        if containers.contains(&id) || original.is_none() && !changed.contains_key(&id) {
             continue;
         }
         let start = out.len();
         *row = (1, start, id.1);
         writeln!(out, "{n} {} obj", id.1).unwrap();
         let body_start = out.len();
-        if let Some(body) = changed.remove(&id) {
+        if let Some(mut body) = changed.remove(&id) {
+            if content_streams.contains(&id) {
+                let mut reader = super::Objects::new(&body);
+                let mut c = super::Cursor(&body);
+                let mut dict = c.value(0, &mut objects.tokens, true).ok_or(INVALID)?;
+                let raw = reader.stream(&dict, c).ok_or(INVALID)?;
+                let data = reader.decode(&dict, raw.into()).ok_or(INVALID)?;
+                let data = normalize_content(&data, &mut objects.tokens)?;
+                let mut normalized = Vec::new();
+                if let Value::Dict(fields) = &mut dict { fields.retain(|(key, _)| key.as_ref() != b"Length"); }
+                write_stream(&mut normalized, dict, &data, Some(false), limit.saturating_sub(out.len()))?;
+                body = normalized;
+            } else if edits.compress_unfiltered && let Some(compressed) = compress_unfiltered_body(&body, limit.saturating_sub(out.len()), &mut objects.tokens)? {
+                body = compressed;
+            }
             if body.len() > limit.saturating_sub(out.len()) {
                 return Err(TOO_LARGE.into());
             }
@@ -535,9 +636,20 @@ pub(in super::super) fn rewrite(
             }
             cursor.skip();
             if cursor.0.starts_with(b"stream") {
+                let normalize = content_streams.contains(&id);
+                // Retained rewrites classify compression before consuming Crypt filters.
+                // Explicit stream edits preserve alias entries from the source dictionary.
+                let mode = if normalize { Some(false) } else { edits.compress_streams.or_else(|| (edits.compress_unfiltered && dict.get(b"Filter").is_none()).then_some(true)) };
+                let original_dict = mode.is_some().then(|| dict.clone());
                 let mut data=objects.raw_stream(id,&mut dict,cursor).ok_or(INVALID)?;
-                if edits.compress_streams.is_some() {data=objects.decode(&dict,data).ok_or(INVALID)?;}
-                write_stream(&mut out,dict,&data,edits.compress_streams,limit)?;
+                if mode.is_some() { data=objects.decode(&dict,data).ok_or(INVALID)?; }
+                if let Some(original) = original_dict { dict = original; }
+                if normalize { data = normalize_content(&data, &mut objects.tokens)?.into(); }
+                // QPDF moves Length after its rewritten filters; PDFtk preserves its position.
+                if edits.compress_streams.is_none() && mode.is_some() && let Value::Dict(fields) = &mut dict {
+                    fields.retain(|(key, _)| key.as_ref() != b"Length");
+                }
+                write_stream(&mut out,dict,&data,mode,limit)?;
             } else if cursor.0.starts_with(b"endobj") {
                 encode(&dict, &mut out)?;
             } else {
@@ -576,9 +688,14 @@ pub(in super::super) fn rewrite(
     {
         return p.finish(out, rows, &trailer_entries, limit);
     }
-    finish_classic(out, rows, &trailer_entries, root.0, limit)
+    if edits.qdf && !edits.linearize && edits.split_pages.is_none() {
+        return pdf_qdf::finish(out, rows, &trailer_entries, limit);
+    }
+    finish_classic(out, rows, &trailer_entries, root.0, generate && !edits.normalize_content, limit)
 }
 
+#[path = "pdf_qdf.rs"]
+mod pdf_qdf;
 #[path = "pdf_linearize.rs"]
 mod pdf_linearize;
 pub(super) use pdf_linearize::finish_classic;

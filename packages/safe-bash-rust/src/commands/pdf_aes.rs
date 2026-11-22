@@ -55,7 +55,7 @@ fn hash(pw: &[u8], salt: &[u8], user: &[u8], r: usize) -> [u8; 32] {
     }
     k[..32].try_into().unwrap()
 }
-pub(super) fn file_key(dict: &Value<'_>, password: &str, r: usize) -> Option<Vec<u8>> {
+pub(super) fn file_key(dict: &Value<'_>, password: &str, r: usize) -> Option<(Vec<u8>, bool, bool, String)> {
     let string = |name: &[u8]| match dict.get(name)? {
         Value::String { bytes, .. } => Some(bytes.as_slice()),
         _ => None,
@@ -64,18 +64,13 @@ pub(super) fn file_key(dict: &Value<'_>, password: &str, r: usize) -> Option<Vec
     let u = string(b"U")?.get(..48)?;
     let o = string(b"O")?.get(..48)?;
     let authenticate = |pw: &[u8]| {
-        for (stored, user, wrapped) in [(u, &[][..], b"UE"), (o, u, b"OE")] {
-            if !user.is_empty() && pw.is_empty() {
-                continue;
-            }
-            if hash(pw, &stored[32..40], user, r) != stored[..32] {
-                continue;
-            }
-            let mut file = string(wrapped)?.get(..32)?.to_vec();
-            decrypt_blocks(&hash(pw, &stored[40..48], user, r), [0; 16], &mut file);
-            return Some(file);
-        }
-        None
+        let user = hash(pw, &u[32..40], &[], r) == u[..32];
+        let owner = (!pw.is_empty() || user) && hash(pw, &o[32..40], u, r) == o[..32];
+        let (stored, salt, wrapped) = if user { (u, &[][..], b"UE") }
+            else if owner { (o, u, b"OE") } else { return None; };
+        let mut file = string(wrapped)?.get(..32)?.to_vec();
+        decrypt_blocks(&hash(pw, &stored[40..48], salt, r), [0; 16], &mut file);
+        Some((file, user, owner, if user { String::from_utf8_lossy(pw).into_owned() } else { String::new() }))
     };
     if password.is_ascii() {
         return authenticate(raw);

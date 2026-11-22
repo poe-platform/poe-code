@@ -1801,29 +1801,17 @@ fn extract_html_headings(html: &str) -> Vec<(String, String)> {
     out
 }
 
-fn format_qpdf_split_name(template: &str, total: usize, group: usize, start: usize, end: usize) -> Option<String> {
-    let pad_len = total.max(1).to_string().len();
-    if let Some((prefix, spec, suffix)) = filename_number_spec(template) {
-        let digits = spec.strip_prefix('0').unwrap_or(spec);
-        let width = if digits.is_empty() { pad_len } else if spec.starts_with('0') { filename_width(digits)? } else { 0 };
-        let mut name = prefix.replace("%%", "%");
-        name.push_str(&format!("{start:0width$}"));
-        if group != 1 { name.push_str(&format!("-{end:0width$}")); }
-        name.push_str(&suffix.replace("%%", "%"));
-        return Some(name);
+fn format_qpdf_split_name(template: &str, total: usize, group: usize, start: usize, end: usize) -> String {
+    let width = total.max(1).to_string().len();
+    let range = if group == 1 { format!("{start:0width$}") }
+        else { format!("{start:0width$}-{end:0width$}") };
+    if template.contains("%d") {
+        return template.replacen("%d", &range, 1);
     }
-    let stem = if template.to_ascii_lowercase().ends_with(".pdf") {
-        &template[..template.len() - 4]
-    } else {
-        template
-    };
-    let first = format!("{start:0>pad_len$}");
-    let last = format!("{end:0>pad_len$}");
-    Some(if group == 1 {
-        format!("{stem}-{first}.pdf")
-    } else {
-        format!("{stem}-{first}-{last}.pdf")
-    })
+    let (stem, extension) = if template.to_ascii_lowercase().ends_with(".pdf") {
+        template.split_at(template.len() - 4)
+    } else { (template, "") };
+    format!("{stem}-{range}{extension}")
 }
 
 fn decode_pdftk_entities(raw: &str) -> String {
@@ -6446,6 +6434,7 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let mut empty_input = false;
     let mut replace_input = false;
     let mut check_mode = false;
+    let mut warning_exit_zero = false;
     let mut show_npages = false;
     let mut show_enc = false;
     let mut is_enc = false;
@@ -6472,6 +6461,7 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     let mut encryption = None;
     let mut qdf_mode = false;
     let mut uncompress = false;
+    let mut compress_unfiltered = true;
     let mut normalize_content = None;
     let mut externalize_inline=false;
     let mut ii_min_bytes=1024;
@@ -6497,13 +6487,15 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 "y" => false, "n" => true,
                 _ => return err_out(&format!("qpdf: invalid compress-streams value {mode}\n"),2),
             };
+            compress_unfiltered = !uncompress;
             i += 1;
             continue;
         }
         if let Some(mode) = a.strip_prefix("--stream-data=") {
             match mode {
-                "uncompress" => uncompress = true,
-                "compress" | "preserve" => uncompress = false,
+                "uncompress" => { uncompress = true; compress_unfiltered = false; }
+                "compress" => { uncompress = false; compress_unfiltered = true; }
+                "preserve" => { uncompress = false; compress_unfiltered = false; }
                 _ => {}
             }
             i += 1;
@@ -6751,6 +6743,7 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         if a == "--qdf" {
             qdf_mode = true;
             uncompress = true;
+            compress_unfiltered = false;
             i += 1;
             continue;
         }
@@ -6880,6 +6873,7 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             continue;
         }
         match a {
+            "--warning-exit-0" => warning_exit_zero = true,
             "--remove-page-labels" => edits.page_labels = true,
             "--remove-info" => edits.info = true,
             "--remove-metadata" => edits.metadata = true,
@@ -6895,6 +6889,8 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
 
     edits.inline_images=externalize_inline.then_some((ii_min_bytes,!uncompress));
     edits.normalize_content = normalize_content.unwrap_or(qdf_mode || uncompress);
+    edits.qdf = qdf_mode;
+    edits.compress_unfiltered = compress_unfiltered && !edits.normalize_content;
 
     let read = |name: &str| if name == "-" {Some(crate::vfs::stream_string_to_bytes(stdin))}
         else {fs.read_file(&resolve_posix_path(cwd, name)).ok()};
@@ -6957,13 +6953,22 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             let Some(key) = PdfDoc::parse(&bytes).encrypted else {return err_out("",2)};
             return if !is_enc && password.as_ref().is_some_and(|p| key.is_empty() || p == &key) {err_out("",3)} else {ok_out("")};
         }
-        // The compatibility predicates deliberately recognize a literal
-        // marker, including in malformed files, before opening a PDF.
-        if !bytes.windows(8).any(|s| s == b"/Encrypt") { return err_out("",2); }
-        if !is_enc && let Some(pw) = password.as_deref() && pdf_reader::accepts_password(&bytes,pw).is_some() { return err_out("",3); }
-        return ok_out("");
+        return match pdf_reader::encryption_status(&bytes, password.as_deref().unwrap_or("")) {
+            Ok(false) => err_out("", 2),
+            Ok(true) => err_out("", if is_enc { 0 } else { 3 }),
+            Err(pdf_reader::PASSWORD) => ok_out(""),
+            Err(error) => err_out(&format!("qpdf: {f}: {error}\n"), 2),
+        };
     }
-    let original = || if empty_input {pdf_reader::empty_pdf(fs.shell_limits().max_output_bytes)}else{primary_arg.as_deref().and_then(read)};
+    let mut warnings = Vec::new();
+    let mut original = || {
+        let bytes = if empty_input {pdf_reader::empty_pdf(fs.shell_limits().max_output_bytes)}else{primary_arg.as_deref().and_then(read)};
+        if let Some(bytes) = &bytes && !json_input && !is_legacy_pdf(bytes) {
+            warnings = pdf_reader::recovery_warnings(bytes, password.as_deref().unwrap_or(""));
+        }
+        bytes
+    };
+    let mut result = (|| {
     let mut rebuilt=if json_input && !empty_input || !update_from_json.is_empty(){
         let name=primary_arg.as_deref().unwrap_or("empty");
         let Some(mut bytes)=original()else{return if primary_arg.is_none(){err_out("qpdf: an input file is required\n",2)}else{err_out(&format!("qpdf: cannot open {name}\n"),2)}};
@@ -6984,7 +6989,7 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         if !update_from_json.is_empty(){
             if pdf_reader::header_version(&bytes).is_none(){return err_out(&format!("qpdf: {name}: Invalid PDF header: missing %PDF- signature\n"),2)}
             let mut graph=match pdf_reader::JsonDocument::from_pdf(&bytes,password.as_deref().unwrap_or("")){
-                Ok(g)=>g,Err(e)=>return err_out(&format!("qpdf: {name}: {e}\n"),2)
+                Ok(g)=>g,Err(e)=>return err_out(&format!("qpdf: {name}: {}\n", if e == pdf_reader::PASSWORD { "invalid password" } else { &e }),2)
             };
             for path in update_from_json{
                 let source=match acquire(path){
@@ -6998,14 +7003,18 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         Some(bytes)
     }else{None};
     let base_is_input=rebuilt.is_none();
-    let mut primary=||rebuilt.take().or_else(original);
+    let mut primary=||rebuilt.take().or_else(&mut original);
     if show_lin || check_mode || show_npages || show_pages || show_xref || show_object.is_some() || show_enc || list_att || show_att.is_some() {
         let input = primary_arg.as_deref().unwrap_or("empty");
         let bytes=primary();
         if let Some(bytes) = bytes {
             let source = pdf_reader::PageSource::open(&bytes,password.as_deref().unwrap_or(""));
-            if let Err(e @ (pdf_reader::NO_CATALOG | pdf_reader::PASSWORD | pdf_reader::UNSUPPORTED)) = source && !is_legacy_pdf(&bytes) {
-                return err_out(&format!("qpdf: {input}: {e}\n"),2);
+            if let Err(e @ (pdf_reader::NO_CATALOG | pdf_reader::NO_PAGE_TREE | pdf_reader::PASSWORD | pdf_reader::UNSUPPORTED)) = source && !is_legacy_pdf(&bytes) {
+                if e == pdf_reader::PASSWORD && show_enc && !check_mode && !show_npages
+                    && let Some(report) = pdf_reader::qpdf_password_report(&bytes, password.as_deref().unwrap_or("")) {
+                    return ok_out(&report);
+                }
+                return err_out(&format!("qpdf: {input}: {}\n", if e == pdf_reader::PASSWORD { "invalid password" } else { e }),2);
             }
             if let Ok(mut source) = source {
             let out = if show_lin || check_mode { source.qpdf_summary(input,check_mode,show_lin) }
@@ -7014,10 +7023,9 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 else if show_enc { Some(source.encryption_description()) }
                 else if show_xref {source.qpdf_xref()}
                 else if let Some(spec) = &show_object {
-                    let number = qpdf_decimal(spec).unwrap_or(0.) as usize;
-                    source.qpdf_object(number,raw_stream_data,filtered_stream_data)
+                    source.qpdf_object(spec,raw_stream_data,filtered_stream_data)
                 } else {
-                    match source.qpdf_attachments(show_att.as_deref()) {
+                    match source.qpdf_attachments(show_att.as_deref(), if empty_input { "" } else { input }) {
                         Some(None) => return err_out(&format!("qpdf: attachment {} not found\n",show_att.as_deref().unwrap_or("")),2),
                         result => result.flatten(),
                     }
@@ -7217,7 +7225,7 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
         }
         let source = pdf_reader::PageSource::open(&input,password.as_deref().unwrap_or(""));
         if let Err(e) = source && !is_legacy_pdf(&input) {
-            return err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2);
+            return err_out(&format!("qpdf: {}: {}\n",primary_arg.as_deref().unwrap_or("empty"), if e == pdf_reader::PASSWORD { "invalid password" } else { e }),2);
         }
         for k in &json_keys {
             if jv == 1 && k == "qpdf" {return err_out("qpdf: json-key=qpdf is not valid for json=1\n",2);}
@@ -7392,7 +7400,7 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                 }
                 let rewrite = || pdf_reader::rewrite(&bytes,&edits,&remove_atts,&add_atts,&copy_atts,read,limit)
                     .map_err(|e| if matches!(e.as_str(), "invalid inline-image minimum size" | "invalid page rotation" | "invalid page label" | "invalid PDF resource stream" | "invalid layer source" | "invalid layer page range" | pdf_reader::attachments::INVALID_SOURCE) { err_out("shell: line 1: internal error\n",1) }
-                        else if matches!(e.as_str(),pdf_reader::NO_CATALOG|pdf_reader::PASSWORD|pdf_reader::UNSUPPORTED) { err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2) }
+                        else if matches!(e.as_str(),pdf_reader::NO_CATALOG|pdf_reader::NO_PAGE_TREE|pdf_reader::PASSWORD|pdf_reader::UNSUPPORTED) { err_out(&format!("qpdf: {}: {}\n",primary_arg.as_deref().unwrap_or("empty"), if e == pdf_reader::PASSWORD { "invalid password" } else { &e }),2) }
                         else {err_out(&format!("qpdf: {e}\n"),2)});
                 if let Some(group) = edits.split_pages {
                     let edited = edits.inline_images.is_some() || edits.prune_resources || edits.flatten_annotations.is_some() || edits.generate_appearances || !edits.label_specs.is_empty() || !edits.layers.is_empty() || edits.flatten_rotation || edits.info || edits.metadata || edits.structure || edits.acroform || edits.page_labels
@@ -7404,7 +7412,7 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                     } else { &bytes };
                     let mut source = match pdf_reader::PageSource::open(data,edits.password) {
                         Ok(source)=>source,
-                        Err(e)=>return err_out(&format!("qpdf: {}: {e}\n",primary_arg.as_deref().unwrap_or("empty")),2),
+                        Err(e)=>return err_out(&format!("qpdf: {}: {}\n",primary_arg.as_deref().unwrap_or("empty"), if e == pdf_reader::PASSWORD { "invalid password" } else { e }),2),
                     };
                     let count = source.len();
                     let rotations = match pdf_reader::rotations(if edited { &[] } else { &edits.rotations }, count) {
@@ -7415,12 +7423,21 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
                     let mut remaining = limit;
                     for start in (0..count).step_by(group) {
                         let end = start.saturating_add(group).min(count);
-                        let Some(name) = format_qpdf_split_name(dst_arg,count,group,start+1,end) else {
-                            return err_out("qpdf: filename width limit exceeded\n",2);
-                        };
-                        let Some(part) = pdf_reader::PageOutput::split(&mut source,start..end,&rotations,remaining) else {
+                        let name = format_qpdf_split_name(dst_arg,count,group,start+1,end);
+                        let Some(mut part) = pdf_reader::PageOutput::split(&mut source,start..end,&rotations,edits.compress_unfiltered,remaining) else {
                             return err_out("qpdf: could not copy pages within output limits\n",2);
                         };
+                        if edits.qdf || edits.normalize_content || edits.linearize || edits.generate_object_streams {
+                            let options = pdf_reader::PageEdits {
+                                qdf: edits.qdf, normalize_content: edits.normalize_content,
+                                linearize: edits.linearize, generate_object_streams: edits.generate_object_streams,
+                                ..Default::default()
+                            };
+                            part = match pdf_reader::rewrite(&part, &options, &[], &[], &[], |_| None, remaining) {
+                                Ok(bytes) => bytes,
+                                Err(e) => return err_out(&format!("qpdf: {e}\n"), 2),
+                            };
+                        }
                         remaining -= part.len();
                         outputs.push((name,part));
                     }
@@ -7462,7 +7479,7 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
             sub.page_w = doc.page_w;
             sub.page_h = doc.page_h;
             sub.pages = doc.pages[(start - 1)..end].to_vec();
-            let Some(fname) = format_qpdf_split_name(pat, total, group_sz, start, end) else { return err_out("qpdf: filename width limit exceeded\n", 2); };
+            let fname = format_qpdf_split_name(pat, total, group_sz, start, end);
             if let Err(e) = publish(&fname, &sub.serialize()) { return e; }
             start = end + 1;
         }
@@ -7719,6 +7736,16 @@ fn cmd_qpdf(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> Bui
     } else {
         publish(&dst_arg, &serialized).map_or_else(|e| e, |()| ok_out(""))
     }
+    })();
+    if !warnings.is_empty() {
+        let input = primary_arg.as_deref().unwrap_or("empty");
+        let mut diagnostics = warnings.iter().map(|warning| format!("WARNING: {input}: {warning}\n")).collect::<String>();
+        diagnostics.push_str(&result.stderr);
+        if result.exit_code != 2 { diagnostics.push_str("qpdf: operation succeeded with warnings\n"); }
+        result.stderr = diagnostics;
+        if result.exit_code == 0 && !warning_exit_zero { result.exit_code = 3; }
+    }
+    result
 }
 
 fn cmd_pdftk(args: &[String], stdin: &str, cwd: &str, fs: &dyn SafeBashFs) -> BuiltinOutcome {
@@ -16668,7 +16695,7 @@ mod media_unit_tests {
         assert_eq!(run("pdftk", &["test.pdf", "burst", "output", "p%4d.pdf"]).exit_code, 0);
         assert!(fs.exists("/p1.pdf"));
         assert_eq!(run("qpdf", &["--split-pages", "test.pdf", "é%%-%04d.pdf"]).exit_code, 0);
-        assert!(fs.exists("/é%-0001.pdf"));
+        assert!(fs.exists("/é%%-%04d-1.pdf"));
     }
 
     #[test]
@@ -16763,6 +16790,190 @@ mod media_unit_tests {
             let result = cmd_media_doc("pdfdetach", &media_args(&args), "", "/", &fs);
             assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()),
                 (99, "", "Usage: pdfdetach [options] <PDF-file>\n"));
+            assert_eq!(fs.read_file("/out").unwrap(), b"preserved");
+        }
+    }
+
+    #[test]
+    fn qpdf_lists_embedded_stream_references_and_reports_empty_attachments() {
+        let fs = MemoryVfs::new();
+        let pdf = classic_pdf(&[
+            "<< /Type /Catalog /Pages 2 0 R /Names << /EmbeddedFiles << /Names [(notes) 4 0 R] >> >> >>",
+            "<< /Type /Pages /Count 1 /Kids [3 0 R] >>",
+            "<< /Type /Page /Parent 2 0 R >>",
+            "<< /Type /Filespec /UF (display.txt) /EF << /F 5 0 R >> >>",
+            "<< /Type /EmbeddedFile /Length 5 >>\nstream\nnotes\nendstream",
+        ], "");
+        fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+        for (args, expected) in [
+            (vec!["in.pdf", "--list-attachments"], "notes -> 5,0\n"),
+            (vec!["in.pdf", "--show-attachment=notes"], "notes"),
+            (vec!["in.pdf", "--show-attachment=display.txt"], "notes"),
+            (vec!["--empty", "--list-attachments"], " has no embedded files\n"),
+        ] {
+            let result = cmd_media_doc("qpdf", &media_args(&args), "", "/", &fs);
+            assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, expected, ""));
+        }
+    }
+
+    #[test]
+    fn qpdf_rejects_missing_page_trees_without_publishing_output() {
+        let fs = MemoryVfs::new();
+        for pages in ["", "/Pages 12 0 R", "/Pages 2 0 R", "/Pages []"] {
+            let pdf = classic_pdf(&[&format!("<< /Type /Catalog {pages} >>"), "null"], "");
+            fs.write_file("/in.pdf", pdf.as_bytes()).unwrap();
+            fs.write_file("/out", b"preserved").unwrap();
+            for args in [vec!["in.pdf", "--show-npages"], vec!["in.pdf", "--check"],
+                vec!["in.pdf", "--json"], vec!["in.pdf", "--show-xref"], vec!["in.pdf", "-"],
+                vec!["in.pdf", "out"], vec!["in.pdf", "--replace-input"], vec!["in.pdf", "--linearize", "out"]] {
+                let result = cmd_media_doc("qpdf", &media_args(&args), "", "/", &fs);
+                assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()),
+                    (2, "", "qpdf: in.pdf: unable to find page tree\n"), "{args:?}, {pages}");
+                assert_eq!(fs.read_file("/in.pdf").unwrap(), pdf.as_bytes());
+                assert_eq!(fs.read_file("/out").unwrap(), b"preserved");
+            }
+        }
+    }
+
+    #[test]
+    fn qpdf_encryption_predicates_parse_security_instead_of_literal_markers() {
+        let fs = MemoryVfs::new();
+        let plain = classic_pdf(&["<< /Type /Catalog /Pages 2 0 R /Note (/Encrypt) >>", "<< /Type /Pages /Kids [] /Count 0 >>"], "");
+        fs.write_file("/plain", plain.as_bytes()).unwrap();
+        fs.write_file("/bad", b"garbage /Encrypt").unwrap();
+        for flag in ["--is-encrypted", "--requires-password"] {
+            for (path, expected) in [("/bad", "qpdf: /bad: Invalid PDF header: missing %PDF- signature\n"), ("/plain", "")] {
+                let result = cmd_media_doc("qpdf", &media_args(&[path, flag]), "", "/", &fs);
+                assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (2, "", expected));
+            }
+        }
+    }
+
+    #[test]
+    fn qpdf_encryption_reports_match_native_reference_fixtures() {
+        use mcp_protocol_rust::json::{self, Value as J};
+        let fixtures = json::parse(include_bytes!("../../../safe-bash-command-qpdf/src/fixtures/encryption-reports.json"), json::Limits::default()).unwrap();
+        let checks = json::parse(include_bytes!("../../../safe-bash-command-qpdf/src/fixtures/encryption-check-reports.json"), json::Limits::default()).unwrap();
+        let text = |value: &J| { let J::String(s) = value else { panic!("expected string") }; String::from_utf16_lossy(s) };
+        let J::Array(cases) = fixtures.get("cases").unwrap() else { panic!() };
+        let fs = MemoryVfs::new();
+        for case in cases {
+            let name = text(case.get("name").unwrap());
+            let input = base64_decode(&text(case.get("pdf").unwrap())).unwrap();
+            fs.write_file("/in.pdf", &input).unwrap();
+            let J::Object(reports) = case.get("reports").unwrap() else { panic!() };
+            for (password, expected) in reports {
+                let password = String::from_utf16_lossy(password);
+                for (mode, code) in [("--is-encrypted", 0), ("--requires-password", 3)] {
+                    let args = vec![format!("--password={password}"), mode.into(), "/in.pdf".into()];
+                    let result = cmd_media_doc("qpdf", &args, "", "/", &fs);
+                    assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (code, "", ""), "{name}: {mode}");
+                }
+                for mode in ["--show-encryption", "--check"] {
+                    let expected = if mode == "--check" { checks.get("cases").unwrap().get(&name).unwrap().get(&password).unwrap() } else { expected };
+                    let args = vec![format!("--password={password}"), mode.into(), "/in.pdf".into()];
+                    let result = cmd_media_doc("qpdf", &args, "", "/", &fs);
+                    assert_eq!((result.exit_code, result.stderr.as_str()), (0, ""), "{name}: {mode} {password}");
+                    assert_eq!(result.stdout, text(expected), "{name}: {mode} {password}");
+                }
+            }
+            if let Some(reader) = case.get("reports").unwrap().get("reader") {
+                let expected = "Incorrect password supplied\n".to_owned() + &text(reader).lines()
+                    .filter(|line| !line.starts_with("Supplied password"))
+                    .map(|line| if line.starts_with("User password =") { "User password = " } else { line })
+                    .collect::<Vec<_>>().join("\n") + "\n";
+                for option in ["--password=wrong", "--password="] {
+                    let result = cmd_media_doc("qpdf", &media_args(&[option, "--show-encryption", "/in.pdf"]), "", "/", &fs);
+                    assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, expected.as_str(), ""), "{name}: {option}");
+                    let result = cmd_media_doc("qpdf", &media_args(&[option, "--check", "/in.pdf"]), "", "/", &fs);
+                    assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (2, "", "qpdf: /in.pdf: invalid password\n"), "{name}: {option}");
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn qpdf_compresses_only_unfiltered_streams_by_default() {
+        let fs = MemoryVfs::new();
+        let input = classic_pdf(&[
+            "<< /Type /Catalog /Pages 2 0 R /Payload 4 0 R /Encoded 5 0 R >>",
+            "<< /Type /Pages /Count 1 /Kids [3 0 R] >>",
+            "<< /Type /Page /Parent 2 0 R /Resources << /Payload 4 0 R /Encoded 5 0 R >> >>",
+            "<< /Length 7 >>\nstream\npayload\nendstream",
+            "<< /Filter /ASCIIHexDecode /Length 15 >>\nstream\n7061796c6f6164>\nendstream",
+        ], "");
+        fs.write_file("/in.pdf", input.as_bytes()).unwrap();
+        for (flags, compress) in [
+            (vec![], true), (vec!["--stream-data=preserve"], false),
+            (vec!["--stream-data=compress"], true), (vec!["--compress-streams=y"], true),
+            (vec!["--compress-streams=n"], false), (vec!["--normalize-content=y"], false),
+            (vec!["--qdf", "--normalize-content=n"], false),
+            (vec!["--stream-data=uncompress", "--stream-data=compress"], true),
+            (vec!["--stream-data=compress", "--stream-data=preserve"], false),
+        ] {
+            let mut args = media_args(&["in.pdf", "out.pdf"]);
+            args.extend(media_args(&flags));
+            let result = cmd_media_doc("qpdf", &args, "", "/", &fs);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            let catalog = cmd_media_doc("qpdf", &media_args(&["out.pdf", "--show-object=1"]), "", "/", &fs);
+            let reference = |key: &str| catalog.stdout.split(&format!("/{key} ")).nth(1).unwrap().split_whitespace().next().unwrap();
+            let payload = format!("--show-object={}", reference("Payload"));
+            let encoded = format!("--show-object={}", reference("Encoded"));
+            let dict = cmd_media_doc("qpdf", &media_args(&["out.pdf", &payload]), "", "/", &fs);
+            assert_eq!(dict.stdout.contains("/FlateDecode"), compress, "{flags:?}: {}", dict.stdout);
+            let data = cmd_media_doc("qpdf", &media_args(&["out.pdf", &payload, "--filtered-stream-data"]), "", "/", &fs);
+            assert_eq!(data.stdout, "payload", "{flags:?}");
+            let data = cmd_media_doc("qpdf", &media_args(&["out.pdf", &encoded, "--raw-stream-data"]), "", "/", &fs);
+            assert_eq!(data.stdout, "7061796c6f6164>", "{flags:?}");
+        }
+        for (mode, compressed) in [("--stream-data=compress", true), ("--stream-data=preserve", false)] {
+            let result = cmd_media_doc("qpdf", &media_args(&["in.pdf", mode, "--split-pages", "part-%d.pdf"]), "", "/", &fs);
+            assert_eq!(result.exit_code, 0, "{}", result.stderr);
+            let bytes = fs.read_file("/part-1.pdf").unwrap();
+            let mut source = pdf_reader::PageSource::open(&bytes, "").unwrap();
+            let raw = (1..10).filter_map(|n| source.qpdf_object(&n.to_string(), true, false)).collect::<Vec<_>>();
+            assert_eq!(raw.iter().any(|value| value == "payload"), !compressed, "{mode}");
+            assert!(raw.iter().any(|value| value == "7061796c6f6164>"), "{mode}");
+            let decoded = (1..10).filter_map(|n| source.qpdf_object(&n.to_string(), false, true)).filter(|v| v == "payload").count();
+            assert_eq!(decoded, 2, "{mode}");
+        }
+    }
+
+    #[test]
+    fn qpdf_rejects_unauthenticated_short_key_encryption_fixtures() {
+        let fs = MemoryVfs::new();
+        for input in [include_bytes!("../../../pdf-ast/src/fixtures/pdfjs-issue19484_1.pdf").as_slice(),
+            include_bytes!("../../../pdf-ast/src/fixtures/pdfjs-issue19484_2.pdf").as_slice()] {
+            fs.write_file("/in.pdf", input).unwrap();
+            fs.write_file("/out", b"preserved").unwrap();
+            for password in ["", "wrong"] {
+                for mode in [vec!["--check"], vec!["--decrypt", "out"], vec!["--json", "out"]] {
+                    let mut args = vec!["in.pdf".to_owned(), format!("--password={password}")];
+                    args.extend(media_args(&mode));
+                    let result = cmd_media_doc("qpdf", &args, "", "/", &fs);
+                    assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()),
+                        (2, "", "qpdf: in.pdf: invalid password\n"), "{args:?}");
+                    assert_eq!(fs.read_file("/out").unwrap(), b"preserved");
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn qpdf_uses_its_password_diagnostic_without_publishing_output() {
+        let fs = MemoryVfs::new();
+        let plain = pdf_reader::empty_pdf(1024 * 1024).unwrap();
+        let locked = pdf_reader::encrypt_document(&plain, "reader", "owner", -1028, 1024 * 1024).unwrap();
+        fs.write_file("/in.pdf", &locked).unwrap();
+        fs.write_file("/out", b"preserved").unwrap();
+        fs.write_file("/update", b"{}").unwrap();
+        for args in [vec!["in.pdf", "--password=bad", "--decrypt", "out"],
+            vec!["in.pdf", "--password=bad", "--show-npages"], vec!["in.pdf", "--password=bad", "--json", "out"],
+            vec!["in.pdf", "--password=bad", "--update-from-json=update", "out"],
+            vec!["in.pdf", "--password=bad", "--pages", ".", "1", "--", "out"]] {
+            let result = cmd_media_doc("qpdf", &media_args(&args), "", "/", &fs);
+            assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()),
+                (2, "", "qpdf: in.pdf: invalid password\n"));
             assert_eq!(fs.read_file("/out").unwrap(), b"preserved");
         }
     }

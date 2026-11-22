@@ -206,7 +206,11 @@ pub(super) fn edit<'a>(
         })?;
     }
     pairs.append(&mut descendant_pairs);
-    pairs.retain(|(key, _, _)| !remove.contains(key));
+    for key in remove {
+        let position = pairs.iter().position(|(candidate, _, _)| candidate == key)
+            .ok_or_else(|| format!("attachment {key} not found"))?;
+        pairs.remove(position);
+    }
     for a in add {
         let data = read(&a.path).ok_or_else(|| format!("cannot open attachment {}", a.path))?;
         let pos = pairs.iter().position(|(key, _, _)| key == &a.key);

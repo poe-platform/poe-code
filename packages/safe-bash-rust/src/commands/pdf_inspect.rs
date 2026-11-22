@@ -2,28 +2,13 @@
 use super::{ObjectId, Objects, PageSource, Value};
 use std::{collections::BTreeSet, fmt::Write};
 
-fn name(bytes: &[u8], out: &mut String) {
-    let mut rest = bytes;
-    while let Some((&b, tail)) = rest.split_first() {
-        if b == b'#'
-            && let Some(v) = tail
-                .get(..2)
-                .and_then(|s| std::str::from_utf8(s).ok())
-                .and_then(|s| u8::from_str_radix(s, 16).ok())
-        {
-            out.push(char::from(v));
-            rest = &tail[2..];
-        } else {
-            out.push(char::from(b));
-            rest = tail;
-        }
-    }
-}
+#[path = "pdf_linearization_report.rs"]
+mod linearization_report;
 
 fn display(value: &Value<'_>, out: &mut String) {
     match value {
         Value::Ref((n, g)) => write!(out, "{n} {g} R").unwrap(),
-        Value::Word(w) if w.starts_with(b"/") => name(w, out),
+        Value::Word(w) if w.starts_with(b"/") => out.push_str(&super::super::pdf_string::name(w)),
         Value::Word(w) => {
             if let Some(n) = value.number() {
                 if n == 0. {
@@ -36,9 +21,20 @@ fn display(value: &Value<'_>, out: &mut String) {
             }
         }
         Value::String { bytes, .. } => {
-            out.push('(');
-            out.push_str(&super::super::pdf_string::decode(bytes));
-            out.push(')');
+            let hex = bytes.iter().any(|b| !(32..=126).contains(b) && !matches!(b, 8 | 9 | 10 | 12 | 13));
+            out.push(if hex { '<' } else { '(' });
+            for &b in bytes {
+                if hex { write!(out, "{b:02x}").unwrap(); }
+                else {
+                    match b {
+                        8 => out.push_str("\\b"), 9 => out.push_str("\\t"), 10 => out.push_str("\\n"),
+                        12 => out.push_str("\\f"), 13 => out.push_str("\\r"),
+                        b'(' | b')' | b'\\' => { out.push('\\'); out.push(char::from(b)); }
+                        _ => out.push(char::from(b)),
+                    }
+                }
+            }
+            out.push(if hex { '>' } else { ')' });
         }
         Value::Array(items) => {
             out.push_str("[ ");
@@ -51,13 +47,15 @@ fn display(value: &Value<'_>, out: &mut String) {
             out.push_str(" ]");
         }
         Value::Dict(items) => {
+            let mut entries: Vec<_> = items.iter().map(|(k, v)| (super::super::pdf_string::name(k), v)).collect();
+            entries.sort_by(|a, b| a.0.encode_utf16().cmp(b.0.encode_utf16()));
             out.push_str("<< ");
-            for (i, (k, v)) in items.iter().enumerate() {
+            for (i, (k, v)) in entries.iter().enumerate() {
                 if i > 0 {
                     out.push(' ');
                 }
                 out.push('/');
-                name(k, out);
+                out.push_str(k);
                 out.push(' ');
                 display(v, out);
             }
@@ -122,43 +120,19 @@ impl<'a> PageSource<'a> {
                             .cloned()
                     })
             }) else {
-                return Some(format!("{input}: not linearized\n"));
+                return Some(format!("{input} is not linearized\n"));
             };
-            let mut number = |k: &[u8], default: f64| {
-                values
-                    .get(k)
-                    .and_then(|v| self.objects.resolve(v))
-                    .and_then(|v| v.number())
-                    .unwrap_or(default)
-            };
-            let (l, o, e, n, t) = (
-                number(b"L", 0.),
-                number(b"O", 0.),
-                number(b"E", 0.),
-                number(b"N", count as f64),
-                number(b"T", 0.),
-            );
-            let hints = values.get(b"H").and_then(|v| self.objects.resolve(v));
-            let mut hint = |i: usize| {
-                let Some(Value::Array(h)) = &hints else {
-                    return "0".to_owned();
-                };
-                match h.get(i).and_then(|v| self.objects.resolve(v)) {
-                    Some(Value::Word(w)) if matches!(w.as_ref(), b"true" | b"false") => {
-                        String::from_utf8_lossy(&w).into_owned()
-                    }
-                    Some(v) => v.number().unwrap_or(0.).to_string(),
-                    None => "0".into(),
-                }
-            };
-            return Some(format!(
-                "{input}: linearized\nLinearization dictionary: L={l} H=[{} {}] O={o} E={e} N={n} T={t}\nno linearization errors\n",
-                hint(0),
-                hint(1)
-            ));
+            return linearization_report::report(self, input, &values);
         }
         if check {
-            let version = super::super::header_version(self.objects.bytes)?;
+            let mut version = super::super::header_version(self.objects.bytes)?;
+            let mut level = Some(self.catalog.clone());
+            for key in [b"Extensions".as_slice(), b"ADBE", b"ExtensionLevel"] {
+                level = level.and_then(|v| v.get(key).cloned()).and_then(|v| self.objects.resolve(&v));
+            }
+            if let Some(level) = level.and_then(|v| v.number()).filter(|v| *v != 0.) {
+                write!(version, " extension level {level}").unwrap();
+            }
             let state = if count == 0 {
                 "empty"
             } else if dict.is_some() {
@@ -166,8 +140,10 @@ impl<'a> PageSource<'a> {
             } else {
                 "not linearized"
             };
+            let clean = if self.objects.recovered_xref || !self.objects.recovered_objects.is_empty() || !self.objects.recovered_streams.is_empty() { "" }
+                else { "No syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n" };
             return Some(format!(
-                "checking {input}\nPDF Version: {version}\nFile is {}\nFile is {state}\nNo syntax or stream encoding errors found; the file may still contain\nerrors that qpdf cannot detect\n", if self.objects.security.is_some() {"encrypted"} else {"not encrypted"}
+                "checking {input}\nPDF Version: {version}\n{}File is {state}\n{clean}", self.encryption_description()
             ));
         }
         Some(format!("{count}\n"))
@@ -175,24 +151,42 @@ impl<'a> PageSource<'a> {
 
     pub(in crate::commands::archive) fn qpdf_object(
         &mut self,
-        number: usize,
+        selector: &str,
         raw: bool,
         filtered: bool,
     ) -> Option<String> {
-        let Some((&id, _)) = self
-            .objects
-            .xref
-            .range((number, 0)..=(number, usize::MAX))
-            .next()
-        else {
-            if let Some(Some(node)) = self.tree.get(&(number, 0)) {
+        if selector == "trailer" {
+            // The merged security/catalog trailer omits xref-stream fields.
+            // Inspection exposes the actual latest revision dictionary.
+            let bytes = self.objects.bytes;
+            let original = if self.objects.recovered_xref { None } else {
+                super::super::last_xref(bytes).and_then(|offset| {
+                    let header = bytes[..bytes.len().min(1024)].windows(5).position(|w| w == b"%PDF-")?;
+                    self.objects.xref_revision(offset.checked_add(header)?, &mut |_, _| {})
+                })
+            };
+            let mut text = String::new();
+            display(original.as_ref().unwrap_or(&self.trailer), &mut text);
+            text.push('\n');
+            return Some(text);
+        }
+        let (number, generation) = selector.split_once(',').unwrap_or((selector, "0"));
+        let integer = |value: &str| crate::commands::archive::qpdf_decimal(value)
+            .filter(|n| n.is_finite() && *n >= 0. && *n <= 9_007_199_254_740_991. && *n <= usize::MAX as f64)
+            .map(|n| n as usize);
+        let Some(number) = integer(number) else { return Some("null\n".into()); };
+        if number == 0 { return Some(String::new()); }
+        let Some(generation) = integer(generation) else { return Some("null\n".into()); };
+        let id = (number, generation);
+        if !self.objects.xref.contains_key(&id) {
+            if generation == 0 && let Some(Some(node)) = self.tree.get(&id) {
                 let mut text = String::new();
                 display(node, &mut text);
                 text.push('\n');
                 return Some(text);
             }
             return Some("null\n".into());
-        };
+        }
         let (mut node, mut cursor) = self.objects.object(id)?;
         cursor.skip();
         let mut out = String::new();
@@ -206,8 +200,8 @@ impl<'a> PageSource<'a> {
             if raw {
                 return Some(crate::vfs::bytes_to_stream_string(&bytes));
             }
+            out.push_str("Object is stream.  Dictionary:\n");
             display(&node, &mut out);
-            write!(out, "\nstream\n...({} bytes)...\nendstream", bytes.len()).ok()?;
         } else {
             display(&node, &mut out);
         }
@@ -220,10 +214,21 @@ impl<'a> PageSource<'a> {
         let bytes = self.objects.bytes;
         let header = bytes[..bytes.len().min(1024)].windows(5).position(|w| w == b"%PDF-")?;
         for id in self.objects.xref.keys().copied().collect::<Vec<_>>() {
-            self.objects.object(id)?;
+            let (node, _) = self.objects.object(id)?;
             match self.objects.xref[&id].0 {
                 super::super::Location::File(offset) => writeln!(out,
                     "{}/{}: uncompressed; offset = {}", id.0, id.1, offset.checked_sub(header)?).ok()?,
+                super::super::Location::Member { .. } if self.objects.recovered_xref => {
+                    let kind = match &node {
+                        Value::Dict(_) => "dict", Value::Array(_) => "array",
+                        Value::String { .. } => "string", Value::Ref(_) => "ref",
+                        Value::Word(word) if word.starts_with(b"/") => "name",
+                        Value::Word(word) if matches!(word.as_ref(), b"true" | b"false") => "boolean",
+                        Value::Word(word) if word.as_ref() == b"null" => "null",
+                        Value::Word(_) => "number",
+                    };
+                    writeln!(out, "{}/{}: uncompressed; type = {kind}", id.0, id.1).ok()?;
+                }
                 super::super::Location::Member { container, ordinal } => writeln!(out,
                     "{}/0: compressed; stream = {container}, index = {ordinal}", id.0).ok()?,
             }
@@ -242,7 +247,7 @@ impl<'a> PageSource<'a> {
             writeln!(out, "page {}: {} {} R", i + 1, id.0, id.1).ok()?;
             let page = self.objects.page_dict(id, &self.tree)?;
             if images {
-                out.push_str("  images:\n");
+                let image_start = out.len();
                 let mut owner = &page;
                 let mut parents = BTreeSet::new();
                 while owner.get(b"Resources").is_none() {
@@ -260,6 +265,7 @@ impl<'a> PageSource<'a> {
                 if let Some(res) = owner.get(b"Resources") {
                     image_lines(&mut self.objects, res, &mut BTreeSet::new(), 0, &mut out)?;
                 }
+                if out.len() > image_start { out.insert_str(image_start, "  images:\n"); }
             }
             out.push_str("  content:\n");
             if let Some(contents) = page.get(b"Contents") {
@@ -304,7 +310,7 @@ fn image_lines<'a>(
         match dict.get(b"Subtype").and_then(Value::word) {
             Some(b"/Image") => {
                 out.push_str("    /");
-                name(&key, out);
+                out.push_str(&super::super::pdf_string::name(&key));
                 out.push_str(": ");
                 if let Some((n, g)) = reference {
                     write!(out, "{n} {g} R").ok()?;
@@ -312,7 +318,7 @@ fn image_lines<'a>(
                     out.push_str("inline");
                 }
                 let dimension = |k: &[u8]| dict.get(k).and_then(Value::number).unwrap_or(0.);
-                writeln!(out, " ({} x {})", dimension(b"Width"), dimension(b"Height")).ok()?;
+                writeln!(out, ", {} x {}", dimension(b"Width"), dimension(b"Height")).ok()?;
             }
             Some(b"/Form") if reference.is_none_or(|r| seen.insert(r)) => {
                 if let Some(res) = dict.get(b"Resources") {

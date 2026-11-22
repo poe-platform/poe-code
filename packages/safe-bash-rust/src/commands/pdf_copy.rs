@@ -195,6 +195,14 @@ impl<'a> Objects<'a> {
         }
     }
 
+    pub(super) fn require_page_tree(&mut self, catalog: &Value<'a>) -> Result<(), &'static str> {
+        let pages = catalog.get(b"Pages").and_then(|value| self.lookup_object(value));
+        if !matches!(pages, Some((_, Value::Dict(_), None))) {
+            return Err(super::NO_PAGE_TREE);
+        }
+        Ok(())
+    }
+
     pub(super) fn page_tree(
         &mut self,
         root: ObjectId,
@@ -273,6 +281,7 @@ impl<'a> PageSource<'a> {
         let (mut objects, trailer) = index(bytes,password)?;
         let root = trailer.get(b"Root").and_then(Value::reference).ok_or(INVALID)?;
         let catalog = objects.object(root).ok_or(INVALID)?.0;
+        objects.require_page_tree(&catalog)?;
         let (pages, tree) = objects.page_tree(root, &catalog, 0).ok_or(INVALID)?;
         let meta = match trailer.get(b"Info").and_then(Value::reference) {
             Some(r) => objects.object(r).ok_or(INVALID)?.0,
@@ -419,6 +428,7 @@ impl<'a> PageSource<'a> {
     pub(in super::super) fn qpdf_attachments(
         &mut self,
         show: Option<&str>,
+        input: &str,
     ) -> Option<Option<String>> {
         let mut seen = BTreeSet::new();
         let mut listing = String::new();
@@ -435,8 +445,11 @@ impl<'a> PageSource<'a> {
                 }
             } else {
                 use std::fmt::Write;
-                writeln!(listing, "{} -> {filename}", file.key).ok()?;
+                writeln!(listing, "{} -> {},{}", file.key, file.stream.0, file.stream.1).ok()?;
             }
+        }
+        if show.is_none() && listing.is_empty() {
+            listing = format!("{input} has no embedded files\n");
         }
         Some(show.is_none().then_some(listing))
     }
@@ -515,6 +528,8 @@ impl PageOutput {
         source: &mut PageSource<'_>,
         single_page: Option<usize>,
     ) -> Option<()> {
+        // pdfunite intentionally starts with no document-level metadata.
+        if single_page.is_none() && self.bodies[2].is_empty() { self.bodies[2] = b"<<\n>>".to_vec(); }
         let selection = match single_page {
             Some(i) => i..i.checked_add(1)?,
             None => 0..source.len(),
@@ -571,7 +586,7 @@ impl PageOutput {
             }
         }
         let mut output = Self::new(limits.max_output_bytes);
-        let base_source = PageSource::open(base,edits.password).map_err(|e|format!("{}: {e}",primary.unwrap_or("empty")))?;
+        let base_source = PageSource::open(base,edits.password).map_err(|e|format!("{}: {}",primary.unwrap_or("empty"), if e == super::PASSWORD { "invalid password" } else { e }))?;
         output
             .set_info(&base_source, &[b"Title", b"Author"])
             .ok_or("invalid PDF metadata")?;
@@ -646,11 +661,22 @@ impl PageOutput {
         source: &mut PageSource<'_>,
         pages: std::ops::Range<usize>,
         rotations: &[Option<Rotation>],
+        compress_unfiltered: bool,
         limit: usize,
     ) -> Option<Vec<u8>> {
         let mut output = Self::new(limit);
         output.set_info(source, &[b"Title", b"Author", b"Subject", b"Keywords"])?;
         output.copy_pages(source, pages, false, |i| rotations.get(i).copied().flatten().map(CopyRotation::Before), None, None)?;
+        if compress_unfiltered {
+            for body in &mut output.bodies[2..] {
+                // Form dictionaries are completed by finish(), and are not streams.
+                if body.is_empty() { continue; }
+                if let Some(compressed) = super::pdf_rewrite::compress_unfiltered_body(body, limit, &mut source.objects.tokens).ok()? {
+                    output.remaining = output.remaining.checked_add(body.len())?.checked_sub(compressed.len())?;
+                    *body = compressed;
+                }
+            }
+        }
         output.finish()
     }
 
@@ -962,9 +988,10 @@ pub(super) fn write_objects(bodies: &[Vec<u8>], limit: usize) -> Option<Vec<u8>>
         out.extend_from_slice(b"\nendobj\n\n");
     }
     let offset = out.len();
+    let info = if bodies.get(2).is_some_and(|body| body == b"<<\n>>") { "" } else { "/Info 3 0 R\n" };
     write!(
         out,
-        "{xref}trailer\n<<\n/Size {}\n/Root 1 0 R\n/Info 3 0 R\n>>\n\nstartxref\n{offset}\n%%EOF",
+        "{xref}trailer\n<<\n/Size {}\n/Root 1 0 R\n{info}>>\n\nstartxref\n{offset}\n%%EOF",
         bodies.len() + 1
     )
     .ok()?;

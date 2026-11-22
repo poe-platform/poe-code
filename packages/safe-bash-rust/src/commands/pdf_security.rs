@@ -25,6 +25,9 @@ pub(in crate::commands::archive) const UNSUPPORTED: &str = "unsupported PDF encr
 
 pub(in super::super) struct Security {
     key: Vec<u8>,
+    user_matched: bool,
+    owner_matched: bool,
+    user_password: String,
     revision: usize,
     version: usize,
     permissions: i32,
@@ -62,28 +65,78 @@ impl Cipher {
     }
 }
 impl Security {
+    pub(super) fn json_report(&self, version: u32) -> mcp_protocol_rust::json::Value {
+        use mcp_protocol_rust::json::Value as J;
+        let string = |s: &str| J::String(s.encode_utf16().collect());
+        let object = |fields: Vec<(&str, J)>| J::Object(fields.into_iter().map(|(k,v)| (k.encode_utf16().collect(),v)).collect());
+        let flag = |bit| self.permissions & bit != 0;
+        let legacy = self.revision == 2;
+        let assembly = flag(if legacy { 8 } else { 1024 });
+        let forms = flag(if legacy { 32 } else { 256 });
+        let method = |cipher| match cipher {
+            Cipher::Identity => "none", Cipher::Rc4 => "RC4", Cipher::Aes128 => "AESv2", Cipher::Aes256 => "AESv3",
+        };
+        object(vec![
+            ("capabilities", object(vec![
+                ("accessibility", J::Bool(self.revision >= 5 || flag(if legacy { 16 } else { 512 }))),
+                ("extract", J::Bool(flag(16))),
+                (if version == 1 { "moddifyannotations" } else { "modifyannotations" }, J::Bool(flag(32))),
+                ("modify", J::Bool(assembly && forms && flag(32) && flag(8))),
+                ("modifyassembly", J::Bool(assembly)), ("modifyforms", J::Bool(forms)),
+                ("modifyother", J::Bool(flag(8))), ("printhigh", J::Bool(flag(4) && (legacy || flag(2048)))),
+                ("printlow", J::Bool(flag(4))),
+            ])),
+            ("encrypted", J::Bool(true)), ("ownerpasswordmatched", J::Bool(self.owner_matched)),
+            ("parameters", object(vec![
+                ("P", J::Number(self.permissions as f64)), ("R", J::Number(self.revision as f64)),
+                ("V", J::Number(self.version as f64)), ("bits", J::Number((self.key.len() * 8) as f64)),
+                ("filemethod", string(method(self.embedded))), ("key", J::Null),
+                ("method", string(if self.streams == self.strings && self.streams == self.embedded { method(self.streams) } else { "mixed" })),
+                ("streammethod", string(method(self.streams))), ("stringmethod", string(method(self.strings))),
+            ])),
+            ("recovereduserpassword", if self.revision < 5 { string(&self.user_password) } else { J::Null }),
+            ("userpasswordmatched", J::Bool(self.user_matched)),
+        ])
+    }
     pub(in super::super) fn poppler_description(&self) -> String {
         let flag = |bit| if self.permissions & bit != 0 {"yes"} else {"no"};
         let alg = match self.revision { 2|3=>"RC4",4=>"AES",_=>"AES-256" };
         format!("yes (print:{} copy:{} change:{} addNotes:{} algorithm:{alg})",flag(4),flag(16),flag(8),flag(32))
     }
     pub(super) fn description(&self) -> String {
-        let allowed = |bit| {
-            if self.permissions & bit != 0 {
-                "allowed"
-            } else {
-                "not allowed"
+        let flag = |bit| self.permissions & bit != 0;
+        let legacy = self.revision == 2;
+        let assembly = flag(if legacy { 8 } else { 1024 });
+        let forms = flag(if legacy { 32 } else { 256 });
+        let mut out = String::new();
+        if !self.user_matched && !self.owner_matched {
+            out.push_str("Incorrect password supplied\n");
+        }
+        use std::fmt::Write;
+        writeln!(out, "R = {}\nP = {}\nUser password = {}", self.revision, self.permissions, self.user_password).unwrap();
+        if self.owner_matched { out.push_str("Supplied password is owner password\n"); }
+        if self.user_matched { out.push_str("Supplied password is user password\n"); }
+        for (name, allowed) in [
+            ("extract for accessibility", self.revision >= 5 || flag(if legacy { 16 } else { 512 })),
+            ("extract for any purpose", flag(16)),
+            ("print low resolution", flag(4)),
+            ("print high resolution", flag(4) && (legacy || flag(2048))),
+            ("modify document assembly", assembly),
+            ("modify forms", forms),
+            ("modify annotations", flag(32)),
+            ("modify other", flag(8)),
+            ("modify anything", assembly && forms && flag(32) && flag(8)),
+        ] {
+            writeln!(out, "{name}: {}", if allowed { "allowed" } else { "not allowed" }).unwrap();
+        }
+        if self.version >= 4 {
+            for (name, method) in [("stream", self.streams), ("string", self.strings), ("file", self.embedded)] {
+                writeln!(out, "{name} encryption method: {}", match method {
+                    Cipher::Identity => "none", Cipher::Rc4 => "RC4", Cipher::Aes128 => "AESv2", Cipher::Aes256 => "AESv3",
+                }).unwrap();
             }
-        };
-        format!(
-            "R = {}\nV = {}\nLength = {}\nprint: {}\nmodify: {}\nextract for accessibility: {}\n",
-            self.revision,
-            self.version,
-            self.key.len() * 8,
-            allowed(4),
-            allowed(8),
-            allowed(16)
-        )
+        }
+        out
     }
     fn object_key(&self, id: ObjectId, method: Cipher) -> Vec<u8> {
         if method == Cipher::Aes256 {
@@ -194,8 +247,17 @@ impl<'a> Objects<'a> {
         trailer: &Value<'a>,
         pw: &str,
     ) -> Result<(), &'static str> {
+        let security = self.security_state(trailer, pw)?;
+        if security.as_ref().is_some_and(|s| !s.user_matched && !s.owner_matched) {
+            return Err(PASSWORD);
+        }
+        self.security = security;
+        Ok(())
+    }
+
+    fn security_state(&mut self, trailer: &Value<'a>, pw: &str) -> Result<Option<Security>, &'static str> {
         let Some(enc) = trailer.get(b"Encrypt") else {
-            return Ok(());
+            return Ok(None);
         };
         let mut plain = BTreeSet::new();
         let dict = self
@@ -246,20 +308,19 @@ impl<'a> Objects<'a> {
             .and_then(|s| s.parse::<i64>().ok())
             .map(|bits| bits as i32)
             .ok_or(UNSUPPORTED)?;
-        let mut key = if v == 5 {
-            pdf_aes::file_key(&dict, pw, r).ok_or(PASSWORD)?
+        let user_matched;
+        let owner_matched;
+        let mut user_password = String::new();
+        let key = if v == 5 {
+            let (key, user, owner, supplied) = pdf_aes::file_key(&dict, pw, r).unwrap_or_default();
+            user_matched = user;
+            owner_matched = owner;
+            user_password = supplied;
+            key
         } else {
-            let bits = num(b"Length")
-                .or_else(|| {
-                    let n = uint(
-                        dict.get(b"CF")?
-                            .get(named(b"StmF")?)?
-                            .get(b"Length")?
-                            .word()?,
-                    )?;
-                    Some(if n < 40 { n * 8 } else { n })
-                })
-                .unwrap_or(if v == 4 { 128 } else { 40 });
+            // V4 authenticates with a 128-bit file key, regardless of a
+            // nonstandard shorter /Length declaration (ISO 32000-1, 7.6.3).
+            let bits = if v == 4 { 128 } else { num(b"Length").unwrap_or(40) };
             if !(40..=128).contains(&bits) || bits % 8 != 0 {
                 return Err(UNSUPPORTED);
             }
@@ -302,32 +363,32 @@ impl<'a> Objects<'a> {
                 }
                 user.starts_with(&check).then(|| key.to_vec())
             };
-            derive(&padded)
-                .or_else(|| {
-                    if pw.is_empty() {
-                        return None;
-                    }
-                    let mut hash = md5_bytes(&padded);
-                    if r >= 3 {
-                        for _ in 0..50 {
-                            hash = md5_bytes(&hash);
-                        }
-                    }
-                    let mut recovered = owner.to_vec();
-                    for round in (0..if r == 2 { 1 } else { 20 }).rev() {
-                        rc4(&hash[..n], &mut recovered, round);
-                    }
-                    derive(&recovered)
-                })
-                .ok_or(PASSWORD)?
+            let user_key = derive(&padded);
+            user_matched = user_key.is_some();
+            let mut recovered = owner.to_vec();
+            let owner_key = if !pw.is_empty() || user_matched {
+                let mut hash = md5_bytes(&padded);
+                if r >= 3 {
+                    for _ in 0..50 { hash = md5_bytes(&hash); }
+                }
+                for round in (0..if r == 2 { 1 } else { 20 }).rev() {
+                    rc4(&hash[..n], &mut recovered, round);
+                }
+                derive(&recovered)
+            } else { None };
+            owner_matched = owner_key.is_some();
+            if user_matched || owner_matched {
+                let bytes = if user_matched { &padded } else { &recovered };
+                let length = (0..bytes.len()).find(|&i| bytes[i..] == PAD[..bytes.len()-i]).unwrap_or(bytes.len());
+                user_password = bytes[..length].iter().copied().map(char::from).collect();
+            }
+            user_key.or(owner_key).unwrap_or_default()
         };
-        // PDF.js authenticates with the declared length, then zero-pads V4
-        // file keys to 128 bits before deriving object keys (issue 19484).
-        if v == 4 {
-            key.resize(16, 0);
-        }
-        self.security = Some(Security {
+        Ok(Some(Security {
             key,
+            user_matched,
+            owner_matched,
+            user_password,
             revision: r,
             version: v,
             permissions: p,
@@ -337,8 +398,7 @@ impl<'a> Objects<'a> {
             embedded,
             metadata,
             filters,
-        });
-        Ok(())
+        }))
     }
 
     pub(super) fn raw_stream(
@@ -456,17 +516,8 @@ impl<'a> Objects<'a> {
         Some(bytes)
     }
 }
-pub(in crate::commands::archive) fn accepts_password(bytes: &[u8], pw: &str) -> Option<()> {
-    super::header_version(bytes)?;
+pub(in crate::commands::archive) fn qpdf_password_report(bytes: &[u8], password: &str) -> Option<String> {
     let (mut objects, trailer) = strict_index(bytes)?;
-    trailer.get(b"Root")?.reference()?;
-    objects.authenticate(&trailer, pw).ok()?;
-    for id in objects.xref.keys().copied().collect::<Vec<_>>() {
-        let (mut v, mut c) = objects.object(id)?;
-        c.skip();
-        if c.0.starts_with(b"stream") {
-            objects.raw_stream(id, &mut v, c)?;
-        }
-    }
-    Some(())
+    let security = objects.security_state(&trailer, password).ok()??;
+    Some(security.description())
 }

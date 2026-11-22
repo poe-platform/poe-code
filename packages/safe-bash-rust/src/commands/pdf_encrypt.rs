@@ -105,6 +105,7 @@ pub(in super::super) fn encrypt_document(
             .and_then(Value::reference)
             .ok_or(invalid)?
             .0,
+        false,
         limit,
     )
 }

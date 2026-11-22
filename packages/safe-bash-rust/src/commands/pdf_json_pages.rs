@@ -1,12 +1,26 @@
-use super::{J, PageSource, Value, cos, record, string};
-use std::collections::BTreeSet;
+use super::{J, ObjectId, PageSource, Value, cos, record, string};
+use std::collections::{BTreeMap, BTreeSet};
 
-impl PageSource<'_> {
-    pub(super) fn json_page(&mut self, index: usize, version: u32) -> Option<J> {
+impl<'a> PageSource<'a> {
+    pub(super) fn json_page(
+        &mut self,
+        index: usize,
+        version: u32,
+        edits: &BTreeMap<ObjectId, Vec<u8>>,
+    ) -> Option<J> {
         let id = self.pages[index];
         let page = self.objects.page_dict(id, &self.tree)?;
+        let mut resolve = |v: &Value<'a>| {
+            if let Some(body) = v.reference().and_then(|id| edits.get(&id)) {
+                super::super::super::Cursor(body)
+                    .value(0, &mut self.objects.tokens, true)
+                    .map(Value::into_owned)
+            } else {
+                self.objects.resolve(v)
+            }
+        };
         let raw = page.get(b"Contents");
-        let resolved = raw.and_then(|v| self.objects.resolve(v));
+        let resolved = raw.and_then(&mut resolve);
         let contents = match &resolved {
             Some(Value::Array(items)) => items
                 .iter()
@@ -28,18 +42,16 @@ impl PageSource<'_> {
             if parent.reference().is_some_and(|id| !parents.insert(id)) {
                 break;
             }
-            let Some(value) = self.objects.resolve(parent) else {
+            let Some(value) = resolve(parent) else {
                 break;
             };
             owner = value;
         }
-        let resource = owner
-            .get(b"Resources")
-            .and_then(|v| self.objects.resolve(v));
+        let resource = owner.get(b"Resources").and_then(&mut resolve);
         let objects = resource
             .as_ref()
             .and_then(|v| v.get(b"XObject"))
-            .and_then(|v| self.objects.resolve(v));
+            .and_then(&mut resolve);
         let mut images = Vec::new();
         if let Some(Value::Dict(mut entries)) = objects {
             entries.sort_by_key(|(name, _)| {
@@ -48,32 +60,30 @@ impl PageSource<'_> {
                     .collect::<Vec<_>>()
             });
             for (name, reference) in entries {
-                let Some(image) = self.objects.resolve(&reference) else {
+                let Some(image) = resolve(&reference) else {
                     continue;
                 };
                 if image
                     .get(b"Subtype")
-                    .and_then(|v| self.objects.resolve(v))
+                    .and_then(&mut resolve)
                     .is_none_or(|v| v.word() != Some(b"/Image"))
                 {
                     continue;
                 }
                 if image
                     .get(b"ImageMask")
-                    .and_then(|v| self.objects.resolve(v))
+                    .and_then(&mut resolve)
                     .is_some_and(|v| v.word() == Some(b"true"))
                 {
                     continue;
                 }
-                let filter = image.get(b"Filter").and_then(|v| self.objects.resolve(v));
+                let filter = image.get(b"Filter").and_then(&mut resolve);
                 let filters = match filter {
                     Some(Value::Array(items)) => items,
                     Some(v) => vec![v],
                     None => vec![Value::Word(b"null".as_slice().into())],
                 };
-                let parms = image
-                    .get(b"DecodeParms")
-                    .and_then(|v| self.objects.resolve(v));
+                let parms = image.get(b"DecodeParms").and_then(&mut resolve);
                 let parameters = match parms {
                     Some(Value::Array(items)) => items,
                     value => {
@@ -101,7 +111,7 @@ impl PageSource<'_> {
                 let mut value = |key: &[u8]| {
                     image
                         .get(key)
-                        .and_then(|v| self.objects.resolve(v))
+                        .and_then(&mut resolve)
                         .map_or(J::Null, |v| cos(&v, version))
                 };
                 images.push(record([

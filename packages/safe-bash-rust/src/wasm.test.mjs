@@ -9249,7 +9249,7 @@ test("qpdf adds, replaces and removes attachments without losing the PDF object 
       ["first.pdf --add-attachment=b --key=two --filename=thing.bin -- second.pdf","/second.pdf"],
       ["second.pdf --add-attachment a --key=two -- bad.pdf",null],
       ["second.pdf --add-attachment a --key=two --replace -- replacement.pdf","/replacement.pdf"],
-      ["replacement.pdf --remove-attachment=thing.bin kept.pdf","/kept.pdf"],
+      ["replacement.pdf --remove-attachment=two kept.pdf","/kept.pdf"],
       ["kept.pdf --remove-attachment=one --replace-input","/kept.pdf"],
       ["base.pdf --copy-attachments-from=second.pdf --prefix=imported_ -- copied.pdf","/copied.pdf"],
       ["copied.pdf --show-attachment=imported_two",null],
@@ -9271,6 +9271,12 @@ test("qpdf adds, replaces and removes attachments without losing the PDF object 
         assert.equal(got.equals(want),true,script + ": first differing byte " + want.findIndex((v,i)=>v!==got[i]));
       }
     }
+    const kept = Buffer.from(await fs.readFile("/kept.pdf"));
+    for (const runtime of [shell,wasm]) {
+      const result = await runtime.exec("qpdf replacement.pdf --remove-attachment=thing.bin kept.pdf");
+      assert.deepEqual([result.exitCode,result.stdout,result.stderr],[2,"","qpdf: attachment thing.bin not found\n"]);
+    }
+    for (const backend of [fs,wasm.fs]) assert.deepEqual(Buffer.from(await backend.readFile("/kept.pdf")),kept);
     const copied = PdfDocument.load(await fs.readFile("/first.pdf"));
     for (const [source,pw] of [["/locked-a","reader"],["/locked-b","second"]]) {
       const bytes = copied.save({encrypt:{userPassword:pw,ownerPassword:"owner"}});
@@ -9455,12 +9461,12 @@ test("qpdf splits real page objects with their resources, rotations and document
   const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true})).use(pdfuniteCommands({replace:true}));
   try {
     for(const [args,files] of [
-      ["--split-pages chunks/x-%02d.pdf",["01","02","03"].map(n=>"/chunks/x-"+n+".pdf")],
+      ["--split-pages chunks/x-%02d.pdf",[1,2,3].map(n=>"/chunks/x-%02d-"+n+".pdf")],
       ["--split-pages=2 --rotate=+90:2-z output.pdf",["/output-1-2.pdf","/output-3-3.pdf"]],
       ["--split-pages=3 --remove-info stripped.pdf",["/stripped-1-3.pdf"]],
       ["--split-pages=2junk --rotate=90:1 --remove-info with-edits.pdf",["/with-edits-1-2.pdf","/with-edits-3-3.pdf"]],
       ["--split-pages=3 --remove-acroform noform.pdf",["/noform-1-3.pdf"]],
-      ["--split-pages 2 ignored.pdf",["/2-1.pdf","/2-2.pdf","/2-3.pdf"]],
+      ["--split-pages 2 ignored.pdf",["/2-1","/2-2","/2-3"]],
       ["--split-pages --replace-input",["/in-1.pdf","/in-2.pdf","/in-3.pdf"]],
     ]) {
       const script="qpdf in.pdf "+args, want=await js.exec(script), got=await wasm.exec(script);
@@ -9468,7 +9474,7 @@ test("qpdf splits real page objects with their resources, rotations and document
       assert.deepEqual([got.exitCode,got.stderr,got.stdout],[want.exitCode,want.stderr,want.stdout],args);
       for(const f of files) assert.deepEqual(Buffer.from(await wasm.fs.readFile(f)),Buffer.from(await fs.readFile(f)),f);
     }
-    const merge="pdfunite chunks/x-03.pdf chunks/x-01.pdf chunks/x-02.pdf merged.pdf";
+    const merge="pdfunite chunks/x-%02d-3.pdf chunks/x-%02d-1.pdf chunks/x-%02d-2.pdf merged.pdf";
     for(const sh of [js,wasm]) {const r=await sh.exec(merge);assert.equal(r.exitCode,0,r.stderr);}
     assert.deepEqual(Buffer.from(await wasm.fs.readFile("/merged.pdf")),Buffer.from(await fs.readFile("/merged.pdf")),merge);
     const same="qpdf in.pdf --split-pages in.pdf", want=await js.exec(same), got=await wasm.exec(same);
@@ -9592,7 +9598,9 @@ test("qpdf recovers a wrong stream length and writes the recovered bytes with a 
       await fs.writeFile(path,bytes);
       for(const flags of ["--check","--show-object=4","--show-object=4 --raw-stream-data","-","--pages . 1 -- -"]) {
         const script="qpdf "+path+" "+flags,want=await js.exec(script),got=await wasm.exec(script);
-        assert.equal(want.exitCode,0,want.stderr);
+        const recovered=["/wrong.pdf","/missing.pdf","/repeated.pdf"].includes(path);
+        assert.equal(want.exitCode,recovered?3:0,want.stderr);
+        assert.equal(want.stderr,recovered?"WARNING: "+path+": Recovered stream length at byte offset 233\nqpdf: operation succeeded with warnings\n":"");
         if(flags.includes("--raw-stream-data"))assert.deepEqual(Buffer.from(want.stdoutBytes),path==="/declared.pdf"?Buffer.from(embeddedEnd,"latin1"):payload);
         assert.deepEqual([got.exitCode,got.stderr,got.stdoutBytes],[want.exitCode,want.stderr,want.stdoutBytes],script);
       }
@@ -9978,9 +9986,9 @@ test("qpdf JSON validates the input before report options, including stdin and p
   const {qpdfCommands}=await import("@poe-platform/safe-bash/commands/qpdf");
   let body="prefix\n%PDF-1.5\n";const offsets=[];
   for(const [i,value] of ["<< /Type /Catalog /Pages 2 0 R >>","<< /Type /Pages /Kids [] /Count 0 >>"].entries()) {
-    offsets.push(body.length);body+=(i+1)+" 0 obj\n"+value+"\nendobj\n";
+    offsets.push(body.length-"prefix\n".length);body+=(i+1)+" 0 obj\n"+value+"\nendobj\n";
   }
-  const at=body.length;
+  const at=body.length-"prefix\n".length;
   body+="xref\n0 3\n0000000000 65535 f \n"+offsets.map(n=>String(n).padStart(10,"0")+" 00000 n \n").join("")+
     "trailer << /Root 1 0 R /Size 3 >>\nstartxref\n"+at+"\n%%EOF";
   const files={"/prefixed.pdf":Buffer.from(body),"/bad":Buffer.from("text"),"/out":Buffer.from("prior")};
@@ -10029,10 +10037,16 @@ test("qpdf recovers missing cross-references from object bodies, including packe
     for(const name of Object.keys(files))for(const args of ["--check","--json --json-key=pages","--show-xref","--show-pages","--pages . 2,1 -- -","-"]) {
       const cmd="qpdf "+name+" "+args;
       const want=await js.exec(cmd),got=await wasm.exec(cmd);
-      assert.equal(want.exitCode,0,want.stderr);
+      const invalidRoot=name==="/wrong-root.pdf", clean=name==="/prefixed.pdf";
+      const warning=["/partial.pdf","/bad-row.pdf"].includes(name)
+        ? "Recovered object "+doc.getPage(1).ref.objectNumber+" from damaged cross-reference data"
+        : "Damaged cross-reference data; reconstructing cross-reference table";
+      assert.equal(want.exitCode,invalidRoot?2:clean?0:3,cmd);
+      assert.equal(want.stderr,invalidRoot?"qpdf: "+name+": unable to find page tree\n":clean?"":"WARNING: "+name+": "+warning+"\nqpdf: operation succeeded with warnings\n",cmd);
+      if(invalidRoot)assert.equal(want.stdout,"");
       assert.deepEqual([got.exitCode,got.stderr,Buffer.from(got.stdoutBytes)],[want.exitCode,want.stderr,Buffer.from(want.stdoutBytes)],cmd);
     }
-  } finally {wasm.dispose();}
+  } finally {await js.dispose();wasm.dispose();}
 });
 
 test("qpdf inspects and saves catalogs without an indirect page tree",async()=>{
@@ -10054,7 +10068,10 @@ test("qpdf inspects and saves catalogs without an indirect page tree",async()=>{
       }
       if(path==="/inline"){
         const cmd="qpdf /inline --remove-info --split-pages part.pdf";
-        for(const sh of [js,rs])assert.equal((await sh.exec(cmd)).exitCode,0);
+        for(const sh of [js,rs]){
+          const result=await sh.exec(cmd);
+          assert.deepEqual([result.exitCode,result.stdout,result.stderr],[3,"","WARNING: /inline: Damaged cross-reference data; reconstructing cross-reference table\nqpdf: operation succeeded with warnings\n"]);
+        }
         assert.deepEqual(Buffer.from(await rs.fs.readFile("/part-1.pdf")),Buffer.from(await fs.readFile("/part-1.pdf")));
       }
     }
@@ -10074,7 +10091,7 @@ test("qpdf refuses to replace output when a damaged PDF has no recoverable catal
       "cat truncated.pdf | qpdf - --json=1 --json-key=qpdf out.json",
       "qpdf truncated.pdf --show-pages","qpdf truncated.pdf out.json"]) {
       const want=await js.exec(cmd),got=await wasm.exec(cmd);
-      assert.equal(want.exitCode,2);assert.match(want.stderr,/no \/Type \/Catalog object found/);
+      assert.equal(want.exitCode,2);assert.match(want.stderr,/unable to find page tree/);
       assert.deepEqual([got.exitCode,got.stderr,got.stdout],[want.exitCode,want.stderr,want.stdout]);
       assert.deepEqual(Buffer.from(await wasm.fs.readFile("/out.json")),files["/out.json"]);
     }
@@ -10208,9 +10225,20 @@ test("qpdf consumes explicit Crypt filters in order and retains the remaining fi
       assert.equal(want.exitCode, 0, want.stderr);
       if (args.endsWith("--filtered-stream-data")) assert.equal(want.stdout, plain.toString());
       assert.deepEqual([got.exitCode,got.stderr,got.stdoutBytes], [want.exitCode,want.stderr,want.stdoutBytes], cmd);
-      if (args === "--decrypt out") assert.deepEqual(await rust.fs.readFile("/out"), await fs.readFile("/out"), cmd);
+      if (args === "--decrypt out") {
+        for(const runtime of [js,rust]) {
+          const report=await runtime.exec("qpdf out --show-object="+id);
+          assert.equal(report.exitCode,0,report.stderr);
+          assert.doesNotMatch(report.stdout,/Crypt/);
+          if(path==="/direct")assert.doesNotMatch(report.stdout,/Filter/);
+          else assert.match(report.stdout,/FlateDecode/);
+          const payload=await runtime.exec("qpdf out --show-object="+id+" --filtered-stream-data");
+          assert.deepEqual([payload.exitCode,payload.stdout,payload.stderr],[0,plain.toString(),""]);
+        }
+        assert.deepEqual(await rust.fs.readFile("/out"), await fs.readFile("/out"), cmd);
+      }
     }
-  } finally { rust.dispose(); }
+  } finally { await js.dispose();rust.dispose(); }
 });
 
 test("qpdf accepts Unicode passwords from independent revision 5 and 6 writers", async () => {
@@ -10225,7 +10253,7 @@ test("qpdf accepts Unicode passwords from independent revision 5 and 6 writers",
   const password = "Ｆ\u00ad\u200b\u1100\u1161\u11a8A\u0315\u030a\u0301", canonical = "F 각Ǻ\u0315";
   try {
     for (const [file, pw] of [["pdfjs-saslprep-r6", "SªSL\u00adprep"], ["pypdf-r5-saslprep", "SªSL\u00adprep"],
-      ["pdfjs-issue19484_1", ""], ["pdfjs-issue6010_2", "æøå"], [null, password]]) {
+      ["pdfjs-issue6010_2", "æøå"], [null, password]]) {
       const bytes = file ? await readFile(new URL("../../pdf-ast/src/fixtures/"+file+".pdf", import.meta.url))
         : doc.save({encrypt:{revision:6,userPassword:canonical,ownerPassword:"owner"}});
       await fs.writeFile("/in", bytes);
@@ -10237,31 +10265,36 @@ test("qpdf accepts Unicode passwords from independent revision 5 and 6 writers",
   } finally { rust.dispose(); }
 });
 
-test("qpdf decrypts a linearized PDF with 40-bit revision 4 object streams", async () => {
+test("qpdf inspects encryption without disclosing unauthenticated linearized PDF contents", async () => {
   const {readFile} = await import("node:fs/promises");
   const {Shell,MemoryFileSystem,agentCommands} = await import("@poe-platform/safe-bash");
   const {qpdfCommands} = await import("@poe-platform/safe-bash/commands/qpdf");
-  const bytes = await readFile(new URL("../../pdf-ast/src/fixtures/pdfjs-issue19484_1.pdf", import.meta.url));
-  const fs = new MemoryFileSystem(), rust = new RustWasmBash({cwd:"/",files:{"/in":bytes}});
-  await fs.writeFile("/in",bytes);
+  const fs = new MemoryFileSystem(), rust = new RustWasmBash({cwd:"/"});
   const js = new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
   try {
-    for (const args of ["--show-encryption","--json --json-stream-data=inline"]) {
-      const want = await js.exec("qpdf in "+args), got = await rust.exec("qpdf in "+args);
-      assert.equal(want.exitCode,0,want.stderr);
-      assert.deepEqual([got.exitCode,got.stderr,got.stdout],[0,want.stderr,want.stdout]);
+    for (const name of ["issue19484_1", "issue19484_2"]) {
+      const bytes = await readFile(new URL("../../pdf-ast/src/fixtures/pdfjs-"+name+".pdf", import.meta.url));
+      for (const backend of [fs,rust.fs]) {
+        await backend.writeFile("/in",bytes);
+        await backend.writeFile("/out",Buffer.from("original"));
+      }
+      for (const password of ["", " --password=", " --password=wrong"]) {
+        const report = "qpdf in"+password+" --show-encryption";
+        const expected = await js.exec(report), actual = await rust.exec(report);
+        assert.equal(expected.exitCode,0,expected.stderr);
+        assert.deepEqual([actual.exitCode,actual.stderr,actual.stdout],[0,expected.stderr,expected.stdout],name+report);
+        for (const args of ["--check", "--show-npages", "--json --json-stream-data=inline", "--decrypt out"]) {
+          const cmd = "qpdf in"+password+" "+args;
+          const want = await js.exec(cmd), got = await rust.exec(cmd);
+          assert.equal(want.exitCode,2,want.stderr);
+          assert.match(want.stderr,/invalid password/i);
+          assert.equal(want.stdout,"");
+          assert.deepEqual([got.exitCode,got.stderr,got.stdout],[2,want.stderr,""],name+cmd);
+          for (const backend of [fs,rust.fs]) assert.deepEqual(Buffer.from(await backend.readFile("/out")),Buffer.from("original"));
+        }
+      }
     }
-    // Ignore linearization for the byte comparison so regenerated hint tables
-    // do not mask differences in decrypted objects or stream payloads.
-    const unhinted = Buffer.from(bytes);
-    unhinted.write("OriginalXX", unhinted.indexOf("/Linearized")+1, "ascii");
-    for (const backend of [fs,rust.fs]) await backend.writeFile("/in",unhinted);
-    const cmd = "qpdf in --decrypt out", want = await js.exec(cmd), got = await rust.exec(cmd);
-    assert.equal(want.exitCode,0,want.stderr);
-    assert.deepEqual([got.exitCode,got.stderr],[0,want.stderr]);
-    const actual = Buffer.from(await rust.fs.readFile("/out")), expected = Buffer.from(await fs.readFile("/out"));
-    assert.ok(actual.equals(expected), "first byte difference: "+expected.findIndex((v,i)=>actual[i]!==v));
-  } finally { rust.dispose(); }
+  } finally { await js.dispose(); rust.dispose(); }
 });
 
 test("qpdf writes interoperable AES-256 files with separate passwords and permissions", async t => {
@@ -10349,14 +10382,21 @@ test("qpdf writes and repairs fixed-width linearization offsets across edits",as
   for(const [p,b] of Object.entries(files))await fs.writeFile(p,b);
   const js=new Shell({fs,cwd:"/"}).use(agentCommands()).use(qpdfCommands({replace:true}));
   try {
-    for(const [src,args] of [["in","--linearize --add-attachment note --"],["out","--linearize"],["old","--decrypt"]]){
+    for(const [src,args] of [["in","--linearize --add-attachment note --"],["out","--linearize"]]){
       const dest=src==="out"?"again":"out",cmd="qpdf "+src+" "+args+" "+dest;
       const want=await js.exec(cmd),got=await rust.exec(cmd);
-      assert.deepEqual([got.exitCode,got.stderr],[want.exitCode,want.stderr]);
+      assert.equal(want.exitCode,0,want.stderr);
+      assert.deepEqual([got.exitCode,got.stderr],[0,want.stderr]);
       const a=Buffer.from(await rust.fs.readFile("/"+dest)),b=Buffer.from(await fs.readFile("/"+dest));
       assert.ok(a.equals(b),cmd+" byte "+b.findIndex((v,i)=>v!==a[i]));
       assert.match((await rust.exec("pdfinfo "+dest)).stdout,/Optimized:\s+yes/);
     }
+    const original=Buffer.from(await fs.readFile("/out"));
+    for(const runtime of [js,rust]) {
+      const result=await runtime.exec("qpdf old --decrypt out");
+      assert.deepEqual([result.exitCode,result.stdout,result.stderr],[2,"","qpdf: old: invalid password\n"]);
+    }
+    for(const backend of [fs,rust.fs]) assert.deepEqual(Buffer.from(await backend.readFile("/out")),original);
   } finally {rust.dispose();}
 });
 
@@ -10798,10 +10838,10 @@ test("qpdf replaces page labels while retaining the existing document",async()=>
   try {
     for(const [k,b] of Object.entries(files))await fs.writeFile(k,b);
     for(const [args,outputs] of [
-      ["in --set-page-labels 1:r/2/前 3:n/Appendix bad 1:D/0 2:A/-2/end 1:前 100000000000000000000000000:r -- out",["out"]],
-      ["in --remove-page-labels --linearize --set-page-labels 3: 0:n/zero -- --add-attachment attachment -- out",["out"]],
-      ["in --pages . 3,1 -- --set-page-labels bad -- --object-streams=generate out",["out"]],
-      ["--password=pass --decrypt secret --set-page-labels 2:D/3/β -- out",["out"]],
+      ["in --set-page-labels 1:r/2/前 3://Appendix -- out",["out"]],
+      ["in --remove-page-labels --linearize --set-page-labels 1:A/2/end 3: -- --add-attachment attachment -- out",["out"]],
+      ["in --pages . 3,1 -- --set-page-labels 1: -- --object-streams=generate out",["out"]],
+      ["--password=pass --decrypt secret --set-page-labels 1:D/3/β -- out",["out"]],
       ["in --set-page-labels 1:r/2 3:A -- --split-pages=2 part-%d.pdf",["part-1-2.pdf","part-3-3.pdf"]],
     ]) {
       const cmd="qpdf "+args;
@@ -10811,7 +10851,15 @@ test("qpdf replaces page labels while retaining the existing document",async()=>
         assert.ok(Buffer.from(actual).equals(expected),cmd+" first different byte "+expected.findIndex((b,i)=>b!==actual[i]));
       }
     }
-  } finally {rs.dispose();}
+    for (const specs of ["3:n/Appendix", "bad", "1:D/0", "2:A/-2/end", "1:前", "100000000000000000000000000:r", "0:D", "2:D", "1:D 3:r 2:A"]) {
+      for (const backend of [fs,rs.fs]) await backend.writeFile("/out",Buffer.from("original"));
+      const cmd="qpdf in --set-page-labels "+specs+" -- out";
+      const want=await js.exec(cmd),got=await rs.exec(cmd);
+      assert.equal(want.exitCode,2,cmd);
+      assert.deepEqual([got.exitCode,got.stdout,got.stderr],[2,want.stdout,want.stderr],cmd);
+      for (const backend of [fs,rs.fs]) assert.deepEqual(Buffer.from(await backend.readFile("/out")),Buffer.from("original"));
+    }
+  } finally { await js.dispose(); rs.dispose();}
 });
 
 test("pdftk fill_form updates field values, widget appearances and new fields across data formats",async()=>{

@@ -140,6 +140,28 @@ function fixture(empty = false) {
   return { root, io, peer, files, manifest, binary, declarations, sync };
 }
 
+for (const defect of ["none", "range", "required", "missing-metadata", "lock-drift", "unknown"]) {
+  test(`peer validates optional Tesseract metadata: ${defect}`, () => {
+    const setup = fixture();
+    const path = `${setup.root}/package.json`;
+    const manifest = JSON.parse(setup.io.readFileSync(path, "utf8") as string);
+    manifest.peerDependencies["@poe-platform/tesseract"] = defect === "range" ? "*" : "^0.1.0";
+    manifest.peerDependenciesMeta = {
+      "@poe-platform/tesseract": { optional: defect !== "required" }
+    };
+    if (defect === "missing-metadata") delete manifest.peerDependenciesMeta["@poe-platform/tesseract"];
+    if (defect === "unknown") manifest.peerDependencies.unapproved = "*";
+    const lock = JSON.parse(setup.io.readFileSync("/checkout/package-lock.json", "utf8") as string);
+    lock.packages["packages/safe-bash"] = structuredClone(manifest);
+    if (defect === "lock-drift") lock.packages["packages/safe-bash"].peerDependencies["@poe-platform/tesseract"] = "*";
+    setup.io.writeFileSync(path, JSON.stringify(manifest));
+    setup.io.writeFileSync("/checkout/package-lock.json", JSON.stringify(lock));
+    const bind = () => bindPeerArtifact({ ...setup, checkout: true });
+    if (defect === "none") assert.doesNotThrow(bind);
+    else assert.throws(bind, /Tesseract|Unknown peer dependency/);
+  });
+}
+
 for (const checkout of [true, false])
   for (const empty of [false, true])
     test(`peer captures finite native closure synchronously: checkout=${checkout}, empty=${empty}`, () => {

@@ -506,7 +506,7 @@ test("committed batches validate bootstrap authority before requesting source bo
 
 test("archive peer contract admits the exact current required peer and approved pinned runtime dependencies", () => {
   const manifest = JSON.parse(readRegularInput(authority, "package.json", 300000));
-  assert.deepEqual(manifest.peerDependencies, { "poe-code": ">=13.0.0", yaml: "2.9.0" });
+  assert.deepEqual(manifest.peerDependencies, { "poe-code": ">=13.0.0", yaml: "2.9.0", "@poe-platform/tesseract": "^0.1.0" });
   distChecks.assertArchiveDependencyContract(manifest);
   distChecks.assertArchiveDependencyContract({ ...manifest, peerDependenciesMeta: { ...manifest.peerDependenciesMeta, "poe-code": { optional: false } } });
 });
@@ -785,6 +785,9 @@ for (const [name, change] of [
   ["different optional YAML version", manifest => { manifest.peerDependencies.yaml = "*"; }],
   ["required YAML peer", manifest => { manifest.peerDependenciesMeta.yaml.optional = false; }],
   ["missing YAML optional metadata", manifest => { delete manifest.peerDependenciesMeta.yaml; }],
+  ["different optional Tesseract version", manifest => { manifest.peerDependencies["@poe-platform/tesseract"] = "*"; }],
+  ["required Tesseract peer", manifest => { manifest.peerDependenciesMeta["@poe-platform/tesseract"].optional = false; }],
+  ["missing Tesseract optional metadata", manifest => { delete manifest.peerDependenciesMeta["@poe-platform/tesseract"]; }],
   ["unbound peer metadata", manifest => { manifest.peerDependenciesMeta = { other: { optional: false } }; }],
   ["missing current peer", manifest => { delete manifest.peerDependencies; }],
   ["empty current peer", manifest => { manifest.peerDependencies = {}; }],
@@ -2016,7 +2019,7 @@ for (const [profile, localTypes] of [["packed-root", false], ["checkout-root", f
     const report = JSON.parse(result.stdout);
     assert.equal(report.status, "pass", JSON.stringify(report));
     assert.equal(report.qualification, "synthetic-committed-fixture-not-release-qualification");
-    assert.deepEqual(report.package.peerDependencies, { "poe-code": ">=13.0.0", yaml: "2.9.0" });
+    assert.deepEqual(report.package.peerDependencies, { "poe-code": ">=13.0.0", yaml: "2.9.0", "@poe-platform/tesseract": "^0.1.0" });
     assert.deepEqual(report.package.runtimeDependencies, { "@noble/ciphers": "2.4.0", "@noble/hashes": "2.4.0", pako: "3.0.1" });
     assert.deepEqual(report.dependencies.map(binding => binding.name), ["@noble/ciphers", "@noble/hashes", "pako"]);
     assert.ok(report.steps.find(step => step.label === "offline tarball install without lifecycles").args.includes(report.dependencies[0].tarball));

@@ -244,11 +244,17 @@ export function assertArchiveDependencyContract(manifest) {
     return dependencies;
   }
   const yaml = Object.hasOwn(manifest.peerDependencies, "yaml");
-  assert.deepEqual(manifest.peerDependencies, { "poe-code": ">=13.0.0", ...(yaml ? { yaml: "2.9.0" } : {}) }, "unapproved canonical peer contract");
+  const tesseract = Object.hasOwn(manifest.peerDependencies, "@poe-platform/tesseract");
+  assert.deepEqual(manifest.peerDependencies, {
+    "poe-code": ">=13.0.0",
+    ...(yaml ? { yaml: "2.9.0" } : {}),
+    ...(tesseract ? { "@poe-platform/tesseract": "^0.1.0" } : {}),
+  }, "unapproved canonical peer contract");
   assert.deepEqual(manifest.peerDependenciesMeta ?? {}, {
     ...(Object.hasOwn(manifest.peerDependenciesMeta ?? {}, "poe-code") ? { "poe-code": { optional: false } } : {}),
     ...(yaml ? { yaml: { optional: true } } : {}),
-  }, "canonical peer must remain required and YAML must remain optional");
+    ...(tesseract ? { "@poe-platform/tesseract": { optional: true } } : {}),
+  }, "canonical peer must remain required and YAML and Tesseract must remain optional");
   return dependencies;
 }
 

@@ -198,7 +198,7 @@ function validatePeerMetadata(candidate) {
   assert.ok(candidate && typeof candidate === "object" && !Array.isArray(candidate), "Expected package peer metadata in manifest and selected lock record");
   const peers = candidate.peerDependencies;
   assert.ok(peers && typeof peers === "object" && !Array.isArray(peers), "Expected peer dependency map");
-  assert.ok(Object.keys(peers).every(name => name === "poe-code" || name === "yaml"), "Unknown peer dependency is outside the qualification profile");
+  assert.ok(Object.keys(peers).every(name => name === "poe-code" || name === "yaml" || name === "@poe-platform/tesseract"), "Unknown peer dependency is outside the qualification profile");
   assert.equal(peers["poe-code"], ">=13.0.0", "Canonical published peer range must remain explicit");
   const metadata = Object.hasOwn(candidate, "peerDependenciesMeta") ? candidate.peerDependenciesMeta : {};
   assert.ok(metadata && typeof metadata === "object" && !Array.isArray(metadata), "Expected peer metadata map");
@@ -208,12 +208,16 @@ function validatePeerMetadata(candidate) {
     if (name === "poe-code") {
       assert.deepEqual(entry, Object.hasOwn(entry, "optional") ? { optional: false } : {}, "Canonical peer must be required with valid metadata");
     } else {
-      assert.deepEqual(entry, { optional: true }, "YAML peer metadata must explicitly declare optional true");
+      assert.deepEqual(entry, { optional: true }, "YAML and Tesseract peer metadata must explicitly declare optional true");
     }
   }
   if (Object.hasOwn(peers, "yaml")) {
     assert.equal(peers.yaml, "2.9.0", "YAML peer must retain the exact authorized pin");
     assert.deepEqual(metadata.yaml, { optional: true }, "YAML peer must be explicitly optional");
+  }
+  if (Object.hasOwn(peers, "@poe-platform/tesseract")) {
+    assert.equal(peers["@poe-platform/tesseract"], "^0.1.0", "Tesseract peer must retain the authorized range");
+    assert.deepEqual(metadata["@poe-platform/tesseract"], { optional: true }, "Tesseract peer must be explicitly optional");
   }
 }
 

@@ -27,7 +27,7 @@ for (const [algorithm, expected] of [
       for (const target of ["-", "/digest.txt"]) {
         it(`${format} ${spelling} to ${target} matches native FFmpeg`, async () => {
           const volume = Volume.fromJSON({ "/digest.txt": "keep" });
-          // Mono 8 kHz PCM16 fixture, verified against FFmpeg 7.0.2.
+          // FFmpeg 7.0.2 mono PCM16 fixture; -bitexact omits the version-dependent software header.
           volume.writeFileSync("/in.wav", encodeWav({ sampleRate: 8000,
             channels: [Float64Array.from({ length: 1600 }, (_, i) => (i * 8 - 6000) / 32768)] }));
           let stdout = "", stderr = "";

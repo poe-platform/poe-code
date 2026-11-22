@@ -1891,23 +1891,25 @@ test("ctx.invoke inherits the current context before, inside and after the middl
 test("host commands inherit exported functions and can remove them from external invocations",{skip:!WebAssembly.Suspending},async()=>{
   const {Shell,MemoryFileSystem,agentCommands}=await import("@poe-platform/safe-bash");
   const run=async(sh)=>{
-    let definition;
+    let definition,directStatus,importedStatus;
     sh.use({name:"function-env",setup(host){
       host.commands.register({name:"driver",async execute(ctx){
         definition=ctx.env["BASH_FUNC_f%%"];
-        await ctx.invoke("f",[],{externalInvocation:true});
+        directStatus=(await ctx.invoke("f",[],{externalInvocation:true})).exitCode;
+        importedStatus=(await ctx.invoke("bash",["--noprofile","--norc","-c","f"],{externalInvocation:true})).exitCode;
         delete ctx.env["BASH_FUNC_f%%"];
-        return ctx.invoke("f",[],{externalInvocation:true});
+        return ctx.invoke("bash",["--noprofile","--norc","-c","f"],{externalInvocation:true});
       }});
     }});
     const r=await sh.exec('f(){ echo inherited; }; export -f f; driver');
-    return [definition,r.exitCode,r.stdout,r.stderr];
+    return [definition,r.exitCode,r.stdout,r.stderr,directStatus,importedStatus];
   };
   const js=new Shell({cwd:"/",fs:new MemoryFileSystem()}).use(agentCommands()),rust=new RustWasmBash({cwd:"/"});
   try{
     const expected=await run(js);
     assert.equal(expected[1],127);
     assert.equal(expected[2],"inherited\n");
+    assert.deepEqual(expected.slice(4),[127,0]);
     assert.deepEqual(await run(rust),expected);
   }finally{await js.dispose();await rust.dispose();}
 });

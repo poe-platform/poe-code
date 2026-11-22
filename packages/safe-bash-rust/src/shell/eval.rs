@@ -4418,7 +4418,7 @@ impl<'a> EvalState<'a> {
         mode: DispatchMode,
         host_terminal: Option<(&str,&mut bool)>,
     ) -> Result<BuiltinOutcome, EvalError> {
-        let bypass_functions = !matches!(mode, DispatchMode::Shell | DispatchMode::External);
+        let bypass_functions = mode != DispatchMode::Shell;
         let Some(cmd) = words.first() else {
             return Ok(BuiltinOutcome {
                 stdout: String::new(),

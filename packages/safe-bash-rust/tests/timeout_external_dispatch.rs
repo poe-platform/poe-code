@@ -11,6 +11,11 @@ fn timeout_resolves_external_commands_and_preserves_child_status() {
                 "",
             ),
             (
+                format!("myfn() {{ printf intercepted; }}; export -f myfn; timeout {duration} myfn"),
+                127,
+                "",
+            ),
+            (
                 format!("echo() {{ printf intercepted; }}; timeout {duration} echo expected"),
                 0,
                 "expected\n",
@@ -50,4 +55,19 @@ fn timeout_resolves_external_commands_and_preserves_child_status() {
             }
         }
     }
+}
+
+#[test]
+fn external_plugin_invocations_import_functions_only_inside_a_shell() {
+    use safe_bash_rust::{CommandResult, InvokeOptions};
+    let (mut shell, _) = Shell::with_memory_fs();
+    shell.register_command("driver", Arc::new(|ctx| {
+        let direct = ctx.invoke("f", &[], InvokeOptions { external_invocation: true, ..Default::default() }, &mut String::new())?;
+        assert_eq!((direct.exit_code, direct.stdout.as_str()), (127, ""));
+        let imported = ctx.invoke("bash", &["--noprofile".into(), "--norc".into(), "-c".into(), "f".into()], InvokeOptions { external_invocation: true, ..Default::default() }, &mut String::new())?;
+        assert_eq!((imported.exit_code, imported.stdout.as_str(), imported.stderr.as_str()), (0, "inherited\n", ""));
+        Ok(CommandResult { stdout: imported.stdout, stderr: imported.stderr, exit_code: imported.exit_code, env: ctx.env.clone(), cwd: ctx.cwd.clone() })
+    }));
+    let result = shell.exec("f(){ echo inherited; }; export -f f; driver").unwrap();
+    assert_eq!((result.exit_code, result.stdout.as_str(), result.stderr.as_str()), (0, "inherited\n", ""));
 }

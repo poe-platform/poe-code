@@ -5602,7 +5602,7 @@ describe("decoded audio editing", () => {
   for (const [filter, status] of [
     ["volume=volume=invalid", 234], ["volume=wrong=0.5", 8], ["atempo=tempo=0.25", 222], ["atempo=wrong=1", 8],
     ["volume@quiet=invalid", 234], ["atempo@fast=0.25", 222], ["unsupported@label", 8], ["volume=0.5@quiet", 234],
-    ["anull,unsupported", 8], ["unsupported,anull", 8], ["anull=invalid", 1]
+    ["anull,unsupported", 8], ["unsupported,anull", 8], ["anull=invalid", 234], ["anull@identity=invalid", 234]
   ] as const) {
     it(`rejects ${filter} without replacing output`, async () => {
       const vfs = createTestVfs({

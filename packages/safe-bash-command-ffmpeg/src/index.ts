@@ -15548,6 +15548,10 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
                         audioTimestamps = denoised.frames;
                         continue;
                       }
+                      if (filterName === "anull" && trimmed.startsWith("anull=")) {
+                        const argument = trimmed.slice("anull=".length);
+                        if (argument && !argument.includes("=")) throw new Error("anull: no option name");
+                      }
                       if (trimmed === "anull" || trimmed === "acopy") continue;
                       if (trimmed === "aphasemeter" || trimmed.startsWith("aphasemeter=")) {
                         let video = true;
@@ -22180,6 +22184,7 @@ export function createFfmpegCommand(options: FfmpegCommandsOptions = {}): Comman
             if (msg === "asegment: invalid split point") return { exitCode: 234 };
             if (msg.startsWith("Cannot find a matching stream for unlabeled input pad ")) return { exitCode: 234 };
             if (msg.startsWith("More input link labels specified for filter ")) return { exitCode: 234 };
+            if (msg === "anull: no option name") return { exitCode: 234 };
             if (msg.startsWith("Unsupported audio filter:")) return { exitCode: 8 };
             if (msg.startsWith("showwavespic: unsupported option ")) return { exitCode: 8 };
             if (msg === "showwavespic: invalid split_channels" || msg === "showwavespic: invalid scale") return { exitCode: 234 };

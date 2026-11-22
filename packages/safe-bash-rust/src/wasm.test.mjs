@@ -24,6 +24,27 @@ import test from "node:test";
 import { gunzipSync } from "node:zlib";
 import { RustWasmBash, createRustWasmBash } from "./index.js";
 
+const hasJspi = typeof WebAssembly.Suspending === "function" && typeof WebAssembly.promising === "function";
+
+test("runtimes without JSPI reject host filesystems and JavaScript handlers before executing", {skip: hasJspi ? "Requires a runtime without WebAssembly Promise Integration" : false}, async()=>{
+  const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
+  const fs=new MemoryFileSystem(),sh=new RustWasmBash({cwd:"/"});
+  try{
+    await fs.writeFile("/target",Buffer.from("original"));
+    await assert.rejects(sh.exec("echo changed > /target",{fs}),{
+      name:"TypeError",message:"Executing with a host filesystem requires WebAssembly Promise Integration",
+    });
+    assert.equal(new TextDecoder().decode(await fs.readFile("/target")),"original");
+    let called=false;
+    sh.register({name:"handler",execute(){called=true;return {exitCode:0};}});
+    await assert.rejects(sh.exec("echo changed > /target; handler"),{
+      message:"Standalone JavaScript command handlers require WebAssembly Promise Integration",
+    });
+    assert.equal(called,false);
+    await assert.rejects(sh.fs.lstat("/target"),{code:"ENOENT"});
+  }finally{await sh.dispose();}
+});
+
 for (const mountPath of ["/private/tmp/project", "/tmp/project"]) {
 for (const suffix of ["", ".bak", ".new"]) test(`native Rust sed edits host mount ${mountPath} with suffix '${suffix}'`, {skip: !WebAssembly.Suspending}, async () => {
   const {createMemoryFileSystem, createMountFileSystem} = await import("@poe-code/safe-fs");
@@ -7318,35 +7339,39 @@ test("zip reads, relocates and bounds members with ZIP64 central sizes and offse
   }finally{await js.dispose();await rust.dispose();}
 });
 
-test("zip leaves unused stdin available and bounds reads when a dash member is selected", async () => {
+test("zip preserves file stdin and qualifies lazy host-stream reads", async t => {
   const sh=new RustWasmBash({cwd:"/",files:{"/src":"src"}});
   try{
-    for(const cmd of ["zip -q named.zip src","zip -q - src >/dev/null","zip -q filtered.zip - src -x -","zip --help >/dev/null"]){
-      let pulls=0;
-      const r=await sh.exec(cmd,{stdin:{async *[Symbol.asyncIterator](){pulls++;yield Buffer.from("remaining");}}});
-      assert.equal(r.exitCode,0,r.stderr);assert.equal(pulls,0,cmd);
-    }
+    await t.test("unused host stdin is lazy with JSPI and buffered without it",async()=>{
+      for(const cmd of ["zip -q named.zip src","zip -q - src >/dev/null","zip -q filtered.zip - src -x -","zip --help >/dev/null"]){
+        let pulls=0;
+        const r=await sh.exec(cmd,{stdin:{async *[Symbol.asyncIterator](){pulls++;yield Buffer.from("remaining");}}});
+        assert.equal(r.exitCode,0,r.stderr);assert.equal(pulls,hasJspi?0:1,cmd);
+      }
+    });
     await sh.fs.writeFile("/input","left over\n");
     for(const [cmd,expected] of [["zip -q file.zip src; cat","left over\n"],["zip -q file.zip -; cat",""]]){
       const r=await sh.exec("{ "+cmd+"; } </input");
       assert.deepEqual([r.exitCode,r.stdout,r.stderr],[0,expected,""]);
     }
-    let pulls=0;
-    const run=sh.exec("zip -qm bounded.zip src -",{stdin:{async *[Symbol.asyncIterator](){
-      for(let i=0;i<100;i++){pulls++;yield Buffer.alloc(4,65);}
-    }},limits:{maxInputBytes:10}});
-    await assert.rejects(run,{limit:"maxInputBytes"});assert.ok(pulls<=3,String(pulls));
-    await assert.rejects(sh.fs.lstat("/bounded.zip"),{code:"ENOENT"});
-    assert.equal(sh.readText("/src"),"src");
+    await t.test("lazy host reads stop at the input budget",{skip:!hasJspi?"Lazy asynchronous stdin requires WebAssembly Promise Integration":false},async()=>{
+      let pulls=0;
+      const run=sh.exec("zip -qm bounded.zip src -",{stdin:{async *[Symbol.asyncIterator](){
+        for(let i=0;i<100;i++){pulls++;yield Buffer.alloc(4,65);}
+      }},limits:{maxInputBytes:10}});
+      await assert.rejects(run,{limit:"maxInputBytes"});assert.ok(pulls<=3,String(pulls));
+      await assert.rejects(sh.fs.lstat("/bounded.zip"),{code:"ENOENT"});
+      assert.equal(sh.readText("/src"),"src");
+    });
   }finally{await sh.dispose();}
 });
 
-test("zip reads a dash member and implicit filter from stdin without moving a literal dash", async () => {
+test("zip reads a dash member and implicit filter from stdin without moving a literal dash", async t => {
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
   const rust=new RustWasmBash({cwd:"/"});
   const stdin=Uint8Array.of(0,8,255);
   try {
-    for(const fs of [rust.fs,new MemoryFileSystem()]){
+    for(const fs of [rust.fs,new MemoryFileSystem()]) await t.test(fs === rust.fs ? "Rust built-in" : "Rust external", {skip: fs !== rust.fs && !hasJspi ? "Rust host filesystems require WebAssembly Promise Integration" : false}, async()=>{
       await fs.writeFile("/-",Uint8Array.of(42));
       for(const [cmd,file] of [["zip -qm named -","/named.zip"],["zip -q - -"],["zip -q"],["zip -q -fz- - -"]]){
         const r=await rust.exec(cmd,{fs,stdin});assert.equal(r.exitCode,0,r.stderr);
@@ -7374,11 +7399,11 @@ test("zip reads a dash member and implicit filter from stdin without moving a li
       }
       const literal=await rust.exec("zip -q regular ./-; unzip -p regular.zip",{fs,stdin});
       assert.deepEqual(literal.stdoutBytes,Uint8Array.of(42));
-    }
+    });
   }finally{await rust.dispose();}
 });
 
-test("zip writes a dash archive to stdout, keeping progress on stderr and literal dash files intact",async()=>{
+test("zip writes a dash archive to stdout, keeping progress on stderr and literal dash files intact",async t=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem(),js=new Shell({fs:ref,cwd:"/"}).use(archiveCommands()),rust=new RustWasmBash({cwd:"/"}),host=new MemoryFileSystem();
   try{
@@ -7389,7 +7414,7 @@ test("zip writes a dash archive to stdout, keeping progress on stderr and litera
     // Info-ZIP Zip 3.0, LC_ALL=C, TZ=UTC, stdout connected to a pipe.
     const adding="  adding: src (deflated -66%)\n";
     for(const [flags,method,stderr] of [["",8,adding],["-q0",0,""],["-T -TT false",8,"\tzip warning: can't use -T on stdout, -T ignored\n"+adding],["-b scratch",8,adding],["-b missing",8,adding]]){
-      for(const [shell,fs] of [[js,ref],[rust,rust.fs],[rust,host]]){
+      for(const [shell,fs] of [[js,ref],[rust,rust.fs],[rust,host]]) await t.test((shell === js ? "TypeScript" : fs === rust.fs ? "Rust built-in" : "Rust external") + " stdout "+flags, {skip: fs === host && !hasJspi ? "Rust host filesystems require WebAssembly Promise Integration" : false}, async()=>{
         const cmd="zip "+flags+" - src",r=await shell.exec(cmd,{fs});
         assert.equal(r.exitCode,0,r.stderr);assert.equal(r.stderr,stderr,cmd);
         const bytes=Buffer.from(r.stdoutBytes);assert.equal(bytes.readUInt32LE(0),0x04034b50,cmd);
@@ -7398,14 +7423,14 @@ test("zip writes a dash archive to stdout, keeping progress on stderr and litera
         const extracted=await js.exec("unzip -p check.zip src");assert.equal(extracted.exitCode,0,extracted.stderr);assert.deepEqual(extracted.stdoutBytes,Uint8Array.of(0,8,255));
         assert.deepEqual(await fs.readFile("/-"),Uint8Array.of(200));
         await assert.rejects(fs.lstat("/src.zip"),{code:"ENOENT"});assert.deepEqual(await fs.readdir("/scratch"),[]);
-      }
+      });
     }
-    for(const [shell,fs] of [[js,ref],[rust,rust.fs],[rust,host]]){
+    for(const [shell,fs] of [[js,ref],[rust,rust.fs],[rust,host]]) await t.test((shell === js ? "TypeScript" : fs === rust.fs ? "Rust built-in" : "Rust external") + " missing operand and output limit", {skip: fs === host && !hasJspi ? "Rust host filesystems require WebAssembly Promise Integration" : false}, async()=>{
       const r=await shell.exec("zip - missing",{fs});
       assert.deepEqual([r.exitCode,r.stdout,r.stderr],[12,"","\tzip warning: name not matched: missing\n\nzip error: Nothing to do! (-)\n"]);
       await assert.rejects(shell.exec("zip -qm - src",{fs,limits:{maxOutputBytes:8}}),/maxOutputBytes/);
       assert.deepEqual(await fs.readFile("/src"),Uint8Array.of(0,8,255));
-    }
+    });
   }finally{await js.dispose();await rust.dispose();}
 });
 
@@ -7422,30 +7447,32 @@ test("zip validates its temporary directory before writing the archive or removi
   }finally{await js.dispose();await rust.dispose();}
 });
 
-test("zip -b tests the archive in the requested directory and cleans up without removing collisions",async()=>{
+test("zip -b tests the archive in the requested directory and cleans up without removing collisions",async t=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const reference=new MemoryFileSystem();
-  for(const [sh,supplied] of [[new Shell({fs:reference,cwd:"/"}).use(archiveCommands()),reference],
+  for(const [sh,supplied,profile] of [[new Shell({fs:reference,cwd:"/"}).use(archiveCommands()),reference],
     [new RustWasmBash({cwd:"/"})],[new RustWasmBash({cwd:"/"}),new MemoryFileSystem()],
-    ...["overlay-cow-fs","strict-budgets-mount-dev"].map(profile=>[new RustWasmBash({cwd:"/",profile,directories:["/scratch"]})])]){
+    ...["overlay-cow-fs","strict-budgets-mount-dev"].map(profile=>[new RustWasmBash({cwd:"/",profile,directories:["/scratch"]}),undefined,profile])]){
     const fs=supplied??sh.fs;let seen;
     sh.register({name:"verify",async execute(ctx){
       seen=ctx.args[0];const zip=await ctx.fs.readFile(seen);return {exitCode:zip[0]===80 && zip[1]===75?0:9};
     }});
     try{
-      await fs.mkdir("/scratch",{recursive:true});await fs.symlink("scratch","/alias");
-      await fs.writeFile("/scratch/.zip-1",Uint8Array.of(11));await fs.writeFile("/src",Uint8Array.of(9));
-      for(const flag of ["-qb alias","--temp-path=/alias -q"]){
-        const r=await sh.exec("zip "+flag+" -T -TT verify work.zip src",{fs});
-        assert.equal(r.exitCode,0,r.stderr);assert.equal(seen,"/scratch/.zip-2/archive.zip");
-        assert.deepEqual(await fs.readFile("/scratch/.zip-1"),Uint8Array.of(11));
-        assert.deepEqual((await fs.readdir("/scratch")).map(e=>e.name),[".zip-1"]);
-      }
+      await t.test(sh instanceof RustWasmBash ? (supplied ? "Rust external" : profile ?? "Rust built-in") : "TypeScript", {skip: sh instanceof RustWasmBash && !hasJspi ? "Rust JavaScript checkers require WebAssembly Promise Integration" : false}, async()=>{
+        await fs.mkdir("/scratch",{recursive:true});await fs.symlink("scratch","/alias");
+        await fs.writeFile("/scratch/.zip-1",Uint8Array.of(11));await fs.writeFile("/src",Uint8Array.of(9));
+        for(const flag of ["-qb alias","--temp-path=/alias -q"]){
+          const r=await sh.exec("zip "+flag+" -T -TT verify work.zip src",{fs});
+          assert.equal(r.exitCode,0,r.stderr);assert.equal(seen,"/scratch/.zip-2/archive.zip");
+          assert.deepEqual(await fs.readFile("/scratch/.zip-1"),Uint8Array.of(11));
+          assert.deepEqual((await fs.readdir("/scratch")).map(e=>e.name),[".zip-1"]);
+        }
+      });
     }finally{await sh.dispose();}
   }
 });
 
-test("zip -b preserves the destination and move sources if the staging directory changes",async()=>{
+test("zip -b preserves the destination and move sources if the staging directory changes",async t=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const reference=new MemoryFileSystem();
   for(const [sh,supplied] of [[new Shell({fs:reference,cwd:"/"}).use(archiveCommands()),reference],
@@ -7455,33 +7482,37 @@ test("zip -b preserves the destination and move sources if the staging directory
       await ctx.fs.unlink("/alias");await ctx.fs.symlink("b","/alias");return {exitCode:0};
     }});
     try{
-      await fs.mkdir("/a");await fs.mkdir("/b");await fs.symlink("a","/alias");await fs.writeFile("/src",Uint8Array.of(1));
-      const old=await sh.exec("zip -q work.zip src",{fs});assert.equal(old.exitCode,0,old.stderr);
-      const original=await fs.readFile("/work.zip");await fs.writeFile("/src",Uint8Array.of(2));
-      const r=await sh.exec("zip -qTm -b alias -TT redirect work.zip src",{fs});
-      assert.deepEqual([r.exitCode,r.stdout,r.stderr],[2,"","zip: ZIP temporary path changed before publication\n"]);
-      assert.deepEqual(await fs.readFile("/work.zip"),original);assert.deepEqual(await fs.readFile("/src"),Uint8Array.of(2));
-      assert.deepEqual(await fs.readdir("/a"),[]);assert.deepEqual(await fs.readdir("/b"),[]);
+      await t.test(sh instanceof RustWasmBash ? (supplied ? "Rust external" : "Rust built-in") : "TypeScript", {skip: sh instanceof RustWasmBash && !hasJspi ? "Rust JavaScript checkers require WebAssembly Promise Integration" : false}, async()=>{
+        await fs.mkdir("/a");await fs.mkdir("/b");await fs.symlink("a","/alias");await fs.writeFile("/src",Uint8Array.of(1));
+        const old=await sh.exec("zip -q work.zip src",{fs});assert.equal(old.exitCode,0,old.stderr);
+        const original=await fs.readFile("/work.zip");await fs.writeFile("/src",Uint8Array.of(2));
+        const r=await sh.exec("zip -qTm -b alias -TT redirect work.zip src",{fs});
+        assert.deepEqual([r.exitCode,r.stdout,r.stderr],[2,"","zip: ZIP temporary path changed before publication\n"]);
+        assert.deepEqual(await fs.readFile("/work.zip"),original);assert.deepEqual(await fs.readFile("/src"),Uint8Array.of(2));
+        assert.deepEqual(await fs.readdir("/a"),[]);assert.deepEqual(await fs.readdir("/b"),[]);
+      });
     }finally{await sh.dispose();}
   }
 });
 
-test("zip -b uses staging even without -T and leaves a read-only temporary directory untouched",async()=>{
+test("zip -b uses staging even without -T and leaves a read-only temporary directory untouched",async t=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const reference=new MemoryFileSystem();
   for(const [sh,supplied] of [[new Shell({fs:reference,cwd:"/"}).use(archiveCommands()),reference],
     [new RustWasmBash({cwd:"/"})],[new RustWasmBash({cwd:"/"}),new MemoryFileSystem()]]){
     const fs=supplied??sh.fs;
     try{
-      await fs.mkdir("/dir");await fs.chmod("/dir",0o555);await fs.writeFile("/src",Uint8Array.of(7));
-      const r=await sh.exec("zip -qm --temp-path=dir out.zip src",{fs});
-      assert.equal(r.exitCode,2);assert.match(r.stderr,/EACCES/);assert.deepEqual(await fs.readFile("/src"),Uint8Array.of(7));
-      await assert.rejects(fs.lstat("/out.zip"),{code:"ENOENT"});assert.deepEqual(await fs.readdir("/dir"),[]);
+      await t.test(sh instanceof RustWasmBash ? (supplied ? "Rust external" : "Rust built-in") : "TypeScript", {skip: sh instanceof RustWasmBash && supplied && !hasJspi ? "Rust host filesystems require WebAssembly Promise Integration" : false}, async()=>{
+        await fs.mkdir("/dir");await fs.chmod("/dir",0o555);await fs.writeFile("/src",Uint8Array.of(7));
+        const r=await sh.exec("zip -qm --temp-path=dir out.zip src",{fs});
+        assert.equal(r.exitCode,2);assert.match(r.stderr,/EACCES/);assert.deepEqual(await fs.readFile("/src"),Uint8Array.of(7));
+        await assert.rejects(fs.lstat("/out.zip"),{code:"ENOENT"});assert.deepEqual(await fs.readdir("/dir"),[]);
+      });
     }finally{await sh.dispose();}
   }
 });
 
-test("split zip tests the complete candidate beside the destination and stages each volume under -b",async()=>{
+test("split zip tests the complete candidate beside the destination and stages each volume under -b",async t=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const ref=new MemoryFileSystem();let baseline;
   for(const [sh,supplied] of [[new Shell({fs:ref,cwd:"/"}).use(archiveCommands()),ref],[new RustWasmBash({cwd:"/"})],[new RustWasmBash({cwd:"/"}),new MemoryFileSystem()]]){
@@ -7491,18 +7522,20 @@ test("split zip tests the complete candidate beside the destination and stages e
     };}
     sh.register({name:"checkzip",async execute(ctx){checked=ctx.args[0];return {exitCode:0};}});
     try{
-      await fs.mkdir("/scratch");await fs.writeFile("/src",new Uint8Array(160000).fill(7));await fs.utimes("/src",1700000000000,1700000000000);
-      const r=await sh.exec("zip -q0T -TT checkzip -b scratch -s64k work.zip src",{fs});
-      assert.equal(r.exitCode,0,r.stderr);assert.equal(checked,"/.zip-1/archive.zip");
-      if(supplied)assert.deepEqual(volumes,[1,2,3].map(i=>"/scratch/.zip-volume-"+i+"-1"));
-      assert.deepEqual(await fs.readdir("/scratch"),[]);
-      const parts=await Promise.all(["/work.z01","/work.z02","/work.zip"].map(p=>fs.readFile(p)));
-      if(baseline)assert.deepEqual(parts,baseline);else baseline=parts;
+      await t.test(sh instanceof RustWasmBash ? (supplied ? "Rust external" : "Rust built-in") : "TypeScript", {skip: sh instanceof RustWasmBash && !hasJspi ? "Rust JavaScript checkers require WebAssembly Promise Integration" : false}, async()=>{
+        await fs.mkdir("/scratch");await fs.writeFile("/src",new Uint8Array(160000).fill(7));await fs.utimes("/src",1700000000000,1700000000000);
+        const r=await sh.exec("zip -q0T -TT checkzip -b scratch -s64k work.zip src",{fs});
+        assert.equal(r.exitCode,0,r.stderr);assert.equal(checked,"/.zip-1/archive.zip");
+        if(supplied)assert.deepEqual(volumes,[1,2,3].map(i=>"/scratch/.zip-volume-"+i+"-1"));
+        assert.deepEqual(await fs.readdir("/scratch"),[]);
+        const parts=await Promise.all(["/work.z01","/work.z02","/work.zip"].map(p=>fs.readFile(p)));
+        if(baseline)assert.deepEqual(parts,baseline);else baseline=parts;
+      });
     }finally{await sh.dispose();}
   }
 });
 
-test("split zip cleans every owned stage and preserves competing volume writes on a supplied filesystem",async()=>{
+test("split zip cleans every owned stage and preserves competing volume writes on a supplied filesystem",{skip: !hasJspi ? "Rust host filesystems require WebAssembly Promise Integration" : false},async()=>{
   const {MemoryFileSystem}=await import("@poe-platform/safe-bash");
   for(const race of [false,true]){
     const fs=new MemoryFileSystem(),sh=new RustWasmBash({cwd:"/"});
@@ -7540,7 +7573,7 @@ test("zip validates literal -TT arguments even without an integrity test",async(
   }finally{await js.dispose();await rust.dispose();}
 });
 
-test("zip -TT invokes the checker on a private readable archive before replacing or moving anything",async()=>{
+test("zip -TT invokes the checker on a private readable archive before replacing or moving anything",async t=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const reference=new MemoryFileSystem();
   for(const [sh,supplied] of [[new Shell({cwd:"/",fs:reference}).use(archiveCommands()),reference],[new RustWasmBash({cwd:"/"})],[new RustWasmBash({cwd:"/"}),new MemoryFileSystem()]]){
@@ -7553,20 +7586,22 @@ test("zip -TT invokes the checker on a private readable archive before replacing
       return {exitCode:ctx.args[0]==="fail"?3:0};
     }});
     try{
-      await fs.writeFile("/original",Uint8Array.of(8));await fs.writeFile("/src",Uint8Array.of(3));
-      const seed=await run("zip -q work.zip original");assert.equal(seed.exitCode,0,seed.stderr);
-      const old=await fs.readFile("/work.zip"),names=async()=>(await fs.readdir("/")).map(e=>e.name).sort(),before=await names();
-      const fail=await run("zip -qTm -TT 'checkzip fail' work.zip src");
-      assert.deepEqual([fail.exitCode,fail.stdout,fail.stderr],[8,"\nzip error: Zip file invalid, could not spawn unzip, or wrong unzip (virtual test command failed; original files unmodified)\n",""]);
-      assert.deepEqual(await fs.readFile("/work.zip"),old);assert.deepEqual(await fs.readFile("/src"),Uint8Array.of(3));
-      const ok=await run(`zip -qT --unzip-command="checkzip 'a b' '' {}:{} {}" work.zip src`);
-      assert.deepEqual([ok.exitCode,ok.stdout,ok.stderr],[0,"",""]);
-      assert.deepEqual(calls.map(([args,,magic])=>[args,magic]),[[["fail"],[80,75,3,4]],[["a b","","{}:{}"],[80,75,3,4]]]);
-      for(const [,path] of calls){assert.notEqual(path,"/work.zip");await assert.rejects(async()=>fs.readFile(path));}
-      assert.deepEqual((await run("unzip -p work.zip src")).stdoutBytes,Uint8Array.of(3));
-      const tested=await run("zip -qT -TT 'unzip -tqq {}' work.zip original");
-      assert.deepEqual([tested.exitCode,tested.stdout,tested.stderr],[0,"",""]);
-      assert.deepEqual(await names(),before);
+      await t.test(sh instanceof RustWasmBash ? (supplied ? "Rust external" : "Rust built-in") : "TypeScript", {skip: sh instanceof RustWasmBash && !hasJspi ? "Rust JavaScript checkers require WebAssembly Promise Integration" : false}, async()=>{
+        await fs.writeFile("/original",Uint8Array.of(8));await fs.writeFile("/src",Uint8Array.of(3));
+        const seed=await run("zip -q work.zip original");assert.equal(seed.exitCode,0,seed.stderr);
+        const old=await fs.readFile("/work.zip"),names=async()=>(await fs.readdir("/")).map(e=>e.name).sort(),before=await names();
+        const fail=await run("zip -qTm -TT 'checkzip fail' work.zip src");
+        assert.deepEqual([fail.exitCode,fail.stdout,fail.stderr],[8,"\nzip error: Zip file invalid, could not spawn unzip, or wrong unzip (virtual test command failed; original files unmodified)\n",""]);
+        assert.deepEqual(await fs.readFile("/work.zip"),old);assert.deepEqual(await fs.readFile("/src"),Uint8Array.of(3));
+        const ok=await run(`zip -qT --unzip-command="checkzip 'a b' '' {}:{} {}" work.zip src`);
+        assert.deepEqual([ok.exitCode,ok.stdout,ok.stderr],[0,"",""]);
+        assert.deepEqual(calls.map(([args,,magic])=>[args,magic]),[[["fail"],[80,75,3,4]],[["a b","","{}:{}"],[80,75,3,4]]]);
+        for(const [,path] of calls){assert.notEqual(path,"/work.zip");await assert.rejects(async()=>fs.readFile(path));}
+        assert.deepEqual((await run("unzip -p work.zip src")).stdoutBytes,Uint8Array.of(3));
+        const tested=await run("zip -qT -TT 'unzip -tqq {}' work.zip original");
+        assert.deepEqual([tested.exitCode,tested.stdout,tested.stderr],[0,"",""]);
+        assert.deepEqual(await names(),before);
+      });
     }finally{await sh.dispose();}
   }
 });
@@ -7581,7 +7616,7 @@ test("zip tests a staged archive in overlay and mounted memory profiles",async()
   }
 });
 
-test("zip -T dispatches a replacement unzip and retains competing writes",async()=>{
+test("zip -T dispatches a replacement unzip and retains competing writes",async t=>{
   const {Shell,MemoryFileSystem,archiveCommands}=await import("@poe-platform/safe-bash");
   const reference=new MemoryFileSystem();
   for(const [sh,supplied] of [[new Shell({cwd:"/",fs:reference}).use(archiveCommands()),reference],[new RustWasmBash({cwd:"/"})],[new RustWasmBash({cwd:"/"}),new MemoryFileSystem()]]){
@@ -7594,38 +7629,42 @@ test("zip -T dispatches a replacement unzip and retains competing writes",async(
       return {exitCode:0};
     }},{replace:true});
     try{
-      for(target of ["destination","stage"]){
-        await fs.writeFile("/src",Uint8Array.of(4));
-        const r=await run("zip -qTm work.zip src");
-        assert.notEqual(r.exitCode,0,sh.constructor.name+" "+target+" "+staged);assert.ok(staged,sh.constructor.name+" "+r.stderr+" "+r.stdout);
-        assert.deepEqual(await fs.readFile("/src"),Uint8Array.of(4));
-        if(target==="destination"){
-          assert.deepEqual(await fs.readFile("/work.zip"),competitor);
-          await fs.unlink("/work.zip");await assert.rejects(async()=>fs.readFile(staged));
-        }else{await assert.rejects(async()=>fs.readFile("/work.zip"));assert.deepEqual(await fs.readFile(staged),competitor);}
-      }
+      await t.test(sh instanceof RustWasmBash ? (supplied ? "Rust external" : "Rust built-in") : "TypeScript", {skip: sh instanceof RustWasmBash && !hasJspi ? "Rust JavaScript checkers require WebAssembly Promise Integration" : false}, async()=>{
+        for(target of ["destination","stage"]){
+          await fs.writeFile("/src",Uint8Array.of(4));
+          const r=await run("zip -qTm work.zip src");
+          assert.notEqual(r.exitCode,0,sh.constructor.name+" "+target+" "+staged);assert.ok(staged,sh.constructor.name+" "+r.stderr+" "+r.stdout);
+          assert.deepEqual(await fs.readFile("/src"),Uint8Array.of(4));
+          if(target==="destination"){
+            assert.deepEqual(await fs.readFile("/work.zip"),competitor);
+            await fs.unlink("/work.zip");await assert.rejects(async()=>fs.readFile(staged));
+          }else{await assert.rejects(async()=>fs.readFile("/work.zip"));assert.deepEqual(await fs.readFile(staged),competitor);}
+        }
+      });
     }finally{await sh.dispose();}
   }
 });
 
-test("zip -m removes owned aliases but preserves a source changed by its checker",async()=>{
+test("zip -m removes owned aliases but preserves a source changed by its checker",async t=>{
   const {Shell,archiveCommands,MemoryFileSystem}=await import("@poe-platform/safe-bash");
   const reference=new MemoryFileSystem();
   for(const [sh,supplied] of [[new Shell({fs:reference,cwd:"/"}).use(archiveCommands()),reference],[new RustWasmBash({cwd:"/"})],[new RustWasmBash({cwd:"/"}),new MemoryFileSystem()]]){
     const fs=supplied??sh.fs;
     try{
-      await fs.mkdir("/tree");await fs.writeFile("/tree/a",Uint8Array.of(4));await fs.link("/tree/a","/tree/b");
-      await fs.writeFile("/changed",Uint8Array.of(5));
-      sh.register({name:"edit",async execute(ctx){await ctx.fs.writeFile("/changed",Uint8Array.of(6));return {exitCode:0};}});
-      const r=await sh.exec("zip -rmT -TT edit work.zip tree changed",{fs});
-      assert.equal(r.exitCode,0,r.stderr);assert.match(r.stdout,/warning: error deleting changed/);
-      assert.deepEqual(await fs.readFile("/changed"),Uint8Array.of(6));await assert.rejects(fs.lstat("/tree"),{code:"ENOENT"});
-      for(const [name,c] of [["tree/a",4],["tree/b",4],["changed",5]])assert.deepEqual((await sh.exec("unzip -p work.zip "+name,{fs})).stdoutBytes,Uint8Array.of(c));
+      await t.test(sh instanceof RustWasmBash ? (supplied ? "Rust external" : "Rust built-in") : "TypeScript", {skip: sh instanceof RustWasmBash && !hasJspi ? "Rust JavaScript checkers require WebAssembly Promise Integration" : false}, async()=>{
+        await fs.mkdir("/tree");await fs.writeFile("/tree/a",Uint8Array.of(4));await fs.link("/tree/a","/tree/b");
+        await fs.writeFile("/changed",Uint8Array.of(5));
+        sh.register({name:"edit",async execute(ctx){await ctx.fs.writeFile("/changed",Uint8Array.of(6));return {exitCode:0};}});
+        const r=await sh.exec("zip -rmT -TT edit work.zip tree changed",{fs});
+        assert.equal(r.exitCode,0,r.stderr);assert.match(r.stdout,/warning: error deleting changed/);
+        assert.deepEqual(await fs.readFile("/changed"),Uint8Array.of(6));await assert.rejects(fs.lstat("/tree"),{code:"ENOENT"});
+        for(const [name,c] of [["tree/a",4],["tree/b",4],["changed",5]])assert.deepEqual((await sh.exec("unzip -p work.zip "+name,{fs})).stdoutBytes,Uint8Array.of(c));
+      });
     }finally{await sh.dispose();}
   }
 });
 
-test("zip rejects a checker that moves the archive parent under a replacement ancestor",async()=>{
+test("zip rejects a checker that moves the archive parent under a replacement ancestor",{skip: !hasJspi ? "Rust JavaScript checkers require WebAssembly Promise Integration" : false},async()=>{
   const sh=new RustWasmBash({cwd:"/",directories:["/top/dest"],files:{"/src":"original"}});
   sh.register({name:"swap",async execute(ctx){
     await ctx.fs.rename("/top","/saved");await ctx.fs.mkdir("/top");

@@ -7,9 +7,10 @@ const replacement = "--- target\n+++ target\n@@ -1 +1 @@\n-old\n+new\n";
 
 for (const runtime of ["TypeScript", "Rust"]) test(`${runtime} patch preserves a non-UTF-8 mismatched line`, async () => {
   const {Shell, createMemoryFileSystem, agentCommands} = await import("@poe-platform/safe-bash");
-  const fs = createMemoryFileSystem();
-  const shell = runtime === "TypeScript" ? new Shell({fs}).use(agentCommands())
-    : await createRustWasmBash({fs, forceNative: true, cwd: "/"});
+  const reference = runtime === "TypeScript" ? createMemoryFileSystem() : undefined;
+  const shell = runtime === "TypeScript" ? new Shell({fs: reference}).use(agentCommands())
+    : await createRustWasmBash({forceNative: true, cwd: "/"});
+  const fs = reference ?? shell.fs;
   const original = bytes("old\xff\n");
   try {
     await fs.writeFile("/target", original);

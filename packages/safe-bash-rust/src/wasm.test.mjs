@@ -19,6 +19,7 @@ import "./xlsx-xml.wasm.test.mjs";
 import "./xlsx-archive.wasm.test.mjs";
 import "./xlsx-booleans.wasm.test.mjs";
 import "./xlsx-selection.wasm.test.mjs";
+import "./jq-recursion.wasm.test.mjs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { gunzipSync } from "node:zlib";
@@ -3850,31 +3851,6 @@ test("a long jq operator chain cannot exhaust the shell stack", () => {
     const early = bash.execSync(`jq -nc 'first((1,error("late"))+2+3)'`);
     assert.deepEqual([early.exitCode, early.stdout], [0, "6\n"]);
     assert.equal(bash.execSync("echo ok").stdout, "ok\n");
-  } finally { bash.dispose(); }
-});
-
-test("exhausted jq function and path recursion reports a limit and leaves the shell usable", () => {
-  const bash = new RustWasmBash();
-  try {
-    for (const program of [
-      "def f: f; f",
-      "def f: . |= f; try f catch 0",
-      "def f: f; path(f)",
-      "def f: if . > 0 then .-1 | f else . end; 10000 | f",
-    ]) {
-      const r = bash.execSync("jq -n '" + program + "'");
-      assert.deepEqual([r.exitCode, r.stdout, r.stderr], [5, "", "jq: maxDepth limit exceeded\n"]);
-      assert.equal(bash.execSync("echo ok").stdout, "ok\n");
-    }
-  } finally { bash.dispose(); }
-});
-
-test("jq handles two hundred nested user calls without losing the shell", () => {
-  const bash = new RustWasmBash();
-  try {
-    const result = bash.execSync("jq -n 'def countdown: if . > 0 then .-1 | countdown else . end; 200 | countdown'");
-    assert.deepEqual([result.exitCode, result.stdout, result.stderr], [0, "0\n", ""]);
-    assert.equal(bash.execSync("echo still-running").stdout, "still-running\n");
   } finally { bash.dispose(); }
 });
 

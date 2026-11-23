@@ -161,6 +161,10 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
         let (left, op, right) = match binary {
             Binary::Pair(left, op, right) => (left, op, right),
             Binary::LiteralChain { left, suffix } => {
+                // Do not retain an identity callback while the consumer recurses.
+                if left.trim() == "." {
+                    return emit(super::jq_parser::apply_literal_chain(input.clone(), suffix, vars.max_value_bytes)?);
+                }
                 let mut remaining = crate::ShellLimits::default().max_loop_iterations;
                 return visit_jq(left, input, vars, &mut |v| {
                     remaining = remaining.checked_sub(1).ok_or(JqFault::Limit("maxSteps"))?;
@@ -235,34 +239,40 @@ fn visit_filter(s: &str, input: &JVal, vars: &JqScope<'_>, emit: &mut Emit<'_>) 
             });
         }
         let mut remaining = crate::ShellLimits::default().max_loop_iterations;
+        let mut emit_pair = |l: &JVal, r: &JVal| {
+            remaining = remaining.checked_sub(1).ok_or(JqFault::Limit("maxSteps"))?;
+            let value = match op {
+                "==" | "!=" => {
+                    let equal = match (l, r) {
+                        (JVal::Str(a), JVal::Str(b))
+                            if vars.yq.is_some() && b.contains(['*', '?']) =>
+                        {
+                            super::yq_glob_match(a, b)
+                        }
+                        _ => super::jval_eq(l, r),
+                    };
+                    JVal::Bool(equal == (op == "=="))
+                }
+                "<" | "<=" | ">" | ">=" => {
+                    let order = super::compare_jval(l, r);
+                    JVal::Bool(match op {
+                        "<" => order.is_lt(),
+                        "<=" => order.is_le(),
+                        ">" => order.is_gt(),
+                        _ => order.is_ge(),
+                    })
+                }
+                _ => super::apply_jq_arith(l, r, op, vars.max_value_bytes)?,
+            };
+            emit(value)
+        };
+        // Scalar predicates must not retain operand callbacks while branches recurse.
+        if left.trim() == "." && super::jq_parser::starts_number(right.trim())
+            && let Some(right) = super::jq_number::literal(right.trim()) {
+            return emit_pair(input, &right);
+        }
         return visit_jq(right, input, vars, &mut |r| {
-            visit_jq(left, input, vars, &mut |l| {
-                remaining = remaining.checked_sub(1).ok_or(JqFault::Limit("maxSteps"))?;
-                let value = match op {
-                    "==" | "!=" => {
-                        let equal = match (&l, &r) {
-                            (JVal::Str(a), JVal::Str(b))
-                                if vars.yq.is_some() && b.contains(['*', '?']) =>
-                            {
-                                super::yq_glob_match(a, b)
-                            }
-                            _ => super::jval_eq(&l, &r),
-                        };
-                        JVal::Bool(equal == (op == "=="))
-                    }
-                    "<" | "<=" | ">" | ">=" => {
-                        let order = super::compare_jval(&l, &r);
-                        JVal::Bool(match op {
-                            "<" => order.is_lt(),
-                            "<=" => order.is_le(),
-                            ">" => order.is_gt(),
-                            _ => order.is_ge(),
-                        })
-                    }
-                    _ => super::apply_jq_arith(&l, &r, op, vars.max_value_bytes)?,
-                };
-                emit(value)
-            })
+            visit_jq(left, input, vars, &mut |l| emit_pair(&l, &r))
         });
     }
     if let Some(inner) = s.strip_prefix('-') {

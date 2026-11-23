@@ -11,6 +11,14 @@
     ".": {
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
+    },
+    "./caf-alac-fixture": {
+      "types": "./dist/caf-alac-fixture.d.ts",
+      "import": "./dist/caf-alac-fixture.js"
+    },
+    "./caf-ima-fixture": {
+      "types": "./dist/caf-ima-fixture.d.ts",
+      "import": "./dist/caf-ima-fixture.js"
     }
   },
   "files": [

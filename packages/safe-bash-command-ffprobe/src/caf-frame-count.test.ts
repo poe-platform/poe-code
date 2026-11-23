@@ -2,8 +2,8 @@ import { expect, it } from "vitest";
 import { MemoryFileSystem } from "@poe-code/safe-fs/core";
 import { createCommandArguments } from "safe-bash-contracts/command";
 import { cafAst } from "@poe-code/mp4-ast";
-import { cafAlac } from "../../mp4-ast/dist/caf-alac-fixture.js";
-import { cafIma } from "../../mp4-ast/dist/caf-ima-fixture.js";
+import { cafAlac } from "@poe-code/mp4-ast/caf-alac-fixture";
+import { cafIma } from "@poe-code/mp4-ast/caf-ima-fixture";
 import { createFfprobeCommand, evalSyncFfprobe } from "./media.js";
 
 // Eight complete mono PCM16 frames, one packet, and no packet table.

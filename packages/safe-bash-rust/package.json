@@ -9,7 +9,16 @@
   "types": "./dist/index.d.ts",
   "files": [
     "dist",
-    "LICENSE*"
+    "LICENSE",
+    "LICENSE.AAC",
+    "LICENSE.AMR",
+    "LICENSE.BZIP2",
+    "LICENSE.EXR",
+    "LICENSE.GLIB",
+    "LICENSE.GNUMERIC",
+    "LICENSE.PDFJS",
+    "LICENSE.UNICODE",
+    "LICENSE.WAVPACK"
   ],
   "exports": {
     ".": {

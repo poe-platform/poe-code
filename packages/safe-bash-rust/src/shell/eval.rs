@@ -6478,22 +6478,8 @@ impl<'a> EvalState<'a> {
             );
         }
 
-        // Preserve the host's long-listing presentation in hybrid mode. Native
-        // workers use cmd_ls's metadata rendering without requiring a TS host.
-        let long_listing = effective_cmd == "ls"
-            && args
-                .iter()
-                .take_while(|arg| arg.as_str() != "--")
-                .any(|arg| {
-                    arg.starts_with('-')
-                        && !arg.starts_with("--")
-                        && arg
-                            .chars()
-                            .skip(1)
-                            .any(|flag| matches!(flag, 'l' | 'g' | 'o' | 'n'))
-                });
         // Keep the host bridge at the individual command boundary.
-        let bridge_only = (long_listing && self.allow_unported_fallback) || matches!(effective_cmd, "python" | "python3");
+        let bridge_only = matches!(effective_cmd, "python" | "python3");
         if bridge_only
             || self.allow_unported_fallback
                 && matches!(

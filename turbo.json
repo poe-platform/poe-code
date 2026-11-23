@@ -717,6 +717,9 @@
       ]
     },
     "safe-bash-command-imagemagick#test:unit": {
+      "dependsOn": [
+        "^build"
+      ],
       "cache": false
     },
     "@poe-code/document-converter-rust#build": {

@@ -143,6 +143,19 @@ describe("shared Vitest task selection", () => {
     expect(stages[0].testArguments).toEqual(["--workspace=alpha", "--test-file=packages/alpha/src/unit.test.ts", "packages/alpha"]);
   });
 
+  for (const [workspace, index] of [["alpha", 1], [".", 0]] as const) {
+    it(`uses the cached runner when only ${workspace} is selected`, () => {
+      const { fileSystem, plan } = fixture();
+      const selected = plan.testStages[index];
+      plan.testStages = [selected];
+      const stages = sharedVitestStages({ ...plan, selectedWorkspaces: [workspace] }, fileSystem);
+      expect(stages).toHaveLength(1);
+      expect(stages[0].event).toBe("test:unit:shared");
+      expect(stages[0].phases.map(phase => phase.name)).toEqual([selected.name]);
+      expect(stages[0].testArguments).toEqual([`--workspace=${workspace}`, selected.path ?? "."]);
+    });
+  }
+
   it("requires the declared shared command and supported root selection", () => {
     for (const field of ["test:unit", "test:unit:shared"]) {
       const { fileSystem, plan } = fixture();

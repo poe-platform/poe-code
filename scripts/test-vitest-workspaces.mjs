@@ -18,7 +18,7 @@ export function sharedVitestStages(plan, fileSystem = fs) {
   const selections = new Map(workspaceUnitSelections(plan.root, fileSystem)
     .filter(selection => !selection.hasHooks && !selection.requiresNativePool).map(selection => [selection.path, selection]));
   const compatible = plan.testStages.filter(stage => stage.path === null || selections.has(stage.path));
-  if (compatible.length < (plan.testFiles ? 1 : 2)) return plan.testStages;
+  if (compatible.length < (plan.selectedWorkspaces || plan.testFiles ? 1 : 2)) return plan.testStages;
   const root = compatible.find(stage => stage.path === null)
     ?? (plan.ciGroup || plan.selectedWorkspaces ? { ...compatible[0], id: "//#test:unit", name: plan.rootManifest.name, path: null } : undefined);
   if (!root) return plan.testStages;
